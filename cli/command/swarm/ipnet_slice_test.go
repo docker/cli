@@ -10,7 +10,7 @@ import (
 )
 
 // Helper function to set static slices
-func getCIDR(ip net.IP, cidr *net.IPNet, err error) net.IPNet {
+func getCIDR(_ net.IP, cidr *net.IPNet, _ error) net.IPNet {
 	return *cidr
 }
 

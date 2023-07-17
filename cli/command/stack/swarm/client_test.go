@@ -43,7 +43,7 @@ type fakeClient struct {
 	configRemoveFunc  func(configID string) error
 }
 
-func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
+func (cli *fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
 		APIVersion: api.DefaultVersion,
@@ -54,7 +54,7 @@ func (cli *fakeClient) ClientVersion() string {
 	return cli.version
 }
 
-func (cli *fakeClient) ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+func (cli *fakeClient) ServiceList(_ context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
 	if cli.serviceListFunc != nil {
 		return cli.serviceListFunc(options)
 	}
@@ -69,7 +69,7 @@ func (cli *fakeClient) ServiceList(ctx context.Context, options types.ServiceLis
 	return servicesList, nil
 }
 
-func (cli *fakeClient) NetworkList(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
+func (cli *fakeClient) NetworkList(_ context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
 	if cli.networkListFunc != nil {
 		return cli.networkListFunc(options)
 	}
@@ -84,7 +84,7 @@ func (cli *fakeClient) NetworkList(ctx context.Context, options types.NetworkLis
 	return networksList, nil
 }
 
-func (cli *fakeClient) SecretList(ctx context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+func (cli *fakeClient) SecretList(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 	if cli.secretListFunc != nil {
 		return cli.secretListFunc(options)
 	}
@@ -99,7 +99,7 @@ func (cli *fakeClient) SecretList(ctx context.Context, options types.SecretListO
 	return secretsList, nil
 }
 
-func (cli *fakeClient) ConfigList(ctx context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+func (cli *fakeClient) ConfigList(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 	if cli.configListFunc != nil {
 		return cli.configListFunc(options)
 	}
@@ -114,28 +114,28 @@ func (cli *fakeClient) ConfigList(ctx context.Context, options types.ConfigListO
 	return configsList, nil
 }
 
-func (cli *fakeClient) TaskList(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+func (cli *fakeClient) TaskList(_ context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
 	if cli.taskListFunc != nil {
 		return cli.taskListFunc(options)
 	}
 	return []swarm.Task{}, nil
 }
 
-func (cli *fakeClient) NodeList(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
+func (cli *fakeClient) NodeList(_ context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
 	if cli.nodeListFunc != nil {
 		return cli.nodeListFunc(options)
 	}
 	return []swarm.Node{}, nil
 }
 
-func (cli *fakeClient) NodeInspectWithRaw(ctx context.Context, ref string) (swarm.Node, []byte, error) {
+func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, ref string) (swarm.Node, []byte, error) {
 	if cli.nodeInspectWithRaw != nil {
 		return cli.nodeInspectWithRaw(ref)
 	}
 	return swarm.Node{}, nil, nil
 }
 
-func (cli *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
 	if cli.serviceUpdateFunc != nil {
 		return cli.serviceUpdateFunc(serviceID, version, service, options)
 	}
@@ -143,7 +143,7 @@ func (cli *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, vers
 	return types.ServiceUpdateResponse{}, nil
 }
 
-func (cli *fakeClient) ServiceRemove(ctx context.Context, serviceID string) error {
+func (cli *fakeClient) ServiceRemove(_ context.Context, serviceID string) error {
 	if cli.serviceRemoveFunc != nil {
 		return cli.serviceRemoveFunc(serviceID)
 	}
@@ -152,7 +152,7 @@ func (cli *fakeClient) ServiceRemove(ctx context.Context, serviceID string) erro
 	return nil
 }
 
-func (cli *fakeClient) NetworkRemove(ctx context.Context, networkID string) error {
+func (cli *fakeClient) NetworkRemove(_ context.Context, networkID string) error {
 	if cli.networkRemoveFunc != nil {
 		return cli.networkRemoveFunc(networkID)
 	}
@@ -161,7 +161,7 @@ func (cli *fakeClient) NetworkRemove(ctx context.Context, networkID string) erro
 	return nil
 }
 
-func (cli *fakeClient) SecretRemove(ctx context.Context, secretID string) error {
+func (cli *fakeClient) SecretRemove(_ context.Context, secretID string) error {
 	if cli.secretRemoveFunc != nil {
 		return cli.secretRemoveFunc(secretID)
 	}
@@ -170,7 +170,7 @@ func (cli *fakeClient) SecretRemove(ctx context.Context, secretID string) error 
 	return nil
 }
 
-func (cli *fakeClient) ConfigRemove(ctx context.Context, configID string) error {
+func (cli *fakeClient) ConfigRemove(_ context.Context, configID string) error {
 	if cli.configRemoveFunc != nil {
 		return cli.configRemoveFunc(configID)
 	}

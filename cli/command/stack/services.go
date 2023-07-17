@@ -30,7 +30,7 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunServices(dockerCli, cmd.Flags(), opts)
+			return RunServices(dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -44,16 +44,18 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunServices performs a stack services against the specified swarm cluster
-func RunServices(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Services) error {
-	services, err := GetServices(dockerCli, flags, opts)
+func RunServices(dockerCli command.Cli, opts options.Services) error {
+	services, err := swarm.GetServices(dockerCli, opts)
 	if err != nil {
 		return err
 	}
 	return formatWrite(dockerCli, services, opts)
 }
 
-// GetServices returns the services for the specified swarm cluster
-func GetServices(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Services) ([]swarmtypes.Service, error) {
+// GetServices returns the services for the specified swarm cluster.
+//
+// Deprecated: use [swarm.GetServices] instead.
+func GetServices(dockerCli command.Cli, _ *pflag.FlagSet, opts options.Services) ([]swarmtypes.Service, error) {
 	return swarm.GetServices(dockerCli, opts)
 }
 

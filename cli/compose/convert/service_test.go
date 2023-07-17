@@ -596,14 +596,14 @@ type fakeClient struct {
 	configListFunc func(types.ConfigListOptions) ([]swarm.Config, error)
 }
 
-func (c *fakeClient) SecretList(ctx context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+func (c *fakeClient) SecretList(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 	if c.secretListFunc != nil {
 		return c.secretListFunc(options)
 	}
 	return []swarm.Secret{}, nil
 }
 
-func (c *fakeClient) ConfigList(ctx context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+func (c *fakeClient) ConfigList(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
 	if c.configListFunc != nil {
 		return c.configListFunc(options)
 	}

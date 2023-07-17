@@ -22,7 +22,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackNames(opts.Namespaces); err != nil {
 				return err
 			}
-			return RunRemove(dockerCli, cmd.Flags(), opts)
+			return swarm.RunRemove(dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -31,7 +31,9 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// RunRemove performs a stack remove against the specified swarm cluster
-func RunRemove(dockerCli command.Cli, flags *pflag.FlagSet, opts options.Remove) error {
+// RunRemove performs a stack remove against the specified swarm cluster.
+//
+// Deprecated: use [swarm.RunRemove] instead.
+func RunRemove(dockerCli command.Cli, _ *pflag.FlagSet, opts options.Remove) error {
 	return swarm.RunRemove(dockerCli, opts)
 }

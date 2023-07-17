@@ -52,6 +52,6 @@ func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string) error 
 	return nil
 }
 
-func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, network string, options types.NetworkInspectOptions) (types.NetworkResource, []byte, error) {
+func (c *fakeClient) NetworkInspectWithRaw(context.Context, string, types.NetworkInspectOptions) (types.NetworkResource, []byte, error) {
 	return types.NetworkResource{}, nil, nil
 }
