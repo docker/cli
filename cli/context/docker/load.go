@@ -100,15 +100,13 @@ func (ep *Endpoint) ClientOpts() ([]client.Opt, error) {
 			)
 
 		} else {
-			httpClient := &http.Client{
-				// No tls
-				// No proxy
-				Transport: &http.Transport{
-					DialContext: helper.Dialer,
-				},
-			}
 			result = append(result,
-				client.WithHTTPClient(httpClient),
+				client.WithHTTPClient(&http.Client{
+					// No TLS, and no proxy.
+					Transport: &http.Transport{
+						DialContext: helper.Dialer,
+					},
+				}),
 				client.WithHost(helper.Host),
 				client.WithDialContext(helper.Dialer),
 			)
@@ -125,8 +123,7 @@ func withHTTPClient(tlsConfig *tls.Config) func(*client.Client) error {
 			// Use the default HTTPClient
 			return nil
 		}
-
-		httpClient := &http.Client{
+		return client.WithHTTPClient(&http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: tlsConfig,
 				DialContext: (&net.Dialer{
@@ -135,8 +132,7 @@ func withHTTPClient(tlsConfig *tls.Config) func(*client.Client) error {
 				}).DialContext,
 			},
 			CheckRedirect: client.CheckRedirect,
-		}
-		return client.WithHTTPClient(httpClient)(c)
+		})(c)
 	}
 }
 
