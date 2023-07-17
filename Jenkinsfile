@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label "amd64 && ubuntu-1804 && overlay2"
+        label "amd64 && ubuntu-2004 && overlay2"
     }
 
     options {
