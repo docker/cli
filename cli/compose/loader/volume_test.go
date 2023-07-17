@@ -223,3 +223,8 @@ func TestParseVolumeInvalidSections(t *testing.T) {
 	_, err := ParseVolume("/foo::rw")
 	assert.ErrorContains(t, err, "invalid spec")
 }
+
+func TestParseVolumeWithEmptySource(t *testing.T) {
+	_, err := ParseVolume(":/vol")
+	assert.ErrorContains(t, err, "empty section between colons")
+}

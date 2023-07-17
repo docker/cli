@@ -354,7 +354,10 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	volumes := copts.volumes.GetMap()
 	// add any bind targets to the list of container volumes
 	for bind := range copts.volumes.GetMap() {
-		parsed, _ := loader.ParseVolume(bind)
+		parsed, err := loader.ParseVolume(bind)
+		if err != nil {
+			return nil, err
+		}
 
 		if parsed.Source != "" {
 			toBind := bind

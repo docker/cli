@@ -101,3 +101,19 @@ func TestTrustedCreateFromBadTrustServer(t *testing.T) {
 		Err:      "could not rotate trust to a new trusted root",
 	})
 }
+
+func TestCreateWithEmptySourceVolume(t *testing.T) {
+	icmd.RunCmd(icmd.Command("docker", "create", "-v", ":/volume", fixtures.AlpineImage)).
+		Assert(t, icmd.Expected{
+			ExitCode: 125,
+			Err:      "empty section between colons",
+		})
+}
+
+func TestCreateWithEmptyVolumeSpec(t *testing.T) {
+	icmd.RunCmd(icmd.Command("docker", "create", "-v", "", fixtures.AlpineImage)).
+		Assert(t, icmd.Expected{
+			ExitCode: 125,
+			Err:      "invalid empty volume spec",
+		})
+}
