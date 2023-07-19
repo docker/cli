@@ -729,6 +729,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		hasUserDefined, hasNonUserDefined bool
 	)
 
+	numNetworks := len(copts.netMode.Value()) - 1
 	for i, n := range copts.netMode.Value() {
 		n := n
 		if container.NetworkMode(n.Target).IsUserDefined() {
@@ -747,6 +748,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 			}
 		}
 		ep, err := parseNetworkAttachmentOpt(n)
+		ep.Priority = numNetworks - i
 		if err != nil {
 			return nil, err
 		}
