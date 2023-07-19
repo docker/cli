@@ -12,7 +12,7 @@ github.com/Microsoft/go-winio/pkg/guid
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
-# github.com/cespare/xxhash/v2 v2.1.2
+# github.com/cespare/xxhash/v2 v2.2.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
 # github.com/container-orchestrated-devices/container-device-interface v0.6.0
