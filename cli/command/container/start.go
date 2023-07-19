@@ -27,7 +27,9 @@ type StartOptions struct {
 	Containers []string
 }
 
-// NewStartOptions creates a new StartOptions
+// NewStartOptions creates a new StartOptions.
+//
+// Deprecated: create a new [StartOptions] directly.
 func NewStartOptions() StartOptions {
 	return StartOptions{}
 }
