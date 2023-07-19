@@ -187,7 +187,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		defer closeFn()
 	}
 
-	statusChan := waitExitOrRemoved(ctx, dockerCli, containerID, copts.autoRemove)
+	statusChan := waitExitOrRemoved(ctx, dockerCli.Client(), containerID, copts.autoRemove)
 
 	// start the container
 	if err := client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
