@@ -25,10 +25,6 @@ func Context() context.Context {
 		retries := 0
 
 		ctx := context.Background()
-		for _, f := range inits {
-			ctx = f(ctx)
-		}
-
 		ctx, cancel := context.WithCancel(ctx)
 		appContextCache = ctx
 
