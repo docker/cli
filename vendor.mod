@@ -22,7 +22,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/mattn/go-runewidth v0.0.14
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/moby/buildkit v0.11.6
+	github.com/moby/buildkit v0.12.0
 	github.com/moby/patternmatcher v0.5.0
 	github.com/moby/swarmkit/v2 v2.0.0-20230707182847-6f78b8199b05
 	github.com/moby/sys/sequential v0.5.0
@@ -71,6 +71,8 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.etcd.io/etcd/raft/v3 v3.5.6 // indirect
+	go.opentelemetry.io/otel v1.14.0 // indirect
+	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
