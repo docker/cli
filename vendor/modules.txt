@@ -182,9 +182,6 @@ github.com/miekg/pkcs11
 # github.com/mitchellh/mapstructure v1.3.2
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
-# github.com/moby/buildkit v0.11.6
-## explicit; go 1.18
-github.com/moby/buildkit/util/appcontext
 # github.com/moby/patternmatcher v0.6.0
 ## explicit; go 1.19
 github.com/moby/patternmatcher
