@@ -1,5 +1,5 @@
 variable "GO_VERSION" {
-    default = "1.19.10"
+    default = "1.19.11"
 }
 variable "VERSION" {
     default = ""
@@ -22,7 +22,7 @@ target "binary" {
     platforms = ["local"]
     output = ["build"]
     args = {
-        BASE_VARIANT = USE_GLIBC != "" ? "buster" : "alpine"
+        BASE_VARIANT = USE_GLIBC != "" ? "bullseye" : "alpine"
         VERSION = VERSION
         GO_STRIP = STRIP_TARGET
     }
