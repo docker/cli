@@ -41,6 +41,9 @@ func (e *pluginError) MarshalText() (text []byte, err error) {
 // wrapAsPluginError wraps an error in a pluginError with an
 // additional message, analogous to errors.Wrapf.
 func wrapAsPluginError(err error, msg string) error {
+	if err == nil {
+		return nil
+	}
 	return &pluginError{cause: errors.Wrap(err, msg)}
 }
 

@@ -187,6 +187,36 @@ func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 	return cli.ServerInfo().OSType != "windows", nil
 }
 
+// HooksEnabled returns whether plugin hooks are enabled.
+func (cli *DockerCli) HooksEnabled() bool {
+	// legacy support DOCKER_CLI_HINTS env var
+	if v := os.Getenv("DOCKER_CLI_HINTS"); v != "" {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return enabled
+	}
+	// use DOCKER_CLI_HOOKS env var value if set and not empty
+	if v := os.Getenv("DOCKER_CLI_HOOKS"); v != "" {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return enabled
+	}
+	featuresMap := cli.ConfigFile().Features
+	if v, ok := featuresMap["hooks"]; ok {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return enabled
+	}
+	// default to false
+	return false
+}
+
 // ManifestStore returns a store for local manifests
 func (cli *DockerCli) ManifestStore() manifeststore.Store {
 	// TODO: support override default location from config file

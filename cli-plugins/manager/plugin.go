@@ -2,6 +2,7 @@ package manager
 
 import (
 	"encoding/json"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -99,4 +100,23 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 		return p, nil
 	}
 	return p, nil
+}
+
+// RunHook executes the plugin's hooks command
+// and returns its unprocessed output.
+func (p *Plugin) RunHook(cmdName string, flags map[string]string) ([]byte, error) {
+	hDataBytes, err := json.Marshal(HookPluginData{
+		RootCmd: cmdName,
+		Flags:   flags,
+	})
+	if err != nil {
+		return nil, wrapAsPluginError(err, "failed to marshall hook data")
+	}
+
+	hookCmdOutput, err := exec.Command(p.Path, p.Name, HookSubcommandName, string(hDataBytes)).Output()
+	if err != nil {
+		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand")
+	}
+
+	return hookCmdOutput, nil
 }

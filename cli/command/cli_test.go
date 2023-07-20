@@ -307,3 +307,56 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 	})))
 	assert.Check(t, cli.ContextStore() != nil)
 }
+
+func TestHooksEnabled(t *testing.T) {
+	t.Run("disabled by default", func(t *testing.T) {
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+
+		assert.Check(t, !cli.HooksEnabled())
+	})
+
+	t.Run("enabled in configFile", func(t *testing.T) {
+		configFile := `{
+    "features": {
+      "hooks": "true"
+    }}`
+		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
+		defer dir.Remove()
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+		config.SetDir(dir.Path())
+
+		assert.Check(t, cli.HooksEnabled())
+	})
+
+	t.Run("env var overrides configFile", func(t *testing.T) {
+		configFile := `{
+    "features": {
+      "hooks": "true"
+    }}`
+		t.Setenv("DOCKER_CLI_HOOKS", "false")
+		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
+		defer dir.Remove()
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+		config.SetDir(dir.Path())
+
+		assert.Check(t, !cli.HooksEnabled())
+	})
+
+	t.Run("legacy env var overrides configFile", func(t *testing.T) {
+		configFile := `{
+    "features": {
+      "hooks": "true"
+    }}`
+		t.Setenv("DOCKER_CLI_HINTS", "false")
+		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
+		defer dir.Remove()
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+		config.SetDir(dir.Path())
+
+		assert.Check(t, !cli.HooksEnabled())
+	})
+}

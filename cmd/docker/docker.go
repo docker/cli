@@ -278,6 +278,7 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	return nil
 }
 
+//nolint:gocyclo
 func runDocker(dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
 
@@ -306,23 +307,42 @@ func runDocker(dockerCli *command.DockerCli) error {
 		}
 	}
 
+	var subCommand *cobra.Command
 	if len(args) > 0 {
 		ccmd, _, err := cmd.Find(args)
+		subCommand = ccmd
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(dockerCli, cmd, args[0], envs)
+			if err == nil {
+				if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && ccmd != nil {
+					_ = pluginmanager.RunPluginHooks(dockerCli, cmd, ccmd, args[0], args)
+				}
+				return nil
+			}
 			if !pluginmanager.IsNotFound(err) {
+				// For plugin not found we fall through to
+				// cmd.Execute() which deals with reporting
+				// "command not found" in a consistent way.
 				return err
 			}
-			// For plugin not found we fall through to
-			// cmd.Execute() which deals with reporting
-			// "command not found" in a consistent way.
 		}
 	}
 
 	// We've parsed global args already, so reset args to those
 	// which remain.
 	cmd.SetArgs(args)
-	return cmd.Execute()
+	err = cmd.Execute()
+	if err != nil {
+		return err
+	}
+
+	// If the command is being executed in an interactive terminal,
+	// run the plugin hooks (but don't throw an error if something misbehaves)
+	if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && subCommand != nil {
+		_ = pluginmanager.RunPluginHooks(dockerCli, cmd, subCommand, "", args)
+	}
+
+	return nil
 }
 
 type versionDetails interface {
