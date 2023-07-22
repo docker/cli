@@ -250,7 +250,7 @@ func (c *imageContext) CreatedAt() string {
 }
 
 func (c *imageContext) Size() string {
-	return units.HumanSizeWithPrecision(float64(c.i.Size), 3)
+	return units.HumanSize(float64(c.i.Size))
 }
 
 func (c *imageContext) Containers() string {
