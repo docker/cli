@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/reference"
 	"github.com/google/go-cmp/cmp"
+	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -54,15 +55,15 @@ func TestStoreRemove(t *testing.T) {
 func TestStoreSaveAndGet(t *testing.T) {
 	store := NewStore(t.TempDir())
 	listRef := ref("list")
-	data := types.ImageManifest{Ref: sref(t, "abcdef")}
-	err := store.Save(listRef, ref("exists"), data)
+	data := []types.ImageManifest{{Ref: sref(t, "abcdef")}}
+	err := store.Save(listRef, ref("exists"), data...)
 	assert.NilError(t, err)
 
 	testcases := []struct {
 		listRef     reference.Reference
 		manifestRef reference.Reference
-		expected    types.ImageManifest
-		expectedErr string
+		expected    []types.ImageManifest
+		expectedErr error
 	}{
 		{
 			listRef:     listRef,
@@ -72,12 +73,12 @@ func TestStoreSaveAndGet(t *testing.T) {
 		{
 			listRef:     listRef,
 			manifestRef: ref("exist:does-not"),
-			expectedErr: "No such manifest: exist:does-not",
+			expectedErr: types.ErrManifestNotFound,
 		},
 		{
 			listRef:     ref("list:does-not-exist"),
 			manifestRef: ref("manifest:does-not-exist"),
-			expectedErr: "No such manifest: manifest:does-not-exist",
+			expectedErr: types.ErrManifestNotFound,
 		},
 	}
 
@@ -85,9 +86,8 @@ func TestStoreSaveAndGet(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
 			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
-			if testcase.expectedErr != "" {
-				assert.Error(t, err, testcase.expectedErr)
-				assert.Check(t, IsNotFound(err))
+			if testcase.expectedErr != nil {
+				assert.Check(t, errors.Is(err, types.ErrManifestNotFound))
 				return
 			}
 			assert.NilError(t, err)
@@ -117,6 +117,5 @@ func TestStoreGetListDoesNotExist(t *testing.T) {
 	store := NewStore(t.TempDir())
 	listRef := ref("list")
 	_, err := store.GetList(listRef)
-	assert.Error(t, err, "No such manifest: list")
-	assert.Check(t, IsNotFound(err))
+	assert.Check(t, errors.Is(err, types.ErrManifestNotFound))
 }

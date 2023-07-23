@@ -99,10 +99,10 @@ func TestManifestCreateNoManifest(t *testing.T) {
 	cli.SetManifestStore(store)
 	cli.SetRegistryClient(&fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
-			return manifesttypes.ImageManifest{}, errors.Errorf("No such image: %v", ref)
+			return manifesttypes.ImageManifest{}, errors.Wrapf(manifesttypes.ErrManifestNotFound, "%q does not exist", ref)
 		},
 		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
-			return nil, errors.Errorf("No such manifest: %s", ref)
+			return nil, errors.Wrapf(manifesttypes.ErrManifestNotFound, "%q does not exist", ref)
 		},
 	})
 
@@ -110,5 +110,5 @@ func TestManifestCreateNoManifest(t *testing.T) {
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOut(io.Discard)
 	err := cmd.Execute()
-	assert.Error(t, err, "No such image: example.com/alpine:3.0")
+	assert.Error(t, err, `"example.com/alpine:3.0" does not exist: manifest not found`)
 }

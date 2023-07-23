@@ -18,9 +18,9 @@ import (
 // Store manages local storage of image distribution manifests
 type Store interface {
 	Remove(listRef reference.Reference) error
-	Get(listRef reference.Reference, manifest reference.Reference) (types.ImageManifest, error)
+	Get(listRef reference.Reference, manifest reference.Reference) ([]types.ImageManifest, error)
 	GetList(listRef reference.Reference) ([]types.ImageManifest, error)
-	Save(listRef reference.Reference, manifest reference.Reference, image types.ImageManifest) error
+	Save(listRef reference.Reference, manifest reference.Reference, image ...types.ImageManifest) error
 }
 
 // fsStore manages manifest files stored on the local filesystem
@@ -40,16 +40,37 @@ func (s *fsStore) Remove(listRef reference.Reference) error {
 }
 
 // Get returns the local manifest
-func (s *fsStore) Get(listRef reference.Reference, manifest reference.Reference) (types.ImageManifest, error) {
+func (s *fsStore) Get(listRef reference.Reference, manifest reference.Reference) ([]types.ImageManifest, error) {
+	var imgs []types.ImageManifest
 	filename := manifestToFilename(s.root, listRef.String(), manifest.String())
-	return s.getFromFilename(manifest, filename)
+
+	img, err := s.getFromFilename(manifest, filename)
+	if err != nil {
+		return nil, err
+	}
+	imgs = append(imgs, img)
+
+	i := 2
+	for {
+		img, err := s.getFromFilename(manifest, fmt.Sprintf("%s_%d", filename, i))
+		if errors.Is(err, types.ErrManifestNotFound) {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		imgs = append(imgs, img)
+
+		i++
+	}
+
+	return imgs, nil
 }
 
 func (s *fsStore) getFromFilename(ref reference.Reference, filename string) (types.ImageManifest, error) {
 	bytes, err := os.ReadFile(filename)
 	switch {
 	case os.IsNotExist(err):
-		return types.ImageManifest{}, newNotFoundError(ref.String())
+		return types.ImageManifest{}, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", ref.String())
 	case err != nil:
 		return types.ImageManifest{}, err
 	}
@@ -93,7 +114,7 @@ func (s *fsStore) GetList(listRef reference.Reference) ([]types.ImageManifest, e
 	case err != nil:
 		return nil, err
 	case filenames == nil:
-		return nil, newNotFoundError(listRef.String())
+		return nil, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", listRef.String())
 	}
 
 	manifests := []types.ImageManifest{}
@@ -127,16 +148,34 @@ func (s *fsStore) listManifests(transaction string) ([]string, error) {
 }
 
 // Save a manifest as part of a local manifest list
-func (s *fsStore) Save(listRef reference.Reference, manifest reference.Reference, image types.ImageManifest) error {
+func (s *fsStore) Save(listRef reference.Reference, manifest reference.Reference, images ...types.ImageManifest) error {
 	if err := s.createManifestListDirectory(listRef.String()); err != nil {
 		return err
 	}
+	if len(images) == 0 {
+		return nil
+	}
+
 	filename := manifestToFilename(s.root, listRef.String(), manifest.String())
-	bytes, err := json.Marshal(image)
+	bytes, err := json.Marshal(images[0])
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filename, bytes, 0o644)
+	if err := os.WriteFile(filename, bytes, 0o644); err != nil {
+		return err
+	}
+
+	for i, image := range images[1:] {
+		bytes, err := json.Marshal(image)
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(fmt.Sprintf("%s_%d", filename, i+2), bytes, 0o644); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *fsStore) createManifestListDirectory(transaction string) error {
@@ -151,29 +190,4 @@ func manifestToFilename(root, manifestList, manifest string) string {
 func makeFilesafeName(ref string) string {
 	fileName := strings.Replace(ref, ":", "-", -1)
 	return strings.Replace(fileName, "/", "_", -1)
-}
-
-type notFoundError struct {
-	object string
-}
-
-func newNotFoundError(ref string) *notFoundError {
-	return &notFoundError{object: ref}
-}
-
-func (n *notFoundError) Error() string {
-	return fmt.Sprintf("No such manifest: %s", n.object)
-}
-
-// NotFound interface
-func (n *notFoundError) NotFound() {}
-
-// IsNotFound returns true if the error is a not found error
-func IsNotFound(err error) bool {
-	_, ok := err.(notFound)
-	return ok
-}
-
-type notFound interface {
-	NotFound()
 }

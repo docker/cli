@@ -43,9 +43,9 @@ func fetchManifest(ctx context.Context, repo distribution.Repository, ref refere
 		}
 		return imageManifest, nil
 	case *manifestlist.DeserializedManifestList:
-		return types.ImageManifest{}, errors.Errorf("%s is a manifest list", ref)
+		return types.ImageManifest{}, errors.Wrapf(types.ErrManifestNotFound, "%q is a manifest list", ref)
 	}
-	return types.ImageManifest{}, errors.Errorf("%s is not a manifest", ref)
+	return types.ImageManifest{}, errors.Wrapf(types.ErrUnknownType, "%q does not exist", ref)
 }
 
 func fetchList(ctx context.Context, repo distribution.Repository, ref reference.Named) ([]types.ImageManifest, error) {
@@ -55,6 +55,8 @@ func fetchList(ctx context.Context, repo distribution.Repository, ref reference.
 	}
 
 	switch v := manifest.(type) {
+	case *schema2.DeserializedManifest, *ocischema.DeserializedManifest:
+		return nil, errors.Wrapf(types.ErrManifestNotFound, "%q is not a manifest list", ref)
 	case *manifestlist.DeserializedManifestList:
 		imageManifests, err := pullManifestList(ctx, ref, repo, *v)
 		if err != nil {
@@ -62,7 +64,7 @@ func fetchList(ctx context.Context, repo distribution.Repository, ref reference.
 		}
 		return imageManifests, nil
 	default:
-		return nil, errors.Errorf("unsupported manifest format: %v", v)
+		return nil, types.ErrUnknownType
 	}
 }
 
@@ -74,7 +76,7 @@ func getManifest(ctx context.Context, repo distribution.Repository, ref referenc
 
 	dgst, opts, err := getManifestOptionsFromReference(ref)
 	if err != nil {
-		return nil, errors.Errorf("image manifest for %q does not exist", ref)
+		return nil, errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", ref)
 	}
 	return manSvc.Get(ctx, dgst, opts...)
 }
@@ -195,7 +197,7 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		case *ocischema.DeserializedManifest:
 			imageManifest, err = pullManifestOCISchema(ctx, manifestRef, repo, *v)
 		default:
-			err = errors.Errorf("unsupported manifest type: %T", manifest)
+			err = types.ErrUnknownType
 		}
 		if err != nil {
 			return nil, err
@@ -287,7 +289,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 			return nil
 		}
 	}
-	return newNotFoundError(namedRef.String())
+	return errors.Wrapf(types.ErrManifestNotFound, "%q does not exist", namedRef)
 }
 
 // allEndpoints returns a list of endpoints ordered by priority (v2, https, v1).
@@ -310,18 +312,3 @@ func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoi
 	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
 	return endpoints, err
 }
-
-func newNotFoundError(ref string) *notFoundError {
-	return &notFoundError{err: errors.New("no such manifest: " + ref)}
-}
-
-type notFoundError struct {
-	err error
-}
-
-func (n *notFoundError) Error() string {
-	return n.err.Error()
-}
-
-// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
-func (n *notFoundError) NotFound() {}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
+	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -50,7 +50,7 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 	manifestStore := dockerCli.ManifestStore()
 	_, err = manifestStore.GetList(targetRef)
 	switch {
-	case store.IsNotFound(err):
+	case errors.Is(err, types.ErrManifestNotFound):
 		// New manifest list
 	case err != nil:
 		return err
@@ -69,11 +69,11 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 			return err
 		}
 
-		manifest, err := getManifest(ctx, dockerCli, targetRef, namedRef, opts.insecure)
+		manifests, err := getManifests(ctx, dockerCli, targetRef, namedRef, opts.insecure)
 		if err != nil {
 			return err
 		}
-		if err := manifestStore.Save(targetRef, namedRef, manifest); err != nil {
+		if err := manifestStore.Save(targetRef, namedRef, manifests...); err != nil {
 			return err
 		}
 	}
