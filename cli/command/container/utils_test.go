@@ -2,13 +2,12 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -24,7 +23,7 @@ func waitFn(cid string) (<-chan container.WaitResponse, <-chan error) {
 			res.StatusCode = 42
 			resC <- res
 		case strings.Contains(cid, "non-existent"):
-			err := errors.Errorf("no such container: %v", cid)
+			err := fmt.Errorf("no such container: %v", cid)
 			errC <- err
 		case strings.Contains(cid, "wait-error"):
 			res.Error = &container.WaitExitError{Message: "removal failed"}
@@ -61,7 +60,7 @@ func TestWaitExitOrRemoved(t *testing.T) {
 		},
 	}
 
-	client := test.NewFakeCli(&fakeClient{waitFunc: waitFn, Version: api.DefaultVersion})
+	client := &fakeClient{waitFunc: waitFn, Version: api.DefaultVersion}
 	for _, testcase := range testcases {
 		statusC := waitExitOrRemoved(context.Background(), client, testcase.cid, true)
 		exitCode := <-statusC

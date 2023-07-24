@@ -145,14 +145,14 @@ func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 
 		// 3. We should open a channel for receiving status code of the container
 		// no matter it's detached, removed on daemon side(--rm) or exit normally.
-		statusChan := waitExitOrRemoved(ctx, dockerCli, c.ID, c.HostConfig.AutoRemove)
-		startOptions := types.ContainerStartOptions{
-			CheckpointID:  opts.Checkpoint,
-			CheckpointDir: opts.CheckpointDir,
-		}
+		statusChan := waitExitOrRemoved(ctx, dockerCli.Client(), c.ID, c.HostConfig.AutoRemove)
 
 		// 4. Start the container.
-		if err := dockerCli.Client().ContainerStart(ctx, c.ID, startOptions); err != nil {
+		err = dockerCli.Client().ContainerStart(ctx, c.ID, types.ContainerStartOptions{
+			CheckpointID:  opts.Checkpoint,
+			CheckpointDir: opts.CheckpointDir,
+		})
+		if err != nil {
 			cancelFun()
 			<-cErr
 			if c.HostConfig.AutoRemove {
