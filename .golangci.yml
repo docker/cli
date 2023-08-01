@@ -117,7 +117,10 @@ issues:
     - text: "package-comments: should have a package comment"
       linters:
         - revive
-
+    # FIXME temporarily suppress these (see https://github.com/gotestyourself/gotest.tools/issues/272)
+    - text: "SA1019: (assert|cmp|is)\\.ErrorType is deprecated"
+      linters:
+        - staticcheck
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
