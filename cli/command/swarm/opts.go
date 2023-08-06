@@ -180,8 +180,7 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 			return nil, errors.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
 
-		// TODO(thaJeztah): these options should not be case-insensitive.
-		switch strings.ToLower(key) {
+		switch key {
 		case "protocol":
 			hasProtocol = true
 			if strings.ToLower(value) == string(swarm.ExternalCAProtocolCFSSL) {

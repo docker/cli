@@ -45,8 +45,7 @@ func (o *ConfigOpt) Set(value string) error {
 			return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
 
-		// TODO(thaJeztah): these options should not be case-insensitive.
-		switch strings.ToLower(key) {
+		switch key {
 		case "source", "src":
 			options.ConfigName = val
 		case "target":

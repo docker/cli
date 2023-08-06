@@ -344,8 +344,7 @@ func (o *FilterOpt) Set(value string) error {
 	}
 	name, val, _ := strings.Cut(value, "=")
 
-	// TODO(thaJeztah): these options should not be case-insensitive.
-	name = strings.ToLower(strings.TrimSpace(name))
+	name = strings.TrimSpace(name)
 	val = strings.TrimSpace(val)
 	o.filter.Add(name, val)
 	return nil

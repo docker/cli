@@ -44,8 +44,8 @@ func (o *SecretOpt) Set(value string) error {
 		if !ok || key == "" {
 			return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
-		// TODO(thaJeztah): these options should not be case-insensitive.
-		switch strings.ToLower(key) {
+
+		switch key {
 		case "source", "src":
 			options.SecretName = val
 		case "target":
