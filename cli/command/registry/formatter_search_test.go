@@ -37,10 +37,10 @@ func TestSearchContext(t *testing.T) {
 			s: registrytypes.SearchResult{IsOfficial: false},
 		}, "", ctx.IsOfficial},
 		{searchContext{
-			s: registrytypes.SearchResult{IsAutomated: true},
+			s: registrytypes.SearchResult{IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 		}, "[OK]", ctx.IsAutomated},
 		{searchContext{
-			s: registrytypes.SearchResult{IsAutomated: false},
+			s: registrytypes.SearchResult{},
 		}, "", ctx.IsAutomated},
 	}
 
@@ -146,8 +146,8 @@ result2 5
 	}
 
 	results := []registrytypes.SearchResult{
-		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
+		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
+		{Name: "result2", Description: "Not official", StarCount: 5, IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 	}
 
 	for _, tc := range cases {
@@ -168,8 +168,8 @@ result2 5
 
 func TestSearchContextWriteJSON(t *testing.T) {
 	results := []registrytypes.SearchResult{
-		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
+		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
+		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 	}
 	expectedJSONs := []map[string]interface{}{
 		{"Name": "result1", "Description": "Official build", "StarCount": "5000", "IsOfficial": "true", "IsAutomated": "false"},
@@ -193,8 +193,8 @@ func TestSearchContextWriteJSON(t *testing.T) {
 
 func TestSearchContextWriteJSONField(t *testing.T) {
 	results := []registrytypes.SearchResult{
-		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true, IsAutomated: false},
-		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true},
+		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
+		{Name: "result2", Description: "Not official", StarCount: 5, IsOfficial: false, IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 	}
 	out := bytes.NewBufferString("")
 	err := SearchWrite(formatter.Context{Format: "{{json .Name}}", Output: out}, results)

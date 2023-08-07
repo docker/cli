@@ -3,7 +3,6 @@ package client // import "github.com/docker/docker/client"
 import (
 	"bufio"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/go-connections/sockets"
 	"github.com/pkg/errors"
 )
 
@@ -23,14 +21,10 @@ func (cli *Client) postHijacked(ctx context.Context, path string, query url.Valu
 	if err != nil {
 		return types.HijackedResponse{}, err
 	}
-
-	apiPath := cli.getAPIPath(ctx, path, query)
-	req, err := http.NewRequest(http.MethodPost, apiPath, bodyEncoded)
+	req, err := cli.buildRequest(http.MethodPost, cli.getAPIPath(ctx, path, query), bodyEncoded, headers)
 	if err != nil {
 		return types.HijackedResponse{}, err
 	}
-	req = cli.addHeaders(req, headers)
-
 	conn, mediaType, err := cli.setupHijackConn(ctx, req, "tcp")
 	if err != nil {
 		return types.HijackedResponse{}, err
@@ -51,24 +45,7 @@ func (cli *Client) DialHijack(ctx context.Context, url, proto string, meta map[s
 	return conn, err
 }
 
-// fallbackDial is used when WithDialer() was not called.
-// See cli.Dialer().
-func fallbackDial(proto, addr string, tlsConfig *tls.Config) (net.Conn, error) {
-	if tlsConfig != nil && proto != "unix" && proto != "npipe" {
-		return tls.Dial(proto, addr, tlsConfig)
-	}
-	if proto == "npipe" {
-		return sockets.DialPipe(addr, 32*time.Second)
-	}
-	return net.Dial(proto, addr)
-}
-
 func (cli *Client) setupHijackConn(ctx context.Context, req *http.Request, proto string) (net.Conn, string, error) {
-	req.URL.Host = cli.addr
-	if cli.proto == "unix" || cli.proto == "npipe" {
-		// Override host header for non-tcp connections.
-		req.Host = DummyHost
-	}
 	req.Header.Set("Connection", "Upgrade")
 	req.Header.Set("Upgrade", proto)
 
@@ -84,8 +61,8 @@ func (cli *Client) setupHijackConn(ctx context.Context, req *http.Request, proto
 	// state. Setting TCP KeepAlive on the socket connection will prohibit
 	// ECONNTIMEOUT unless the socket connection truly is broken
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
-		tcpConn.SetKeepAlive(true)
-		tcpConn.SetKeepAlivePeriod(30 * time.Second)
+		_ = tcpConn.SetKeepAlive(true)
+		_ = tcpConn.SetKeepAlivePeriod(30 * time.Second)
 	}
 
 	clientconn := httputil.NewClientConn(conn, nil)
@@ -100,7 +77,7 @@ func (cli *Client) setupHijackConn(ctx context.Context, req *http.Request, proto
 			return nil, "", err
 		}
 		if resp.StatusCode != http.StatusSwitchingProtocols {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return nil, "", fmt.Errorf("unable to upgrade to %s, received %d", proto, resp.StatusCode)
 		}
 	}
