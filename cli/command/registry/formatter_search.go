@@ -96,5 +96,5 @@ func (c *searchContext) IsOfficial() string {
 }
 
 func (c *searchContext) IsAutomated() string {
-	return c.formatBool(c.s.IsAutomated)
+	return c.formatBool(c.s.IsAutomated) //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
 }
