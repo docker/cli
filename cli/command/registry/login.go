@@ -117,7 +117,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	}
 
 	isDefaultRegistry := serverAddress == registry.IndexServer
-	authConfig, err := command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
+	authConfig, err := command.GetDefaultAuthConfig(dockerCli.ConfigFile(), opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
 	if err == nil && authConfig.Username != "" && authConfig.Password != "" {
 		response, err = loginWithCredStoreCreds(ctx, dockerCli, &authConfig)
 	}

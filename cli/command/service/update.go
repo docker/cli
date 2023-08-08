@@ -223,7 +223,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), image)
 		if err != nil {
 			return err
 		}

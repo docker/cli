@@ -76,7 +76,7 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 	ctx := context.Background()
 
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err

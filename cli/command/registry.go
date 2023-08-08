@@ -2,13 +2,13 @@ package command
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"runtime"
 	"strings"
 
+	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/distribution/reference"
@@ -26,7 +26,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 		fmt.Fprintf(cli.Out(), "\nPlease login prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
 		isDefaultRegistry := indexServer == registry.IndexServer
-		authConfig, err := GetDefaultAuthConfig(cli, true, indexServer, isDefaultRegistry)
+		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
 			fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
 		}
@@ -44,26 +44,26 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 //
 // It is similar to [registry.ResolveAuthConfig], but uses the credentials-
 // store, instead of looking up credentials from a map.
-func ResolveAuthConfig(_ context.Context, cli Cli, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	configKey := index.Name
 	if index.Official {
 		configKey = registry.IndexServer
 	}
 
-	a, _ := cli.ConfigFile().GetAuthConfig(configKey)
+	a, _ := cfg.GetAuthConfig(configKey)
 	return registrytypes.AuthConfig(a)
 }
 
 // GetDefaultAuthConfig gets the default auth config given a serverAddress
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
-func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
+func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
 	if !isDefaultRegistry {
 		serverAddress = registry.ConvertToHostname(serverAddress)
 	}
 	authconfig := configtypes.AuthConfig{}
 	var err error
 	if checkCredStore {
-		authconfig, err = cli.ConfigFile().GetAuthConfig(serverAddress)
+		authconfig, err = cfg.GetAuthConfig(serverAddress)
 		if err != nil {
 			return registrytypes.AuthConfig{
 				ServerAddress: serverAddress,
@@ -72,8 +72,7 @@ func GetDefaultAuthConfig(cli Cli, checkCredStore bool, serverAddress string, is
 	}
 	authconfig.ServerAddress = serverAddress
 	authconfig.IdentityToken = ""
-	res := registrytypes.AuthConfig(authconfig)
-	return res, nil
+	return registrytypes.AuthConfig(authconfig), nil
 }
 
 // ConfigureAuth handles prompting of user's username and password if needed
@@ -172,9 +171,9 @@ func promptWithDefault(out io.Writer, prompt string, configDefault string) {
 //
 // For details on base64url encoding, see:
 // - RFC4648, section 5:   https://tools.ietf.org/html/rfc4648#section-5
-func RetrieveAuthTokenFromImage(ctx context.Context, cli Cli, image string) (string, error) {
+func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (string, error) {
 	// Retrieve encoded auth token from the image reference
-	authConfig, err := resolveAuthConfigFromImage(ctx, cli, image)
+	authConfig, err := resolveAuthConfigFromImage(cfg, image)
 	if err != nil {
 		return "", err
 	}
@@ -186,7 +185,7 @@ func RetrieveAuthTokenFromImage(ctx context.Context, cli Cli, image string) (str
 }
 
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
-func resolveAuthConfigFromImage(ctx context.Context, cli Cli, image string) (registrytypes.AuthConfig, error) {
+func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
@@ -195,5 +194,5 @@ func resolveAuthConfigFromImage(ctx context.Context, cli Cli, image string) (reg
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
 	}
-	return ResolveAuthConfig(ctx, cli, repoInfo.Index), nil
+	return ResolveAuthConfig(cfg, repoInfo.Index), nil
 }

@@ -112,7 +112,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 	// only send auth if flag was set
 	if opts.registryAuth {
 		// Retrieve encoded auth token from the image reference
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, opts.image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), opts.image)
 		if err != nil {
 			return err
 		}
