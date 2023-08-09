@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -49,6 +50,9 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runSearch(dockerCli command.Cli, options searchOptions) error {
+	if options.filter.Value().Contains("is-automated") {
+		_, _ = fmt.Fprintln(dockerCli.Err(), `WARNING: the "is-automated" filter is deprecated, and searching for "is-automated=true" will not yield any results in future.`)
+	}
 	indexInfo, err := registry.ParseSearchIndexInfo(options.term)
 	if err != nil {
 		return err
