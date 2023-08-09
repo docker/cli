@@ -9,6 +9,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
+// Tests the formatting of checkpoint output based on different context formats.
 func TestCheckpointContextFormatWrite(t *testing.T) {
 	cases := []struct {
 		context  formatter.Context

@@ -15,6 +15,7 @@ type listOptions struct {
 	checkpointDir string
 }
 
+// Initializes a new "ls" cobra command to list container checkpoints.
 func newListCommand(dockerCli command.Cli) *cobra.Command {
 	var opts listOptions
 
@@ -35,6 +36,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
+// Lists checkpoints for a given container and writes formatted output.
 func runList(dockerCli command.Cli, container string, opts listOptions) error {
 	client := dockerCli.Client()
 

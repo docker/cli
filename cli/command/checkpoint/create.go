@@ -18,6 +18,7 @@ type createOptions struct {
 	leaveRunning  bool
 }
 
+// Initializes a new "create" cobra command for container checkpoint creation.
 func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	var opts createOptions
 
@@ -40,6 +41,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
+// Creates a container checkpoint based on the provided options.
 func runCreate(dockerCli command.Cli, opts createOptions) error {
 	client := dockerCli.Client()
 

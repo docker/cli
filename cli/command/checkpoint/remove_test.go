@@ -11,6 +11,7 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
+// Tests error scenarios for checkpoint removal.
 func TestCheckpointRemoveErrors(t *testing.T) {
 	testCases := []struct {
 		args                 []string
@@ -45,6 +46,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 	}
 }
 
+// Tests checkpoint removal with specific options.
 func TestCheckpointRemoveWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{

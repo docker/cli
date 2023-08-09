@@ -38,6 +38,7 @@ type checkpointContext struct {
 	c types.Checkpoint
 }
 
+// newCheckpointContext initializes a new checkpoint context with default headers.
 func newCheckpointContext() *checkpointContext {
 	cpCtx := checkpointContext{}
 	cpCtx.Header = formatter.SubHeaderContext{
@@ -46,10 +47,12 @@ func newCheckpointContext() *checkpointContext {
 	return &cpCtx
 }
 
+// MarshalJSON converts the checkpoint context to JSON format.
 func (c *checkpointContext) MarshalJSON() ([]byte, error) {
 	return formatter.MarshalJSON(c)
 }
 
+// Name returns the name of the checkpoint from the context.
 func (c *checkpointContext) Name() string {
 	return c.c.Name
 }

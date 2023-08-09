@@ -12,6 +12,7 @@ import (
 	"gotest.tools/v3/golden"
 )
 
+// Tests error scenarios for the CheckpointList function.
 func TestCheckpointListErrors(t *testing.T) {
 	testCases := []struct {
 		args               []string
@@ -46,6 +47,7 @@ func TestCheckpointListErrors(t *testing.T) {
 	}
 }
 
+// Tests the CheckpointList function with specific options set.
 func TestCheckpointListWithOptions(t *testing.T) {
 	var containerID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{
