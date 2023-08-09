@@ -12,6 +12,7 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
+// Tests error scenarios for the CheckpointCreate function.
 func TestCheckpointCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args                 []string
@@ -46,6 +47,7 @@ func TestCheckpointCreateErrors(t *testing.T) {
 	}
 }
 
+// Tests the CheckpointCreate function with specific options set.
 func TestCheckpointCreateWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
 	var exit bool
