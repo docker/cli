@@ -17,15 +17,8 @@ import (
 )
 
 const (
-	userErr        = "userunknownError"
-	testAuthErrMsg = "UNKNOWN_ERR"
-)
-
-var testAuthErrors = map[string]error{
-	userErr: fmt.Errorf(testAuthErrMsg),
-}
-
-var (
+	unknownUser     = "userunknownError"
+	errUnknownUser  = "UNKNOWN_ERR"
 	expiredPassword = "I_M_EXPIRED"
 	useToken        = "I_M_TOKEN"
 )
@@ -47,8 +40,10 @@ func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConf
 			IdentityToken: auth.Password,
 		}, nil
 	}
-	err := testAuthErrors[auth.Username]
-	return registrytypes.AuthenticateOKBody{}, err
+	if auth.Username == unknownUser {
+		return registrytypes.AuthenticateOKBody{}, fmt.Errorf(errUnknownUser)
+	}
+	return registrytypes.AuthenticateOKBody{}, nil
 }
 
 func TestLoginWithCredStoreCreds(t *testing.T) {
@@ -63,10 +58,10 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 		},
 		{
 			inputAuthConfig: registrytypes.AuthConfig{
-				Username: userErr,
+				Username: unknownUser,
 			},
 			expectedMsg: "Authenticating with existing credentials...\n",
-			expectedErr: fmt.Sprintf("Login did not succeed, error: %s\n", testAuthErrMsg),
+			expectedErr: fmt.Sprintf("Login did not succeed, error: %s\n", errUnknownUser),
 		},
 	}
 	ctx := context.Background()
@@ -83,10 +78,12 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 }
 
 func TestRunLogin(t *testing.T) {
-	const storedServerAddress = "reg1"
-	const validUsername = "u1"
-	const validPassword = "p1"
-	const validPassword2 = "p2"
+	const (
+		storedServerAddress = "reg1"
+		validUsername       = "u1"
+		validPassword       = "p1"
+		validPassword2      = "p2"
+	)
 
 	validAuthConfig := configtypes.AuthConfig{
 		ServerAddress: storedServerAddress,
@@ -104,20 +101,22 @@ func TestRunLogin(t *testing.T) {
 		IdentityToken: useToken,
 	}
 	testCases := []struct {
+		doc               string
 		inputLoginOption  loginOptions
 		inputStoredCred   *configtypes.AuthConfig
 		expectedErr       string
 		expectedSavedCred configtypes.AuthConfig
 	}{
 		{
+			doc: "valid auth from store",
 			inputLoginOption: loginOptions{
 				serverAddress: storedServerAddress,
 			},
 			inputStoredCred:   &validAuthConfig,
-			expectedErr:       "",
 			expectedSavedCred: validAuthConfig,
 		},
 		{
+			doc: "expired auth",
 			inputLoginOption: loginOptions{
 				serverAddress: storedServerAddress,
 			},
@@ -125,13 +124,13 @@ func TestRunLogin(t *testing.T) {
 			expectedErr:     "Error: Cannot perform an interactive login from a non TTY device",
 		},
 		{
+			doc: "valid username and password",
 			inputLoginOption: loginOptions{
 				serverAddress: storedServerAddress,
 				user:          validUsername,
 				password:      validPassword2,
 			},
 			inputStoredCred: &validAuthConfig,
-			expectedErr:     "",
 			expectedSavedCred: configtypes.AuthConfig{
 				ServerAddress: storedServerAddress,
 				Username:      validUsername,
@@ -139,27 +138,29 @@ func TestRunLogin(t *testing.T) {
 			},
 		},
 		{
+			doc: "unknown user",
 			inputLoginOption: loginOptions{
 				serverAddress: storedServerAddress,
-				user:          userErr,
+				user:          unknownUser,
 				password:      validPassword,
 			},
 			inputStoredCred: &validAuthConfig,
-			expectedErr:     testAuthErrMsg,
+			expectedErr:     errUnknownUser,
 		},
 		{
+			doc: "valid token",
 			inputLoginOption: loginOptions{
 				serverAddress: storedServerAddress,
 				user:          validUsername,
 				password:      useToken,
 			},
 			inputStoredCred:   &validIdentityToken,
-			expectedErr:       "",
 			expectedSavedCred: validIdentityToken,
 		},
 	}
-	for i, tc := range testCases {
-		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
 			tmpFile := fs.NewFile(t, "test-run-login")
 			defer tmpFile.Remove()
 			cli := test.NewFakeCli(&fakeClient{})
