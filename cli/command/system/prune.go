@@ -48,7 +48,7 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images not just dangling ones")
-	flags.BoolVar(&options.pruneVolumes, "volumes", false, "Prune volumes")
+	flags.BoolVar(&options.pruneVolumes, "volumes", false, "Prune anonymous volumes")
 	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "label=<key>=<value>")`)
 	// "filter" flag is available in 1.28 (docker 17.04) and up
 	flags.SetAnnotation("filter", "version", []string{"1.28"})
@@ -114,7 +114,7 @@ func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 		"all networks not used by at least one container",
 	}
 	if options.pruneVolumes {
-		warnings = append(warnings, "all volumes not used by at least one container")
+		warnings = append(warnings, "all anonymous volumes not used by at least one container")
 	}
 	if options.all {
 		warnings = append(warnings, "all images without at least one container associated to them")

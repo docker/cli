@@ -10,7 +10,7 @@ Manage volumes
 | [`create`](volume_create.md)   | Create a volume                                     |
 | [`inspect`](volume_inspect.md) | Display detailed information on one or more volumes |
 | [`ls`](volume_ls.md)           | List volumes                                        |
-| [`prune`](volume_prune.md)     | Remove all unused local volumes                     |
+| [`prune`](volume_prune.md)     | Remove unused local volumes                         |
 | [`rm`](volume_rm.md)           | Remove one or more volumes                          |
 | [`update`](volume_update.md)   | Update a volume (cluster volumes only)              |
 
