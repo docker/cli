@@ -10,7 +10,7 @@ Remove unused data
 | `-a`, `--all`         |          |         | Remove all unused images not just dangling ones    |
 | [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<key>=<value>`) |
 | `-f`, `--force`       |          |         | Do not prompt for confirmation                     |
-| `--volumes`           |          |         | Prune volumes                                      |
+| `--volumes`           |          |         | Prune anonymous volumes                            |
 
 
 <!---MARKER_GEN_END-->
@@ -50,7 +50,7 @@ Total reclaimed space: 1.84kB
 
 By default, volumes are not removed to prevent important data from being
 deleted if there is currently no container using the volume. Use the `--volumes`
-flag when running the command to prune volumes as well:
+flag when running the command to prune anonymous volumes as well:
 
 ```console
 $ docker system prune -a --volumes
@@ -58,7 +58,7 @@ $ docker system prune -a --volumes
 WARNING! This will remove:
         - all stopped containers
         - all networks not used by at least one container
-        - all volumes not used by at least one container
+        - all anonymous volumes not used by at least one container
         - all images without at least one container associated to them
         - all build cache
 Are you sure you want to continue? [y/N] y
