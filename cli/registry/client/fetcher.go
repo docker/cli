@@ -229,8 +229,8 @@ func continueOnError(err error) bool {
 	return false
 }
 
-func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named, each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
-	endpoints, err := allEndpoints(namedRef, c.insecureRegistry)
+func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named, operate string, each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
+	endpoints, err := allEndpoints(namedRef, operate, c.insecureRegistry)
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 }
 
 // allEndpoints returns a list of endpoints ordered by priority (v2, https, v1).
-func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoint, error) {
+func allEndpoints(namedRef reference.Named, operate string, insecure bool) (endpoints []registry.APIEndpoint, err error) {
 	repoInfo, err := registry.ParseRepositoryInfo(namedRef)
 	if err != nil {
 		return nil, err
@@ -306,7 +306,14 @@ func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoi
 	if err != nil {
 		return []registry.APIEndpoint{}, err
 	}
-	endpoints, err := registryService.LookupPullEndpoints(reference.Domain(repoInfo.Name))
+	switch operate {
+	case "pull":
+		endpoints, err = registryService.LookupPullEndpoints(reference.Domain(repoInfo.Name))
+	case "push":
+		endpoints, err = registryService.LookupPushEndpoints(reference.Domain(repoInfo.Name))
+	default:
+		return nil, fmt.Errorf("unknown operate: %s", operate)
+	}
 	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
 	return endpoints, err
 }
