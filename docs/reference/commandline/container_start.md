@@ -1,7 +1,8 @@
 # container start
 
 <!---MARKER_GEN_START-->
-Start one or more stopped containers
+Start one or more stopped containers.
+You can restart a stopped container with all its previous changes intact using `docker start`.
 
 ### Aliases
 
