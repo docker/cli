@@ -401,14 +401,22 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 	errs := []string{}
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		if !f.Changed {
+		if !f.Changed || len(f.Annotations) == 0 {
 			return
 		}
-		if !isVersionSupported(f, details.CurrentVersion()) {
+		// Important: in the code below, calls to "details.CurrentVersion()" and
+		// "details.ServerInfo()" are deliberately executed inline to make them
+		// be executed "lazily". This is to prevent making a connection with the
+		// daemon to perform a "ping" (even for flags that do not require a
+		// daemon connection).
+		//
+		// See commit b39739123b845f872549e91be184cc583f5b387c for details.
+
+		if _, ok := f.Annotations["version"]; ok && !isVersionSupported(f, details.CurrentVersion()) {
 			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.CurrentVersion()))
 			return
 		}
-		if !isOSTypeSupported(f, details.ServerInfo().OSType) {
+		if _, ok := f.Annotations["ostype"]; ok && !isOSTypeSupported(f, details.ServerInfo().OSType) {
 			errs = append(errs, fmt.Sprintf(
 				`"--%s" is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s`,
 				f.Name,
