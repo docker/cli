@@ -14,7 +14,7 @@ Build an image from a Dockerfile
 | `--add-host`              | `list`        |           | Add a custom host-to-IP mapping (`host:ip`)                       |
 | `--build-arg`             | `list`        |           | Set build-time variables                                          |
 | `--cache-from`            | `stringSlice` |           | Images to consider as cache sources                               |
-| `--cgroup-parent`         | `string`      |           | Optional parent cgroup for the container                          |
+| `--cgroup-parent`         | `string`      |           | Set the parent cgroup for the `RUN` instructions during build     |
 | `--compress`              |               |           | Compress the build context using gzip                             |
 | `--cpu-period`            | `int64`       | `0`       | Limit the CPU CFS (Completely Fair Scheduler) period              |
 | `--cpu-quota`             | `int64`       | `0`       | Limit the CPU CFS (Completely Fair Scheduler) quota               |

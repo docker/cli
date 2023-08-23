@@ -128,7 +128,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Int64Var(&options.cpuQuota, "cpu-quota", 0, "Limit the CPU CFS (Completely Fair Scheduler) quota")
 	flags.StringVar(&options.cpuSetCpus, "cpuset-cpus", "", "CPUs in which to allow execution (0-3, 0,1)")
 	flags.StringVar(&options.cpuSetMems, "cpuset-mems", "", "MEMs in which to allow execution (0-3, 0,1)")
-	flags.StringVar(&options.cgroupParent, "cgroup-parent", "", "Optional parent cgroup for the container")
+	flags.StringVar(&options.cgroupParent, "cgroup-parent", "", `Set the parent cgroup for the "RUN" instructions during build`)
 	flags.StringVar(&options.isolation, "isolation", "", "Container isolation technology")
 	flags.Var(&options.labels, "label", "Set metadata for an image")
 	flags.BoolVar(&options.noCache, "no-cache", false, "Do not use cache when building the image")
