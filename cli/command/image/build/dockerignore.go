@@ -1,11 +1,12 @@
 package build
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/moby/buildkit/frontend/dockerfile/dockerignore"
 	"github.com/moby/patternmatcher"
+	"github.com/moby/patternmatcher/ignorefile"
 )
 
 // ReadDockerignore reads the .dockerignore file in the context directory and
@@ -22,7 +23,11 @@ func ReadDockerignore(contextDir string) ([]string, error) {
 	}
 	defer f.Close()
 
-	return dockerignore.ReadAll(f)
+	patterns, err := ignorefile.ReadAll(f)
+	if err != nil {
+		return nil, fmt.Errorf("error reading .dockerignore: %w", err)
+	}
+	return patterns, nil
 }
 
 // TrimBuildFilesFromExcludes removes the named Dockerfile and .dockerignore from
