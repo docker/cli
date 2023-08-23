@@ -1184,7 +1184,10 @@ __docker_complete_user_group() {
 	fi
 }
 
-DOCKER_PLUGINS_PATH=$(docker info --format '{{range .ClientInfo.Plugins}}{{.Path}}:{{end}}')
+__docker_plugins_path() {
+	local docker_plugins_path=$(docker info --format '{{range .ClientInfo.Plugins}}{{.Path}}:{{end}}')
+	echo "${docker_plugins_path//:/ }"
+}
 
 __docker_complete_plugin() {
 	local path=$1
@@ -5572,7 +5575,7 @@ _docker() {
 	# Create completion functions for all registered plugins
 	local known_plugin_commands=()
 	local plugin_name=""
-	for plugin_path in ${DOCKER_PLUGINS_PATH//:/ }; do
+	for plugin_path in $(__docker_plugins_path); do
 		plugin_name=$(basename "$plugin_path" | sed 's/ *$//')
 		plugin_name=${plugin_name#docker-}
 		plugin_name=${plugin_name%%.*}
