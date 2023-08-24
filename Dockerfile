@@ -11,7 +11,7 @@ ARG BUILDX_VERSION=0.11.2
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build-base-alpine
-COPY --from=xx / /
+COPY --link --from=xx / /
 RUN apk add --no-cache bash clang lld llvm file git
 WORKDIR /go/src/github.com/docker/cli
 
@@ -21,7 +21,7 @@ ARG TARGETPLATFORM
 RUN xx-apk add --no-cache musl-dev gcc
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-bullseye AS build-base-bullseye
-COPY --from=xx / /
+COPY --link --from=xx / /
 RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld llvm file
 WORKDIR /go/src/github.com/docker/cli
 
@@ -62,7 +62,7 @@ ARG CGO_ENABLED
 ARG VERSION
 # PACKAGER_NAME sets the company that produced the windows binary
 ARG PACKAGER_NAME
-COPY --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
+COPY --link --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
 # in bullseye arm64 target does not link with lld so configure it to use ld instead
 RUN [ ! -f /etc/alpine-release ] && xx-info is-cross && [ "$(xx-info arch)" = "arm64" ] && XX_CC_PREFER_LINKER=ld xx-clang --setup-target-triple || true
 RUN --mount=type=bind,target=.,ro \
@@ -76,7 +76,7 @@ RUN --mount=type=bind,target=.,ro \
     xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
 
 FROM build-${BASE_VARIANT} AS test
-COPY --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
 ENV GO111MODULE=auto
 RUN --mount=type=bind,target=.,rw \
     --mount=type=cache,target=/root/.cache \
@@ -111,19 +111,19 @@ FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
 FROM e2e-base-${BASE_VARIANT} AS e2e
 ARG NOTARY_VERSION=v0.6.1
 ADD --chmod=0755 https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 /usr/local/bin/notary
-COPY e2e/testdata/notary/root-ca.cert /usr/share/ca-certificates/notary.cert
+COPY --link e2e/testdata/notary/root-ca.cert /usr/share/ca-certificates/notary.cert
 RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
-COPY --from=gotestsum /out/gotestsum /usr/bin/gotestsum
-COPY --from=build /out ./build/
-COPY --from=build-plugins /out ./build/
-COPY --from=buildx /buildx /usr/libexec/docker/cli-plugins/docker-buildx
-COPY . .
+COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+COPY --link --from=build /out ./build/
+COPY --link --from=build-plugins /out ./build/
+COPY --link --from=buildx /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
 CMD ./scripts/test/e2e/entry
 
 FROM build-base-${BASE_VARIANT} AS dev
-COPY . .
+COPY --link . .
 
 FROM scratch AS plugins
 COPY --from=build-plugins /out .
