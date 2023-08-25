@@ -11,7 +11,7 @@ bda12f8922785d1f160be70736f26c1e331ab8aaf8ed8d56728508f2e2fd4727
 The `network inspect` command shows the containers, by id, in its
 results. You can specify an alternate format to execute a given
 template for each result. Go's
-[text/template](http://golang.org/pkg/text/template/) package
+[text/template](https://pkg.go.dev/text/template) package
 describes all the details of the format.
 
 ```console
