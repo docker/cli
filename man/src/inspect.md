@@ -193,7 +193,7 @@ output:
       80/tcp -> 80
 
 You can get more information about how to write a Go template from:
-https://golang.org/pkg/text/template/.
+https://pkg.go.dev/text/template.
 
 ## Getting size information on a container
 
