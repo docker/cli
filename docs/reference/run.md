@@ -672,7 +672,7 @@ the container exits**, you can add the `--rm` flag:
 > ```console
 > $ docker run --rm -v /foo -v awesome:/bar busybox top
 > ```
-> 
+>
 > the volume for `/foo` will be removed, but the volume for `/bar` will not.
 > Volumes inherited via `--volumes-from` will be removed with the same logic: if
 > the original volume was specified with a name it will **not** be removed.
@@ -1256,6 +1256,8 @@ container nearly all the same access to the host as processes running outside
 containers on the host. Additional information about running with `--privileged`
 is available on the [Docker Blog](https://www.docker.com/blog/docker-can-now-run-within-docker/).
 
+### Linux device nodes
+
 If you want to limit access to a specific device or devices you can use
 the `--device` flag. It allows you to specify one or more devices that
 will be accessible within the container.
@@ -1282,6 +1284,20 @@ $ docker run --device=/dev/sda:/dev/xvdc:w --rm -it ubuntu fdisk  /dev/xvdc
 $ docker run --device=/dev/sda:/dev/xvdc:m --rm -it ubuntu fdisk  /dev/xvdc
 fdisk: unable to open /dev/xvdc: Operation not permitted
 ```
+
+### Container Device Interface (CDI) devices
+
+In addition to supporting Linux device nodes, Docker also allows for CDI devices -- identified by fully-qualified device names -- to be requested using the `--device` command line argument as follows:
+
+```console
+$ docker run --device=vendor.com/class=device-name --rm -it ubuntu
+```
+
+This will start a container based of the `ubuntu` image with access to the specified CDI device, `vendor.com/class=device-name`.
+
+Note that this assumes that the CDI specification for the requested device is available on the system. Furthermore, this is an experimental feature and as such does not represent a stable API.
+
+### Linux capabilities
 
 In addition to `--privileged`, the operator can have fine grain control over the
 capabilities using `--cap-add` and `--cap-drop`. By default, Docker has a default
@@ -1418,7 +1434,7 @@ container's logging driver. The following options are supported:
 | `fluentd`    | Fluentd logging driver for Docker. Writes log messages to `fluentd` (forward input).                                           |
 | `awslogs`    | Amazon CloudWatch Logs logging driver for Docker. Writes log messages to Amazon CloudWatch Logs.                               |
 | `splunk`     | Splunk logging driver for Docker. Writes log messages to `splunk` using Event Http Collector.                                  |
-| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |                                                  
+| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |
 | `gcplogs`    | Google Cloud Platform (GCP) Logging. Writes log messages to Google Cloud Platform (GCP) Logging.                               |
 | `logentries` | Rapid7 Logentries. Writes log messages to Rapid7 Logentries.                                                                   |
 
