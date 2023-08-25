@@ -50,7 +50,7 @@ the service's `STDOUT` and `STDERR`.
 Passing a negative number or a non-integer to `--tail` is invalid and the
 value is set to `all` in that case.
 
-The `docker service logs --timestamps` command will add an [RFC3339Nano timestamp](https://golang.org/pkg/time/#pkg-constants)
+The `docker service logs --timestamps` command will add an [RFC3339Nano timestamp](https://pkg.go.dev/time#RFC3339Nano)
 , for example `2014-09-16T06:17:46.000000000Z`, to each
 log entry. To ensure that the timestamps are aligned the
 nano-second part of the timestamp will be padded with zero when necessary.
