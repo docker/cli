@@ -85,7 +85,7 @@ details of the format.
     Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299c126a87812311951e26
 
 If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to http://jsonlines.org/ .
+Lines. For information about JSON Lines, please refer to https://jsonlines.org .
 
     # docker events --format '{{json .}}'
     {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
