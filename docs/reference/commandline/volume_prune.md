@@ -1,7 +1,7 @@
 # volume prune
 
 <!---MARKER_GEN_START-->
-Remove all unused local volumes
+Remove unused local volumes
 
 ### Options
 

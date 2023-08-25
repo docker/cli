@@ -24,7 +24,7 @@ By default, `docker inspect` will render results in a JSON array.
 
 If a format is specified, the given template will be executed for each result.
 
-Go's [text/template](https://golang.org/pkg/text/template/) package describes
+Go's [text/template](https://pkg.go.dev/text/template) package describes
 all the details of the format.
 
 ### <a name="type"></a> Specify target type (--type)

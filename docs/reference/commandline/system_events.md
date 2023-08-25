@@ -308,7 +308,7 @@ $ docker system events --filter 'type=plugin'
 ### <a name="format"></a> Format the output (--format)
 
 If a format (`--format`) is specified, the given template will be executed
-instead of the default format. Go's [text/template](https://golang.org/pkg/text/template/)
+instead of the default format. Go's [text/template](https://pkg.go.dev/text/template)
 package describes all the details of the format.
 
 ```console
