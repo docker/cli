@@ -20,6 +20,12 @@ Start one or more stopped containers
 
 <!---MARKER_GEN_END-->
 
+## Description
+
+The `docker start` command is used to start created/stopped containers.
+
+You can start a stopped container with all its previous changes intact using `docker start`.
+
 ## Examples
 
 ```console
