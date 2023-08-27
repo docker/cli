@@ -1,0 +1,4 @@
+{"status":"create","id":"abc123","from":"ubuntu:latest","Type":"container","Action":"create","Actor":{"ID":"abc123","Attributes":{"image":"ubuntu:latest"}},"scope":"local","time":1000000000,"timeNano":1000000000}
+{"status":"start","id":"abc123","from":"ubuntu:latest","Type":"container","Action":"start","Actor":{"ID":"abc123","Attributes":{"image":"ubuntu:latest"}},"scope":"local","time":2000000000,"timeNano":2000000000}
+{"status":"attach","id":"abc123","from":"ubuntu:latest","Type":"container","Action":"attach","Actor":{"ID":"abc123","Attributes":{"image":"ubuntu:latest"}},"scope":"local","time":3000000000,"timeNano":3000000000}
+{"status":"die","id":"abc123","from":"ubuntu:latest","Type":"container","Action":"die","Actor":{"ID":"abc123","Attributes":{"image":"ubuntu:latest"}},"scope":"local","time":4000000000,"timeNano":4000000000}
