@@ -9,12 +9,12 @@ Get real time events from the server
 
 ### Options
 
-| Name                                   | Type     | Default | Description                                   |
-|:---------------------------------------|:---------|:--------|:----------------------------------------------|
-| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided    |
-| [`--format`](#format)                  | `string` |         | Format the output using the given Go template |
-| [`--since`](#since)                    | `string` |         | Show all events created since timestamp       |
-| `--until`                              | `string` |         | Stream events until this timestamp            |
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                         |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| [`--since`](#since)                    | `string` |         | Show all events created since timestamp                                                                                                                                                                                                                            |
+| `--until`                              | `string` |         | Stream events until this timestamp                                                                                                                                                                                                                                 |
 
 
 <!---MARKER_GEN_END-->
@@ -401,8 +401,11 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
+To list events in JSON format, use the `json` directive, which is the equivalent
+of `--format '{{ json . }}`.
+
 ```console
-$ docker events --format '{{json .}}'
+$ docker events --format json
 
 {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
 {"status":"attach","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
@@ -410,3 +413,5 @@ $ docker events --format '{{json .}}'
 {"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
 {"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
 ```
+
+.
