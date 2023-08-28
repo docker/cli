@@ -5,7 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 	"github.com/spf13/cobra"
 )
 
@@ -32,13 +32,9 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(dockerCli command.Cli, container string, checkpoint string, opts removeOptions) error {
-	client := dockerCli.Client()
-
-	removeOpts := types.CheckpointDeleteOptions{
-		CheckpointID:  checkpoint,
+func runRemove(dockerCli command.Cli, container string, checkpointID string, opts removeOptions) error {
+	return dockerCli.Client().CheckpointDelete(context.Background(), container, checkpoint.DeleteOptions{
+		CheckpointID:  checkpointID,
 		CheckpointDir: opts.checkpointDir,
-	}
-
-	return client.CheckpointDelete(context.Background(), container, removeOpts)
+	})
 }

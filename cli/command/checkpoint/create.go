@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 	"github.com/spf13/cobra"
 )
 
@@ -41,15 +41,11 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCreate(dockerCli command.Cli, opts createOptions) error {
-	client := dockerCli.Client()
-
-	checkpointOpts := types.CheckpointCreateOptions{
+	err := dockerCli.Client().CheckpointCreate(context.Background(), opts.container, checkpoint.CreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
 		Exit:          !opts.leaveRunning,
-	}
-
-	err := client.CheckpointCreate(context.Background(), opts.container, checkpointOpts)
+	})
 	if err != nil {
 		return err
 	}
