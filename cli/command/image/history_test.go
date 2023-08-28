@@ -44,12 +44,15 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 }
 
 func notUTCTimezone() bool {
-	now := time.Now()
-	return now != now.UTC()
+	if _, offset := time.Now().Zone(); offset != 0 {
+		return true
+	}
+	return false
 }
 
 func TestNewHistoryCommandSuccess(t *testing.T) {
 	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
+
 	testCases := []struct {
 		name             string
 		args             []string
@@ -93,13 +96,16 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
-		cmd := NewHistoryCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		actual := cli.OutBuffer().String()
-		golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
+			cmd := NewHistoryCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			actual := cli.OutBuffer().String()
+			golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
+		})
 	}
 }
