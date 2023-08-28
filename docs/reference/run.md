@@ -672,7 +672,7 @@ the container exits**, you can add the `--rm` flag:
 > ```console
 > $ docker run --rm -v /foo -v awesome:/bar busybox top
 > ```
-> 
+>
 > the volume for `/foo` will be removed, but the volume for `/bar` will not.
 > Volumes inherited via `--volumes-from` will be removed with the same logic: if
 > the original volume was specified with a name it will **not** be removed.
@@ -1418,7 +1418,7 @@ container's logging driver. The following options are supported:
 | `fluentd`    | Fluentd logging driver for Docker. Writes log messages to `fluentd` (forward input).                                           |
 | `awslogs`    | Amazon CloudWatch Logs logging driver for Docker. Writes log messages to Amazon CloudWatch Logs.                               |
 | `splunk`     | Splunk logging driver for Docker. Writes log messages to `splunk` using Event Http Collector.                                  |
-| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |                                                  
+| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |
 | `gcplogs`    | Google Cloud Platform (GCP) Logging. Writes log messages to Google Cloud Platform (GCP) Logging.                               |
 | `logentries` | Rapid7 Logentries. Writes log messages to Rapid7 Logentries.                                                                   |
 
