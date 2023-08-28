@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
-	"gotest.tools/v3/skip"
 )
 
 func TestNewHistoryCommandErrors(t *testing.T) {
@@ -43,16 +42,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 	}
 }
 
-func notUTCTimezone() bool {
-	if _, offset := time.Now().Zone(); offset != 0 {
-		return true
-	}
-	return false
-}
-
 func TestNewHistoryCommandSuccess(t *testing.T) {
-	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
-
 	testCases := []struct {
 		name             string
 		args             []string
@@ -65,6 +55,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),
+					Comment: "none",
 				}}, nil
 			},
 		},
@@ -98,6 +89,9 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			// Set to UTC timezone as timestamps in output are
+			// printed in the current timezone
+			t.Setenv("TZ", "UTC")
 			cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
 			cmd := NewHistoryCommand(cli)
 			cmd.SetOut(io.Discard)
