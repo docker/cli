@@ -91,6 +91,6 @@ func ParseRestartPolicy(policy string) (container.RestartPolicy, error) {
 		p.MaximumRetryCount = count
 	}
 
-	p.Name = k
+	p.Name = container.RestartPolicyMode(k)
 	return p, nil
 }

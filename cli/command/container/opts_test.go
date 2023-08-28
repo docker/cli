@@ -711,7 +711,7 @@ func TestParseRestartPolicy(t *testing.T) {
 		{
 			input: "no",
 			expected: container.RestartPolicy{
-				Name: "no",
+				Name: container.RestartPolicyDisabled,
 			},
 		},
 		{
@@ -721,13 +721,13 @@ func TestParseRestartPolicy(t *testing.T) {
 		{
 			input: "always",
 			expected: container.RestartPolicy{
-				Name: "always",
+				Name: container.RestartPolicyAlways,
 			},
 		},
 		{
 			input: "always:1",
 			expected: container.RestartPolicy{
-				Name:              "always",
+				Name:              container.RestartPolicyAlways,
 				MaximumRetryCount: 1,
 			},
 		},
@@ -738,7 +738,7 @@ func TestParseRestartPolicy(t *testing.T) {
 		{
 			input: "on-failure:1",
 			expected: container.RestartPolicy{
-				Name:              "on-failure",
+				Name:              container.RestartPolicyOnFailure,
 				MaximumRetryCount: 1,
 			},
 		},
@@ -749,7 +749,7 @@ func TestParseRestartPolicy(t *testing.T) {
 		{
 			input: "unless-stopped",
 			expected: container.RestartPolicy{
-				Name: "unless-stopped",
+				Name: container.RestartPolicyUnlessStopped,
 			},
 		},
 		{
