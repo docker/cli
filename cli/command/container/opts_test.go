@@ -715,6 +715,10 @@ func TestParseRestartPolicy(t *testing.T) {
 			},
 		},
 		{
+			input:       ":1",
+			expectedErr: "invalid restart policy format: no policy provided before colon",
+		},
+		{
 			input: "always",
 			expected: container.RestartPolicy{
 				Name: "always",
@@ -758,11 +762,11 @@ func TestParseRestartPolicy(t *testing.T) {
 		t.Run(tc.input, func(t *testing.T) {
 			_, hostConfig, _, err := parseRun([]string{"--restart=" + tc.input, "img", "cmd"})
 			if tc.expectedErr != "" {
-				assert.Check(t, is.Nil(hostConfig))
 				assert.Check(t, is.Error(err, tc.expectedErr))
+				assert.Check(t, is.Nil(hostConfig))
 			} else {
+				assert.NilError(t, err)
 				assert.Check(t, is.DeepEqual(hostConfig.RestartPolicy, tc.expected))
-				assert.Check(t, err)
 			}
 		})
 	}
