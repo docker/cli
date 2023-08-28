@@ -820,6 +820,10 @@ func TestParseRestartPolicy(t *testing.T) {
 			},
 		},
 		{
+			input:       "no:1",
+			expectedErr: "invalid restart policy: maximum retry count can only be used with 'on-failure'",
+		},
+		{
 			input:       ":1",
 			expectedErr: "invalid restart policy format: no policy provided before colon",
 		},
@@ -830,11 +834,8 @@ func TestParseRestartPolicy(t *testing.T) {
 			},
 		},
 		{
-			input: "always:1",
-			expected: container.RestartPolicy{
-				Name:              container.RestartPolicyAlways,
-				MaximumRetryCount: 1,
-			},
+			input:       "always:1",
+			expectedErr: "invalid restart policy: maximum retry count can only be used with 'on-failure'",
 		},
 		{
 			input:       "always:2:3",
@@ -856,6 +857,10 @@ func TestParseRestartPolicy(t *testing.T) {
 			expected: container.RestartPolicy{
 				Name: container.RestartPolicyUnlessStopped,
 			},
+		},
+		{
+			input:       "unless-stopped:1",
+			expectedErr: "invalid restart policy: maximum retry count can only be used with 'on-failure'",
 		},
 		{
 			input:       "unless-stopped:invalid",
