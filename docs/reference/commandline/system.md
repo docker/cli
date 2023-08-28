@@ -5,13 +5,12 @@ Manage Docker
 
 ### Subcommands
 
-| Name                                 | Description                                                                      |
-|:-------------------------------------|:---------------------------------------------------------------------------------|
-| [`df`](system_df.md)                 | Show docker disk usage                                                           |
-| [`dial-stdio`](system_dial-stdio.md) | Proxy the stdio stream to the daemon connection. Should not be invoked manually. |
-| [`events`](system_events.md)         | Get real time events from the server                                             |
-| [`info`](system_info.md)             | Display system-wide information                                                  |
-| [`prune`](system_prune.md)           | Remove unused data                                                               |
+| Name                         | Description                          |
+|:-----------------------------|:-------------------------------------|
+| [`df`](system_df.md)         | Show docker disk usage               |
+| [`events`](system_events.md) | Get real time events from the server |
+| [`info`](system_info.md)     | Display system-wide information      |
+| [`prune`](system_prune.md)   | Remove unused data                   |
 
 
 
