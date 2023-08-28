@@ -250,6 +250,13 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 
 	fprintln(output, "  Log:", strings.Join(info.Plugins.Log, " "))
 
+	if len(info.CDISpecDirs) > 0 {
+		fprintln(output, " CDI spec directories:")
+		for _, dir := range info.CDISpecDirs {
+			fprintf(output, "  %s\n", dir)
+		}
+	}
+
 	fprintln(output, " Swarm:", info.Swarm.LocalNodeState)
 	printSwarmInfo(output, *info.Info)
 

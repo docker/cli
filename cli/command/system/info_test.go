@@ -128,6 +128,7 @@ var sampleInfoNoSwarm = system.Info{
 			Size: 24,
 		},
 	},
+	CDISpecDirs: []string{"/etc/cdi", "/var/run/cdi"},
 }
 
 var sampleSwarmInfo = swarm.Info{
