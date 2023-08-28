@@ -700,34 +700,71 @@ func TestRunFlagsParseShmSize(t *testing.T) {
 }
 
 func TestParseRestartPolicy(t *testing.T) {
-	invalids := map[string]string{
-		"always:2:3":         "invalid restart policy format: maximum retry count must be an integer",
-		"on-failure:invalid": "invalid restart policy format: maximum retry count must be an integer",
-	}
-	valids := map[string]container.RestartPolicy{
-		"": {},
-		"always": {
-			Name:              "always",
-			MaximumRetryCount: 0,
+	tests := []struct {
+		input       string
+		expected    container.RestartPolicy
+		expectedErr string
+	}{
+		{
+			input: "",
 		},
-		"on-failure:1": {
-			Name:              "on-failure",
-			MaximumRetryCount: 1,
+		{
+			input: "no",
+			expected: container.RestartPolicy{
+				Name: "no",
+			},
+		},
+		{
+			input: "always",
+			expected: container.RestartPolicy{
+				Name: "always",
+			},
+		},
+		{
+			input: "always:1",
+			expected: container.RestartPolicy{
+				Name:              "always",
+				MaximumRetryCount: 1,
+			},
+		},
+		{
+			input:       "always:2:3",
+			expectedErr: "invalid restart policy format: maximum retry count must be an integer",
+		},
+		{
+			input: "on-failure:1",
+			expected: container.RestartPolicy{
+				Name:              "on-failure",
+				MaximumRetryCount: 1,
+			},
+		},
+		{
+			input:       "on-failure:invalid",
+			expectedErr: "invalid restart policy format: maximum retry count must be an integer",
+		},
+		{
+			input: "unless-stopped",
+			expected: container.RestartPolicy{
+				Name: "unless-stopped",
+			},
+		},
+		{
+			input:       "unless-stopped:invalid",
+			expectedErr: "invalid restart policy format: maximum retry count must be an integer",
 		},
 	}
-	for restart, expectedError := range invalids {
-		if _, _, _, err := parseRun([]string{fmt.Sprintf("--restart=%s", restart), "img", "cmd"}); err == nil || err.Error() != expectedError {
-			t.Fatalf("Expected an error with message '%v' for %v, got %v", expectedError, restart, err)
-		}
-	}
-	for restart, expected := range valids {
-		_, hostconfig, _, err := parseRun([]string{fmt.Sprintf("--restart=%v", restart), "img", "cmd"})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if hostconfig.RestartPolicy != expected {
-			t.Fatalf("Expected %v, got %v", expected, hostconfig.RestartPolicy)
-		}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			_, hostConfig, _, err := parseRun([]string{"--restart=" + tc.input, "img", "cmd"})
+			if tc.expectedErr != "" {
+				assert.Check(t, is.Nil(hostConfig))
+				assert.Check(t, is.Error(err, tc.expectedErr))
+			} else {
+				assert.Check(t, is.DeepEqual(hostConfig.RestartPolicy, tc.expected))
+				assert.Check(t, err)
+			}
+		})
 	}
 }
 
