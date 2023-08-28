@@ -17,11 +17,11 @@ const (
 	// AlpineImage is an image in the test registry
 	AlpineImage = "registry:5000/alpine:3.6"
 	// AlpineSha is the sha of the alpine image
-	AlpineSha = "641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d"
+	AlpineSha = "641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d" // #nosec G101 -- ignoring: Potential hardcoded credentials (gosec)
 	// BusyboxImage is an image in the test registry
 	BusyboxImage = "registry:5000/busybox:1.27.2"
 	// BusyboxSha is the sha of the busybox image
-	BusyboxSha = "030fcb92e1487b18c974784dcc110a93147c9fc402188370fbfd17efabffc6af"
+	BusyboxSha = "030fcb92e1487b18c974784dcc110a93147c9fc402188370fbfd17efabffc6af" // #nosec G101 -- ignoring: Potential hardcoded credentials (gosec)
 )
 
 // SetupConfigFile creates a config.json file for testing
