@@ -202,7 +202,8 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		}
 
 		// Replace platform from config
-		imageManifest.Descriptor.Platform = types.OCIPlatform(&manifestDescriptor.Platform)
+		p := manifestDescriptor.Platform
+		imageManifest.Descriptor.Platform = types.OCIPlatform(&p)
 
 		infos = append(infos, imageManifest)
 	}
