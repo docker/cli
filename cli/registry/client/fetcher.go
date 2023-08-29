@@ -31,17 +31,9 @@ func fetchManifest(ctx context.Context, repo distribution.Repository, ref refere
 	switch v := manifest.(type) {
 	// Removed Schema 1 support
 	case *schema2.DeserializedManifest:
-		imageManifest, err := pullManifestSchemaV2(ctx, ref, repo, *v)
-		if err != nil {
-			return types.ImageManifest{}, err
-		}
-		return imageManifest, nil
+		return pullManifestSchemaV2(ctx, ref, repo, *v)
 	case *ocischema.DeserializedManifest:
-		imageManifest, err := pullManifestOCISchema(ctx, ref, repo, *v)
-		if err != nil {
-			return types.ImageManifest{}, err
-		}
-		return imageManifest, nil
+		return pullManifestOCISchema(ctx, ref, repo, *v)
 	case *manifestlist.DeserializedManifestList:
 		return types.ImageManifest{}, errors.Errorf("%s is a manifest list", ref)
 	}
@@ -56,11 +48,7 @@ func fetchList(ctx context.Context, repo distribution.Repository, ref reference.
 
 	switch v := manifest.(type) {
 	case *manifestlist.DeserializedManifestList:
-		imageManifests, err := pullManifestList(ctx, ref, repo, *v)
-		if err != nil {
-			return nil, err
-		}
-		return imageManifests, nil
+		return pullManifestList(ctx, ref, repo, *v)
 	default:
 		return nil, errors.Errorf("unsupported manifest format: %v", v)
 	}
@@ -154,11 +142,8 @@ func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (oc
 	}
 
 	// If pull by digest, then verify the manifest digest.
-	if digested, isDigested := ref.(reference.Canonical); isDigested {
-		if digested.Digest() != desc.Digest {
-			err := errors.Errorf("manifest verification failed for digest %s", digested.Digest())
-			return ocispec.Descriptor{}, err
-		}
+	if digested, isDigested := ref.(reference.Canonical); isDigested && digested.Digest() != desc.Digest {
+		return ocispec.Descriptor{}, errors.Errorf("manifest verification failed for digest %s", digested.Digest())
 	}
 
 	return desc, nil
@@ -167,12 +152,11 @@ func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (oc
 // pullManifestList handles "manifest lists" which point to various
 // platform-specific manifests.
 func pullManifestList(ctx context.Context, ref reference.Named, repo distribution.Repository, mfstList manifestlist.DeserializedManifestList) ([]types.ImageManifest, error) {
-	infos := []types.ImageManifest{}
-
 	if _, err := validateManifestDigest(ref, mfstList); err != nil {
 		return nil, err
 	}
 
+	infos := make([]types.ImageManifest, 0, len(mfstList.Manifests))
 	for _, manifestDescriptor := range mfstList.Manifests {
 		manSvc, err := repo.Manifests(ctx)
 		if err != nil {
@@ -217,12 +201,12 @@ func continueOnError(err error) bool {
 		}
 		return continueOnError(v[0])
 	case errcode.Error:
-		e := err.(errcode.Error)
-		switch e.Code {
+		switch e := err.(errcode.Error); e.Code {
 		case errcode.ErrorCodeUnauthorized, v2.ErrorCodeManifestUnknown, v2.ErrorCodeNameUnknown:
 			return true
+		default:
+			return false
 		}
-		return false
 	case *distclient.UnexpectedHTTPResponseError:
 		return true
 	}
