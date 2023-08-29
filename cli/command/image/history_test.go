@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
-	"gotest.tools/v3/skip"
 )
 
 func TestNewHistoryCommandErrors(t *testing.T) {
@@ -43,13 +42,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 	}
 }
 
-func notUTCTimezone() bool {
-	now := time.Now()
-	return now != now.UTC()
-}
-
 func TestNewHistoryCommandSuccess(t *testing.T) {
-	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
 	testCases := []struct {
 		name             string
 		args             []string
@@ -62,6 +55,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),
+					Comment: "none",
 				}}, nil
 			},
 		},
@@ -93,13 +87,19 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
-		cmd := NewHistoryCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		actual := cli.OutBuffer().String()
-		golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			// Set to UTC timezone as timestamps in output are
+			// printed in the current timezone
+			t.Setenv("TZ", "UTC")
+			cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
+			cmd := NewHistoryCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			actual := cli.OutBuffer().String()
+			golden.Assert(t, actual, fmt.Sprintf("history-command-success.%s.golden", tc.name))
+		})
 	}
 }
