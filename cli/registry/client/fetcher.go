@@ -243,11 +243,6 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 
 	confirmedTLSRegistries := make(map[string]bool)
 	for _, endpoint := range endpoints {
-		if endpoint.Version == registry.APIVersion1 {
-			logrus.Debugf("skipping v1 endpoint %s", endpoint.URL)
-			continue
-		}
-
 		if endpoint.URL.Scheme != "https" {
 			if _, confirmedTLS := confirmedTLSRegistries[endpoint.URL.Host]; confirmedTLS {
 				logrus.Debugf("skipping non-TLS endpoint %s for host/port that appears to use TLS", endpoint.URL)
