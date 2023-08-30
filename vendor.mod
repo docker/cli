@@ -9,6 +9,7 @@ go 1.19
 require (
 	github.com/containerd/containerd v1.6.21
 	github.com/creack/pty v1.1.18
+	github.com/distribution/reference v0.0.0-20230830145923-e42074f83a9c
 	github.com/docker/distribution v2.8.2+incompatible
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/docker/docker-credential-helpers v0.7.0
@@ -53,7 +54,6 @@ require (
 	github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

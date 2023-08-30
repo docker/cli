@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/hex"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"

@@ -3,10 +3,10 @@ package manifest
 import (
 	"context"
 
+	"github.com/distribution/reference"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/cli/registry/client"
 	"github.com/docker/distribution"
-	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
 )
 
