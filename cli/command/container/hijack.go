@@ -48,6 +48,13 @@ func (h *hijackedIOStreamer) stream(ctx context.Context) error {
 	outputDone := h.beginOutputStream(restoreInput)
 	inputDone, detached := h.beginInputStream(restoreInput)
 
+	defer func() {
+		// Close the pipe after the outputStream had done.
+		if err := h.resp.CloseWrite(); err != nil {
+			logrus.Debugf("Couldn't send EOF: %s", err)
+		}
+	}()
+
 	select {
 	case err := <-outputDone:
 		return err
@@ -167,11 +174,6 @@ func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 				logrus.Debugf("Error sendStdin: %s", err)
 			}
 		}
-
-		if err := h.resp.CloseWrite(); err != nil {
-			logrus.Debugf("Couldn't send EOF: %s", err)
-		}
-
 		close(inputDone)
 	}()
 
