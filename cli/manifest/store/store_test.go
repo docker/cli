@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/distribution/reference"
 	"github.com/google/go-cmp/cmp"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

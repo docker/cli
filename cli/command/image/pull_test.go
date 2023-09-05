@@ -27,7 +27,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 		},
 		{
 			name:          "invalid-name",
-			expectedError: "invalid reference format: repository name must be lowercase",
+			expectedError: "invalid reference format: repository name (library/UPPERCASE_REPO) must be lowercase",
 			args:          []string{"UPPERCASE_REPO"},
 		},
 		{

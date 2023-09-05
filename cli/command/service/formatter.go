@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"

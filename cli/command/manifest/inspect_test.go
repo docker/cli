@@ -5,12 +5,12 @@ import (
 	"io"
 	"testing"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
-	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
