@@ -82,23 +82,14 @@ func validateEndpoint(endpoint *v1Endpoint) error {
 	return nil
 }
 
-// trimV1Address trims the version off the address and returns the
-// trimmed address or an error if there is a non-V1 version.
+// trimV1Address trims the "v1" version suffix off the address and returns
+// the trimmed address. It returns an error on "v2" endpoints.
 func trimV1Address(address string) (string, error) {
-	address = strings.TrimSuffix(address, "/")
-	chunks := strings.Split(address, "/")
-	apiVersionStr := chunks[len(chunks)-1]
-	if apiVersionStr == "v1" {
-		return strings.Join(chunks[:len(chunks)-1], "/"), nil
+	trimmed := strings.TrimSuffix(address, "/")
+	if strings.HasSuffix(trimmed, "/v2") {
+		return "", invalidParamf("search is not supported on v2 endpoints: %s", address)
 	}
-
-	for k, v := range apiVersions {
-		if k != APIVersion1 && apiVersionStr == v {
-			return "", invalidParamf("unsupported V1 version path %s", apiVersionStr)
-		}
-	}
-
-	return address, nil
+	return strings.TrimSuffix(trimmed, "/v1"), nil
 }
 
 func newV1EndpointFromStr(address string, tlsConfig *tls.Config, headers http.Header) (*v1Endpoint, error) {
@@ -183,4 +174,49 @@ func (e *v1Endpoint) ping() (v1PingResult, error) {
 	}
 	log.G(context.TODO()).Debugf("v1PingResult.Standalone: %t", info.Standalone)
 	return info, nil
+}
+
+// httpClient returns an HTTP client structure which uses the given transport
+// and contains the necessary headers for redirected requests
+func httpClient(transport http.RoundTripper) *http.Client {
+	return &http.Client{
+		Transport:     transport,
+		CheckRedirect: addRequiredHeadersToRedirectedRequests,
+	}
+}
+
+func trustedLocation(req *http.Request) bool {
+	var (
+		trusteds = []string{"docker.com", "docker.io"}
+		hostname = strings.SplitN(req.Host, ":", 2)[0]
+	)
+	if req.URL.Scheme != "https" {
+		return false
+	}
+
+	for _, trusted := range trusteds {
+		if hostname == trusted || strings.HasSuffix(hostname, "."+trusted) {
+			return true
+		}
+	}
+	return false
+}
+
+// addRequiredHeadersToRedirectedRequests adds the necessary redirection headers
+// for redirected requests
+func addRequiredHeadersToRedirectedRequests(req *http.Request, via []*http.Request) error {
+	if len(via) != 0 && via[0] != nil {
+		if trustedLocation(req) && trustedLocation(via[0]) {
+			req.Header = via[0].Header
+			return nil
+		}
+		for k, v := range via[0].Header {
+			if k != "Authorization" {
+				for _, vv := range v {
+					req.Header.Add(k, vv)
+				}
+			}
+		}
+	}
+	return nil
 }

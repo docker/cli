@@ -133,7 +133,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 		// would "miss" a creation.
 		started := make(chan struct{})
 		eh := command.InitEventHandler()
-		eh.Handle("create", func(e events.Message) {
+		eh.Handle(events.ActionCreate, func(e events.Message) {
 			if opts.all {
 				s := NewStats(e.ID[:12])
 				if cStats.add(s) {
@@ -143,7 +143,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 			}
 		})
 
-		eh.Handle("start", func(e events.Message) {
+		eh.Handle(events.ActionStart, func(e events.Message) {
 			s := NewStats(e.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
@@ -151,7 +151,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 			}
 		})
 
-		eh.Handle("die", func(e events.Message) {
+		eh.Handle(events.ActionDie, func(e events.Message) {
 			if !opts.all {
 				cStats.remove(e.ID[:12])
 			}

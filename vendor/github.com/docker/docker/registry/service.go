@@ -20,8 +20,8 @@ type Service struct {
 	mu     sync.RWMutex
 }
 
-// NewService returns a new instance of defaultService ready to be
-// installed into an engine.
+// NewService returns a new instance of [Service] ready to be installed into
+// an engine.
 func NewService(options ServiceOptions) (*Service, error) {
 	config, err := newServiceConfig(options)
 
@@ -91,18 +91,6 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 	return "", "", err
 }
 
-// splitReposSearchTerm breaks a search term into an index name and remote name
-func splitReposSearchTerm(reposName string) (string, string) {
-	nameParts := strings.SplitN(reposName, "/", 2)
-	if len(nameParts) == 1 || (!strings.Contains(nameParts[0], ".") &&
-		!strings.Contains(nameParts[0], ":") && nameParts[0] != "localhost") {
-		// This is a Docker Hub repository (ex: samalba/hipache or ubuntu),
-		// use the default Docker Hub registry (docker.io)
-		return IndexName, reposName
-	}
-	return nameParts[0], nameParts[1]
-}
-
 // ResolveRepository splits a repository name into its components
 // and configuration of the associated registry.
 func (s *Service) ResolveRepository(name reference.Named) (*RepositoryInfo, error) {
@@ -115,7 +103,7 @@ func (s *Service) ResolveRepository(name reference.Named) (*RepositoryInfo, erro
 type APIEndpoint struct {
 	Mirror                         bool
 	URL                            *url.URL
-	Version                        APIVersion
+	Version                        APIVersion // Deprecated: v1 registries are deprecated, and endpoints are always v2.
 	AllowNondistributableArtifacts bool
 	Official                       bool
 	TrimHostname                   bool
