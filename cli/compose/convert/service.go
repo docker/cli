@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"context"
 	"os"
 	"sort"
 	"strings"
@@ -25,17 +26,18 @@ const (
 
 // Services from compose-file types to engine API types
 func Services(
+	ctx context.Context,
 	namespace Namespace,
 	config *composetypes.Config,
 	apiClient client.CommonAPIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
 	for _, service := range config.Services {
-		secrets, err := convertServiceSecrets(apiClient, namespace, service.Secrets, config.Secrets)
+		secrets, err := convertServiceSecrets(ctx, apiClient, namespace, service.Secrets, config.Secrets)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
-		configs, err := convertServiceConfigObjs(apiClient, namespace, service, config.Configs)
+		configs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, config.Configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
@@ -240,6 +242,7 @@ func convertServiceNetworks(
 
 // TODO: fix secrets API so that SecretAPIClient is not required here
 func convertServiceSecrets(
+	ctx context.Context,
 	apiClient client.SecretAPIClient,
 	namespace Namespace,
 	secrets []composetypes.ServiceSecretConfig,
@@ -267,7 +270,7 @@ func convertServiceSecrets(
 		})
 	}
 
-	secrs, err := servicecli.ParseSecrets(apiClient, refs)
+	secrs, err := servicecli.ParseSecrets(ctx, apiClient, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -284,6 +287,7 @@ func convertServiceSecrets(
 //
 // TODO: fix configs API so that ConfigsAPIClient is not required here
 func convertServiceConfigObjs(
+	ctx context.Context,
 	apiClient client.ConfigAPIClient,
 	namespace Namespace,
 	service composetypes.ServiceConfig,
@@ -342,7 +346,7 @@ func convertServiceConfigObjs(
 		})
 	}
 
-	confs, err := servicecli.ParseConfigs(apiClient, refs)
+	confs, err := servicecli.ParseConfigs(ctx, apiClient, refs)
 	if err != nil {
 		return nil, err
 	}

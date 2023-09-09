@@ -24,7 +24,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List checkpoints for a container",
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, args[0], opts)
+			return runList(cmd.Context(), dockerCli, args[0], opts)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
@@ -35,8 +35,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, container string, opts listOptions) error {
-	checkpoints, err := dockerCli.Client().CheckpointList(context.Background(), container, checkpoint.ListOptions{
+func runList(ctx context.Context, dockerCli command.Cli, container string, opts listOptions) error {
+	checkpoints, err := dockerCli.Client().CheckpointList(ctx, container, checkpoint.ListOptions{
 		CheckpointDir: opts.checkpointDir,
 	})
 	if err != nil {

@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -21,7 +22,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				serverAddress = args[0]
 			}
-			return runLogout(dockerCli, serverAddress)
+			return runLogout(cmd.Context(), dockerCli, serverAddress)
 		},
 		Annotations: map[string]string{
 			"category-top": "9",
@@ -32,7 +33,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogout(dockerCli command.Cli, serverAddress string) error {
+func runLogout(_ context.Context, dockerCli command.Cli, serverAddress string) error {
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {

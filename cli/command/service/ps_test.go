@@ -89,7 +89,9 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 		filter:   opts.NewFilterOpt(),
 		format:   "{{.ID}}",
 	}
-	err := runPS(cli, options)
+
+	ctx := context.Background()
+	err := runPS(ctx, cli, options)
 	assert.Error(t, err, "no such service: bar")
 }
 
@@ -104,7 +106,8 @@ func TestRunPSQuiet(t *testing.T) {
 	}
 
 	cli := test.NewFakeCli(client)
-	err := runPS(cli, psOptions{services: []string{"foo"}, quiet: true, filter: opts.NewFilterOpt()})
+	ctx := context.Background()
+	err := runPS(ctx, cli, psOptions{services: []string{"foo"}, quiet: true, filter: opts.NewFilterOpt()})
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("sxabyp0obqokwekpun4rjo0b3\n", cli.OutBuffer().String()))
 }

@@ -43,7 +43,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				opts.serverAddress = args[0]
 			}
-			return runLogin(dockerCli, opts)
+			return runLogin(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "8",
@@ -100,8 +100,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	return nil
 }
 
-func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
-	ctx := context.Background()
+func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	clnt := dockerCli.Client()
 	if err := verifyloginOptions(dockerCli, &opts); err != nil {
 		return err

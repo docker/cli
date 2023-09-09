@@ -24,7 +24,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove all unused networks",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			output, err := runPrune(dockerCli, options)
+			output, err := runPrune(cmd.Context(), dockerCli, options)
 			if err != nil {
 				return err
 			}
@@ -46,14 +46,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 const warning = `WARNING! This will remove all custom networks not used by at least one container.
 Are you sure you want to continue?`
 
-func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return "", nil
 	}
 
-	report, err := dockerCli.Client().NetworksPrune(context.Background(), pruneFilters)
+	report, err := dockerCli.Client().NetworksPrune(ctx, pruneFilters)
 	if err != nil {
 		return "", err
 	}
@@ -70,7 +70,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (output string, err e
 
 // RunPrune calls the Network Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
-	output, err := runPrune(dockerCli, pruneOptions{force: true, filter: filter})
+func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
+	output, err := runPrune(ctx, dockerCli, pruneOptions{force: true, filter: filter})
 	return 0, output, err
 }

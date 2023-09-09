@@ -34,7 +34,7 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.reference = args[1]
 			}
-			return runImport(dockerCli, options)
+			return runImport(cmd.Context(), dockerCli, options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image import, docker import",
@@ -51,7 +51,7 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runImport(dockerCli command.Cli, options importOptions) error {
+func runImport(ctx context.Context, dockerCli command.Cli, options importOptions) error {
 	var source types.ImageImportSource
 	switch {
 	case options.source == "-":
@@ -78,7 +78,7 @@ func runImport(dockerCli command.Cli, options importOptions) error {
 		}
 	}
 
-	responseBody, err := dockerCli.Client().ImageImport(context.Background(), source, options.reference, types.ImageImportOptions{
+	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, types.ImageImportOptions{
 		Message:  options.message,
 		Changes:  options.changes.GetAll(),
 		Platform: options.platform,

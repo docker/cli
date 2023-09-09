@@ -36,7 +36,7 @@ func newSignerAddCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
 			options.repos = args[1:]
-			return addSigner(dockerCLI, options)
+			return addSigner(cmd.Context(), dockerCLI, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -47,7 +47,7 @@ func newSignerAddCommand(dockerCLI command.Cli) *cobra.Command {
 
 var validSignerName = regexp.MustCompile(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
 
-func addSigner(dockerCLI command.Cli, options signerAddOptions) error {
+func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOptions) error {
 	signerName := options.signer
 	if !validSignerName(signerName) {
 		return fmt.Errorf("signer name \"%s\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character", signerName)
@@ -66,7 +66,7 @@ func addSigner(dockerCLI command.Cli, options signerAddOptions) error {
 	var errRepos []string
 	for _, repoName := range options.repos {
 		fmt.Fprintf(dockerCLI.Out(), "Adding signer \"%s\" to %s...\n", signerName, repoName)
-		if err := addSignerToRepo(dockerCLI, signerName, repoName, signerPubKeys); err != nil {
+		if err := addSignerToRepo(ctx, dockerCLI, signerName, repoName, signerPubKeys); err != nil {
 			fmt.Fprintln(dockerCLI.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repoName)
 		} else {
@@ -79,8 +79,7 @@ func addSigner(dockerCLI command.Cli, options signerAddOptions) error {
 	return nil
 }
 
-func addSignerToRepo(dockerCLI command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
-	ctx := context.Background()
+func addSignerToRepo(ctx context.Context, dockerCLI command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), repoName)
 	if err != nil {
 		return err

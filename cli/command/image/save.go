@@ -26,7 +26,7 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.images = args
-			return RunSave(dockerCli, opts)
+			return RunSave(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image save, docker save",
@@ -42,7 +42,7 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunSave performs a save against the engine based on the specified options
-func RunSave(dockerCli command.Cli, opts saveOptions) error {
+func RunSave(ctx context.Context, dockerCli command.Cli, opts saveOptions) error {
 	if opts.output == "" && dockerCli.Out().IsTerminal() {
 		return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
 	}
@@ -51,7 +51,7 @@ func RunSave(dockerCli command.Cli, opts saveOptions) error {
 		return errors.Wrap(err, "failed to save image")
 	}
 
-	responseBody, err := dockerCli.Client().ImageSave(context.Background(), opts.images)
+	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images)
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,7 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.image = args[0]
-			return runHistory(dockerCli, opts)
+			return runHistory(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image history, docker history",
@@ -46,9 +46,7 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runHistory(dockerCli command.Cli, opts historyOptions) error {
-	ctx := context.Background()
-
+func runHistory(ctx context.Context, dockerCli command.Cli, opts historyOptions) error {
 	history, err := dockerCli.Client().ImageHistory(ctx, opts.image)
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -46,7 +47,7 @@ func TestRunLogs(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&testcase.client)
 
-			err := runLogs(cli, testcase.options)
+			err := runLogs(context.TODO(), cli, testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
 			} else if !assert.Check(t, err) {

@@ -36,7 +36,7 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) == 2 {
 				options.file = args[1]
 			}
-			return runSecretCreate(dockerCli, options)
+			return runSecretCreate(cmd.Context(), dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -49,9 +49,8 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSecretCreate(dockerCli command.Cli, options createOptions) error {
+func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	if options.driver != "" && options.file != "" {
 		return errors.Errorf("When using secret driver secret data must be empty")

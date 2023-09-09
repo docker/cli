@@ -12,13 +12,12 @@ import (
 
 // ParseSecrets retrieves the secrets with the requested names and fills
 // secret IDs into the secret references.
-func ParseSecrets(apiClient client.SecretAPIClient, requestedSecrets []*swarmtypes.SecretReference) ([]*swarmtypes.SecretReference, error) {
+func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, requestedSecrets []*swarmtypes.SecretReference) ([]*swarmtypes.SecretReference, error) {
 	if len(requestedSecrets) == 0 {
 		return []*swarmtypes.SecretReference{}, nil
 	}
 
 	secretRefs := make(map[string]*swarmtypes.SecretReference)
-	ctx := context.Background()
 
 	for _, secret := range requestedSecrets {
 		if _, exists := secretRefs[secret.File.Name]; exists {
@@ -65,7 +64,7 @@ func ParseSecrets(apiClient client.SecretAPIClient, requestedSecrets []*swarmtyp
 
 // ParseConfigs retrieves the configs from the requested names and converts
 // them to config references to use with the spec
-func ParseConfigs(apiClient client.ConfigAPIClient, requestedConfigs []*swarmtypes.ConfigReference) ([]*swarmtypes.ConfigReference, error) {
+func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, requestedConfigs []*swarmtypes.ConfigReference) ([]*swarmtypes.ConfigReference, error) {
 	if len(requestedConfigs) == 0 {
 		return []*swarmtypes.ConfigReference{}, nil
 	}
@@ -83,7 +82,6 @@ func ParseConfigs(apiClient client.ConfigAPIClient, requestedConfigs []*swarmtyp
 	// it is only needed to be referenced once.
 	configRefs := make(map[string]*swarmtypes.ConfigReference)
 	runtimeRefs := make(map[string]*swarmtypes.ConfigReference)
-	ctx := context.Background()
 
 	for _, config := range requestedConfigs {
 		// copy the config, so we don't mutate the args

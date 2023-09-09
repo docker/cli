@@ -35,7 +35,7 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.reference = args[1]
 			}
-			return runCommit(dockerCli, &options)
+			return runCommit(cmd.Context(), dockerCli, &options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container commit, docker commit",
@@ -56,9 +56,7 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCommit(dockerCli command.Cli, options *commitOptions) error {
-	ctx := context.Background()
-
+func runCommit(ctx context.Context, dockerCli command.Cli, options *commitOptions) error {
 	response, err := dockerCli.Client().ContainerCommit(ctx, options.container, container.CommitOptions{
 		Reference: options.reference,
 		Comment:   options.comment,

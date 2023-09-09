@@ -26,7 +26,7 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return swarm.RunDeploy(dockerCli, opts, config)
+			return swarm.RunDeploy(cmd.Context(), dockerCli, opts, config)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

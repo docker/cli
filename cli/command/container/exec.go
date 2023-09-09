@@ -52,7 +52,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			container = args[0]
 			options.Command = args[1:]
-			return RunExec(context.Background(), dockerCli, container, options)
+			return RunExec(cmd.Context(), dockerCli, container, options)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
 			return container.State != "paused"

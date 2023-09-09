@@ -30,7 +30,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove unused local volumes",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			spaceReclaimed, output, err := runPrune(dockerCli, options)
+			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCli, options)
 			if err != nil {
 				return err
 			}
@@ -60,7 +60,7 @@ Are you sure you want to continue?`
 Are you sure you want to continue?`
 )
 
-func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	warning := unusedVolumesWarning
@@ -80,7 +80,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 		return 0, "", nil
 	}
 
-	report, err := dockerCli.Client().VolumesPrune(context.Background(), pruneFilters)
+	report, err := dockerCli.Client().VolumesPrune(ctx, pruneFilters)
 	if err != nil {
 		return 0, "", err
 	}
@@ -98,6 +98,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 
 // RunPrune calls the Volume Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, filter: filter})
+func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
+	return runPrune(ctx, dockerCli, pruneOptions{force: true, filter: filter})
 }

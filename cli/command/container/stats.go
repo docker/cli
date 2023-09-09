@@ -39,7 +39,7 @@ func NewStatsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runStats(dockerCli, &opts)
+			return runStats(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container stats, docker stats",
@@ -59,11 +59,9 @@ func NewStatsCommand(dockerCli command.Cli) *cobra.Command {
 // This shows real-time information on CPU usage, memory usage, and network I/O.
 //
 //nolint:gocyclo
-func runStats(dockerCli command.Cli, opts *statsOptions) error {
+func runStats(ctx context.Context, dockerCli command.Cli, opts *statsOptions) error {
 	showAll := len(opts.containers) == 0
 	closeChan := make(chan error)
-
-	ctx := context.Background()
 
 	// monitorContainerEvents watches for container creation and removal (only
 	// used when calling `docker stats` without arguments).
@@ -96,8 +94,7 @@ func runStats(dockerCli command.Cli, opts *statsOptions) error {
 
 	// Get the daemonOSType if not set already
 	if daemonOSType == "" {
-		svctx := context.Background()
-		sv, err := dockerCli.Client().ServerVersion(svctx)
+		sv, err := dockerCli.Client().ServerVersion(ctx)
 		if err != nil {
 			return err
 		}

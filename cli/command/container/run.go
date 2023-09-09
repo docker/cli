@@ -42,7 +42,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runRun(dockerCli, cmd.Flags(), &options, copts)
+			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
@@ -89,7 +89,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
@@ -114,11 +114,11 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	return runContainer(dockerCli, ropts, copts, containerCfg)
+	return runContainer(ctx, dockerCli, ropts, copts, containerCfg)
 }
 
 //nolint:gocyclo
-func runContainer(dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
+func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
 	config := containerCfg.Config
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	apiClient := dockerCli.Client()
@@ -140,7 +140,7 @@ func runContainer(dockerCli command.Cli, runOpts *runOptions, copts *containerOp
 		config.StdinOnce = false
 	}
 
-	ctx, cancelFun := context.WithCancel(context.Background())
+	ctx, cancelFun := context.WithCancel(ctx)
 	defer cancelFun()
 
 	containerID, err := createContainer(ctx, dockerCli, containerCfg, &runOpts.createOptions)

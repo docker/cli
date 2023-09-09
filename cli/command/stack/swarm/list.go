@@ -11,9 +11,9 @@ import (
 )
 
 // GetStacks lists the swarm stacks.
-func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
+func GetStacks(ctx context.Context, dockerCli command.Cli) ([]*formatter.Stack, error) {
 	services, err := dockerCli.Client().ServiceList(
-		context.Background(),
+		ctx,
 		types.ServiceListOptions{Filters: getAllStacksFilter()})
 	if err != nil {
 		return nil, err

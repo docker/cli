@@ -38,7 +38,7 @@ func NewPsCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.sizeChanged = cmd.Flags().Changed("size")
-			return runPs(dockerCLI, &options)
+			return runPs(cmd.Context(), dockerCLI, &options)
 		},
 		Annotations: map[string]string{
 			"category-top": "3",
@@ -114,9 +114,7 @@ func buildContainerListOptions(options *psOptions) (*container.ListOptions, erro
 	return listOptions, nil
 }
 
-func runPs(dockerCLI command.Cli, options *psOptions) error {
-	ctx := context.Background()
-
+func runPs(ctx context.Context, dockerCLI command.Cli, options *psOptions) error {
 	if len(options.format) == 0 {
 		// load custom psFormat from CLI config (if any)
 		options.format = dockerCLI.ConfigFile().PsFormat

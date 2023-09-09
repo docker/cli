@@ -26,7 +26,7 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.role = args[0]
-			return runJoinToken(dockerCli, opts)
+			return runJoinToken(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
@@ -41,7 +41,7 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runJoinToken(dockerCli command.Cli, opts joinTokenOptions) error {
+func runJoinToken(ctx context.Context, dockerCli command.Cli, opts joinTokenOptions) error {
 	worker := opts.role == "worker"
 	manager := opts.role == "manager"
 
@@ -50,7 +50,6 @@ func runJoinToken(dockerCli command.Cli, opts joinTokenOptions) error {
 	}
 
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	if opts.rotate {
 		flags := swarm.UpdateFlags{

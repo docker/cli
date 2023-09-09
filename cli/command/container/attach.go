@@ -53,7 +53,7 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctr = args[0]
-			return RunAttach(context.Background(), dockerCli, ctr, &opts)
+			return RunAttach(cmd.Context(), dockerCli, ctr, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container attach, docker attach",
