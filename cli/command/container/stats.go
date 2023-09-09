@@ -19,6 +19,8 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // StatsOptions defines options for [RunStats].
@@ -123,6 +125,8 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 
 	showAll := len(options.Containers) == 0
 	if showAll {
+		span := trace.SpanFromContext(ctx)
+
 		// If no names were specified, start a long-running goroutine which
 		// monitors container events. We make sure we're subscribed before
 		// retrieving the list of running containers to avoid a race where we
@@ -141,6 +145,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		eh := command.InitEventHandler()
 		if options.All {
 			eh.Handle(events.ActionCreate, func(e events.Message) {
+				span.AddEvent(string(events.ActionCreate), trace.WithAttributes(attribute.String("ID", e.Actor.ID)))
 				s := NewStats(e.Actor.ID[:12])
 				if cStats.add(s) {
 					waitFirst.Add(1)
@@ -150,6 +155,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		}
 
 		eh.Handle(events.ActionStart, func(e events.Message) {
+			span.AddEvent(string(events.ActionStart), trace.WithAttributes(attribute.String("ID", e.Actor.ID)))
 			s := NewStats(e.Actor.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
@@ -159,6 +165,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 
 		if !options.All {
 			eh.Handle(events.ActionDie, func(e events.Message) {
+				span.AddEvent(string(events.ActionDie), trace.WithAttributes(attribute.String("ID", e.Actor.ID)))
 				cStats.remove(e.Actor.ID[:12])
 			})
 		}
