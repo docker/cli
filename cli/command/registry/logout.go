@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // NewLogoutCommand creates a new `docker logout` command
@@ -52,10 +53,13 @@ func runLogout(ctx context.Context, dockerCli command.Cli, serverAddress string)
 		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
 	}
 
+	span := trace.SpanFromContext(ctx)
+
 	fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
 	errs := make(map[string]error)
 	for _, r := range regsToLogout {
 		if err := dockerCli.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
+			span.RecordError(err)
 			errs[r] = err
 		}
 	}

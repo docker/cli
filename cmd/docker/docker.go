@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,10 +16,14 @@ import (
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/moby/buildkit/util/appcontext"
+	"github.com/moby/buildkit/util/tracing/detect"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
@@ -40,7 +45,25 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return isSupported(cmd, dockerCli)
+			if err := isSupported(cmd, dockerCli); err != nil {
+				return err
+			}
+
+			name := cmd.Name()
+			for p := cmd.Parent(); p != nil && p != cmd.Root(); p = p.Parent() {
+				name = p.Name() + " " + name
+			}
+
+			ctx, _ := otel.Tracer("").Start(cmd.Context(), name)
+			cmd.SetContext(ctx)
+			dockerCli.WithContext(ctx)
+
+			return nil
+		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			// TODO: There doesn't seem to be a way to determine if the command returned an an error
+			// so we can set the span status here.
+			trace.SpanFromContext(cmd.Context()).End()
 		},
 		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 		DisableFlagsInUseLine: true,
@@ -53,6 +76,10 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetIn(dockerCli.In())
 	cmd.SetOut(dockerCli.Out())
 	cmd.SetErr(dockerCli.Err())
+
+	// Cobra's context may be nil in some cases, so initialize it here.
+	ctx := context.TODO()
+	cmd.SetContext(ctx)
 
 	opts, helpCmd = cli.SetupRootCommand(cmd)
 	registerCompletionFuncForGlobalFlags(dockerCli, cmd)
@@ -225,6 +252,29 @@ func runDocker(dockerCli *command.DockerCli) error {
 
 	if err := tcmd.Initialize(); err != nil {
 		return err
+	}
+
+	// Buildkit's detect package currently follows the old otel spec which defaulted to gRPC.
+	// Since the spec changed to default to http/protobuf.
+	// If these env vars are not set then we set them to the new default so detect will give us the expected protocol.
+	// This is the same as on the dockerd side.
+	// This can be removed after buildkit's detect package is updated.
+	if os.Getenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL") == "" && os.Getenv("OTEL_EXPORTER_OTLP_PROTOCOL") == "" {
+		os.Setenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", "http/protobuf")
+	}
+	if v := os.Getenv("OTEL_SERVICE_NAME"); v == "" {
+		os.Setenv("OTEL_SERVICE_NAME", cmd.Root().Name())
+	}
+
+	tp, err := detect.TracerProvider()
+	if err != nil {
+		logrus.WithError(err).Debug("Failed to initialize tracing")
+	}
+
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	if tp != nil {
+		otel.SetTracerProvider(tp)
+		defer detect.Shutdown(context.Background())
 	}
 
 	var envs []string
