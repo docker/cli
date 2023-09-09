@@ -53,7 +53,7 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runAttach(dockerCli, &opts)
+			return runAttach(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container attach, docker attach",
@@ -70,8 +70,7 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runAttach(dockerCli command.Cli, opts *attachOptions) error {
-	ctx := context.Background()
+func runAttach(ctx context.Context, dockerCli command.Cli, opts *attachOptions) error {
 	apiClient := dockerCli.Client()
 
 	// request channel to wait for client

@@ -53,7 +53,7 @@ func newPushListCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
-			return runPush(dockerCli, opts)
+			return runPush(cmd.Context(), dockerCli, opts)
 		},
 	}
 
@@ -63,7 +63,7 @@ func newPushListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, opts pushOpts) error {
+func runPush(ctx context.Context, dockerCli command.Cli, opts pushOpts) error {
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
 		return err
@@ -82,7 +82,6 @@ func runPush(dockerCli command.Cli, opts pushOpts) error {
 		return err
 	}
 
-	ctx := context.Background()
 	if err := pushList(ctx, dockerCli, pushRequest); err != nil {
 		return err
 	}

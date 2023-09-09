@@ -31,7 +31,7 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List configs",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunConfigList(dockerCli, listOpts)
+			return RunConfigList(cmd.Context(), dockerCli, listOpts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -45,9 +45,8 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigList lists Swarm configs.
-func RunConfigList(dockerCli command.Cli, options ListOptions) error {
+func RunConfigList(ctx context.Context, dockerCli command.Cli, options ListOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	configs, err := client.ConfigList(ctx, types.ConfigListOptions{Filters: options.Filter.Value()})
 	if err != nil {

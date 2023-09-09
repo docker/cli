@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -28,7 +29,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.remotes = args
 
-			return runInspect(dockerCli, options)
+			return runInspect(cmd.Context(), dockerCli, options)
 		},
 	}
 
@@ -38,12 +39,12 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	if opts.prettyPrint {
 		var err error
 
 		for index, remote := range opts.remotes {
-			if err = prettyPrintTrustInfo(dockerCli, remote); err != nil {
+			if err = prettyPrintTrustInfo(ctx, dockerCli, remote); err != nil {
 				return err
 			}
 
@@ -57,14 +58,14 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	}
 
 	getRefFunc := func(ref string) (interface{}, []byte, error) {
-		i, err := getRepoTrustInfo(dockerCli, ref)
+		i, err := getRepoTrustInfo(ctx, dockerCli, ref)
 		return nil, i, err
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.remotes, "", getRefFunc)
 }
 
-func getRepoTrustInfo(cli command.Cli, remote string) ([]byte, error) {
-	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
+func getRepoTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]byte, error) {
+	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(ctx, cli, remote)
 	if err != nil {
 		return []byte{}, err
 	}

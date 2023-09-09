@@ -27,7 +27,7 @@ func newPushCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.name = args[0]
-			return runPush(dockerCli, opts)
+			return runPush(cmd.Context(), dockerCli, opts)
 		},
 	}
 
@@ -38,7 +38,7 @@ func newPushCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPush(dockerCli command.Cli, opts pushOptions) error {
+func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	named, err := reference.ParseNormalizedNamed(opts.name)
 	if err != nil {
 		return err
@@ -48,8 +48,6 @@ func runPush(dockerCli command.Cli, opts pushOptions) error {
 	}
 
 	named = reference.TagNameOnly(named)
-
-	ctx := context.Background()
 
 	repoInfo, err := registry.ParseRepositoryInfo(named)
 	if err != nil {

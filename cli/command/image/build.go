@@ -101,7 +101,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.context = args[0]
-			return runBuild(dockerCli, options)
+			return runBuild(cmd.Context(), dockerCli, options)
 		},
 		Annotations: map[string]string{
 			"category-top": "4",
@@ -172,7 +172,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 }
 
 //nolint:gocyclo
-func runBuild(dockerCli command.Cli, options buildOptions) error {
+func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) error {
 	var (
 		err           error
 		buildCtx      io.ReadCloser
@@ -272,7 +272,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var resolvedTags []*resolvedTag

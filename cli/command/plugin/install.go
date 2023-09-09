@@ -44,7 +44,7 @@ func newInstallCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.args = args[1:]
 			}
-			return runInstall(dockerCli, options)
+			return runInstall(cmd.Context(), dockerCli, options)
 		},
 	}
 
@@ -104,7 +104,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 	return options, nil
 }
 
-func runInstall(dockerCli command.Cli, opts pluginOptions) error {
+func runInstall(ctx context.Context, dockerCli command.Cli, opts pluginOptions) error {
 	var localName string
 	if opts.localName != "" {
 		aref, err := reference.ParseNormalizedNamed(opts.localName)
@@ -117,7 +117,6 @@ func runInstall(dockerCli command.Cli, opts pluginOptions) error {
 		localName = reference.FamiliarString(reference.TagNameOnly(aref))
 	}
 
-	ctx := context.Background()
 	options, err := buildPullConfig(ctx, dockerCli, opts, "plugin install")
 	if err != nil {
 		return err

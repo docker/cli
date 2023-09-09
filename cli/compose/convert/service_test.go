@@ -500,7 +500,8 @@ func TestConvertServiceSecrets(t *testing.T) {
 			}, nil
 		},
 	}
-	refs, err := convertServiceSecrets(client, namespace, secrets, secretSpecs)
+	ctx := context.Background()
+	refs, err := convertServiceSecrets(ctx, client, namespace, secrets, secretSpecs)
 	assert.NilError(t, err)
 	expected := []*swarm.SecretReference{
 		{
@@ -559,7 +560,8 @@ func TestConvertServiceConfigs(t *testing.T) {
 			}, nil
 		},
 	}
-	refs, err := convertServiceConfigObjs(client, namespace, service, configSpecs)
+	ctx := context.Background()
+	refs, err := convertServiceConfigObjs(ctx, client, namespace, service, configSpecs)
 	assert.NilError(t, err)
 	expected := []*swarm.ConfigReference{
 		{

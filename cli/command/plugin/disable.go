@@ -18,7 +18,7 @@ func newDisableCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Disable a plugin",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDisable(dockerCli, args[0], force)
+			return runDisable(cmd.Context(), dockerCli, args[0], force)
 		},
 	}
 
@@ -27,8 +27,8 @@ func newDisableCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runDisable(dockerCli command.Cli, name string, force bool) error {
-	if err := dockerCli.Client().PluginDisable(context.Background(), name, types.PluginDisableOptions{Force: force}); err != nil {
+func runDisable(ctx context.Context, dockerCli command.Cli, name string, force bool) error {
+	if err := dockerCli.Client().PluginDisable(ctx, name, types.PluginDisableOptions{Force: force}); err != nil {
 		return err
 	}
 	fmt.Fprintln(dockerCli.Out(), name)

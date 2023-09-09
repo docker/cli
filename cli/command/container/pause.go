@@ -27,7 +27,7 @@ func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runPause(dockerCli, &opts)
+			return runPause(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container pause, docker pause",
@@ -38,9 +38,7 @@ func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
 	}
 }
 
-func runPause(dockerCli command.Cli, opts *pauseOptions) error {
-	ctx := context.Background()
-
+func runPause(ctx context.Context, dockerCli command.Cli, opts *pauseOptions) error {
 	var errs []string
 	errChan := parallelOperation(ctx, opts.containers, dockerCli.Client().ContainerPause)
 	for _, container := range opts.containers {

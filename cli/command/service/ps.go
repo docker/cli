@@ -35,7 +35,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.services = args
-			return runPS(dockerCli, options)
+			return runPS(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return CompletionFn(dockerCli)(cmd, args, toComplete)
@@ -51,9 +51,8 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPS(dockerCli command.Cli, options psOptions) error {
+func runPS(ctx context.Context, dockerCli command.Cli, options psOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	filter, notfound, err := createFilter(ctx, client, options)
 	if err != nil {

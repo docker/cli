@@ -554,7 +554,8 @@ func TestUpdateSecretUpdateInPlace(t *testing.T) {
 		},
 	}
 
-	updatedSecrets, err := getUpdatedSecrets(apiClient, flags, secrets)
+	ctx := context.Background()
+	updatedSecrets, err := getUpdatedSecrets(ctx, apiClient, flags, secrets)
 
 	assert.NilError(t, err)
 	assert.Assert(t, is.Len(updatedSecrets, 1))
@@ -1231,7 +1232,8 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				},
 			}
 
-			finalConfigs, err := getUpdatedConfigs(fakeClient, flags, containerSpec)
+			ctx := context.Background()
+			finalConfigs, err := getUpdatedConfigs(ctx, fakeClient, flags, containerSpec)
 			assert.NilError(t, err)
 
 			// ensure that the finalConfigs consists of all of the expected

@@ -26,7 +26,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove all stopped containers",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			spaceReclaimed, output, err := runPrune(dockerCli, options)
+			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCli, options)
 			if err != nil {
 				return err
 			}
@@ -50,14 +50,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 const warning = `WARNING! This will remove all stopped containers.
 Are you sure you want to continue?`
 
-func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
 		return 0, "", nil
 	}
 
-	report, err := dockerCli.Client().ContainersPrune(context.Background(), pruneFilters)
+	report, err := dockerCli.Client().ContainersPrune(ctx, pruneFilters)
 	if err != nil {
 		return 0, "", err
 	}
@@ -75,6 +75,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 
 // RunPrune calls the Container Prune API
 // This returns the amount of space reclaimed and a detailed output string
-func RunPrune(dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, filter: filter})
+func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
+	return runPrune(ctx, dockerCli, pruneOptions{force: true, filter: filter})
 }

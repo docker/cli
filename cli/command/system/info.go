@@ -64,7 +64,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display system-wide information",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInfo(cmd, dockerCli, &opts)
+			return runInfo(cmd.Context(), cmd, dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "12",
@@ -77,7 +77,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
+func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
 	info := info{
 		ClientInfo: &clientInfo{
 			// Don't pass a dockerCLI to newClientVersion(), because we currently
@@ -95,7 +95,6 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 	}
 
 	if needsServerInfo(opts.format, info) {
-		ctx := context.Background()
 		if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
 			info.Info = &dinfo
 		} else {

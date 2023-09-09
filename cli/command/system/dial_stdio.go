@@ -21,16 +21,17 @@ func newDialStdioCommand(dockerCli command.Cli) *cobra.Command {
 		Args:   cli.NoArgs,
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDialStdio(dockerCli)
+			return runDialStdio(cmd.Context(), dockerCli)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 	return cmd
 }
 
-func runDialStdio(dockerCli command.Cli) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func runDialStdio(ctx context.Context, dockerCli command.Cli) error {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
 	dialer := dockerCli.Client().Dialer()
 	conn, err := dialer(ctx)
 	if err != nil {

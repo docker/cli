@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -97,6 +98,7 @@ func TestRunContainerImagePullPolicyInvalid(t *testing.T) {
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			dockerCli := test.NewFakeCli(&fakeClient{})
 			err := runRun(
+				context.TODO(),
 				dockerCli,
 				&pflag.FlagSet{},
 				&runOptions{createOptions: createOptions{pull: tc.PullPolicy}},

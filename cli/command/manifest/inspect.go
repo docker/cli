@@ -39,7 +39,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 				opts.list = args[0]
 				opts.ref = args[1]
 			}
-			return runInspect(dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCli, opts)
 		},
 	}
 
@@ -49,7 +49,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	namedRef, err := normalizeReference(opts.ref)
 	if err != nil {
 		return err
@@ -76,7 +76,6 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	}
 
 	// Next try a remote manifest
-	ctx := context.Background()
 	registryClient := dockerCli.RegistryClient(opts.insecure)
 	imageManifest, err := registryClient.GetManifest(ctx, namedRef)
 	if err == nil {

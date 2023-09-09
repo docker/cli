@@ -25,7 +25,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more networks",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(dockerCli, args, &opts)
+			return runRemove(cmd.Context(), dockerCli, args, &opts)
 		},
 		ValidArgsFunction: completion.NetworkNames(dockerCli),
 	}
@@ -40,9 +40,9 @@ const ingressWarning = "WARNING! Before removing the routing-mesh network, " +
 	"Otherwise, removal may not be effective and functionality of newly create " +
 	"ingress networks will be impaired.\nAre you sure you want to continue?"
 
-func runRemove(dockerCli command.Cli, networks []string, opts *removeOptions) error {
+func runRemove(ctx context.Context, dockerCli command.Cli, networks []string, opts *removeOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
+
 	status := 0
 
 	for _, name := range networks {
