@@ -507,23 +507,23 @@ func TestParseDevice(t *testing.T) {
 
 func TestParseNetworkConfig(t *testing.T) {
 	tests := []struct {
-		name        string
-		flags       []string
-		expected    map[string]*networktypes.EndpointSettings
-		expectedCfg container.HostConfig
-		expectedErr string
+		name            string
+		flags           []string
+		expected        map[string]*networktypes.EndpointSettings
+		expectedHostCfg container.HostConfig
+		expectedErr     string
 	}{
 		{
-			name:        "single-network-legacy",
-			flags:       []string{"--network", "net1"},
-			expected:    map[string]*networktypes.EndpointSettings{},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "single-network-legacy",
+			flags:           []string{"--network", "net1"},
+			expected:        map[string]*networktypes.EndpointSettings{},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
-			name:        "single-network-advanced",
-			flags:       []string{"--network", "name=net1"},
-			expected:    map[string]*networktypes.EndpointSettings{},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "single-network-advanced",
+			flags:           []string{"--network", "name=net1"},
+			expected:        map[string]*networktypes.EndpointSettings{},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name: "single-network-legacy-with-options",
@@ -549,7 +549,7 @@ func TestParseNetworkConfig(t *testing.T) {
 					Aliases: []string{"web1", "web2"},
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name: "multiple-network-advanced-mixed",
@@ -587,7 +587,7 @@ func TestParseNetworkConfig(t *testing.T) {
 					Aliases: []string{"web3"},
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:  "single-network-advanced-with-options",
@@ -605,13 +605,13 @@ func TestParseNetworkConfig(t *testing.T) {
 					Aliases: []string{"web1", "web2"},
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
-			name:        "multiple-networks",
-			flags:       []string{"--network", "net1", "--network", "name=net2"},
-			expected:    map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "multiple-networks",
+			flags:           []string{"--network", "net1", "--network", "name=net2"},
+			expected:        map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:        "conflict-network",
@@ -650,7 +650,7 @@ func TestParseNetworkConfig(t *testing.T) {
 			}
 
 			assert.NilError(t, err)
-			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedCfg.NetworkMode)
+			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedHostCfg.NetworkMode)
 			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected)
 		})
 	}
