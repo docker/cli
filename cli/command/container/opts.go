@@ -732,6 +732,20 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		hasUserDefined, hasNonUserDefined bool
 	)
 
+	if len(copts.netMode.Value()) == 0 {
+		n := opts.NetworkAttachmentOpts{
+			Target: "default",
+		}
+		if err := applyContainerOptions(&n, copts); err != nil {
+			return nil, err
+		}
+		ep, err := parseNetworkAttachmentOpt(n)
+		if err != nil {
+			return nil, err
+		}
+		endpoints["default"] = ep
+	}
+
 	for i, n := range copts.netMode.Value() {
 		n := n
 		if container.NetworkMode(n.Target).IsUserDefined() {
@@ -792,7 +806,7 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		n.Aliases = make([]string, copts.aliases.Len())
 		copy(n.Aliases, copts.aliases.GetAll())
 	}
-	if copts.links.Len() > 0 {
+	if n.Target != "default" && copts.links.Len() > 0 {
 		n.Links = make([]string, copts.links.Len())
 		copy(n.Links, copts.links.GetAll())
 	}
