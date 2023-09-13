@@ -507,23 +507,24 @@ func TestParseDevice(t *testing.T) {
 
 func TestParseNetworkConfig(t *testing.T) {
 	tests := []struct {
-		name        string
-		flags       []string
-		expected    map[string]*networktypes.EndpointSettings
-		expectedCfg container.HostConfig
-		expectedErr string
+		name            string
+		flags           []string
+		expected        map[string]*networktypes.EndpointSettings
+		expectedCfg     container.Config
+		expectedHostCfg container.HostConfig
+		expectedErr     string
 	}{
 		{
-			name:        "single-network-legacy",
-			flags:       []string{"--network", "net1"},
-			expected:    map[string]*networktypes.EndpointSettings{},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "single-network-legacy",
+			flags:           []string{"--network", "net1"},
+			expected:        map[string]*networktypes.EndpointSettings{},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
-			name:        "single-network-advanced",
-			flags:       []string{"--network", "name=net1"},
-			expected:    map[string]*networktypes.EndpointSettings{},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "single-network-advanced",
+			flags:           []string{"--network", "name=net1"},
+			expected:        map[string]*networktypes.EndpointSettings{},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name: "single-network-legacy-with-options",
@@ -549,7 +550,7 @@ func TestParseNetworkConfig(t *testing.T) {
 					Aliases: []string{"web1", "web2"},
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name: "multiple-network-advanced-mixed",
@@ -565,6 +566,7 @@ func TestParseNetworkConfig(t *testing.T) {
 				"--network-alias", "web2",
 				"--network", "net2",
 				"--network", "name=net3,alias=web3,driver-opt=field3=value3,ip=172.20.88.22,ip6=2001:db8::8822",
+				"--network", "name=net4,mac-address=02:32:1c:23:00:04,link-local-ip=169.254.169.254",
 			},
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
@@ -586,12 +588,18 @@ func TestParseNetworkConfig(t *testing.T) {
 					},
 					Aliases: []string{"web3"},
 				},
+				"net4": {
+					MacAddress: "02:32:1c:23:00:04",
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						LinkLocalIPs: []string{"169.254.169.254"},
+					},
+				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:  "single-network-advanced-with-options",
-			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2,ip=172.20.88.22,ip6=2001:db8::8822"},
+			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2,ip=172.20.88.22,ip6=2001:db8::8822,mac-address=02:32:1c:23:00:04"},
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
 					DriverOpts: map[string]string{
@@ -602,16 +610,30 @@ func TestParseNetworkConfig(t *testing.T) {
 						IPv4Address: "172.20.88.22",
 						IPv6Address: "2001:db8::8822",
 					},
-					Aliases: []string{"web1", "web2"},
+					Aliases:    []string{"web1", "web2"},
+					MacAddress: "02:32:1c:23:00:04",
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedCfg:     container.Config{MacAddress: "02:32:1c:23:00:04"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
-			name:        "multiple-networks",
-			flags:       []string{"--network", "net1", "--network", "name=net2"},
-			expected:    map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "multiple-networks",
+			flags:           []string{"--network", "net1", "--network", "name=net2"},
+			expected:        map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:  "advanced-options-with-standalone-mac-address-flag",
+			flags: []string{"--network=name=net1,alias=foobar", "--mac-address", "52:0f:f3:dc:50:10"},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					Aliases:    []string{"foobar"},
+					MacAddress: "52:0f:f3:dc:50:10",
+				},
+			},
+			expectedCfg:     container.Config{MacAddress: "52:0f:f3:dc:50:10"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:        "conflict-network",
@@ -638,11 +660,26 @@ func TestParseNetworkConfig(t *testing.T) {
 			flags:       []string{"--network", "name=host", "--network", "net1"},
 			expectedErr: `conflicting options: cannot attach both user-defined and non-user-defined network-modes`,
 		},
+		{
+			name:        "conflict-options-link-local-ip",
+			flags:       []string{"--network", "name=net1,link-local-ip=169.254.169.254", "--link-local-ip", "169.254.10.8"},
+			expectedErr: `conflicting options: cannot specify both --link-local-ip and per-network link-local IP addresses`,
+		},
+		{
+			name:        "conflict-options-mac-address",
+			flags:       []string{"--network", "name=net1,mac-address=02:32:1c:23:00:04", "--mac-address", "02:32:1c:23:00:04"},
+			expectedErr: `conflicting options: cannot specify both --mac-address and per-network MAC address`,
+		},
+		{
+			name:        "invalid-mac-address",
+			flags:       []string{"--network", "name=net1,mac-address=foobar"},
+			expectedErr: "foobar is not a valid mac address",
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			_, hConfig, nwConfig, err := parseRun(tc.flags)
+			config, hConfig, nwConfig, err := parseRun(tc.flags)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, err, tc.expectedErr)
@@ -650,7 +687,8 @@ func TestParseNetworkConfig(t *testing.T) {
 			}
 
 			assert.NilError(t, err)
-			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedCfg.NetworkMode)
+			assert.DeepEqual(t, config.MacAddress, tc.expectedCfg.MacAddress)
+			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedHostCfg.NetworkMode)
 			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected)
 		})
 	}
