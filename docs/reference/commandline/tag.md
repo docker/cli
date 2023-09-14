@@ -23,7 +23,7 @@ registry at `registry-1.docker.io` by default. Note that `docker.io` is the
 canonical reference for Docker's public registry.
 - `PORT_NUMBER`: If a hostname is present, it may optionally be followed by a
 registry port number in the format `:8080`.
-- `PATH`: The path consists consists of slash-separated components. Each
+- `PATH`: The path consists of slash-separated components. Each
 component may contain lowercase letters, digits and separators. A separator is
 defined as a period, one or two underscores, or one or more hyphens. A component
 may not start or end with a separator. While the
