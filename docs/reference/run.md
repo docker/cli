@@ -570,19 +570,15 @@ for a container can be obtained via [`docker inspect`](commandline/inspect.md). 
 for container "my-container";
 
 ```console
-{% raw %}
 $ docker inspect -f "{{ .RestartCount }}" my-container
 # 2
-{% endraw %}
 ```
 
 Or, to get the last time the container was (re)started;
 
 ```console
-{% raw %}
 $ docker inspect -f "{{ .State.StartedAt }}" my-container
 # 2015-03-04T23:47:07.691840179Z
-{% endraw %}
 ```
 
 Combining `--restart` (restart policy) with the `--rm` (clean up) flag results
@@ -1647,7 +1643,6 @@ Similarly the operator can set the **HOSTNAME** (Linux) or **COMPUTERNAME** (Win
 Example:
 
 ```console
-{% raw %}
 $ docker run --name=test -d \
     --health-cmd='stat /etc/passwd || exit 1' \
     --health-interval=2s \
@@ -1692,7 +1687,6 @@ $ sleep 2; docker inspect --format='{{json .State.Health}}' test
     }
   ]
 }
-{% endraw %}
 ```
 
 The health status is also displayed in the `docker ps` output.

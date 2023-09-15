@@ -313,7 +313,6 @@ Following is a sample `config.json` file to illustrate the format used for
 various fields:
 
 ```json
-{% raw %}
 {
   "HttpHeaders": {
     "MyHeader": "MyValue"
@@ -356,7 +355,6 @@ various fields:
     }
   }
 }
-{% endraw %}
 ```
 
 ### Experimental features
@@ -379,7 +377,7 @@ list of root Certificate Authorities.
 
 ## Examples
 
-### <a name="host"></a> Specify daemon host (-H, --host)
+### Specify daemon host (-H, --host) {#host}
 
 You can use the `-H`, `--host` flag to specify a socket to use when you invoke
 a `docker` command. You can use the following protocols:
