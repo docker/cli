@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"context"
 	"sort"
 
 	"github.com/docker/cli/cli"
@@ -23,7 +24,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunList(dockerCli, opts)
+			return RunList(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -34,8 +35,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunList performs a stack list against the specified swarm cluster
-func RunList(dockerCli command.Cli, opts options.List) error {
-	ss, err := swarm.GetStacks(dockerCli)
+func RunList(ctx context.Context, dockerCli command.Cli, opts options.List) error {
+	ss, err := swarm.GetStacks(ctx, dockerCli)
 	if err != nil {
 		return err
 	}

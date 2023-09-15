@@ -56,7 +56,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 		return err
 	}
 
-	services, err := convert.Services(namespace, config, dockerCli.Client())
+	services, err := convert.Services(ctx, namespace, config, dockerCli.Client())
 	if err != nil {
 		return err
 	}

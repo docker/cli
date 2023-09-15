@@ -26,7 +26,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.plugins = args
-			return runRemove(dockerCli, &opts)
+			return runRemove(cmd.Context(), dockerCli, &opts)
 		},
 	}
 
@@ -35,9 +35,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(dockerCli command.Cli, opts *rmOptions) error {
-	ctx := context.Background()
-
+func runRemove(ctx context.Context, dockerCli command.Cli, opts *rmOptions) error {
 	var errs cli.Errors
 	for _, name := range opts.plugins {
 		if err := dockerCli.Client().PluginRemove(ctx, name, types.PluginRemoveOptions{Force: opts.force}); err != nil {

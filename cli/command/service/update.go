@@ -31,7 +31,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a service",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(dockerCli, cmd.Flags(), options, args[0])
+			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), options, args[0])
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return CompletionFn(dockerCli)(cmd, args, toComplete)
@@ -127,9 +127,8 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 }
 
 //nolint:gocyclo
-func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
+func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
-	ctx := context.Background()
 
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	if err != nil {
@@ -195,14 +194,14 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 		}
 	}
 
-	updatedSecrets, err := getUpdatedSecrets(apiClient, flags, spec.TaskTemplate.ContainerSpec.Secrets)
+	updatedSecrets, err := getUpdatedSecrets(ctx, apiClient, flags, spec.TaskTemplate.ContainerSpec.Secrets)
 	if err != nil {
 		return err
 	}
 
 	spec.TaskTemplate.ContainerSpec.Secrets = updatedSecrets
 
-	updatedConfigs, err := getUpdatedConfigs(apiClient, flags, spec.TaskTemplate.ContainerSpec)
+	updatedConfigs, err := getUpdatedConfigs(ctx, apiClient, flags, spec.TaskTemplate.ContainerSpec)
 	if err != nil {
 		return err
 	}
@@ -760,7 +759,7 @@ func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
 	}
 }
 
-func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {
+func getUpdatedSecrets(ctx context.Context, apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {
 	newSecrets := []*swarm.SecretReference{}
 
 	toRemove := buildToRemoveSet(flags, flagSecretRemove)
@@ -773,7 +772,7 @@ func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, s
 	if flags.Changed(flagSecretAdd) {
 		values := flags.Lookup(flagSecretAdd).Value.(*opts.SecretOpt).Value()
 
-		addSecrets, err := ParseSecrets(apiClient, values)
+		addSecrets, err := ParseSecrets(ctx, apiClient, values)
 		if err != nil {
 			return nil, err
 		}
@@ -783,7 +782,7 @@ func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, s
 	return newSecrets, nil
 }
 
-func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, spec *swarm.ContainerSpec) ([]*swarm.ConfigReference, error) {
+func getUpdatedConfigs(ctx context.Context, apiClient client.ConfigAPIClient, flags *pflag.FlagSet, spec *swarm.ContainerSpec) ([]*swarm.ConfigReference, error) {
 	var (
 		// credSpecConfigName stores the name of the config specified by the
 		// credential-spec flag. if a Runtime target Config with this name is
@@ -832,7 +831,7 @@ func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, s
 	}
 
 	if len(resolveConfigs) > 0 {
-		addConfigs, err := ParseConfigs(apiClient, resolveConfigs)
+		addConfigs, err := ParseConfigs(ctx, apiClient, resolveConfigs)
 		if err != nil {
 			return nil, err
 		}

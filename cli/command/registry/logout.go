@@ -1,12 +1,14 @@
 package registry
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // NewLogoutCommand creates a new `docker logout` command
@@ -21,7 +23,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				serverAddress = args[0]
 			}
-			return runLogout(dockerCli, serverAddress)
+			return runLogout(cmd.Context(), dockerCli, serverAddress)
 		},
 		Annotations: map[string]string{
 			"category-top": "9",
@@ -32,7 +34,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogout(dockerCli command.Cli, serverAddress string) error {
+func runLogout(ctx context.Context, dockerCli command.Cli, serverAddress string) error {
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
@@ -51,10 +53,13 @@ func runLogout(dockerCli command.Cli, serverAddress string) error {
 		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
 	}
 
+	span := trace.SpanFromContext(ctx)
+
 	fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
 	errs := make(map[string]error)
 	for _, r := range regsToLogout {
 		if err := dockerCli.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
+			span.RecordError(err)
 			errs[r] = err
 		}
 	}

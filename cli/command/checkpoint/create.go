@@ -28,7 +28,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
 			opts.checkpoint = args[1]
-			return runCreate(dockerCli, opts)
+			return runCreate(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -40,8 +40,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, opts createOptions) error {
-	err := dockerCli.Client().CheckpointCreate(context.Background(), opts.container, checkpoint.CreateOptions{
+func runCreate(ctx context.Context, dockerCli command.Cli, opts createOptions) error {
+	err := dockerCli.Client().CheckpointCreate(ctx, opts.container, checkpoint.CreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
 		Exit:          !opts.leaveRunning,

@@ -32,7 +32,7 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ids = args
-			return runInspect(dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCli, opts)
 		},
 	}
 
@@ -44,11 +44,11 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	var elementSearcher inspect.GetRefFunc
 	switch opts.inspectType {
 	case "", "container", "image", "node", "network", "service", "volume", "task", "plugin", "secret":
-		elementSearcher = inspectAll(context.Background(), dockerCli, opts.size, opts.inspectType)
+		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.inspectType)
 	default:
 		return errors.Errorf("%q is not a valid value for --type", opts.inspectType)
 	}

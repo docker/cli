@@ -26,7 +26,7 @@ func newConfigRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			opts := RemoveOptions{
 				Names: args,
 			}
-			return RunConfigRemove(dockerCli, opts)
+			return RunConfigRemove(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -35,9 +35,8 @@ func newConfigRemoveCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigRemove removes the given Swarm configs.
-func RunConfigRemove(dockerCli command.Cli, opts RemoveOptions) error {
+func RunConfigRemove(ctx context.Context, dockerCli command.Cli, opts RemoveOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	var errs []string
 

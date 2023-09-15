@@ -35,7 +35,7 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				options.matchName = args[0]
 			}
-			return runImages(dockerCli, options)
+			return runImages(cmd.Context(), dockerCli, options)
 		},
 		Annotations: map[string]string{
 			"category-top": "7",
@@ -62,9 +62,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func runImages(dockerCli command.Cli, options imagesOptions) error {
-	ctx := context.Background()
-
+func runImages(ctx context.Context, dockerCli command.Cli, options imagesOptions) error {
 	filters := options.filter.Value()
 	if options.matchName != "" {
 		filters.Add("reference", options.matchName)

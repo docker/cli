@@ -25,7 +25,7 @@ func newEnableCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.name = args[0]
-			return runEnable(dockerCli, &opts)
+			return runEnable(cmd.Context(), dockerCli, &opts)
 		},
 	}
 
@@ -34,13 +34,13 @@ func newEnableCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runEnable(dockerCli command.Cli, opts *enableOpts) error {
+func runEnable(ctx context.Context, dockerCli command.Cli, opts *enableOpts) error {
 	name := opts.name
 	if opts.timeout < 0 {
 		return errors.Errorf("negative timeout %d is invalid", opts.timeout)
 	}
 
-	if err := dockerCli.Client().PluginEnable(context.Background(), name, types.PluginEnableOptions{Timeout: opts.timeout}); err != nil {
+	if err := dockerCli.Client().PluginEnable(ctx, name, types.PluginEnableOptions{Timeout: opts.timeout}); err != nil {
 		return err
 	}
 	fmt.Fprintln(dockerCli.Out(), name)

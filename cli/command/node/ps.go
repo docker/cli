@@ -39,7 +39,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 				options.nodeIDs = args
 			}
 
-			return runPs(dockerCli, options)
+			return runPs(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -53,9 +53,8 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPs(dockerCli command.Cli, options psOptions) error {
+func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	var (
 		errs  []string

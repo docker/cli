@@ -24,7 +24,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.pluginNames = args
-			return runInspect(dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCli, opts)
 		},
 	}
 
@@ -33,9 +33,9 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
+
 	getRef := func(ref string) (interface{}, []byte, error) {
 		return client.PluginInspectWithRaw(ctx, ref)
 	}

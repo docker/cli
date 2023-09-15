@@ -28,7 +28,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				opts.args = args[1:]
 			}
-			return runCreate(dockerCli, cmd.Flags(), opts)
+			return runCreate(cmd.Context(), dockerCli, cmd.Flags(), opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -76,11 +76,9 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
 	apiClient := dockerCli.Client()
 	createOpts := types.ServiceCreateOptions{}
-
-	ctx := context.Background()
 
 	service, err := opts.ToService(ctx, apiClient, flags)
 	if err != nil {
@@ -94,14 +92,14 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 	specifiedSecrets := opts.secrets.Value()
 	if len(specifiedSecrets) > 0 {
 		// parse and validate secrets
-		secrets, err := ParseSecrets(apiClient, specifiedSecrets)
+		secrets, err := ParseSecrets(ctx, apiClient, specifiedSecrets)
 		if err != nil {
 			return err
 		}
 		service.TaskTemplate.ContainerSpec.Secrets = secrets
 	}
 
-	if err := setConfigs(apiClient, &service, opts); err != nil {
+	if err := setConfigs(ctx, apiClient, &service, opts); err != nil {
 		return err
 	}
 
@@ -145,7 +143,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 // setConfigs does double duty: it both sets the ConfigReferences of the
 // service, and it sets the service CredentialSpec. This is because there is an
 // interplay between the CredentialSpec and the Config it depends on.
-func setConfigs(apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, opts *serviceOptions) error {
+func setConfigs(ctx context.Context, apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, opts *serviceOptions) error {
 	specifiedConfigs := opts.configs.Value()
 	// if the user has requested to use a Config, for the CredentialSpec add it
 	// to the specifiedConfigs as a RuntimeTarget.
@@ -157,7 +155,7 @@ func setConfigs(apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, op
 	}
 	if len(specifiedConfigs) > 0 {
 		// parse and validate configs
-		configs, err := ParseConfigs(apiClient, specifiedConfigs)
+		configs, err := ParseConfigs(ctx, apiClient, specifiedConfigs)
 		if err != nil {
 			return err
 		}

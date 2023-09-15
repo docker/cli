@@ -82,6 +82,16 @@ type DockerCli struct {
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig store.Config
 	initTimeout        time.Duration
+
+	// baseCtx is the base context used for internal operations
+	// In the future this may be replaced by explicitly passing a context to functions that need it.
+	baseCtx context.Context
+}
+
+// WithContext sets the base context for the cli
+// This is used internally for operations may require a context to propagate tracing.
+func (cli *DockerCli) WithContext(ctx context.Context) {
+	cli.baseCtx = ctx
 }
 
 // DefaultVersion returns api.defaultVersion.
@@ -323,8 +333,7 @@ func (cli *DockerCli) getInitTimeout() time.Duration {
 }
 
 func (cli *DockerCli) initializeFromClient() {
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, cli.getInitTimeout())
+	ctx, cancel := context.WithTimeout(cli.baseCtx, cli.getInitTimeout())
 	defer cancel()
 
 	ping, err := cli.client.Ping(ctx)
@@ -444,6 +453,9 @@ func (cli *DockerCli) initialize() error {
 				return
 			}
 		}
+		if cli.baseCtx == nil {
+			cli.baseCtx = context.Background()
+		}
 		cli.initializeFromClient()
 	})
 	return cli.initErr
@@ -487,7 +499,7 @@ func NewDockerCli(ops ...DockerCliOption) (*DockerCli, error) {
 	}
 	ops = append(defaultOps, ops...)
 
-	cli := &DockerCli{}
+	cli := &DockerCli{baseCtx: context.Background()}
 	if err := cli.Apply(ops...); err != nil {
 		return nil, err
 	}

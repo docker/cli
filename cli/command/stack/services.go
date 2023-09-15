@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -29,7 +30,7 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunServices(dockerCli, opts)
+			return RunServices(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -43,8 +44,8 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunServices performs a stack services against the specified swarm cluster
-func RunServices(dockerCli command.Cli, opts options.Services) error {
-	services, err := swarm.GetServices(dockerCli, opts)
+func RunServices(ctx context.Context, dockerCli command.Cli, opts options.Services) error {
+	services, err := swarm.GetServices(ctx, dockerCli, opts)
 	if err != nil {
 		return err
 	}

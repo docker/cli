@@ -26,7 +26,7 @@ func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove trust for an image",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return revokeTrust(dockerCli, args[0], options)
+			return revokeTrust(cmd.Context(), dockerCli, args[0], options)
 		},
 	}
 	flags := cmd.Flags()
@@ -34,8 +34,7 @@ func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
-	ctx := context.Background()
+func revokeTrust(ctx context.Context, cli command.Cli, remote string, options revokeOptions) error {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
 	if err != nil {
 		return err

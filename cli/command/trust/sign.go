@@ -33,7 +33,7 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.imageName = args[0]
-			return runSignImage(dockerCli, options)
+			return runSignImage(cmd.Context(), dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -41,9 +41,9 @@ func newSignCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSignImage(cli command.Cli, options signOptions) error {
+func runSignImage(ctx context.Context, cli command.Cli, options signOptions) error {
 	imageName := options.imageName
-	ctx := context.Background()
+
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), imageName)
 	if err != nil {
 		return err

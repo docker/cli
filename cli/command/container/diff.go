@@ -25,7 +25,7 @@ func NewDiffCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runDiff(dockerCli, &opts)
+			return runDiff(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container diff, docker diff",
@@ -34,12 +34,10 @@ func NewDiffCommand(dockerCli command.Cli) *cobra.Command {
 	}
 }
 
-func runDiff(dockerCli command.Cli, opts *diffOptions) error {
+func runDiff(ctx context.Context, dockerCli command.Cli, opts *diffOptions) error {
 	if opts.container == "" {
 		return errors.New("Container name cannot be empty")
 	}
-	ctx := context.Background()
-
 	changes, err := dockerCli.Client().ContainerDiff(ctx, opts.container)
 	if err != nil {
 		return err

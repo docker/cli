@@ -34,7 +34,7 @@ func newJoinCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runJoin(dockerCli, cmd.Flags(), opts)
+			return runJoin(cmd.Context(), dockerCli, cmd.Flags(), opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
@@ -52,9 +52,8 @@ func newJoinCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runJoin(dockerCli command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
+func runJoin(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	req := swarm.JoinRequest{
 		JoinToken:     opts.token,

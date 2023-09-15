@@ -11,10 +11,9 @@ import (
 )
 
 // GetServices is the swarm implementation of listing stack services
-func GetServices(dockerCli command.Cli, opts options.Services) ([]swarm.Service, error) {
+func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Services) ([]swarm.Service, error) {
 	var (
 		err    error
-		ctx    = context.Background()
 		client = dockerCli.Client()
 	)
 

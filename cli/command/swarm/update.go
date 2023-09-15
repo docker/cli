@@ -21,7 +21,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update the swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(dockerCli, cmd.Flags(), opts)
+			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), opts)
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().NFlag() == 0 {
@@ -41,9 +41,8 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, opts swarmOptions) error {
+func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts swarmOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	var updateFlags swarm.UpdateFlags
 

@@ -28,7 +28,7 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runKill(dockerCli, &opts)
+			return runKill(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container kill, docker kill",
@@ -41,9 +41,8 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runKill(dockerCli command.Cli, opts *killOptions) error {
+func runKill(ctx context.Context, dockerCli command.Cli, opts *killOptions) error {
 	var errs []string
-	ctx := context.Background()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, container string) error {
 		return dockerCli.Client().ContainerKill(ctx, container, opts.signal)
 	})

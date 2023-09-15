@@ -51,8 +51,7 @@ type trustKey struct {
 
 // lookupTrustInfo returns processed signature and role information about a notary repository.
 // This information is to be pretty printed or serialized into a machine-readable format.
-func lookupTrustInfo(cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
-	ctx := context.Background()
+func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
 	if err != nil {
 		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, err

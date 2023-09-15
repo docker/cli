@@ -35,7 +35,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return RunPush(dockerCli, opts)
+			return RunPush(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "6",
@@ -53,7 +53,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunPush performs a push against the engine based on the specified options
-func RunPush(dockerCli command.Cli, opts pushOptions) error {
+func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
 	switch {
 	case err != nil:
@@ -72,8 +72,6 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)

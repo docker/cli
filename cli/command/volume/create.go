@@ -57,7 +57,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 				options.name = args[0]
 			}
 			options.cluster = hasClusterVolumeOptionSet(cmd.Flags())
-			return runCreate(dockerCli, options)
+			return runCreate(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -112,7 +112,7 @@ func hasClusterVolumeOptionSet(flags *pflag.FlagSet) bool {
 		flags.Changed("limit-bytes") || flags.Changed("required-bytes")
 }
 
-func runCreate(dockerCli command.Cli, options createOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
 	volOpts := volume.CreateOptions{
 		Driver:     options.driver,
 		DriverOpts: options.driverOpts.GetAll(),
@@ -194,7 +194,7 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 		volOpts.ClusterVolumeSpec.AccessibilityRequirements = topology
 	}
 
-	vol, err := dockerCli.Client().VolumeCreate(context.Background(), volOpts)
+	vol, err := dockerCli.Client().VolumeCreate(ctx, volOpts)
 	if err != nil {
 		return err
 	}

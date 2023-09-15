@@ -23,7 +23,7 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Unlock swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlock(dockerCli)
+			return runUnlock(cmd.Context(), dockerCli)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
@@ -35,9 +35,8 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUnlock(dockerCli command.Cli) error {
+func runUnlock(ctx context.Context, dockerCli command.Cli) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	// First see if the node is actually part of a swarm, and if it is actually locked first.
 	// If it's in any other state than locked, don't ask for the key.

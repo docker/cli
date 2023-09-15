@@ -25,7 +25,7 @@ func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Create a local manifest list for annotating and pushing to a registry",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return createManifestList(dockerCli, args, opts)
+			return createManifestList(cmd.Context(), dockerCli, args, opts)
 		},
 	}
 
@@ -35,7 +35,7 @@ func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func createManifestList(dockerCli command.Cli, args []string, opts createOpts) error {
+func createManifestList(ctx context.Context, dockerCli command.Cli, args []string, opts createOpts) error {
 	newRef := args[0]
 	targetRef, err := normalizeReference(newRef)
 	if err != nil {
@@ -58,7 +58,6 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 		return errors.Errorf("refusing to amend an existing manifest list with no --amend flag")
 	}
 
-	ctx := context.Background()
 	// Now create the local manifest list transaction by looking up the manifest schemas
 	// for the constituent images:
 	manifests := args[1:]

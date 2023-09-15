@@ -47,7 +47,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.containers = args
 			options.nFlag = cmd.Flags().NFlag()
-			return runUpdate(dockerCli, &options)
+			return runUpdate(cmd.Context(), dockerCli, &options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container update, docker update",
@@ -86,7 +86,7 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUpdate(dockerCli command.Cli, options *updateOptions) error {
+func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOptions) error {
 	var err error
 
 	if options.nFlag == 0 {
@@ -125,8 +125,6 @@ func runUpdate(dockerCli command.Cli, options *updateOptions) error {
 		Resources:     resources,
 		RestartPolicy: restartPolicy,
 	}
-
-	ctx := context.Background()
 
 	var (
 		warns []string

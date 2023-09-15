@@ -20,7 +20,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a volume (cluster volumes only)",
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(dockerCli, args[0], availability, cmd.Flags())
+			return runUpdate(cmd.Context(), dockerCli, args[0], availability, cmd.Flags())
 		},
 		Annotations: map[string]string{
 			"version": "1.42",
@@ -37,13 +37,12 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUpdate(dockerCli command.Cli, volumeID, availability string, flags *pflag.FlagSet) error {
+func runUpdate(ctx context.Context, dockerCli command.Cli, volumeID, availability string, flags *pflag.FlagSet) error {
 	// TODO(dperny): For this earliest version, the only thing that can be
 	// updated is Availability, which is necessary because to delete a cluster
 	// volume, the availability must first be set to "drain"
 
 	apiClient := dockerCli.Client()
-	ctx := context.Background()
 
 	vol, _, err := apiClient.VolumeInspectWithRaw(ctx, volumeID)
 	if err != nil {

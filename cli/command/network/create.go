@@ -51,7 +51,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.name = args[0]
-			return runCreate(dockerCli, options)
+			return runCreate(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -84,7 +84,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, options createOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
 	client := dockerCli.Client()
 
 	ipamCfg, err := consolidateIpam(options.ipamSubnet, options.ipamIPRange, options.ipamGateway, options.ipamAux.GetAll())
@@ -117,7 +117,7 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 		}
 	}
 
-	resp, err := client.NetworkCreate(context.Background(), options.name, nc)
+	resp, err := client.NetworkCreate(ctx, options.name, nc)
 	if err != nil {
 		return err
 	}

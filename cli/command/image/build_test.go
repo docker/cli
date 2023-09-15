@@ -48,7 +48,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	options.dockerfileName = "-"
 	options.context = dir.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "foo"}
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
@@ -75,7 +75,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	options := newBuildOptions()
 	options.context = dir.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	headers := fakeBuild.headers(t)
 	expected := []*tar.Header{
@@ -110,7 +110,7 @@ COPY data /data
 	options.context = dir.Path()
 	options.dockerfileName = df.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "data"}
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
@@ -170,7 +170,7 @@ RUN echo hello world
 	options := newBuildOptions()
 	options.context = tmpDir.Join("context-link")
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
 }

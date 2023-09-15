@@ -44,7 +44,7 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Containers = args
-			return RunStart(dockerCli, &opts)
+			return RunStart(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container start, docker start",
@@ -71,8 +71,8 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 // RunStart executes a `start` command
 //
 //nolint:gocyclo
-func RunStart(dockerCli command.Cli, opts *StartOptions) error {
-	ctx, cancelFun := context.WithCancel(context.Background())
+func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) error {
+	ctx, cancelFun := context.WithCancel(ctx)
 	defer cancelFun()
 
 	if opts.Attach || opts.OpenStdin {

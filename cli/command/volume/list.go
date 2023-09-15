@@ -35,7 +35,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List volumes",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, options)
+			return runList(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -51,9 +51,9 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, options listOptions) error {
+func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	volumes, err := client.VolumeList(context.Background(), volume.ListOptions{Filters: options.filter.Value()})
+	volumes, err := client.VolumeList(ctx, volume.ListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}

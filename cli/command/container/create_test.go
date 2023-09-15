@@ -181,6 +181,7 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			dockerCli := test.NewFakeCli(&fakeClient{})
 			err := runCreate(
+				context.TODO(),
 				dockerCli,
 				&pflag.FlagSet{},
 				&createOptions{pull: tc.PullPolicy},

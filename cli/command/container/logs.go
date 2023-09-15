@@ -33,7 +33,7 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runLogs(dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container logs, docker logs",
@@ -52,9 +52,7 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogs(dockerCli command.Cli, opts *logsOptions) error {
-	ctx := context.Background()
-
+func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) error {
 	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
 	if err != nil {
 		return err

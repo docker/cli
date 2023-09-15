@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"io"
 	"testing"
 
@@ -70,11 +71,12 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 func TestRemoveSingleSigner(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
-	removed, err := removeSingleSigner(cli, "signed-repo", "test", true)
+	ctx := context.Background()
+	removed, err := removeSingleSigner(ctx, cli, "signed-repo", "test", true)
 	assert.Error(t, err, "no signer test for repository signed-repo")
 	assert.Equal(t, removed, false, "No signer should be removed")
 
-	removed, err = removeSingleSigner(cli, "signed-repo", "releases", true)
+	removed, err = removeSingleSigner(ctx, cli, "signed-repo", "releases", true)
 	assert.Error(t, err, "releases is a reserved keyword and cannot be removed")
 	assert.Equal(t, removed, false, "No signer should be removed")
 }
@@ -82,7 +84,8 @@ func TestRemoveSingleSigner(t *testing.T) {
 func TestRemoveMultipleSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
-	err := removeSigner(cli, signerRemoveOptions{signer: "test", repos: []string{"signed-repo", "signed-repo"}, forceYes: true})
+	ctx := context.Background()
+	err := removeSigner(ctx, cli, signerRemoveOptions{signer: "test", repos: []string{"signed-repo", "signed-repo"}, forceYes: true})
 	assert.Error(t, err, "error removing signer from: signed-repo, signed-repo")
 	assert.Check(t, is.Contains(cli.ErrBuffer().String(),
 		"no signer test for repository signed-repo"))
@@ -91,9 +94,10 @@ func TestRemoveMultipleSigners(t *testing.T) {
 
 func TestRemoveLastSignerWarning(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
+	ctx := context.Background()
 	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 
-	err := removeSigner(cli, signerRemoveOptions{signer: "alice", repos: []string{"signed-repo"}, forceYes: false})
+	err := removeSigner(ctx, cli, signerRemoveOptions{signer: "alice", repos: []string{"signed-repo"}, forceYes: false})
 	assert.NilError(t, err)
 	assert.Check(t, is.Contains(cli.OutBuffer().String(),
 		"The signer \"alice\" signed the last released version of signed-repo. "+

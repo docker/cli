@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli-plugins/manager"
@@ -18,7 +17,7 @@ func main() {
 			// PersistentPreRunE: Not specified, we need to test that it works in the absence of an explicit call
 			RunE: func(cmd *cobra.Command, args []string) error {
 				cli := dockerCli.Client()
-				ping, err := cli.Ping(context.Background())
+				ping, err := cli.Ping(cmd.Context())
 				if err != nil {
 					return err
 				}

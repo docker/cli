@@ -1,12 +1,14 @@
 package manifest
 
 import (
+	"context"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func newRmManifestListCommand(dockerCli command.Cli) *cobra.Command {
@@ -15,18 +17,21 @@ func newRmManifestListCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Delete one or more manifest lists from local storage",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRm(dockerCli, args)
+			return runRm(cmd.Context(), dockerCli, args)
 		},
 	}
 
 	return cmd
 }
 
-func runRm(dockerCli command.Cli, targets []string) error {
+func runRm(ctx context.Context, dockerCli command.Cli, targets []string) error {
+	span := trace.SpanFromContext(ctx)
+
 	var errs []string
 	for _, target := range targets {
 		targetRef, refErr := normalizeReference(target)
 		if refErr != nil {
+			span.RecordError(refErr)
 			errs = append(errs, refErr.Error())
 			continue
 		}

@@ -30,7 +30,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Aliases: []string{"list"},
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, options)
+			return runList(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -45,8 +45,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, options listOptions) error {
-	plugins, err := dockerCli.Client().PluginList(context.Background(), options.filter.Value())
+func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
+	plugins, err := dockerCli.Client().PluginList(ctx, options.filter.Value())
 	if err != nil {
 		return err
 	}

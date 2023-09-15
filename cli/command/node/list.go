@@ -31,7 +31,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List nodes in the swarm",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, options)
+			return runList(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -43,9 +43,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, options listOptions) error {
+func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	nodes, err := client.NodeList(
 		ctx,

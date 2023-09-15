@@ -27,7 +27,7 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Load an image from a tar archive or STDIN",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLoad(dockerCli, opts)
+			return runLoad(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image load, docker load",
@@ -43,7 +43,7 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLoad(dockerCli command.Cli, opts loadOptions) error {
+func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error {
 	var input io.Reader = dockerCli.In()
 	if opts.input != "" {
 		// We use sequential.Open to use sequential file access on Windows, avoiding
@@ -65,7 +65,7 @@ func runLoad(dockerCli command.Cli, opts loadOptions) error {
 	if !dockerCli.Out().IsTerminal() {
 		opts.quiet = true
 	}
-	response, err := dockerCli.Client().ImageLoad(context.Background(), input, opts.quiet)
+	response, err := dockerCli.Client().ImageLoad(ctx, input, opts.quiet)
 	if err != nil {
 		return err
 	}
