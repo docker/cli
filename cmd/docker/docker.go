@@ -28,11 +28,12 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	)
 
 	cmd := &cobra.Command{
-		Use:              "docker [OPTIONS] COMMAND [ARG...]",
-		Short:            "A self-sufficient runtime for containers",
-		SilenceUsage:     true,
-		SilenceErrors:    true,
-		TraverseChildren: true,
+		Use:                "docker [OPTIONS] COMMAND [ARG...]",
+		Short:              "A self-sufficient runtime for containers",
+		SilenceUsage:       true,
+		SilenceErrors:      true,
+		TraverseChildren:   true,
+		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
