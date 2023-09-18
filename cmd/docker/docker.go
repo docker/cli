@@ -38,6 +38,12 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 			if len(args) == 0 {
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
 			}
+
+			for _, arg := range args {
+				if arg == "--help" || arg == "-h" {
+					return command.ShowHelp(dockerCli.Err())(cmd, args)
+				}
+			}
 			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
