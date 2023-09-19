@@ -9,7 +9,7 @@ go 1.18
 require (
 	dario.cat/mergo v1.0.0
 	github.com/container-orchestrated-devices/container-device-interface v0.6.1
-	github.com/containerd/containerd v1.6.22
+	github.com/containerd/containerd v1.6.24
 	github.com/creack/pty v1.1.18
 	github.com/distribution/reference v0.0.0-20230830145923-e42074f83a9c
 	github.com/docker/distribution v2.8.2+incompatible
@@ -50,6 +50,7 @@ require (
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
+	github.com/Microsoft/hcsshim v0.9.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c // indirect
