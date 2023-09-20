@@ -236,3 +236,14 @@ func withCustomHeadersFromEnv() (client.Opt, error) {
 	//  see https://github.com/docker/cli/pull/5098#issuecomment-2147403871  (when updating, also update the WARNING in the function and env-var GoDoc)
 	return client.WithHTTPHeaders(env), nil
 }
+
+// WithUserAgent configures the User-Agent string for cli HTTP requests.
+func WithUserAgent(userAgent string) CLIOption {
+	return func(cli *DockerCli) error {
+		if userAgent == "" {
+			return errors.New("user agent cannot be blank")
+		}
+		cli.userAgent = userAgent
+		return nil
+	}
+}

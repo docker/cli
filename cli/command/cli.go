@@ -78,6 +78,7 @@ type DockerCli struct {
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig *store.Config
 	initTimeout        time.Duration
+	userAgent          string
 	res                telemetryResource
 
 	// baseCtx is the base context used for internal operations. In the future
@@ -313,10 +314,10 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
-	return newAPIClientFromEndpoint(endpoint, configFile)
+	return newAPIClientFromEndpoint(endpoint, configFile, client.WithUserAgent(UserAgent()))
 }
 
-func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
+func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile, extraOpts ...client.Opt) (client.APIClient, error) {
 	opts, err := ep.ClientOpts()
 	if err != nil {
 		return nil, err
@@ -331,7 +332,7 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 	if withCustomHeaders != nil {
 		opts = append(opts, withCustomHeaders)
 	}
-	opts = append(opts, client.WithUserAgent(UserAgent()))
+	opts = append(opts, extraOpts...)
 	return client.NewClientWithOpts(opts...)
 }
 
@@ -552,7 +553,8 @@ func (cli *DockerCli) initialize() error {
 			return
 		}
 		if cli.client == nil {
-			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile); cli.initErr != nil {
+			ops := []client.Opt{client.WithUserAgent(cli.userAgent)}
+			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile, ops...); cli.initErr != nil {
 				return
 			}
 		}
@@ -599,6 +601,7 @@ func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 		WithContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
 		WithStandardStreams(),
+		WithUserAgent(UserAgent()),
 	}
 	ops = append(defaultOps, ops...)
 
@@ -622,7 +625,7 @@ func getServerHost(hosts []string, defaultToTLS bool) (string, error) {
 	}
 }
 
-// UserAgent returns the user agent string used for making API requests
+// UserAgent returns the default user agent string used for making API requests.
 func UserAgent() string {
 	return "Docker-Client/" + version.Version + " (" + runtime.GOOS + ")"
 }
