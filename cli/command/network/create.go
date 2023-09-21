@@ -101,14 +101,13 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 			Config:  ipamCfg,
 			Options: options.ipamOpt.GetAll(),
 		},
-		CheckDuplicate: true,
-		Internal:       options.internal,
-		EnableIPv6:     options.ipv6,
-		Attachable:     options.attachable,
-		Ingress:        options.ingress,
-		Scope:          options.scope,
-		ConfigOnly:     options.configOnly,
-		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
+		Internal:   options.internal,
+		EnableIPv6: options.ipv6,
+		Attachable: options.attachable,
+		Ingress:    options.ingress,
+		Scope:      options.scope,
+		ConfigOnly: options.configOnly,
+		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
 	}
 
 	if from := options.configFrom; from != "" {
