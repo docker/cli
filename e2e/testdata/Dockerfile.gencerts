@@ -3,6 +3,7 @@
 ARG GO_VERSION=1.20.8
 
 FROM golang:${GO_VERSION}-alpine AS generated
+ENV GOTOOLCHAIN=local
 RUN go install github.com/dmcgowan/quicktls@master
 WORKDIR /tmp/gencerts/notary
 RUN --mount=type=bind,source=e2e/testdata/notary,target=/tmp/gencerts/notary,rw <<EOT
