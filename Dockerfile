@@ -7,6 +7,7 @@ ARG XX_VERSION=1.1.1
 ARG GOVERSIONINFO_VERSION=v1.3.0
 ARG GOTESTSUM_VERSION=v1.10.0
 ARG BUILDX_VERSION=0.11.2
+ARG COMPOSE_VERSION=v2.22.0
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
@@ -98,15 +99,13 @@ RUN --mount=ro --mount=type=cache,target=/root/.cache \
     TARGET=/out ./scripts/build/plugins e2e/cli-plugins/plugins/*
 
 FROM build-base-alpine AS e2e-base-alpine
-RUN apk add --no-cache build-base curl docker-compose openssl openssh-client
+RUN apk add --no-cache build-base curl openssl openssh-client
 
 FROM build-base-bullseye AS e2e-base-bullseye
 RUN apt-get update && apt-get install -y build-essential curl openssl openssh-client
-ARG COMPOSE_VERSION=1.29.2
-RUN curl -fsSL https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && \
-    chmod +x /usr/local/bin/docker-compose
 
-FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
+FROM docker/buildx-bin:${BUILDX_VERSION}   AS buildx
+FROM docker/compose-bin:${COMPOSE_VERSION} AS compose
 
 FROM e2e-base-${BASE_VARIANT} AS e2e
 ARG NOTARY_VERSION=v0.6.1
@@ -116,7 +115,8 @@ RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
 COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
 COPY --link --from=build /out ./build/
 COPY --link --from=build-plugins /out ./build/
-COPY --link --from=buildx /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link --from=buildx  /buildx         /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docker-compose
 COPY --link . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
