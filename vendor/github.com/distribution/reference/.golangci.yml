@@ -1,27 +1,18 @@
 linters:
   enable:
-    - staticcheck
-    - unconvert
+    - bodyclose
+    - dupword # Checks for duplicate words in the source code
     - gofmt
     - goimports
-    - revive
     - ineffassign
-    - vet
-    - unused
     - misspell
-    - bodyclose
+    - revive
+    - staticcheck
+    - unconvert
+    - unused
+    - vet
   disable:
     - errcheck
 
-linters-settings:
-  revive:
-    rules:
-      # TODO(thaJeztah): temporarily disabled the "unused-parameter" check.
-      # It produces many warnings, and some of those may need to be looked at.
-      - name: unused-parameter
-        disabled: true
-
 run:
   deadline: 2m
-  skip-dirs:
-    - vendor
