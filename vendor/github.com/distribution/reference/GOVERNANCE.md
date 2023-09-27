@@ -1,4 +1,4 @@
-# distribution/distribution Project Governance
+# distribution/reference Project Governance
 
 Distribution [Code of Conduct](./CODE-OF-CONDUCT.md) can be found here.
 
