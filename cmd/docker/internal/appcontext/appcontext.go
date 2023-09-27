@@ -9,8 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var appContextCache context.Context
-var appContextOnce sync.Once
+var (
+	appContextCache context.Context
+	appContextOnce  sync.Once
+)
 
 // Context returns a static context that reacts to termination signals of the
 // running process. Useful in CLI tools.
@@ -23,10 +25,6 @@ func Context() context.Context {
 		retries := 0
 
 		ctx := context.Background()
-		for _, f := range inits {
-			ctx = f(ctx)
-		}
-
 		ctx, cancel := context.WithCancel(ctx)
 		appContextCache = ctx
 
