@@ -1,26 +1,11 @@
-# Contributing to the registry
+# Contributing to the reference library
 
-## Before reporting an issue...
+## Community help
 
-### If your problem is with...
-
- - automated builds or your [Docker Hub](https://hub.docker.com/) account
-   - Report it to [Hub Support](https://hub.docker.com/support/)
- - Distributions of Docker for desktop or Linux
-    - Report [Mac Desktop issues](https://github.com/docker/for-mac)
-    - Report [Windows Desktop issues](https://github.com/docker/for-win)
-    - Report [Linux issues](https://github.com/docker/for-linux)
-
-### If you...
-
- - need help setting up your registry
- - can't figure out something
- - are not sure what's going on or what your problem is
-
-Please ask first in the [#distribution](https://cloud-native.slack.com/archives/C01GVR8SY4R) channel on CNCF community slack.
+If you need help, please ask in the [#distribution](https://cloud-native.slack.com/archives/C01GVR8SY4R) channel on CNCF community slack.
 [Click here for an invite to the CNCF community slack](https://slack.cncf.io/)
 
-### Reporting security issues
+## Reporting security issues
 
 The maintainers take security seriously. If you discover a security
 issue, please bring it to their attention right away!
