@@ -26,13 +26,13 @@ setup() {
         export TEST_CONNHELPER_SSH_ID_RSA_PUB
         file="${file}:./e2e/compose-env.connhelper-ssh.yaml"
     fi
-    COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker-compose up --build -d >&2
+    COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker compose up --build -d >&2
 
     local network="${project}_default"
     # TODO: only run if inside a container
     docker network connect "$network" "$(hostname)"
 
-    engine_ip="$(container_ip "${project}_engine_1" "$network")"
+    engine_ip="$(container_ip "${project}-engine-1" "$network")"
     engine_host="tcp://$engine_ip:2375"
     if [ "${TEST_CONNHELPER:-}" = "ssh" ];then
         engine_host="ssh://penguin@${engine_ip}"
@@ -54,7 +54,7 @@ cleanup() {
     local project=$1
     local network="${project}_default"
     docker network disconnect "$network" "$(hostname)"
-    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker-compose down -v --rmi local >&2
+    COMPOSE_PROJECT_NAME=$1 COMPOSE_FILE=$2 docker compose down -v --rmi local >&2
 }
 
 runtests() {
