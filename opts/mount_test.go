@@ -217,3 +217,86 @@ func TestMountOptSetTmpfsError(t *testing.T) {
 	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
 	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
 }
+
+func TestMountOptSetBindNonRecursive(t *testing.T) {
+	var mount MountOpt
+	assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-nonrecursive"))
+	assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+		{
+			Type:   mounttypes.TypeBind,
+			Source: "/foo",
+			Target: "/bar",
+			BindOptions: &mounttypes.BindOptions{
+				NonRecursive: true,
+			},
+		},
+	}, mount.Value()))
+}
+
+func TestMountOptSetBindRecursive(t *testing.T) {
+	t.Run("enabled", func(t *testing.T) {
+		var mount MountOpt
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=enabled"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:   mounttypes.TypeBind,
+				Source: "/foo",
+				Target: "/bar",
+			},
+		}, mount.Value()))
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		var mount MountOpt
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=disabled"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:   mounttypes.TypeBind,
+				Source: "/foo",
+				Target: "/bar",
+				BindOptions: &mounttypes.BindOptions{
+					NonRecursive: true,
+				},
+			},
+		}, mount.Value()))
+	})
+
+	t.Run("writable", func(t *testing.T) {
+		var mount MountOpt
+		assert.Error(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=writable"),
+			"option 'bind-recursive=writable' requires 'readonly' to be specified in conjunction")
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=writable,readonly"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:     mounttypes.TypeBind,
+				Source:   "/foo",
+				Target:   "/bar",
+				ReadOnly: true,
+				BindOptions: &mounttypes.BindOptions{
+					ReadOnlyNonRecursive: true,
+				},
+			},
+		}, mount.Value()))
+	})
+
+	t.Run("readonly", func(t *testing.T) {
+		var mount MountOpt
+		assert.Error(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=readonly"),
+			"option 'bind-recursive=readonly' requires 'readonly' to be specified in conjunction")
+		assert.Error(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=readonly,readonly"),
+			"option 'bind-recursive=readonly' requires 'bind-propagation=rprivate' to be specified in conjunction")
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=readonly,readonly,bind-propagation=rprivate"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:     mounttypes.TypeBind,
+				Source:   "/foo",
+				Target:   "/bar",
+				ReadOnly: true,
+				BindOptions: &mounttypes.BindOptions{
+					ReadOnlyForceRecursive: true,
+					Propagation:            mounttypes.PropagationRPrivate,
+				},
+			},
+		}, mount.Value()))
+	})
+}

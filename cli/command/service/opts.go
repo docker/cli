@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
@@ -1043,8 +1043,8 @@ const (
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
 	for _, m := range c.TaskTemplate.ContainerSpec.Mounts {
-		if m.BindOptions != nil && m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
-			return errors.Errorf("bind-nonrecursive requires API v1.40 or later")
+		if err := command.ValidateMountWithAPIVersion(m, serverAPIVersion); err != nil {
+			return err
 		}
 	}
 	return nil

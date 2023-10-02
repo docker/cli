@@ -11,6 +11,8 @@ import (
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
+	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -194,4 +196,18 @@ func StringSliceReplaceAt(s, old, new []string, requireIndex int) ([]string, boo
 	out = append(out, new...)
 	out = append(out, s[idx+len(old):]...)
 	return out, true
+}
+
+// ValidateMountWithAPIVersion validates a mount with the server API version.
+func ValidateMountWithAPIVersion(m mounttypes.Mount, serverAPIVersion string) error {
+	if m.BindOptions != nil {
+		if m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
+			return errors.Errorf("bind-recursive=disabled requires API v1.40 or later")
+		}
+		// ReadOnlyNonRecursive can be safely ignored when API < 1.44
+		if m.BindOptions.ReadOnlyForceRecursive && versions.LessThan(serverAPIVersion, "1.44") {
+			return errors.Errorf("bind-recursive=readonly requires API v1.44 or later")
+		}
+	}
+	return nil
 }
