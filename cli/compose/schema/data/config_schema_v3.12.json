@@ -346,7 +346,8 @@
           ]
         },
         "timeout": {"type": "string", "format": "duration"},
-        "start_period": {"type": "string", "format": "duration"}
+        "start_period": {"type": "string", "format": "duration"},
+        "start_interval": {"type": "string", "format": "duration"}
       }
     },
     "deployment": {

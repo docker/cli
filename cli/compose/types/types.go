@@ -276,12 +276,13 @@ type DeployConfig struct {
 
 // HealthCheckConfig the healthcheck configuration for a service
 type HealthCheckConfig struct {
-	Test        HealthCheckTest `yaml:",omitempty" json:"test,omitempty"`
-	Timeout     *Duration       `yaml:",omitempty" json:"timeout,omitempty"`
-	Interval    *Duration       `yaml:",omitempty" json:"interval,omitempty"`
-	Retries     *uint64         `yaml:",omitempty" json:"retries,omitempty"`
-	StartPeriod *Duration       `mapstructure:"start_period" yaml:"start_period,omitempty" json:"start_period,omitempty"`
-	Disable     bool            `yaml:",omitempty" json:"disable,omitempty"`
+	Test          HealthCheckTest `yaml:",omitempty" json:"test,omitempty"`
+	Timeout       *Duration       `yaml:",omitempty" json:"timeout,omitempty"`
+	Interval      *Duration       `yaml:",omitempty" json:"interval,omitempty"`
+	Retries       *uint64         `yaml:",omitempty" json:"retries,omitempty"`
+	StartPeriod   *Duration       `mapstructure:"start_period" yaml:"start_period,omitempty" json:"start_period,omitempty"`
+	StartInterval *Duration       `mapstructure:"start_interval" yaml:"start_interval,omitempty" json:"start_interval,omitempty"`
+	Disable       bool            `yaml:",omitempty" json:"disable,omitempty"`
 }
 
 // HealthCheckTest is the command run to test the health of a service

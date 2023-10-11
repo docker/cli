@@ -252,7 +252,8 @@
         "timeout": "1s",
         "interval": "10s",
         "retries": 5,
-        "start_period": "15s"
+        "start_period": "15s",
+        "start_interval": "1s"
       },
       "image": "redis",
       "ipc": "host",
