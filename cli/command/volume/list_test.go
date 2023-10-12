@@ -14,8 +14,9 @@ import (
 	"gotest.tools/v3/golden"
 )
 
-func TestVolumeListErrors(t *testing.T) {
+func TestNewVolumesCommandErrors(t *testing.T) {
 	testCases := []struct {
+		name           string
 		args           []string
 		flags          map[string]string
 		volumeListFunc func(filter filters.Args) (volume.ListResponse, error)
@@ -33,7 +34,7 @@ func TestVolumeListErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newListCommand(
+		cmd := NewVolumesCommand(
 			test.NewFakeCli(&fakeClient{
 				volumeListFunc: tc.volumeListFunc,
 			}),
@@ -48,7 +49,7 @@ func TestVolumeListErrors(t *testing.T) {
 	}
 }
 
-func TestVolumeListWithoutFormat(t *testing.T) {
+func TestNewVolumesCommandWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
@@ -62,12 +63,12 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 			}, nil
 		},
 	})
-	cmd := newListCommand(cli)
+	cmd := NewVolumesCommand(cli)
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-without-format.golden")
 }
 
-func TestVolumeListWithConfigFormat(t *testing.T) {
+func TestNewVolumesCommandWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
@@ -84,12 +85,12 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		VolumesFormat: "{{ .Name }} {{ .Driver }} {{ .Labels }}",
 	})
-	cmd := newListCommand(cli)
+	cmd := NewVolumesCommand(cli)
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-config-format.golden")
 }
 
-func TestVolumeListWithFormat(t *testing.T) {
+func TestNewVolumesCommandWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
@@ -103,13 +104,13 @@ func TestVolumeListWithFormat(t *testing.T) {
 			}, nil
 		},
 	})
-	cmd := newListCommand(cli)
+	cmd := NewVolumesCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }} {{ .Driver }} {{ .Labels }}")
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-format.golden")
 }
 
-func TestVolumeListSortOrder(t *testing.T) {
+func TestNewVolumesCommandSortOrder(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
@@ -121,13 +122,13 @@ func TestVolumeListSortOrder(t *testing.T) {
 			}, nil
 		},
 	})
-	cmd := newListCommand(cli)
+	cmd := NewVolumesCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-sort.golden")
 }
 
-func TestClusterVolumeList(t *testing.T) {
+func TestClusterNewVolumesCommand(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
@@ -229,7 +230,7 @@ func TestClusterVolumeList(t *testing.T) {
 		},
 	})
 
-	cmd := newListCommand(cli)
+	cmd := NewVolumesCommand(cli)
 	cmd.Flags().Set("cluster", "true")
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-cluster-volume-list.golden")
