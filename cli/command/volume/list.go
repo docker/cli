@@ -26,16 +26,20 @@ type listOptions struct {
 	filter  opts.FilterOpt
 }
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+// NewVolumesCommand creates a new `docker volumes` command
+func NewVolumesCommand(dockerCli command.Cli) *cobra.Command {
 	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
-		Use:     "ls [OPTIONS]",
-		Aliases: []string{"list"},
+		Use:     "volumes [OPTIONS]",
 		Short:   "List volumes",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(dockerCli, options)
+		},
+		Annotations: map[string]string{
+			"category-top": "13",
+			"aliases":      "docker volume ls, docker volume list, docker volumes",
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -49,6 +53,13 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("cluster", "swarm", []string{"manager"})
 
 	return cmd
+}
+
+func newListCommand(dockerCli command.Cli) *cobra.Command {
+	cmd := *NewVolumesCommand(dockerCli)
+	cmd.Aliases = []string{"list"}
+	cmd.Use = "ls [OPTIONS]"
+	return &cmd
 }
 
 func runList(dockerCli command.Cli, options listOptions) error {
