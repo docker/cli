@@ -2,18 +2,22 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
 	"syscall"
 
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/plugin"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
-	"github.com/docker/cli/cmd/docker/internal/appcontext"
+	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+	"github.com/docker/distribution/uuid"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -187,6 +191,13 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
+func setupPluginSocket() (*net.UnixListener, error) {
+	return net.ListenUnix("unix", &net.UnixAddr{
+		Name: "@docker_cli_" + uuid.Generate().String(),
+		Net:  "unix",
+	})
+}
+
 func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
 	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
 	if err != nil {
@@ -194,9 +205,45 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	}
 	plugincmd.Env = append(envs, plugincmd.Env...)
 
+	var conn *net.UnixConn
+	listener, err := setupPluginSocket()
+	if err == nil {
+		defer listener.Close()
+		plugincmd.Env = append(plugincmd.Env, plugin.CLIPluginSocketEnvKey+"="+listener.Addr().String())
+
+		go func() {
+			for {
+				// ignore error here, if we failed to accept a connection,
+				// conn is nil and we fallback to previous behavior
+				conn, _ = listener.AcceptUnix()
+			}
+		}()
+	}
+
+	const exitLimit = 3
+
+	signals := make(chan os.Signal, exitLimit)
+	signal.Notify(signals, platformsignals.TerminationSignals...)
+	// signal handling goroutine: listen on signals channel, and if conn is
+	// non-nil, attempt to close it to let the plugin know to exit. Regardless
+	// of whether we successfully signal the plugin or not, after 3 SIGINTs,
+	// we send a SIGKILL to the plugin process and exit
 	go func() {
-		// override SIGTERM handler so we let the plugin shut down first
-		<-appcontext.Context().Done()
+		retries := 0
+		for range signals {
+			if conn != nil {
+				if err := conn.Close(); err != nil {
+					_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
+				}
+				conn = nil
+			}
+			retries++
+			if retries >= exitLimit {
+				_, _ = fmt.Fprintf(dockerCli.Err(), "got %d SIGTERM/SIGINTs, forcefully exiting\n", retries)
+				_ = plugincmd.Process.Kill()
+				os.Exit(1)
+			}
+		}
 	}()
 
 	if err := plugincmd.Run(); err != nil {
