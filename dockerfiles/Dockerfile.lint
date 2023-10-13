@@ -7,11 +7,12 @@ ARG GOLANGCI_LINT_VERSION=v1.54.2
 FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS lint
+ENV GOTOOLCHAIN=local
 ENV GO111MODULE=off
 ENV CGO_ENABLED=0
 ENV GOGC=75
 WORKDIR /go/src/github.com/docker/cli
-COPY --from=golangci-lint /usr/bin/golangci-lint /usr/bin/golangci-lint
+COPY --link --from=golangci-lint /usr/bin/golangci-lint /usr/bin/golangci-lint
 RUN --mount=type=bind,target=. \
     --mount=type=cache,target=/root/.cache \
         golangci-lint run
