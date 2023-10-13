@@ -36,16 +36,14 @@ github.com/creack/pty
 # github.com/distribution/reference v0.5.0
 ## explicit; go 1.20
 github.com/distribution/reference
-# github.com/docker/distribution v2.8.2+incompatible
+# github.com/docker/distribution v2.8.3+incompatible
 ## explicit
 github.com/docker/distribution
-github.com/docker/distribution/digestset
 github.com/docker/distribution/manifest
 github.com/docker/distribution/manifest/manifestlist
 github.com/docker/distribution/manifest/ocischema
 github.com/docker/distribution/manifest/schema2
 github.com/docker/distribution/metrics
-github.com/docker/distribution/reference
 github.com/docker/distribution/registry/api/errcode
 github.com/docker/distribution/registry/api/v2
 github.com/docker/distribution/registry/client
