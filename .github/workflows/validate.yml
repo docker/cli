@@ -28,7 +28,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Run
         uses: docker/bake-action@v3
@@ -41,7 +41,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Generate
         shell: 'script --return --quiet --command "bash {0}"'
@@ -67,7 +67,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Run
         shell: 'script --return --quiet --command "bash {0}"'
