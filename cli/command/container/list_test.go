@@ -10,6 +10,7 @@ import (
 	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -129,7 +130,7 @@ func TestContainerListErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		containerListFunc func(types.ContainerListOptions) ([]types.Container, error)
+		containerListFunc func(container.ListOptions) ([]types.Container, error)
 		expectedError     string
 	}{
 		{
@@ -145,7 +146,7 @@ func TestContainerListErrors(t *testing.T) {
 			expectedError: `wrong number of args for join`,
 		},
 		{
-			containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+			containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 				return nil, fmt.Errorf("error listing containers")
 			},
 			expectedError: "error listing containers",
@@ -168,7 +169,7 @@ func TestContainerListErrors(t *testing.T) {
 
 func TestContainerListWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+		containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 			return []types.Container{
 				*Container("c1"),
 				*Container("c2", WithName("foo")),
@@ -185,7 +186,7 @@ func TestContainerListWithoutFormat(t *testing.T) {
 
 func TestContainerListNoTrunc(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+		containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 			return []types.Container{
 				*Container("c1"),
 				*Container("c2", WithName("foo/bar")),
@@ -201,7 +202,7 @@ func TestContainerListNoTrunc(t *testing.T) {
 // Test for GitHub issue docker/docker#21772
 func TestContainerListNamesMultipleTime(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+		containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 			return []types.Container{
 				*Container("c1"),
 				*Container("c2", WithName("foo/bar")),
@@ -217,7 +218,7 @@ func TestContainerListNamesMultipleTime(t *testing.T) {
 // Test for GitHub issue docker/docker#30291
 func TestContainerListFormatTemplateWithArg(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+		containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 			return []types.Container{
 				*Container("c1", WithLabel("some.label", "value")),
 				*Container("c2", WithName("foo/bar"), WithLabel("foo", "bar")),
@@ -268,7 +269,7 @@ func TestContainerListFormatSizeSetsOption(t *testing.T) {
 		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				containerListFunc: func(options types.ContainerListOptions) ([]types.Container, error) {
+				containerListFunc: func(options container.ListOptions) ([]types.Container, error) {
 					assert.Check(t, is.Equal(options.Size, tc.sizeExpected))
 					return []types.Container{}, nil
 				},
@@ -285,7 +286,7 @@ func TestContainerListFormatSizeSetsOption(t *testing.T) {
 
 func TestContainerListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+		containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 			return []types.Container{
 				*Container("c1", WithLabel("some.label", "value"), WithSize(10700000)),
 				*Container("c2", WithName("foo/bar"), WithLabel("foo", "bar"), WithSize(3200000)),
@@ -302,7 +303,7 @@ func TestContainerListWithConfigFormat(t *testing.T) {
 
 func TestContainerListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerListFunc: func(_ types.ContainerListOptions) ([]types.Container, error) {
+		containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
 			return []types.Container{
 				*Container("c1", WithLabel("some.label", "value")),
 				*Container("c2", WithName("foo/bar"), WithLabel("foo", "bar")),

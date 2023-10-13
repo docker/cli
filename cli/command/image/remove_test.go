@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -35,7 +36,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		name            string
 		args            []string
 		expectedError   string
-		imageRemoveFunc func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error)
+		imageRemoveFunc func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error)
 	}{
 		{
 			name:          "wrong args",
@@ -45,19 +46,19 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 			name:          "ImageRemove fail with force option",
 			args:          []string{"-f", "image1"},
 			expectedError: "error removing image",
-			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
-				assert.Check(t, is.Equal("image1", image))
-				return []types.ImageDeleteResponseItem{}, errors.Errorf("error removing image")
+			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+				assert.Check(t, is.Equal("image1", img))
+				return []image.DeleteResponse{}, errors.Errorf("error removing image")
 			},
 		},
 		{
 			name:          "ImageRemove fail",
 			args:          []string{"arg1"},
 			expectedError: "error removing image",
-			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
+			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
 				assert.Check(t, !options.Force)
 				assert.Check(t, options.PruneChildren)
-				return []types.ImageDeleteResponseItem{}, errors.Errorf("error removing image")
+				return []image.DeleteResponse{}, errors.Errorf("error removing image")
 			},
 		},
 	}
@@ -77,24 +78,24 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name            string
 		args            []string
-		imageRemoveFunc func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error)
+		imageRemoveFunc func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error)
 		expectedStderr  string
 	}{
 		{
 			name: "Image Deleted",
 			args: []string{"image1"},
-			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
-				assert.Check(t, is.Equal("image1", image))
-				return []types.ImageDeleteResponseItem{{Deleted: image}}, nil
+			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+				assert.Check(t, is.Equal("image1", img))
+				return []image.DeleteResponse{{Deleted: img}}, nil
 			},
 		},
 		{
 			name: "Image not found with force option",
 			args: []string{"-f", "image1"},
-			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
-				assert.Check(t, is.Equal("image1", image))
+			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+				assert.Check(t, is.Equal("image1", img))
 				assert.Check(t, is.Equal(true, options.Force))
-				return []types.ImageDeleteResponseItem{}, notFound{"image1"}
+				return []image.DeleteResponse{}, notFound{"image1"}
 			},
 			expectedStderr: "Error: No such image: image1\n",
 		},
@@ -102,19 +103,19 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		{
 			name: "Image Untagged",
 			args: []string{"image1"},
-			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
-				assert.Check(t, is.Equal("image1", image))
-				return []types.ImageDeleteResponseItem{{Untagged: image}}, nil
+			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+				assert.Check(t, is.Equal("image1", img))
+				return []image.DeleteResponse{{Untagged: img}}, nil
 			},
 		},
 		{
 			name: "Image Deleted and Untagged",
 			args: []string{"image1", "image2"},
-			imageRemoveFunc: func(image string, options types.ImageRemoveOptions) ([]types.ImageDeleteResponseItem, error) {
-				if image == "image1" {
-					return []types.ImageDeleteResponseItem{{Untagged: image}}, nil
+			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+				if img == "image1" {
+					return []image.DeleteResponse{{Untagged: img}}, nil
 				}
-				return []types.ImageDeleteResponseItem{{Deleted: image}}, nil
+				return []image.DeleteResponse{{Deleted: img}}, nil
 			},
 		},
 	}

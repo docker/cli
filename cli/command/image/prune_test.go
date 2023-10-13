@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -65,7 +66,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
 				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{
-					ImagesDeleted:  []types.ImageDeleteResponseItem{{Deleted: "image1"}},
+					ImagesDeleted:  []image.DeleteResponse{{Deleted: "image1"}},
 					SpaceReclaimed: 1,
 				}, nil
 			},
@@ -84,7 +85,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
 				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{
-					ImagesDeleted:  []types.ImageDeleteResponseItem{{Untagged: "image1"}},
+					ImagesDeleted:  []image.DeleteResponse{{Untagged: "image1"}},
 					SpaceReclaimed: 2,
 				}, nil
 			},

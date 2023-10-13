@@ -86,7 +86,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 				// We need to fall back to the old behavior, which is client-side removal
 				if versions.LessThan(apiClient.ClientVersion(), "1.25") {
 					go func() {
-						removeErr = apiClient.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{RemoveVolumes: true})
+						removeErr = apiClient.ContainerRemove(ctx, containerID, container.RemoveOptions{RemoveVolumes: true})
 						if removeErr != nil {
 							logrus.Errorf("error removing container: %v", removeErr)
 							cancel() // cancel the event Q

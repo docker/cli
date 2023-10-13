@@ -13,7 +13,7 @@ import (
 type fakeClient struct {
 	client.Client
 	serviceInspectWithRawFunc func(ctx context.Context, serviceID string, options types.ServiceInspectOptions) (swarm.Service, []byte, error)
-	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error)
+	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
 	serviceListFunc           func(context.Context, types.ServiceListOptions) ([]swarm.Service, error)
 	taskListFunc              func(context.Context, types.TaskListOptions) ([]swarm.Task, error)
 	infoFunc                  func(ctx context.Context) (system.Info, error)
@@ -51,12 +51,12 @@ func (f *fakeClient) ServiceList(ctx context.Context, options types.ServiceListO
 	return nil, nil
 }
 
-func (f *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+func (f *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 	if f.serviceUpdateFunc != nil {
 		return f.serviceUpdateFunc(ctx, serviceID, version, service, options)
 	}
 
-	return types.ServiceUpdateResponse{}, nil
+	return swarm.ServiceUpdateResponse{}, nil
 }
 
 func (f *fakeClient) Info(ctx context.Context) (system.Info, error) {

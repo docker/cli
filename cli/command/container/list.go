@@ -11,7 +11,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -68,8 +68,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func buildContainerListOptions(opts *psOptions) (*types.ContainerListOptions, error) {
-	options := &types.ContainerListOptions{
+func buildContainerListOptions(opts *psOptions) (*container.ListOptions, error) {
+	options := &container.ListOptions{
 		All:     opts.all,
 		Limit:   opts.last,
 		Size:    opts.size,

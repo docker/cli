@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
@@ -174,7 +173,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 			detachKeys = opts.detachKeys
 		}
 
-		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, types.ContainerAttachOptions{
+		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, container.AttachOptions{
 			Stream:     true,
 			Stdin:      config.AttachStdin,
 			Stdout:     config.AttachStdout,
@@ -190,7 +189,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	statusChan := waitExitOrRemoved(ctx, dockerCli.Client(), containerID, copts.autoRemove)
 
 	// start the container
-	if err := client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+	if err := client.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
@@ -239,7 +238,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	return nil
 }
 
-func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options types.ContainerAttachOptions) (func(), error) {
+func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options container.AttachOptions) (func(), error) {
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
 	if errAttach != nil {
 		return nil, errAttach

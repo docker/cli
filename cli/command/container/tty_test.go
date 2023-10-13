@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -15,7 +15,7 @@ import (
 
 func TestInitTtySizeErrors(t *testing.T) {
 	expectedError := "failed to resize tty, using default size\n"
-	fakeContainerExecResizeFunc := func(id string, options types.ResizeOptions) error {
+	fakeContainerExecResizeFunc := func(id string, options container.ResizeOptions) error {
 		return errors.Errorf("Error response from daemon: no such exec")
 	}
 	fakeResizeTtyFunc := func(ctx context.Context, cli command.Cli, id string, isExec bool) error {

@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/service/logs"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -74,19 +75,7 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	ctx := context.Background()
 
-	options := types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Since:      opts.since,
-		Timestamps: opts.timestamps,
-		Follow:     opts.follow,
-		Tail:       opts.tail,
-		// get the details if we request it OR if we're not doing raw mode
-		// (we need them for the context to pretty print)
-		Details: opts.details || !opts.raw,
-	}
-
-	cli := dockerCli.Client()
+	apiClient := dockerCli.Client()
 
 	var (
 		maxLength    = 1
@@ -94,16 +83,16 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		tty          bool
 		// logfunc is used to delay the call to logs so that we can do some
 		// processing before we actually get the logs
-		logfunc func(context.Context, string, types.ContainerLogsOptions) (io.ReadCloser, error)
+		logfunc func(context.Context, string, container.LogsOptions) (io.ReadCloser, error)
 	)
 
-	service, _, err := cli.ServiceInspectWithRaw(ctx, opts.target, types.ServiceInspectOptions{})
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, types.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
 		if !errdefs.IsNotFound(err) {
 			return err
 		}
-		task, _, err := cli.TaskInspectWithRaw(ctx, opts.target)
+		task, _, err := apiClient.TaskInspectWithRaw(ctx, opts.target)
 		if err != nil {
 			if errdefs.IsNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
@@ -117,10 +106,10 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		maxLength = getMaxLength(task.Slot)
 
 		// use the TaskLogs api function
-		logfunc = cli.TaskLogs
+		logfunc = apiClient.TaskLogs
 	} else {
 		// use ServiceLogs api function
-		logfunc = cli.ServiceLogs
+		logfunc = apiClient.ServiceLogs
 		tty = service.Spec.TaskTemplate.ContainerSpec.TTY
 		if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
 			// if replicas are initialized, figure out if we need to pad them
@@ -138,7 +127,17 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	}
 
 	// now get the logs
-	responseBody, err = logfunc(ctx, opts.target, options)
+	responseBody, err = logfunc(ctx, opts.target, container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Since:      opts.since,
+		Timestamps: opts.timestamps,
+		Follow:     opts.follow,
+		Tail:       opts.tail,
+		// get the details if we request it OR if we're not doing raw mode
+		// (we need them for the context to pretty print)
+		Details: opts.details || !opts.raw,
+	})
 	if err != nil {
 		return err
 	}
@@ -156,7 +155,7 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 	stdout = dockerCli.Out()
 	stderr = dockerCli.Err()
 	if !opts.raw {
-		taskFormatter := newTaskFormatter(cli, opts, maxLength)
+		taskFormatter := newTaskFormatter(apiClient, opts, maxLength)
 
 		stdout = &logWriter{ctx: ctx, opts: opts, f: taskFormatter, w: stdout}
 		stderr = &logWriter{ctx: ctx, opts: opts, f: taskFormatter, w: stderr}

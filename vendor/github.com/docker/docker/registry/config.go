@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/containerd/containerd/log"
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/registry"
 )
@@ -330,8 +330,8 @@ func ValidateMirror(val string) (string, error) {
 	if uri.Scheme != "http" && uri.Scheme != "https" {
 		return "", invalidParamf("invalid mirror: unsupported scheme %q in %q", uri.Scheme, uri)
 	}
-	if (uri.Path != "" && uri.Path != "/") || uri.RawQuery != "" || uri.Fragment != "" {
-		return "", invalidParamf("invalid mirror: path, query, or fragment at end of the URI %q", uri)
+	if uri.RawQuery != "" || uri.Fragment != "" {
+		return "", invalidParamf("invalid mirror: query or fragment at end of the URI %q", uri)
 	}
 	if uri.User != nil {
 		// strip password from output
