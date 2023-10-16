@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -52,18 +52,16 @@ func runRm(dockerCli command.Cli, opts *rmOptions) error {
 	ctx := context.Background()
 
 	var errs []string
-	options := types.ContainerRemoveOptions{
-		RemoveVolumes: opts.rmVolumes,
-		RemoveLinks:   opts.rmLink,
-		Force:         opts.force,
-	}
-
-	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, container string) error {
-		container = strings.Trim(container, "/")
-		if container == "" {
+	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, ctrID string) error {
+		ctrID = strings.Trim(ctrID, "/")
+		if ctrID == "" {
 			return errors.New("Container name cannot be empty")
 		}
-		return dockerCli.Client().ContainerRemove(ctx, container, options)
+		return dockerCli.Client().ContainerRemove(ctx, ctrID, container.RemoveOptions{
+			RemoveVolumes: opts.rmVolumes,
+			RemoveLinks:   opts.rmLink,
+			Force:         opts.force,
+		})
 	})
 
 	for _, name := range opts.containers {

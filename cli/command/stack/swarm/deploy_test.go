@@ -56,10 +56,10 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 			receivedOptions = options
 			receivedService = service
-			return types.ServiceUpdateResponse{}, nil
+			return swarm.ServiceUpdateResponse{}, nil
 		},
 	})
 

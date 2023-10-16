@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
 )
@@ -29,7 +29,7 @@ func TestRemoveForce(t *testing.T) {
 			mutex := new(sync.Mutex)
 
 			cli := test.NewFakeCli(&fakeClient{
-				containerRemoveFunc: func(ctx context.Context, container string, options types.ContainerRemoveOptions) error {
+				containerRemoveFunc: func(ctx context.Context, container string, options container.RemoveOptions) error {
 					// containerRemoveFunc is called in parallel for each container
 					// by the remove command so append must be synchronized.
 					mutex.Lock()

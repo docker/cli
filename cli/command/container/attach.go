@@ -91,7 +91,7 @@ func runAttach(dockerCli command.Cli, opts *attachOptions) error {
 		detachKeys = opts.detachKeys
 	}
 
-	options := types.ContainerAttachOptions{
+	options := container.AttachOptions{
 		Stream:     true,
 		Stdin:      !opts.noStdin && c.Config.OpenStdin,
 		Stdout:     true,

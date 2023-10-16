@@ -12,8 +12,8 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-var logFn = func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
-	return func(container string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
+var logFn = func(expectedOut string) func(string, container.LogsOptions) (io.ReadCloser, error) {
+	return func(container string, opts container.LogsOptions) (io.ReadCloser, error) {
 		return io.NopCloser(strings.NewReader(expectedOut)), nil
 	}
 }

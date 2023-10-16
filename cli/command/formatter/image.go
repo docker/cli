@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 )
@@ -26,7 +26,7 @@ type ImageContext struct {
 	Digest bool
 }
 
-func isDangling(image types.ImageSummary) bool {
+func isDangling(image image.Summary) bool {
 	if len(image.RepoTags) == 0 && len(image.RepoDigests) == 0 {
 		return true
 	}
@@ -75,7 +75,7 @@ virtual_size: {{.Size}}
 }
 
 // ImageWrite writes the formatter images using the ImageContext
-func ImageWrite(ctx ImageContext, images []types.ImageSummary) error {
+func ImageWrite(ctx ImageContext, images []image.Summary) error {
 	render := func(format func(subContext SubContext) error) error {
 		return imageFormat(ctx, images, format)
 	}
@@ -87,7 +87,7 @@ func needDigest(ctx ImageContext) bool {
 	return ctx.Digest || ctx.Format.Contains("{{.Digest}}")
 }
 
-func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subContext SubContext) error) error {
+func imageFormat(ctx ImageContext, images []image.Summary, format func(subContext SubContext) error) error {
 	for _, image := range images {
 		formatted := []*imageContext{}
 		if isDangling(image) {
@@ -110,7 +110,7 @@ func imageFormat(ctx ImageContext, images []types.ImageSummary, format func(subC
 	return nil
 }
 
-func imageFormatTaggedAndDigest(ctx ImageContext, image types.ImageSummary) []*imageContext {
+func imageFormatTaggedAndDigest(ctx ImageContext, image image.Summary) []*imageContext {
 	repoTags := map[string][]string{}
 	repoDigests := map[string][]string{}
 	images := []*imageContext{}
@@ -137,14 +137,13 @@ func imageFormatTaggedAndDigest(ctx ImageContext, image types.ImageSummary) []*i
 	}
 
 	addImage := func(repo, tag, digest string) {
-		image := &imageContext{
+		images = append(images, &imageContext{
 			trunc:  ctx.Trunc,
 			i:      image,
 			repo:   repo,
 			tag:    tag,
 			digest: digest,
-		}
-		images = append(images, image)
+		})
 	}
 
 	for repo, tags := range repoTags {
@@ -188,7 +187,7 @@ func imageFormatTaggedAndDigest(ctx ImageContext, image types.ImageSummary) []*i
 type imageContext struct {
 	HeaderContext
 	trunc  bool
-	i      types.ImageSummary
+	i      image.Summary
 	repo   string
 	tag    string
 	digest string

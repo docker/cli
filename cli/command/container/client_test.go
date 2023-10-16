@@ -22,22 +22,22 @@ type fakeClient struct {
 		networkingConfig *network.NetworkingConfig,
 		platform *specs.Platform,
 		containerName string) (container.CreateResponse, error)
-	containerStartFunc      func(container string, options types.ContainerStartOptions) error
+	containerStartFunc      func(container string, options container.StartOptions) error
 	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
 	infoFunc                func() (system.Info, error)
 	containerStatPathFunc   func(container, path string) (types.ContainerPathStat, error)
 	containerCopyFromFunc   func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
-	logFunc                 func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
+	logFunc                 func(string, container.LogsOptions) (io.ReadCloser, error)
 	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
-	containerListFunc       func(types.ContainerListOptions) ([]types.Container, error)
+	containerListFunc       func(container.ListOptions) ([]types.Container, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
-	containerExecResizeFunc func(id string, options types.ResizeOptions) error
-	containerRemoveFunc     func(ctx context.Context, container string, options types.ContainerRemoveOptions) error
+	containerExecResizeFunc func(id string, options container.ResizeOptions) error
+	containerRemoveFunc     func(ctx context.Context, container string, options container.RemoveOptions) error
 	containerKillFunc       func(ctx context.Context, container, signal string) error
 	Version                 string
 }
 
-func (f *fakeClient) ContainerList(_ context.Context, options types.ContainerListOptions) ([]types.Container, error) {
+func (f *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]types.Container, error) {
 	if f.containerListFunc != nil {
 		return f.containerListFunc(options)
 	}
@@ -83,7 +83,7 @@ func (f *fakeClient) ContainerCreate(
 	return container.CreateResponse{}, nil
 }
 
-func (f *fakeClient) ContainerRemove(ctx context.Context, container string, options types.ContainerRemoveOptions) error {
+func (f *fakeClient) ContainerRemove(ctx context.Context, container string, options container.RemoveOptions) error {
 	if f.containerRemoveFunc != nil {
 		return f.containerRemoveFunc(ctx, container, options)
 	}
@@ -118,7 +118,7 @@ func (f *fakeClient) CopyFromContainer(_ context.Context, container, srcPath str
 	return nil, types.ContainerPathStat{}, nil
 }
 
-func (f *fakeClient) ContainerLogs(_ context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ContainerLogs(_ context.Context, container string, options container.LogsOptions) (io.ReadCloser, error) {
 	if f.logFunc != nil {
 		return f.logFunc(container, options)
 	}
@@ -136,7 +136,7 @@ func (f *fakeClient) ContainerWait(_ context.Context, container string, _ contai
 	return nil, nil
 }
 
-func (f *fakeClient) ContainerStart(_ context.Context, container string, options types.ContainerStartOptions) error {
+func (f *fakeClient) ContainerStart(_ context.Context, container string, options container.StartOptions) error {
 	if f.containerStartFunc != nil {
 		return f.containerStartFunc(container, options)
 	}
@@ -150,7 +150,7 @@ func (f *fakeClient) ContainerExport(_ context.Context, container string) (io.Re
 	return nil, nil
 }
 
-func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options types.ResizeOptions) error {
+func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options container.ResizeOptions) error {
 	if f.containerExecResizeFunc != nil {
 		return f.containerExecResizeFunc(id, options)
 	}

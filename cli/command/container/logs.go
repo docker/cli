@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +60,7 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		return err
 	}
 
-	options := types.ContainerLogsOptions{
+	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Since:      opts.since,
@@ -69,8 +69,7 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		Follow:     opts.follow,
 		Tail:       opts.tail,
 		Details:    opts.details,
-	}
-	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, options)
+	})
 	if err != nil {
 		return err
 	}
