@@ -394,7 +394,7 @@ volumes in a service:
     <td>
       <p>The Engine mounts binds and volumes <tt>read-write</tt> unless <tt>readonly</tt> option
       is given when mounting the bind or volume. Note that setting <tt>readonly</tt> for a
-      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.</p>
+      bind-mount may not make its submounts <tt>readonly</tt> depending on the kernel version. See also <tt>bind-recursive</tt>.</p>
       <ul>
         <li><tt>true</tt> or <tt>1</tt> or no value: Mounts the bind or volume read-only.</li>
         <li><tt>false</tt> or <tt>0</tt>: Mounts the bind or volume read-write.</li>
@@ -432,17 +432,40 @@ The following options can only be used for bind mounts (`type=bind`):
     </td>
   </tr>
   <tr>
-    <td><b>bind-nonrecursive</b></td>
+    <td><b>bind-recursive</b></td>
     <td>
       By default, submounts are recursively bind-mounted as well. However, this behavior can be confusing when a
-      bind mount is configured with <tt>readonly</tt> option, because submounts are not mounted as read-only.
-      Set <tt>bind-nonrecursive</tt> to disable recursive bind-mount.<br />
+      bind mount is configured with <tt>readonly</tt> option, because submounts may not be mounted as read-only,
+      depending on the kernel version.
+      Set <tt>bind-recursive</tt> to control the behavior of the recursive bind-mount.<br />
+      <br />
+      A value is one of:<br />
+      <br />
+      <ul>
+        <li><<tt>enabled</tt>,  <tt>true</tt>  or <tt>1</tt>: Enables recursive bind-mount.
+        Read-only mounts are made recursively read-only if kernel is v5.12 or later.
+        Otherwise they are not made recursively read-only.</li>
+        <li><<tt>disabled</tt>, <tt>false</tt> or <tt>0</tt>: Disables recursive bind-mount.</li>
+        <li><<tt>writable</tt>:                               Enables recursive bind-mount.
+        Read-only mounts are not made recursively read-only.</li>
+        <li><<tt>readonly</tt>:                               Enables recursive bind-mount.
+        Read-only mounts are made recursively read-only if kernel is v5.12 or later.
+        Otherwise the Engine raises an error.</li>
+      </ul>
+      When the option is not specified, the default behavior correponds to setting <tt>enabled</tt>.
+    </td>
+  </tr>
+  <tr>
+    <td><b>bind-nonrecursive</b></td>
+    <td>
+      <tt>bind-nonrecursive</tt> is deprecated since Docker Engine v25.0.
+      Use <tt>bind-recursive</tt>instead.<br />
       <br />
       A value is optional:<br />
       <br />
       <ul>
-        <li><tt>true</tt> or <tt>1</tt>: Disables recursive bind-mount.</li>
-        <li><tt>false</tt> or <tt>0</tt>: Default if you do not provide a value. Enables recursive bind-mount.</li>
+        <li><tt>true</tt> or <tt>1</tt>:  Equivalent to <tt>bind-recursive=disabled</tt>.</li>
+        <li><tt>false</tt> or <tt>0</tt>: Equivalent to <tt>bind-recursive=enabled</tt>.</li>
       </ul>
     </td>
   </tr>
