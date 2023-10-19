@@ -1,7 +1,6 @@
 package loader
 
 import (
-	"path/filepath"
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
@@ -371,10 +370,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				{Target: "/var/lib/mysql", Type: "volume"},
 				{Source: "/opt/data", Target: "/var/lib/mysql", Type: "bind"},
 				{Source: workingDir, Target: "/code", Type: "bind"},
-				{Source: filepath.Join(workingDir, "static"), Target: "/var/www/html", Type: "bind"},
+				{Source: workingDir + "/static", Target: "/var/www/html", Type: "bind"},
 				{Source: homeDir + "/configs", Target: "/etc/configs/", Type: "bind", ReadOnly: true},
 				{Source: "datavolume", Target: "/var/lib/mysql", Type: "volume"},
-				{Source: filepath.Join(workingDir, "opt"), Target: "/opt", Consistency: "cached", Type: "bind"},
+				{Source: workingDir + "/opt", Target: "/opt", Consistency: "cached", Type: "bind"},
 				{Target: "/opt", Type: "tmpfs", Tmpfs: &types.ServiceVolumeTmpfs{
 					Size: int64(10000),
 				}},
@@ -501,7 +500,7 @@ func volumes() map[string]types.VolumeConfig {
 func configs(workingDir string) map[string]types.ConfigObjConfig {
 	return map[string]types.ConfigObjConfig{
 		"config1": {
-			File: filepath.Join(workingDir, "config_data"),
+			File: workingDir + "/config_data",
 			Labels: map[string]string{
 				"foo": "bar",
 			},
@@ -528,7 +527,7 @@ func configs(workingDir string) map[string]types.ConfigObjConfig {
 func secrets(workingDir string) map[string]types.SecretConfig {
 	return map[string]types.SecretConfig{
 		"secret1": {
-			File: filepath.Join(workingDir, "secret_data"),
+			File: workingDir + "/secret_data",
 			Labels: map[string]string{
 				"foo": "bar",
 			},
