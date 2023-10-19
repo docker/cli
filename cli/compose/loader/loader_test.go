@@ -181,7 +181,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
-	Version: "3.11",
+	Version: "3.12",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",

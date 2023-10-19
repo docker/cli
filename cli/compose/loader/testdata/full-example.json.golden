@@ -508,7 +508,7 @@
       "working_dir": "/code"
     }
   },
-  "version": "3.10",
+  "version": "3.12",
   "volumes": {
     "another-volume": {
       "name": "user_specified_name",
