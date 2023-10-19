@@ -3,6 +3,7 @@ package loader
 import (
 	"bytes"
 	"os"
+	"runtime"
 	"sort"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {
@@ -964,6 +966,8 @@ func uint32Ptr(value uint32) *uint32 {
 }
 
 func TestFullExample(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows", "FIXME: TestFullExample substitutes platform-specific HOME-directories and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
+
 	data, err := os.ReadFile("full-example.yml")
 	assert.NilError(t, err)
 
