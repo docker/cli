@@ -3,10 +3,10 @@ package manifest
 import (
 	"context"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/distribution/reference"
 )
 
 type osArch struct {
