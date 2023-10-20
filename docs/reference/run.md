@@ -49,78 +49,49 @@ $ docker run -it IMAGE sh
 > it. For more information about this configuration, refer to the Docker
 > installation documentation for your operating system.
 
-## Detached vs foreground
+## Foreground and background
 
-When starting a Docker container, you must first decide if you want to
-run the container in the background in a "detached" mode or in the
-default foreground mode:
-
-    -d=false: Detached mode: Run container in the background, print new container id
-
-### Detached (-d)
-
-To start a container in detached mode, you use `-d=true` or just `-d` option. By
-design, containers started in detached mode exit when the root process used to
-run the container exits, unless you also specify the `--rm` option. If you use
-`-d` with `--rm`, the container is removed when it exits **or** when the daemon
-exits, whichever happens first.
-
-Do not pass a `service x start` command to a detached container. For example, this
-command attempts to start the `nginx` service.
-
-    $ docker run -d -p 80:80 my_image service nginx start
-
-This succeeds in starting the `nginx` service inside the container. However, it
-fails the detached container paradigm in that, the root process (`service nginx
-start`) returns and the detached container stops as designed. As a result, the
-`nginx` service is started but could not be used. Instead, to start a process
-such as the `nginx` web server do the following:
-
-    $ docker run -d -p 80:80 my_image nginx -g 'daemon off;'
-
-To do input/output with a detached container use network connections or shared
-volumes. These are required because the container is no longer listening to the
-command line where `docker run` was run.
-
-To reattach to a detached container, use `docker`
-[*attach*](commandline/attach.md) command.
-
-### Foreground
-
-In foreground mode (the default when `-d` is not specified), `docker
-run` can start the process in the container and attach the console to
-the process's standard input, output, and standard error. It can even
-pretend to be a TTY (this is what most command line executables expect)
-and pass along signals. All of that is configurable:
-
-    -a=[]           : Attach to `STDIN`, `STDOUT` and/or `STDERR`
-    -t              : Allocate a pseudo-tty
-    --sig-proxy=true: Proxy all received signals to the process (non-TTY mode only)
-    -i              : Keep STDIN open even if not attached
-
-If you do not specify `-a` then Docker will [attach to both stdout and stderr
-]( https://github.com/docker/docker/blob/4118e0c9eebda2412a09ae66e90c34b85fae3275/runconfig/opts/parse.go#L267).
-You can specify to which of the three standard streams (`STDIN`, `STDOUT`,
-`STDERR`) you'd like to connect instead, as in:
+When you start a container, the container runs in the foreground by default.
+If you want to run the container in the background instead, you can use the
+`--detach` (or `-d`) flag. This starts the container without occupying your
+terminal window.
 
 ```console
-$ docker run -a stdin -a stdout -i -t ubuntu /bin/bash
+$ docker run -d <IMAGE>
 ```
 
-For interactive processes (like a shell), you must use `-i -t` together in
-order to allocate a tty for the container process. `-i -t` is often written `-it`
-as you'll see in later examples.  Specifying `-t` is forbidden when the client
-is receiving its standard input from a pipe, as in:
+While the container runs in the background, you can interact with the container
+using other CLI commands. For example, `docker logs` lets you view the logs for
+the container, and `docker attach` brings it to the foreground.
 
 ```console
-$ echo test | docker run -i busybox cat
+$ docker run -d nginx
+0246aa4d1448a401cabd2ce8f242192b6e7af721527e48a810463366c7ff54f1
+$ docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS        PORTS     NAMES
+0246aa4d1448   nginx     "/docker-entrypoint.…"   2 seconds ago   Up 1 second   80/tcp    pedantic_liskov
+$ docker logs -n 5 0246aa4d1448
+2023/11/06 15:58:23 [notice] 1#1: start worker process 33
+2023/11/06 15:58:23 [notice] 1#1: start worker process 34
+2023/11/06 15:58:23 [notice] 1#1: start worker process 35
+2023/11/06 15:58:23 [notice] 1#1: start worker process 36
+2023/11/06 15:58:23 [notice] 1#1: start worker process 37
+$ docker attach 0246aa4d1448
+^C
+2023/11/06 15:58:40 [notice] 1#1: signal 2 (SIGINT) received, exiting
+...
 ```
 
-> **Note**
->
-> A process running as PID 1 inside a container is treated specially by Linux:
-> it ignores any signal with the default action. As a result, the process will
-> not terminate on `SIGINT` or `SIGTERM` unless it is coded to do so.
+For more information about `docker run` flags related to foreground and
+background modes, see:
+
+- [`docker run --detach`](commandline/run.md#detach): run container in background
+- [`docker run --attach`](commandline/run.md#attach): attach to `stdin`, `stdout`, and `stderr`
+- [`docker run --tty`](commandline/run.md#tty): allocate a pseudo-tty
+- [`docker run --interactive`](commandline/run.md#interactive): keep `stdin` open even if not attached
+
+For more information about re-attaching to a background container, see
+[`docker attach`](commandline/attach.md).
 
 ## Container identification
 
