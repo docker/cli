@@ -8,7 +8,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.10",
+		Version:  "3.12",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
@@ -154,11 +154,12 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				"x-foo": "bar",
 			},
 			HealthCheck: &types.HealthCheckConfig{
-				Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
-				Interval:    durationPtr(10 * time.Second),
-				Timeout:     durationPtr(1 * time.Second),
-				Retries:     uint64Ptr(5),
-				StartPeriod: durationPtr(15 * time.Second),
+				Test:          types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
+				Interval:      durationPtr(10 * time.Second),
+				Timeout:       durationPtr(1 * time.Second),
+				Retries:       uint64Ptr(5),
+				StartPeriod:   durationPtr(15 * time.Second),
+				StartInterval: durationPtr(1 * time.Second),
 			},
 			Hostname: "foo",
 			Image:    "redis",

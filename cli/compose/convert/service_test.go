@@ -124,17 +124,24 @@ func TestConvertHealthcheck(t *testing.T) {
 	retries := uint64(10)
 	timeout := composetypes.Duration(30 * time.Second)
 	interval := composetypes.Duration(2 * time.Millisecond)
+	startPeriod := composetypes.Duration(time.Minute)
+	startInterval := composetypes.Duration(1 * time.Second)
+
 	source := &composetypes.HealthCheckConfig{
-		Test:     []string{"EXEC", "touch", "/foo"},
-		Timeout:  &timeout,
-		Interval: &interval,
-		Retries:  &retries,
+		Test:          []string{"EXEC", "touch", "/foo"},
+		Timeout:       &timeout,
+		Interval:      &interval,
+		Retries:       &retries,
+		StartPeriod:   &startPeriod,
+		StartInterval: &startInterval,
 	}
 	expected := &container.HealthConfig{
-		Test:     source.Test,
-		Timeout:  time.Duration(timeout),
-		Interval: time.Duration(interval),
-		Retries:  10,
+		Test:          source.Test,
+		Timeout:       time.Duration(timeout),
+		Interval:      time.Duration(interval),
+		StartPeriod:   time.Duration(startPeriod),
+		StartInterval: time.Duration(startInterval),
+		Retries:       10,
 	}
 
 	healthcheck, err := convertHealthcheck(source)
