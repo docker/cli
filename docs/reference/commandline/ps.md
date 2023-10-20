@@ -174,9 +174,19 @@ Any of these events result in a `137` status:
 
 #### status
 
-The `status` filter matches containers by status. You can filter using
-`created`, `restarting`, `running`, `removing`, `paused`, `exited` and `dead`. For example,
-to filter for `running` containers:
+The `status` filter matches containers by status. The possible values for the container status are:
+
+| Status       | Description                                                                                                                                                                                     |
+| :----------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `created`    | A container that has never been started.                                                                                                                                                        |
+| `running`    | A running container, started by either `docker start` or `docker run`.                                                                                                                          |
+| `paused`     | A paused container. See `docker pause`.                                                                                                                                                         |
+| `restarting` | A container which is starting due to the designated restart policy for that container.                                                                                                          |
+| `exited`     | A container which is no longer running. For example, the process inside the container completed or the container was stopped using the `docker stop` command.                                   |
+| `removing`   | A container which is in the process of being removed. See `docker rm`.                                                                                                                          |
+| `dead`       | A "defunct" container; for example, a container that was only partially removed because resources were kept busy by an external process. `dead` containers cannot be (re)started, only removed. |
+
+For example, to filter for `running` containers:
 
 ```console
 $ docker ps --filter status=running
