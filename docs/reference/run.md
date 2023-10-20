@@ -1,54 +1,44 @@
 ---
-description: "Configure containers at runtime"
-keywords: "docker, run, configure, runtime"
+description: "Running and configuring containers with the Docker CLI"
+keywords: "docker, run, cli"
 aliases:
 - /reference/run/
+title: Running containers
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
-# Docker run reference
-
 Docker runs processes in isolated containers. A container is a process
-which runs on a host. The host may be local or remote. When an operator
-executes `docker run`, the container process that runs is isolated in
+which runs on a host. The host may be local or remote. When an you
+execute `docker run`, the container process that runs is isolated in
 that it has its own file system, its own networking, and its own
 isolated process tree separate from the host.
 
-This page details how to use the `docker run` command to define the
-container's resources at runtime.
+This page details how to use the `docker run` command to run containers.
 
 ## General form
 
-The basic `docker run` command takes this form:
+A `docker run` command takes the following form:
 
-    $ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
+```console
+$ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
+```
 
-The `docker run` command must specify an [*IMAGE*](https://docs.docker.com/glossary/#image)
-to derive the container from. An image developer can define image
-defaults related to:
+The `docker run` command must specify an [image](https://docs.docker.com/glossary/#image)
+to create the container from.
 
- * detached or foreground running
- * container identification
- * network settings
- * runtime constraints on CPU and memory
+`[OPTIONS]` let you configure options for the container. For example, you can
+give the container a name (`--name`), or run it as a background process (`-d`).
+You can also set options to control things like resource constraints and
+networking.
 
-With the `docker run [OPTIONS]` an operator can add to or override the
-image defaults set by a developer. And, additionally, operators can
-override nearly all the defaults set by the Docker runtime itself. The
-operator's ability to override image and Docker runtime defaults is why
-[*run*](commandline/run.md) has more options than any
-other `docker` command.
+You can use the `[COMMAND]` and `[ARG...]` positional arguments to specify
+commands and arguments for the container to run when it starts up. For example,
+you can specify `sh` as the `[COMMAND]`, combined with the `-i` and `-t` flags,
+to start an interactive shell in the container (if the image you select has an
+`sh` executable on `PATH`).
 
-To learn how to interpret the types of `[OPTIONS]`, see
-[*Option types*](commandline/cli.md#option-types).
+```console
+$ docker run -it IMAGE sh
+```
 
 > **Note**
 >
@@ -58,25 +48,6 @@ To learn how to interpret the types of `[OPTIONS]`, see
 > administrator can create a Unix group called `docker` and add users to
 > it. For more information about this configuration, refer to the Docker
 > installation documentation for your operating system.
-
-
-## Operator exclusive options
-
-Only the operator (the person executing `docker run`) can set the
-following options.
-
- - [Detached vs foreground](#detached-vs-foreground)
-     - [Detached (-d)](#detached--d)
-     - [Foreground](#foreground)
- - [Container identification](#container-identification)
-     - [Name (--name)](#name---name)
-     - [PID equivalent](#pid-equivalent)
- - [IPC settings (--ipc)](#ipc-settings---ipc)
- - [Network settings](#network-settings)
- - [Restart policies (--restart)](#restart-policies---restart)
- - [Clean up (--rm)](#clean-up---rm)
- - [Runtime constraints on resources](#runtime-constraints-on-resources)
- - [Runtime privilege and Linux capabilities](#runtime-privilege-and-linux-capabilities)
 
 ## Detached vs foreground
 
