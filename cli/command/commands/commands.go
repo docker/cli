@@ -41,6 +41,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		registry.NewSearchCommand(dockerCli),
 		system.NewVersionCommand(dockerCli),
 		system.NewInfoCommand(dockerCli),
+		volume.NewVolumesCommand(dockerCli),
 
 		// management commands
 		builder.NewBuilderCommand(dockerCli),
