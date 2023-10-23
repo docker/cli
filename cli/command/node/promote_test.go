@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -52,7 +52,7 @@ func TestNodePromoteNoChange(t *testing.T) {
 	cmd := newPromoteCommand(
 		test.NewFakeCli(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if node.Role != swarm.NodeRoleManager {
@@ -69,7 +69,7 @@ func TestNodePromoteMultipleNode(t *testing.T) {
 	cmd := newPromoteCommand(
 		test.NewFakeCli(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if node.Role != swarm.NodeRoleManager {
