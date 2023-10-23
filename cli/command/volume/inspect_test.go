@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
@@ -59,7 +59,7 @@ func TestVolumeInspectErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
@@ -80,14 +80,14 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 				if volumeID != "foo" {
 					return volume.Volume{}, errors.Errorf("Invalid volumeID, expected %s, got %s", "foo", volumeID)
 				}
-				return *Volume(), nil
+				return *builders.Volume(), nil
 			},
 		},
 		{
 			name: "multiple-volume-with-labels",
 			args: []string{"foo", "bar"},
 			volumeInspectFunc: func(volumeID string) (volume.Volume, error) {
-				return *Volume(VolumeName(volumeID), VolumeLabels(map[string]string{
+				return *builders.Volume(builders.VolumeName(volumeID), builders.VolumeLabels(map[string]string{
 					"foo": "bar",
 				})), nil
 			},
@@ -106,7 +106,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 
 func TestVolumeInspectWithFormat(t *testing.T) {
 	volumeInspectFunc := func(volumeID string) (volume.Volume, error) {
-		return *Volume(VolumeLabels(map[string]string{
+		return *builders.Volume(builders.VolumeLabels(map[string]string{
 			"foo": "bar",
 		})), nil
 	}
@@ -135,7 +135,7 @@ func TestVolumeInspectWithFormat(t *testing.T) {
 		})
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.Flags().Set("format", tc.format)
+		assert.Check(t, cmd.Flags().Set("format", tc.format))
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-inspect-with-format.%s.golden", tc.name))
 	}

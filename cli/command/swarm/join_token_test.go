@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
@@ -96,7 +96,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		cmd := newJoinTokenCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -123,10 +123,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				}, nil
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -140,10 +140,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				}, nil
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -160,10 +160,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				}, nil
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -173,10 +173,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				flagQuiet: "true",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -186,10 +186,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				flagQuiet: "true",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 	}
@@ -202,7 +202,7 @@ func TestSwarmJoinToken(t *testing.T) {
 		cmd := newJoinTokenCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("jointoken-%s.golden", tc.name))

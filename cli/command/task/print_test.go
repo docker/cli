@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
@@ -19,29 +19,29 @@ func TestTaskPrintSorted(t *testing.T) {
 	apiClient := &fakeClient{
 		serviceInspectWithRaw: func(ref string, options types.ServiceInspectOptions) (swarm.Service, []byte, error) {
 			if ref == "service-id-one" {
-				return *Service(ServiceName("service-name-1")), nil, nil
+				return *builders.Service(builders.ServiceName("service-name-1")), nil, nil
 			}
-			return *Service(ServiceName("service-name-10")), nil, nil
+			return *builders.Service(builders.ServiceName("service-name-10")), nil, nil
 		},
 	}
 
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{
-		*Task(
-			TaskID("id-foo"),
-			TaskServiceID("service-id-ten"),
-			TaskNodeID("id-node"),
-			WithTaskSpec(TaskImage("myimage:mytag")),
-			TaskDesiredState(swarm.TaskStateReady),
-			WithStatus(TaskState(swarm.TaskStateFailed), Timestamp(time.Now().Add(-2*time.Hour))),
+		*builders.Task(
+			builders.TaskID("id-foo"),
+			builders.TaskServiceID("service-id-ten"),
+			builders.TaskNodeID("id-node"),
+			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+			builders.TaskDesiredState(swarm.TaskStateReady),
+			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
 		),
-		*Task(
-			TaskID("id-bar"),
-			TaskServiceID("service-id-one"),
-			TaskNodeID("id-node"),
-			WithTaskSpec(TaskImage("myimage:mytag")),
-			TaskDesiredState(swarm.TaskStateReady),
-			WithStatus(TaskState(swarm.TaskStateFailed), Timestamp(time.Now().Add(-2*time.Hour))),
+		*builders.Task(
+			builders.TaskID("id-bar"),
+			builders.TaskServiceID("service-id-one"),
+			builders.TaskNodeID("id-node"),
+			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+			builders.TaskDesiredState(swarm.TaskStateReady),
+			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
 		),
 	}
 
@@ -51,25 +51,25 @@ func TestTaskPrintSorted(t *testing.T) {
 }
 
 func TestTaskPrintWithQuietOption(t *testing.T) {
-	quiet := true
-	trunc := false
-	noResolve := true
+	const quiet = true
+	const trunc = false
+	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{*Task(TaskID("id-foo"))}
+	tasks := []swarm.Task{*builders.Task(builders.TaskID("id-foo"))}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, formatter.TableFormatKey)
 	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-quiet-option.golden")
 }
 
 func TestTaskPrintWithNoTruncOption(t *testing.T) {
-	quiet := false
-	trunc := false
-	noResolve := true
+	const quiet = false
+	const trunc = false
+	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{
-		*Task(TaskID("id-foo-yov6omdek8fg3k5stosyp2m50")),
+		*builders.Task(builders.TaskID("id-foo-yov6omdek8fg3k5stosyp2m50")),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .ID }}")
 	assert.NilError(t, err)
@@ -77,13 +77,13 @@ func TestTaskPrintWithNoTruncOption(t *testing.T) {
 }
 
 func TestTaskPrintWithGlobalService(t *testing.T) {
-	quiet := false
-	trunc := false
-	noResolve := true
+	const quiet = false
+	const trunc = false
+	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{
-		*Task(TaskServiceID("service-id-foo"), TaskNodeID("node-id-bar"), TaskSlot(0)),
+		*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskNodeID("node-id-bar"), builders.TaskSlot(0)),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }}")
 	assert.NilError(t, err)
@@ -91,13 +91,13 @@ func TestTaskPrintWithGlobalService(t *testing.T) {
 }
 
 func TestTaskPrintWithReplicatedService(t *testing.T) {
-	quiet := false
-	trunc := false
-	noResolve := true
+	const quiet = false
+	const trunc = false
+	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{
-		*Task(TaskServiceID("service-id-foo"), TaskSlot(1)),
+		*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskSlot(1)),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }}")
 	assert.NilError(t, err)
@@ -105,34 +105,34 @@ func TestTaskPrintWithReplicatedService(t *testing.T) {
 }
 
 func TestTaskPrintWithIndentation(t *testing.T) {
-	quiet := false
-	trunc := false
-	noResolve := false
+	const quiet = false
+	const trunc = false
+	const noResolve = false
 	apiClient := &fakeClient{
 		serviceInspectWithRaw: func(ref string, options types.ServiceInspectOptions) (swarm.Service, []byte, error) {
-			return *Service(ServiceName("service-name-foo")), nil, nil
+			return *builders.Service(builders.ServiceName("service-name-foo")), nil, nil
 		},
 		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
-			return *Node(NodeName("node-name-bar")), nil, nil
+			return *builders.Node(builders.NodeName("node-name-bar")), nil, nil
 		},
 	}
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{
-		*Task(
-			TaskID("id-foo"),
-			TaskServiceID("service-id-foo"),
-			TaskNodeID("id-node"),
-			WithTaskSpec(TaskImage("myimage:mytag")),
-			TaskDesiredState(swarm.TaskStateReady),
-			WithStatus(TaskState(swarm.TaskStateFailed), Timestamp(time.Now().Add(-2*time.Hour))),
+		*builders.Task(
+			builders.TaskID("id-foo"),
+			builders.TaskServiceID("service-id-foo"),
+			builders.TaskNodeID("id-node"),
+			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+			builders.TaskDesiredState(swarm.TaskStateReady),
+			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
 		),
-		*Task(
-			TaskID("id-bar"),
-			TaskServiceID("service-id-foo"),
-			TaskNodeID("id-node"),
-			WithTaskSpec(TaskImage("myimage:mytag")),
-			TaskDesiredState(swarm.TaskStateReady),
-			WithStatus(TaskState(swarm.TaskStateFailed), Timestamp(time.Now().Add(-2*time.Hour))),
+		*builders.Task(
+			builders.TaskID("id-bar"),
+			builders.TaskServiceID("service-id-foo"),
+			builders.TaskNodeID("id-node"),
+			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+			builders.TaskDesiredState(swarm.TaskStateReady),
+			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
 		),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, formatter.TableFormatKey)
@@ -141,20 +141,20 @@ func TestTaskPrintWithIndentation(t *testing.T) {
 }
 
 func TestTaskPrintWithResolution(t *testing.T) {
-	quiet := false
-	trunc := false
-	noResolve := false
+	const quiet = false
+	const trunc = false
+	const noResolve = false
 	apiClient := &fakeClient{
 		serviceInspectWithRaw: func(ref string, options types.ServiceInspectOptions) (swarm.Service, []byte, error) {
-			return *Service(ServiceName("service-name-foo")), nil, nil
+			return *builders.Service(builders.ServiceName("service-name-foo")), nil, nil
 		},
 		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
-			return *Node(NodeName("node-name-bar")), nil, nil
+			return *builders.Node(builders.NodeName("node-name-bar")), nil, nil
 		},
 	}
 	cli := test.NewFakeCli(apiClient)
 	tasks := []swarm.Task{
-		*Task(TaskServiceID("service-id-foo"), TaskSlot(1)),
+		*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskSlot(1)),
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }} {{ .Node }}")
 	assert.NilError(t, err)

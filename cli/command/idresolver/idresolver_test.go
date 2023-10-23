@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -50,7 +50,7 @@ func TestResolveWithCache(t *testing.T) {
 	cli := &fakeClient{
 		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
 			inspectCounter++
-			return *Node(NodeName("node-foo")), []byte{}, nil
+			return *builders.Node(builders.NodeName("node-foo")), []byte{}, nil
 		},
 	}
 
@@ -82,14 +82,14 @@ func TestResolveNode(t *testing.T) {
 		{
 			nodeID: "nodeID",
 			nodeInspectFunc: func(string) (swarm.Node, []byte, error) {
-				return *Node(NodeName("node-foo")), []byte{}, nil
+				return *builders.Node(builders.NodeName("node-foo")), []byte{}, nil
 			},
 			expectedID: "node-foo",
 		},
 		{
 			nodeID: "nodeID",
 			nodeInspectFunc: func(string) (swarm.Node, []byte, error) {
-				return *Node(NodeName(""), Hostname("node-hostname")), []byte{}, nil
+				return *builders.Node(builders.NodeName(""), builders.Hostname("node-hostname")), []byte{}, nil
 			},
 			expectedID: "node-hostname",
 		},
@@ -124,7 +124,7 @@ func TestResolveService(t *testing.T) {
 		{
 			serviceID: "serviceID",
 			serviceInspectFunc: func(string) (swarm.Service, []byte, error) {
-				return *Service(ServiceName("service-foo")), []byte{}, nil
+				return *builders.Service(builders.ServiceName("service-foo")), []byte{}, nil
 			},
 			expectedID: "service-foo",
 		},
