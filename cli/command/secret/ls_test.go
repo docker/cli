@@ -8,7 +8,7 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -50,25 +50,25 @@ func TestSecretList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
-				*Secret(SecretID("ID-1-foo"),
-					SecretName("1-foo"),
-					SecretVersion(swarm.Version{Index: 10}),
-					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+				*builders.Secret(builders.SecretID("ID-1-foo"),
+					builders.SecretName("1-foo"),
+					builders.SecretVersion(swarm.Version{Index: 10}),
+					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
 				),
-				*Secret(SecretID("ID-10-foo"),
-					SecretName("10-foo"),
-					SecretVersion(swarm.Version{Index: 11}),
-					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-					SecretDriver("driver"),
+				*builders.Secret(builders.SecretID("ID-10-foo"),
+					builders.SecretName("10-foo"),
+					builders.SecretVersion(swarm.Version{Index: 11}),
+					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					builders.SecretDriver("driver"),
 				),
-				*Secret(SecretID("ID-2-foo"),
-					SecretName("2-foo"),
-					SecretVersion(swarm.Version{Index: 11}),
-					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-					SecretDriver("driver"),
+				*builders.Secret(builders.SecretID("ID-2-foo"),
+					builders.SecretName("2-foo"),
+					builders.SecretVersion(swarm.Version{Index: 11}),
+					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					builders.SecretDriver("driver"),
 				),
 			}, nil
 		},
@@ -82,15 +82,15 @@ func TestSecretListWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
-				*Secret(SecretID("ID-foo"), SecretName("foo")),
-				*Secret(SecretID("ID-bar"), SecretName("bar"), SecretLabels(map[string]string{
+				*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+				*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
 					"label": "label-bar",
 				})),
 			}, nil
 		},
 	})
 	cmd := newSecretListCommand(cli)
-	cmd.Flags().Set("quiet", "true")
+	assert.Check(t, cmd.Flags().Set("quiet", "true"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-quiet-option.golden")
 }
@@ -99,8 +99,8 @@ func TestSecretListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
-				*Secret(SecretID("ID-foo"), SecretName("foo")),
-				*Secret(SecretID("ID-bar"), SecretName("bar"), SecretLabels(map[string]string{
+				*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+				*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
 					"label": "label-bar",
 				})),
 			}, nil
@@ -118,15 +118,15 @@ func TestSecretListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
 			return []swarm.Secret{
-				*Secret(SecretID("ID-foo"), SecretName("foo")),
-				*Secret(SecretID("ID-bar"), SecretName("bar"), SecretLabels(map[string]string{
+				*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+				*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
 					"label": "label-bar",
 				})),
 			}, nil
 		},
 	})
 	cmd := newSecretListCommand(cli)
-	cmd.Flags().Set("format", "{{ .Name }} {{ .Labels }}")
+	assert.Check(t, cmd.Flags().Set("format", "{{ .Name }} {{ .Labels }}"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-format.golden")
 }
@@ -137,24 +137,24 @@ func TestSecretListWithFilter(t *testing.T) {
 			assert.Check(t, is.Equal("foo", options.Filters.Get("name")[0]), "foo")
 			assert.Check(t, is.Equal("lbl1=Label-bar", options.Filters.Get("label")[0]))
 			return []swarm.Secret{
-				*Secret(SecretID("ID-foo"),
-					SecretName("foo"),
-					SecretVersion(swarm.Version{Index: 10}),
-					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+				*builders.Secret(builders.SecretID("ID-foo"),
+					builders.SecretName("foo"),
+					builders.SecretVersion(swarm.Version{Index: 10}),
+					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
 				),
-				*Secret(SecretID("ID-bar"),
-					SecretName("bar"),
-					SecretVersion(swarm.Version{Index: 11}),
-					SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+				*builders.Secret(builders.SecretID("ID-bar"),
+					builders.SecretName("bar"),
+					builders.SecretVersion(swarm.Version{Index: 11}),
+					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
 				),
 			}, nil
 		},
 	})
 	cmd := newSecretListCommand(cli)
-	cmd.Flags().Set("filter", "name=foo")
-	cmd.Flags().Set("filter", "label=lbl1=Label-bar")
+	assert.Check(t, cmd.Flags().Set("filter", "name=foo"))
+	assert.Check(t, cmd.Flags().Set("filter", "label=lbl1=Label-bar"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "secret-list-with-filter.golden")
 }

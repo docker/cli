@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -43,7 +43,7 @@ func TestSecretInspectErrors(t *testing.T) {
 			args: []string{"foo", "bar"},
 			secretInspectFunc: func(_ context.Context, secretID string) (swarm.Secret, []byte, error) {
 				if secretID == "foo" {
-					return *Secret(SecretName("foo")), nil, nil
+					return *builders.Secret(builders.SecretName("foo")), nil, nil
 				}
 				return swarm.Secret{}, nil, errors.Errorf("error while inspecting the secret")
 			},
@@ -58,7 +58,7 @@ func TestSecretInspectErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -78,14 +78,14 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 				if name != "foo" {
 					return swarm.Secret{}, nil, errors.Errorf("Invalid name, expected %s, got %s", "foo", name)
 				}
-				return *Secret(SecretID("ID-foo"), SecretName("foo")), nil, nil
+				return *builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")), nil, nil
 			},
 		},
 		{
 			name: "multiple-secrets-with-labels",
 			args: []string{"foo", "bar"},
 			secretInspectFunc: func(_ context.Context, name string) (swarm.Secret, []byte, error) {
-				return *Secret(SecretID("ID-"+name), SecretName(name), SecretLabels(map[string]string{
+				return *builders.Secret(builders.SecretID("ID-"+name), builders.SecretName(name), builders.SecretLabels(map[string]string{
 					"label1": "label-foo",
 				})), nil, nil
 			},
@@ -104,7 +104,7 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 
 func TestSecretInspectWithFormat(t *testing.T) {
 	secretInspectFunc := func(_ context.Context, name string) (swarm.Secret, []byte, error) {
-		return *Secret(SecretName("foo"), SecretLabels(map[string]string{
+		return *builders.Secret(builders.SecretName("foo"), builders.SecretLabels(map[string]string{
 			"label1": "label-foo",
 		})), nil, nil
 	}
@@ -133,7 +133,7 @@ func TestSecretInspectWithFormat(t *testing.T) {
 		})
 		cmd := newSecretInspectCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.Flags().Set("format", tc.format)
+		assert.Check(t, cmd.Flags().Set("format", tc.format))
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-with-format.%s.golden", tc.name))
 	}
@@ -147,15 +147,15 @@ func TestSecretInspectPretty(t *testing.T) {
 		{
 			name: "simple",
 			secretInspectFunc: func(_ context.Context, id string) (swarm.Secret, []byte, error) {
-				return *Secret(
-					SecretLabels(map[string]string{
+				return *builders.Secret(
+					builders.SecretLabels(map[string]string{
 						"lbl1": "value1",
 					}),
-					SecretID("secretID"),
-					SecretName("secretName"),
-					SecretDriver("driver"),
-					SecretCreatedAt(time.Time{}),
-					SecretUpdatedAt(time.Time{}),
+					builders.SecretID("secretID"),
+					builders.SecretName("secretName"),
+					builders.SecretDriver("driver"),
+					builders.SecretCreatedAt(time.Time{}),
+					builders.SecretUpdatedAt(time.Time{}),
 				), []byte{}, nil
 			},
 		},
@@ -166,7 +166,7 @@ func TestSecretInspectPretty(t *testing.T) {
 		})
 		cmd := newSecretInspectCommand(cli)
 		cmd.SetArgs([]string{"secretID"})
-		cmd.Flags().Set("pretty", "true")
+		assert.Check(t, cmd.Flags().Set("pretty", "true"))
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-pretty.%s.golden", tc.name))
 	}

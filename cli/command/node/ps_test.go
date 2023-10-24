@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
@@ -58,7 +58,7 @@ func TestNodePsErrors(t *testing.T) {
 		cmd := newPsCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
@@ -80,11 +80,11 @@ func TestNodePs(t *testing.T) {
 			name: "simple",
 			args: []string{"nodeID"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{
-					*Task(WithStatus(Timestamp(time.Now().Add(-2*time.Hour)), PortStatus([]swarm.PortConfig{
+					*builders.Task(builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.PortStatus([]swarm.PortConfig{
 						{
 							TargetPort:    80,
 							PublishedPort: 80,
@@ -108,16 +108,16 @@ func TestNodePs(t *testing.T) {
 			name: "with-errors",
 			args: []string{"nodeID"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{
-					*Task(TaskID("taskID1"), TaskServiceID("failure"),
-						WithStatus(Timestamp(time.Now().Add(-2*time.Hour)), StatusErr("a task error"))),
-					*Task(TaskID("taskID2"), TaskServiceID("failure"),
-						WithStatus(Timestamp(time.Now().Add(-3*time.Hour)), StatusErr("a task error"))),
-					*Task(TaskID("taskID3"), TaskServiceID("failure"),
-						WithStatus(Timestamp(time.Now().Add(-4*time.Hour)), StatusErr("a task error"))),
+					*builders.Task(builders.TaskID("taskID1"), builders.TaskServiceID("failure"),
+						builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.StatusErr("a task error"))),
+					*builders.Task(builders.TaskID("taskID2"), builders.TaskServiceID("failure"),
+						builders.WithStatus(builders.Timestamp(time.Now().Add(-3*time.Hour)), builders.StatusErr("a task error"))),
+					*builders.Task(builders.TaskID("taskID3"), builders.TaskServiceID("failure"),
+						builders.WithStatus(builders.Timestamp(time.Now().Add(-4*time.Hour)), builders.StatusErr("a task error"))),
 				}, nil
 			},
 			serviceInspectFunc: func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error) {
@@ -143,7 +143,7 @@ func TestNodePs(t *testing.T) {
 		cmd := newPsCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-ps.%s.golden", tc.name))

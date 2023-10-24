@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package functions
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
@@ -71,7 +71,7 @@ func TestNodeInspectErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -86,7 +86,7 @@ func TestNodeInspectPretty(t *testing.T) {
 		{
 			name: "simple",
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(NodeLabels(map[string]string{
+				return *builders.Node(builders.NodeLabels(map[string]string{
 					"lbl1": "value1",
 				})), []byte{}, nil
 			},
@@ -94,13 +94,13 @@ func TestNodeInspectPretty(t *testing.T) {
 		{
 			name: "manager",
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 		},
 		{
 			name: "manager-leader",
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager(Leader())), []byte{}, nil
+				return *builders.Node(builders.Manager(builders.Leader())), []byte{}, nil
 			},
 		},
 	}
@@ -110,7 +110,7 @@ func TestNodeInspectPretty(t *testing.T) {
 		})
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs([]string{"nodeID"})
-		cmd.Flags().Set("pretty", "true")
+		assert.Check(t, cmd.Flags().Set("pretty", "true"))
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-inspect-pretty.%s.golden", tc.name))
 	}
