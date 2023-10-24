@@ -138,7 +138,7 @@ github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
-# github.com/klauspost/compress v1.16.5
+# github.com/klauspost/compress v1.17.2
 ## explicit; go 1.18
 github.com/klauspost/compress
 github.com/klauspost/compress/fse
