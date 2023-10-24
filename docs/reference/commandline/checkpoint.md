@@ -110,3 +110,6 @@ Error response from daemon: Cannot checkpoint container c1: rpc error: code = 2 
 $ cat /var/lib/docker/containers/eb62ebdbf237ce1a8736d2ae3c7d88601fc0a50235b0ba767b559a1f3c5a600b/checkpoints/checkpoint1/criu.work/dump.log
 Error (mount.c:740): mnt: 126:./dev/console doesn't have a proper root mount
 ```
+
+Checkpoints don't include any changes to the container's filesystem. This is
+a [known limitation of CRIU](https://criu.org/Filesystem_C/R).
