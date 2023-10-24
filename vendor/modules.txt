@@ -56,7 +56,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v24.0.0-rc.2.0.20231013183648-cdb3f9fb8dca+incompatible
+# github.com/docker/docker v24.0.0-rc.2.0.20231025221548-fc4d035e7a4e+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -204,6 +204,9 @@ github.com/moby/sys/signal
 # github.com/moby/sys/symlink v0.2.0
 ## explicit; go 1.16
 github.com/moby/sys/symlink
+# github.com/moby/sys/user v0.1.0
+## explicit; go 1.17
+github.com/moby/sys/user
 # github.com/moby/term v0.5.0
 ## explicit; go 1.18
 github.com/moby/term
@@ -218,9 +221,6 @@ github.com/opencontainers/go-digest
 ## explicit; go 1.18
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.1.7
-## explicit; go 1.17
-github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -299,11 +299,9 @@ go.opentelemetry.io/otel/internal/attribute
 go.opentelemetry.io/otel/internal/baggage
 go.opentelemetry.io/otel/internal/global
 go.opentelemetry.io/otel/propagation
-go.opentelemetry.io/otel/semconv/internal
 go.opentelemetry.io/otel/semconv/internal/v2
 go.opentelemetry.io/otel/semconv/v1.17.0
 go.opentelemetry.io/otel/semconv/v1.17.0/httpconv
-go.opentelemetry.io/otel/semconv/v1.7.0
 # go.opentelemetry.io/otel/metric v0.37.0
 ## explicit; go 1.18
 go.opentelemetry.io/otel/metric

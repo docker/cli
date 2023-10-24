@@ -13,7 +13,7 @@ require (
 	github.com/creack/pty v1.1.18
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v24.0.0-rc.2.0.20231013183648-cdb3f9fb8dca+incompatible // master (v25.0.0-dev)
+	github.com/docker/docker v24.0.0-rc.2.0.20231025221548-fc4d035e7a4e+incompatible // master (v25.0.0-dev)
 	github.com/docker/docker-credential-helpers v0.8.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
@@ -66,7 +66,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/sys/symlink v0.2.0 // indirect
-	github.com/opencontainers/runc v1.1.7 // indirect
+	github.com/moby/sys/user v0.1.0 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
