@@ -9,7 +9,7 @@ go 1.19
 require (
 	dario.cat/mergo v1.0.0
 	github.com/container-orchestrated-devices/container-device-interface v0.6.1
-	github.com/containerd/containerd v1.7.7
+	github.com/containerd/containerd v1.7.8
 	github.com/creack/pty v1.1.18
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
