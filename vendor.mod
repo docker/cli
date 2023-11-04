@@ -8,7 +8,6 @@ go 1.19
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/container-orchestrated-devices/container-device-interface v0.6.1
 	github.com/containerd/containerd v1.7.8
 	github.com/creack/pty v1.1.18
 	github.com/distribution/reference v0.5.0
@@ -44,6 +43,7 @@ require (
 	golang.org/x/text v0.13.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.5.1
+	tags.cncf.io/container-device-interface v0.6.2
 )
 
 require (

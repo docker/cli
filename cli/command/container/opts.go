@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	cdi "github.com/container-orchestrated-devices/container-device-interface/pkg/parser"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
@@ -26,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
+	cdi "tags.cncf.io/container-device-interface/pkg/parser"
 )
 
 var deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) [rwm]{1,3}$`)
