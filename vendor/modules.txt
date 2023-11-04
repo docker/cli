@@ -21,9 +21,6 @@ github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.2.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/container-orchestrated-devices/container-device-interface v0.6.1
-## explicit; go 1.17
-github.com/container-orchestrated-devices/container-device-interface/pkg/parser
 # github.com/containerd/containerd v1.7.8
 ## explicit; go 1.19
 github.com/containerd/containerd/errdefs
@@ -474,3 +471,6 @@ gotest.tools/v3/internal/format
 gotest.tools/v3/internal/source
 gotest.tools/v3/poll
 gotest.tools/v3/skip
+# tags.cncf.io/container-device-interface v0.6.2
+## explicit; go 1.19
+tags.cncf.io/container-device-interface/pkg/parser
