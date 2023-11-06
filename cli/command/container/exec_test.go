@@ -195,7 +195,7 @@ func TestRunExec(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&testcase.client)
 
-			err := RunExec(cli, testcase.options)
+			err := RunExec(context.Background(), cli, testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
 			} else {
