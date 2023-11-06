@@ -1,7 +1,7 @@
 ---
 description: "Configure containers at runtime"
 keywords: "docker, run, configure, runtime"
-redirect_from:
+aliases:
 - /reference/run/
 ---
 
