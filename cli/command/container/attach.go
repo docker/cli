@@ -73,26 +73,35 @@ func NewAttachCommand(dockerCLI command.Cli) *cobra.Command {
 func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, opts *AttachOptions) error {
 	apiClient := dockerCLI.Client()
 
-	// request channel to wait for client
-	resultC, errC := apiClient.ContainerWait(ctx, containerID, "")
+	attachStdIn := true
+	if opts.NoStdin {
+		// TODO(thaJeztah): this is the tricky one: can we use container.AttachOptions for this one without it being ambiguous?
+		attachStdIn = false
+	}
 
 	c, err := inspectContainerAndCheckState(ctx, apiClient, containerID)
 	if err != nil {
 		return err
 	}
 
-	if err := dockerCLI.In().CheckTty(!opts.NoStdin, c.Config.Tty); err != nil {
-		return err
+	if attachStdIn {
+		if err := dockerCLI.In().CheckTty(attachStdIn, c.Config.Tty); err != nil {
+			return err
+		}
+		if !c.Config.OpenStdin {
+			// TODO(thaJeztah): should this produce an error?
+			attachStdIn = false
+		}
 	}
 
-	detachKeys := dockerCLI.ConfigFile().DetachKeys
-	if opts.DetachKeys != "" {
-		detachKeys = opts.DetachKeys
+	detachKeys := opts.DetachKeys
+	if opts.DetachKeys == "" {
+		detachKeys = dockerCLI.ConfigFile().DetachKeys
 	}
 
 	options := container.AttachOptions{
 		Stream:     true,
-		Stdin:      !opts.NoStdin && c.Config.OpenStdin,
+		Stdin:      attachStdIn,
 		Stdout:     true,
 		Stderr:     true,
 		DetachKeys: detachKeys,
@@ -146,6 +155,8 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		return err
 	}
 
+	// request channel to wait for client
+	resultC, errC := apiClient.ContainerWait(ctx, containerID, "")
 	return getExitStatus(errC, resultC)
 }
 
