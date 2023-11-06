@@ -121,7 +121,7 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
 	config := containerCfg.Config
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
 
 	config.ArgsEscaped = false
 
@@ -150,7 +150,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	}
 	if opts.sigProxy {
 		sigc := notifyAllSignals()
-		go ForwardAllSignals(ctx, dockerCli, containerID, sigc)
+		go ForwardAllSignals(ctx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 
@@ -186,10 +186,10 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		defer closeFn()
 	}
 
-	statusChan := waitExitOrRemoved(ctx, dockerCli.Client(), containerID, copts.autoRemove)
+	statusChan := waitExitOrRemoved(ctx, apiClient, containerID, copts.autoRemove)
 
 	// start the container
-	if err := client.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
+	if err := apiClient.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
