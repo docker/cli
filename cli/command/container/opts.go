@@ -715,7 +715,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	// Put the endpoint-specific MacAddress of the "main" network attachment into the container Config for backward
 	// compatibility with older daemons.
 	if nw, ok := networkingConfig.EndpointsConfig[hostConfig.NetworkMode.NetworkName()]; ok {
-		config.MacAddress = nw.MacAddress
+		config.MacAddress = nw.MacAddress //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
 	}
 
 	return &containerConfig{
