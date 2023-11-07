@@ -51,8 +51,21 @@ func NewAttachCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Attach local standard input, output, and error streams to a running container",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			attachStdIn := true
+			if opts.NoStdin {
+				// TODO(thaJeztah): this is the tricky one: can we use container.AttachOptions for this one without it being ambiguous?
+				attachStdIn = false
+			}
+
 			containerID := args[0]
-			return RunAttach(cmd.Context(), dockerCLI, containerID, &opts)
+			disableSignalProxy := !opts.Proxy
+			return RunAttach(cmd.Context(), dockerCLI, containerID, disableSignalProxy, container.AttachOptions{
+				Stream:     true,
+				Stdin:      attachStdIn,
+				Stdout:     true,
+				Stderr:     true,
+				DetachKeys: opts.DetachKeys,
+			})
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container attach, docker attach",
@@ -64,61 +77,54 @@ func NewAttachCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.NoStdin, "no-stdin", false, "Do not attach STDIN")
+	// Is this feature still used?
+	// It was added in https://github.com/moby/moby/commit/4918769b1ac2d38f23087b766140e6a7f8979310 to allow forwarding signals to containers
+	// Changed in https://github.com/moby/moby/commit/333bc23f21e8423d3085632db99a6d1df227c5f1
+	// And changed to be enabled by default in https://github.com/moby/moby/commit/e0b59ab52b87b8fc15dd5534c3231fdd74843f9f (unless a TTY is attached)
+	// related: https://github.com/moby/moby/commit/e0b59ab52b87b8fc15dd5534c3231fdd74843f9f#commitcomment-25897874
+	// related: https://github.com/moby/moby/issues/9098
+	// related: https://github.com/docker/cli/pull/1841
 	flags.BoolVar(&opts.Proxy, "sig-proxy", true, "Proxy all received signals to the process")
 	flags.StringVar(&opts.DetachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
 	return cmd
 }
 
-// RunAttach executes an `attach` command
-func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, opts *AttachOptions) error {
+// RunAttach attaches to the given container.
+func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, disableSignalProxy bool, opts container.AttachOptions) error {
 	apiClient := dockerCLI.Client()
-
-	attachStdIn := true
-	if opts.NoStdin {
-		// TODO(thaJeztah): this is the tricky one: can we use container.AttachOptions for this one without it being ambiguous?
-		attachStdIn = false
-	}
 
 	c, err := inspectContainerAndCheckState(ctx, apiClient, containerID)
 	if err != nil {
 		return err
 	}
 
-	if attachStdIn {
-		if err := dockerCLI.In().CheckTty(attachStdIn, c.Config.Tty); err != nil {
+	if opts.Stdin {
+		if err := dockerCLI.In().CheckTty(opts.Stdin, c.Config.Tty); err != nil {
 			return err
 		}
 		if !c.Config.OpenStdin {
 			// TODO(thaJeztah): should this produce an error?
-			attachStdIn = false
+			opts.Stdin = false
 		}
 	}
 
-	detachKeys := opts.DetachKeys
 	if opts.DetachKeys == "" {
-		detachKeys = dockerCLI.ConfigFile().DetachKeys
-	}
-
-	options := container.AttachOptions{
-		Stream:     true,
-		Stdin:      attachStdIn,
-		Stdout:     true,
-		Stderr:     true,
-		DetachKeys: detachKeys,
+		opts.DetachKeys = dockerCLI.ConfigFile().DetachKeys
 	}
 
 	var in io.ReadCloser
-	if options.Stdin {
+	if opts.Stdin {
 		in = dockerCLI.In()
 	}
 
-	if opts.Proxy && !c.Config.Tty {
+	// TODO(thaJeztah): should this still depend on Config.Tty? It's unconditionally enabled on `docker exec` since https://github.com/docker/cli/pull/1841/files
+	if !disableSignalProxy && !c.Config.Tty {
 		sigc := notifyAllSignals()
 		go ForwardAllSignals(ctx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 
-	resp, errAttach := apiClient.ContainerAttach(ctx, containerID, options)
+	resp, errAttach := apiClient.ContainerAttach(ctx, containerID, opts)
 	if errAttach != nil {
 		return errAttach
 	}
@@ -148,7 +154,7 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		errorStream:  dockerCLI.Err(),
 		resp:         resp,
 		tty:          c.Config.Tty,
-		detachKeys:   options.DetachKeys,
+		detachKeys:   opts.DetachKeys,
 	}
 
 	if err := streamer.stream(ctx); err != nil {
