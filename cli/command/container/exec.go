@@ -28,7 +28,6 @@ type ExecOptions struct {
 	Privileged  bool
 	Env         opts.ListOpts
 	Workdir     string
-	Container   string
 	Command     []string
 	EnvFile     opts.ListOpts
 }
@@ -44,15 +43,16 @@ func NewExecOptions() ExecOptions {
 // NewExecCommand creates a new cobra.Command for `docker exec`
 func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	options := NewExecOptions()
+	var container string
 
 	cmd := &cobra.Command{
 		Use:   "exec [OPTIONS] CONTAINER COMMAND [ARG...]",
 		Short: "Execute a command in a running container",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.Container = args[0]
+			container = args[0]
 			options.Command = args[1:]
-			return RunExec(context.Background(), dockerCli, options)
+			return RunExec(context.Background(), dockerCli, container, options)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
 			return container.State != "paused"
@@ -96,7 +96,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunExec executes an `exec` command
-func RunExec(ctx context.Context, dockerCli command.Cli, options ExecOptions) error {
+func RunExec(ctx context.Context, dockerCli command.Cli, container string, options ExecOptions) error {
 	execConfig, err := parseExec(options, dockerCli.ConfigFile())
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func RunExec(ctx context.Context, dockerCli command.Cli, options ExecOptions) er
 	// otherwise if we error out we will leak execIDs on the server (and
 	// there's no easy way to clean those up). But also in order to make "not
 	// exist" errors take precedence we do a dummy inspect first.
-	if _, err := client.ContainerInspect(ctx, options.Container); err != nil {
+	if _, err := client.ContainerInspect(ctx, container); err != nil {
 		return err
 	}
 	if !execConfig.Detach {
@@ -119,7 +119,7 @@ func RunExec(ctx context.Context, dockerCli command.Cli, options ExecOptions) er
 
 	fillConsoleSize(execConfig, dockerCli)
 
-	response, err := client.ContainerExecCreate(ctx, options.Container, *execConfig)
+	response, err := client.ContainerExecCreate(ctx, container, *execConfig)
 	if err != nil {
 		return err
 	}
