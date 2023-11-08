@@ -22,13 +22,42 @@ A `docker run` command takes the following form:
 $ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
 ```
 
-The `docker run` command must specify an [image](https://docs.docker.com/glossary/#image)
+The `docker run` command must specify an [image reference](#image-references)
 to create the container from.
+
+### Image references
+
+The image reference is the name and version of the image. You can use the image
+reference to create or run a container based on an image.
+
+- `docker run IMAGE[:TAG][@DIGEST]`
+- `docker create IMAGE[:TAG][@DIGEST]`
+
+An image tag is the image version, which defaults to `latest` when omitted. Use
+the tag to run a container from specific version of an image. For example, to
+run version `23.10` of the `ubuntu` image: `docker run ubuntu:23.10`.
+
+#### Image digests
+
+Images using the v2 or later image format have a content-addressable identifier
+called a digest. As long as the input used to generate the image is unchanged,
+the digest value is predictable.
+
+The following example runs a container from the `alpine` image with the
+`sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0` digest:
+
+```console
+$ docker run alpine@sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0 date
+```
+
+### Options
 
 `[OPTIONS]` let you configure options for the container. For example, you can
 give the container a name (`--name`), or run it as a background process (`-d`).
 You can also set options to control things like resource constraints and
 networking.
+
+### Commands and arguments
 
 You can use the `[COMMAND]` and `[ARG...]` positional arguments to specify
 commands and arguments for the container to run when it starts up. For example,
@@ -95,54 +124,40 @@ For more information about re-attaching to a background container, see
 
 ## Container identification
 
-### Name (--name)
-
-The operator can identify a container in three ways:
+You can identify a container in three ways:
 
 | Identifier type       | Example value                                                      |
 |:----------------------|:-------------------------------------------------------------------|
-| UUID long identifier  | "f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778" |
-| UUID short identifier | "f78375b1c487"                                                     |
-| Name                  | "evil_ptolemy"                                                     |
+| UUID long identifier  | `f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778` |
+| UUID short identifier | `f78375b1c487`                                                     |
+| Name                  | `evil_ptolemy`                                                     |
 
-The UUID identifiers come from the Docker daemon. If you do not assign a
-container name with the `--name` option, then the daemon generates a random
-string name for you. Defining a `name` can be a handy way to add meaning to a
-container. If you specify a `name`, you can use it  when referencing the
-container within a Docker network. This works for both background and foreground
-Docker containers.
+The UUID identifier is a random ID assigned to the container by the daemon.
 
-> **Note**
->
-> Containers on the default bridge network must be linked to communicate by name.
+The daemon generates a random string name for containers automatically. You can
+also defined a custom name using [the `--name` flag](./commandline/run.md#name).
+Defining a `name` can be a handy way to add meaning to a container. If you
+specify a `name`, you can use it when referring to the container in a
+user-defined network. This works for both background and foreground Docker
+containers.
 
-### PID equivalent
+A container identifier is not the same thing as an image reference. The image
+reference specifies which image to use when you run a container. You can't run
+`docker exec nginx:alpine sh` to open a shell in a container based on the
+`nginx:alpine` image, because `docker exec` expects a container identifier
+(name or ID), not an image.
 
-Finally, to help with automation, you can have Docker write the
-container ID out to a file of your choosing. This is similar to how some
-programs might write out their process ID to a file (you've seen them as
-PID files):
-
-    --cidfile="": Write the container ID to the file
-
-### Image[:tag]
-
-While not strictly a means of identifying a container, you can specify a version of an
-image you'd like to run the container with by adding `image[:tag]` to the command. For
-example, `docker run ubuntu:22.04`.
-
-### Image[@digest]
-
-Images using the v2 or later image format have a content-addressable identifier
-called a digest. As long as the input used to generate the image is unchanged,
-the digest value is predictable and referenceable.
-
-The following example runs a container from the `alpine` image with the
-`sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0` digest:
+While the image used by a container is not an identifier for the container, you
+find out the IDs of containers using an image by using the `--filter` flag. For
+example, the following `docker ps` command gets the IDs of all running
+containers based on the `nginx:alpine` image:
 
 ```console
-$ docker run alpine@sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0 date
+$ docker ps -q --filter ancestor=nginx:alpine
 ```
+
+For more information about using filters, see
+[Filtering](https://docs.docker.com/config/filter/).
 
 ## PID settings (--pid)
 

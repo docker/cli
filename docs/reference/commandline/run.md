@@ -128,26 +128,57 @@ Use `docker ps -a` to view a list of all containers, including those that are st
 
 ## Examples
 
-### <a name="name"></a> Assign name and allocate pseudo-TTY (--name, -it)
+### <a name="name"></a> Assign name (--name)
+
+The `--name` flag lets you specify a custom identifier for a container. The
+following example runs a container named `test` using the `nginx:alpine` image
+in [detached mode](#detach).
 
 ```console
-$ docker run --name test -it debian
-
-root@d6c0fe130dba:/# exit 13
-$ echo $?
-13
-$ docker ps -a | grep test
-d6c0fe130dba        debian:7            "/bin/bash"         26 seconds ago      Exited (13) 17 seconds ago                         test
+$ docker run --name test -d nginx:alpine
+4bed76d3ad428b889c56c1ecc2bf2ed95cb08256db22dc5ef5863e1d03252a19
+$ docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS                  PORTS     NAMES
+4bed76d3ad42   nginx:alpine   "/docker-entrypoint.…"   1 second ago   Up Less than a second   80/tcp    test
 ```
 
-This example runs a container named `test` using the `debian:latest`
-image. The `-it` instructs Docker to allocate a pseudo-TTY connected to
-the container's stdin; creating an interactive `bash` shell in the container.
-The example quits the `bash` shell by entering
-`exit 13`, passing the exit code on to the caller of
-`docker run`, and recording it in the `test` container's metadata.
+You can reference the container by name with other commands. For example, the
+following commands stop and remove a container named `test`:
+
+```console
+$ docker stop test
+test
+$ docker rm test
+test
+```
+
+If you don't specify a custom name using the `--name` flag, the daemon assigns
+a randomly generated name, such as `vibrant_cannon`, to the container. Using a
+custom-defined name provides the benefit of having an easy-to-remember ID for a
+container.
+
+Moreover, if you connect the container to a user-defined bridge network, other
+containers on the same network can refer to the container by name via DNS.
+
+```console
+$ docker network create mynet
+cb79f45948d87e389e12013fa4d969689ed2c3316985dd832a43aaec9a0fe394
+$ docker run --name test --net mynet -d nginx:alpine
+58df6ecfbc2ad7c42d088ed028d367f9e22a5f834d7c74c66c0ab0485626c32a
+$ docker run --net mynet busybox:latest ping test
+PING test (172.18.0.2): 56 data bytes
+64 bytes from 172.18.0.2: seq=0 ttl=64 time=0.073 ms
+64 bytes from 172.18.0.2: seq=1 ttl=64 time=0.411 ms
+64 bytes from 172.18.0.2: seq=2 ttl=64 time=0.319 ms
+64 bytes from 172.18.0.2: seq=3 ttl=64 time=0.383 ms
+...
+```
 
 ### <a name="cidfile"></a> Capture container ID (--cidfile)
+
+To help with automation, you can have Docker write the container ID out to a
+file of your choosing. This is similar to how some programs might write out
+their process ID to a file (you might've seen them as PID files):
 
 ```console
 $ docker run --cidfile /tmp/docker_test.cid ubuntu echo "test"
