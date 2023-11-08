@@ -169,8 +169,7 @@ func TestRunExec(t *testing.T) {
 		{
 			doc: "successful detach",
 			options: withDefaultOpts(ExecOptions{
-				Container: "thecontainer",
-				Detach:    true,
+				Detach: true,
 			}),
 			client: fakeClient{execCreateFunc: execCreateWithID},
 		},
@@ -195,7 +194,7 @@ func TestRunExec(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&testcase.client)
 
-			err := RunExec(cli, testcase.options)
+			err := RunExec(context.Background(), cli, "thecontainer", testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
 			} else {
