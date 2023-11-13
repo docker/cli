@@ -92,8 +92,13 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 		return err
 	}
 
-	// Construct network create request body
-	nc := types.NetworkCreate{
+	var configFrom *network.ConfigReference
+	if options.configFrom != "" {
+		configFrom = &network.ConfigReference{
+			Network: options.configFrom,
+		}
+	}
+	resp, err := client.NetworkCreate(context.Background(), options.name, types.NetworkCreate{
 		Driver:  options.driver,
 		Options: options.driverOpts.GetAll(),
 		IPAM: &network.IPAM{
@@ -107,16 +112,9 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 		Ingress:    options.ingress,
 		Scope:      options.scope,
 		ConfigOnly: options.configOnly,
+		ConfigFrom: configFrom,
 		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
-	}
-
-	if from := options.configFrom; from != "" {
-		nc.ConfigFrom = &network.ConfigReference{
-			Network: from,
-		}
-	}
-
-	resp, err := client.NetworkCreate(context.Background(), options.name, nc)
+	})
 	if err != nil {
 		return err
 	}
