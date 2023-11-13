@@ -106,7 +106,7 @@ func RunAttach(ctx context.Context, dockerCli command.Cli, target string, opts *
 
 	if opts.Proxy && !c.Config.Tty {
 		sigc := notifyAllSignals()
-		go ForwardAllSignals(ctx, dockerCli, target, sigc)
+		go ForwardAllSignals(ctx, apiClient, target, sigc)
 		defer signal.StopCatch(sigc)
 	}
 

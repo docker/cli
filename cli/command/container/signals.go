@@ -5,7 +5,7 @@ import (
 	"os"
 	gosignal "os/signal"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
 	"github.com/sirupsen/logrus"
 )
@@ -13,7 +13,7 @@ import (
 // ForwardAllSignals forwards signals to the container
 //
 // The channel you pass in must already be setup to receive any signals you want to forward.
-func ForwardAllSignals(ctx context.Context, cli command.Cli, cid string, sigc <-chan os.Signal) {
+func ForwardAllSignals(ctx context.Context, apiClient client.ContainerAPIClient, cid string, sigc <-chan os.Signal) {
 	var (
 		s  os.Signal
 		ok bool
@@ -48,7 +48,7 @@ func ForwardAllSignals(ctx context.Context, cli command.Cli, cid string, sigc <-
 			continue
 		}
 
-		if err := cli.Client().ContainerKill(ctx, cid, sig); err != nil {
+		if err := apiClient.ContainerKill(ctx, cid, sig); err != nil {
 			logrus.Debugf("Error sending signal: %s", err)
 		}
 	}
