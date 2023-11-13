@@ -199,7 +199,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	// IPv6
 	flags.Set("dns-add", "2001:db8:abc8::1")
 	// Invalid dns record
-	assert.ErrorContains(t, flags.Set("dns-add", "x.y.z.w"), "x.y.z.w is not an ip address")
+	assert.Check(t, is.ErrorContains(flags.Set("dns-add", "x.y.z.w"), "IP address is not correctly formatted: x.y.z.w"))
 
 	// domains with duplicates
 	flags.Set("dns-search-add", "example.com")
