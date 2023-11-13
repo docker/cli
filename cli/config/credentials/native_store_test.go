@@ -145,9 +145,10 @@ func TestNativeStoreGet(t *testing.T) {
 	assert.NilError(t, err)
 
 	expected := types.AuthConfig{
-		Username: "foo",
-		Password: "bar",
-		Email:    "foo@example.com",
+		Username:      "foo",
+		Password:      "bar",
+		Email:         "foo@example.com",
+		ServerAddress: validServerAddress,
 	}
 	assert.Check(t, is.DeepEqual(expected, actual))
 }
@@ -169,6 +170,7 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 	expected := types.AuthConfig{
 		IdentityToken: "abcd1234",
 		Email:         "foo@example2.com",
+		ServerAddress: validServerAddress2,
 	}
 	assert.Check(t, is.DeepEqual(expected, actual))
 }
