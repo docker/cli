@@ -746,20 +746,26 @@ section of the Docker run reference page.
 
 You can add other hosts into a container's `/etc/hosts` file by using one or
 more `--add-host` flags. This example adds a static address for a host named
-`docker`:
+`my-hostname`:
 
 ```console
-$ docker run --add-host=docker:93.184.216.34 --rm -it alpine
+$ docker run --add-host=my-hostname=8.8.8.8 --rm -it alpine
 
-/ # ping docker
-PING docker (93.184.216.34): 56 data bytes
-64 bytes from 93.184.216.34: seq=0 ttl=37 time=93.052 ms
-64 bytes from 93.184.216.34: seq=1 ttl=37 time=92.467 ms
-64 bytes from 93.184.216.34: seq=2 ttl=37 time=92.252 ms
+/ # ping my-hostname
+PING my-hostname (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=37 time=93.052 ms
+64 bytes from 8.8.8.8: seq=1 ttl=37 time=92.467 ms
+64 bytes from 8.8.8.8: seq=2 ttl=37 time=92.252 ms
 ^C
---- docker ping statistics ---
+--- my-hostname ping statistics ---
 4 packets transmitted, 4 packets received, 0% packet loss
 round-trip min/avg/max = 92.209/92.495/93.052 ms
+```
+
+You can wrap an IPv6 address in square brackets:
+
+```console
+$ docker run --add-host my-hostname=[2001:db8::33] --rm -it alpine
 ```
 
 The `--add-host` flag supports a special `host-gateway` value that resolves to
@@ -779,9 +785,15 @@ $ echo "hello from host!" > ./hello
 $ python3 -m http.server 8000
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 $ docker run \
-  --add-host host.docker.internal:host-gateway \
+  --add-host host.docker.internal=host-gateway \
   curlimages/curl -s host.docker.internal:8000/hello
 hello from host!
+```
+
+The `--add-host` flag also accepts a `:` separator, for example:
+
+```console
+$ docker run --add-host=my-hostname:8.8.8.8 --rm -it alpine
 ```
 
 ### <a name="ulimit"></a> Set ulimits in container (--ulimit)

@@ -454,12 +454,12 @@ Specifying the `--isolation` flag without a value is the same as setting `--isol
 
 ### <a name="add-host"></a> Add entries to container hosts file (--add-host)
 
-You can add other hosts into a container's `/etc/hosts` file by using one or
-more `--add-host` flags. This example adds a static address for a host named
-`docker`:
+You can add other hosts into a build container's `/etc/hosts` file by using one
+or more `--add-host` flags. This example adds static addresses for hosts named
+`my-hostname` and `my_hostname_v6`:
 
 ```console
-$ docker build --add-host docker:10.180.0.1 .
+$ docker build --add-host my_hostname=8.8.8.8 --add-host my_hostname_v6=2001:4860:4860::8888 .
 ```
 
 If you need your build to connect to services running on the host, you can use
@@ -467,7 +467,15 @@ the special `host-gateway` value for `--add-host`. In the following example,
 build containers resolve `host.docker.internal` to the host's gateway IP.
 
 ```console
-$ docker build --add-host host.docker.internal:host-gateway .
+$ docker build --add-host host.docker.internal=host-gateway .
+```
+
+You can wrap an IPv6 address in square brackets.
+`=` and `:` are both valid separators.
+Both formats in the following example are valid:
+
+```console
+$ docker build --add-host my-hostname:10.180.0.1 --add-host my-hostname_v6=[2001:4860:4860::8888] .
 ```
 
 ### <a name="target"></a> Specifying target build stage (--target)
