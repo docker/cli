@@ -15,6 +15,7 @@ linters:
     - megacheck
     - misspell
     - nakedret
+    - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
     - predeclared
     - revive
     - staticcheck

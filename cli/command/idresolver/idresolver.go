@@ -30,7 +30,8 @@ func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string,
 	case swarm.Node:
 		node, _, err := r.client.NodeInspectWithRaw(ctx, id)
 		if err != nil {
-			return id, nil
+			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
+			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.
 		}
 		if node.Spec.Annotations.Name != "" {
 			return node.Spec.Annotations.Name, nil
@@ -42,7 +43,8 @@ func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string,
 	case swarm.Service:
 		service, _, err := r.client.ServiceInspectWithRaw(ctx, id, types.ServiceInspectOptions{})
 		if err != nil {
-			return id, nil
+			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
+			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.
 		}
 		return service.Spec.Annotations.Name, nil
 	default:
