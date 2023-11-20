@@ -71,7 +71,7 @@ func getRepoTrustInfo(cli command.Cli, remote string) ([]byte, error) {
 	// process the signatures to include repo admin if signed by the base targets role
 	for idx, sig := range signatureRows {
 		if len(sig.Signers) == 0 {
-			signatureRows[idx].Signers = append(sig.Signers, releasedRoleName)
+			signatureRows[idx].Signers = []string{releasedRoleName}
 		}
 	}
 
