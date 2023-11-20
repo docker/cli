@@ -20,7 +20,7 @@ Load an image from a tar archive or STDIN
 ## Description
 
 Load an image or repository from a tar archive (even if compressed with gzip,
-bzip2, or xz) from a file or STDIN. It restores both images and tags.
+bzip2, xz or zstd) from a file or STDIN. It restores both images and tags.
 
 ## Examples
 
