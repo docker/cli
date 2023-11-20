@@ -161,7 +161,7 @@ func TestServiceListServiceStatus(t *testing.T) {
 		for _, tc := range tests {
 			if quiet {
 				tc.withQuiet = quiet
-				tc.doc = tc.doc + " with quiet"
+				tc.doc += " with quiet"
 			}
 			matrix = append(matrix, tc)
 		}

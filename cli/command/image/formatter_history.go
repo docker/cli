@@ -97,7 +97,7 @@ func (c *historyContext) CreatedSince() string {
 }
 
 func (c *historyContext) CreatedBy() string {
-	createdBy := strings.Replace(c.h.CreatedBy, "\t", " ", -1)
+	createdBy := strings.ReplaceAll(c.h.CreatedBy, "\t", " ")
 	if c.trunc {
 		return formatter.Ellipsis(createdBy, 45)
 	}

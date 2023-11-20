@@ -3,7 +3,6 @@ package image
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -243,7 +242,7 @@ func TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor(t *testing.T) 
 	targetsInRole = notaryListTargetsInRole(t, notaryDir, homeDir, baseRef, "targets")
 	assert.Assert(t, targetsInRole["latest"] != "targets", "%v", targetsInRole)
 
-	assert.NilError(t, os.RemoveAll(filepath.Join(dir.Join("trust"))))
+	assert.NilError(t, os.RemoveAll(dir.Join("trust")))
 	// Try to pull, should fail because non of these are the release role
 	// FIXME(vdemeester) should be unit test
 	result = icmd.RunCmd(icmd.Command("docker", "pull", targetRef),
@@ -310,7 +309,7 @@ func TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths(t *testing.T) {
 	targetsInRole = notaryListTargetsInRole(t, notaryDir, homeDir, baseRef, "targets")
 	assert.Assert(t, targetsInRole["latest"] != "targets", "%v", targetsInRole)
 
-	assert.NilError(t, os.RemoveAll(filepath.Join(dir.Join("trust"))))
+	assert.NilError(t, os.RemoveAll(dir.Join("trust")))
 	// Try to pull, should fail because non of these are the release role
 	// FIXME(vdemeester) should be unit test
 	result = icmd.RunCmd(icmd.Command("docker", "pull", targetRef),

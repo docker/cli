@@ -271,7 +271,7 @@ func writeOverallProgress(progressOut progress.Output, numerator, denominator in
 
 func truncError(errMsg string) string {
 	// Remove newlines from the error, which corrupt the output.
-	errMsg = strings.Replace(errMsg, "\n", " ", -1)
+	errMsg = strings.ReplaceAll(errMsg, "\n", " ")
 
 	// Limit the length to 75 characters, so that even on narrow terminals
 	// this will not overflow to the next line.

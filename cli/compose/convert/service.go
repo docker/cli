@@ -639,11 +639,11 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	return serviceMode, nil
 }
 
-func convertDNSConfig(DNS []string, DNSSearch []string) *swarm.DNSConfig {
-	if DNS != nil || DNSSearch != nil {
+func convertDNSConfig(dns []string, dnsSearch []string) *swarm.DNSConfig {
+	if dns != nil || dnsSearch != nil {
 		return &swarm.DNSConfig{
-			Nameservers: DNS,
-			Search:      DNSSearch,
+			Nameservers: dns,
+			Search:      dnsSearch,
 		}
 	}
 	return nil
