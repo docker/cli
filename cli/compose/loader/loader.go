@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -717,7 +718,7 @@ var transformServicePort TransformerFunc = func(data interface{}) (interface{}, 
 		for _, entry := range entries {
 			switch value := entry.(type) {
 			case int:
-				v, err := toServicePortConfigs(fmt.Sprint(value))
+				v, err := toServicePortConfigs(strconv.Itoa(value))
 				if err != nil {
 					return data, err
 				}

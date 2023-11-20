@@ -46,7 +46,7 @@ func (i *Uint64Opt) Type() string {
 // String returns a string repr of this option
 func (i *Uint64Opt) String() string {
 	if i.value != nil {
-		return fmt.Sprintf("%v", *i.value)
+		return strconv.FormatUint(*i.value, 10)
 	}
 	return ""
 }

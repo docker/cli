@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -565,7 +566,7 @@ func (e External) MarshalYAML() (interface{}, error) {
 // MarshalJSON makes External implement json.Marshaller
 func (e External) MarshalJSON() ([]byte, error) {
 	if e.Name == "" {
-		return []byte(fmt.Sprintf("%v", e.External)), nil
+		return []byte(strconv.FormatBool(e.External)), nil
 	}
 	return []byte(fmt.Sprintf(`{"name": %q}`, e.Name)), nil
 }

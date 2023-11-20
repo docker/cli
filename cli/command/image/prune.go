@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -59,7 +60,7 @@ Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := options.filter.Value().Clone()
-	pruneFilters.Add("dangling", fmt.Sprintf("%v", !options.all))
+	pruneFilters.Add("dangling", strconv.FormatBool(!options.all))
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
 
 	warning := danglingWarning

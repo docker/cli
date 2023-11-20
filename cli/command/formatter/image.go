@@ -1,7 +1,7 @@
 package formatter
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/distribution/reference"
@@ -256,7 +256,7 @@ func (c *imageContext) Containers() string {
 	if c.i.Containers == -1 {
 		return "N/A"
 	}
-	return fmt.Sprintf("%d", c.i.Containers)
+	return strconv.FormatInt(c.i.Containers, 10)
 }
 
 // VirtualSize shows the virtual size of the image and all of its parent

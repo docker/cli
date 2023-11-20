@@ -16,6 +16,7 @@ linters:
     - misspell
     - nakedret
     - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
+    - perfsprint    # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
     - predeclared
     - revive
     - staticcheck
