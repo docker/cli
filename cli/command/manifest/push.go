@@ -77,13 +77,13 @@ func runPush(dockerCli command.Cli, opts pushOpts) error {
 		return errors.Errorf("%s not found", targetRef)
 	}
 
-	pushRequest, err := buildPushRequest(manifests, targetRef, opts.insecure)
+	req, err := buildPushRequest(manifests, targetRef, opts.insecure)
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
-	if err := pushList(ctx, dockerCli, pushRequest); err != nil {
+	if err := pushList(ctx, dockerCli, req); err != nil {
 		return err
 	}
 	if opts.purge {

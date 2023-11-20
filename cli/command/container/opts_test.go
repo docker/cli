@@ -198,7 +198,7 @@ func TestParseWithVolumes(t *testing.T) {
 		t.Fatalf("Error parsing volume flags, %q should not mount-bind anything. Received %v", tryit, hostConfig.Binds)
 	} else if _, exists := config.Volumes[arr[0]]; !exists {
 		t.Fatalf("Error parsing volume flags, %s is missing from volumes. Received %v", arr[0], config.Volumes)
-	} else if _, exists := config.Volumes[arr[1]]; !exists {
+	} else if _, exists := config.Volumes[arr[1]]; !exists { //nolint:govet // ignore shadow-check
 		t.Fatalf("Error parsing volume flags, %s is missing from volumes. Received %v", arr[1], config.Volumes)
 	}
 

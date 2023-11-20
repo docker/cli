@@ -42,7 +42,10 @@ linters-settings:
   gocyclo:
     min-complexity: 16
   govet:
-    check-shadowing: false
+    check-shadowing: true
+    settings:
+      shadow:
+        strict: true
   lll:
     line-length: 200
   nakedret:
@@ -127,6 +130,12 @@ issues:
       linters:
         - errcheck
         - gosec
+
+    # Allow "err" and "ok" vars to shadow existing declarations, otherwise we get too many false positives.
+    - text: '^shadow: declaration of "(err|ok)" shadows declaration'
+      linters:
+        - govet
+
 
   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
   max-issues-per-linter: 0

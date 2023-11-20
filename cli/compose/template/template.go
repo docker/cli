@@ -6,17 +6,15 @@ import (
 	"strings"
 )
 
-var (
-	delimiter    = "\\$"
-	substitution = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
+const (
+	delimiter = "\\$"
+	subst     = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
 )
 
-var patternString = fmt.Sprintf(
+var defaultPattern = regexp.MustCompile(fmt.Sprintf(
 	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
-	delimiter, delimiter, substitution, substitution,
-)
-
-var defaultPattern = regexp.MustCompile(patternString)
+	delimiter, delimiter, subst, subst,
+))
 
 // DefaultSubstituteFuncs contains the default SubstituteFunc used by the docker cli
 var DefaultSubstituteFuncs = []SubstituteFunc{

@@ -35,7 +35,7 @@ type clientInfo struct {
 	Warnings []string
 }
 
-type info struct {
+type dockerInfo struct {
 	// This field should/could be ServerInfo but is anonymous to
 	// preserve backwards compatibility in the JSON rendering
 	// which has ServerInfo immediately within the top-level
@@ -48,7 +48,7 @@ type info struct {
 	ClientErrors []string    `json:",omitempty"`
 }
 
-func (i *info) clientPlatform() string {
+func (i *dockerInfo) clientPlatform() string {
 	if i.ClientInfo != nil && i.ClientInfo.Platform != nil {
 		return i.ClientInfo.Platform.Name
 	}
@@ -78,7 +78,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
-	info := info{
+	info := dockerInfo{
 		ClientInfo: &clientInfo{
 			// Don't pass a dockerCLI to newClientVersion(), because we currently
 			// don't include negotiated API version, and want to avoid making an
@@ -129,7 +129,7 @@ var placeHolders = regexp.MustCompile(`\.[a-zA-Z]`)
 // If only client-side information is used in the template, we can skip
 // connecting to the daemon. This allows (e.g.) to only get cli-plugin
 // information, without also making a (potentially expensive) API call.
-func needsServerInfo(template string, info info) bool {
+func needsServerInfo(template string, info dockerInfo) bool {
 	if len(template) == 0 || placeHolders.FindString(template) == "" {
 		// The template is empty, or does not contain formatting fields
 		// (e.g. `table` or `raw` or `{{ json .}}`). Assume we need server-side
@@ -160,7 +160,7 @@ func needsServerInfo(template string, info info) bool {
 	return err != nil
 }
 
-func prettyPrintInfo(streams command.Streams, info info) error {
+func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 	// Only append the platform info if it's not empty, to prevent printing a trailing space.
 	if p := info.clientPlatform(); p != "" {
 		fprintln(streams.Out(), "Client:", p)
@@ -215,7 +215,7 @@ func prettyPrintClientInfo(streams command.Streams, info clientInfo) {
 }
 
 //nolint:gocyclo
-func prettyPrintServerInfo(streams command.Streams, info *info) []error {
+func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 	var errs []error
 	output := streams.Out()
 
@@ -452,7 +452,7 @@ func printSwarmInfo(output io.Writer, info system.Info) {
 	}
 }
 
-func printServerWarnings(stdErr io.Writer, info *info) {
+func printServerWarnings(stdErr io.Writer, info *dockerInfo) {
 	if versions.LessThan(info.ClientInfo.APIVersion, "1.42") {
 		printSecurityOptionsWarnings(stdErr, *info.Info)
 	}
@@ -530,7 +530,7 @@ func printServerWarningsLegacy(stdErr io.Writer, info system.Info) {
 	}
 }
 
-func formatInfo(output io.Writer, info info, format string) error {
+func formatInfo(output io.Writer, info dockerInfo, format string) error {
 	if format == formatter.JSONFormatKey {
 		format = formatter.JSONFormat
 	}
