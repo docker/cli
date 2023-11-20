@@ -76,7 +76,6 @@ func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error
 		} else {
 			serviceIDs = append(serviceIDs, serviceID)
 		}
-
 	}
 
 	if len(serviceIDs) > 0 {

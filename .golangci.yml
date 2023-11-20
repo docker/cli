@@ -61,6 +61,14 @@ linters-settings:
       - name: import-shadowing
         severity: warning
         disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-block
+      - name: empty-block
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-lines
+      - name: empty-lines
+        severity: warning
+        disabled: false
 
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below

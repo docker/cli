@@ -265,7 +265,6 @@ size: 0B
 				assert.Equal(t, out.String(), tc.expected)
 			}
 		})
-
 	}
 }
 

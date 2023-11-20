@@ -340,7 +340,6 @@ func convertServiceConfigObjs(
 			ConfigName: name,
 			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
 		})
-
 	}
 
 	confs, err := servicecli.ParseConfigs(apiClient, refs)
@@ -441,7 +440,6 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return &container.HealthConfig{
 			Test: []string{"NONE"},
 		}, nil
-
 	}
 	if healthcheck.Timeout != nil {
 		timeout = time.Duration(*healthcheck.Timeout)

@@ -166,7 +166,6 @@ func imageFormatTaggedAndDigest(ctx ImageContext, img image.Summary) []*imageCon
 			for _, dgst := range digests {
 				addImage(repo, tag, dgst)
 			}
-
 		}
 	}
 

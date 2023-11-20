@@ -131,7 +131,6 @@ func TestIPNetBadQuoting(t *testing.T) {
 	}
 
 	for i, test := range tests {
-
 		var cidrs []net.IPNet
 		f := setUpIPNetFlagSet(&cidrs)
 

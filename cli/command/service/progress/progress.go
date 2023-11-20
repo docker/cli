@@ -493,7 +493,6 @@ func (u *globalProgressUpdater) tasksByNode(tasks []swarm.Task) map[string]swarm
 				numberedStates[existingTask.Status.State] <= numberedStates[task.Status.State] {
 				continue
 			}
-
 		}
 		tasksByNode[task.NodeID] = task
 	}
