@@ -262,8 +262,8 @@ func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.Rol
 		return signableRoles, nil
 	}
 
-	// there are delegation roles, find every delegation role we have a key for, and
-	// attempt to sign into into all those roles.
+	// there are delegation roles, find every delegation role we have a key for,
+	// and attempt to sign in to all those roles.
 	for _, delegationRole := range allDelegationRoles {
 		// We do not support signing any delegation role that isn't a direct child of the targets role.
 		// Also don't bother checking the keys if we can't add the target

@@ -3,6 +3,7 @@ linters:
     - bodyclose
     - depguard
     - dogsled
+    - dupword       # Detects duplicate words.
     - gocyclo
     - gofumpt
     - goimports

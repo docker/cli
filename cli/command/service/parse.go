@@ -71,7 +71,7 @@ func ParseConfigs(client client.ConfigAPIClient, requestedConfigs []*swarmtypes.
 	}
 
 	// the configRefs map has two purposes: it prevents duplication of config
-	// target filenames, and it it used to get all configs so we can resolve
+	// target filenames. It is used to get all configs, so we can resolve
 	// their IDs. unfortunately, there are other targets for ConfigReferences,
 	// besides just a File; specifically, the Runtime target, which is used for
 	// CredentialSpecs. Therefore, we need to have a list of ConfigReferences

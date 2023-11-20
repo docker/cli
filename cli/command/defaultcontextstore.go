@@ -44,6 +44,8 @@ type EndpointDefaultResolver interface {
 	// the lack of a default (e.g. because the config file which
 	// would contain it is missing). If there is no default then
 	// returns nil, nil, nil.
+	//
+	//nolint:dupword // ignore "Duplicate words (nil,) found"
 	ResolveDefault() (interface{}, *store.EndpointTLSData, error)
 }
 

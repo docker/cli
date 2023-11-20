@@ -24,7 +24,7 @@ const (
 	pidsHeader      = "PIDS"              // Used only on Linux
 )
 
-// StatsEntry represents represents the statistics data collected from a container
+// StatsEntry represents the statistics data collected from a container
 type StatsEntry struct {
 	Container        string
 	Name             string

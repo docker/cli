@@ -1365,7 +1365,7 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 		// otherwise, set the credential spec to be the parsed value
 		credSpec := credSpecOpt.Value.(*credentialSpecOpt).Value()
 
-		// if this is a Config credential spec, we we still need to replace the
+		// if this is a Config credential spec, we still need to replace the
 		// value of credSpec.Config with the config ID instead of Name.
 		if credSpec.Config != "" {
 			for _, config := range containerSpec.Configs {
