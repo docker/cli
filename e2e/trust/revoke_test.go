@@ -47,6 +47,7 @@ func TestRevokeRepo(t *testing.T) {
 }
 
 func setupTrustedImagesForRevoke(t *testing.T, dir fs.Dir) {
+	t.Helper()
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.AlpineImage)).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, revokeImage).Assert(t, icmd.Success)
 	icmd.RunCmd(
@@ -56,6 +57,7 @@ func setupTrustedImagesForRevoke(t *testing.T, dir fs.Dir) {
 }
 
 func setupTrustedImagesForRevokeRepo(t *testing.T, dir fs.Dir) {
+	t.Helper()
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.AlpineImage)).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, fmt.Sprintf("%s:v1", revokeRepo)).Assert(t, icmd.Success)
 	icmd.RunCmd(

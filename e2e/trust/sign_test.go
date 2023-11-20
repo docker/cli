@@ -54,6 +54,7 @@ func TestSignWithLocalFlag(t *testing.T) {
 }
 
 func setupTrustedImageForOverwrite(t *testing.T, dir fs.Dir) {
+	t.Helper()
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.AlpineImage)).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, localImage).Assert(t, icmd.Success)
 	result := icmd.RunCmd(

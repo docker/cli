@@ -104,6 +104,7 @@ func TestCreate(t *testing.T) {
 }
 
 func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
+	t.Helper()
 	assert.Equal(t, n+"\n", cli.OutBuffer().String())
 	assert.Equal(t, fmt.Sprintf("Successfully created context %q\n", n), cli.ErrBuffer().String())
 }

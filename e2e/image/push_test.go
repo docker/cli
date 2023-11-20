@@ -323,6 +323,7 @@ func TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths(t *testing.T) {
 }
 
 func createImage(t *testing.T, repo string, tags ...string) string {
+	t.Helper()
 	icmd.RunCommand("docker", "pull", fixtures.AlpineImage).Assert(t, icmd.Success)
 
 	for _, tag := range tags {
@@ -345,6 +346,7 @@ func withNotaryPassphrase(pwd string) func(*icmd.Cmd) {
 }
 
 func notaryImportPrivateKey(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role, privkey string) {
+	t.Helper()
 	icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "key", "import", privkey, "-g", baseRef, "-r", role),
 		withNotaryPassphrase("foo"),
@@ -353,6 +355,7 @@ func notaryImportPrivateKey(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, r
 }
 
 func notaryPublish(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
+	t.Helper()
 	icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "publish", baseRef),
 		withNotaryPassphrase("foo"),
@@ -361,6 +364,7 @@ func notaryPublish(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
 }
 
 func notaryAddDelegation(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role, pubkey string, paths ...string) {
+	t.Helper()
 	pathsArg := "--all-paths"
 	if len(paths) > 0 {
 		pathsArg = "--paths=" + strings.Join(paths, ",")
@@ -373,6 +377,7 @@ func notaryAddDelegation(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role
 }
 
 func notaryInit(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
+	t.Helper()
 	icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "init", baseRef),
 		withNotaryPassphrase("foo"),
@@ -381,6 +386,7 @@ func notaryInit(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
 }
 
 func notaryListTargetsInRole(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role string) map[string]string {
+	t.Helper()
 	result := icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "list", baseRef, "-r", role),
 		fixtures.WithHome(homeDir.Path()),
@@ -413,6 +419,7 @@ func notaryListTargetsInRole(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, 
 }
 
 func setupNotaryConfig(t *testing.T, dockerConfigDir fs.Dir) *fs.Dir {
+	t.Helper()
 	return fs.NewDir(t, "notary_test", fs.WithMode(0o700),
 		fs.WithFile("client-config.json", fmt.Sprintf(`
 {
@@ -425,5 +432,6 @@ func setupNotaryConfig(t *testing.T, dockerConfigDir fs.Dir) *fs.Dir {
 }
 
 func copyPrivateKey(t *testing.T, dir, source string) {
+	t.Helper()
 	icmd.RunCommand("/bin/cp", source, dir).Assert(t, icmd.Success)
 }

@@ -21,7 +21,11 @@ func TestRequiresNoArgs(t *testing.T) {
 			expectedError: "accepts no arguments.",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestRequiresMinArgs(t *testing.T) {
@@ -40,7 +44,11 @@ func TestRequiresMinArgs(t *testing.T) {
 			expectedError: "at least 2 arguments.",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestRequiresMaxArgs(t *testing.T) {
@@ -60,7 +68,11 @@ func TestRequiresMaxArgs(t *testing.T) {
 			expectedError: "at most 2 arguments.",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestRequiresRangeArgs(t *testing.T) {
@@ -88,7 +100,11 @@ func TestRequiresRangeArgs(t *testing.T) {
 			expectedError: "at least 1 ",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestExactArgs(t *testing.T) {
@@ -106,24 +122,17 @@ func TestExactArgs(t *testing.T) {
 			expectedError: "exactly 2 arguments.",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 type testCase struct {
 	args          []string
 	validateFunc  cobra.PositionalArgs
 	expectedError string
-}
-
-func runTestCases(t *testing.T, testCases []testCase) {
-	for _, tc := range testCases {
-		cmd := newDummyCommand(tc.validateFunc)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-
-		err := cmd.Execute()
-		assert.ErrorContains(t, err, tc.expectedError)
-	}
 }
 
 func newDummyCommand(validationFunc cobra.PositionalArgs) *cobra.Command {
@@ -134,5 +143,6 @@ func newDummyCommand(validationFunc cobra.PositionalArgs) *cobra.Command {
 			return errors.New("no error")
 		},
 	}
+	cmd.SetOut(io.Discard)
 	return cmd
 }

@@ -17,6 +17,7 @@ import (
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {
+	t.Helper()
 	b := new(bytes.Buffer)
 
 	endpointSpec := &swarm.EndpointSpec{

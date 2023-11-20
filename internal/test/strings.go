@@ -10,6 +10,7 @@ import (
 
 // CompareMultipleValues compares comma-separated values, whatever the order is
 func CompareMultipleValues(t *testing.T, value, expected string) {
+	t.Helper()
 	// comma-separated values means probably a map input, which won't
 	// be guaranteed to have the same order as our expected value
 	// We'll create maps and use reflect.DeepEquals to check instead:

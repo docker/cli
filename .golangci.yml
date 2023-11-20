@@ -16,6 +16,7 @@ linters:
     - nakedret
     - revive
     - staticcheck
+    - thelper
     - typecheck
     - unconvert
     - unparam

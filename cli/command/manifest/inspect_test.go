@@ -20,12 +20,14 @@ import (
 )
 
 func ref(t *testing.T, name string) reference.Named {
+	t.Helper()
 	named, err := reference.ParseNamed("example.com/" + name)
 	assert.NilError(t, err)
 	return named
 }
 
 func fullImageManifest(t *testing.T, ref reference.Named) types.ImageManifest {
+	t.Helper()
 	man, err := schema2.FromStruct(schema2.Manifest{
 		Versioned: schema2.SchemaVersion,
 		Config: distribution.Descriptor{

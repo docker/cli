@@ -361,6 +361,7 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 }
 
 func assertContains(t *testing.T, portConfigs []swarm.PortConfig, expected swarm.PortConfig) {
+	t.Helper()
 	contains := false
 	for _, portConfig := range portConfigs {
 		if portConfig == expected {
