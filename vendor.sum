@@ -7,8 +7,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
-github.com/Microsoft/hcsshim v0.11.1 h1:hJ3s7GbWlGK4YVV92sO88BQSyF4ZLVy7/awqOlPxFbA=
-github.com/Microsoft/hcsshim v0.11.1/go.mod h1:nFJmaO4Zr5Y7eADdFOpYswDDlNVbvcIJJNJLECr5JQg=
+github.com/Microsoft/hcsshim v0.11.4 h1:68vKo2VN8DE9AdN4tnkWnmdhqdbpUFM8OF3Airm7fz8=
+github.com/Microsoft/hcsshim v0.11.4/go.mod h1:smjE4dvqPX9Zldna+t5FG3rnoHhaB7QYxPRqGcpAD9w=
 github.com/Shopify/logrus-bugsnag v0.0.0-20170309145241-6dbc35f2c30d h1:hi6J4K6DKrR4/ljxn6SF6nURyu785wKMuQcjt7H3VCQ=
 github.com/Shopify/logrus-bugsnag v0.0.0-20170309145241-6dbc35f2c30d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

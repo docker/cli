@@ -12,7 +12,7 @@ github.com/Microsoft/go-winio/internal/fs
 github.com/Microsoft/go-winio/internal/socket
 github.com/Microsoft/go-winio/internal/stringbuffer
 github.com/Microsoft/go-winio/pkg/guid
-# github.com/Microsoft/hcsshim v0.11.1
+# github.com/Microsoft/hcsshim v0.11.4
 ## explicit; go 1.18
 github.com/Microsoft/hcsshim/osversion
 # github.com/beorn7/perks v1.0.1
