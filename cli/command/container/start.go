@@ -76,7 +76,8 @@ func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()
 
-	if opts.Attach || opts.OpenStdin {
+	switch {
+	case opts.Attach || opts.OpenStdin:
 		// We're going to attach to a container.
 		// 1. Ensure we only have one container.
 		if len(opts.Containers) > 1 {
@@ -180,7 +181,8 @@ func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 		if status := <-statusChan; status != 0 {
 			return cli.StatusError{StatusCode: status}
 		}
-	} else if opts.Checkpoint != "" {
+		return nil
+	case opts.Checkpoint != "":
 		if len(opts.Containers) > 1 {
 			return errors.New("you cannot restore multiple containers at once")
 		}
@@ -189,14 +191,11 @@ func RunStart(dockerCli command.Cli, opts *StartOptions) error {
 			CheckpointID:  opts.Checkpoint,
 			CheckpointDir: opts.CheckpointDir,
 		})
-
-	} else {
+	default:
 		// We're not going to attach to anything.
 		// Start as many containers as we want.
 		return startContainersWithoutAttachments(ctx, dockerCli, opts.Containers)
 	}
-
-	return nil
 }
 
 func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cli, containers []string) error {

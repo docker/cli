@@ -1011,10 +1011,8 @@ func TestValidateDevice(t *testing.T) {
 	for path, expectedError := range invalid {
 		if _, err := validateDevice(path, runtime.GOOS); err == nil {
 			t.Fatalf("ValidateDevice(`%q`) should have failed validation", path)
-		} else {
-			if err.Error() != expectedError {
-				t.Fatalf("ValidateDevice(`%q`) error should contain %q, got %q", path, expectedError, err.Error())
-			}
+		} else if err.Error() != expectedError {
+			t.Fatalf("ValidateDevice(`%q`) error should contain %q, got %q", path, expectedError, err.Error())
 		}
 	}
 }

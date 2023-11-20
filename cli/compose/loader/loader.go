@@ -663,10 +663,8 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 			}
 			obj.Name = obj.External.Name
 			obj.External.Name = ""
-		} else {
-			if obj.Name == "" {
-				obj.Name = name
-			}
+		} else if obj.Name == "" {
+			obj.Name = name
 		}
 		// if not "external: true"
 	case obj.Driver != "":

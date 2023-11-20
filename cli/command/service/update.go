@@ -219,7 +219,8 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 	if err != nil {
 		return err
 	}
-	if sendAuth {
+	switch {
+	case sendAuth:
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
@@ -228,9 +229,9 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 			return err
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
-	} else if clientSideRollback {
+	case clientSideRollback:
 		updateOpts.RegistryAuthFrom = types.RegistryAuthFromPreviousSpec
-	} else {
+	default:
 		updateOpts.RegistryAuthFrom = types.RegistryAuthFromSpec
 	}
 
@@ -801,7 +802,7 @@ func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, s
 	if flags.Changed(flagCredentialSpec) {
 		credSpec := flags.Lookup(flagCredentialSpec).Value.(*credentialSpecOpt).Value()
 		credSpecConfigName = credSpec.Config
-	} else {
+	} else { //nolint:gocritic // ignore  elseif: can replace 'else {if cond {}}' with 'else if cond {}'
 		// if the credential spec flag has not changed, then check if there
 		// already is a credentialSpec. if there is one, and it's for a Config,
 		// then it's from the old object, and its value is the config ID. we

@@ -161,8 +161,7 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 		vd.Server = &sv
 		foundEngine := false
 		for _, component := range sv.Components {
-			switch component.Name {
-			case "Engine":
+			if component.Name == "Engine" {
 				foundEngine = true
 				buildTime, ok := component.Details["BuildTime"]
 				if ok {

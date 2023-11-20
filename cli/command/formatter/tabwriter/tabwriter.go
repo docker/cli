@@ -576,18 +576,16 @@ func (b *Writer) Write(buf []byte) (n int, err error) {
 					b.startEscape(ch)
 				}
 			}
-		} else {
+		} else if ch == b.endChar {
 			// inside escape
-			if ch == b.endChar {
-				// end of tag/entity
-				j := i + 1
-				if ch == Escape && b.flags&StripEscape != 0 {
-					j = i // strip Escape
-				}
-				b.append(buf[n:j])
-				n = i + 1 // ch consumed
-				b.endEscape()
+			// end of tag/entity
+			j := i + 1
+			if ch == Escape && b.flags&StripEscape != 0 {
+				j = i // strip Escape
 			}
+			b.append(buf[n:j])
+			n = i + 1 // ch consumed
+			b.endEscape()
 		}
 	}
 

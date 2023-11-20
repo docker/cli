@@ -81,18 +81,16 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 			}
 			if !waitRemove {
 				stopProcessing = true
-			} else {
+			} else if versions.LessThan(apiClient.ClientVersion(), "1.25") {
 				// If we are talking to an older daemon, `AutoRemove` is not supported.
 				// We need to fall back to the old behavior, which is client-side removal
-				if versions.LessThan(apiClient.ClientVersion(), "1.25") {
-					go func() {
-						removeErr = apiClient.ContainerRemove(ctx, containerID, container.RemoveOptions{RemoveVolumes: true})
-						if removeErr != nil {
-							logrus.Errorf("error removing container: %v", removeErr)
-							cancel() // cancel the event Q
-						}
-					}()
-				}
+				go func() {
+					removeErr = apiClient.ContainerRemove(ctx, containerID, container.RemoveOptions{RemoveVolumes: true})
+					if removeErr != nil {
+						logrus.Errorf("error removing container: %v", removeErr)
+						cancel() // cancel the event Q
+					}
+				}()
 			}
 		case "detach":
 			exitCode = 0

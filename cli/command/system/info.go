@@ -294,8 +294,7 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 				for _, so := range kvs {
 					fprintln(output, "  "+so.Name)
 					for _, o := range so.Options {
-						switch o.Key {
-						case "profile":
+						if o.Key == "profile" {
 							fprintln(output, "   Profile:", o.Value)
 						}
 					}

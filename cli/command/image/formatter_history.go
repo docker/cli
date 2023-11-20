@@ -22,8 +22,7 @@ const (
 
 // NewHistoryFormat returns a format for rendering an HistoryContext
 func NewHistoryFormat(source string, quiet bool, human bool) formatter.Format {
-	switch source {
-	case formatter.TableFormatKey:
+	if source == formatter.TableFormatKey {
 		switch {
 		case quiet:
 			return formatter.DefaultQuietFormat

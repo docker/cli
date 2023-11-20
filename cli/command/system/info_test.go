@@ -475,12 +475,13 @@ func TestFormatInfo(t *testing.T) {
 				ClientInfo: &clientInfo{Debug: true},
 			}
 			err := formatInfo(cli.Out(), info, tc.template)
-			if tc.expectedOut != "" {
+			switch {
+			case tc.expectedOut != "":
 				assert.NilError(t, err)
 				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)
-			} else if tc.expectedError != "" {
+			case tc.expectedError != "":
 				assert.Error(t, err, tc.expectedError)
-			} else {
+			default:
 				t.Fatal("test expected to neither pass nor fail")
 			}
 		})
