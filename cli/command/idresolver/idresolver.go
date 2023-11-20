@@ -25,7 +25,7 @@ func New(apiClient client.APIClient, noResolve bool) *IDResolver {
 	}
 }
 
-func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string, error) {
+func (r *IDResolver) get(ctx context.Context, t any, id string) (string, error) {
 	switch t.(type) {
 	case swarm.Node:
 		node, _, err := r.client.NodeInspectWithRaw(ctx, id)
@@ -55,7 +55,7 @@ func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string,
 // Resolve will attempt to resolve an ID to a Name by querying the manager.
 // Results are stored into a cache.
 // If the `-n` flag is used in the command-line, resolution is disabled.
-func (r *IDResolver) Resolve(ctx context.Context, t interface{}, id string) (string, error) {
+func (r *IDResolver) Resolve(ctx context.Context, t any, id string) (string, error) {
 	if r.noResolve {
 		return id, nil
 	}

@@ -78,8 +78,8 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 				if tt.context != command.DefaultContextName {
 					assert.NilError(t, dockerCli.ContextStore().CreateOrUpdate(store.Metadata{
 						Name: tt.context,
-						Endpoints: map[string]interface{}{
-							"docker": map[string]interface{}{
+						Endpoints: map[string]any{
+							"docker": map[string]any{
 								"host": "unix://" + filepath.Join(t.TempDir(), "docker.sock"),
 							},
 						},

@@ -216,11 +216,11 @@ foobar_boo  Unknown
 
 func TestNodeContextWriteJSON(t *testing.T) {
 	cases := []struct {
-		expected []map[string]interface{}
+		expected []map[string]any
 		info     system.Info
 	}{
 		{
-			expected: []map[string]interface{}{
+			expected: []map[string]any{
 				{"Availability": "", "Hostname": "foobar_baz", "ID": "nodeID1", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "1.2.3"},
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
@@ -228,7 +228,7 @@ func TestNodeContextWriteJSON(t *testing.T) {
 			info: system.Info{},
 		},
 		{
-			expected: []map[string]interface{}{
+			expected: []map[string]any{
 				{"Availability": "", "Hostname": "foobar_baz", "ID": "nodeID1", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Ready", "EngineVersion": "1.2.3"},
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Needs Rotation", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
@@ -257,7 +257,7 @@ func TestNodeContextWriteJSON(t *testing.T) {
 		}
 		for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 			msg := fmt.Sprintf("Output: line %d: %s", i, line)
-			var m map[string]interface{}
+			var m map[string]any
 			err := json.Unmarshal([]byte(line), &m)
 			assert.NilError(t, err, msg)
 			assert.Check(t, is.DeepEqual(testcase.expected[i], m), msg)
@@ -319,7 +319,7 @@ func TestNodeInspectWriteContext(t *testing.T) {
 		Format: NewFormat("pretty", false),
 		Output: out,
 	}
-	err := InspectFormatWrite(context, []string{"nodeID1"}, func(string) (interface{}, []byte, error) {
+	err := InspectFormatWrite(context, []string{"nodeID1"}, func(string) (any, []byte, error) {
 		return node, nil, nil
 	})
 	if err != nil {

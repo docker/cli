@@ -69,6 +69,10 @@ linters-settings:
       - name: empty-lines
         severity: warning
         disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
+      - name: use-any
+        severity: warning
+        disabled: false
 
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below

@@ -514,7 +514,7 @@ func UserAgent() string {
 }
 
 var defaultStoreEndpoints = []store.NamedTypeGetter{
-	store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+	store.EndpointTypeGetter(docker.DockerEndpoint, func() any { return &docker.EndpointMeta{} }),
 }
 
 // RegisterDefaultStoreEndpoints registers a new named endpoint
@@ -528,7 +528,7 @@ func RegisterDefaultStoreEndpoints(ep ...store.NamedTypeGetter) {
 // DefaultContextStoreConfig returns a new store.Config with the default set of endpoints configured.
 func DefaultContextStoreConfig() store.Config {
 	return store.NewConfig(
-		func() interface{} { return &DockerContext{} },
+		func() any { return &DockerContext{} },
 		defaultStoreEndpoints...,
 	)
 }

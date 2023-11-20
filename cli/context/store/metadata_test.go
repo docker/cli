@@ -12,7 +12,7 @@ import (
 
 func testMetadata(name string) Metadata {
 	return Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: context{Bar: "baz"},
@@ -30,7 +30,7 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 	testDir := t.TempDir()
 	testee := metadataStore{root: testDir, config: testCfg}
 	expected2 := Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "baz"},
 			"ep2": endpoint{Foo: "bee"},
 		},
@@ -114,7 +114,7 @@ type embeddedStruct struct {
 func TestWithEmbedding(t *testing.T) {
 	testee := metadataStore{
 		root:   t.TempDir(),
-		config: NewConfig(func() interface{} { return &contextWithEmbedding{} }),
+		config: NewConfig(func() any { return &contextWithEmbedding{} }),
 	}
 	testCtxMeta := contextWithEmbedding{
 		embeddedStruct: embeddedStruct{

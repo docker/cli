@@ -14,10 +14,10 @@ func fullExampleConfig(workingDir, homeDir string) *types.Config {
 		Volumes:  volumes(),
 		Configs:  configs(workingDir),
 		Secrets:  secrets(workingDir),
-		Extras: map[string]interface{}{
+		Extras: map[string]any{
 			"x-foo": "bar",
 			"x-bar": "baz",
-			"x-nested": map[string]interface{}{
+			"x-nested": map[string]any{
 				"foo": "bar",
 				"bar": "baz",
 			},
@@ -149,7 +149,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				"otherhost:50.31.209.229",
 				"host.docker.internal:host-gateway",
 			},
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -415,7 +415,7 @@ func networks() map[string]types.NetworkConfig {
 		"other-external-network": {
 			Name:     "my-cool-network",
 			External: types.External{External: true},
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -455,7 +455,7 @@ func volumes() map[string]types.VolumeConfig {
 		"external-volume3": {
 			Name:     "this-is-volume3",
 			External: types.External{External: true},
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -517,7 +517,7 @@ func configs(workingDir string) map[string]types.ConfigObjConfig {
 		"config4": {
 			Name: "foo",
 			File: workingDir,
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -544,7 +544,7 @@ func secrets(workingDir string) map[string]types.SecretConfig {
 		"secret4": {
 			Name: "bar",
 			File: workingDir,
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},

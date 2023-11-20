@@ -50,8 +50,8 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 	return config, nil
 }
 
-func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{} {
-	dicts := []map[string]interface{}{}
+func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]any {
+	dicts := []map[string]any{}
 
 	for _, configFile := range configFiles {
 		dicts = append(dicts, configFile.Config)

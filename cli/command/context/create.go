@@ -87,7 +87,7 @@ func createNewContext(contextStore store.ReaderWriter, o *CreateOptions) error {
 		return errors.Wrap(err, "unable to create docker endpoint config")
 	}
 	contextMetadata := store.Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			docker.DockerEndpoint: dockerEP,
 		},
 		Metadata: command.DockerContext{

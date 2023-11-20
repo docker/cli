@@ -46,7 +46,7 @@ type EndpointDefaultResolver interface {
 	// returns nil, nil, nil.
 	//
 	//nolint:dupword // ignore "Duplicate words (nil,) found"
-	ResolveDefault() (interface{}, *store.EndpointTLSData, error)
+	ResolveDefault() (any, *store.EndpointTLSData, error)
 }
 
 // ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
@@ -55,7 +55,7 @@ func ResolveDefaultContext(opts *cliflags.ClientOptions, config store.Config) (*
 		Endpoints: make(map[string]store.EndpointTLSData),
 	}
 	contextMetadata := store.Metadata{
-		Endpoints: make(map[string]interface{}),
+		Endpoints: make(map[string]any),
 		Metadata: DockerContext{
 			Description: "",
 		},

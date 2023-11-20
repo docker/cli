@@ -22,7 +22,7 @@ const (
 
 // SubContext defines what Context implementation should provide
 type SubContext interface {
-	FullHeader() interface{}
+	FullHeader() any
 }
 
 // SubHeaderContext is a map destined to formatter header (table format)
@@ -39,10 +39,10 @@ func (c SubHeaderContext) Label(name string) string {
 
 // HeaderContext provides the subContext interface for managing headers
 type HeaderContext struct {
-	Header interface{}
+	Header any
 }
 
 // FullHeader returns the header as an interface
-func (c *HeaderContext) FullHeader() interface{} {
+func (c *HeaderContext) FullHeader() any {
 	return c.Header
 }

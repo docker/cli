@@ -56,56 +56,56 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 }
 
 func inspectContainers(ctx context.Context, dockerCli command.Cli, getSize bool) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().ContainerInspectWithRaw(ctx, ref, getSize)
 	}
 }
 
 func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().ImageInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectNetwork(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{})
 	}
 }
 
 func inspectNode(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().NodeInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectService(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
 		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, types.ServiceInspectOptions{InsertDefaults: true})
 	}
 }
 
 func inspectTasks(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().TaskInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectVolume(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().VolumeInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectPlugin(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().PluginInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectSecret(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().SecretInspectWithRaw(ctx, ref)
 	}
 }
@@ -115,7 +115,7 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 		objectType      string
 		isSizeSupported bool
 		isSwarmObject   bool
-		objectInspector func(string) (interface{}, []byte, error)
+		objectInspector func(string) (any, []byte, error)
 	}{
 		{
 			objectType:      "container",
@@ -171,7 +171,7 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 		return info.Swarm.ControlAvailable
 	}
 
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		const (
 			swarmSupportUnknown = iota
 			swarmSupported

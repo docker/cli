@@ -56,7 +56,7 @@ func runInspect(dockerCLI command.Cli, opts inspectOptions) error {
 		return err
 	}
 
-	getRefFunc := func(ref string) (interface{}, []byte, error) {
+	getRefFunc := func(ref string) (any, []byte, error) {
 		i, err := getRepoTrustInfo(dockerCLI, ref)
 		return nil, i, err
 	}

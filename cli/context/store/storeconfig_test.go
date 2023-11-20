@@ -14,15 +14,15 @@ type (
 )
 
 func TestConfigModification(t *testing.T) {
-	cfg := NewConfig(func() interface{} { return &testCtx{} }, EndpointTypeGetter("ep1", func() interface{} { return &testEP1{} }))
+	cfg := NewConfig(func() any { return &testCtx{} }, EndpointTypeGetter("ep1", func() any { return &testEP1{} }))
 	assert.Equal(t, &testCtx{}, cfg.contextType())
 	assert.Equal(t, &testEP1{}, cfg.endpointTypes["ep1"]())
 	cfgCopy := cfg
 
 	// modify existing endpoint
-	cfg.SetEndpoint("ep1", func() interface{} { return &testEP2{} })
+	cfg.SetEndpoint("ep1", func() any { return &testEP2{} })
 	// add endpoint
-	cfg.SetEndpoint("ep2", func() interface{} { return &testEP3{} })
+	cfg.SetEndpoint("ep2", func() any { return &testEP3{} })
 	assert.Equal(t, &testCtx{}, cfg.contextType())
 	assert.Equal(t, &testEP2{}, cfg.endpointTypes["ep1"]())
 	assert.Equal(t, &testEP3{}, cfg.endpointTypes["ep2"]())

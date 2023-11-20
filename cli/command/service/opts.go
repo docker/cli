@@ -770,7 +770,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	return service, nil
 }
 
-type flagDefaults map[string]interface{}
+type flagDefaults map[string]any
 
 func (fd flagDefaults) getUint64(flagName string) uint64 {
 	if val, ok := fd[flagName].(uint64); ok {
@@ -787,7 +787,7 @@ func (fd flagDefaults) getString(flagName string) string {
 }
 
 func buildServiceDefaultFlagMapping() flagDefaults {
-	defaultFlagValues := make(map[string]interface{})
+	defaultFlagValues := make(map[string]any)
 
 	defaultFlagValues[flagStopGracePeriod], _ = gogotypes.DurationFromProto(defaults.Service.Task.GetContainer().StopGracePeriod)
 	defaultFlagValues[flagRestartCondition] = `"` + defaultRestartCondition() + `"`

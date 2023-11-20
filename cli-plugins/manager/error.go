@@ -43,6 +43,6 @@ func wrapAsPluginError(err error, msg string) error {
 
 // NewPluginError creates a new pluginError, analogous to
 // errors.Errorf.
-func NewPluginError(msg string, args ...interface{}) error {
+func NewPluginError(msg string, args ...any) error {
 	return &pluginError{cause: errors.Errorf(msg, args...)}
 }

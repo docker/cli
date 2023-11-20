@@ -58,7 +58,7 @@ func capitalizeFirst(s string) string {
 }
 
 // PrettyPrint outputs arbitrary data for human formatted output by uppercasing the first letter.
-func PrettyPrint(i interface{}) string {
+func PrettyPrint(i any) string {
 	switch t := i.(type) {
 	case nil:
 		return "None"

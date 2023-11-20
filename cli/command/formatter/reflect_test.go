@@ -33,7 +33,7 @@ func (d *dummy) FullHeader() string {
 	return "FullHeader(should not be marshalled)"
 }
 
-var dummyExpected = map[string]interface{}{
+var dummyExpected = map[string]any{
 	"Func1": "Func1",
 	"Func4": 4,
 	"Func5": dummyType("Func5"),

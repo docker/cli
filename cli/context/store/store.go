@@ -70,9 +70,9 @@ type ReaderWriter interface {
 
 // Metadata contains metadata about a context and its endpoints
 type Metadata struct {
-	Name      string                 `json:",omitempty"`
-	Metadata  interface{}            `json:",omitempty"`
-	Endpoints map[string]interface{} `json:",omitempty"`
+	Name      string         `json:",omitempty"`
+	Metadata  any            `json:",omitempty"`
+	Endpoints map[string]any `json:",omitempty"`
 }
 
 // StorageInfo contains data about where a given context is stored

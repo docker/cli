@@ -3,7 +3,7 @@ package store
 // TypeGetter is a func used to determine the concrete type of a context or
 // endpoint metadata by returning a pointer to an instance of the object
 // eg: for a context of type DockerContext, the corresponding TypeGetter should return new(DockerContext)
-type TypeGetter func() interface{}
+type TypeGetter func() any
 
 // NamedTypeGetter is a TypeGetter associated with a name
 type NamedTypeGetter struct {

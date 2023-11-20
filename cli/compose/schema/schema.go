@@ -17,14 +17,14 @@ const (
 
 type portsFormatChecker struct{}
 
-func (checker portsFormatChecker) IsFormat(_ interface{}) bool {
+func (checker portsFormatChecker) IsFormat(_ any) bool {
 	// TODO: implement this
 	return true
 }
 
 type durationFormatChecker struct{}
 
-func (checker durationFormatChecker) IsFormat(input interface{}) bool {
+func (checker durationFormatChecker) IsFormat(input any) bool {
 	value, ok := input.(string)
 	if !ok {
 		return false
@@ -42,7 +42,7 @@ func init() {
 // Version returns the version of the config, defaulting to the latest "3.x"
 // version (3.12). If only the major version "3" is specified, it is used as
 // version "3.x" and returns the default version (latest 3.x).
-func Version(config map[string]interface{}) string {
+func Version(config map[string]any) string {
 	version, ok := config[versionField]
 	if !ok {
 		return defaultVersion
@@ -63,7 +63,7 @@ func normalizeVersion(version string) string {
 var schemas embed.FS
 
 // Validate uses the jsonschema to validate the configuration
-func Validate(config map[string]interface{}, version string) error {
+func Validate(config map[string]any, version string) error {
 	version = normalizeVersion(version)
 	schemaData, err := schemas.ReadFile("data/config_schema_v" + version + ".json")
 	if err != nil {

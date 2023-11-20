@@ -48,7 +48,7 @@ func RunConfigInspect(dockerCli command.Cli, opts InspectOptions) error {
 		opts.Format = "pretty"
 	}
 
-	getRef := func(id string) (interface{}, []byte, error) {
+	getRef := func(id string) (any, []byte, error) {
 		return client.ConfigInspectWithRaw(ctx, id)
 	}
 	f := opts.Format

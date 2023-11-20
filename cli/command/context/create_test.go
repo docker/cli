@@ -16,15 +16,15 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
 	t.Helper()
 	dir := t.TempDir()
 	storeConfig := store.NewConfig(
-		func() interface{} { return &command.DockerContext{} },
-		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+		func() any { return &command.DockerContext{} },
+		store.EndpointTypeGetter(docker.DockerEndpoint, func() any { return &docker.EndpointMeta{} }),
 	)
 	contextStore := &command.ContextStoreWithDefault{
 		Store: store.New(dir, storeConfig),
 		Resolver: func() (*command.DefaultContext, error) {
 			return &command.DefaultContext{
 				Meta: store.Metadata{
-					Endpoints: map[string]interface{}{
+					Endpoints: map[string]any{
 						docker.DockerEndpoint: docker.EndpointMeta{
 							Host: "unix:///var/run/docker.sock",
 						},

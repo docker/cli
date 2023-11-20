@@ -45,7 +45,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 		opts.format = "pretty"
 	}
 
-	getRef := func(ref string) (interface{}, []byte, error) {
+	getRef := func(ref string) (any, []byte, error) {
 		nodeRef, err := Reference(ctx, client, ref)
 		if err != nil {
 			return nil, nil, err
