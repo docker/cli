@@ -25,8 +25,8 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 	buffer := new(bytes.Buffer)
 	fakeBuild := newFakeBuild()
-	fakeImageBuild := func(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-		tee := io.TeeReader(context, buffer)
+	fakeImageBuild := func(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+		tee := io.TeeReader(buildContext, buffer)
 		gzipReader, err := gzip.NewReader(tee)
 		assert.NilError(t, err)
 		return fakeBuild.build(ctx, gzipReader, options)
@@ -184,8 +184,8 @@ func newFakeBuild() *fakeBuild {
 	return &fakeBuild{}
 }
 
-func (f *fakeBuild) build(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-	f.context = tar.NewReader(context)
+func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	f.context = tar.NewReader(buildContext)
 	f.options = options
 	body := new(bytes.Buffer)
 	return types.ImageBuildResponse{Body: io.NopCloser(body)}, nil

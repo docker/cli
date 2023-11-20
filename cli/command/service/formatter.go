@@ -346,13 +346,13 @@ func (ctx *serviceInspectContext) TaskPlacementPreferences() []string {
 	if ctx.Service.Spec.TaskTemplate.Placement == nil {
 		return nil
 	}
-	var strings []string
+	var out []string
 	for _, pref := range ctx.Service.Spec.TaskTemplate.Placement.Preferences {
 		if pref.Spread != nil {
-			strings = append(strings, "spread="+pref.Spread.SpreadDescriptor)
+			out = append(out, "spread="+pref.Spread.SpreadDescriptor)
 		}
 	}
-	return strings
+	return out
 }
 
 func (ctx *serviceInspectContext) MaxReplicas() uint64 {

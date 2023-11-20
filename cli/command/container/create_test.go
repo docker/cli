@@ -223,7 +223,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		tc := tc
-		cli := test.NewFakeCli(&fakeClient{
+		fakeCLI := test.NewFakeCli(&fakeClient{
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
@@ -233,8 +233,8 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 				return container.CreateResponse{}, fmt.Errorf("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
-		cli.SetNotaryClient(tc.notaryFunc)
-		cmd := NewCreateCommand(cli)
+		fakeCLI.SetNotaryClient(tc.notaryFunc)
+		cmd := NewCreateCommand(fakeCLI)
 		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
@@ -323,7 +323,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 	}
 	sort.Strings(expected)
 
-	cli := test.NewFakeCli(&fakeClient{
+	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(config *container.Config,
 			hostConfig *container.HostConfig,
 			networkingConfig *network.NetworkingConfig,
@@ -335,7 +335,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 			return container.CreateResponse{}, nil
 		},
 	})
-	cli.SetConfigFile(&configfile.ConfigFile{
+	fakeCLI.SetConfigFile(&configfile.ConfigFile{
 		Proxies: map[string]configfile.ProxyConfig{
 			"default": {
 				HTTPProxy:  "httpProxy",
@@ -346,7 +346,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 			},
 		},
 	})
-	cmd := NewCreateCommand(cli)
+	cmd := NewCreateCommand(fakeCLI)
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()

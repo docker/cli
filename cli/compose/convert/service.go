@@ -27,25 +27,20 @@ const (
 func Services(
 	namespace Namespace,
 	config *composetypes.Config,
-	client client.CommonAPIClient,
+	apiClient client.CommonAPIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
-
-	services := config.Services
-	volumes := config.Volumes
-	networks := config.Networks
-
-	for _, service := range services {
-		secrets, err := convertServiceSecrets(client, namespace, service.Secrets, config.Secrets)
+	for _, service := range config.Services {
+		secrets, err := convertServiceSecrets(apiClient, namespace, service.Secrets, config.Secrets)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
-		configs, err := convertServiceConfigObjs(client, namespace, service, config.Configs)
+		configs, err := convertServiceConfigObjs(apiClient, namespace, service, config.Configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
 
-		serviceSpec, err := Service(client.ClientVersion(), namespace, service, networks, volumes, secrets, configs)
+		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
@@ -245,7 +240,7 @@ func convertServiceNetworks(
 
 // TODO: fix secrets API so that SecretAPIClient is not required here
 func convertServiceSecrets(
-	client client.SecretAPIClient,
+	apiClient client.SecretAPIClient,
 	namespace Namespace,
 	secrets []composetypes.ServiceSecretConfig,
 	secretSpecs map[string]composetypes.SecretConfig,
@@ -272,7 +267,7 @@ func convertServiceSecrets(
 		})
 	}
 
-	secrs, err := servicecli.ParseSecrets(client, refs)
+	secrs, err := servicecli.ParseSecrets(apiClient, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +284,7 @@ func convertServiceSecrets(
 //
 // TODO: fix configs API so that ConfigsAPIClient is not required here
 func convertServiceConfigObjs(
-	client client.ConfigAPIClient,
+	apiClient client.ConfigAPIClient,
 	namespace Namespace,
 	service composetypes.ServiceConfig,
 	configSpecs map[string]composetypes.ConfigObjConfig,
@@ -348,7 +343,7 @@ func convertServiceConfigObjs(
 
 	}
 
-	confs, err := servicecli.ParseConfigs(client, refs)
+	confs, err := servicecli.ParseConfigs(apiClient, refs)
 	if err != nil {
 		return nil, err
 	}

@@ -30,9 +30,9 @@ type fakeClient struct {
 	imageBuildFunc   func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
 }
 
-func (cli *fakeClient) ImageTag(_ context.Context, image, ref string) error {
+func (cli *fakeClient) ImageTag(_ context.Context, img, ref string) error {
 	if cli.imageTagFunc != nil {
-		return cli.imageTagFunc(image, ref)
+		return cli.imageTagFunc(img, ref)
 	}
 	return nil
 }
@@ -95,9 +95,9 @@ func (cli *fakeClient) ImageList(_ context.Context, options types.ImageListOptio
 	return []image.Summary{}, nil
 }
 
-func (cli *fakeClient) ImageInspectWithRaw(_ context.Context, image string) (types.ImageInspect, []byte, error) {
+func (cli *fakeClient) ImageInspectWithRaw(_ context.Context, img string) (types.ImageInspect, []byte, error) {
 	if cli.imageInspectFunc != nil {
-		return cli.imageInspectFunc(image)
+		return cli.imageInspectFunc(img)
 	}
 	return types.ImageInspect{}, nil, nil
 }
@@ -118,9 +118,9 @@ func (cli *fakeClient) ImageHistory(_ context.Context, img string) ([]image.Hist
 	return []image.HistoryResponseItem{{ID: img, Created: time.Now().Unix()}}, nil
 }
 
-func (cli *fakeClient) ImageBuild(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
 	if cli.imageBuildFunc != nil {
-		return cli.imageBuildFunc(ctx, context, options)
+		return cli.imageBuildFunc(ctx, buildContext, options)
 	}
 	return types.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
 }

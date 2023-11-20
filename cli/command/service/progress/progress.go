@@ -70,7 +70,7 @@ func terminalState(state swarm.TaskState) bool {
 // ServiceProgress outputs progress information for convergence of a service.
 //
 //nolint:gocyclo
-func ServiceProgress(ctx context.Context, client client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
+func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
 	defer progressWriter.Close()
 
 	progressOut := streamformatter.NewJSONProgressOutput(progressWriter, false)
@@ -84,7 +84,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	taskFilter.Add("_up-to-date", "true")
 
 	getUpToDateTasks := func() ([]swarm.Task, error) {
-		return client.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
+		return apiClient.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
 	}
 
 	var (
@@ -97,7 +97,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	)
 
 	for {
-		service, _, err := client.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
+		service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 			return err
 		}
 
-		activeNodes, err := getActiveNodes(ctx, client)
+		activeNodes, err := getActiveNodes(ctx, apiClient)
 		if err != nil {
 			return err
 		}
@@ -218,8 +218,8 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	}
 }
 
-func getActiveNodes(ctx context.Context, client client.APIClient) (map[string]struct{}, error) {
-	nodes, err := client.NodeList(ctx, types.NodeListOptions{})
+func getActiveNodes(ctx context.Context, apiClient client.APIClient) (map[string]struct{}, error) {
+	nodes, err := apiClient.NodeList(ctx, types.NodeListOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -11,22 +11,22 @@ import (
 
 // create two manifest lists and remove them both
 func TestRmSeveralManifests(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 
 	list1 := ref(t, "first:1")
 	namedRef := ref(t, "alpine:3.0")
-	err := store.Save(list1, namedRef, fullImageManifest(t, namedRef))
+	err := manifestStore.Save(list1, namedRef, fullImageManifest(t, namedRef))
 	assert.NilError(t, err)
 	namedRef = ref(t, "alpine:3.1")
-	err = store.Save(list1, namedRef, fullImageManifest(t, namedRef))
+	err = manifestStore.Save(list1, namedRef, fullImageManifest(t, namedRef))
 	assert.NilError(t, err)
 
 	list2 := ref(t, "second:2")
 	namedRef = ref(t, "alpine:3.2")
-	err = store.Save(list2, namedRef, fullImageManifest(t, namedRef))
+	err = manifestStore.Save(list2, namedRef, fullImageManifest(t, namedRef))
 	assert.NilError(t, err)
 
 	cmd := newRmManifestListCommand(cli)
@@ -43,14 +43,14 @@ func TestRmSeveralManifests(t *testing.T) {
 
 // attempt to remove a manifest list which was never created
 func TestRmManifestNotCreated(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 
 	list2 := ref(t, "second:2")
 	namedRef := ref(t, "alpine:3.2")
-	err := store.Save(list2, namedRef, fullImageManifest(t, namedRef))
+	err := manifestStore.Save(list2, namedRef, fullImageManifest(t, namedRef))
 	assert.NilError(t, err)
 
 	cmd := newRmManifestListCommand(cli)

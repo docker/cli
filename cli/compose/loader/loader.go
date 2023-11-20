@@ -39,8 +39,8 @@ type Options struct {
 
 // WithDiscardEnvFiles sets the Options to discard the `env_file` section after resolving to
 // the `environment` section
-func WithDiscardEnvFiles(opts *Options) {
-	opts.discardEnvFiles = true
+func WithDiscardEnvFiles(options *Options) {
+	options.discardEnvFiles = true
 }
 
 // ParseYAML reads the bytes from a file, parses the bytes into a mapping
@@ -62,12 +62,12 @@ func ParseYAML(source []byte) (map[string]interface{}, error) {
 }
 
 // Load reads a ConfigDetails and returns a fully loaded configuration
-func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.Config, error) {
+func Load(configDetails types.ConfigDetails, opt ...func(*Options)) (*types.Config, error) {
 	if len(configDetails.ConfigFiles) < 1 {
 		return nil, errors.Errorf("No files specified")
 	}
 
-	opts := &Options{
+	options := &Options{
 		Interpolate: &interp.Options{
 			Substitute:      template.Substitute,
 			LookupValue:     configDetails.LookupEnv,
@@ -75,8 +75,8 @@ func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.
 		},
 	}
 
-	for _, op := range options {
-		op(opts)
+	for _, op := range opt {
+		op(options)
 	}
 
 	configs := []*types.Config{}
@@ -96,14 +96,14 @@ func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.
 			return nil, err
 		}
 
-		if !opts.SkipInterpolation {
-			configDict, err = interpolateConfig(configDict, *opts.Interpolate)
+		if !options.SkipInterpolation {
+			configDict, err = interpolateConfig(configDict, *options.Interpolate)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		if !opts.SkipValidation {
+		if !options.SkipValidation {
 			if err := schema.Validate(configDict, configDetails.Version); err != nil {
 				return nil, err
 			}
@@ -114,7 +114,7 @@ func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.
 			return nil, err
 		}
 		cfg.Filename = file.Filename
-		if opts.discardEnvFiles {
+		if options.discardEnvFiles {
 			for i := range cfg.Services {
 				cfg.Services[i].EnvFile = nil
 			}
@@ -512,16 +512,16 @@ func resolveVolumePaths(volumes []types.ServiceVolumeConfig, workingDir string, 
 }
 
 // TODO: make this more robust
-func expandUser(path string, lookupEnv template.Mapping) string {
-	if strings.HasPrefix(path, "~") {
+func expandUser(srcPath string, lookupEnv template.Mapping) string {
+	if strings.HasPrefix(srcPath, "~") {
 		home, ok := lookupEnv("HOME")
 		if !ok {
 			logrus.Warn("cannot expand '~', because the environment lacks HOME")
-			return path
+			return srcPath
 		}
-		return strings.Replace(path, "~", home, 1)
+		return strings.Replace(srcPath, "~", home, 1)
 	}
-	return path
+	return srcPath
 }
 
 func transformUlimits(data interface{}) (interface{}, error) {

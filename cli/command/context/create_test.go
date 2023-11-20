@@ -19,7 +19,7 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
 		func() interface{} { return &command.DockerContext{} },
 		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
 	)
-	store := &command.ContextStoreWithDefault{
+	contextStore := &command.ContextStoreWithDefault{
 		Store: store.New(dir, storeConfig),
 		Resolver: func() (*command.DefaultContext, error) {
 			return &command.DefaultContext{
@@ -42,7 +42,7 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
 	for _, o := range opts {
 		o(result)
 	}
-	result.SetContextStore(store)
+	result.SetContextStore(contextStore)
 	return result
 }
 

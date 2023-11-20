@@ -71,9 +71,9 @@ func (cli *fakeClient) SwarmLeave(context.Context, bool) error {
 	return nil
 }
 
-func (cli *fakeClient) SwarmUpdate(_ context.Context, _ swarm.Version, swarm swarm.Spec, flags swarm.UpdateFlags) error {
+func (cli *fakeClient) SwarmUpdate(_ context.Context, _ swarm.Version, swarmSpec swarm.Spec, flags swarm.UpdateFlags) error {
 	if cli.swarmUpdateFunc != nil {
-		return cli.swarmUpdateFunc(swarm, flags)
+		return cli.swarmUpdateFunc(swarmSpec, flags)
 	}
 	return nil
 }

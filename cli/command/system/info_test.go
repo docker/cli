@@ -464,7 +464,7 @@ func TestFormatInfo(t *testing.T) {
 		{
 			doc:           "syntax",
 			template:      "{{.badString}}",
-			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.info`,
+			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.dockerInfo`,
 		},
 	} {
 		tc := tc

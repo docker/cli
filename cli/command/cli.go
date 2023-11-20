@@ -394,7 +394,7 @@ func (cli *DockerCli) CurrentContext() string {
 // occur when trying to use it.
 //
 // Refer to [DockerCli.CurrentContext] above for further details.
-func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) string {
+func resolveContextName(opts *cliflags.ClientOptions, cfg *configfile.ConfigFile) string {
 	if opts != nil && opts.Context != "" {
 		return opts.Context
 	}
@@ -407,9 +407,9 @@ func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigF
 	if ctxName := os.Getenv(EnvOverrideContext); ctxName != "" {
 		return ctxName
 	}
-	if config != nil && config.CurrentContext != "" {
+	if cfg != nil && cfg.CurrentContext != "" {
 		// We don't validate if this context exists: errors may occur when trying to use it.
-		return config.CurrentContext
+		return cfg.CurrentContext
 	}
 	return DefaultContextName
 }

@@ -19,14 +19,14 @@ type revokeOptions struct {
 	forceYes bool
 }
 
-func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
+func newRevokeCommand(dockerCLI command.Cli) *cobra.Command {
 	options := revokeOptions{}
 	cmd := &cobra.Command{
 		Use:   "revoke [OPTIONS] IMAGE[:TAG]",
 		Short: "Remove trust for an image",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return revokeTrust(dockerCli, args[0], options)
+			return revokeTrust(dockerCLI, args[0], options)
 		},
 	}
 	flags := cmd.Flags()
@@ -34,9 +34,9 @@ func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
+func revokeTrust(dockerCLI command.Cli, remote string, options revokeOptions) error {
 	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), remote)
 	if err != nil {
 		return err
 	}
@@ -45,14 +45,14 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 		return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
 	}
 	if imgRefAndAuth.Tag() == "" && !options.forceYes {
-		deleteRemote := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
+		deleteRemote := command.PromptForConfirmation(os.Stdin, dockerCLI.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
 		if !deleteRemote {
-			fmt.Fprintf(cli.Out(), "\nAborting action.\n")
+			fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
 			return nil
 		}
 	}
 
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := dockerCLI.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	if err := revokeSignature(notaryRepo, tag); err != nil {
 		return errors.Wrapf(err, "could not remove signature for %s", remote)
 	}
-	fmt.Fprintf(cli.Out(), "Successfully deleted signature for %s\n", remote)
+	fmt.Fprintf(dockerCLI.Out(), "Successfully deleted signature for %s\n", remote)
 	return nil
 }
 

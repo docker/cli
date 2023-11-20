@@ -12,7 +12,7 @@ import (
 
 // ParseSecrets retrieves the secrets with the requested names and fills
 // secret IDs into the secret references.
-func ParseSecrets(client client.SecretAPIClient, requestedSecrets []*swarmtypes.SecretReference) ([]*swarmtypes.SecretReference, error) {
+func ParseSecrets(apiClient client.SecretAPIClient, requestedSecrets []*swarmtypes.SecretReference) ([]*swarmtypes.SecretReference, error) {
 	if len(requestedSecrets) == 0 {
 		return []*swarmtypes.SecretReference{}, nil
 	}
@@ -34,7 +34,7 @@ func ParseSecrets(client client.SecretAPIClient, requestedSecrets []*swarmtypes.
 		args.Add("name", s.SecretName)
 	}
 
-	secrets, err := client.SecretList(ctx, types.SecretListOptions{
+	secrets, err := apiClient.SecretList(ctx, types.SecretListOptions{
 		Filters: args,
 	})
 	if err != nil {
@@ -65,7 +65,7 @@ func ParseSecrets(client client.SecretAPIClient, requestedSecrets []*swarmtypes.
 
 // ParseConfigs retrieves the configs from the requested names and converts
 // them to config references to use with the spec
-func ParseConfigs(client client.ConfigAPIClient, requestedConfigs []*swarmtypes.ConfigReference) ([]*swarmtypes.ConfigReference, error) {
+func ParseConfigs(apiClient client.ConfigAPIClient, requestedConfigs []*swarmtypes.ConfigReference) ([]*swarmtypes.ConfigReference, error) {
 	if len(requestedConfigs) == 0 {
 		return []*swarmtypes.ConfigReference{}, nil
 	}
@@ -115,7 +115,7 @@ func ParseConfigs(client client.ConfigAPIClient, requestedConfigs []*swarmtypes.
 		args.Add("name", s.ConfigName)
 	}
 
-	configs, err := client.ConfigList(ctx, types.ConfigListOptions{
+	configs, err := apiClient.ConfigList(ctx, types.ConfigListOptions{
 		Filters: args,
 	})
 	if err != nil {

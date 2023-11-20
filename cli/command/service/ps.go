@@ -52,18 +52,18 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runPS(dockerCli command.Cli, options psOptions) error {
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
 	ctx := context.Background()
 
-	filter, notfound, err := createFilter(ctx, client, options)
+	filter, notfound, err := createFilter(ctx, apiClient, options)
 	if err != nil {
 		return err
 	}
-	if err := updateNodeFilter(ctx, client, filter); err != nil {
+	if err := updateNodeFilter(ctx, apiClient, filter); err != nil {
 		return err
 	}
 
-	tasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
+	tasks, err := apiClient.TaskList(ctx, types.TaskListOptions{Filters: filter})
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 	if options.quiet {
 		options.noTrunc = true
 	}
-	if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
+	if err := task.Print(ctx, dockerCli, tasks, idresolver.New(apiClient, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
 		return err
 	}
 	if len(notfound) != 0 {
@@ -84,7 +84,7 @@ func runPS(dockerCli command.Cli, options psOptions) error {
 	return nil
 }
 
-func createFilter(ctx context.Context, client client.APIClient, options psOptions) (filters.Args, []string, error) {
+func createFilter(ctx context.Context, apiClient client.APIClient, options psOptions) (filters.Args, []string, error) {
 	filter := options.filter.Value()
 
 	serviceIDFilter := filters.NewArgs()
@@ -93,11 +93,11 @@ func createFilter(ctx context.Context, client client.APIClient, options psOption
 		serviceIDFilter.Add("id", service)
 		serviceNameFilter.Add("name", service)
 	}
-	serviceByIDList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceIDFilter})
+	serviceByIDList, err := apiClient.ServiceList(ctx, types.ServiceListOptions{Filters: serviceIDFilter})
 	if err != nil {
 		return filter, nil, err
 	}
-	serviceByNameList, err := client.ServiceList(ctx, types.ServiceListOptions{Filters: serviceNameFilter})
+	serviceByNameList, err := apiClient.ServiceList(ctx, types.ServiceListOptions{Filters: serviceNameFilter})
 	if err != nil {
 		return filter, nil, err
 	}
@@ -142,11 +142,11 @@ loop:
 	return filter, notfound, err
 }
 
-func updateNodeFilter(ctx context.Context, client client.APIClient, filter filters.Args) error {
+func updateNodeFilter(ctx context.Context, apiClient client.APIClient, filter filters.Args) error {
 	if filter.Contains("node") {
 		nodeFilters := filter.Get("node")
 		for _, nodeFilter := range nodeFilters {
-			nodeReference, err := node.Reference(ctx, client, nodeFilter)
+			nodeReference, err := node.Reference(ctx, apiClient, nodeFilter)
 			if err != nil {
 				return err
 			}

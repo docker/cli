@@ -17,9 +17,9 @@ type IDResolver struct {
 }
 
 // New creates a new IDResolver.
-func New(client client.APIClient, noResolve bool) *IDResolver {
+func New(apiClient client.APIClient, noResolve bool) *IDResolver {
 	return &IDResolver{
-		client:    client,
+		client:    apiClient,
 		noResolve: noResolve,
 		cache:     make(map[string]string),
 	}

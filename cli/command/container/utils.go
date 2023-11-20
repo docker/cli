@@ -127,7 +127,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 	return statusChan
 }
 
-func parallelOperation(ctx context.Context, containers []string, op func(ctx context.Context, container string) error) chan error {
+func parallelOperation(ctx context.Context, containers []string, op func(ctx context.Context, containerID string) error) chan error {
 	if len(containers) == 0 {
 		return nil
 	}

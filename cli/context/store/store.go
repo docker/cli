@@ -475,8 +475,8 @@ func parseMetadata(data []byte, name string) (Metadata, error) {
 	return meta, nil
 }
 
-func importEndpointTLS(tlsData *ContextTLSData, path string, data []byte) error {
-	parts := strings.SplitN(strings.TrimPrefix(path, "tls/"), "/", 2)
+func importEndpointTLS(tlsData *ContextTLSData, tlsPath string, data []byte) error {
+	parts := strings.SplitN(strings.TrimPrefix(tlsPath, "tls/"), "/", 2)
 	if len(parts) != 2 {
 		// TLS endpoints require archived file directory with 2 layers
 		// i.e. tls/{endpointName}/{fileName}

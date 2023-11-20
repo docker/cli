@@ -141,34 +141,34 @@ func (err validationError) Error() string {
 	return fmt.Sprintf("%s %s", err.parent.Field(), description)
 }
 
-func getMostSpecificError(errors []gojsonschema.ResultError) validationError {
+func getMostSpecificError(errs []gojsonschema.ResultError) validationError {
 	mostSpecificError := 0
-	for i, err := range errors {
-		if specificity(err) > specificity(errors[mostSpecificError]) {
+	for i, err := range errs {
+		if specificity(err) > specificity(errs[mostSpecificError]) {
 			mostSpecificError = i
 			continue
 		}
 
-		if specificity(err) == specificity(errors[mostSpecificError]) {
+		if specificity(err) == specificity(errs[mostSpecificError]) {
 			// Invalid type errors win in a tie-breaker for most specific field name
-			if err.Type() == "invalid_type" && errors[mostSpecificError].Type() != "invalid_type" {
+			if err.Type() == "invalid_type" && errs[mostSpecificError].Type() != "invalid_type" {
 				mostSpecificError = i
 			}
 		}
 	}
 
-	if mostSpecificError+1 == len(errors) {
-		return validationError{parent: errors[mostSpecificError]}
+	if mostSpecificError+1 == len(errs) {
+		return validationError{parent: errs[mostSpecificError]}
 	}
 
-	switch errors[mostSpecificError].Type() {
+	switch errs[mostSpecificError].Type() {
 	case "number_one_of", "number_any_of":
 		return validationError{
-			parent: errors[mostSpecificError],
-			child:  errors[mostSpecificError+1],
+			parent: errs[mostSpecificError],
+			child:  errs[mostSpecificError+1],
 		}
 	default:
-		return validationError{parent: errors[mostSpecificError]}
+		return validationError{parent: errs[mostSpecificError]}
 	}
 }
 
