@@ -233,7 +233,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...Initialize
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), cli.contextStoreConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
+			return ResolveDefaultContext(cli.options)
 		},
 	}
 	return nil
@@ -244,12 +244,10 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 	if opts.Context != "" && len(opts.Hosts) > 0 {
 		return nil, errors.New("conflicting options: either specify --host or --context, not both")
 	}
-
-	storeConfig := DefaultContextStoreConfig()
 	contextStore := &ContextStoreWithDefault{
-		Store: store.New(config.ContextStoreDir(), storeConfig),
+		Store: store.New(config.ContextStoreDir(), DefaultContextStoreConfig()),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, storeConfig)
+			return ResolveDefaultContext(opts)
 		},
 	}
 	endpoint, err := resolveDockerEndpoint(contextStore, resolveContextName(opts, configFile))
