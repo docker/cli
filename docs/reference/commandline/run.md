@@ -85,7 +85,7 @@ Create and run a new container from an image
 | `--no-healthcheck`                                    |               |           | Disable any container-specified HEALTHCHECK                                                                                                                                                                                                                                                                      |
 | `--oom-kill-disable`                                  |               |           | Disable OOM Killer                                                                                                                                                                                                                                                                                               |
 | `--oom-score-adj`                                     | `int`         | `0`       | Tune host's OOM preferences (-1000 to 1000)                                                                                                                                                                                                                                                                      |
-| `--pid`                                               | `string`      |           | PID namespace to use                                                                                                                                                                                                                                                                                             |
+| [`--pid`](#pid)                                       | `string`      |           | PID namespace to use                                                                                                                                                                                                                                                                                             |
 | `--pids-limit`                                        | `int64`       | `0`       | Tune container pids limit (set -1 for unlimited)                                                                                                                                                                                                                                                                 |
 | `--platform`                                          | `string`      |           | Set platform if server is multi-platform capable                                                                                                                                                                                                                                                                 |
 | [`--privileged`](#privileged)                         |               |           | Give extended privileges to this container                                                                                                                                                                                                                                                                       |
@@ -188,6 +188,89 @@ This creates a container and prints `test` to the console. The `cidfile`
 flag makes Docker attempt to create a new file and write the container ID to it.
 If the file exists already, Docker returns an error. Docker closes this
 file when `docker run` exits.
+
+### <a name="pid"></a> PID settings (--pid)
+
+```text
+--pid=""  : Set the PID (Process) Namespace mode for the container,
+             'container:<name|id>': joins another container's PID namespace
+             'host': use the host's PID namespace inside the container
+```
+
+By default, all containers have the PID namespace enabled.
+
+PID namespace provides separation of processes. The PID Namespace removes the
+view of the system processes, and allows process ids to be reused including
+PID 1.
+
+In certain cases you want your container to share the host's process namespace,
+allowing processes within the container to see all of the processes on the
+system. For example, you could build a container with debugging tools like
+`strace` or `gdb`, but want to use these tools when debugging processes within
+the container.
+
+#### Example: run htop inside a container
+
+To run `htop` in a container that shares the process namespac of the host:
+
+1. Run an alpine container with the `--pid=host` option:
+
+   ```console
+   $ docker run --rm -it --pid=host alpine
+   ```
+
+2. Install `htop` in the container:
+
+   ```console
+   / # apk add htop
+   fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/main/aarch64/APKINDEX.tar.gz
+   fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/community/aarch64/APKINDEX.tar.gz
+   (1/3) Installing ncurses-terminfo-base (6.4_p20230506-r0)
+   (2/3) Installing libncursesw (6.4_p20230506-r0)
+   (3/3) Installing htop (3.2.2-r1)
+   Executing busybox-1.36.1-r2.trigger
+   OK: 9 MiB in 18 packages
+   ```
+
+3. Invoke the `htop` command.
+
+   ```console
+   / # htop
+   ```
+
+#### Example, join another container's PID namespace
+
+Joining another container's PID namespace can be useful for debugging that
+container.
+
+1. Start a container running a Redis server:
+
+   ```console
+   $ docker run --rm --name my-nginx -d nginx:alpine
+   ```
+
+2. Run an Alpine container that attaches the `--pid` namespace to the
+   `my-nginx` container:
+
+   ```console
+   $ docker run --rm -it --pid=container:my-nginx \
+     --cap-add SYS_PTRACE \
+     --security-opt seccomp=unconfined \
+     alpine
+   ```
+
+3. Install `strace` in the Alpine container:
+
+   ```console
+   / # apk add strace
+   ```
+
+4. Attach to process 1, the process ID of the `my-nginx` container:
+
+   ```console
+   / # strace -p 1
+   strace: Process 1 attached
+   ```
 
 ### <a name="privileged"></a> Full container capabilities (--privileged)
 
