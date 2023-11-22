@@ -159,196 +159,35 @@ $ docker ps -q --filter ancestor=nginx:alpine
 For more information about using filters, see
 [Filtering](https://docs.docker.com/config/filter/).
 
-## Network settings
+## Container networking
 
-    --dns=[]           : Set custom dns servers for the container
-    --network="bridge" : Connect a container to a network
-                          'bridge': create a network stack on the default Docker bridge
-                          'none': no networking
-                          'container:<name|id>': reuse another container's network stack
-                          'host': use the Docker host network stack
-                          '<network-name>|<network-id>': connect to a user-defined network
-    --network-alias=[] : Add network-scoped alias for the container
-    --add-host=""      : Add a line to /etc/hosts (host:IP)
-    --mac-address=""   : Sets the container's Ethernet device's MAC address
-    --ip=""            : Sets the container's Ethernet device's IPv4 address
-    --ip6=""           : Sets the container's Ethernet device's IPv6 address
-    --link-local-ip=[] : Sets one or more container's Ethernet device's link local IPv4/IPv6 addresses
+Containers have networking enabled by default, and they can make outgoing
+connections. If you're running multiple containers that need to communicate
+with each other, you can create a custom network and attach the containers to
+the network.
 
-By default, all containers have networking enabled and they can make any
-outgoing connections. The operator can completely disable networking
-with `docker run --network none` which disables all incoming and outgoing
-networking. In cases like this, you would perform I/O through files or
-`STDIN` and `STDOUT` only.
-
-Publishing ports and linking to other containers only works with the default (bridge). The linking feature is a legacy feature. You should always prefer using Docker network drivers over linking.
-
-Your container will use the same DNS servers as the host by default, but
-you can override this with `--dns`.
-
-By default, the MAC address is generated using the IP address allocated to the
-container. You can set the container's MAC address explicitly by providing a
-MAC address via the `--mac-address` parameter (format:`12:34:56:78:9a:bc`).Be
-aware that Docker does not check if manually specified MAC addresses are unique.
-
-Supported networks :
-
-<table>
-  <thead>
-    <tr>
-      <th class="no-wrap">Network</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td class="no-wrap"><strong>none</strong></td>
-      <td>
-        No networking in the container.
-      </td>
-    </tr>
-    <tr>
-      <td class="no-wrap"><strong>bridge</strong> (default)</td>
-      <td>
-        Connect the container to the bridge via veth interfaces.
-      </td>
-    </tr>
-    <tr>
-      <td class="no-wrap"><strong>host</strong></td>
-      <td>
-        Use the host's network stack inside the container.
-      </td>
-    </tr>
-    <tr>
-      <td class="no-wrap"><strong>container</strong>:&lt;name|id&gt;</td>
-      <td>
-        Use the network stack of another container, specified via
-        its <i>name</i> or <i>id</i>.
-      </td>
-    </tr>
-    <tr>
-      <td class="no-wrap"><strong>NETWORK</strong></td>
-      <td>
-        Connects the container to a user created network (using <code>docker network create</code> command)
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-#### Network: none
-
-With the network is `none` a container will not have
-access to any external routes.  The container will still have a
-`loopback` interface enabled in the container but it does not have any
-routes to external traffic.
-
-#### Network: bridge
-
-With the network set to `bridge` a container will use docker's
-default networking setup.  A bridge is setup on the host, commonly named
-`docker0`, and a pair of `veth` interfaces will be created for the
-container.  One side of the `veth` pair will remain on the host attached
-to the bridge while the other side of the pair will be placed inside the
-container's namespaces in addition to the `loopback` interface.  An IP
-address will be allocated for containers on the bridge's network and
-traffic will be routed though this bridge to the container.
-
-Containers can communicate via their IP addresses by default. To communicate by
-name, they must be linked.
-
-#### Network: host
-
-With the network set to `host` a container will share the host's
-network stack and all interfaces from the host will be available to the
-container.  The container's hostname will match the hostname on the host
-system. Note that `--mac-address` is invalid in `host` netmode. Even in `host`
-network mode a container has its own UTS namespace by default. As such
-`--hostname` and `--domainname` are allowed in `host` network mode and will
-only change the hostname and domain name inside the container.
-Similar to `--hostname`, the `--add-host`, `--dns`, `--dns-search`, and
-`--dns-option` options can be used in `host` network mode. These options update
-`/etc/hosts` or `/etc/resolv.conf` inside the container. No change are made to
-`/etc/hosts` and `/etc/resolv.conf` on the host.
-
-Compared to the default `bridge` mode, the `host` mode gives *significantly*
-better networking performance since it uses the host's native networking stack
-whereas the bridge has to go through one level of virtualization through the
-docker daemon. It is recommended to run containers in this mode when their
-networking performance is critical, for example, a production Load Balancer
-or a High Performance Web Server.
-
-> **Note**
->
-> `--network="host"` gives the container full access to local system services
-> such as D-bus and is therefore considered insecure.
-
-#### Network: container
-
-With the network set to `container` a container will share the
-network stack of another container.  The other container's name must be
-provided in the format of `--network container:<name|id>`. Note that `--add-host`
-`--hostname` `--dns` `--dns-search` `--dns-option` and `--mac-address` are
-invalid in `container` netmode, and `--publish` `--publish-all` `--expose` are
-also invalid in `container` netmode.
-
-Example running a Redis container with Redis binding to `localhost` then
-running the `redis-cli` command and connecting to the Redis server over the
-`localhost` interface.
+When multiple containers are attached to the same custom network, they can
+communicate with each other using the container names as a DNS hostname. The
+following example creates a custom network named `my-net`, and runs two
+containers that attach to the network.
 
 ```console
-$ docker run -d --name redis example/redis --bind 127.0.0.1
-$ # use the redis container's network stack to access localhost
-$ docker run --rm -it --network container:redis example/redis-cli -h 127.0.0.1
+$ docker network create my-net
+$ docker run -d --name web --network my-net nginx:alpine
+$ docker run --rm -it --network my-net busybox
+/ # ping web
+PING web (172.18.0.2): 56 data bytes
+64 bytes from 172.18.0.2: seq=0 ttl=64 time=0.326 ms
+64 bytes from 172.18.0.2: seq=1 ttl=64 time=0.257 ms
+64 bytes from 172.18.0.2: seq=2 ttl=64 time=0.281 ms
+^C
+--- web ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.257/0.288/0.326 ms
 ```
 
-#### User-defined network
-
-You can create a network using a Docker network driver or an external network
-driver plugin. You can connect multiple containers to the same network. Once
-connected to a user-defined network, the containers can communicate easily using
-only another container's IP address or name.
-
-For `overlay` networks or custom plugins that support multi-host connectivity,
-containers connected to the same multi-host network but launched from different
-Engines can also communicate in this way.
-
-The following example creates a network using the built-in `bridge` network
-driver and running a container in the created network
-
-```console
-$ docker network create -d bridge my-net
-$ docker run --network=my-net -itd --name=container3 busybox
-```
-
-### Managing /etc/hosts
-
-Your container will have lines in `/etc/hosts` which define the hostname of the
-container itself as well as `localhost` and a few other common things. The
-`--add-host` flag can be used to add additional lines to `/etc/hosts`.
-
-```console
-$ docker run -it --add-host db-static:86.75.30.9 ubuntu cat /etc/hosts
-
-172.17.0.22     09d03f76bf2c
-fe00::0         ip6-localnet
-ff00::0         ip6-mcastprefix
-ff02::1         ip6-allnodes
-ff02::2         ip6-allrouters
-127.0.0.1       localhost
-::1	            localhost ip6-localhost ip6-loopback
-86.75.30.9      db-static
-```
-
-If a container is connected to the default bridge network and `linked`
-with other containers, then the container's `/etc/hosts` file is updated
-with the linked container's name.
-
-> **Note**
->
-> Since Docker may live update the container’s `/etc/hosts` file, there
-> may be situations when processes inside the container can end up reading an
-> empty or incomplete `/etc/hosts` file. In most cases, retrying the read again
-> should fix the problem.
+For more information about container networking, see [Networking
+overview](https://docs.docker.com/network/)
 
 ## Restart policies (--restart)
 
