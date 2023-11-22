@@ -64,7 +64,7 @@ Create and run a new container from an image
 | `--io-maxiops`                                        | `uint64`      | `0`       | Maximum IOps limit for the system drive (Windows only)                                                                                                                                                                                                                                                           |
 | `--ip`                                                | `string`      |           | IPv4 address (e.g., 172.30.100.104)                                                                                                                                                                                                                                                                              |
 | `--ip6`                                               | `string`      |           | IPv6 address (e.g., 2001:db8::33)                                                                                                                                                                                                                                                                                |
-| `--ipc`                                               | `string`      |           | IPC mode to use                                                                                                                                                                                                                                                                                                  |
+| [`--ipc`](#ipc)                                       | `string`      |           | IPC mode to use                                                                                                                                                                                                                                                                                                  |
 | [`--isolation`](#isolation)                           | `string`      |           | Container isolation technology                                                                                                                                                                                                                                                                                   |
 | `--kernel-memory`                                     | `bytes`       | `0`       | Kernel memory limit                                                                                                                                                                                                                                                                                              |
 | [`-l`](#label), [`--label`](#label)                   | `list`        |           | Set meta data on a container                                                                                                                                                                                                                                                                                     |
@@ -288,6 +288,38 @@ that `--hostname` and `--domainname` are invalid in `host` UTS mode.
 You may wish to share the UTS namespace with the host if you would like the
 hostname of the container to change as the hostname of the host changes. A more
 advanced use case would be changing the host's hostname from a container.
+
+## <a name="ipc"></a> IPC settings (--ipc)
+
+```text
+--ipc="MODE"  : Set the IPC mode for the container
+```
+
+The `--ipc` flag accepts the following values:
+
+| Value                      | Description                                                                       |
+|:---------------------------|:----------------------------------------------------------------------------------|
+| ""                         | Use daemon's default.                                                             |
+| "none"                     | Own private IPC namespace, with /dev/shm not mounted.                             |
+| "private"                  | Own private IPC namespace.                                                        |
+| "shareable"                | Own private IPC namespace, with a possibility to share it with other containers.  |
+| "container:<_name-or-ID_>" | Join another ("shareable") container's IPC namespace.                             |
+| "host"                     | Use the host system's IPC namespace.                                              |
+
+If not specified, daemon default is used, which can either be `"private"`
+or `"shareable"`, depending on the daemon version and configuration.
+
+IPC (POSIX/SysV IPC) namespace provides separation of named shared memory
+segments, semaphores and message queues.
+
+Shared memory segments are used to accelerate inter-process communication at
+memory speed, rather than through pipes or through the network stack. Shared
+memory is commonly used by databases and custom-built (typically C/OpenMPI,
+C++/using boost libraries) high performance applications for scientific
+computing and financial services industries. If these types of applications
+are broken into multiple containers, you might need to share the IPC mechanisms
+of the containers, using `"shareable"` mode for the main (i.e. "donor")
+container, and `"container:<donor-name-or-ID>"` for other containers.
 
 ### <a name="privileged"></a> Full container capabilities (--privileged)
 

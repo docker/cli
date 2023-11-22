@@ -159,36 +159,6 @@ $ docker ps -q --filter ancestor=nginx:alpine
 For more information about using filters, see
 [Filtering](https://docs.docker.com/config/filter/).
 
-## IPC settings (--ipc)
-
-    --ipc="MODE"  : Set the IPC mode for the container
-
-The following values are accepted:
-
-| Value                      | Description                                                                       |
-|:---------------------------|:----------------------------------------------------------------------------------|
-| ""                         | Use daemon's default.                                                             |
-| "none"                     | Own private IPC namespace, with /dev/shm not mounted.                             |
-| "private"                  | Own private IPC namespace.                                                        |
-| "shareable"                | Own private IPC namespace, with a possibility to share it with other containers.  |
-| "container:<_name-or-ID_>" | Join another ("shareable") container's IPC namespace.                             |
-| "host"                     | Use the host system's IPC namespace.                                              |
-
-If not specified, daemon default is used, which can either be `"private"`
-or `"shareable"`, depending on the daemon version and configuration.
-
-IPC (POSIX/SysV IPC) namespace provides separation of named shared memory
-segments, semaphores and message queues.
-
-Shared memory segments are used to accelerate inter-process communication at
-memory speed, rather than through pipes or through the network stack. Shared
-memory is commonly used by databases and custom-built (typically C/OpenMPI,
-C++/using boost libraries) high performance applications for scientific
-computing and financial services industries. If these types of applications
-are broken into multiple containers, you might need to share the IPC mechanisms
-of the containers, using `"shareable"` mode for the main (i.e. "donor")
-container, and `"container:<donor-name-or-ID>"` for other containers.
-
 ## Network settings
 
     --dns=[]           : Set custom dns servers for the container
