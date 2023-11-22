@@ -442,13 +442,13 @@ The following options can only be used for bind mounts (`type=bind`):
       A value is one of:<br />
       <br />
       <ul>
-        <li><<tt>enabled</tt>,  <tt>true</tt>  or <tt>1</tt>: Enables recursive bind-mount.
+        <li><<tt>enabled</tt>: Enables recursive bind-mount.
         Read-only mounts are made recursively read-only if kernel is v5.12 or later.
         Otherwise they are not made recursively read-only.</li>
-        <li><<tt>disabled</tt>, <tt>false</tt> or <tt>0</tt>: Disables recursive bind-mount.</li>
-        <li><<tt>writable</tt>:                               Enables recursive bind-mount.
+        <li><<tt>disabled</tt>: Disables recursive bind-mount.</li>
+        <li><<tt>writable</tt>: Enables recursive bind-mount.
         Read-only mounts are not made recursively read-only.</li>
-        <li><<tt>readonly</tt>:                               Enables recursive bind-mount.
+        <li><<tt>readonly</tt>: Enables recursive bind-mount.
         Read-only mounts are made recursively read-only if kernel is v5.12 or later.
         Otherwise the Engine raises an error.</li>
       </ul>

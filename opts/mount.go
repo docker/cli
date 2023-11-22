@@ -116,16 +116,7 @@ func (m *MountOpt) Set(value string) error {
 			}
 			logrus.Warn("bind-nonrecursive is deprecated, use bind-recursive=disabled instead")
 		case "bind-recursive":
-			valS := val
-			// Allow boolean as an alias to "enabled" or "disabled"
-			if b, err := strconv.ParseBool(valS); err == nil {
-				if b {
-					valS = "enabled"
-				} else {
-					valS = "disabled"
-				}
-			}
-			switch valS {
+			switch val {
 			case "enabled": // read-only mounts are recursively read-only if Engine >= v25 && kernel >= v5.12, otherwise writable
 				// NOP
 			case "disabled": // alias of bind-nonrecursive=true
