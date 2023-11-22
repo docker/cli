@@ -109,7 +109,7 @@ Create and run a new container from an image
 | [`--ulimit`](#ulimit)                                 | `ulimit`      |           | Ulimit options                                                                                                                                                                                                                                                                                                   |
 | `-u`, `--user`                                        | `string`      |           | Username or UID (format: <name\|uid>[:<group\|gid>])                                                                                                                                                                                                                                                             |
 | `--userns`                                            | `string`      |           | User namespace to use                                                                                                                                                                                                                                                                                            |
-| `--uts`                                               | `string`      |           | UTS namespace to use                                                                                                                                                                                                                                                                                             |
+| [`--uts`](#uts)                                       | `string`      |           | UTS namespace to use                                                                                                                                                                                                                                                                                             |
 | [`-v`](#volume), [`--volume`](#volume)                | `list`        |           | Bind mount a volume                                                                                                                                                                                                                                                                                              |
 | `--volume-driver`                                     | `string`      |           | Optional volume driver for the container                                                                                                                                                                                                                                                                         |
 | [`--volumes-from`](#volumes-from)                     | `list`        |           | Mount volumes from the specified container(s)                                                                                                                                                                                                                                                                    |
@@ -271,6 +271,23 @@ container.
    / # strace -p 1
    strace: Process 1 attached
    ```
+
+### <a name="uts"></a> UTS settings (--uts)
+
+```text
+--uts=""  : Set the UTS namespace mode for the container
+            'host': use the host's UTS namespace inside the container
+```
+
+The UTS namespace is for setting the hostname and the domain that's visible to
+running processes in that namespace. By default, all containers, including
+those with `--network=host`, have their own UTS namespace. The `host` setting
+will result in the container using the same UTS namespace as the host. Note
+that `--hostname` and `--domainname` are invalid in `host` UTS mode.
+
+You may wish to share the UTS namespace with the host if you would like the
+hostname of the container to change as the hostname of the host changes. A more
+advanced use case would be changing the host's hostname from a container.
 
 ### <a name="privileged"></a> Full container capabilities (--privileged)
 

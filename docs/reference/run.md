@@ -159,21 +159,6 @@ $ docker ps -q --filter ancestor=nginx:alpine
 For more information about using filters, see
 [Filtering](https://docs.docker.com/config/filter/).
 
-## UTS settings (--uts)
-
-    --uts=""  : Set the UTS namespace mode for the container,
-           'host': use the host's UTS namespace inside the container
-
-The UTS namespace is for setting the hostname and the domain that is visible
-to running processes in that namespace.  By default, all containers, including
-those with `--network=host`, have their own UTS namespace.  The `host` setting will
-result in the container using the same UTS namespace as the host.  Note that
-`--hostname` and `--domainname` are invalid in `host` UTS mode.
-
-You may wish to share the UTS namespace with the host if you would like the
-hostname of the container to change as the hostname of the host changes.  A
-more advanced use case would be changing the host's hostname from a container.
-
 ## IPC settings (--ipc)
 
     --ipc="MODE"  : Set the IPC mode for the container
