@@ -174,7 +174,7 @@ func Service(
 	// ServiceSpec.Networks to TaskTemplate.Networks. So which field to use
 	// is conditional on daemon version.
 	if versions.LessThan(apiVersion, "1.29") {
-		serviceSpec.Networks = networks
+		serviceSpec.Networks = networks //nolint:staticcheck // ignore SA1019: field is deprecated.
 	} else {
 		serviceSpec.TaskTemplate.Networks = networks
 	}

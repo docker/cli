@@ -1295,9 +1295,9 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	// values to spec.TaskTemplate.Networks.
 	specNetworks := spec.TaskTemplate.Networks
 	if len(specNetworks) == 0 {
-		specNetworks = spec.Networks
+		specNetworks = spec.Networks //nolint:staticcheck // ignore SA1019: field is deprecated.
 	}
-	spec.Networks = nil
+	spec.Networks = nil //nolint:staticcheck // ignore SA1019: field is deprecated.
 
 	toRemove := buildToRemoveSet(flags, flagNetworkRemove)
 	idsToRemove := make(map[string]struct{})
