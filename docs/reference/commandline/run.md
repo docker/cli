@@ -1206,7 +1206,62 @@ in the image, or `SIGTERM` if the image has no `STOPSIGNAL` defined.
 
 ### <a name="security-opt"></a> Optional security options (--security-opt)
 
-On Windows, you can use this flag to specify the `credentialspec` option.
+| Option                                    | Description                                                               |
+|:------------------------------------------|:--------------------------------------------------------------------------|
+| `--security-opt="label=user:USER"`        | Set the label user for the container                                      |
+| `--security-opt="label=role:ROLE"`        | Set the label role for the container                                      |
+| `--security-opt="label=type:TYPE"`        | Set the label type for the container                                      |
+| `--security-opt="label=level:LEVEL"`      | Set the label level for the container                                     |
+| `--security-opt="label=disable"`          | Turn off label confinement for the container                              |
+| `--security-opt="apparmor=PROFILE"`       | Set the apparmor profile to be applied to the container                   |
+| `--security-opt="no-new-privileges=true"` | Disable container processes from gaining new privileges                   |
+| `--security-opt="seccomp=unconfined"`     | Turn off seccomp confinement for the container                            |
+| `--security-opt="seccomp=profile.json"`   | White-listed syscalls seccomp Json file to be used as a seccomp filter    |
+
+The `--security-opt` flag lets you override the default labeling scheme for a
+container. Specifying the level in the following command allows you to share
+the same content between containers.
+
+```console
+$ docker run --security-opt label=level:s0:c100,c200 -it fedora bash
+```
+
+> **Note**
+>
+> Automatic translation of MLS labels isn't supported.
+
+To disable the security labeling for a container entirely, you can use
+`label=disable`:
+
+```console
+$ docker run --security-opt label=disable -it ubuntu bash
+```
+
+If you want a tighter security policy on the processes within a container, you
+can specify a custom `type` label. The following example runs a container
+that's only allowed to listen on Apache ports:
+
+```console
+$ docker run --security-opt label=type:svirt_apache_t -it ubuntu bash
+```
+
+> **Note**
+>
+> You would have to write policy defining a `svirt_apache_t` type.
+
+To prevent your container processes from gaining additional privileges, you can
+use the following command:
+
+```console
+$ docker run --security-opt no-new-privileges -it ubuntu bash
+```
+
+This means that commands that raise privileges such as `su` or `sudo` will no longer work.
+It also causes any seccomp filters to be applied later, after privileges have been dropped
+which may mean you can have a more restrictive set of filters.
+For more details, see the [kernel documentation](https://www.kernel.org/doc/Documentation/prctl/no_new_privs.txt).
+
+On Windows, you can use the `--security-opt` flag to specify the `credentialspec` option.
 The `credentialspec` must be in the format `file://spec.txt` or `registry://keyname`.
 
 ### <a name="stop-timeout"></a> Stop container with timeout (--stop-timeout)

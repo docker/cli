@@ -241,65 +241,6 @@ $ echo $?
 3
 ```
 
-## Security configuration
-
-| Option                                    | Description                                                               |
-|:------------------------------------------|:--------------------------------------------------------------------------|
-| `--security-opt="label=user:USER"`        | Set the label user for the container                                      |
-| `--security-opt="label=role:ROLE"`        | Set the label role for the container                                      |
-| `--security-opt="label=type:TYPE"`        | Set the label type for the container                                      |
-| `--security-opt="label=level:LEVEL"`      | Set the label level for the container                                     |
-| `--security-opt="label=disable"`          | Turn off label confinement for the container                              |
-| `--security-opt="apparmor=PROFILE"`       | Set the apparmor profile to be applied to the container                   |
-| `--security-opt="no-new-privileges=true"` | Disable container processes from gaining new privileges                   |
-| `--security-opt="seccomp=unconfined"`     | Turn off seccomp confinement for the container                            |
-| `--security-opt="seccomp=profile.json"`   | White-listed syscalls seccomp Json file to be used as a seccomp filter    |
-
-
-You can override the default labeling scheme for each container by specifying
-the `--security-opt` flag. Specifying the level in the following command
-allows you to share the same content between containers.
-
-```console
-$ docker run --security-opt label=level:s0:c100,c200 -it fedora bash
-```
-
-> **Note**
->
-> Automatic translation of MLS labels is not currently supported.
-
-To disable the security labeling for this container versus running with the
-`--privileged` flag, use the following command:
-
-```console
-$ docker run --security-opt label=disable -it fedora bash
-```
-
-If you want a tighter security policy on the processes within a container,
-you can specify an alternate type for the container. You could run a container
-that is only allowed to listen on Apache ports by executing the following
-command:
-
-```console
-$ docker run --security-opt label=type:svirt_apache_t -it centos bash
-```
-
-> **Note**
->
-> You would have to write policy defining a `svirt_apache_t` type.
-
-If you want to prevent your container processes from gaining additional
-privileges, you can execute the following command:
-
-```console
-$ docker run --security-opt no-new-privileges -it centos bash
-```
-
-This means that commands that raise privileges such as `su` or `sudo` will no longer work.
-It also causes any seccomp filters to be applied later, after privileges have been dropped
-which may mean you can have a more restrictive set of filters.
-For more details, see the [kernel documentation](https://www.kernel.org/doc/Documentation/prctl/no_new_privs.txt).
-
 ## Specify an init process
 
 You can use the `--init` flag to indicate that an init process should be used as
