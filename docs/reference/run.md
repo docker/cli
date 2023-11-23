@@ -888,32 +888,6 @@ drwxrwxr-x 1 1000 1000   4096 Dec  4 06:11 .git
 The default seccomp profile will adjust to the selected capabilities, in order to allow
 use of facilities allowed by the capabilities, so you should not have to adjust this.
 
-## Logging drivers (--log-driver)
-
-The container can have a different logging driver than the Docker daemon. Use
-the `--log-driver=VALUE` with the `docker run` command to configure the
-container's logging driver. The following options are supported:
-
-| Driver       | Description                                                                                                                    |
-|:-------------|:-------------------------------------------------------------------------------------------------------------------------------|
-| `none`       | Disables any logging for the container. `docker logs` won't be available with this driver.                                     |
-| `local`      | Logs are stored in a custom format designed for minimal overhead.                                                              |
-| `json-file`  | Default logging driver for Docker. Writes JSON messages to file.  No logging options are supported for this driver.            |
-| `syslog`     | Syslog logging driver for Docker. Writes log messages to syslog.                                                               |
-| `journald`   | Journald logging driver for Docker. Writes log messages to `journald`.                                                         |
-| `gelf`       | Graylog Extended Log Format (GELF) logging driver for Docker. Writes log messages to a GELF endpoint likeGraylog or Logstash.  |
-| `fluentd`    | Fluentd logging driver for Docker. Writes log messages to `fluentd` (forward input).                                           |
-| `awslogs`    | Amazon CloudWatch Logs logging driver for Docker. Writes log messages to Amazon CloudWatch Logs.                               |
-| `splunk`     | Splunk logging driver for Docker. Writes log messages to `splunk` using Event Http Collector.                                  |
-| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |
-| `gcplogs`    | Google Cloud Platform (GCP) Logging. Writes log messages to Google Cloud Platform (GCP) Logging.                               |
-| `logentries` | Rapid7 Logentries. Writes log messages to Rapid7 Logentries.                                                                   |
-
-The `docker logs` command is available only for the `json-file` and `journald`
-logging drivers.  For detailed information on working with logging drivers, see
-[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
-
-
 ## Overriding Dockerfile image defaults
 
 When a developer builds an image from a [*Dockerfile*](https://docs.docker.com/engine/reference/builder/)

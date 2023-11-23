@@ -71,7 +71,7 @@ Create and run a new container from an image
 | `--label-file`                                        | `list`        |           | Read in a line delimited file of labels                                                                                                                                                                                                                                                                          |
 | `--link`                                              | `list`        |           | Add link to another container                                                                                                                                                                                                                                                                                    |
 | `--link-local-ip`                                     | `list`        |           | Container IPv4/IPv6 link-local addresses                                                                                                                                                                                                                                                                         |
-| `--log-driver`                                        | `string`      |           | Logging driver for the container                                                                                                                                                                                                                                                                                 |
+| [`--log-driver`](#log-driver)                         | `string`      |           | Logging driver for the container                                                                                                                                                                                                                                                                                 |
 | `--log-opt`                                           | `list`        |           | Log driver options                                                                                                                                                                                                                                                                                               |
 | `--mac-address`                                       | `string`      |           | Container MAC address (e.g., 92:d0:c6:0a:29:33)                                                                                                                                                                                                                                                                  |
 | [`-m`](#memory), [`--memory`](#memory)                | `bytes`       | `0`       | Memory limit                                                                                                                                                                                                                                                                                                     |
@@ -1160,6 +1160,24 @@ The `--add-host` flag also accepts a `:` separator, for example:
 
 ```console
 $ docker run --add-host=my-hostname:8.8.8.8 --rm -it alpine
+```
+
+## <a name="log-driver"></a> Logging drivers (--log-driver)
+
+The container can have a different logging driver than the Docker daemon. Use
+the `--log-driver=<DRIVER>` with the `docker run` command to configure the
+container's logging driver.
+
+To learn about the supported logging drivers and how to use them, refer to
+[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
+
+To disable logging for a container, set the `--log-driver` flag to `none`:
+
+```console
+$ docker run --log-driver=none -d nginx:alpine
+5101d3b7fe931c27c2ba0e65fd989654d297393ad65ae238f20b97a020e7295b
+$ docker logs 5101d3b
+Error response from daemon: configured logging driver does not support reading
 ```
 
 ### <a name="ulimit"></a> Set ulimits in container (--ulimit)
