@@ -95,7 +95,7 @@ Create and run a new container from an image
 | `-q`, `--quiet`                                       |               |           | Suppress the pull output                                                                                                                                                                                                                                                                                         |
 | [`--read-only`](#read-only)                           |               |           | Mount the container's root filesystem as read only                                                                                                                                                                                                                                                               |
 | [`--restart`](#restart)                               | `string`      | `no`      | Restart policy to apply when a container exits                                                                                                                                                                                                                                                                   |
-| `--rm`                                                |               |           | Automatically remove the container when it exits                                                                                                                                                                                                                                                                 |
+| [`--rm`](#rm)                                         |               |           | Automatically remove the container when it exits                                                                                                                                                                                                                                                                 |
 | `--runtime`                                           | `string`      |           | Runtime to use for this container                                                                                                                                                                                                                                                                                |
 | [`--security-opt`](#security-opt)                     | `list`        |           | Security Options                                                                                                                                                                                                                                                                                                 |
 | `--shm-size`                                          | `bytes`       | `0`       | Size of /dev/shm                                                                                                                                                                                                                                                                                                 |
@@ -1059,6 +1059,36 @@ $ docker inspect -f "{{ .State.StartedAt }}" my-container
 
 Combining `--restart` (restart policy) with the `--rm` (clean up) flag results
 in an error. On container restart, attached clients are disconnected.
+
+### <a name="rm"></a> Clean up (--rm)
+
+By default, a container's file system persists even after the container exits.
+This makes debugging a lot easier, since you can inspect the container's final
+state and you retain all your data.
+
+If you are running short-term **foreground** processes, these container file
+systems can start to pile up. If you'd like Docker to automatically clean up
+the container and remove the file system when the container exits, use the
+`--rm` flag:
+
+```text
+--rm=false: Automatically remove the container when it exits
+```
+
+> **Note**
+>
+> If you set the `--rm` flag, Docker also removes the anonymous volumes
+> associated with the container when the container is removed. This is similar
+> to running `docker rm -v my-container`. Only volumes that are specified without
+> a name are removed. For example, when running:
+>
+> ```console
+> $ docker run --rm -v /foo -v awesome:/bar busybox top
+> ```
+>
+> the volume for `/foo` will be removed, but the volume for `/bar` will not.
+> Volumes inherited via `--volumes-from` will be removed with the same logic: if
+> the original volume was specified with a name it will **not** be removed.
 
 ### <a name="add-host"></a> Add entries to container hosts file (--add-host)
 

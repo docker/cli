@@ -241,33 +241,6 @@ $ echo $?
 3
 ```
 
-## Clean up (--rm)
-
-By default a container's file system persists even after the container
-exits. This makes debugging a lot easier (since you can inspect the
-final state) and you retain all your data by default. But if you are
-running short-term **foreground** processes, these container file
-systems can really pile up. If instead you'd like Docker to
-**automatically clean up the container and remove the file system when
-the container exits**, you can add the `--rm` flag:
-
-    --rm=false: Automatically remove the container when it exits
-
-> **Note**
->
-> If you set the `--rm` flag, Docker also removes the anonymous volumes
-> associated with the container when the container is removed. This is similar
-> to running `docker rm -v my-container`. Only volumes that are specified without
-> a name are removed. For example, when running:
->
-> ```console
-> $ docker run --rm -v /foo -v awesome:/bar busybox top
-> ```
->
-> the volume for `/foo` will be removed, but the volume for `/bar` will not.
-> Volumes inherited via `--volumes-from` will be removed with the same logic: if
-> the original volume was specified with a name it will **not** be removed.
-
 ## Security configuration
 
 | Option                                    | Description                                                               |
