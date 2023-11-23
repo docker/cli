@@ -58,7 +58,7 @@ Create and run a new container from an image
 | `--health-timeout`                                    | `duration`    | `0s`      | Maximum time to allow one check to run (ms\|s\|m\|h) (default 0s)                                                                                                                                                                                                                                                |
 | `--help`                                              |               |           | Print usage                                                                                                                                                                                                                                                                                                      |
 | `-h`, `--hostname`                                    | `string`      |           | Container host name                                                                                                                                                                                                                                                                                              |
-| `--init`                                              |               |           | Run an init inside the container that forwards signals and reaps processes                                                                                                                                                                                                                                       |
+| [`--init`](#init)                                     |               |           | Run an init inside the container that forwards signals and reaps processes                                                                                                                                                                                                                                       |
 | [`-i`](#interactive), [`--interactive`](#interactive) |               |           | Keep STDIN open even if not attached                                                                                                                                                                                                                                                                             |
 | `--io-maxbandwidth`                                   | `bytes`       | `0`       | Maximum IO bandwidth limit for the system drive (Windows only)                                                                                                                                                                                                                                                   |
 | `--io-maxiops`                                        | `uint64`      | `0`       | Maximum IOps limit for the system drive (Windows only)                                                                                                                                                                                                                                                           |
@@ -901,6 +901,17 @@ $ docker run --rm -i busybox echo "foo bar baz" \
   | docker run --rm -i busybox rev
 rab
 ```
+
+## <a name="init"></a> Specify an init process
+
+You can use the `--init` flag to indicate that an init process should be used as
+the PID 1 in the container. Specifying an init process ensures the usual
+responsibilities of an init system, such as reaping zombie processes, are
+performed inside the created container.
+
+The default init process used is the first `docker-init` executable found in the
+system path of the Docker daemon process. This `docker-init` binary, included in
+the default installation, is backed by [tini](https://github.com/krallin/tini).
 
 ### <a name="tty"></a> Allocate a pseudo-TTY (-t, --tty)
 
