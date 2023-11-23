@@ -18,7 +18,7 @@ Create and run a new container from an image
 | `--blkio-weight-device`                               | `list`        |           | Block IO weight (relative device weight)                                                                                                                                                                                                                                                                         |
 | `--cap-add`                                           | `list`        |           | Add Linux capabilities                                                                                                                                                                                                                                                                                           |
 | `--cap-drop`                                          | `list`        |           | Drop Linux capabilities                                                                                                                                                                                                                                                                                          |
-| `--cgroup-parent`                                     | `string`      |           | Optional parent cgroup for the container                                                                                                                                                                                                                                                                         |
+| [`--cgroup-parent`](#cgroup-parent)                   | `string`      |           | Optional parent cgroup for the container                                                                                                                                                                                                                                                                         |
 | `--cgroupns`                                          | `string`      |           | Cgroup namespace to use (host\|private)<br>'host':    Run the container in the Docker host's cgroup namespace<br>'private': Run the container in its own private cgroup namespace<br>'':        Use the cgroup namespace as configured by the<br>           default-cgroupns-mode option on the daemon (default) |
 | [`--cidfile`](#cidfile)                               | `string`      |           | Write the container ID to the file                                                                                                                                                                                                                                                                               |
 | `--cpu-count`                                         | `int64`       | `0`       | CPU count (Windows only)                                                                                                                                                                                                                                                                                         |
@@ -948,6 +948,13 @@ using the echo-off TTY feature.
 You can use the `-t` flag without `-i` flag. This still allocates a pseudo-TTY
 to the container, but with no way of writing to `STDIN`. The only time this
 might be useful is if the output of the container requires a TTY environment.
+
+## <a name="cgroup-parent"></a> Specify custom cgroups
+
+Using the `--cgroup-parent` flag, you can pass a specific cgroup to run a
+container in. This allows you to create and manage cgroups on their own. You can
+define custom resources for those cgroups and put containers under a common
+parent group.
 
 ### <a name="device-cgroup-rule"></a> Using dynamically created devices (--device-cgroup-rule)
 
