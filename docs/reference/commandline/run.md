@@ -1009,9 +1009,56 @@ $ docker run --restart=always redis
 This will run the `redis` container with a restart policy of **always**
 so that if the container exits, Docker restarts it.
 
-You can find more detailed information on restart policies in the
-[Restart Policies (--restart)](../run.md#restart-policies---restart)
-section of the Docker run reference page.
+When a restart policy is active on a container, it shows as either `Up` or
+`Restarting` in [`docker ps`](ps.md). It can also be useful to use [`docker
+events`](events.md) to see the restart policy in effect.
+
+An increasing delay (double the previous delay, starting at 100 milliseconds)
+is added before each restart to prevent flooding the server. This means the
+daemon waits for 100 ms, then 200 ms, 400, 800, 1600, and so on until either
+the `on-failure` limit, the maximum delay of 1 minute is hit, or when you
+`docker stop` or `docker rm -f` the container.
+
+If a container is successfully restarted (the container is started and runs
+for at least 10 seconds), the delay is reset to its default value of 100 ms.
+
+#### Specify a limit for restart attempts
+
+You can specify the maximum amount of times Docker attempts to restart the
+container when using the **on-failure** policy. By default, Docker never stops
+attempting to restart the container.
+
+The following example runs the `redis` container with a restart policy of
+**on-failure** and a maximum restart count of 10.
+
+```console
+$ docker run --restart=on-failure:10 redis
+```
+
+If the `redis` container exits with a non-zero exit status more than 10 times
+in a row, Docker stops trying to restart the container. Providing a maximum
+restart limit is only valid for the **on-failure** policy.
+
+#### Inspect container restarts
+
+The number of (attempted) restarts for a container can be obtained using the
+[`docker inspect`](commandline/inspect.md) command. For example, to get the
+number of restarts for container "my-container";
+
+```console
+$ docker inspect -f "{{ .RestartCount }}" my-container
+2
+```
+
+Or, to get the last time the container was (re)started;
+
+```console
+$ docker inspect -f "{{ .State.StartedAt }}" my-container
+2015-03-04T23:47:07.691840179Z
+```
+
+Combining `--restart` (restart policy) with the `--rm` (clean up) flag results
+in an error. On container restart, attached clients are disconnected.
 
 ### <a name="add-host"></a> Add entries to container hosts file (--add-host)
 
