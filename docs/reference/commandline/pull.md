@@ -67,18 +67,18 @@ docker.io/library/debian:latest
 Docker images can consist of multiple layers. In the example above, the image
 consists of a single layer; `e756f3fdd6a3`.
 
-Layers can be reused by images. For example, the `debian:bullseye` image shares
-its layer with the `debian:latest`. Pulling the `debian:bullseye` image therefore
+Layers can be reused by images. For example, the `debian:bookworm` image shares
+its layer with the `debian:latest`. Pulling the `debian:bookworm` image therefore
 only pulls its metadata, but not its layers, because the layer is already present
 locally:
 
 ```console
-$ docker image pull debian:bullseye
+$ docker image pull debian:bookworm
 
-bullseye: Pulling from library/debian
+bookworm: Pulling from library/debian
 Digest: sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510
-Status: Downloaded newer image for debian:bullseye
-docker.io/library/debian:bullseye
+Status: Downloaded newer image for debian:bookworm
+docker.io/library/debian:bookworm
 ```
 
 To see which images are present locally, use the [`docker images`](images.md)
@@ -88,13 +88,13 @@ command:
 $ docker images
 
 REPOSITORY   TAG        IMAGE ID       CREATED        SIZE
-debian       bullseye   4eacea30377a   8 days ago     124MB
+debian       bookworm   4eacea30377a   8 days ago     124MB
 debian       latest     4eacea30377a   8 days ago     124MB
 ```
 
 Docker uses a content-addressable image store, and the image ID is a SHA256
 digest covering the image's configuration and layers. In the example above,
-`debian:bullseye` and `debian:latest` have the same image ID because they are
+`debian:bookworm` and `debian:latest` have the same image ID because they are
 the *same* image tagged with different names. Because they are the same image,
 their layers are stored only once and do not consume extra disk space.
 
