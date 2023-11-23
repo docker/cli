@@ -189,13 +189,15 @@ round-trip min/avg/max = 0.257/0.288/0.326 ms
 For more information about container networking, see [Networking
 overview](https://docs.docker.com/network/)
 
-## Exit Status
+## Exit status
 
 The exit code from `docker run` gives information about why the container
-failed to run or why it exited.  When `docker run` exits with a non-zero code,
-the exit codes follow the `chroot` standard, see below:
+failed to run or why it exited. The following sections describe the meanings of
+different container exit codes values.
 
-**_125_** if the error is with Docker daemon **_itself_**
+### 125
+
+Exit code `125` indicates that the error is with Docker daemon itself.
 
 ```console
 $ docker run --foo busybox; echo $?
@@ -205,7 +207,10 @@ See 'docker run --help'.
 125
 ```
 
-**_126_** if the **_contained command_** cannot be invoked
+### 126
+
+Exit code `126` indicates that the specified contained command can't be invoked.
+The container command in the following example is: `/etc; echo $?`.
 
 ```console
 $ docker run busybox /etc; echo $?
@@ -214,7 +219,9 @@ docker: Error response from daemon: Container command '/etc' could not be invoke
 126
 ```
 
-**_127_** if the **_contained command_** cannot be found
+### 127
+
+Exit code `127` indicates that the contained command can't be found.
 
 ```console
 $ docker run busybox foo; echo $?
@@ -223,7 +230,10 @@ docker: Error response from daemon: Container command 'foo' not found or does no
 127
 ```
 
-**_Exit code_** of **_contained command_** otherwise
+### Other exit codes
+
+Any exit code other than `125`, `126`, and `127` represent the exit code of the
+provided container command.
 
 ```console
 $ docker run busybox /bin/sh -c 'exit 3'
