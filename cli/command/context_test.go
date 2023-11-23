@@ -10,7 +10,7 @@ import (
 func TestDockerContextMetadataKeepAdditionalFields(t *testing.T) {
 	c := DockerContext{
 		Description: "test",
-		AdditionalFields: map[string]interface{}{
+		AdditionalFields: map[string]any{
 			"foo": "bar",
 		},
 	}

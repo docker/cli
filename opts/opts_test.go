@@ -428,10 +428,8 @@ func TestValidateLink(t *testing.T) {
 	for link, expectedError := range invalid {
 		if _, err := ValidateLink(link); err == nil {
 			t.Fatalf("ValidateLink(`%q`) should have failed validation", link)
-		} else {
-			if !strings.Contains(err.Error(), expectedError) {
-				t.Fatalf("ValidateLink(`%q`) error should contain %q", link, expectedError)
-			}
+		} else if !strings.Contains(err.Error(), expectedError) {
+			t.Fatalf("ValidateLink(`%q`) error should contain %q", link, expectedError)
 		}
 	}
 }

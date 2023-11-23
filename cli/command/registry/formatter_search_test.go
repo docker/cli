@@ -47,16 +47,16 @@ func TestSearchContext(t *testing.T) {
 		},
 		{
 			searchCtx: searchContext{
-				s: registrytypes.SearchResult{IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
+				s: registrytypes.SearchResult{IsAutomated: true}, //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 			},
 			expValue: "[OK]",
-			call:     ctx.IsAutomated, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
+			call:     ctx.IsAutomated, //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 		},
 		{
 			searchCtx: searchContext{
 				s: registrytypes.SearchResult{},
 			},
-			call: ctx.IsAutomated, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
+			call: ctx.IsAutomated, //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 		},
 	}
 
@@ -199,7 +199,7 @@ result2 5
 
 	results := []registrytypes.SearchResult{
 		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
-		{Name: "result2", Description: "Not official", StarCount: 5, IsAutomated: true}, //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
+		{Name: "result2", Description: "Not official", StarCount: 5, IsAutomated: true},
 	}
 
 	for _, tc := range cases {

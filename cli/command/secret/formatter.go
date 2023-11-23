@@ -108,7 +108,7 @@ func (c *secretContext) Labels() string {
 	if mapLabels == nil {
 		return ""
 	}
-	var joinLabels []string
+	joinLabels := make([]string, 0, len(mapLabels))
 	for k, v := range mapLabels {
 		joinLabels = append(joinLabels, k+"="+v)
 	}

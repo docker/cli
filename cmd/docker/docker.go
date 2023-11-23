@@ -378,16 +378,16 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 }
 
 // Checks if a command or one of its ancestors is in the list
-func findCommand(cmd *cobra.Command, commands []string) bool {
+func findCommand(cmd *cobra.Command, cmds []string) bool {
 	if cmd == nil {
 		return false
 	}
-	for _, c := range commands {
+	for _, c := range cmds {
 		if c == cmd.Name() {
 			return true
 		}
 	}
-	return findCommand(cmd.Parent(), commands)
+	return findCommand(cmd.Parent(), cmds)
 }
 
 func isSupported(cmd *cobra.Command, details versionDetails) error {

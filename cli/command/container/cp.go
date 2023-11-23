@@ -246,7 +246,6 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 			linkTarget, rebaseName = archive.GetRebaseName(srcPath, linkTarget)
 			srcPath = linkTarget
 		}
-
 	}
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)

@@ -207,8 +207,7 @@ func TestAddStageSigners(t *testing.T) {
 func TestGetSignedManifestHashAndSize(t *testing.T) {
 	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
-	target := &client.Target{}
-	target.Hashes, target.Length, err = getSignedManifestHashAndSize(notaryRepo, "test")
+	_, _, err = getSignedManifestHashAndSize(notaryRepo, "test")
 	assert.Error(t, err, "client is offline")
 }
 

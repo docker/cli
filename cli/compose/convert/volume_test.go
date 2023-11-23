@@ -18,9 +18,9 @@ func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {
 		Type:   mount.TypeVolume,
 		Target: "/foo/bar",
 	}
-	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountAnonymousBind(t *testing.T) {
@@ -173,9 +173,9 @@ func TestConvertVolumeToMountNamedVolume(t *testing.T) {
 			NoCopy: true,
 		},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
@@ -220,9 +220,9 @@ func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
 			NoCopy: true,
 		},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
@@ -244,9 +244,9 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 		Source: "outside",
 		Target: "/foo",
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
@@ -273,9 +273,9 @@ func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 			NoCopy: true,
 		},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountBind(t *testing.T) {
@@ -295,9 +295,9 @@ func TestConvertVolumeToMountBind(t *testing.T) {
 		ReadOnly: true,
 		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountVolumeDoesNotExist(t *testing.T) {
@@ -325,9 +325,9 @@ func TestConvertTmpfsToMountVolume(t *testing.T) {
 		Target:       "/foo/bar",
 		TmpfsOptions: &mount.TmpfsOptions{SizeBytes: 1000},
 	}
-	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
@@ -355,9 +355,9 @@ func TestConvertVolumeToMountAnonymousNpipe(t *testing.T) {
 		Source: `\\.\pipe\foo`,
 		Target: `\\.\pipe\foo`,
 	}
-	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeMountClusterName(t *testing.T) {
@@ -389,9 +389,9 @@ func TestConvertVolumeMountClusterName(t *testing.T) {
 		ClusterOptions: &mount.ClusterOptions{},
 	}
 
-	mount, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeMountClusterGroup(t *testing.T) {
@@ -423,7 +423,7 @@ func TestConvertVolumeMountClusterGroup(t *testing.T) {
 		ClusterOptions: &mount.ClusterOptions{},
 	}
 
-	mount, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }

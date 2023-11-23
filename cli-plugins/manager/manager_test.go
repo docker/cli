@@ -46,7 +46,7 @@ func TestListPluginCandidates(t *testing.T) {
 	)
 	defer dir.Remove()
 
-	var dirs []string
+	dirs := make([]string, 0, 6)
 	for _, d := range []string{"plugins1", "nonexistent", "plugins2", "plugins3", "plugins4", "plugins5"} {
 		dirs = append(dirs, dir.Join(d))
 	}

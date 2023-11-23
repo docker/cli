@@ -224,8 +224,8 @@ func configFromName(name string) swarm.Config {
 	}
 }
 
-func namespaceFromFilters(filters filters.Args) string {
-	label := filters.Get("label")[0]
+func namespaceFromFilters(fltrs filters.Args) string {
+	label := fltrs.Get("label")[0]
 	return strings.TrimPrefix(label, convert.LabelNamespace+"=")
 }
 

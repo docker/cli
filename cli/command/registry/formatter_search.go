@@ -64,8 +64,8 @@ func (c *searchContext) Name() string {
 }
 
 func (c *searchContext) Description() string {
-	desc := strings.Replace(c.s.Description, "\n", " ", -1)
-	desc = strings.Replace(desc, "\r", " ", -1)
+	desc := strings.ReplaceAll(c.s.Description, "\n", " ")
+	desc = strings.ReplaceAll(desc, "\r", " ")
 	if c.trunc {
 		desc = formatter.Ellipsis(desc, 45)
 	}
@@ -97,5 +97,5 @@ func (c *searchContext) IsOfficial() string {
 //
 // Deprecated: the "is_automated" field is deprecated and will always be "false" in the future.
 func (c *searchContext) IsAutomated() string {
-	return c.formatBool(c.s.IsAutomated) //nolint:staticcheck // ignore SA1019 (IsAutomated is deprecated).
+	return c.formatBool(c.s.IsAutomated) //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 }

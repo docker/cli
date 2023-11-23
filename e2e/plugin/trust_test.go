@@ -72,6 +72,7 @@ func TestInstallWithContentTrustUntrusted(t *testing.T) {
 }
 
 func preparePluginDir(t *testing.T) *fs.Dir {
+	t.Helper()
 	p := &types.PluginConfig{
 		Interface: types.PluginConfigInterface{
 			Socket: "basic.sock",

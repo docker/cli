@@ -16,7 +16,7 @@ import (
 )
 
 func TestEventsFormat(t *testing.T) {
-	var evts []events.Message
+	var evts []events.Message //nolint:prealloc
 	for i, action := range []events.Action{events.ActionCreate, events.ActionStart, events.ActionAttach, events.ActionDie} {
 		evts = append(evts, events.Message{
 			Status: string(action),

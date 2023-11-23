@@ -36,7 +36,7 @@ func longCreateDescription() string {
 	return buf.String()
 }
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := &CreateOptions{}
 	cmd := &cobra.Command{
 		Use:   "create [OPTIONS] CONTEXT",
@@ -44,7 +44,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Name = args[0]
-			return RunCreate(dockerCli, opts)
+			return RunCreate(dockerCLI, opts)
 		},
 		Long:              longCreateDescription(),
 		ValidArgsFunction: completion.NoComplete,
@@ -57,23 +57,23 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunCreate creates a Docker context
-func RunCreate(cli command.Cli, o *CreateOptions) error {
-	s := cli.ContextStore()
+func RunCreate(dockerCLI command.Cli, o *CreateOptions) error {
+	s := dockerCLI.ContextStore()
 	err := checkContextNameForCreation(s, o.Name)
 	if err != nil {
 		return err
 	}
 	switch {
 	case o.From == "" && o.Docker == nil:
-		err = createFromExistingContext(s, cli.CurrentContext(), o)
+		err = createFromExistingContext(s, dockerCLI.CurrentContext(), o)
 	case o.From != "":
 		err = createFromExistingContext(s, o.From, o)
 	default:
 		err = createNewContext(s, o)
 	}
 	if err == nil {
-		fmt.Fprintln(cli.Out(), o.Name)
-		fmt.Fprintf(cli.Err(), "Successfully created context %q\n", o.Name)
+		fmt.Fprintln(dockerCLI.Out(), o.Name)
+		fmt.Fprintf(dockerCLI.Err(), "Successfully created context %q\n", o.Name)
 	}
 	return err
 }
@@ -87,7 +87,7 @@ func createNewContext(contextStore store.ReaderWriter, o *CreateOptions) error {
 		return errors.Wrap(err, "unable to create docker endpoint config")
 	}
 	contextMetadata := store.Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			docker.DockerEndpoint: dockerEP,
 		},
 		Metadata: command.DockerContext{

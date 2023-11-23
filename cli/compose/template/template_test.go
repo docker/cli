@@ -181,24 +181,24 @@ func TestSubstituteWithCustomFunc(t *testing.T) {
 func TestExtractVariables(t *testing.T) {
 	testCases := []struct {
 		name     string
-		dict     map[string]interface{}
+		dict     map[string]any
 		expected map[string]string
 	}{
 		{
 			name:     "empty",
-			dict:     map[string]interface{}{},
+			dict:     map[string]any{},
 			expected: map[string]string{},
 		},
 		{
 			name: "no-variables",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "bar",
 			},
 			expected: map[string]string{},
 		},
 		{
 			name: "variable-without-curly-braces",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "$bar",
 			},
 			expected: map[string]string{
@@ -207,7 +207,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 		{
 			name: "variable",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "${bar}",
 			},
 			expected: map[string]string{
@@ -216,7 +216,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 		{
 			name: "required-variable",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "${bar?:foo}",
 			},
 			expected: map[string]string{
@@ -225,7 +225,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 		{
 			name: "required-variable2",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "${bar?foo}",
 			},
 			expected: map[string]string{
@@ -234,7 +234,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 		{
 			name: "default-variable",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "${bar:-foo}",
 			},
 			expected: map[string]string{
@@ -243,7 +243,7 @@ func TestExtractVariables(t *testing.T) {
 		},
 		{
 			name: "default-variable2",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "${bar-foo}",
 			},
 			expected: map[string]string{
@@ -252,13 +252,13 @@ func TestExtractVariables(t *testing.T) {
 		},
 		{
 			name: "multiple-values",
-			dict: map[string]interface{}{
+			dict: map[string]any{
 				"foo": "${bar:-foo}",
-				"bar": map[string]interface{}{
+				"bar": map[string]any{
 					"foo": "${fruit:-banana}",
 					"bar": "vegetable",
 				},
-				"baz": []interface{}{
+				"baz": []any{
 					"foo",
 					"$docker:${project:-cli}",
 					"$toto",

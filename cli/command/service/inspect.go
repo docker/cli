@@ -54,7 +54,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 		opts.format = "pretty"
 	}
 
-	getRef := func(ref string) (interface{}, []byte, error) {
+	getRef := func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
 		service, _, err := client.ServiceInspectWithRaw(ctx, ref, types.ServiceInspectOptions{InsertDefaults: true})
 		if err == nil || !errdefs.IsNotFound(err) {
@@ -63,7 +63,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 		return nil, nil, errors.Errorf("Error: no such service: %s", ref)
 	}
 
-	getNetwork := func(ref string) (interface{}, []byte, error) {
+	getNetwork := func(ref string) (any, []byte, error) {
 		network, _, err := client.NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{Scope: "swarm"})
 		if err == nil || !errdefs.IsNotFound(err) {
 			return network, nil, err

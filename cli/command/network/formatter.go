@@ -1,7 +1,7 @@
 package network
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
@@ -89,11 +89,11 @@ func (c *networkContext) Scope() string {
 }
 
 func (c *networkContext) IPv6() string {
-	return fmt.Sprintf("%v", c.n.EnableIPv6)
+	return strconv.FormatBool(c.n.EnableIPv6)
 }
 
 func (c *networkContext) Internal() string {
-	return fmt.Sprintf("%v", c.n.Internal)
+	return strconv.FormatBool(c.n.Internal)
 }
 
 func (c *networkContext) Labels() string {
@@ -101,7 +101,7 @@ func (c *networkContext) Labels() string {
 		return ""
 	}
 
-	var joinLabels []string
+	joinLabels := make([]string, 0, len(c.n.Labels))
 	for k, v := range c.n.Labels {
 		joinLabels = append(joinLabels, k+"="+v)
 	}

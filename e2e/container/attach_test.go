@@ -10,20 +10,14 @@ import (
 )
 
 func TestAttachExitCode(t *testing.T) {
-	containerID := runBackgroundContainsWithExitCode(t, 21)
-
-	result := icmd.RunCmd(
-		icmd.Command("docker", "attach", containerID),
-		withStdinNewline)
-
-	result.Assert(t, icmd.Expected{ExitCode: 21})
-}
-
-func runBackgroundContainsWithExitCode(t *testing.T, exitcode int) string {
-	result := icmd.RunCommand("docker", "run", "-d", "-i", "--rm", fixtures.AlpineImage,
-		"sh", "-c", fmt.Sprintf("read; exit %d", exitcode))
+	const exitCode = 21
+	result := icmd.RunCommand("docker", "run", "-d", "-i", "--rm", fixtures.AlpineImage, "sh", "-c", fmt.Sprintf("read; exit %d", exitCode))
 	result.Assert(t, icmd.Success)
-	return strings.TrimSpace(result.Stdout())
+
+	containerID := strings.TrimSpace(result.Stdout())
+
+	result = icmd.RunCmd(icmd.Command("docker", "attach", containerID), withStdinNewline)
+	result.Assert(t, icmd.Expected{ExitCode: exitCode})
 }
 
 func withStdinNewline(cmd *icmd.Cmd) {

@@ -43,7 +43,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
 
-	getRefFunc := func(ref string) (interface{}, []byte, error) {
+	getRefFunc := func(ref string) (any, []byte, error) {
 		return client.ContainerInspectWithRaw(ctx, ref, opts.size)
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.refs, opts.format, getRefFunc)

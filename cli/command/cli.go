@@ -394,7 +394,7 @@ func (cli *DockerCli) CurrentContext() string {
 // occur when trying to use it.
 //
 // Refer to [DockerCli.CurrentContext] above for further details.
-func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigFile) string {
+func resolveContextName(opts *cliflags.ClientOptions, cfg *configfile.ConfigFile) string {
 	if opts != nil && opts.Context != "" {
 		return opts.Context
 	}
@@ -407,9 +407,9 @@ func resolveContextName(opts *cliflags.ClientOptions, config *configfile.ConfigF
 	if ctxName := os.Getenv(EnvOverrideContext); ctxName != "" {
 		return ctxName
 	}
-	if config != nil && config.CurrentContext != "" {
+	if cfg != nil && cfg.CurrentContext != "" {
 		// We don't validate if this context exists: errors may occur when trying to use it.
-		return config.CurrentContext
+		return cfg.CurrentContext
 	}
 	return DefaultContextName
 }
@@ -514,7 +514,7 @@ func UserAgent() string {
 }
 
 var defaultStoreEndpoints = []store.NamedTypeGetter{
-	store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+	store.EndpointTypeGetter(docker.DockerEndpoint, func() any { return &docker.EndpointMeta{} }),
 }
 
 // RegisterDefaultStoreEndpoints registers a new named endpoint
@@ -528,7 +528,7 @@ func RegisterDefaultStoreEndpoints(ep ...store.NamedTypeGetter) {
 // DefaultContextStoreConfig returns a new store.Config with the default set of endpoints configured.
 func DefaultContextStoreConfig() store.Config {
 	return store.NewConfig(
-		func() interface{} { return &DockerContext{} },
+		func() any { return &DockerContext{} },
 		defaultStoreEndpoints...,
 	)
 }

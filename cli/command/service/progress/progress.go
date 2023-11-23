@@ -70,7 +70,7 @@ func terminalState(state swarm.TaskState) bool {
 // ServiceProgress outputs progress information for convergence of a service.
 //
 //nolint:gocyclo
-func ServiceProgress(ctx context.Context, client client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
+func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
 	defer progressWriter.Close()
 
 	progressOut := streamformatter.NewJSONProgressOutput(progressWriter, false)
@@ -84,7 +84,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	taskFilter.Add("_up-to-date", "true")
 
 	getUpToDateTasks := func() ([]swarm.Task, error) {
-		return client.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
+		return apiClient.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
 	}
 
 	var (
@@ -97,7 +97,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	)
 
 	for {
-		service, _, err := client.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
+		service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 			return err
 		}
 
-		activeNodes, err := getActiveNodes(ctx, client)
+		activeNodes, err := getActiveNodes(ctx, apiClient)
 		if err != nil {
 			return err
 		}
@@ -218,8 +218,8 @@ func ServiceProgress(ctx context.Context, client client.APIClient, serviceID str
 	}
 }
 
-func getActiveNodes(ctx context.Context, client client.APIClient) (map[string]struct{}, error) {
-	nodes, err := client.NodeList(ctx, types.NodeListOptions{})
+func getActiveNodes(ctx context.Context, apiClient client.APIClient) (map[string]struct{}, error) {
+	nodes, err := apiClient.NodeList(ctx, types.NodeListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func writeOverallProgress(progressOut progress.Output, numerator, denominator in
 
 func truncError(errMsg string) string {
 	// Remove newlines from the error, which corrupt the output.
-	errMsg = strings.Replace(errMsg, "\n", " ", -1)
+	errMsg = strings.ReplaceAll(errMsg, "\n", " ")
 
 	// Limit the length to 75 characters, so that even on narrow terminals
 	// this will not overflow to the next line.
@@ -493,7 +493,6 @@ func (u *globalProgressUpdater) tasksByNode(tasks []swarm.Task) map[string]swarm
 				numberedStates[existingTask.Status.State] <= numberedStates[task.Status.State] {
 				continue
 			}
-
 		}
 		tasksByNode[task.NodeID] = task
 	}

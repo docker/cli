@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -49,7 +50,7 @@ var ForbiddenProperties = map[string]string{
 // ConfigFile is a filename and the contents of the file as a Dict
 type ConfigFile struct {
 	Filename string
-	Config   map[string]interface{}
+	Config   map[string]any
 }
 
 // ConfigDetails are the details about a group of ConfigFiles
@@ -82,7 +83,7 @@ func (d Duration) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalYAML makes Duration implement yaml.Marshaler
-func (d Duration) MarshalYAML() (interface{}, error) {
+func (d Duration) MarshalYAML() (any, error) {
 	return d.String(), nil
 }
 
@@ -101,12 +102,12 @@ type Config struct {
 	Volumes  map[string]VolumeConfig    `yaml:",omitempty" json:"volumes,omitempty"`
 	Secrets  map[string]SecretConfig    `yaml:",omitempty" json:"secrets,omitempty"`
 	Configs  map[string]ConfigObjConfig `yaml:",omitempty" json:"configs,omitempty"`
-	Extras   map[string]interface{}     `yaml:",inline" json:"-"`
+	Extras   map[string]any             `yaml:",inline" json:"-"`
 }
 
 // MarshalJSON makes Config implement json.Marshaler
 func (c Config) MarshalJSON() ([]byte, error) {
-	m := map[string]interface{}{
+	m := map[string]any{
 		"version":  c.Version,
 		"services": c.Services,
 	}
@@ -133,7 +134,7 @@ func (c Config) MarshalJSON() ([]byte, error) {
 type Services []ServiceConfig
 
 // MarshalYAML makes Services implement yaml.Marshaller
-func (s Services) MarshalYAML() (interface{}, error) {
+func (s Services) MarshalYAML() (any, error) {
 	services := map[string]ServiceConfig{}
 	for _, service := range s {
 		services[service.Name] = service
@@ -207,7 +208,7 @@ type ServiceConfig struct {
 	Volumes         []ServiceVolumeConfig            `yaml:",omitempty" json:"volumes,omitempty"`
 	WorkingDir      string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
 
-	Extras map[string]interface{} `yaml:",inline" json:"-"`
+	Extras map[string]any `yaml:",inline" json:"-"`
 }
 
 // BuildConfig is a type for build
@@ -339,7 +340,7 @@ type DiscreteGenericResource struct {
 type UnitBytes int64
 
 // MarshalYAML makes UnitBytes implement yaml.Marshaller
-func (u UnitBytes) MarshalYAML() (interface{}, error) {
+func (u UnitBytes) MarshalYAML() (any, error) {
 	return fmt.Sprintf("%d", u), nil
 }
 
@@ -438,7 +439,7 @@ type UlimitsConfig struct {
 }
 
 // MarshalYAML makes UlimitsConfig implement yaml.Marshaller
-func (u *UlimitsConfig) MarshalYAML() (interface{}, error) {
+func (u *UlimitsConfig) MarshalYAML() (any, error) {
 	if u.Single != 0 {
 		return u.Single, nil
 	}
@@ -457,15 +458,15 @@ func (u *UlimitsConfig) MarshalJSON() ([]byte, error) {
 
 // NetworkConfig for a network
 type NetworkConfig struct {
-	Name       string                 `yaml:",omitempty" json:"name,omitempty"`
-	Driver     string                 `yaml:",omitempty" json:"driver,omitempty"`
-	DriverOpts map[string]string      `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
-	Ipam       IPAMConfig             `yaml:",omitempty" json:"ipam,omitempty"`
-	External   External               `yaml:",omitempty" json:"external,omitempty"`
-	Internal   bool                   `yaml:",omitempty" json:"internal,omitempty"`
-	Attachable bool                   `yaml:",omitempty" json:"attachable,omitempty"`
-	Labels     Labels                 `yaml:",omitempty" json:"labels,omitempty"`
-	Extras     map[string]interface{} `yaml:",inline" json:"-"`
+	Name       string            `yaml:",omitempty" json:"name,omitempty"`
+	Driver     string            `yaml:",omitempty" json:"driver,omitempty"`
+	DriverOpts map[string]string `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
+	Ipam       IPAMConfig        `yaml:",omitempty" json:"ipam,omitempty"`
+	External   External          `yaml:",omitempty" json:"external,omitempty"`
+	Internal   bool              `yaml:",omitempty" json:"internal,omitempty"`
+	Attachable bool              `yaml:",omitempty" json:"attachable,omitempty"`
+	Labels     Labels            `yaml:",omitempty" json:"labels,omitempty"`
+	Extras     map[string]any    `yaml:",inline" json:"-"`
 }
 
 // IPAMConfig for a network
@@ -481,13 +482,13 @@ type IPAMPool struct {
 
 // VolumeConfig for a volume
 type VolumeConfig struct {
-	Name       string                 `yaml:",omitempty" json:"name,omitempty"`
-	Driver     string                 `yaml:",omitempty" json:"driver,omitempty"`
-	DriverOpts map[string]string      `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
-	External   External               `yaml:",omitempty" json:"external,omitempty"`
-	Labels     Labels                 `yaml:",omitempty" json:"labels,omitempty"`
-	Extras     map[string]interface{} `yaml:",inline" json:"-"`
-	Spec       *ClusterVolumeSpec     `mapstructure:"x-cluster-spec" yaml:"x-cluster-spec,omitempty" json:"x-cluster-spec,omitempty"`
+	Name       string             `yaml:",omitempty" json:"name,omitempty"`
+	Driver     string             `yaml:",omitempty" json:"driver,omitempty"`
+	DriverOpts map[string]string  `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
+	External   External           `yaml:",omitempty" json:"external,omitempty"`
+	Labels     Labels             `yaml:",omitempty" json:"labels,omitempty"`
+	Extras     map[string]any     `yaml:",inline" json:"-"`
+	Spec       *ClusterVolumeSpec `mapstructure:"x-cluster-spec" yaml:"x-cluster-spec,omitempty" json:"x-cluster-spec,omitempty"`
 }
 
 // ClusterVolumeSpec defines all the configuration and options specific to a
@@ -555,7 +556,7 @@ type External struct {
 }
 
 // MarshalYAML makes External implement yaml.Marshaller
-func (e External) MarshalYAML() (interface{}, error) {
+func (e External) MarshalYAML() (any, error) {
 	if e.Name == "" {
 		return e.External, nil
 	}
@@ -565,7 +566,7 @@ func (e External) MarshalYAML() (interface{}, error) {
 // MarshalJSON makes External implement json.Marshaller
 func (e External) MarshalJSON() ([]byte, error) {
 	if e.Name == "" {
-		return []byte(fmt.Sprintf("%v", e.External)), nil
+		return []byte(strconv.FormatBool(e.External)), nil
 	}
 	return []byte(fmt.Sprintf(`{"name": %q}`, e.Name)), nil
 }
@@ -579,14 +580,14 @@ type CredentialSpecConfig struct {
 
 // FileObjectConfig is a config type for a file used by a service
 type FileObjectConfig struct {
-	Name           string                 `yaml:",omitempty" json:"name,omitempty"`
-	File           string                 `yaml:",omitempty" json:"file,omitempty"`
-	External       External               `yaml:",omitempty" json:"external,omitempty"`
-	Labels         Labels                 `yaml:",omitempty" json:"labels,omitempty"`
-	Extras         map[string]interface{} `yaml:",inline" json:"-"`
-	Driver         string                 `yaml:",omitempty" json:"driver,omitempty"`
-	DriverOpts     map[string]string      `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
-	TemplateDriver string                 `mapstructure:"template_driver" yaml:"template_driver,omitempty" json:"template_driver,omitempty"`
+	Name           string            `yaml:",omitempty" json:"name,omitempty"`
+	File           string            `yaml:",omitempty" json:"file,omitempty"`
+	External       External          `yaml:",omitempty" json:"external,omitempty"`
+	Labels         Labels            `yaml:",omitempty" json:"labels,omitempty"`
+	Extras         map[string]any    `yaml:",inline" json:"-"`
+	Driver         string            `yaml:",omitempty" json:"driver,omitempty"`
+	DriverOpts     map[string]string `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
+	TemplateDriver string            `mapstructure:"template_driver" yaml:"template_driver,omitempty" json:"template_driver,omitempty"`
 }
 
 // SecretConfig for a secret

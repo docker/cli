@@ -78,9 +78,9 @@ func runConnect(dockerCli command.Cli, options connectOptions) error {
 	return client.NetworkConnect(context.Background(), options.network, options.container, epConfig)
 }
 
-func convertDriverOpt(opts []string) (map[string]string, error) {
+func convertDriverOpt(options []string) (map[string]string, error) {
 	driverOpt := make(map[string]string)
-	for _, opt := range opts {
+	for _, opt := range options {
 		k, v, ok := strings.Cut(opt, "=")
 		// TODO(thaJeztah): we should probably not accept whitespace here (both for key and value).
 		k = strings.TrimSpace(k)

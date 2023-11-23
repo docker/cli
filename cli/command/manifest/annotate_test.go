@@ -40,13 +40,13 @@ func TestManifestAnnotateError(t *testing.T) {
 }
 
 func TestManifestAnnotate(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
-	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err := manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	cmd := newAnnotateCommand(cli)

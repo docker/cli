@@ -40,7 +40,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runInspect(dockerCli command.Cli, opts inspectOptions) error {
-	getRefFunc := func(ref string) (interface{}, []byte, error) {
+	getRefFunc := func(ref string) (any, []byte, error) {
 		c, err := dockerCli.ContextStore().GetMetadata(ref)
 		if err != nil {
 			return nil, nil, err

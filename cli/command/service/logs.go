@@ -181,12 +181,12 @@ type taskFormatter struct {
 	cache map[logContext]string
 }
 
-func newTaskFormatter(client client.APIClient, opts *logsOptions, padding int) *taskFormatter {
+func newTaskFormatter(apiClient client.APIClient, opts *logsOptions, padding int) *taskFormatter {
 	return &taskFormatter{
-		client:  client,
+		client:  apiClient,
 		opts:    opts,
 		padding: padding,
-		r:       idresolver.New(client, opts.noResolve),
+		r:       idresolver.New(apiClient, opts.noResolve),
 		cache:   make(map[logContext]string),
 	}
 }

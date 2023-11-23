@@ -7,7 +7,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-type dict map[string]interface{}
+type dict map[string]any
 
 func TestValidate(t *testing.T) {
 	config := dict{
@@ -162,7 +162,7 @@ func TestValidateInvalidVersion(t *testing.T) {
 	assert.ErrorContains(t, err, "unsupported Compose file version: 2.1")
 }
 
-type array []interface{}
+type array []any
 
 func TestValidatePlacement(t *testing.T) {
 	config := dict{

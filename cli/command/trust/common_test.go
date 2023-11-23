@@ -20,7 +20,7 @@ func TestMatchReleasedSignaturesSortOrder(t *testing.T) {
 
 	rows := matchReleasedSignatures(targets)
 
-	var targetNames []string
+	targetNames := make([]string, 0, len(rows))
 	for _, r := range rows {
 		targetNames = append(targetNames, r.SignedTag)
 	}

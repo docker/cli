@@ -49,10 +49,8 @@ func TestRunLogs(t *testing.T) {
 			err := runLogs(cli, testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
-			} else {
-				if !assert.Check(t, err) {
-					return
-				}
+			} else if !assert.Check(t, err) {
+				return
 			}
 			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
 			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))

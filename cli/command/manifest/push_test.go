@@ -49,17 +49,17 @@ func TestManifestPushErrors(t *testing.T) {
 }
 
 func TestManifestPush(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	registry := newFakeRegistryClient()
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 	cli.SetRegistryClient(registry)
 
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
-	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err := manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	cmd := newPushListCommand(cli)

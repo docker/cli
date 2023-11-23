@@ -43,7 +43,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 
 	ctx := context.Background()
 
-	getNetFunc := func(name string) (interface{}, []byte, error) {
+	getNetFunc := func(name string) (any, []byte, error) {
 		return client.NetworkInspectWithRaw(ctx, name, types.NetworkInspectOptions{Verbose: opts.verbose})
 	}
 

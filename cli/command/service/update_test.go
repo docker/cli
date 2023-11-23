@@ -1056,7 +1056,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 		},
 	}
 	// cannedConfigRefs is the same thing, but with config references instead
-	// instead of ID, however, it just maps an arbitrary string value. this is
+	// of ID, however, it just maps an arbitrary string value. this is
 	// so we could have multiple config refs using the same config
 	cannedConfigRefs := map[string]*swarm.ConfigReference{
 		"fooRef": {

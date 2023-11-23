@@ -12,14 +12,13 @@ type volumes map[string]composetypes.VolumeConfig
 
 // Volumes from compose-file types to engine api types
 func Volumes(serviceVolumes []composetypes.ServiceVolumeConfig, stackVolumes volumes, namespace Namespace) ([]mount.Mount, error) {
-	var mounts []mount.Mount
-
+	mounts := make([]mount.Mount, 0, len(serviceVolumes))
 	for _, volumeConfig := range serviceVolumes {
-		mount, err := convertVolumeToMount(volumeConfig, stackVolumes, namespace)
+		mnt, err := convertVolumeToMount(volumeConfig, stackVolumes, namespace)
 		if err != nil {
 			return nil, err
 		}
-		mounts = append(mounts, mount)
+		mounts = append(mounts, mnt)
 	}
 	return mounts, nil
 }

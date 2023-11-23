@@ -1,7 +1,7 @@
 package formatter
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/distribution/reference"
@@ -26,11 +26,11 @@ type ImageContext struct {
 	Digest bool
 }
 
-func isDangling(image image.Summary) bool {
-	if len(image.RepoTags) == 0 && len(image.RepoDigests) == 0 {
+func isDangling(img image.Summary) bool {
+	if len(img.RepoTags) == 0 && len(img.RepoDigests) == 0 {
 		return true
 	}
-	return len(image.RepoTags) == 1 && image.RepoTags[0] == "<none>:<none>" && len(image.RepoDigests) == 1 && image.RepoDigests[0] == "<none>@<none>"
+	return len(img.RepoTags) == 1 && img.RepoTags[0] == "<none>:<none>" && len(img.RepoDigests) == 1 && img.RepoDigests[0] == "<none>@<none>"
 }
 
 // NewImageFormat returns a format for rendering an ImageContext
@@ -88,18 +88,18 @@ func needDigest(ctx ImageContext) bool {
 }
 
 func imageFormat(ctx ImageContext, images []image.Summary, format func(subContext SubContext) error) error {
-	for _, image := range images {
+	for _, img := range images {
 		formatted := []*imageContext{}
-		if isDangling(image) {
+		if isDangling(img) {
 			formatted = append(formatted, &imageContext{
 				trunc:  ctx.Trunc,
-				i:      image,
+				i:      img,
 				repo:   "<none>",
 				tag:    "<none>",
 				digest: "<none>",
 			})
 		} else {
-			formatted = imageFormatTaggedAndDigest(ctx, image)
+			formatted = imageFormatTaggedAndDigest(ctx, img)
 		}
 		for _, imageCtx := range formatted {
 			if err := format(imageCtx); err != nil {
@@ -110,12 +110,12 @@ func imageFormat(ctx ImageContext, images []image.Summary, format func(subContex
 	return nil
 }
 
-func imageFormatTaggedAndDigest(ctx ImageContext, image image.Summary) []*imageContext {
+func imageFormatTaggedAndDigest(ctx ImageContext, img image.Summary) []*imageContext {
 	repoTags := map[string][]string{}
 	repoDigests := map[string][]string{}
 	images := []*imageContext{}
 
-	for _, refString := range image.RepoTags {
+	for _, refString := range img.RepoTags {
 		ref, err := reference.ParseNormalizedNamed(refString)
 		if err != nil {
 			continue
@@ -125,7 +125,7 @@ func imageFormatTaggedAndDigest(ctx ImageContext, image image.Summary) []*imageC
 			repoTags[familiarRef] = append(repoTags[familiarRef], nt.Tag())
 		}
 	}
-	for _, refString := range image.RepoDigests {
+	for _, refString := range img.RepoDigests {
 		ref, err := reference.ParseNormalizedNamed(refString)
 		if err != nil {
 			continue
@@ -139,7 +139,7 @@ func imageFormatTaggedAndDigest(ctx ImageContext, image image.Summary) []*imageC
 	addImage := func(repo, tag, digest string) {
 		images = append(images, &imageContext{
 			trunc:  ctx.Trunc,
-			i:      image,
+			i:      img,
 			repo:   repo,
 			tag:    tag,
 			digest: digest,
@@ -166,7 +166,6 @@ func imageFormatTaggedAndDigest(ctx ImageContext, image image.Summary) []*imageC
 			for _, dgst := range digests {
 				addImage(repo, tag, dgst)
 			}
-
 		}
 	}
 
@@ -256,7 +255,7 @@ func (c *imageContext) Containers() string {
 	if c.i.Containers == -1 {
 		return "N/A"
 	}
-	return fmt.Sprintf("%d", c.i.Containers)
+	return strconv.FormatInt(c.i.Containers, 10)
 }
 
 // VirtualSize shows the virtual size of the image and all of its parent

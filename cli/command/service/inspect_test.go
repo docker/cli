@@ -17,6 +17,7 @@ import (
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {
+	t.Helper()
 	b := new(bytes.Buffer)
 
 	endpointSpec := &swarm.EndpointSpec{
@@ -128,10 +129,10 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 	}
 
 	err := InspectFormatWrite(ctx, []string{"de179gar9d0o7ltdybungplod"},
-		func(ref string) (interface{}, []byte, error) {
+		func(ref string) (any, []byte, error) {
 			return s, nil, nil
 		},
-		func(ref string) (interface{}, []byte, error) {
+		func(ref string) (any, []byte, error) {
 			return types.NetworkResource{
 				ID:   "5vpyomhb6ievnk0i0o60gcnei",
 				Name: "mynetwork",
@@ -165,7 +166,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 	// s2: {"ID":..}
 	s1 := formatServiceInspect(t, NewFormat(""), now)
 	s2 := formatServiceInspect(t, NewFormat("{{json .}}"), now)
-	var m1Wrap []map[string]interface{}
+	var m1Wrap []map[string]any
 	if err := json.Unmarshal([]byte(s1), &m1Wrap); err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +174,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 		t.Fatalf("strange s1=%s", s1)
 	}
 	m1 := m1Wrap[0]
-	var m2 map[string]interface{}
+	var m2 map[string]any
 	if err := json.Unmarshal([]byte(s2), &m2); err != nil {
 		t.Fatal(err)
 	}

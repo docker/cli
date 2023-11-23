@@ -46,7 +46,7 @@ func runSecretInspect(dockerCli command.Cli, opts inspectOptions) error {
 		opts.format = "pretty"
 	}
 
-	getRef := func(id string) (interface{}, []byte, error) {
+	getRef := func(id string) (any, []byte, error) {
 		return client.SecretInspectWithRaw(ctx, id)
 	}
 	f := opts.format

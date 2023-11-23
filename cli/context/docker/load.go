@@ -98,7 +98,6 @@ func (ep *Endpoint) ClientOpts() ([]client.Opt, error) {
 				withHTTPClient(tlsConfig),
 				client.WithHost(ep.Host),
 			)
-
 		} else {
 			result = append(result,
 				client.WithHTTPClient(&http.Client{

@@ -12,8 +12,7 @@ const (
 
 // NewFormat returns a format for use with a checkpoint Context
 func NewFormat(source string) formatter.Format {
-	switch source {
-	case formatter.TableFormatKey:
+	if source == formatter.TableFormatKey {
 		return defaultCheckpointFormat
 	}
 	return formatter.Format(source)

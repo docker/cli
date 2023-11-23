@@ -90,7 +90,6 @@ func TestNetworkRemoveForce(t *testing.T) {
 			} else {
 				assert.Check(t, is.Contains(fakeCli.ErrBuffer().String(), tc.expectedErr))
 				assert.ErrorContains(t, err, "Code: 1")
-
 			}
 		})
 	}

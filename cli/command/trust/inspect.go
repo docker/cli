@@ -38,40 +38,40 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(dockerCLI command.Cli, opts inspectOptions) error {
 	if opts.prettyPrint {
 		var err error
 
 		for index, remote := range opts.remotes {
-			if err = prettyPrintTrustInfo(dockerCli, remote); err != nil {
+			if err = prettyPrintTrustInfo(dockerCLI, remote); err != nil {
 				return err
 			}
 
 			// Additional separator between the inspection output of each image
 			if index < len(opts.remotes)-1 {
-				fmt.Fprint(dockerCli.Out(), "\n\n")
+				fmt.Fprint(dockerCLI.Out(), "\n\n")
 			}
 		}
 
 		return err
 	}
 
-	getRefFunc := func(ref string) (interface{}, []byte, error) {
-		i, err := getRepoTrustInfo(dockerCli, ref)
+	getRefFunc := func(ref string) (any, []byte, error) {
+		i, err := getRepoTrustInfo(dockerCLI, ref)
 		return nil, i, err
 	}
-	return inspect.Inspect(dockerCli.Out(), opts.remotes, "", getRefFunc)
+	return inspect.Inspect(dockerCLI.Out(), opts.remotes, "", getRefFunc)
 }
 
-func getRepoTrustInfo(cli command.Cli, remote string) ([]byte, error) {
-	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
+func getRepoTrustInfo(dockerCLI command.Cli, remote string) ([]byte, error) {
+	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(dockerCLI, remote)
 	if err != nil {
 		return []byte{}, err
 	}
 	// process the signatures to include repo admin if signed by the base targets role
 	for idx, sig := range signatureRows {
 		if len(sig.Signers) == 0 {
-			signatureRows[idx].Signers = append(sig.Signers, releasedRoleName)
+			signatureRows[idx].Signers = []string{releasedRoleName}
 		}
 	}
 

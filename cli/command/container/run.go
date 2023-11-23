@@ -118,14 +118,14 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 }
 
 //nolint:gocyclo
-func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
+func runContainer(dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
 	config := containerCfg.Config
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	apiClient := dockerCli.Client()
 
 	config.ArgsEscaped = false
 
-	if !opts.detach {
+	if !runOpts.detach {
 		if err := dockerCli.In().CheckTty(config.AttachStdin, config.Tty); err != nil {
 			return err
 		}
@@ -143,12 +143,12 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	ctx, cancelFun := context.WithCancel(context.Background())
 	defer cancelFun()
 
-	containerID, err := createContainer(ctx, dockerCli, containerCfg, &opts.createOptions)
+	containerID, err := createContainer(ctx, dockerCli, containerCfg, &runOpts.createOptions)
 	if err != nil {
 		reportError(stderr, "run", err.Error(), true)
 		return runStartContainerErr(err)
 	}
-	if opts.sigProxy {
+	if runOpts.sigProxy {
 		sigc := notifyAllSignals()
 		go ForwardAllSignals(ctx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
@@ -169,8 +169,8 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
 	if attach {
 		detachKeys := dockerCli.ConfigFile().DetachKeys
-		if opts.detachKeys != "" {
-			detachKeys = opts.detachKeys
+		if runOpts.detachKeys != "" {
+			detachKeys = runOpts.detachKeys
 		}
 
 		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, container.AttachOptions{

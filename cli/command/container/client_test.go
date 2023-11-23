@@ -16,24 +16,24 @@ type fakeClient struct {
 	client.Client
 	inspectFunc         func(string) (types.ContainerJSON, error)
 	execInspectFunc     func(execID string) (types.ContainerExecInspect, error)
-	execCreateFunc      func(container string, config types.ExecConfig) (types.IDResponse, error)
+	execCreateFunc      func(containerID string, config types.ExecConfig) (types.IDResponse, error)
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
 		platform *specs.Platform,
 		containerName string) (container.CreateResponse, error)
-	containerStartFunc      func(container string, options container.StartOptions) error
+	containerStartFunc      func(containerID string, options container.StartOptions) error
 	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
 	infoFunc                func() (system.Info, error)
-	containerStatPathFunc   func(container, path string) (types.ContainerPathStat, error)
-	containerCopyFromFunc   func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
+	containerStatPathFunc   func(containerID, path string) (types.ContainerPathStat, error)
+	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
 	logFunc                 func(string, container.LogsOptions) (io.ReadCloser, error)
 	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
 	containerListFunc       func(container.ListOptions) ([]types.Container, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
 	containerExecResizeFunc func(id string, options container.ResizeOptions) error
-	containerRemoveFunc     func(ctx context.Context, container string, options container.RemoveOptions) error
-	containerKillFunc       func(ctx context.Context, container, signal string) error
+	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
+	containerKillFunc       func(ctx context.Context, containerID, signal string) error
 	Version                 string
 }
 
@@ -51,9 +51,9 @@ func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (ty
 	return types.ContainerJSON{}, nil
 }
 
-func (f *fakeClient) ContainerExecCreate(_ context.Context, container string, config types.ExecConfig) (types.IDResponse, error) {
+func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config types.ExecConfig) (types.IDResponse, error) {
 	if f.execCreateFunc != nil {
-		return f.execCreateFunc(container, config)
+		return f.execCreateFunc(containerID, config)
 	}
 	return types.IDResponse{}, nil
 }
@@ -83,9 +83,9 @@ func (f *fakeClient) ContainerCreate(
 	return container.CreateResponse{}, nil
 }
 
-func (f *fakeClient) ContainerRemove(ctx context.Context, container string, options container.RemoveOptions) error {
+func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, options container.RemoveOptions) error {
 	if f.containerRemoveFunc != nil {
-		return f.containerRemoveFunc(ctx, container, options)
+		return f.containerRemoveFunc(ctx, containerID, options)
 	}
 	return nil
 }
@@ -104,23 +104,23 @@ func (f *fakeClient) Info(_ context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (f *fakeClient) ContainerStatPath(_ context.Context, container, path string) (types.ContainerPathStat, error) {
+func (f *fakeClient) ContainerStatPath(_ context.Context, containerID, path string) (types.ContainerPathStat, error) {
 	if f.containerStatPathFunc != nil {
-		return f.containerStatPathFunc(container, path)
+		return f.containerStatPathFunc(containerID, path)
 	}
 	return types.ContainerPathStat{}, nil
 }
 
-func (f *fakeClient) CopyFromContainer(_ context.Context, container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
+func (f *fakeClient) CopyFromContainer(_ context.Context, containerID, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
 	if f.containerCopyFromFunc != nil {
-		return f.containerCopyFromFunc(container, srcPath)
+		return f.containerCopyFromFunc(containerID, srcPath)
 	}
 	return nil, types.ContainerPathStat{}, nil
 }
 
-func (f *fakeClient) ContainerLogs(_ context.Context, container string, options container.LogsOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, options container.LogsOptions) (io.ReadCloser, error) {
 	if f.logFunc != nil {
-		return f.logFunc(container, options)
+		return f.logFunc(containerID, options)
 	}
 	return nil, nil
 }
@@ -129,23 +129,23 @@ func (f *fakeClient) ClientVersion() string {
 	return f.Version
 }
 
-func (f *fakeClient) ContainerWait(_ context.Context, container string, _ container.WaitCondition) (<-chan container.WaitResponse, <-chan error) {
+func (f *fakeClient) ContainerWait(_ context.Context, containerID string, _ container.WaitCondition) (<-chan container.WaitResponse, <-chan error) {
 	if f.waitFunc != nil {
-		return f.waitFunc(container)
+		return f.waitFunc(containerID)
 	}
 	return nil, nil
 }
 
-func (f *fakeClient) ContainerStart(_ context.Context, container string, options container.StartOptions) error {
+func (f *fakeClient) ContainerStart(_ context.Context, containerID string, options container.StartOptions) error {
 	if f.containerStartFunc != nil {
-		return f.containerStartFunc(container, options)
+		return f.containerStartFunc(containerID, options)
 	}
 	return nil
 }
 
-func (f *fakeClient) ContainerExport(_ context.Context, container string) (io.ReadCloser, error) {
+func (f *fakeClient) ContainerExport(_ context.Context, containerID string) (io.ReadCloser, error) {
 	if f.containerExportFunc != nil {
-		return f.containerExportFunc(container)
+		return f.containerExportFunc(containerID)
 	}
 	return nil, nil
 }
@@ -157,9 +157,9 @@ func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options c
 	return nil
 }
 
-func (f *fakeClient) ContainerKill(ctx context.Context, container, signal string) error {
+func (f *fakeClient) ContainerKill(ctx context.Context, containerID, signal string) error {
 	if f.containerKillFunc != nil {
-		return f.containerKillFunc(ctx, container, signal)
+		return f.containerKillFunc(ctx, containerID, signal)
 	}
 	return nil
 }

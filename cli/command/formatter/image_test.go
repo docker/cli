@@ -72,7 +72,7 @@ func TestImageContext(t *testing.T) {
 		{
 			imageCtx: imageContext{i: image.Summary{Size: 10000}},
 			expValue: "10kB",
-			call:     ctx.VirtualSize, //nolint:staticcheck // ignore SA1019: field is deprecated, but still set on API < v1.44.
+			call:     ctx.VirtualSize, //nolint:nolintlint,staticcheck // ignore SA1019: field is deprecated, but still set on API < v1.44.
 		},
 		{
 			imageCtx: imageContext{i: image.Summary{SharedSize: 10000}},
@@ -148,7 +148,7 @@ image        tag2      imageID2   N/A            0B
 					Format: NewImageFormat("table {{.Repository}}", false, false),
 				},
 			},
-			"REPOSITORY\nimage\nimage\n<none>\n",
+			"REPOSITORY\nimage\nimage\n<none>\n", //nolint:dupword  // ignore "Duplicate words (image) found"
 		},
 		{
 			ImageContext{
@@ -169,7 +169,7 @@ image        <none>
 					Format: NewImageFormat("table {{.Repository}}", true, false),
 				},
 			},
-			"REPOSITORY\nimage\nimage\n<none>\n",
+			"REPOSITORY\nimage\nimage\n<none>\n", //nolint:dupword  // ignore "Duplicate words (image) found"
 		},
 		{
 			ImageContext{
@@ -284,7 +284,7 @@ image_id: imageID3
 					Format: NewImageFormat("{{.Repository}}", false, false),
 				},
 			},
-			"image\nimage\n<none>\n",
+			"image\nimage\n<none>\n", //nolint:dupword  // ignore "Duplicate words (image) found"
 		},
 		{
 			ImageContext{
@@ -293,7 +293,7 @@ image_id: imageID3
 				},
 				Digest: true,
 			},
-			"image\nimage\n<none>\n",
+			"image\nimage\n<none>\n", //nolint:dupword  // ignore "Duplicate words (image) found"
 		},
 	}
 

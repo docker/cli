@@ -24,8 +24,8 @@ type AttachOptions struct {
 	DetachKeys string
 }
 
-func inspectContainerAndCheckState(ctx context.Context, cli client.APIClient, args string) (*types.ContainerJSON, error) {
-	c, err := cli.ContainerInspect(ctx, args)
+func inspectContainerAndCheckState(ctx context.Context, apiClient client.APIClient, args string) (*types.ContainerJSON, error) {
+	c, err := apiClient.ContainerInspect(ctx, args)
 	if err != nil {
 		return nil, err
 	}
@@ -45,21 +45,21 @@ func inspectContainerAndCheckState(ctx context.Context, cli client.APIClient, ar
 // NewAttachCommand creates a new cobra.Command for `docker attach`
 func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 	var opts AttachOptions
-	var container string
+	var ctr string
 
 	cmd := &cobra.Command{
 		Use:   "attach [OPTIONS] CONTAINER",
 		Short: "Attach local standard input, output, and error streams to a running container",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			container = args[0]
-			return RunAttach(context.Background(), dockerCli, container, &opts)
+			ctr = args[0]
+			return RunAttach(context.Background(), dockerCli, ctr, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container attach, docker attach",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
-			return container.State != "paused"
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr types.Container) bool {
+			return ctr.State != "paused"
 		}),
 	}
 
@@ -71,8 +71,8 @@ func NewAttachCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunAttach executes an `attach` command
-func RunAttach(ctx context.Context, dockerCli command.Cli, target string, opts *AttachOptions) error {
-	apiClient := dockerCli.Client()
+func RunAttach(ctx context.Context, dockerCLI command.Cli, target string, opts *AttachOptions) error {
+	apiClient := dockerCLI.Client()
 
 	// request channel to wait for client
 	resultC, errC := apiClient.ContainerWait(ctx, target, "")
@@ -82,11 +82,11 @@ func RunAttach(ctx context.Context, dockerCli command.Cli, target string, opts *
 		return err
 	}
 
-	if err := dockerCli.In().CheckTty(!opts.NoStdin, c.Config.Tty); err != nil {
+	if err := dockerCLI.In().CheckTty(!opts.NoStdin, c.Config.Tty); err != nil {
 		return err
 	}
 
-	detachKeys := dockerCli.ConfigFile().DetachKeys
+	detachKeys := dockerCLI.ConfigFile().DetachKeys
 	if opts.DetachKeys != "" {
 		detachKeys = opts.DetachKeys
 	}
@@ -101,7 +101,7 @@ func RunAttach(ctx context.Context, dockerCli command.Cli, target string, opts *
 
 	var in io.ReadCloser
 	if options.Stdin {
-		in = dockerCli.In()
+		in = dockerCLI.In()
 	}
 
 	if opts.Proxy && !c.Config.Tty {
@@ -129,15 +129,15 @@ func RunAttach(ctx context.Context, dockerCli command.Cli, target string, opts *
 		return err
 	}
 
-	if c.Config.Tty && dockerCli.Out().IsTerminal() {
-		resizeTTY(ctx, dockerCli, target)
+	if c.Config.Tty && dockerCLI.Out().IsTerminal() {
+		resizeTTY(ctx, dockerCLI, target)
 	}
 
 	streamer := hijackedIOStreamer{
-		streams:      dockerCli,
+		streams:      dockerCLI,
 		inputStream:  in,
-		outputStream: dockerCli.Out(),
-		errorStream:  dockerCli.Err(),
+		outputStream: dockerCLI.Out(),
+		errorStream:  dockerCLI.Err(),
 		resp:         resp,
 		tty:          c.Config.Tty,
 		detachKeys:   options.DetachKeys,

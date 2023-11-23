@@ -76,7 +76,6 @@ func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error
 		} else {
 			serviceIDs = append(serviceIDs, serviceID)
 		}
-
 	}
 
 	if len(serviceIDs) > 0 {
@@ -104,11 +103,12 @@ func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID strin
 	}
 
 	serviceMode := &service.Spec.Mode
-	if serviceMode.Replicated != nil {
+	switch {
+	case serviceMode.Replicated != nil:
 		serviceMode.Replicated.Replicas = &scale
-	} else if serviceMode.ReplicatedJob != nil {
+	case serviceMode.ReplicatedJob != nil:
 		serviceMode.ReplicatedJob.TotalCompletions = &scale
-	} else {
+	default:
 		return errors.Errorf("scale can only be used with replicated or replicated-job mode")
 	}
 

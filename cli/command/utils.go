@@ -58,7 +58,7 @@ func capitalizeFirst(s string) string {
 }
 
 // PrettyPrint outputs arbitrary data for human formatted output by uppercasing the first letter.
-func PrettyPrint(i interface{}) string {
+func PrettyPrint(i any) string {
 	switch t := i.(type) {
 	case nil:
 		return "None"
@@ -184,17 +184,17 @@ func stringSliceIndex(s, subs []string) int {
 	return -1
 }
 
-// StringSliceReplaceAt replaces the sub-slice old, with the sub-slice new, in the string
+// StringSliceReplaceAt replaces the sub-slice find, with the sub-slice replace, in the string
 // slice s, returning a new slice and a boolean indicating if the replacement happened.
 // requireIdx is the index at which old needs to be found at (or -1 to disregard that).
-func StringSliceReplaceAt(s, old, new []string, requireIndex int) ([]string, bool) {
-	idx := stringSliceIndex(s, old)
+func StringSliceReplaceAt(s, find, replace []string, requireIndex int) ([]string, bool) {
+	idx := stringSliceIndex(s, find)
 	if (requireIndex != -1 && requireIndex != idx) || idx == -1 {
 		return s, false
 	}
 	out := append([]string{}, s[:idx]...)
-	out = append(out, new...)
-	out = append(out, s[idx+len(old):]...)
+	out = append(out, replace...)
+	out = append(out, s[idx+len(find):]...)
 	return out, true
 }
 

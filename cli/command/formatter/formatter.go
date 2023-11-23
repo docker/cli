@@ -51,7 +51,7 @@ type Context struct {
 
 	// internal element
 	finalFormat string
-	header      interface{}
+	header      any
 	buffer      *bytes.Buffer
 }
 

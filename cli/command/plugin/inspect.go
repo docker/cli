@@ -36,7 +36,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
 	ctx := context.Background()
-	getRef := func(ref string) (interface{}, []byte, error) {
+	getRef := func(ref string) (any, []byte, error) {
 		return client.PluginInspectWithRaw(ctx, ref)
 	}
 

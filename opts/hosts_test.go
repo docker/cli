@@ -57,7 +57,7 @@ func TestParseDockerDaemonHost(t *testing.T) {
 		"udp://127.0.0.1":               "invalid bind address format: udp://127.0.0.1",
 		"udp://127.0.0.1:2375":          "invalid bind address format: udp://127.0.0.1:2375",
 		"tcp://unix:///run/docker.sock": "invalid proto, expected tcp: unix:///run/docker.sock",
-		" tcp://:7777/path ":            "invalid bind address format:  tcp://:7777/path ",
+		" tcp://:7777/path ":            "invalid bind address format:  tcp://:7777/path ", //nolint:gocritic // ignore mapKey: suspucious whitespace
 		"":                              "invalid bind address format: ",
 	}
 	valids := map[string]string{
@@ -170,10 +170,8 @@ func TestValidateExtraHosts(t *testing.T) {
 	for extraHost, expectedError := range invalid {
 		if _, err := ValidateExtraHost(extraHost); err == nil {
 			t.Fatalf("ValidateExtraHost(`%q`) should have failed validation", extraHost)
-		} else {
-			if !strings.Contains(err.Error(), expectedError) {
-				t.Fatalf("ValidateExtraHost(`%q`) error should contain %q", extraHost, expectedError)
-			}
+		} else if !strings.Contains(err.Error(), expectedError) {
+			t.Fatalf("ValidateExtraHost(`%q`) error should contain %q", extraHost, expectedError)
 		}
 	}
 }

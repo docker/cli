@@ -213,6 +213,7 @@ func TestHistoryContext_Table(t *testing.T) {
 		{ID: "imageID6", Created: oldDate, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 	}
 
+	//nolint:dupword // ignore "Duplicate words (CREATED) found"
 	const expectedNoTrunc = `IMAGE      CREATED        CREATED BY                                                                                                                     SIZE      COMMENT
 imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && karma -c karma.conf.js start && npm start && more commands here && the list goes on   183MB     Hi
 imageID2   24 hours ago   /bin/bash echo                                                                                                                 183MB     Hi
@@ -221,6 +222,7 @@ imageID4   24 hours ago   /bin/bash grep                                        
 imageID5   N/A            /bin/bash echo                                                                                                                 183MB     Hi
 imageID6   17 years ago   /bin/bash echo                                                                                                                 183MB     Hi
 `
+	//nolint:dupword // ignore "Duplicate words (CREATED) found"
 	const expectedTrunc = `IMAGE      CREATED        CREATED BY                                      SIZE      COMMENT
 imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && kar…   183MB     Hi
 imageID2   24 hours ago   /bin/bash echo                                  183MB     Hi

@@ -12,7 +12,7 @@
 
 // based on https://github.com/golang/go/blob/master/src/text/tabwriter/tabwriter.go Last modified 690ac40 on 31 Jan
 
-//nolint:gocyclo,nakedret,revive,stylecheck,unused // ignore linting errors, so that we can stick close to upstream
+//nolint:gocyclo,nakedret,stylecheck,unused // ignore linting errors, so that we can stick close to upstream
 package tabwriter
 
 import (
@@ -202,7 +202,7 @@ const (
 //
 //	minwidth	minimal cell width including any padding
 //	tabwidth	width of tab characters (equivalent number of spaces)
-//	padding		padding added to a cell before computing its width
+//	padding		the padding added to a cell before computing its width
 //	padchar		ASCII char used for padding
 //			if padchar == '\t', the Writer will assume that the
 //			width of a '\t' in the formatted output is tabwidth,
@@ -576,18 +576,16 @@ func (b *Writer) Write(buf []byte) (n int, err error) {
 					b.startEscape(ch)
 				}
 			}
-		} else {
+		} else if ch == b.endChar {
 			// inside escape
-			if ch == b.endChar {
-				// end of tag/entity
-				j := i + 1
-				if ch == Escape && b.flags&StripEscape != 0 {
-					j = i // strip Escape
-				}
-				b.append(buf[n:j])
-				n = i + 1 // ch consumed
-				b.endEscape()
+			// end of tag/entity
+			j := i + 1
+			if ch == Escape && b.flags&StripEscape != 0 {
+				j = i // strip Escape
 			}
+			b.append(buf[n:j])
+			n = i + 1 // ch consumed
+			b.endEscape()
 		}
 	}
 

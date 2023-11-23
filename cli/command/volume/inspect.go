@@ -40,7 +40,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 
 	ctx := context.Background()
 
-	getVolFunc := func(name string) (interface{}, []byte, error) {
+	getVolFunc := func(name string) (any, []byte, error) {
 		i, err := client.VolumeInspect(ctx, name)
 		return i, nil, err
 	}

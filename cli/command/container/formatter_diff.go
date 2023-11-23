@@ -14,8 +14,7 @@ const (
 
 // NewDiffFormat returns a format for use with a diff Context
 func NewDiffFormat(source string) formatter.Format {
-	switch source {
-	case formatter.TableFormatKey:
+	if source == formatter.TableFormatKey {
 		return defaultDiffTableFormat
 	}
 	return formatter.Format(source)

@@ -197,10 +197,8 @@ func TestRunExec(t *testing.T) {
 			err := RunExec(context.Background(), cli, "thecontainer", testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
-			} else {
-				if !assert.Check(t, err) {
-					return
-				}
+			} else if !assert.Check(t, err) {
+				return
 			}
 			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
 			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))
@@ -264,8 +262,8 @@ func TestNewExecCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{inspectFunc: tc.containerInspectFunc})
-		cmd := NewExecCommand(cli)
+		fakeCLI := test.NewFakeCli(&fakeClient{inspectFunc: tc.containerInspectFunc})
+		cmd := NewExecCommand(fakeCLI)
 		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)

@@ -132,6 +132,7 @@ func TestTrustedRunFromBadTrustServer(t *testing.T) {
 
 // TODO: create this with registry API instead of engine API
 func createRemoteImage(t *testing.T) string {
+	t.Helper()
 	image := registryPrefix + "/alpine:test-run-pulls"
 	icmd.RunCommand("docker", "pull", fixtures.AlpineImage).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, image).Assert(t, icmd.Success)

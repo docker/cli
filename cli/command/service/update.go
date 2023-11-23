@@ -219,7 +219,8 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 	if err != nil {
 		return err
 	}
-	if sendAuth {
+	switch {
+	case sendAuth:
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
@@ -228,9 +229,9 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 			return err
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
-	} else if clientSideRollback {
+	case clientSideRollback:
 		updateOpts.RegistryAuthFrom = types.RegistryAuthFromPreviousSpec
-	} else {
+	default:
 		updateOpts.RegistryAuthFrom = types.RegistryAuthFromSpec
 	}
 
@@ -727,8 +728,10 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimi
 			newUlimits[ulimit.Name] = ulimit
 		}
 	}
-
-	var limits []*units.Ulimit
+	if len(newUlimits) == 0 {
+		return nil
+	}
+	limits := make([]*units.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		limits = append(limits, ulimit)
 	}
@@ -799,7 +802,7 @@ func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, s
 	if flags.Changed(flagCredentialSpec) {
 		credSpec := flags.Lookup(flagCredentialSpec).Value.(*credentialSpecOpt).Value()
 		credSpecConfigName = credSpec.Config
-	} else {
+	} else { //nolint:gocritic // ignore  elseif: can replace 'else {if cond {}}' with 'else if cond {}'
 		// if the credential spec flag has not changed, then check if there
 		// already is a credentialSpec. if there is one, and it's for a Config,
 		// then it's from the old object, and its value is the config ID. we
@@ -1307,7 +1310,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	}
 
 	existingNetworks := make(map[string]struct{})
-	var newNetworks []swarm.NetworkAttachmentConfig
+	var newNetworks []swarm.NetworkAttachmentConfig //nolint:prealloc
 	for _, network := range specNetworks {
 		if _, exists := idsToRemove[network.Target]; exists {
 			continue
@@ -1362,7 +1365,7 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 		// otherwise, set the credential spec to be the parsed value
 		credSpec := credSpecOpt.Value.(*credentialSpecOpt).Value()
 
-		// if this is a Config credential spec, we we still need to replace the
+		// if this is a Config credential spec, we still need to replace the
 		// value of credSpec.Config with the config ID instead of Name.
 		if credSpec.Config != "" {
 			for _, config := range containerSpec.Configs {
@@ -1503,10 +1506,13 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 }
 
 func capsList(caps map[string]bool) []string {
+	if len(caps) == 0 {
+		return nil
+	}
 	if caps[opts.AllCapabilities] {
 		return []string{opts.AllCapabilities}
 	}
-	var out []string
+	out := make([]string, 0, len(caps))
 	for c := range caps {
 		out = append(out, c)
 	}
