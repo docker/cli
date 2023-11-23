@@ -888,46 +888,41 @@ drwxrwxr-x 1 1000 1000   4096 Dec  4 06:11 .git
 The default seccomp profile will adjust to the selected capabilities, in order to allow
 use of facilities allowed by the capabilities, so you should not have to adjust this.
 
-## Overriding Dockerfile image defaults
+## Overriding image defaults
 
-When a developer builds an image from a [*Dockerfile*](https://docs.docker.com/engine/reference/builder/)
-or when committing it, the developer can set a number of default parameters
-that take effect when the image starts up as a container.
+When you build an image from a [Dockerfile](https://docs.docker.com/engine/reference/builder/),
+or when committing it, you can set a number of default parameters that take
+effect when the image starts up as a container. When you run an image, you can
+override those defaults using flags for the `docker run` command.
 
-Four of the Dockerfile commands cannot be overridden at runtime: `FROM`,
-`MAINTAINER`, `RUN`, and `ADD`. Everything else has a corresponding override
-in `docker run`. We'll go through what the developer might have set in each
-Dockerfile instruction and how the operator can override that setting.
+- [Default entrypoint](#default-entrypoint)
+- [Default command and options](#default-command-and-options)
+- [Expose ports](#exposed-ports)
+- [Environment variables](#environment-variables)
+- [Healthcheck](#healthchecks)
+- [Filesystem mounts](#filesystem-mounts)
+- [User](#user)
+- [Working directory](#working-directory)
 
- - [CMD (Default Command or Options)](#cmd-default-command-or-options)
- - [ENTRYPOINT (Default Command to Execute at Runtime)](
-    #entrypoint-default-command-to-execute-at-runtime)
- - [EXPOSE (Incoming Ports)](#expose-incoming-ports)
- - [ENV (Environment Variables)](#env-environment-variables)
- - [HEALTHCHECK](#healthcheck)
- - [VOLUME (Shared Filesystems)](#volume-shared-filesystems)
- - [USER](#user)
- - [WORKDIR](#workdir)
+### Default command and options
 
-### CMD (default command or options)
-
-Recall the optional `COMMAND` in the Docker
-commandline:
+The command syntax for `docker run` supports optionally specifying commands and
+arguments to the container's entrypoint, represented as `[COMMAND]` and
+`[ARG...]` in the following synopsis example:
 
 ```console
 $ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
 ```
 
-This command is optional because the person who created the `IMAGE` may
-have already provided a default `COMMAND` using the Dockerfile `CMD`
-instruction. As the operator (the person running a container from the
-image), you can override that `CMD` instruction just by specifying a new
-`COMMAND`.
+This command is optional because whoever created the `IMAGE` may have already
+provided a default `COMMAND`, using the Dockerfile `CMD` instruction. When you
+run a container, you can override that `CMD` instruction just by specifying a
+new `COMMAND`.
 
 If the image also specifies an `ENTRYPOINT` then the `CMD` or `COMMAND`
 get appended as arguments to the `ENTRYPOINT`.
 
-### ENTRYPOINT (default command to execute at runtime)
+### Default entrypoint
 
 ```console
     --entrypoint="": Overwrite the default entrypoint set by the image
@@ -967,7 +962,7 @@ $ docker run -it --entrypoint="" mysql bash
 > Passing `--entrypoint` will clear out any default command set on the
 > image (i.e. any `CMD` instruction in the Dockerfile used to build it).
 
-### EXPOSE (incoming ports)
+### Exposed ports
 
 The following `run` command options work with container networking:
 
@@ -1023,7 +1018,7 @@ If `--link` is used when starting a container in a user-defined network as
 described in [*Networking overview*](https://docs.docker.com/network/),
 it will provide a named alias for the container being linked to.
 
-### ENV (environment variables)
+### Environment variables
 
 Docker automatically sets some environment variables when creating a Linux
 container. Docker does not set any environment variables when creating a Windows
@@ -1093,7 +1088,7 @@ windir=C:\Windows
 
 Similarly the operator can set the **HOSTNAME** (Linux) or **COMPUTERNAME** (Windows) with `-h`.
 
-### HEALTHCHECK
+### Healthchecks
 
 ```
   --health-cmd            Command to run to check health
@@ -1171,7 +1166,7 @@ The example below mounts an empty tmpfs into the container with the `rw`,
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 ```
 
-### VOLUME (shared filesystems)
+### Filesystem mounts
 
     -v, --volume=[host-src:]container-dest[:<options>]: Bind mount a volume.
     The comma-delimited `options` are [rw|ro], [z|Z],
@@ -1216,7 +1211,7 @@ For example, you can specify either `/foo` or `foo` for a `host-src` value.
 If you supply the `/foo` value, Docker creates a bind mount. If you supply
 the `foo` specification, Docker creates a named volume.
 
-### USER
+### User
 
 `root` (id = 0) is the default user within a container. The image developer can
 create additional users. Those users are accessible by name.  When passing a numeric
@@ -1234,7 +1229,7 @@ the `USER` instruction by passing the `-u` option.
 > **Note:** if you pass a numeric uid, it must be in the range of 0-2147483647.
 > If you pass a username, the user must exist in the container.
 
-### WORKDIR
+### Working directory
 
 The default working directory for running binaries within a container is the
 root directory (`/`). It is possible to set a different working directory with the
