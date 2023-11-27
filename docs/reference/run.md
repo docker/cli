@@ -997,7 +997,7 @@ To find the mapping between the host ports and the exposed ports, use the
 ### Environment variables
 
 Docker automatically sets some environment variables when creating a Linux
-container. Docker does not set any environment variables when creating a Windows
+container. Docker doesn't set any environment variables when creating a Windows
 container.
 
 The following environment variables are set for Linux containers:
@@ -1010,11 +1010,13 @@ The following environment variables are set for Linux containers:
 | `TERM`     | `xterm` if the container is allocated a pseudo-TTY                                                   |
 
 
-Additionally, the operator can **set any environment variable** in the
-container by using one or more `-e` flags, even overriding those mentioned
-above, or already defined by the developer with a Dockerfile `ENV`. If the
-operator names an environment variable without specifying a value, then the
-current value of the named variable is propagated into the container's environment:
+Additionally, you can set any environment variable in the container by using
+one or more `-e` flags. You can even override the variables mentioned above, or
+variables defined using a Dockerfile `ENV` instruction when building the image.
+
+If the you name an environment variable without specifying a value, the current
+value of the named variable on the host is propagated into the container's
+environment:
 
 ```console
 $ export today=Wednesday
@@ -1061,8 +1063,6 @@ USERNAME=ContainerAdministrator
 USERPROFILE=C:\Users\ContainerAdministrator
 windir=C:\Windows
 ```
-
-Similarly the operator can set the **HOSTNAME** (Linux) or **COMPUTERNAME** (Windows) with `-h`.
 
 ### Healthchecks
 
