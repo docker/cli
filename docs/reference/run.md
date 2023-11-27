@@ -1066,14 +1066,17 @@ windir=C:\Windows
 
 ### Healthchecks
 
-```
-  --health-cmd            Command to run to check health
-  --health-interval       Time between running the check
-  --health-retries        Consecutive failures needed to report unhealthy
-  --health-timeout        Maximum time to allow one check to run
-  --health-start-period   Start period for the container to initialize before starting health-retries countdown
-  --health-start-interval Time between running the check during the start period
-  --no-healthcheck        Disable any container-specified HEALTHCHECK
+The following flags for the `docker run` command let you control the parameters
+for container healthchecks:
+
+```text
+--health-cmd            Command to run to check health
+--health-interval       Time between running the check
+--health-retries        Consecutive failures needed to report unhealthy
+--health-timeout        Maximum time to allow one check to run
+--health-start-period   Start period for the container to initialize before starting health-retries countdown
+--health-start-interval Time between running the check during the start period
+--no-healthcheck        Disable any container-specified HEALTHCHECK
 ```
 
 Example:
