@@ -678,7 +678,7 @@ any number of minor numbers (added as new devices appear), add the
 following rule:
 
 ```console
-$ docker run -d --device-cgroup-rule='c 42:* rmw' -name my-container my-image
+$ docker run -d --device-cgroup-rule='c 42:* rmw' --name my-container my-image
 ```
 
 Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`
