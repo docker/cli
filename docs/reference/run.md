@@ -1207,21 +1207,25 @@ The health status is also displayed in the `docker ps` output.
 
 ### User
 
-`root` (id = 0) is the default user within a container. The image developer can
-create additional users. Those users are accessible by name.  When passing a numeric
-ID, the user does not have to exist in the container.
+The default user within a container is `root` (id = 0). You can set a default
+user to run the first process with the Dockerfile `USER` instruction. When
+starting a container, you can override the `USER` instruction by passing the
+`-u` option.
 
-The developer can set a default user to run the first process with the
-Dockerfile `USER` instruction. When starting a container, the operator can override
-the `USER` instruction by passing the `-u` option.
+```text
+-u="", --user="": Sets the username or UID used and optionally the groupname or GID for the specified command.
+```
 
-    -u="", --user="": Sets the username or UID used and optionally the groupname or GID for the specified command.
+The followings examples are all valid:
 
-    The followings examples are all valid:
-    --user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
+```text
+--user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
+```
 
-> **Note:** if you pass a numeric uid, it must be in the range of 0-2147483647.
-> If you pass a username, the user must exist in the container.
+> **Note**
+>
+> If you pass a numeric user ID, it must be in the range of 0-2147483647. If
+> you pass a username, the user must exist in the container.
 
 ### Working directory
 
