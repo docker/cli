@@ -924,27 +924,33 @@ get appended as arguments to the `ENTRYPOINT`.
 
 ### Default entrypoint
 
-```console
-    --entrypoint="": Overwrite the default entrypoint set by the image
+```text
+--entrypoint="": Overwrite the default entrypoint set by the image
 ```
 
-The `ENTRYPOINT` of an image is similar to a `COMMAND` because it
-specifies what executable to run when the container starts, but it is
-(purposely) more difficult to override. The `ENTRYPOINT` gives a
-container its default nature or behavior, so that when you set an
-`ENTRYPOINT` you can run the container *as if it were that binary*,
-complete with default options, and you can pass in more options via the
-`COMMAND`. But, sometimes an operator may want to run something else
-inside the container, so you can override the default `ENTRYPOINT` at
-runtime by using a string to specify the new `ENTRYPOINT`. Here is an
-example of how to run a shell in a container that has been set up to
-automatically run something else (like `/usr/bin/redis-server`):
+The entrypoint refers to the default executable that's invoked when you run a
+container. A container's entrypoint is defined using the Dockerfile
+`ENTRYPOINT` instruction. It's similar to specifying a default command because
+it specifies, but the difference is that you need to pass an explicit flag to
+override the entrypoint, whereas you can override default commands with
+positional arguments. The defines a container's default behavior, with the idea
+that when you set an entrypoint you can run the container *as if it were that
+binary*, complete with default options, and you can pass in more options as
+commands. But there are cases where you may want to run something else inside
+the container. This is when overriding the default entrypoint at runtime comes
+in handy, using the `--entrypoint` flag for the `docker run` command.
+
+The `--entrypoint` flag expects a string value, representing the name or path
+of the binary that you want to invoke when the container starts. The following
+example shows you how to run a Bash shell in a container that has been set up
+to automatically run some other binary (like `/usr/bin/redis-server`):
 
 ```console
 $ docker run -it --entrypoint /bin/bash example/redis
 ```
 
-or two examples of how to pass more parameters to that ENTRYPOINT:
+The following examples show how to pass additional parameters to the custom
+entrypoint, using the positional command arguments:
 
 ```console
 $ docker run -it --entrypoint /bin/bash example/redis -c ls -l
@@ -959,8 +965,8 @@ $ docker run -it --entrypoint="" mysql bash
 
 > **Note**
 >
-> Passing `--entrypoint` will clear out any default command set on the
-> image (i.e. any `CMD` instruction in the Dockerfile used to build it).
+> Passing `--entrypoint` clears out any default command set on the image. That
+> is, any `CMD` instruction in the Dockerfile used to build it.
 
 ### Exposed ports
 
