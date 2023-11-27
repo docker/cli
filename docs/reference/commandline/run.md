@@ -372,15 +372,17 @@ Under these conditions, you can pass any size less than the backing filesystem s
 For the `windowsfilter`, `btrfs`, and `zfs` storage drivers, you cannot pass a
 size less than the Default BaseFS Size.
 
-
 ### <a name="tmpfs"></a> Mount tmpfs (--tmpfs)
+
+The `--tmpfs` flag lets you create a `tmpfs` mount.
+
+The options that you can pass to `--tmpfs` are identical to the Linux `mount -t
+tmpfs -o` command. The following example mounts an empty `tmpfs` into the
+container with the `rw`, `noexec`, `nosuid`, `size=65536k` options.
 
 ```console
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 ```
-
-The `--tmpfs` flag mounts an empty tmpfs into the container with the `rw`,
-`noexec`, `nosuid`, `size=65536k` options.
 
 ### <a name="volume"></a> Mount volume (-v)
 

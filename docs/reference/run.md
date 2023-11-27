@@ -1130,21 +1130,6 @@ $ sleep 2; docker inspect --format='{{json .State.Health}}' test
 
 The health status is also displayed in the `docker ps` output.
 
-### TMPFS (mount tmpfs filesystems)
-
-```console
---tmpfs=[]: Create a tmpfs mount with: container-dir[:<options>],
-            where the options are identical to the Linux
-            'mount -t tmpfs -o' command.
-```
-
-The example below mounts an empty tmpfs into the container with the `rw`,
-`noexec`, `nosuid`, and `size=65536k` options.
-
-```console
-$ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
-```
-
 ### Filesystem mounts
 
     -v, --volume=[host-src:]container-dest[:<options>]: Bind mount a volume.
