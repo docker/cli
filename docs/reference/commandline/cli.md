@@ -313,7 +313,6 @@ Following is a sample `config.json` file to illustrate the format used for
 various fields:
 
 ```json
-{% raw %}
 {
   "HttpHeaders": {
     "MyHeader": "MyValue"
@@ -356,7 +355,6 @@ various fields:
     }
   }
 }
-{% endraw %}
 ```
 
 ### Experimental features
