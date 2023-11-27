@@ -189,6 +189,82 @@ round-trip min/avg/max = 0.257/0.288/0.326 ms
 For more information about container networking, see [Networking
 overview](https://docs.docker.com/network/)
 
+## Filesystem mounts
+
+By default, the data in a container is stored in an ephemeral, writable
+container layer. Removing the container also removes its data. If you want to
+use persistent data with containers, you can use filesystem mounts to store the
+data persistently on the host system. Filesystem mounts can also let you share
+data between containers and the host.
+
+Docker supports two main categories of mounts:
+
+- Volume mounts
+- Bind mounts
+
+Volume mounts are great for persistently storing data for containers, and for
+sharing data between containers. Bind mounts, on the other hand, are for
+sharing data between a container and the host.
+
+You can add a filesystem mount to a container using the `--mount` flag for the
+`docker run` command.
+
+The following sections show basic examples of how to create volumes and bind
+mounts. For more in-depth examples and descriptions, refer to the section of
+the [storage section](https://docs.docker.com/storage/) in the documentation.
+
+### Volume mounts
+
+To create a volume mount:
+
+```console
+$ docker run --mount source=<VOLUME_NAME>,target=[PATH] [IMAGE] [COMMAND...]
+```
+
+The `--mount` flag takes two parameters in this case: `source` and `target`.
+The value for the `source` parameter is the name of the volume. The value of
+`target` is the mount location of the volume inside the container. Once you've
+created the volume, any data you write to the volume is persisted, even if you
+stop or remove the container:
+
+```console
+$ docker run --rm --mount source=my_volume,target=/foo busybox \
+  echo "hello, volume!" > /foo/hello.txt
+$ docker run --mount source=my_volume,target=/bar busybox
+  cat /bar/hello.txt
+hello, volume!
+```
+
+The `target` must always be an absolute path, such as `/src/docs`. An absolute
+path starts with a `/` (forward slash). Volume names must start with an
+alphanumeric character, followed by `a-z0-9`, `_` (underscore), `.` (period) or
+`-` (hyphen).
+
+### Bind mounts
+
+To create a bind mount:
+
+```console
+$ docker run -it --mount type=bind,source=[PATH],target=[PATH] busybox
+```
+
+In this case, the `--mount` flag takes three parameters. A type (`bind`), and
+two paths. The `source` path is a the location on the host that you want to
+bind mount into the container. The `target` path is the mount destination
+inside the container.
+
+Bind mounts are read-write by default, meaning that you can both read and write
+files to and from the mounted location from the container. Changes that you
+make, such as adding or editing files, are reflected on the host filesystem:
+
+```console
+$ docker run -it --mount type=bind,source=.,target=/foo busybox
+/ # echo "hello from container" > /foo/hello.txt
+/ # exit
+$ cat hello.txt
+hello from container
+```
+
 ## Exit status
 
 The exit code from `docker run` gives information about why the container
@@ -900,7 +976,6 @@ override those defaults using flags for the `docker run` command.
 - [Expose ports](#exposed-ports)
 - [Environment variables](#environment-variables)
 - [Healthcheck](#healthchecks)
-- [Filesystem mounts](#filesystem-mounts)
 - [User](#user)
 - [Working directory](#working-directory)
 
@@ -1129,51 +1204,6 @@ $ sleep 2; docker inspect --format='{{json .State.Health}}' test
 ```
 
 The health status is also displayed in the `docker ps` output.
-
-### Filesystem mounts
-
-    -v, --volume=[host-src:]container-dest[:<options>]: Bind mount a volume.
-    The comma-delimited `options` are [rw|ro], [z|Z],
-    [[r]shared|[r]slave|[r]private], and [nocopy].
-    The 'host-src' is an absolute path or a name value.
-
-    If neither 'rw' or 'ro' is specified then the volume is mounted in
-    read-write mode.
-
-    The `nocopy` mode is used to disable automatically copying the requested volume
-    path in the container to the volume storage location.
-    For named volumes, `copy` is the default mode. Copy modes are not supported
-    for bind-mounted volumes.
-
-    --volumes-from="": Mount all volumes from the given container(s)
-
-> **Note**
->
-> When using systemd to manage the Docker daemon's start and stop, in the systemd
-> unit file there is an option to control mount propagation for the Docker daemon
-> itself, called `MountFlags`. The value of this setting may cause Docker to not
-> see mount propagation changes made on the mount point. For example, if this value
-> is `slave`, you may not be able to use the `shared` or `rshared` propagation on
-> a volume.
-
-The volumes commands are complex enough to have their own documentation
-in section [*Use volumes*](https://docs.docker.com/storage/volumes/). A developer can define
-one or more `VOLUME`'s associated with an image, but only the operator
-can give access from one container to another (or from a container to a
-volume mounted on the host).
-
-The `container-dest` must always be an absolute path such as `/src/docs`.
-The `host-src` can either be an absolute path or a `name` value. If you
-supply an absolute path for the `host-src`, Docker bind-mounts to the path
-you specify. If you supply a `name`, Docker creates a named volume by that `name`.
-
-A `name` value must start with an alphanumeric character,
-followed by `a-z0-9`, `_` (underscore), `.` (period) or `-` (hyphen).
-An absolute path starts with a `/` (forward slash).
-
-For example, you can specify either `/foo` or `foo` for a `host-src` value.
-If you supply the `/foo` value, Docker creates a bind mount. If you supply
-the `foo` specification, Docker creates a named volume.
 
 ### User
 
