@@ -125,7 +125,7 @@ func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 		if options.all {
 			warnings = append(warnings, "all build cache")
 		} else {
-			warnings = append(warnings, "all dangling build cache")
+			warnings = append(warnings, "unused build cache")
 		}
 	}
 
