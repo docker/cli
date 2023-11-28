@@ -1230,7 +1230,14 @@ The followings examples are all valid:
 ### Working directory
 
 The default working directory for running binaries within a container is the
-root directory (`/`). It is possible to set a different working directory with the
-Dockerfile `WORKDIR` command. The operator can override this with:
+root directory (`/`). The default working directory of an image is set using
+the Dockerfile `WORKDIR` command. You can override the default working
+directory for an image using the `-w` (or `--workdir`) flag for the `docker
+run` command:
 
-    -w="", --workdir="": Working directory inside the container
+```text
+$ docker run --rm -w /my/workdir alpine pwd
+/my/workdir
+```
+
+If the directory doesn't already exist in the container, it will be created.
