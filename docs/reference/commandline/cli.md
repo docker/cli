@@ -156,7 +156,7 @@ By default, the Docker command line stores its configuration files in a
 directory called `.docker` within your `$HOME` directory.
 
 Docker manages most of the files in the configuration directory
-and you should not modify them. However, you *can* modify the
+and you should not modify them. However, you can modify the
 `config.json` file to control certain aspects of how the `docker`
 command behaves.
 
@@ -313,7 +313,6 @@ Following is a sample `config.json` file to illustrate the format used for
 various fields:
 
 ```json
-{% raw %}
 {
   "HttpHeaders": {
     "MyHeader": "MyValue"
@@ -356,7 +355,6 @@ various fields:
     }
   }
 }
-{% endraw %}
 ```
 
 ### Experimental features
