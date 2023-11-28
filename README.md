@@ -8,8 +8,7 @@
 
 ## About
 
-This repository is the home of the cli used in the Docker CE and
-Docker EE products.
+This repository is the home of the Docker CLI.
 
 ## Development
 
