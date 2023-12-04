@@ -1,14 +1,14 @@
 package context
 
 import (
+	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestRemove(t *testing.T) {
@@ -19,7 +19,7 @@ func TestRemove(t *testing.T) {
 	_, err := cli.ContextStore().GetMetadata("current")
 	assert.NilError(t, err)
 	_, err = cli.ContextStore().GetMetadata("other")
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, errors.Is(err, os.ErrNotExist))
 }
 
 func TestRemoveNotAContext(t *testing.T) {
