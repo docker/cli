@@ -6,6 +6,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

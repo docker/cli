@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -39,12 +38,12 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 	newRef := args[0]
 	targetRef, err := normalizeReference(newRef)
 	if err != nil {
-		return errors.Wrapf(err, "error parsing name for manifest list %s", newRef)
+		return fmt.Errorf("error parsing name for manifest list %s: %w: %w", newRef, err)
 	}
 
 	_, err = registry.ParseRepositoryInfo(targetRef)
 	if err != nil {
-		return errors.Wrapf(err, "error parsing repository name for manifest list %s", newRef)
+		return fmt.Errorf("error parsing repository name for manifest list %s: %w: %w", newRef, err)
 	}
 
 	manifestStore := dockerCli.ManifestStore()
@@ -55,7 +54,7 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 	case err != nil:
 		return err
 	case !opts.amend:
-		return errors.Errorf("refusing to amend an existing manifest list with no --amend flag")
+		return fmt.Errorf("refusing to amend an existing manifest list with no --amend flag")
 	}
 
 	ctx := context.Background()

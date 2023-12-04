@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +36,7 @@ func newEnableCommand(dockerCli command.Cli) *cobra.Command {
 func runEnable(dockerCli command.Cli, opts *enableOpts) error {
 	name := opts.name
 	if opts.timeout < 0 {
-		return errors.Errorf("negative timeout %d is invalid", opts.timeout)
+		return fmt.Errorf("negative timeout %d is invalid", opts.timeout)
 	}
 
 	if err := dockerCli.Client().PluginEnable(context.Background(), name, types.PluginEnableOptions{Timeout: opts.timeout}); err != nil {

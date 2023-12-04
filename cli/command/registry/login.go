@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -154,7 +154,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	}
 
 	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
-		return errors.Errorf("Error saving credentials: %v", err)
+		return fmt.Errorf("Error saving credentials: %v", err)
 	}
 
 	if response.Status != "" {

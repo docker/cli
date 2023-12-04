@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"

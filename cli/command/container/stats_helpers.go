@@ -3,13 +3,13 @@ package container
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 

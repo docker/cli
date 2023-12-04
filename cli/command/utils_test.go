@@ -1,11 +1,11 @@
 package command
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 

@@ -1,6 +1,7 @@
 package context
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -69,7 +69,7 @@ func parseBool(config map[string]string, name string) (bool, error) {
 		return false, nil
 	}
 	res, err := strconv.ParseBool(strVal)
-	return res, errors.Wrap(err, name)
+	return res, fmt.Errorf(name+": %w", err)
 }
 
 func validateConfig(config map[string]string, allowedKeys map[string]struct{}) error {
@@ -97,7 +97,7 @@ func getDockerEndpoint(contextStore store.Reader, config map[string]string) (doc
 		if ep, ok := metadata.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta); ok {
 			return docker.Endpoint{EndpointMeta: ep}, nil
 		}
-		return docker.Endpoint{}, errors.Errorf("unable to get endpoint from context %q", contextName)
+		return docker.Endpoint{}, fmt.Errorf("unable to get endpoint from context %q", contextName)
 	}
 	tlsData, err := context.TLSDataFromFiles(config[keyCA], config[keyCert], config[keyKey])
 	if err != nil {
@@ -117,10 +117,10 @@ func getDockerEndpoint(contextStore store.Reader, config map[string]string) (doc
 	// try to resolve a docker client, validating the configuration
 	opts, err := ep.ClientOpts()
 	if err != nil {
-		return docker.Endpoint{}, errors.Wrap(err, "invalid docker endpoint options")
+		return docker.Endpoint{}, fmt.Errorf("invalid docker endpoint options: %w", err)
 	}
 	if _, err := client.NewClientWithOpts(opts...); err != nil {
-		return docker.Endpoint{}, errors.Wrap(err, "unable to apply docker endpoint options")
+		return docker.Endpoint{}, fmt.Errorf("unable to apply docker endpoint options: %w", err)
 	}
 	return ep, nil
 }

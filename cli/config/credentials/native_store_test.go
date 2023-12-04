@@ -2,6 +2,7 @@ package credentials
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

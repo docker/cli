@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/schema"
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/pkg/errors"
 )
 
 // LoadComposefile parse the composefile specified in the cli and returns its Config and version.
@@ -29,7 +29,7 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 	if err != nil {
 		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
 			// this error is intentionally formatted multi-line
-			return nil, errors.Errorf("Compose file contains unsupported options:\n\n%s\n", propertyWarnings(fpe.Properties))
+			return nil, fmt.Errorf("Compose file contains unsupported options:\n\n%s\n", propertyWarnings(fpe.Properties))
 		}
 
 		return nil, err
@@ -119,7 +119,7 @@ func buildEnvironment(env []string) (map[string]string, error) {
 
 		k, v, ok := strings.Cut(s, "=")
 		if !ok || k == "" {
-			return result, errors.Errorf("unexpected environment variable '%s'", s)
+			return result, fmt.Errorf("unexpected environment variable '%s'", s)
 		}
 		// value may be set, but empty if "s" is like "K=", not "K".
 		result[k] = v

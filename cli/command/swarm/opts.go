@@ -3,6 +3,7 @@ package swarm
 import (
 	"encoding/csv"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
 
@@ -177,7 +177,7 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 	for _, field := range fields {
 		key, value, ok := strings.Cut(field, "=")
 		if !ok {
-			return nil, errors.Errorf("invalid field '%s' must be a key=value pair", field)
+			return nil, fmt.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
 
 		// TODO(thaJeztah): these options should not be case-insensitive.
@@ -187,7 +187,7 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 			if strings.ToLower(value) == string(swarm.ExternalCAProtocolCFSSL) {
 				externalCA.Protocol = swarm.ExternalCAProtocolCFSSL
 			} else {
-				return nil, errors.Errorf("unrecognized external CA protocol %s", value)
+				return nil, fmt.Errorf("unrecognized external CA protocol %s", value)
 			}
 		case "url":
 			hasURL = true
@@ -195,7 +195,7 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 		case "cacert":
 			cacontents, err := os.ReadFile(value)
 			if err != nil {
-				return nil, errors.Wrap(err, "unable to read CA cert for external CA")
+				return nil, fmt.Errorf("unable to read CA cert for external CA: %w", err)
 			}
 			if pemBlock, _ := pem.Decode(cacontents); pemBlock == nil {
 				return nil, errors.New("CA cert for external CA must be in PEM format")

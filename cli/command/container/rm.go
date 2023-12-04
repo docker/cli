@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"path/filepath"
@@ -20,7 +21,6 @@ import (
 	units "github.com/docker/go-units"
 	"github.com/google/shlex"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -52,7 +52,7 @@ func ParseYAML(source []byte) (map[string]any, error) {
 	}
 	cfgMap, ok := cfg.(map[any]any)
 	if !ok {
-		return nil, errors.Errorf("top-level object must be a mapping")
+		return nil, fmt.Errorf("top-level object must be a mapping")
 	}
 	converted, err := convertToStringKeysRecursive(cfgMap, "")
 	if err != nil {
@@ -64,7 +64,7 @@ func ParseYAML(source []byte) (map[string]any, error) {
 // Load reads a ConfigDetails and returns a fully loaded configuration
 func Load(configDetails types.ConfigDetails, opt ...func(*Options)) (*types.Config, error) {
 	if len(configDetails.ConfigFiles) < 1 {
-		return nil, errors.Errorf("No files specified")
+		return nil, fmt.Errorf("No files specified")
 	}
 
 	options := &Options{
@@ -89,7 +89,7 @@ func Load(configDetails types.ConfigDetails, opt ...func(*Options)) (*types.Conf
 			configDetails.Version = version
 		}
 		if configDetails.Version != version {
-			return nil, errors.Errorf("version mismatched between two composefiles : %v and %v", configDetails.Version, version)
+			return nil, fmt.Errorf("version mismatched between two composefiles : %v and %v", configDetails.Version, version)
 		}
 
 		if err := validateForbidden(configDict); err != nil {
@@ -389,7 +389,7 @@ func formatInvalidKeyError(keyPrefix string, key any) error {
 	} else {
 		location = "in " + keyPrefix
 	}
-	return errors.Errorf("non-string key %s: %#v", location, key)
+	return fmt.Errorf("non-string key %s: %#v", location, key)
 }
 
 // LoadServices produces a ServiceConfig map from a compose file Dict
@@ -534,7 +534,7 @@ func transformUlimits(data any) (any, error) {
 		ulimit.Hard = value["hard"].(int)
 		return ulimit, nil
 	default:
-		return data, errors.Errorf("invalid type %T for ulimits", value)
+		return data, fmt.Errorf("invalid type %T for ulimits", value)
 	}
 }
 
@@ -553,7 +553,7 @@ func LoadNetworks(source map[string]any, version string) (map[string]types.Netwo
 		switch {
 		case network.External.Name != "":
 			if network.Name != "" {
-				return nil, errors.Errorf("network %s: network.external.name and network.name conflict; only use network.name", name)
+				return nil, fmt.Errorf("network %s: network.external.name and network.name conflict; only use network.name", name)
 			}
 			if versions.GreaterThanOrEqualTo(version, "3.5") {
 				logrus.Warnf("network %s: network.external.name is deprecated in favor of network.name", name)
@@ -570,9 +570,7 @@ func LoadNetworks(source map[string]any, version string) (map[string]types.Netwo
 }
 
 func externalVolumeError(volume, key string) error {
-	return errors.Errorf(
-		"conflicting parameters \"external\" and %q specified for volume %q",
-		key, volume)
+	return fmt.Errorf("conflicting parameters \"external\" and %q specified for volume %q", key, volume)
 }
 
 // LoadVolumes produces a VolumeConfig map from a compose file Dict
@@ -596,7 +594,7 @@ func LoadVolumes(source map[string]any, version string) (map[string]types.Volume
 			return nil, externalVolumeError(name, "labels")
 		case volume.External.Name != "":
 			if volume.Name != "" {
-				return nil, errors.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
+				return nil, fmt.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
 			}
 			if versions.GreaterThanOrEqualTo(version, "3.4") {
 				logrus.Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
@@ -657,7 +655,7 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 		// handle deprecated external.name
 		if obj.External.Name != "" {
 			if obj.Name != "" {
-				return obj, errors.Errorf("%[1]s %[2]s: %[1]s.external.name and %[1]s.name conflict; only use %[1]s.name", objType, name)
+				return obj, fmt.Errorf("%[1]s %[2]s: %[1]s.external.name and %[1]s.name conflict; only use %[1]s.name", objType, name)
 			}
 			if versions.GreaterThanOrEqualTo(details.Version, "3.5") {
 				logrus.Warnf("%[1]s %[2]s: %[1]s.external.name is deprecated in favor of %[1]s.name", objType, name)
@@ -670,7 +668,7 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 		// if not "external: true"
 	case obj.Driver != "":
 		if obj.File != "" {
-			return obj, errors.Errorf("%[1]s %[2]s: %[1]s.driver and %[1]s.file conflict; only use %[1]s.driver", objType, name)
+			return obj, fmt.Errorf("%[1]s %[2]s: %[1]s.driver and %[1]s.file conflict; only use %[1]s.driver", objType, name)
 		}
 	default:
 		obj.File = absPath(details.WorkingDir, obj.File)
@@ -693,7 +691,7 @@ var transformMapStringString TransformerFunc = func(data any) (any, error) {
 	case map[string]string:
 		return value, nil
 	default:
-		return data, errors.Errorf("invalid type %T for map[string]string", value)
+		return data, fmt.Errorf("invalid type %T for map[string]string", value)
 	}
 }
 
@@ -704,7 +702,7 @@ var transformExternal TransformerFunc = func(data any) (any, error) {
 	case map[string]any:
 		return map[string]any{"external": true, "name": value["name"]}, nil
 	default:
-		return data, errors.Errorf("invalid type %T for external", value)
+		return data, fmt.Errorf("invalid type %T for external", value)
 	}
 }
 
@@ -732,12 +730,12 @@ var transformServicePort TransformerFunc = func(data any) (any, error) {
 			case map[string]any:
 				ports = append(ports, value)
 			default:
-				return data, errors.Errorf("invalid type %T for port", value)
+				return data, fmt.Errorf("invalid type %T for port", value)
 			}
 		}
 		return ports, nil
 	default:
-		return data, errors.Errorf("invalid type %T for port", entries)
+		return data, fmt.Errorf("invalid type %T for port", entries)
 	}
 }
 
@@ -748,7 +746,7 @@ var transformStringSourceMap TransformerFunc = func(data any) (any, error) {
 	case map[string]any:
 		return data, nil
 	default:
-		return data, errors.Errorf("invalid type %T for secret", value)
+		return data, fmt.Errorf("invalid type %T for secret", value)
 	}
 }
 
@@ -759,7 +757,7 @@ var transformBuildConfig TransformerFunc = func(data any) (any, error) {
 	case map[string]any:
 		return data, nil
 	default:
-		return data, errors.Errorf("invalid type %T for service build", value)
+		return data, fmt.Errorf("invalid type %T for service build", value)
 	}
 }
 
@@ -770,7 +768,7 @@ var transformServiceVolumeConfig TransformerFunc = func(data any) (any, error) {
 	case map[string]any:
 		return data, nil
 	default:
-		return data, errors.Errorf("invalid type %T for service volume", value)
+		return data, fmt.Errorf("invalid type %T for service volume", value)
 	}
 }
 
@@ -801,7 +799,7 @@ var transformStringList TransformerFunc = func(data any) (any, error) {
 	case []any:
 		return value, nil
 	default:
-		return data, errors.Errorf("invalid type %T for string list", value)
+		return data, fmt.Errorf("invalid type %T for string list", value)
 	}
 }
 
@@ -824,7 +822,7 @@ func transformListOrMapping(listOrMapping any, sep string, allowNil bool) any {
 	case []any:
 		return listOrMapping
 	}
-	panic(errors.Errorf("expected a map or a list, got %T: %#v", listOrMapping, listOrMapping))
+	panic(fmt.Errorf("expected a map or a list, got %T: %#v", listOrMapping, listOrMapping))
 }
 
 func transformMappingOrList(mappingOrList any, sep string, allowNil bool) any {
@@ -846,7 +844,7 @@ func transformMappingOrList(mappingOrList any, sep string, allowNil bool) any {
 		}
 		return result
 	}
-	panic(errors.Errorf("expected a map or a list, got %T: %#v", mappingOrList, mappingOrList))
+	panic(fmt.Errorf("expected a map or a list, got %T: %#v", mappingOrList, mappingOrList))
 }
 
 var transformShellCommand TransformerFunc = func(value any) (any, error) {
@@ -863,7 +861,7 @@ var transformHealthCheckTest TransformerFunc = func(data any) (any, error) {
 	case []any:
 		return value, nil
 	default:
-		return value, errors.Errorf("invalid type %T for healthcheck.test", value)
+		return value, fmt.Errorf("invalid type %T for healthcheck.test", value)
 	}
 }
 
@@ -874,7 +872,7 @@ var transformSize TransformerFunc = func(value any) (any, error) {
 	case string:
 		return units.RAMInBytes(value)
 	}
-	panic(errors.Errorf("invalid type for size %T", value))
+	panic(fmt.Errorf("invalid type for size %T", value))
 }
 
 var transformStringToDuration TransformerFunc = func(value any) (any, error) {
@@ -886,7 +884,7 @@ var transformStringToDuration TransformerFunc = func(value any) (any, error) {
 		}
 		return types.Duration(d), nil
 	default:
-		return value, errors.Errorf("invalid type %T for duration", value)
+		return value, fmt.Errorf("invalid type %T for duration", value)
 	}
 }
 

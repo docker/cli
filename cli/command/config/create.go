@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/moby/sys/sequential"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +63,7 @@ func RunConfigCreate(dockerCli command.Cli, options CreateOptions) error {
 
 	configData, err := io.ReadAll(in)
 	if err != nil {
-		return errors.Errorf("Error reading content from %q: %v", options.File, err)
+		return fmt.Errorf("Error reading content from %q: %v", options.File, err)
 	}
 
 	spec := swarm.ConfigSpec{

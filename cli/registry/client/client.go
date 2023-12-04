@@ -13,7 +13,6 @@ import (
 	distributionclient "github.com/docker/distribution/registry/client"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -90,7 +89,7 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 		return nil
 	case nil:
 	default:
-		return errors.Wrapf(err, "failed to mount blob %s to %s", sourceRef, targetRef)
+		return fmt.Errorf("failed to mount blob %s to %s: %w", sourceRef, targetRef, err)
 	}
 	lu.Cancel(ctx)
 	logrus.Debugf("mount of blob %s created", sourceRef)
@@ -121,13 +120,13 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 	}
 
 	dgst, err := manifestService.Put(ctx, manifest, opts...)
-	return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
+	return dgst, fmt.Errorf("failed to put manifest %s: %w", ref, err)
 }
 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
 	repoName, err := reference.WithName(repoEndpoint.Name())
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse repo name from %s", ref)
+		return nil, fmt.Errorf("failed to parse repo name from %s: %w", ref, err)
 	}
 	httpTransport, err := c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
 	if err != nil {
@@ -157,7 +156,7 @@ func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoi
 		c.userAgent,
 		repoEndpoint.actions,
 	)
-	return httpTransport, errors.Wrap(err, "failed to configure transport")
+	return httpTransport, fmt.Errorf("failed to configure transport: %w", err)
 }
 
 // GetManifest returns an ImageManifest for the reference
@@ -194,5 +193,5 @@ func getManifestOptionsFromReference(ref reference.Named) (digest.Digest, []dist
 	if digested, isDigested := ref.(reference.Canonical); isDigested {
 		return digested.Digest(), []distribution.ManifestServiceOption{}, nil
 	}
-	return "", nil, errors.Errorf("%s no tag or digest", ref)
+	return "", nil, fmt.Errorf("%s no tag or digest", ref)
 }

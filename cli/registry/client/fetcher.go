@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/types"
@@ -16,7 +18,6 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,9 +36,9 @@ func fetchManifest(ctx context.Context, repo distribution.Repository, ref refere
 	case *ocischema.DeserializedManifest:
 		return pullManifestOCISchema(ctx, ref, repo, *v)
 	case *manifestlist.DeserializedManifestList:
-		return types.ImageManifest{}, errors.Errorf("%s is a manifest list", ref)
+		return types.ImageManifest{}, fmt.Errorf("%s is a manifest list", ref)
 	}
-	return types.ImageManifest{}, errors.Errorf("%s is not a manifest", ref)
+	return types.ImageManifest{}, fmt.Errorf("%s is not a manifest", ref)
 }
 
 func fetchList(ctx context.Context, repo distribution.Repository, ref reference.Named) ([]types.ImageManifest, error) {
@@ -50,7 +51,7 @@ func fetchList(ctx context.Context, repo distribution.Repository, ref reference.
 	case *manifestlist.DeserializedManifestList:
 		return pullManifestList(ctx, ref, repo, *v)
 	default:
-		return nil, errors.Errorf("unsupported manifest format: %v", v)
+		return nil, fmt.Errorf("unsupported manifest format: %v", v)
 	}
 }
 
@@ -62,7 +63,7 @@ func getManifest(ctx context.Context, repo distribution.Repository, ref referenc
 
 	dgst, opts, err := getManifestOptionsFromReference(ref)
 	if err != nil {
-		return nil, errors.Errorf("image manifest for %q does not exist", ref)
+		return nil, fmt.Errorf("image manifest for %q does not exist", ref)
 	}
 	return manSvc.Get(ctx, dgst, opts...)
 }
@@ -123,7 +124,7 @@ func pullManifestSchemaV2ImageConfig(ctx context.Context, dgst digest.Digest, re
 		return nil, err
 	}
 	if !verifier.Verified() {
-		return nil, errors.Errorf("image config verification failed for digest %s", dgst)
+		return nil, fmt.Errorf("image config verification failed for digest %s", dgst)
 	}
 	return configJSON, nil
 }
@@ -143,7 +144,7 @@ func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (oc
 
 	// If pull by digest, then verify the manifest digest.
 	if digested, isDigested := ref.(reference.Canonical); isDigested && digested.Digest() != desc.Digest {
-		return ocispec.Descriptor{}, errors.Errorf("manifest verification failed for digest %s", digested.Digest())
+		return ocispec.Descriptor{}, fmt.Errorf("manifest verification failed for digest %s", digested.Digest())
 	}
 
 	return desc, nil
@@ -179,7 +180,7 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		case *ocischema.DeserializedManifest:
 			imageManifest, err = pullManifestOCISchema(ctx, manifestRef, repo, *v)
 		default:
-			err = errors.Errorf("unsupported manifest type: %T", manifest)
+			err = fmt.Errorf("unsupported manifest type: %T", manifest)
 		}
 		if err != nil {
 			return nil, err

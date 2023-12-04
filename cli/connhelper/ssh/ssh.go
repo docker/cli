@@ -2,9 +2,9 @@
 package ssh
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
-
-	"github.com/pkg/errors"
 )
 
 // ParseURL parses URL
@@ -14,7 +14,7 @@ func ParseURL(daemonURL string) (*Spec, error) {
 		return nil, err
 	}
 	if u.Scheme != "ssh" {
-		return nil, errors.Errorf("expected scheme ssh, got %q", u.Scheme)
+		return nil, fmt.Errorf("expected scheme ssh, got %q", u.Scheme)
 	}
 
 	var sp Spec
@@ -27,15 +27,15 @@ func ParseURL(daemonURL string) (*Spec, error) {
 	}
 	sp.Host = u.Hostname()
 	if sp.Host == "" {
-		return nil, errors.Errorf("no host specified")
+		return nil, fmt.Errorf("no host specified")
 	}
 	sp.Port = u.Port()
 	sp.Path = u.Path
 	if u.RawQuery != "" {
-		return nil, errors.Errorf("extra query after the host: %q", u.RawQuery)
+		return nil, fmt.Errorf("extra query after the host: %q", u.RawQuery)
 	}
 	if u.Fragment != "" {
-		return nil, errors.Errorf("extra fragment after the host: %q", u.Fragment)
+		return nil, fmt.Errorf("extra fragment after the host: %q", u.Fragment)
 	}
 	return &sp, err
 }

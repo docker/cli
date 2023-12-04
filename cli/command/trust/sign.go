@@ -2,6 +2,7 @@ package trust
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"path"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	apiclient "github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -124,7 +124,7 @@ func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, 
 		err = notaryRepo.Publish()
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to sign %s:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
+		return fmt.Errorf("failed to sign %s:%s: %w", imgRefAndAuth.RepoInfo().Name.Name(), tag, err)
 	}
 	fmt.Fprintf(out, "Successfully signed %s:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	return nil
@@ -209,7 +209,7 @@ func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.Role
 		return err
 	}
 	if err := addStagedSigner(notaryRepo, newSigner, []data.PublicKey{signerKey}); err != nil {
-		return errors.Wrapf(err, "could not add signer to repo: %s", strings.TrimPrefix(newSigner.String(), "targets/"))
+		return fmt.Errorf("could not add signer to repo: %s: %w", strings.TrimPrefix(newSigner.String(), "targets/"), err)
 	}
 
 	return notaryRepo.Publish()

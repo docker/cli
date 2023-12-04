@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 

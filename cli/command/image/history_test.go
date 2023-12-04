@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

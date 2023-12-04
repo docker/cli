@@ -12,7 +12,6 @@ import (
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
 )
 
 type repositoryEndpoint struct {
@@ -94,7 +93,7 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 	authTransport := transport.NewTransport(base, modifiers...)
 	challengeManager, err := registry.PingV2Registry(endpoint.URL, authTransport)
 	if err != nil {
-		return nil, errors.Wrap(err, "error pinging v2 registry")
+		return nil, fmt.Errorf("error pinging v2 registry: %w", err)
 	}
 	if authConfig.RegistryToken != "" {
 		passThruTokenHandler := &existingTokenHandler{token: authConfig.RegistryToken}

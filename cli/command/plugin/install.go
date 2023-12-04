@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -76,7 +76,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		ref = reference.TagNameOnly(ref)
 		nt, ok := ref.(reference.NamedTagged)
 		if !ok {
-			return types.PluginInstallOptions{}, errors.Errorf("invalid name: %s", ref.String())
+			return types.PluginInstallOptions{}, fmt.Errorf("invalid name: %s", ref.String())
 		}
 
 		trusted, err := image.TrustedReference(ctx, dockerCli, nt)
@@ -112,7 +112,7 @@ func runInstall(dockerCli command.Cli, opts pluginOptions) error {
 			return err
 		}
 		if _, ok := aref.(reference.Canonical); ok {
-			return errors.Errorf("invalid name: %s", opts.localName)
+			return fmt.Errorf("invalid name: %s", opts.localName)
 		}
 		localName = reference.FamiliarString(reference.TagNameOnly(aref))
 	}

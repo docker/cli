@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -30,7 +31,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
@@ -165,7 +165,7 @@ func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 	if v := os.Getenv("DOCKER_BUILDKIT"); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
-			return false, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+			return false, fmt.Errorf("DOCKER_BUILDKIT environment variable expects boolean value: %w", err)
 		}
 		return enabled, nil
 	}
@@ -254,7 +254,7 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 	}
 	endpoint, err := resolveDockerEndpoint(contextStore, resolveContextName(opts, configFile))
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
+		return nil, fmt.Errorf("unable to resolve docker endpoint: %w", err)
 	}
 	return newAPIClientFromEndpoint(endpoint, configFile)
 }
@@ -436,7 +436,7 @@ func (cli *DockerCli) initialize() error {
 	cli.init.Do(func() {
 		cli.dockerEndpoint, cli.initErr = cli.getDockerEndPoint()
 		if cli.initErr != nil {
-			cli.initErr = errors.Wrap(cli.initErr, "unable to resolve docker endpoint")
+			cli.initErr = fmt.Errorf("unable to resolve docker endpoint: %w", cli.initErr)
 			return
 		}
 		if cli.client == nil {

@@ -2,11 +2,11 @@ package network
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 

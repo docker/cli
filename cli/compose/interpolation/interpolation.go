@@ -1,11 +1,11 @@
 package interpolation
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/docker/cli/cli/compose/template"
-	"github.com/pkg/errors"
 )
 
 // Options supported by Interpolate
@@ -64,7 +64,7 @@ func recursiveInterpolate(value any, path Path, opts Options) (any, error) {
 			return newValue, nil
 		}
 		casted, err := caster(newValue)
-		return casted, newPathError(path, errors.Wrap(err, "failed to cast to expected type"))
+		return casted, newPathError(path, fmt.Errorf("failed to cast to expected type: %w", err))
 
 	case map[string]any:
 		out := map[string]any{}
@@ -98,11 +98,9 @@ func newPathError(path Path, err error) error {
 	case nil:
 		return nil
 	case *template.InvalidTemplateError:
-		return errors.Errorf(
-			"invalid interpolation format for %s: %#v; you may need to escape any $ with another $",
-			path, err.Template)
+		return fmt.Errorf("invalid interpolation format for %s: %#v; you may need to escape any $ with another $", path, err.Template)
 	default:
-		return errors.Wrapf(err, "error while interpolating %s", path)
+		return fmt.Errorf("error while interpolating %s: %w", path, err)
 	}
 }
 

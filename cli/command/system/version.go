@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 	"sort"
 	"strconv"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tonistiigi/go-rosetta"
 )
@@ -211,7 +211,7 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
 	tmpl, err := tmpl.Parse(templateFormat)
 
-	return tmpl, errors.Wrap(err, "template parsing error")
+	return tmpl, fmt.Errorf("template parsing error: %w", err)
 }
 
 func getDetailsOrder(v types.ComponentVersion) []string {

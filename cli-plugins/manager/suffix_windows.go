@@ -1,10 +1,9 @@
 package manager
 
 import (
+	"errors"
 	"path/filepath"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // This is made slightly more complex due to needing to be case insensitive.

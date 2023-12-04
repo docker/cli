@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -8,7 +9,6 @@ import (
 	"time"
 
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/poll"
 	"gotest.tools/v3/skip"

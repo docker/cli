@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

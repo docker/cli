@@ -1,13 +1,13 @@
 package checkpoint
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/checkpoint"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

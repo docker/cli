@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	apiclient "github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

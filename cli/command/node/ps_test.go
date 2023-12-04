@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

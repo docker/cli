@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
