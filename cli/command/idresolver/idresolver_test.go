@@ -2,7 +2,7 @@ package idresolver
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/docker/cli/internal/test/builders"
@@ -14,7 +14,7 @@ import (
 func TestResolveError(t *testing.T) {
 	cli := &fakeClient{
 		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
-			return swarm.Node{}, []byte{}, errors.Errorf("error inspecting node")
+			return swarm.Node{}, []byte{}, fmt.Errorf("error inspecting node")
 		},
 	}
 
@@ -75,7 +75,7 @@ func TestResolveNode(t *testing.T) {
 		{
 			nodeID: "nodeID",
 			nodeInspectFunc: func(string) (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting node")
+				return swarm.Node{}, []byte{}, fmt.Errorf("error inspecting node")
 			},
 			expectedID: "nodeID",
 		},
@@ -117,7 +117,7 @@ func TestResolveService(t *testing.T) {
 		{
 			serviceID: "serviceID",
 			serviceInspectFunc: func(string) (swarm.Service, []byte, error) {
-				return swarm.Service{}, []byte{}, errors.Errorf("error inspecting service")
+				return swarm.Service{}, []byte{}, fmt.Errorf("error inspecting service")
 			},
 			expectedID: "serviceID",
 		},

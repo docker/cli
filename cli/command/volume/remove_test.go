@@ -1,7 +1,7 @@
 package volume
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -21,7 +21,7 @@ func TestVolumeRemoveErrors(t *testing.T) {
 		{
 			args: []string{"nodeID"},
 			volumeRemoveFunc: func(volumeID string, force bool) error {
-				return errors.Errorf("error removing the volume")
+				return fmt.Errorf("error removing the volume")
 			},
 			expectedError: "error removing the volume",
 		},

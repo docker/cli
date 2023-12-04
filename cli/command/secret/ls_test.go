@@ -2,7 +2,7 @@ package secret
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -29,7 +29,7 @@ func TestSecretListErrors(t *testing.T) {
 		},
 		{
 			secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
-				return []swarm.Secret{}, errors.Errorf("error listing secrets")
+				return []swarm.Secret{}, fmt.Errorf("error listing secrets")
 			},
 			expectedError: "error listing secrets",
 		},

@@ -1,7 +1,7 @@
 package node
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -21,7 +21,7 @@ func TestNodeRemoveErrors(t *testing.T) {
 		{
 			args: []string{"nodeID"},
 			nodeRemoveFunc: func() error {
-				return errors.Errorf("error removing the node")
+				return fmt.Errorf("error removing the node")
 			},
 			expectedError: "error removing the node",
 		},

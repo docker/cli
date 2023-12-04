@@ -1,7 +1,7 @@
 package swarm
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -34,7 +34,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 			name: "join-failed",
 			args: []string{"remote"},
 			swarmJoinFunc: func() error {
-				return errors.Errorf("error joining the swarm")
+				return fmt.Errorf("error joining the swarm")
 			},
 			expectedError: "error joining the swarm",
 		},
@@ -42,7 +42,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 			name: "join-failed-on-init",
 			args: []string{"remote"},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

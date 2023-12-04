@@ -7,6 +7,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -64,7 +65,7 @@ func gen(opts *options) error {
 				return err
 			}
 		default:
-			return errors.Errorf("unknown format %q", format)
+			return fmt.Errorf("unknown format %q", format)
 		}
 	}
 

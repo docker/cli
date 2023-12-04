@@ -1,7 +1,6 @@
 package image
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -35,7 +34,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			name:          "pull-error",
 			expectedError: "something went wrong",
 			imageLoadFunc: func(input io.Reader, quiet bool) (types.ImageLoadResponse, error) {
-				return types.ImageLoadResponse{}, errors.Errorf("something went wrong")
+				return types.ImageLoadResponse{}, fmt.Errorf("something went wrong")
 			},
 		},
 	}

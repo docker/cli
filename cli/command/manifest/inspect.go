@@ -123,7 +123,7 @@ func printManifestList(dockerCli command.Cli, namedRef reference.Named, list []t
 		for _, img := range list {
 			mfd, err := buildManifestDescriptor(targetRepo, img)
 			if err != nil {
-				return fmt.Errorf("failed to assemble ManifestDescriptor: %w: %w", err)
+				return fmt.Errorf("failed to assemble ManifestDescriptor: %w", err)
 			}
 			manifests = append(manifests, mfd)
 		}

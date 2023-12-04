@@ -2,7 +2,7 @@ package container
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -16,7 +16,7 @@ import (
 func TestInitTtySizeErrors(t *testing.T) {
 	expectedError := "failed to resize tty, using default size\n"
 	fakeContainerExecResizeFunc := func(id string, options container.ResizeOptions) error {
-		return errors.Errorf("Error response from daemon: no such exec")
+		return fmt.Errorf("Error response from daemon: no such exec")
 	}
 	fakeResizeTtyFunc := func(ctx context.Context, cli command.Cli, id string, isExec bool) error {
 		height, width := uint(1024), uint(768)

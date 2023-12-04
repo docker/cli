@@ -2,7 +2,7 @@ package manifest
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -99,10 +99,10 @@ func TestManifestCreateNoManifest(t *testing.T) {
 	cli.SetManifestStore(manifestStore)
 	cli.SetRegistryClient(&fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
-			return manifesttypes.ImageManifest{}, errors.Errorf("No such image: %v", ref)
+			return manifesttypes.ImageManifest{}, fmt.Errorf("No such image: %v", ref)
 		},
 		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
-			return nil, errors.Errorf("No such manifest: %s", ref)
+			return nil, fmt.Errorf("No such manifest: %s", ref)
 		},
 	})
 

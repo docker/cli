@@ -1,7 +1,7 @@
 package node
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -23,7 +23,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	}{
 		{
 			nodeListFunc: func() ([]swarm.Node, error) {
-				return []swarm.Node{}, errors.Errorf("error listing nodes")
+				return []swarm.Node{}, fmt.Errorf("error listing nodes")
 			},
 			expectedError: "error listing nodes",
 		},
@@ -36,7 +36,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 				}, nil
 			},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

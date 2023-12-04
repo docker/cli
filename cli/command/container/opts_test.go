@@ -1,7 +1,6 @@
 package container
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -280,7 +279,7 @@ func compareRandomizedStrings(a, b, c, d string) error {
 	if a == d && b == c {
 		return nil
 	}
-	return errors.Errorf("strings don't match")
+	return fmt.Errorf("strings don't match")
 }
 
 // Simple parse with MacAddress validation

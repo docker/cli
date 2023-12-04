@@ -2,7 +2,7 @@ package secret
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -25,7 +25,7 @@ func TestSecretRemoveErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			secretRemoveFunc: func(_ context.Context, name string) error {
-				return errors.Errorf("error removing secret")
+				return fmt.Errorf("error removing secret")
 			},
 			expectedError: "error removing secret",
 		},
@@ -66,7 +66,7 @@ func TestSecretRemoveContinueAfterError(t *testing.T) {
 		secretRemoveFunc: func(_ context.Context, name string) error {
 			removedSecrets = append(removedSecrets, name)
 			if name == "foo" {
-				return errors.Errorf("error removing secret: %s", name)
+				return fmt.Errorf("error removing secret: %s", name)
 			}
 			return nil
 		},

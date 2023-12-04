@@ -1,7 +1,7 @@
 package checkpoint
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -29,7 +29,7 @@ func TestCheckpointCreateErrors(t *testing.T) {
 		{
 			args: []string{"foo", "bar"},
 			checkpointCreateFunc: func(container string, options checkpoint.CreateOptions) error {
-				return errors.Errorf("error creating checkpoint for container foo")
+				return fmt.Errorf("error creating checkpoint for container foo")
 			},
 			expectedError: "error creating checkpoint for container foo",
 		},

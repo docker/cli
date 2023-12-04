@@ -2,7 +2,7 @@ package config
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -29,7 +29,7 @@ func TestConfigListErrors(t *testing.T) {
 		},
 		{
 			configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
-				return []swarm.Config{}, errors.Errorf("error listing configs")
+				return []swarm.Config{}, fmt.Errorf("error listing configs")
 			},
 			expectedError: "error listing configs",
 		},

@@ -1,7 +1,7 @@
 package volume
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -27,7 +27,7 @@ func TestVolumeListErrors(t *testing.T) {
 		},
 		{
 			volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
-				return volume.ListResponse{}, errors.Errorf("error listing volumes")
+				return volume.ListResponse{}, fmt.Errorf("error listing volumes")
 			},
 			expectedError: "error listing volumes",
 		},

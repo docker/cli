@@ -3,6 +3,7 @@ package manifest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -85,7 +86,7 @@ func TestInspectCommandNotFound(t *testing.T) {
 			return types.ImageManifest{}, errors.New("missing")
 		},
 		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]types.ImageManifest, error) {
-			return nil, errors.Errorf("No such manifest: %s", ref)
+			return nil, fmt.Errorf("No such manifest: %s", ref)
 		},
 	})
 

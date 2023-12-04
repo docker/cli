@@ -1,7 +1,7 @@
 package image
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -37,7 +37,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			isTerminal:    false,
 			expectedError: "error saving image",
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
+				return io.NopCloser(strings.NewReader("")), fmt.Errorf("error saving image")
 			},
 		},
 		{

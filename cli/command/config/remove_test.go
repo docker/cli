@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -24,7 +24,7 @@ func TestConfigRemoveErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			configRemoveFunc: func(name string) error {
-				return errors.Errorf("error removing config")
+				return fmt.Errorf("error removing config")
 			},
 			expectedError: "error removing config",
 		},
@@ -65,7 +65,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			if name == "foo" {
-				return errors.Errorf("error removing config: %s", name)
+				return fmt.Errorf("error removing config: %s", name)
 			}
 			return nil
 		},

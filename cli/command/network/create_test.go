@@ -2,7 +2,7 @@ package network
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -27,7 +27,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 		{
 			args: []string{"toto"},
 			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
-				return types.NetworkCreateResponse{}, errors.Errorf("error creating network")
+				return types.NetworkCreateResponse{}, fmt.Errorf("error creating network")
 			},
 			expectedError: "error creating network",
 		},

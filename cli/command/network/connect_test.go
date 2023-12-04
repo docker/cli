@@ -2,7 +2,7 @@ package network
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -24,7 +24,7 @@ func TestNetworkConnectErrors(t *testing.T) {
 		{
 			args: []string{"toto", "titi"},
 			networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-				return errors.Errorf("error connecting network")
+				return fmt.Errorf("error connecting network")
 			},
 			expectedError: "error connecting network",
 		},

@@ -49,11 +49,11 @@ func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
 func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
-		return fmt.Errorf("annotate: error parsing name for manifest list %s: %w: %w", opts.target, err)
+		return fmt.Errorf("annotate: error parsing name for manifest list %s: %w", opts.target, err)
 	}
 	imgRef, err := normalizeReference(opts.image)
 	if err != nil {
-		return fmt.Errorf("annotate: error parsing name for manifest %s: %w: %w", opts.image, err)
+		return fmt.Errorf("annotate: error parsing name for manifest %s: %w", opts.image, err)
 	}
 
 	manifestStore := dockerCli.ManifestStore()

@@ -1,7 +1,6 @@
 package image
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -30,7 +29,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 			args:          []string{"image:tag"},
 			expectedError: "something went wrong",
 			imageHistoryFunc: func(img string) ([]image.HistoryResponseItem, error) {
-				return []image.HistoryResponseItem{{}}, errors.Errorf("something went wrong")
+				return []image.HistoryResponseItem{{}}, fmt.Errorf("something went wrong")
 			},
 		},
 	}

@@ -182,7 +182,7 @@ func buildManifestDescriptor(targetRepo *registry.RepositoryInfo, imageManifest 
 	}
 
 	if err = manifest.Descriptor.Digest.Validate(); err != nil {
-		return manifestlist.ManifestDescriptor{}, fmt.Errorf("digest parse of image %q failed: %w: %w", imageManifest.Ref, err)
+		return manifestlist.ManifestDescriptor{}, fmt.Errorf("digest parse of image %q failed: %w", imageManifest.Ref, err)
 	}
 
 	return manifest, nil

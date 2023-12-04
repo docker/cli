@@ -3,6 +3,7 @@ package manifest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -19,7 +20,7 @@ func newFakeRegistryClient() *fakeRegistryClient {
 			return manifesttypes.ImageManifest{}, errors.New("")
 		},
 		getManifestListFunc: func(_ context.Context, _ reference.Named) ([]manifesttypes.ImageManifest, error) {
-			return nil, errors.Errorf("")
+			return nil, fmt.Errorf("")
 		},
 	}
 }

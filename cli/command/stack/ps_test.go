@@ -1,7 +1,7 @@
 package stack
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -33,7 +33,7 @@ func TestStackPsErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
-				return nil, errors.Errorf("error getting tasks")
+				return nil, fmt.Errorf("error getting tasks")
 			},
 			expectedError: "error getting tasks",
 		},

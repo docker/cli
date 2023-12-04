@@ -33,16 +33,16 @@ func Services(
 	for _, service := range config.Services {
 		secrets, err := convertServiceSecrets(apiClient, namespace, service.Secrets, config.Secrets)
 		if err != nil {
-			return nil, fmt.Errorf("service %s: %w: %w", service.Name, err)
+			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 		configs, err := convertServiceConfigObjs(apiClient, namespace, service, config.Configs)
 		if err != nil {
-			return nil, fmt.Errorf("service %s: %w: %w", service.Name, err)
+			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 
 		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
-			return nil, fmt.Errorf("service %s: %w: %w", service.Name, err)
+			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 		result[service.Name] = serviceSpec
 	}

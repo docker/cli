@@ -1,7 +1,6 @@
 package volume
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -27,7 +26,7 @@ func TestVolumeInspectErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			volumeInspectFunc: func(volumeID string) (volume.Volume, error) {
-				return volume.Volume{}, errors.Errorf("error while inspecting the volume")
+				return volume.Volume{}, fmt.Errorf("error while inspecting the volume")
 			},
 			expectedError: "error while inspecting the volume",
 		},
@@ -46,7 +45,7 @@ func TestVolumeInspectErrors(t *testing.T) {
 						Name: "foo",
 					}, nil
 				}
-				return volume.Volume{}, errors.Errorf("error while inspecting the volume")
+				return volume.Volume{}, fmt.Errorf("error while inspecting the volume")
 			},
 			expectedError: "error while inspecting the volume",
 		},
@@ -78,7 +77,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 			args: []string{"foo"},
 			volumeInspectFunc: func(volumeID string) (volume.Volume, error) {
 				if volumeID != "foo" {
-					return volume.Volume{}, errors.Errorf("Invalid volumeID, expected %s, got %s", "foo", volumeID)
+					return volume.Volume{}, fmt.Errorf("Invalid volumeID, expected %s, got %s", "foo", volumeID)
 				}
 				return *builders.Volume(), nil
 			},

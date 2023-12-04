@@ -2,7 +2,6 @@ package credentials
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -22,7 +21,7 @@ const (
 	missingCredsAddress  = "https://missing.docker.io/v1"
 )
 
-var errCommandExited = errors.Errorf("exited 1")
+var errCommandExited = fmt.Errorf("exited 1")
 
 // mockCommand simulates interactions between the docker client and a remote
 // credentials helper.

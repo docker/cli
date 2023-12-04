@@ -1,7 +1,7 @@
 package stack
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -32,7 +32,7 @@ func TestListErrors(t *testing.T) {
 		},
 		{
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{}, errors.Errorf("error getting services")
+				return []swarm.Service{}, fmt.Errorf("error getting services")
 			},
 			expectedError: "error getting services",
 		},

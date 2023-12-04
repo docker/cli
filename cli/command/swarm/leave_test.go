@@ -1,7 +1,7 @@
 package swarm
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -26,7 +26,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		{
 			name: "leave-failed",
 			swarmLeaveFunc: func() error {
-				return errors.Errorf("error leaving the swarm")
+				return fmt.Errorf("error leaving the swarm")
 			},
 			expectedError: "error leaving the swarm",
 		},

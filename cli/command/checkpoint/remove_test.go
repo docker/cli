@@ -1,7 +1,7 @@
 package checkpoint
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -28,7 +28,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 		{
 			args: []string{"foo", "bar"},
 			checkpointDeleteFunc: func(container string, options checkpoint.DeleteOptions) error {
-				return errors.Errorf("error deleting checkpoint")
+				return fmt.Errorf("error deleting checkpoint")
 			},
 			expectedError: "error deleting checkpoint",
 		},

@@ -1,7 +1,6 @@
 package container
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -25,7 +24,7 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "something went wrong",
 			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				return types.ContainerJSON{}, errors.Errorf("something went wrong")
+				return types.ContainerJSON{}, fmt.Errorf("something went wrong")
 			},
 		},
 		{

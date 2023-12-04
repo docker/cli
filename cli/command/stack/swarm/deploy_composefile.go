@@ -105,13 +105,13 @@ func createSecrets(ctx context.Context, dockerCli command.Cli, secrets []swarm.S
 		case err == nil:
 			// secret already exists, then we update that
 			if err := client.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
-				return fmt.Errorf("failed to update secret %s: %w: %w", secretSpec.Name, err)
+				return fmt.Errorf("failed to update secret %s: %w", secretSpec.Name, err)
 			}
 		case errdefs.IsNotFound(err):
 			// secret does not exist, then we create a new one.
 			fmt.Fprintf(dockerCli.Out(), "Creating secret %s\n", secretSpec.Name)
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
-				return fmt.Errorf("failed to create secret %s: %w: %w", secretSpec.Name, err)
+				return fmt.Errorf("failed to create secret %s: %w", secretSpec.Name, err)
 			}
 		default:
 			return err
@@ -129,13 +129,13 @@ func createConfigs(ctx context.Context, dockerCli command.Cli, configs []swarm.C
 		case err == nil:
 			// config already exists, then we update that
 			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
-				return fmt.Errorf("failed to update config %s: %w: %w", configSpec.Name, err)
+				return fmt.Errorf("failed to update config %s: %w", configSpec.Name, err)
 			}
 		case errdefs.IsNotFound(err):
 			// config does not exist, then we create a new one.
 			fmt.Fprintf(dockerCli.Out(), "Creating config %s\n", configSpec.Name)
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
-				return fmt.Errorf("failed to create config %s: %w: %w", configSpec.Name, err)
+				return fmt.Errorf("failed to create config %s: %w", configSpec.Name, err)
 			}
 		default:
 			return err
@@ -168,7 +168,7 @@ func createNetworks(ctx context.Context, dockerCli command.Cli, namespace conver
 
 		fmt.Fprintf(dockerCli.Out(), "Creating network %s\n", name)
 		if _, err := client.NetworkCreate(ctx, name, createOpts); err != nil {
-			return fmt.Errorf("failed to create network %s: %w: %w", name, err)
+			return fmt.Errorf("failed to create network %s: %w", name, err)
 		}
 	}
 	return nil
@@ -240,7 +240,7 @@ func deployServices(ctx context.Context, dockerCli command.Cli, services map[str
 
 			response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, serviceSpec, updateOpts)
 			if err != nil {
-				return fmt.Errorf("failed to update service %s: %w: %w", name, err)
+				return fmt.Errorf("failed to update service %s: %w", name, err)
 			}
 
 			for _, warning := range response.Warnings {
@@ -257,7 +257,7 @@ func deployServices(ctx context.Context, dockerCli command.Cli, services map[str
 			}
 
 			if _, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts); err != nil {
-				return fmt.Errorf("failed to create service %s: %w: %w", name, err)
+				return fmt.Errorf("failed to create service %s: %w", name, err)
 			}
 		}
 	}

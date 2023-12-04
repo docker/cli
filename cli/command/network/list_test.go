@@ -2,7 +2,7 @@ package network
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -23,7 +23,7 @@ func TestNetworkListErrors(t *testing.T) {
 	}{
 		{
 			networkListFunc: func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
-				return []types.NetworkResource{}, errors.Errorf("error creating network")
+				return []types.NetworkResource{}, fmt.Errorf("error creating network")
 			},
 			expectedError: "error creating network",
 		},

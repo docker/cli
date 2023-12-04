@@ -38,12 +38,12 @@ func createManifestList(dockerCli command.Cli, args []string, opts createOpts) e
 	newRef := args[0]
 	targetRef, err := normalizeReference(newRef)
 	if err != nil {
-		return fmt.Errorf("error parsing name for manifest list %s: %w: %w", newRef, err)
+		return fmt.Errorf("error parsing name for manifest list %s: %w", newRef, err)
 	}
 
 	_, err = registry.ParseRepositoryInfo(targetRef)
 	if err != nil {
-		return fmt.Errorf("error parsing repository name for manifest list %s: %w: %w", newRef, err)
+		return fmt.Errorf("error parsing repository name for manifest list %s: %w", newRef, err)
 	}
 
 	manifestStore := dockerCli.ManifestStore()

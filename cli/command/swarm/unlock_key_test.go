@@ -1,7 +1,6 @@
 package swarm
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -35,7 +34,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.Errorf("error inspecting the swarm")
+				return swarm.Swarm{}, fmt.Errorf("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
@@ -58,14 +57,14 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 				return *builders.Swarm(builders.Autolock()), nil
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
-				return errors.Errorf("error updating the swarm")
+				return fmt.Errorf("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
 		},
 		{
 			name: "swarm-get-unlock-key-failed",
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{}, errors.Errorf("error getting unlock key")
+				return types.SwarmUnlockKeyResponse{}, fmt.Errorf("error getting unlock key")
 			},
 			expectedError: "error getting unlock key",
 		},

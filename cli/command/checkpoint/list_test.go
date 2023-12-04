@@ -1,7 +1,7 @@
 package checkpoint
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -29,7 +29,7 @@ func TestCheckpointListErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
-				return []checkpoint.Summary{}, errors.Errorf("error getting checkpoints for container foo")
+				return []checkpoint.Summary{}, fmt.Errorf("error getting checkpoints for container foo")
 			},
 			expectedError: "error getting checkpoints for container foo",
 		},

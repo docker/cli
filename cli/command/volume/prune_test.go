@@ -1,7 +1,6 @@
 package volume
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"runtime"
@@ -37,7 +36,7 @@ func TestVolumePruneErrors(t *testing.T) {
 				"force": "true",
 			},
 			volumePruneFunc: func(args filters.Args) (types.VolumesPruneReport, error) {
-				return types.VolumesPruneReport{}, errors.Errorf("error pruning volumes")
+				return types.VolumesPruneReport{}, fmt.Errorf("error pruning volumes")
 			},
 			expectedError: "error pruning volumes",
 		},

@@ -2,7 +2,7 @@ package network
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"io"
 	"testing"
 
@@ -22,7 +22,7 @@ func TestNetworkDisconnectErrors(t *testing.T) {
 		{
 			args: []string{"toto", "titi"},
 			networkDisconnectFunc: func(ctx context.Context, networkID, container string, force bool) error {
-				return errors.Errorf("error disconnecting network")
+				return fmt.Errorf("error disconnecting network")
 			},
 			expectedError: "error disconnecting network",
 		},

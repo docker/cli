@@ -1,7 +1,7 @@
 package image
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -33,7 +33,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 			args:          []string{"image:repo"},
 			expectedError: "Failed to push",
 			imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), errors.Errorf("Failed to push")
+				return io.NopCloser(strings.NewReader("")), fmt.Errorf("Failed to push")
 			},
 		},
 	}

@@ -1,7 +1,6 @@
 package image
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -32,7 +31,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 			args:          []string{"--force"},
 			expectedError: "something went wrong",
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
-				return types.ImagesPruneReport{}, errors.Errorf("something went wrong")
+				return types.ImagesPruneReport{}, fmt.Errorf("something went wrong")
 			},
 		},
 	}

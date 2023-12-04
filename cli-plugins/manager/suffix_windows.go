@@ -1,7 +1,7 @@
 package manager
 
 import (
-	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 )
@@ -10,12 +10,12 @@ import (
 func trimExeSuffix(s string) (string, error) {
 	ext := filepath.Ext(s)
 	if ext == "" {
-		return "", errors.Errorf("path %q lacks required file extension", s)
+		return "", fmt.Errorf("path %q lacks required file extension", s)
 	}
 
 	exe := ".exe"
 	if !strings.EqualFold(ext, exe) {
-		return "", errors.Errorf("path %q lacks required %q suffix", s, exe)
+		return "", fmt.Errorf("path %q lacks required %q suffix", s, exe)
 	}
 	return strings.TrimSuffix(s, ext), nil
 }

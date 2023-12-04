@@ -1,7 +1,7 @@
 package image
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -29,7 +29,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 			args:          []string{"testdata/import-command-success.input.txt"},
 			expectedError: "something went wrong",
 			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
-				return nil, errors.Errorf("something went wrong")
+				return nil, fmt.Errorf("something went wrong")
 			},
 		},
 	}
