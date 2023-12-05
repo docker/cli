@@ -36,7 +36,7 @@ func TestPrunePromptFilters(t *testing.T) {
   - all stopped containers
   - all networks not used by at least one container
   - all dangling images
-  - all dangling build cache
+  - unused build cache
 
   Items to be pruned will be filtered with:
   - label!=foo=bar
