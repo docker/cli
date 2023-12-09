@@ -63,6 +63,7 @@ func (c *Context) preFormat() {
 		c.finalFormat = c.finalFormat[len(TableFormatKey):]
 	case c.Format.IsJSON():
 		c.finalFormat = JSONFormat
+		c.buffer.WriteString("[")
 	}
 
 	c.finalFormat = strings.Trim(c.finalFormat, " ")
@@ -88,6 +89,12 @@ func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
 		c.buffer.WriteTo(t)
 		t.Flush()
 	} else {
+		if c.Format.IsJSON() {
+			if c.buffer.Len() > 1 {
+				c.buffer.Truncate(c.buffer.Len() - 2)
+			}
+			c.buffer.WriteString("]\n")
+		}
 		c.buffer.WriteTo(c.Output)
 	}
 }
@@ -98,6 +105,9 @@ func (c *Context) contextFormat(tmpl *template.Template, subContext SubContext) 
 	}
 	if c.Format.IsTable() && c.header != nil {
 		c.header = subContext.FullHeader()
+	}
+	if c.Format.IsJSON() {
+		c.buffer.WriteString(",")
 	}
 	c.buffer.WriteString("\n")
 	return nil

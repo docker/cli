@@ -38,7 +38,7 @@ func TestContext(t *testing.T) {
 		{
 			name:   "json format",
 			format: JSONFormatKey,
-			expected: `{"Name":"test"}
+			expected: `[{"Name":"test"}]
 `,
 		},
 		{
@@ -65,4 +65,19 @@ test
 			assert.Equal(t, buf.String(), tc.expected)
 		})
 	}
+}
+
+func TestContextWithFormatJSONAndNoContainers(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	ctx := Context{
+		Format: Format(JSONFormatKey),
+		Output: buf,
+	}
+	subContext := fakeSubContext{}
+	subFormat := func(f func(sub SubContext) error) error {
+		return nil
+	}
+	err := ctx.Write(&subContext, subFormat)
+	assert.NilError(t, err)
+	assert.Equal(t, buf.String(), "[]\n")
 }
