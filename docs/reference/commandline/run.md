@@ -416,6 +416,8 @@ environment, the variable isn't set in the container.
 You can also load the environment variables from a file. This file should use
 the syntax `<variable>=value` (which sets the variable to the given value) or
 `<variable>` (which takes the value from the local environment), and `#` for comments.
+Additionally, it's important to note that lines beginning with `#` are treated as line comments
+and are ignored, whereas a `#` appearing anywhere else in a line is treated as part of the variable value.
 
 ```console
 $ cat env.list

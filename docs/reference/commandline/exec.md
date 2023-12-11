@@ -77,10 +77,10 @@ This starts a new shell session in the container `mycontainer`.
 
 Next, set environment variables in the current bash session.
 
-By default, the `docker exec` command, inherits the environment variables that
-are set at the time the container is created. Use the `--env` (or the `-e` shorthand)
-to override global environment variables, or to set additional environment variables
-for the process started by `docker exec`.
+The `docker exec` command inherits the environment variables that are set at the
+time the container is created. Use the `--env` (or the `-e` shorthand) to
+override global environment variables, or to set additional environment
+variables for the process started by `docker exec`.
 
 The example below creates a new shell session in the container `mycontainer` with
 environment variables `$VAR_A` and `$VAR_B` set to "1" and "2" respectively.
