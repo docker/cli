@@ -30,7 +30,7 @@ to access the network stack of a swarm service.
 
 The `--attachable` option used in the example above disables this restriction,
 and allows for both swarm services and manually started containers to attach to
-the oerlay network.
+the overlay network.
 
 Network names must be unique. The Docker daemon attempts to identify naming
 conflicts but this is not guaranteed. It is the user's responsibility to avoid
