@@ -121,10 +121,10 @@ executables expect) and pass along signals. The **-a** option can be set for
 each of stdin, stdout, and stderr.
 
 **--add-host**=[]
-   Add a custom host-to-IP mapping (host:ip)
+   Add a custom host-to-IP mapping (host=ip, or host:ip)
 
-   Add a line to /etc/hosts. The format is hostname:ip.  The **--add-host**
-option can be set multiple times.
+   Add a line to /etc/hosts. The format is hostname=ip, or hostname:ip.
+   The **--add-host** option can be set multiple times.
 
 **--annotation**=[]
    Add an annotation to the container (passed through to the OCI runtime).
