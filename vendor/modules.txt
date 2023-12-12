@@ -21,7 +21,7 @@ github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.2.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/containerd/containerd v1.7.8
+# github.com/containerd/containerd v1.7.11
 ## explicit; go 1.19
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
@@ -282,9 +282,10 @@ github.com/xeipuuv/gojsonschema
 # go.etcd.io/etcd/raft/v3 v3.5.6
 ## explicit; go 1.16
 go.etcd.io/etcd/raft/v3/raftpb
-# go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.42.0
+# go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.45.0
 ## explicit; go 1.19
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/internal/semconvutil
 # go.opentelemetry.io/otel v1.19.0
 ## explicit; go 1.20
 go.opentelemetry.io/otel
@@ -299,14 +300,10 @@ go.opentelemetry.io/otel/propagation
 go.opentelemetry.io/otel/semconv/internal/v2
 go.opentelemetry.io/otel/semconv/v1.17.0
 go.opentelemetry.io/otel/semconv/v1.17.0/httpconv
-# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.19.0
-## explicit; go 1.20
 # go.opentelemetry.io/otel/metric v1.19.0
 ## explicit; go 1.20
 go.opentelemetry.io/otel/metric
 go.opentelemetry.io/otel/metric/embedded
-# go.opentelemetry.io/otel/sdk v1.19.0
-## explicit; go 1.20
 # go.opentelemetry.io/otel/trace v1.19.0
 ## explicit; go 1.20
 go.opentelemetry.io/otel/trace

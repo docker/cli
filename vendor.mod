@@ -8,7 +8,7 @@ go 1.19
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/containerd/containerd v1.7.8
+	github.com/containerd/containerd v1.7.11
 	github.com/creack/pty v1.1.18
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
@@ -75,11 +75,9 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.etcd.io/etcd/raft/v3 v3.5.6 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.42.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.45.0 // indirect
 	go.opentelemetry.io/otel v1.19.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
