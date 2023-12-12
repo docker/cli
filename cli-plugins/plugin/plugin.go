@@ -1,8 +1,12 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net"
 	"os"
 	"sync"
 
@@ -14,6 +18,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// CLIPluginSocketEnvKey is used to pass the plugin being
+// executed the abstract socket name it should listen on to know
+// when the CLI has exited.
+const CLIPluginSocketEnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
+
 // PersistentPreRunE must be called by any plugin command (or
 // subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
 // which do not make use of `PersistentPreRun*` do not need to call
@@ -24,14 +33,56 @@ import (
 // called.
 var PersistentPreRunE func(*cobra.Command, []string) error
 
+// closeOnCLISocketClose connects to the socket specified
+// by the DOCKER_CLI_PLUGIN_SOCKET env var, if present, and attempts
+// to read from it until it receives an EOF, which signals that
+// the CLI is going to exit and the plugin should also exit.
+func closeOnCLISocketClose(cancel func()) {
+	socketAddr, ok := os.LookupEnv(CLIPluginSocketEnvKey)
+	if !ok {
+		// if a plugin compiled against a more recent version of docker/cli
+		// is executed by an older CLI binary, ignore missing environment
+		// variable and behave as usual
+		return
+	}
+	addr, err := net.ResolveUnixAddr("unix", socketAddr)
+	if err != nil {
+		return
+	}
+	cliCloseConn, err := net.DialUnix("unix", nil, addr)
+	if err != nil {
+		return
+	}
+
+	go func() {
+		b := make([]byte, 1)
+		for {
+			_, err := cliCloseConn.Read(b)
+			if errors.Is(err, io.EOF) {
+				cancel()
+			}
+		}
+	}()
+}
+
 // RunPlugin executes the specified plugin command
 func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
 	tcmd := newPluginCommand(dockerCli, plugin, meta)
 
 	var persistentPreRunOnce sync.Once
-	PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
+	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
 		var err error
 		persistentPreRunOnce.Do(func() {
+			cmdContext := cmd.Context()
+			// TODO: revisit and make sure this check makes sense
+			// see: https://github.com/docker/cli/pull/4599#discussion_r1422487271
+			if cmdContext == nil {
+				cmdContext = context.TODO()
+			}
+			ctx, cancel := context.WithCancel(cmdContext)
+			cmd.SetContext(ctx)
+			closeOnCLISocketClose(cancel)
+
 			var opts []command.InitializeOpt
 			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {
 				opts = append(opts, withPluginClientConn(plugin.Name()))
