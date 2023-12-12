@@ -90,7 +90,7 @@ Create and run a new container from an image
 | `--platform`                                          | `string`      |           | Set platform if server is multi-platform capable                                                                                                                                                                                                                                                                 |
 | [`--privileged`](#privileged)                         |               |           | Give extended privileges to this container                                                                                                                                                                                                                                                                       |
 | [`-p`](#publish), [`--publish`](#publish)             | `list`        |           | Publish a container's port(s) to the host                                                                                                                                                                                                                                                                        |
-| `-P`, `--publish-all`                                 |               |           | Publish all exposed ports to random ports                                                                                                                                                                                                                                                                        |
+| [`-P`](#publish-all), [`--publish-all`](#publish-all) |               |           | Publish all exposed ports to random ports                                                                                                                                                                                                                                                                        |
 | [`--pull`](#pull)                                     | `string`      | `missing` | Pull image before running (`always`, `missing`, `never`)                                                                                                                                                                                                                                                         |
 | `-q`, `--quiet`                                       |               |           | Suppress the pull output                                                                                                                                                                                                                                                                                         |
 | [`--read-only`](#read-only)                           |               |           | Mount the container's root filesystem as read only                                                                                                                                                                                                                                                               |
@@ -483,25 +483,46 @@ $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 ### <a name="publish"></a> Publish or expose port (-p, --expose)
 
 ```console
-$ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
+$ docker run -p 127.0.0.1:80:8080/tcp nginx:alpine
 ```
 
-This binds port `8080` of the container to TCP port `80` on `127.0.0.1` of the host
-machine. You can also specify `udp` and `sctp` ports.
-The [Docker User Guide](https://docs.docker.com/network/links/)
-explains in detail how to use ports in Docker.
+This binds port `8080` of the container to TCP port `80` on `127.0.0.1` of the
+host. You can also specify `udp` and `sctp` ports. The [Networking overview
+page](https://docs.docker.com/network/) explains in detail how to publish ports
+with Docker.
 
-Note that ports which are not bound to the host (i.e., `-p 80:80` instead of
-`-p 127.0.0.1:80:80`) are externally accessible. This also applies if
-you configured UFW to block this specific port, as Docker manages its
-own iptables rules. [Read more](https://docs.docker.com/network/iptables/)
+> **Note**
+>
+> If you don't specify an IP address (i.e., `-p 80:80` instead of `-p
+> 127.0.0.1:80:80`) when publishing a container's ports, Docker publishes the
+> port on all interfaces (address `0.0.0.0`) by default. These ports are
+> externally accessible. This also applies if you configured UFW to block this
+> specific port, as Docker manages its own iptables rules. [Read
+> more](https://docs.docker.com/network/packet-filtering-firewalls/)
 
 ```console
-$ docker run --expose 80 ubuntu bash
+$ docker run --expose 80 nginx:alpine
 ```
 
 This exposes port `80` of the container without publishing the port to the host
 system's interfaces.
+
+### <a name="publish-all"></a> Publish all exposed ports (-P, --publish-all)
+
+```console
+$ docker run -P nginx:alpine
+```
+
+The `-P`, or `--publish-all`, flag publishes all the exposed ports to the host.
+Docker binds each exposed port to a random port on the host.
+
+The `-P` flag only publishes port numbers that are explicitly flagged as
+exposed, either using the Dockerfile `EXPOSE` instruction or the `--expose`
+flag for the `docker run` command.
+
+The range of ports are within an *ephemeral port range* defined by
+`/proc/sys/net/ipv4/ip_local_port_range`. Use the `-p` flag to explicitly map a
+single port or range of ports.
 
 ### <a name="pull"></a> Set the pull policy (--pull)
 
