@@ -78,7 +78,7 @@ Server:
  Plugins:
   Volume: local
   Network: bridge host ipvlan macvlan null overlay
-  Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
  CDI spec directories:
   /etc/cdi
   /var/run/cdi
@@ -153,7 +153,7 @@ Server:
  Plugins:
   Volume: local
   Network: ics internal l2bridge l2tunnel nat null overlay private transparent
-  Log: awslogs etwlogs fluentd gcplogs gelf json-file local logentries splunk syslog
+  Log: awslogs etwlogs fluentd gcplogs gelf json-file local splunk syslog
  Swarm: inactive
  Default Isolation: process
  Kernel Version: 10.0 20348 (20348.1.amd64fre.fe_release.210507-1500)
