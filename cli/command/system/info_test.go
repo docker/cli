@@ -43,7 +43,7 @@ var sampleInfoNoSwarm = system.Info{
 		Volume:        []string{"local"},
 		Network:       []string{"bridge", "host", "macvlan", "null", "overlay"},
 		Authorization: nil,
-		Log:           []string{"awslogs", "fluentd", "gcplogs", "gelf", "journald", "json-file", "logentries", "splunk", "syslog"},
+		Log:           []string{"awslogs", "fluentd", "gcplogs", "gelf", "journald", "json-file", "splunk", "syslog"},
 	},
 	MemoryLimit:        true,
 	SwapLimit:          true,

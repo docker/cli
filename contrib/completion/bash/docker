@@ -891,7 +891,6 @@ __docker_complete_log_drivers() {
 		journald
 		json-file
 		local
-		logentries
 		none
 		splunk
 		syslog
@@ -916,11 +915,10 @@ __docker_complete_log_options() {
 	local journald_options="$common_options1 $common_options2 tag"
 	local json_file_options="$common_options1 $common_options2 compress max-file max-size"
 	local local_options="$common_options1 compress max-file max-size"
-	local logentries_options="$common_options1 $common_options2 line-only logentries-token tag"
 	local splunk_options="$common_options1 $common_options2 splunk-caname splunk-capath splunk-format splunk-gzip splunk-gzip-level splunk-index splunk-insecureskipverify splunk-source splunk-sourcetype splunk-token splunk-url splunk-verify-connection tag"
 	local syslog_options="$common_options1 $common_options2 syslog-address syslog-facility syslog-format syslog-tls-ca-cert syslog-tls-cert syslog-tls-key syslog-tls-skip-verify tag"
 
-	local all_options="$fluentd_options $gcplogs_options $gelf_options $journald_options $logentries_options $json_file_options $syslog_options $splunk_options"
+	local all_options="$fluentd_options $gcplogs_options $gelf_options $journald_options $json_file_options $syslog_options $splunk_options"
 
 	case $(__docker_value_of_option --log-driver) in
 		'')
@@ -946,9 +944,6 @@ __docker_complete_log_options() {
 			;;
 		local)
 			COMPREPLY=( $( compgen -W "$local_options" -S = -- "$cur" ) )
-			;;
-		logentries)
-			COMPREPLY=( $( compgen -W "$logentries_options" -S = -- "$cur" ) )
 			;;
 		syslog)
 			COMPREPLY=( $( compgen -W "$syslog_options" -S = -- "$cur" ) )
