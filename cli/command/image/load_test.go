@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -35,7 +34,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			name:          "pull-error",
 			expectedError: "something went wrong",
 			imageLoadFunc: func(input io.Reader, quiet bool) (types.ImageLoadResponse, error) {
-				return types.ImageLoadResponse{}, errors.Errorf("something went wrong")
+				return types.ImageLoadResponse{}, fmt.Errorf("something went wrong")
 			},
 		},
 	}

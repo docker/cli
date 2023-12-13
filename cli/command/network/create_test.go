@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -27,7 +27,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 		{
 			args: []string{"toto"},
 			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
-				return types.NetworkCreateResponse{}, errors.Errorf("error creating network")
+				return types.NetworkCreateResponse{}, fmt.Errorf("error creating network")
 			},
 			expectedError: "error creating network",
 		},

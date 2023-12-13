@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
@@ -109,7 +108,7 @@ func ensureBasicPluginBin() (string, error) {
 	cmd := exec.Command(goBin, "build", "-o", installPath, "./basic")
 	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", errors.Wrapf(err, "error building basic plugin bin: %s", string(out))
+		return "", fmt.Errorf("error building basic plugin bin: %s: %w", string(out), err)
 	}
 	return installPath, nil
 }

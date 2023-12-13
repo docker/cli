@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -18,7 +19,6 @@ import (
 	"github.com/docker/docker/client"
 	units "github.com/docker/go-units"
 	"github.com/moby/swarmkit/v2/api/defaults"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -169,7 +169,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 			clientSideRollback = true
 			spec = service.PreviousSpec
 			if spec == nil {
-				return errors.Errorf("service does not have a previous specification to roll back to")
+				return fmt.Errorf("service does not have a previous specification to roll back to")
 			}
 		} else {
 			serverSideRollback = true
@@ -922,7 +922,7 @@ func updateMounts(flags *pflag.FlagSet, mounts *[]mounttypes.Mount) error {
 		values := flags.Lookup(flagMountAdd).Value.(*opts.MountOpt).Value()
 		for _, mount := range values {
 			if _, ok := mountsByTarget[mount.Target]; ok {
-				return errors.Errorf("duplicate mount target")
+				return fmt.Errorf("duplicate mount target")
 			}
 			mountsByTarget[mount.Target] = mount
 		}
@@ -1118,7 +1118,7 @@ func updateReplicas(flags *pflag.FlagSet, serviceMode *swarm.ServiceMode) error 
 	}
 
 	if serviceMode == nil || serviceMode.Replicated == nil {
-		return errors.Errorf("replicas can only be used with replicated mode")
+		return fmt.Errorf("replicas can only be used with replicated mode")
 	}
 	serviceMode.Replicated.Replicas = flags.Lookup(flagReplicas).Value.(*Uint64Opt).Value()
 	return nil
@@ -1258,7 +1258,7 @@ func updateHealthcheck(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec)
 			}
 			return nil
 		}
-		return errors.Errorf("--%s conflicts with --health-* options", flagNoHealthcheck)
+		return fmt.Errorf("--%s conflicts with --health-* options", flagNoHealthcheck)
 	}
 	if len(containerSpec.Healthcheck.Test) > 0 && containerSpec.Healthcheck.Test[0] == "NONE" {
 		containerSpec.Healthcheck.Test = nil
@@ -1329,7 +1329,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 				return err
 			}
 			if _, exists := existingNetworks[nwID]; exists {
-				return errors.Errorf("service is already attached to network %s", network.Target)
+				return fmt.Errorf("service is already attached to network %s", network.Target)
 			}
 			network.Target = nwID
 			newNetworks = append(newNetworks, network)

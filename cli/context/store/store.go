@@ -7,6 +7,8 @@ import (
 	"bytes"
 	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -16,7 +18,6 @@ import (
 
 	"github.com/docker/docker/errdefs"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 )
 
 const restrictedNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.+-]+$"
@@ -140,10 +141,10 @@ func (s *ContextStore) CreateOrUpdate(meta Metadata) error {
 // Remove deletes the context with the given name, if found.
 func (s *ContextStore) Remove(name string) error {
 	if err := s.meta.remove(name); err != nil {
-		return errors.Wrapf(err, "failed to remove context %s", name)
+		return fmt.Errorf("failed to remove context %s: %w", name, err)
 	}
 	if err := s.tls.remove(name); err != nil {
-		return errors.Wrapf(err, "failed to remove context %s", name)
+		return fmt.Errorf("failed to remove context %s: %w", name, err)
 	}
 	return nil
 }
@@ -220,7 +221,7 @@ func ValidateContextName(name string) error {
 		return errors.New(`"default" is a reserved context name`)
 	}
 	if !restrictedNameRegEx.MatchString(name) {
-		return errors.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
+		return fmt.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
 	}
 	return nil
 }
@@ -368,7 +369,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 		if err := isValidFilePath(hdr.Name); err != nil {
-			return errors.Wrap(err, hdr.Name)
+			return fmt.Errorf(hdr.Name+": %w", err)
 		}
 		if hdr.Name == metaFile {
 			data, err := io.ReadAll(tr)
@@ -420,7 +421,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 		if err := isValidFilePath(zf.Name); err != nil {
-			return errors.Wrap(err, zf.Name)
+			return fmt.Errorf(zf.Name+": %w", err)
 		}
 		if zf.Name == metaFile {
 			f, err := zf.Open()

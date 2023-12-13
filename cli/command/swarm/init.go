@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -90,7 +90,7 @@ func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) erro
 		case swarm.NodeAvailabilityActive, swarm.NodeAvailabilityPause, swarm.NodeAvailabilityDrain:
 			req.Availability = availability
 		default:
-			return errors.Errorf("invalid availability %q, only active, pause and drain are supported", opts.availability)
+			return fmt.Errorf("invalid availability %q, only active, pause and drain are supported", opts.availability)
 		}
 	}
 
@@ -113,7 +113,7 @@ func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) erro
 	if req.AutoLockManagers {
 		unlockKeyResp, err := client.SwarmGetUnlockKey(ctx)
 		if err != nil {
-			return errors.Wrap(err, "could not fetch unlock key")
+			return fmt.Errorf("could not fetch unlock key: %w", err)
 		}
 		printUnlockCommand(dockerCli.Out(), unlockKeyResp.UnlockKey)
 	}

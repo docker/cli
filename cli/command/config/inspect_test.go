@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -28,7 +27,7 @@ func TestConfigInspectErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			configInspectFunc: func(_ context.Context, configID string) (swarm.Config, []byte, error) {
-				return swarm.Config{}, nil, errors.Errorf("error while inspecting the config")
+				return swarm.Config{}, nil, fmt.Errorf("error while inspecting the config")
 			},
 			expectedError: "error while inspecting the config",
 		},
@@ -45,7 +44,7 @@ func TestConfigInspectErrors(t *testing.T) {
 				if configID == "foo" {
 					return *builders.Config(builders.ConfigName("foo")), nil, nil
 				}
-				return swarm.Config{}, nil, errors.Errorf("error while inspecting the config")
+				return swarm.Config{}, nil, fmt.Errorf("error while inspecting the config")
 			},
 			expectedError: "error while inspecting the config",
 		},
@@ -76,7 +75,7 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 			args: []string{"foo"},
 			configInspectFunc: func(_ context.Context, name string) (swarm.Config, []byte, error) {
 				if name != "foo" {
-					return swarm.Config{}, nil, errors.Errorf("Invalid name, expected %s, got %s", "foo", name)
+					return swarm.Config{}, nil, fmt.Errorf("Invalid name, expected %s, got %s", "foo", name)
 				}
 				return *builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")), nil, nil
 			},

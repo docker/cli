@@ -2,6 +2,7 @@ package store
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/fvbommel/sortorder"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -61,7 +61,7 @@ func parseTypedOrMap(payload []byte, getter TypeGetter) (any, error) {
 func (s *metadataStore) get(name string) (Metadata, error) {
 	m, err := s.getByID(contextdirOf(name))
 	if err != nil {
-		return m, errors.Wrapf(err, "context %q", name)
+		return m, fmt.Errorf("context %q: %w", name, err)
 	}
 	return m, nil
 }
@@ -71,7 +71,7 @@ func (s *metadataStore) getByID(id contextdir) (Metadata, error) {
 	bytes, err := os.ReadFile(fileName)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return Metadata{}, errdefs.NotFound(errors.Wrap(err, "context not found"))
+			return Metadata{}, errdefs.NotFound(fmt.Errorf("context not found: %w", err))
 		}
 		return Metadata{}, err
 	}
@@ -96,7 +96,7 @@ func (s *metadataStore) getByID(id contextdir) (Metadata, error) {
 
 func (s *metadataStore) remove(name string) error {
 	if err := os.RemoveAll(s.contextDir(contextdirOf(name))); err != nil {
-		return errors.Wrapf(err, "failed to remove metadata")
+		return fmt.Errorf("failed to remove metadata: %w", err)
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func (s *metadataStore) list() ([]Metadata, error) {
 			if errors.Is(err, os.ErrNotExist) {
 				continue
 			}
-			return nil, errors.Wrap(err, "failed to read metadata")
+			return nil, fmt.Errorf("failed to read metadata: %w", err)
 		}
 		res = append(res, c)
 	}

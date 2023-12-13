@@ -2,11 +2,12 @@ package manager
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -41,14 +42,14 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 	// which would fail here, so there are all real errors.
 	fullname := filepath.Base(path)
 	if fullname == "." {
-		return Plugin{}, errors.Errorf("unable to determine basename of plugin candidate %q", path)
+		return Plugin{}, fmt.Errorf("unable to determine basename of plugin candidate %q", path)
 	}
 	var err error
 	if fullname, err = trimExeSuffix(fullname); err != nil {
-		return Plugin{}, errors.Wrapf(err, "plugin candidate %q", path)
+		return Plugin{}, fmt.Errorf("plugin candidate %q: %w", path, err)
 	}
 	if !strings.HasPrefix(fullname, NamePrefix) {
-		return Plugin{}, errors.Errorf("plugin candidate %q: does not have %q prefix", path, NamePrefix)
+		return Plugin{}, fmt.Errorf("plugin candidate %q: does not have %q prefix", path, NamePrefix)
 	}
 
 	p := Plugin{

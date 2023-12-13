@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -30,7 +31,6 @@ import (
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	units "github.com/docker/go-units"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -202,7 +202,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	if options.imageIDFile != "" {
 		// Avoid leaving a stale file if we eventually fail
 		if err := os.Remove(options.imageIDFile); err != nil && !os.IsNotExist(err) {
-			return errors.Wrap(err, "Removing image ID file")
+			return fmt.Errorf("Removing image ID file: %w", err)
 		}
 	}
 
@@ -216,7 +216,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 			// Dockerfile is outside of build-context; read the Dockerfile and pass it as dockerfileCtx
 			dockerfileCtx, err = os.Open(options.dockerfileName)
 			if err != nil {
-				return errors.Errorf("unable to open Dockerfile: %v", err)
+				return fmt.Errorf("unable to open Dockerfile: %v", err)
 			}
 			defer dockerfileCtx.Close()
 		}
@@ -225,14 +225,14 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	case urlutil.IsURL(specifiedContext):
 		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, specifiedContext, options.dockerfileName)
 	default:
-		return errors.Errorf("unable to prepare context: path %q not found", specifiedContext)
+		return fmt.Errorf("unable to prepare context: path %q not found", specifiedContext)
 	}
 
 	if err != nil {
 		if options.quiet && urlutil.IsURL(specifiedContext) {
 			fmt.Fprintln(dockerCli.Err(), progBuff)
 		}
-		return errors.Errorf("unable to prepare context: %s", err)
+		return fmt.Errorf("unable to prepare context: %s", err)
 	}
 
 	if tempDir != "" {
@@ -248,7 +248,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 
 		if err := build.ValidateContextDirectory(contextDir, excludes); err != nil {
-			return errors.Wrap(err, "error checking context")
+			return fmt.Errorf("error checking context: %w", err)
 		}
 
 		// And canonicalize dockerfile name to a platform-independent one
@@ -385,7 +385,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 
 	if options.imageIDFile != "" {
 		if imageID == "" {
-			return errors.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
+			return fmt.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
 		}
 		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0o666); err != nil {
 			return err

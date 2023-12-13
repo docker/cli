@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -37,7 +36,7 @@ func TestVolumePruneErrors(t *testing.T) {
 				"force": "true",
 			},
 			volumePruneFunc: func(args filters.Args) (types.VolumesPruneReport, error) {
-				return types.VolumesPruneReport{}, errors.Errorf("error pruning volumes")
+				return types.VolumesPruneReport{}, fmt.Errorf("error pruning volumes")
 			},
 			expectedError: "error pruning volumes",
 		},

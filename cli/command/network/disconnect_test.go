@@ -2,11 +2,11 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -22,7 +22,7 @@ func TestNetworkDisconnectErrors(t *testing.T) {
 		{
 			args: []string{"toto", "titi"},
 			networkDisconnectFunc: func(ctx context.Context, networkID, container string, force bool) error {
-				return errors.Errorf("error disconnecting network")
+				return fmt.Errorf("error disconnecting network")
 			},
 			expectedError: "error disconnecting network",
 		},

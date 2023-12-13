@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -76,7 +75,7 @@ func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
 	if o.Docker != nil {
 		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(s, o.Docker)
 		if err != nil {
-			return errors.Wrap(err, "unable to create docker endpoint config")
+			return fmt.Errorf("unable to create docker endpoint config: %w", err)
 		}
 		c.Endpoints[docker.DockerEndpoint] = dockerEP
 		tlsDataToReset[docker.DockerEndpoint] = dockerTLS

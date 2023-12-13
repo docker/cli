@@ -2,6 +2,8 @@ package container
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -11,7 +13,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -257,7 +258,7 @@ func TestNewExecCommandErrors(t *testing.T) {
 			args:          []string{"5cb5bb5e4a3b", "-t", "-i", "bash"},
 			expectedError: "something went wrong",
 			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				return types.ContainerJSON{}, errors.Errorf("something went wrong")
+				return types.ContainerJSON{}, fmt.Errorf("something went wrong")
 			},
 		},
 	}

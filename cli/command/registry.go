@@ -17,7 +17,6 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
 )
 
 const patSuggest = "You can log in with your password or a Personal Access " +
@@ -102,7 +101,7 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 	// will hit this if you attempt docker login from mintty where stdin
 	// is a pipe, not a character based console.
 	if flPassword == "" && !cli.In().IsTerminal() {
-		return errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
+		return fmt.Errorf("Error: Cannot perform an interactive login from a non TTY device")
 	}
 
 	authconfig.Username = strings.TrimSpace(authconfig.Username)
@@ -127,7 +126,7 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 		}
 	}
 	if flUser == "" {
-		return errors.Errorf("Error: Non-null Username Required")
+		return fmt.Errorf("Error: Non-null Username Required")
 	}
 	if flPassword == "" {
 		oldState, err := term.SaveState(cli.In().FD())
@@ -145,7 +144,7 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 		}
 		fmt.Fprint(cli.Out(), "\n")
 		if flPassword == "" {
-			return errors.Errorf("Error: Password Required")
+			return fmt.Errorf("Error: Password Required")
 		}
 	}
 
@@ -161,7 +160,7 @@ func ConfigureAuth(cli Cli, flUser, flPassword string, authconfig *registrytypes
 func readInput(in io.Reader) (string, error) {
 	line, _, err := bufio.NewReader(in).ReadLine()
 	if err != nil {
-		return "", errors.Wrap(err, "error while reading input")
+		return "", fmt.Errorf("error while reading input: %w", err)
 	}
 	return strings.TrimSpace(string(line)), nil
 }

@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -33,7 +33,7 @@ func TestStackPsErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
-				return nil, errors.Errorf("error getting tasks")
+				return nil, fmt.Errorf("error getting tasks")
 			},
 			expectedError: "error getting tasks",
 		},

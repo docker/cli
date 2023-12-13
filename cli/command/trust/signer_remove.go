@@ -2,6 +2,7 @@ package trust
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -49,7 +49,7 @@ func removeSigner(dockerCLI command.Cli, options signerRemoveOptions) error {
 		}
 	}
 	if len(errRepos) > 0 {
-		return errors.Errorf("error removing signer from: %s", strings.Join(errRepos, ", "))
+		return fmt.Errorf("error removing signer from: %s", strings.Join(errRepos, ", "))
 	}
 	return nil
 }
@@ -87,7 +87,7 @@ func removeSingleSigner(dockerCLI command.Cli, repoName, signerName string, forc
 
 	signerDelegation := data.RoleName("targets/" + signerName)
 	if signerDelegation == releasesRoleTUFName {
-		return false, errors.Errorf("releases is a reserved keyword and cannot be removed")
+		return false, fmt.Errorf("releases is a reserved keyword and cannot be removed")
 	}
 	notaryRepo, err := dockerCLI.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
@@ -95,7 +95,7 @@ func removeSingleSigner(dockerCLI command.Cli, repoName, signerName string, forc
 	}
 	delegationRoles, err := notaryRepo.GetDelegationRoles()
 	if err != nil {
-		return false, errors.Wrapf(err, "error retrieving signers for %s", repoName)
+		return false, fmt.Errorf("error retrieving signers for %s: %w", repoName, err)
 	}
 	var role data.Role
 	for _, delRole := range delegationRoles {
@@ -105,7 +105,7 @@ func removeSingleSigner(dockerCLI command.Cli, repoName, signerName string, forc
 		}
 	}
 	if role.Name == "" {
-		return false, errors.Errorf("no signer %s for repository %s", signerName, repoName)
+		return false, fmt.Errorf("no signer %s for repository %s", signerName, repoName)
 	}
 	allRoles, err := notaryRepo.ListRoles()
 	if err != nil {

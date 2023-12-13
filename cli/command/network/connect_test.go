@@ -2,12 +2,12 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -24,7 +24,7 @@ func TestNetworkConnectErrors(t *testing.T) {
 		{
 			args: []string{"toto", "titi"},
 			networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-				return errors.Errorf("error connecting network")
+				return fmt.Errorf("error connecting network")
 			},
 			expectedError: "error connecting network",
 		},

@@ -2,6 +2,8 @@ package service
 
 import (
 	"encoding/hex"
+	"errors"
+	"fmt"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
@@ -9,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/tuf/data"
 )
@@ -23,7 +24,7 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 
 	ref, err := reference.ParseAnyReference(service.TaskTemplate.ContainerSpec.Image)
 	if err != nil {
-		return errors.Wrapf(err, "invalid reference %s", service.TaskTemplate.ContainerSpec.Image)
+		return fmt.Errorf("invalid reference %s: %w", service.TaskTemplate.ContainerSpec.Image, err)
 	}
 
 	// If reference does not have digest (is not canonical nor image id)
@@ -40,7 +41,7 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 
 		resolvedImage, err := trustedResolveDigest(dockerCli, taggedRef)
 		if err != nil {
-			return errors.Wrap(err, "failed to resolve image digest using content trust")
+			return fmt.Errorf("failed to resolve image digest using content trust: %w", err)
 		}
 		resolvedFamiliar := reference.FamiliarString(resolvedImage)
 		logrus.Debugf("resolved image tag to %s using content trust", resolvedFamiliar)
@@ -60,7 +61,7 @@ func trustedResolveDigest(cli command.Cli, ref reference.NamedTagged) (reference
 
 	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing connection to trust repository")
+		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	t, err := notaryRepo.GetTargetByName(ref.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)
@@ -70,7 +71,7 @@ func trustedResolveDigest(cli command.Cli, ref reference.NamedTagged) (reference
 	// Only get the tag if it's in the top level targets role or the releases delegation role
 	// ignore it if it's in any other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(repoInfo.Name.Name(), errors.Errorf("No trust data for %s", reference.FamiliarString(ref)))
+		return nil, trust.NotaryError(repoInfo.Name.Name(), fmt.Errorf("No trust data for %s", reference.FamiliarString(ref)))
 	}
 
 	logrus.Debugf("retrieving target for %s role\n", t.Role)

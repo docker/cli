@@ -2,6 +2,8 @@ package command
 
 import (
 	"crypto/rand"
+	"errors"
+	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
@@ -171,5 +173,5 @@ func TestErrTLSDataError(t *testing.T) {
 	meta := testDefaultMetadata()
 	s := testStore(t, meta, store.ContextTLSData{})
 	_, err := s.GetTLSData("default", "noop", "noop")
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, errors.Is(err, os.ErrNotExist))
 }

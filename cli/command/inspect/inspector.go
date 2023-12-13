@@ -3,13 +3,13 @@ package inspect
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"text/template"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/templates"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,7 +50,7 @@ func NewTemplateInspectorFromString(out io.Writer, tmplStr string) (Inspector, e
 
 	tmpl, err := templates.Parse(tmplStr)
 	if err != nil {
-		return nil, errors.Errorf("template parsing error: %s", err)
+		return nil, fmt.Errorf("template parsing error: %w", err)
 	}
 	return NewTemplateInspector(out, tmpl), nil
 }
@@ -100,7 +100,7 @@ func (i *TemplateInspector) Inspect(typedElement any, rawElement []byte) error {
 	buffer := new(bytes.Buffer)
 	if err := i.tmpl.Execute(buffer, typedElement); err != nil {
 		if rawElement == nil {
-			return errors.Errorf("template parsing error: %v", err)
+			return fmt.Errorf("template parsing error: %w", err)
 		}
 		return i.tryRawInspectFallback(rawElement)
 	}
@@ -119,12 +119,12 @@ func (i *TemplateInspector) tryRawInspectFallback(rawElement []byte) error {
 	dec.UseNumber()
 
 	if rawErr := dec.Decode(&raw); rawErr != nil {
-		return errors.Errorf("unable to read inspect data: %v", rawErr)
+		return fmt.Errorf("unable to read inspect data: %w", rawErr)
 	}
 
 	tmplMissingKey := i.tmpl.Option("missingkey=error")
 	if rawErr := tmplMissingKey.Execute(buffer, raw); rawErr != nil {
-		return errors.Errorf("template parsing error: %v", rawErr)
+		return fmt.Errorf("template parsing error: %w", rawErr)
 	}
 
 	i.buffer.Write(buffer.Bytes())

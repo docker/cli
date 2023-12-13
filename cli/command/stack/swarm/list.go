@@ -2,12 +2,12 @@ package swarm
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 )
 
 // GetStacks lists the swarm stacks.
@@ -23,8 +23,7 @@ func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
 		labels := service.Spec.Labels
 		name, ok := labels[convert.LabelNamespace]
 		if !ok {
-			return nil, errors.Errorf("cannot get label %s for service %s",
-				convert.LabelNamespace, service.ID)
+			return nil, fmt.Errorf("cannot get label %s for service %s", convert.LabelNamespace, service.ID)
 		}
 		ztack, ok := m[name]
 		if !ok {

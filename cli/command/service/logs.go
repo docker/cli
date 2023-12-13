@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -20,7 +21,6 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/stringid"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -257,7 +257,7 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 	// break up the log line into parts.
 	parts := bytes.SplitN(buf, []byte(" "), numParts)
 	if len(parts) != numParts {
-		return 0, errors.Errorf("invalid context in log message: %v", string(buf))
+		return 0, fmt.Errorf("invalid context in log message: %v", string(buf))
 	}
 	// parse the details out
 	details, err := logs.ParseLogDetails(string(parts[detailsIndex]))
@@ -322,19 +322,19 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 func (lw *logWriter) parseContext(details map[string]string) (logContext, error) {
 	nodeID, ok := details["com.docker.swarm.node.id"]
 	if !ok {
-		return logContext{}, errors.Errorf("missing node id in details: %v", details)
+		return logContext{}, fmt.Errorf("missing node id in details: %v", details)
 	}
 	delete(details, "com.docker.swarm.node.id")
 
 	serviceID, ok := details["com.docker.swarm.service.id"]
 	if !ok {
-		return logContext{}, errors.Errorf("missing service id in details: %v", details)
+		return logContext{}, fmt.Errorf("missing service id in details: %v", details)
 	}
 	delete(details, "com.docker.swarm.service.id")
 
 	taskID, ok := details["com.docker.swarm.task.id"]
 	if !ok {
-		return logContext{}, errors.Errorf("missing task id in details: %s", details)
+		return logContext{}, fmt.Errorf("missing task id in details: %s", details)
 	}
 	delete(details, "com.docker.swarm.task.id")
 

@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/moby/sys/sequential"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ func runLoad(dockerCli command.Cli, opts loadOptions) error {
 	// To avoid getting stuck, verify that a tar file is given either in
 	// the input flag or through stdin and if not display an error message and exit.
 	if opts.input == "" && dockerCli.In().IsTerminal() {
-		return errors.Errorf("requested load from stdin, but stdin is empty")
+		return fmt.Errorf("requested load from stdin, but stdin is empty")
 	}
 
 	if !dockerCli.Out().IsTerminal() {

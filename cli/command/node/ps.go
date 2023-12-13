@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -99,7 +99,7 @@ func runPs(dockerCli command.Cli, options psOptions) error {
 	}
 
 	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
+		return fmt.Errorf("%s", strings.Join(errs, "\n"))
 	}
 
 	return nil

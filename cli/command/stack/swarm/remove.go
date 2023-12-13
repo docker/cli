@@ -11,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/pkg/errors"
 )
 
 // RunRemove is the swarm implementation of docker stack remove
@@ -63,7 +62,7 @@ func RunRemove(dockerCli command.Cli, opts options.Remove) error {
 	}
 
 	if len(errs) > 0 {
-		return errors.Errorf(strings.Join(errs, "\n"))
+		return fmt.Errorf(strings.Join(errs, "\n"))
 	}
 	return nil
 }

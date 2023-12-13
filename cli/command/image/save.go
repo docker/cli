@@ -2,12 +2,13 @@ package image
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +49,7 @@ func RunSave(dockerCli command.Cli, opts saveOptions) error {
 	}
 
 	if err := command.ValidateOutputPath(opts.output); err != nil {
-		return errors.Wrap(err, "failed to save image")
+		return fmt.Errorf("failed to save image: %w", err)
 	}
 
 	responseBody, err := dockerCli.Client().ImageSave(context.Background(), opts.images)

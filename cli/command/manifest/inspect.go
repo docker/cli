@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/manifest/manifestlist"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -124,7 +123,7 @@ func printManifestList(dockerCli command.Cli, namedRef reference.Named, list []t
 		for _, img := range list {
 			mfd, err := buildManifestDescriptor(targetRepo, img)
 			if err != nil {
-				return errors.Wrap(err, "failed to assemble ManifestDescriptor")
+				return fmt.Errorf("failed to assemble ManifestDescriptor: %w", err)
 			}
 			manifests = append(manifests, mfd)
 		}

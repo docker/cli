@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +51,7 @@ func validateContextDir(contextDir string) (string, error) {
 	}
 
 	if !stat.IsDir() {
-		return "", errors.Errorf("context must be a directory")
+		return "", fmt.Errorf("context must be a directory")
 	}
 
 	return absContextDir, nil

@@ -1,11 +1,13 @@
 package command
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -183,7 +185,7 @@ func (s *ContextStoreWithDefault) GetTLSData(contextName, endpointName, fileName
 			return nil, err
 		}
 		if defaultContext.TLS.Endpoints[endpointName].Files[fileName] == nil {
-			return nil, errdefs.NotFound(errors.Errorf("TLS data for %s/%s/%s does not exist", DefaultContextName, endpointName, fileName))
+			return nil, errdefs.NotFound(fmt.Errorf("TLS data for %s/%s/%s does not exist", DefaultContextName, endpointName, fileName))
 		}
 		return defaultContext.TLS.Endpoints[endpointName].Files[fileName], nil
 	}

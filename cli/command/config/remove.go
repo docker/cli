@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -51,7 +50,7 @@ func RunConfigRemove(dockerCli command.Cli, opts RemoveOptions) error {
 	}
 
 	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
+		return fmt.Errorf("%s", strings.Join(errs, "\n"))
 	}
 
 	return nil

@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -131,7 +130,7 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 //nolint:gocyclo
 func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]string) ([]network.IPAMConfig, error) {
 	if len(subnets) < len(ranges) || len(subnets) < len(gateways) {
-		return nil, errors.Errorf("every ip-range or gateway must have a corresponding subnet")
+		return nil, fmt.Errorf("every ip-range or gateway must have a corresponding subnet")
 	}
 	iData := map[string]*network.IPAMConfig{}
 
@@ -147,7 +146,7 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 				return nil, err
 			}
 			if ok1 || ok2 {
-				return nil, errors.Errorf("multiple overlapping subnet configuration is not supported")
+				return nil, fmt.Errorf("multiple overlapping subnet configuration is not supported")
 			}
 		}
 		iData[s] = &network.IPAMConfig{Subnet: s, AuxAddress: map[string]string{}}
@@ -165,14 +164,14 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 				continue
 			}
 			if iData[s].IPRange != "" {
-				return nil, errors.Errorf("cannot configure multiple ranges (%s, %s) on the same subnet (%s)", r, iData[s].IPRange, s)
+				return nil, fmt.Errorf("cannot configure multiple ranges (%s, %s) on the same subnet (%s)", r, iData[s].IPRange, s)
 			}
 			d := iData[s]
 			d.IPRange = r
 			match = true
 		}
 		if !match {
-			return nil, errors.Errorf("no matching subnet for range %s", r)
+			return nil, fmt.Errorf("no matching subnet for range %s", r)
 		}
 	}
 
@@ -188,14 +187,14 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 				continue
 			}
 			if iData[s].Gateway != "" {
-				return nil, errors.Errorf("cannot configure multiple gateways (%s, %s) for the same subnet (%s)", g, iData[s].Gateway, s)
+				return nil, fmt.Errorf("cannot configure multiple gateways (%s, %s) for the same subnet (%s)", g, iData[s].Gateway, s)
 			}
 			d := iData[s]
 			d.Gateway = g
 			match = true
 		}
 		if !match {
-			return nil, errors.Errorf("no matching subnet for gateway %s", g)
+			return nil, fmt.Errorf("no matching subnet for gateway %s", g)
 		}
 	}
 
@@ -214,7 +213,7 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 			match = true
 		}
 		if !match {
-			return nil, errors.Errorf("no matching subnet for aux-address %s", aa)
+			return nil, fmt.Errorf("no matching subnet for aux-address %s", aa)
 		}
 	}
 
@@ -230,7 +229,7 @@ func subnetMatches(subnet, data string) (bool, error) {
 
 	_, s, err := net.ParseCIDR(subnet)
 	if err != nil {
-		return false, errors.Wrap(err, "invalid subnet")
+		return false, fmt.Errorf("invalid subnet: %w", err)
 	}
 
 	if strings.Contains(data, "/") {

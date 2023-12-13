@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker/pkg/homedir"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -69,7 +68,7 @@ func SetDir(dir string) {
 func Path(p ...string) (string, error) {
 	path := filepath.Join(append([]string{Dir()}, p...)...)
 	if !strings.HasPrefix(path, Dir()+string(filepath.Separator)) {
-		return "", errors.Errorf("path %q is outside of root config directory %q", path, Dir())
+		return "", fmt.Errorf("path %q is outside of root config directory %q", path, Dir())
 	}
 	return path, nil
 }
@@ -112,7 +111,7 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 	defer file.Close()
 	err = configFile.LoadFromReader(file)
 	if err != nil {
-		err = errors.Wrap(err, filename)
+		err = fmt.Errorf(filename+": %w", err)
 	}
 	return configFile, err
 }

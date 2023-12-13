@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -44,13 +43,7 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 	}
 	for _, arg := range args {
 		if k, v, ok := strings.Cut(arg, "="); !ok || k == "" || v == "" {
-			return errors.Errorf(
-				"Invalid scale specifier '%s'.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
-				arg,
-				cmd.CommandPath(),
-				cmd.UseLine(),
-				cmd.Short,
-			)
+			return fmt.Errorf("Invalid scale specifier '%s'.\nSee '%s --help'.\n\nUsage:  %s\n\n%s", arg, cmd.CommandPath(), cmd.UseLine(), cmd.Short)
 		}
 	}
 	return nil
@@ -91,7 +84,7 @@ func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error
 	if len(errs) == 0 {
 		return nil
 	}
-	return errors.Errorf(strings.Join(errs, "\n"))
+	return fmt.Errorf(strings.Join(errs, "\n"))
 }
 
 func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID string, scale uint64) error {
@@ -109,7 +102,7 @@ func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID strin
 	case serviceMode.ReplicatedJob != nil:
 		serviceMode.ReplicatedJob.TotalCompletions = &scale
 	default:
-		return errors.Errorf("scale can only be used with replicated or replicated-job mode")
+		return fmt.Errorf("scale can only be used with replicated or replicated-job mode")
 	}
 
 	response, err := client.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, types.ServiceUpdateOptions{})

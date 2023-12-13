@@ -2,13 +2,14 @@ package system
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +35,7 @@ func runDialStdio(dockerCli command.Cli) error {
 	dialer := dockerCli.Client().Dialer()
 	conn, err := dialer(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to open the raw stream connection")
+		return fmt.Errorf("failed to open the raw stream connection: %w", err)
 	}
 	defer conn.Close()
 
@@ -80,7 +81,7 @@ func copier(to halfWriteCloser, from halfReadCloser, debugDescription string) er
 		}
 	}()
 	if _, err := io.Copy(to, from); err != nil {
-		return errors.Wrapf(err, "error while Copy (%s)", debugDescription)
+		return fmt.Errorf("error while Copy (%s): %w", debugDescription, err)
 	}
 	return nil
 }

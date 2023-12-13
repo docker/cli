@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/go-connections/nat"
 	"github.com/fvbommel/sortorder"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -67,11 +66,11 @@ func runPort(dockerCli command.Cli, opts *portOptions) error {
 			proto = "tcp"
 		}
 		if _, err = strconv.ParseUint(port, 10, 16); err != nil {
-			return errors.Wrapf(err, "Error: invalid port (%s)", port)
+			return fmt.Errorf("Error: invalid port (%s): %w", port, err)
 		}
 		frontends, exists := c.NetworkSettings.Ports[nat.Port(port+"/"+proto)]
 		if !exists || frontends == nil {
-			return errors.Errorf("Error: No public port '%s' published for %s", opts.port, opts.container)
+			return fmt.Errorf("Error: No public port '%s' published for %s", opts.port, opts.container)
 		}
 		for _, frontend := range frontends {
 			out = append(out, net.JoinHostPort(frontend.HostIP, frontend.HostPort))

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 )
 
 // GpuOpts is a Value type for parsing mounts
@@ -20,7 +19,7 @@ func parseCount(s string) (int, error) {
 		return -1, nil
 	}
 	i, err := strconv.Atoi(s)
-	return i, errors.Wrap(err, "count must be an integer")
+	return i, fmt.Errorf("count must be an integer: %w", err)
 }
 
 // Set a new mount value
@@ -69,7 +68,7 @@ func (o *GpuOpts) Set(value string) error {
 			r := csv.NewReader(strings.NewReader(val))
 			optFields, err := r.Read()
 			if err != nil {
-				return errors.Wrap(err, "failed to read gpu options")
+				return fmt.Errorf("failed to read gpu options: %w", err)
 			}
 			req.Options = ConvertKVStringsToMap(optFields)
 		default:

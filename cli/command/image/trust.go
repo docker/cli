@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -95,18 +95,18 @@ func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.Reposito
 	}
 
 	if cnt > 1 {
-		return errors.Errorf("internal error: only one call to handleTarget expected")
+		return fmt.Errorf("internal error: only one call to handleTarget expected")
 	}
 
 	if target == nil {
-		return errors.Errorf("no targets found, please provide a specific tag in order to sign it")
+		return fmt.Errorf("no targets found, please provide a specific tag in order to sign it")
 	}
 
 	fmt.Fprintln(ioStreams.Out(), "Signing and pushing trust metadata")
 
 	repo, err := trust.GetNotaryRepository(ioStreams.In(), ioStreams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
 	if err != nil {
-		return errors.Wrap(err, "error establishing connection to trust repository")
+		return fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	// get the latest repository metadata so we can figure out which roles to sign
@@ -146,7 +146,7 @@ func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.Reposito
 	}
 
 	if err != nil {
-		err = errors.Wrapf(err, "failed to sign %s:%s", repoInfo.Name.Name(), tag)
+		err = fmt.Errorf("failed to sign %s:%s: %w", repoInfo.Name.Name(), tag, err)
 		return trust.NotaryError(repoInfo.Name.Name(), err)
 	}
 
@@ -214,7 +214,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
 	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing connection to trust repository")
+		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	ref := imgRefAndAuth.Reference()
@@ -240,7 +240,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 			refs = append(refs, t)
 		}
 		if len(refs) == 0 {
-			return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
+			return nil, trust.NotaryError(ref.Name(), fmt.Errorf("No trusted tags for %s", ref.Name()))
 		}
 		return refs, nil
 	}
@@ -252,7 +252,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 	// Only get the tag if it's in the top level targets role or the releases delegation role
 	// ignore it if it's in any other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
+		return nil, trust.NotaryError(ref.Name(), fmt.Errorf("No trust data for %s", tagged.Tag()))
 	}
 
 	logrus.Debugf("retrieving target for %s role", t.Role)
@@ -294,7 +294,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 
 	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, []string{"pull"})
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing connection to trust repository")
+		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	t, err := notaryRepo.GetTargetByName(ref.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)

@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli/command"
@@ -10,7 +11,6 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/pkg/errors"
 )
 
 // Resolve image constants
@@ -43,7 +43,7 @@ func validateResolveImageFlag(opts *options.Deploy) error {
 	case ResolveImageAlways, ResolveImageChanged, ResolveImageNever:
 		return nil
 	default:
-		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
+		return fmt.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
 	}
 }
 

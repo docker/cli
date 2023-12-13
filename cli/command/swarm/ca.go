@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/command/swarm/progress"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

@@ -1,6 +1,7 @@
 package context
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +54,7 @@ func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error 
 func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
 	if isCurrent {
 		if !force {
-			return errors.Errorf("context %q is in use, set -f flag to force remove", name)
+			return fmt.Errorf("context %q is in use, set -f flag to force remove", name)
 		}
 		// fallback to DOCKER_HOST
 		cfg := dockerCli.ConfigFile()
@@ -77,7 +77,7 @@ func checkContextExists(dockerCli command.Cli, name string) error {
 	contextDir := dockerCli.ContextStore().GetStorageInfo(name).MetadataPath
 	_, err := os.Stat(contextDir)
 	if os.IsNotExist(err) {
-		return errdefs.NotFound(errors.Errorf("context %q does not exist", name))
+		return errdefs.NotFound(fmt.Errorf("context %q does not exist", name))
 	}
 	// Ignore other errors; if relevant, they will produce an error when
 	// performing the actual delete.

@@ -1,13 +1,13 @@
 package image
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -37,7 +37,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			isTerminal:    false,
 			expectedError: "error saving image",
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
+				return io.NopCloser(strings.NewReader("")), fmt.Errorf("error saving image")
 			},
 		},
 		{

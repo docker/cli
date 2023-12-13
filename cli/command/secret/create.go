@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/moby/sys/sequential"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -54,12 +53,12 @@ func runSecretCreate(dockerCli command.Cli, options createOptions) error {
 	ctx := context.Background()
 
 	if options.driver != "" && options.file != "" {
-		return errors.Errorf("When using secret driver secret data must be empty")
+		return fmt.Errorf("When using secret driver secret data must be empty")
 	}
 
 	secretData, err := readSecretData(dockerCli.In(), options.file)
 	if err != nil {
-		return errors.Errorf("Error reading content from %q: %v", options.file, err)
+		return fmt.Errorf("Error reading content from %q: %v", options.file, err)
 	}
 	spec := swarm.SecretSpec{
 		Annotations: swarm.Annotations{

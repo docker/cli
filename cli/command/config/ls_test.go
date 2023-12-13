@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -29,7 +29,7 @@ func TestConfigListErrors(t *testing.T) {
 		},
 		{
 			configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
-				return []swarm.Config{}, errors.Errorf("error listing configs")
+				return []swarm.Config{}, fmt.Errorf("error listing configs")
 			},
 			expectedError: "error listing configs",
 		},

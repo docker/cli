@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -48,7 +47,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 			expectedError: "error removing image",
 			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
 				assert.Check(t, is.Equal("image1", img))
-				return []image.DeleteResponse{}, errors.Errorf("error removing image")
+				return []image.DeleteResponse{}, fmt.Errorf("error removing image")
 			},
 		},
 		{
@@ -58,7 +57,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 			imageRemoveFunc: func(img string, options types.ImageRemoveOptions) ([]image.DeleteResponse, error) {
 				assert.Check(t, !options.Force)
 				assert.Check(t, options.PruneChildren)
-				return []image.DeleteResponse{}, errors.Errorf("error removing image")
+				return []image.DeleteResponse{}, fmt.Errorf("error removing image")
 			},
 		},
 	}
