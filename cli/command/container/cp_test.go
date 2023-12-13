@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"io"
 	"os"
 	"runtime"
@@ -41,7 +42,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			err := runCopy(test.NewFakeCli(nil), testcase.options)
+			err := runCopy(context.TODO(), test.NewFakeCli(nil), testcase.options)
 			assert.Error(t, err, testcase.expectedErr)
 		})
 	}
@@ -58,7 +59,7 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 	}
 	options := copyOptions{source: "container:/path", destination: "-"}
 	cli := test.NewFakeCli(fakeClient)
-	err := runCopy(cli, options)
+	err := runCopy(context.TODO(), cli, options)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(tarContent, cli.OutBuffer().String()))
 	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
@@ -78,7 +79,7 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 	}
 	options := copyOptions{source: "container:/path", destination: destDir.Path(), quiet: true}
 	cli := test.NewFakeCli(fakeClient)
-	err := runCopy(cli, options)
+	err := runCopy(context.TODO(), cli, options)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("", cli.OutBuffer().String()))
 	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
@@ -106,7 +107,7 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 		destination: destDir.Join("missing", "foo"),
 	}
 	cli := test.NewFakeCli(fakeClient)
-	err := runCopy(cli, options)
+	err := runCopy(context.TODO(), cli, options)
 	assert.ErrorContains(t, err, destDir.Join("missing"))
 }
 
@@ -119,7 +120,7 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 		destination: "container:/path",
 	}
 	cli := test.NewFakeCli(&fakeClient{})
-	err := runCopy(cli, options)
+	err := runCopy(context.TODO(), cli, options)
 
 	expectedError := "not a directory"
 	if runtime.GOOS == "windows" {
@@ -134,7 +135,7 @@ func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
 		destination: "container:/path",
 	}
 	cli := test.NewFakeCli(&fakeClient{})
-	err := runCopy(cli, options)
+	err := runCopy(context.TODO(), cli, options)
 	expected := "no such file or directory"
 	if runtime.GOOS == "windows" {
 		expected = "cannot find the file specified"
@@ -193,7 +194,7 @@ func TestSplitCpArg(t *testing.T) {
 func TestRunCopyFromContainerToFilesystemIrregularDestination(t *testing.T) {
 	options := copyOptions{source: "container:/dev/null", destination: "/dev/random"}
 	cli := test.NewFakeCli(nil)
-	err := runCopy(cli, options)
+	err := runCopy(context.TODO(), cli, options)
 	assert.Assert(t, err != nil)
 	expected := `"/dev/random" must be a directory or a regular file`
 	assert.ErrorContains(t, err, expected)

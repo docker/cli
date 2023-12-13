@@ -25,7 +25,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args
-			return runInspect(dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: completion.VolumeNames(dockerCli),
 	}
@@ -35,10 +35,8 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
-
-	ctx := context.Background()
 
 	getVolFunc := func(name string) (any, []byte, error) {
 		i, err := client.VolumeInspect(ctx, name)

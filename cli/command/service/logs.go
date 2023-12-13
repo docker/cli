@@ -47,7 +47,7 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
-			return runLogs(dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{"version": "1.29"},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -72,9 +72,7 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogs(dockerCli command.Cli, opts *logsOptions) error {
-	ctx := context.Background()
-
+func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) error {
 	apiClient := dockerCli.Client()
 
 	var (

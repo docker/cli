@@ -22,9 +22,7 @@ const (
 )
 
 // RunDeploy is the swarm implementation of docker stack deploy
-func RunDeploy(dockerCli command.Cli, opts options.Deploy, cfg *composetypes.Config) error {
-	ctx := context.Background()
-
+func RunDeploy(ctx context.Context, dockerCli command.Cli, opts options.Deploy, cfg *composetypes.Config) error {
 	if err := validateResolveImageFlag(&opts); err != nil {
 		return err
 	}

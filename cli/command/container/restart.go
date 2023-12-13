@@ -32,7 +32,7 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
 			opts.timeoutChanged = cmd.Flags().Changed("time")
-			return runRestart(dockerCli, &opts)
+			return runRestart(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container restart, docker restart",
@@ -46,8 +46,7 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRestart(dockerCli command.Cli, opts *restartOptions) error {
-	ctx := context.Background()
+func runRestart(ctx context.Context, dockerCli command.Cli, opts *restartOptions) error {
 	var errs []string
 	var timeout *int
 	if opts.timeoutChanged {

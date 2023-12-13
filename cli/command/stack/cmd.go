@@ -48,7 +48,7 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 // completeNames offers completion for swarm stacks
 func completeNames(dockerCli command.Cli) completion.ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := swarm.GetStacks(dockerCli)
+		list, err := swarm.GetStacks(cmd.Context(), dockerCli)
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

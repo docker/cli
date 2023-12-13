@@ -35,7 +35,7 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			createOpts.Name = args[0]
 			createOpts.File = args[1]
-			return RunConfigCreate(dockerCli, createOpts)
+			return RunConfigCreate(cmd.Context(), dockerCli, createOpts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -48,9 +48,8 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigCreate creates a config with the given options.
-func RunConfigCreate(dockerCli command.Cli, options CreateOptions) error {
+func RunConfigCreate(ctx context.Context, dockerCli command.Cli, options CreateOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	var in io.Reader = dockerCli.In()
 	if options.File != "-" {

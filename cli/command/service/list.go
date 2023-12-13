@@ -31,7 +31,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 		Short:   "List services",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCLI, options)
+			return runList(cmd.Context(), dockerCLI, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -44,10 +44,9 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCLI command.Cli, options listOptions) error {
+func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	var (
 		apiClient = dockerCLI.Client()
-		ctx       = context.Background()
 		err       error
 	)
 

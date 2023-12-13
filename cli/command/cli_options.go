@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"io"
 	"os"
 	"strconv"
@@ -31,6 +32,15 @@ func WithStandardStreams() CLIOption {
 		cli.in = streams.NewIn(stdin)
 		cli.out = streams.NewOut(stdout)
 		cli.err = stderr
+		return nil
+	}
+}
+
+// WithBaseContext sets the base context of a cli. It is used to propagate
+// the context from the command line to the client.
+func WithBaseContext(ctx context.Context) CLIOption {
+	return func(cli *DockerCli) error {
+		cli.baseCtx = ctx
 		return nil
 	}
 }

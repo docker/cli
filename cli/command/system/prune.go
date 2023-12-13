@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"sort"
 	"text/template"
@@ -39,7 +40,7 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.pruneBuildCache = versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.31")
-			return runPrune(dockerCli, options)
+			return runPrune(cmd.Context(), dockerCli, options)
 		},
 		Annotations:       map[string]string{"version": "1.25"},
 		ValidArgsFunction: completion.NoComplete,
@@ -68,7 +69,7 @@ const confirmationTemplate = `WARNING! This will remove:
 {{end}}
 Are you sure you want to continue?`
 
-func runPrune(dockerCli command.Cli, options pruneOptions) error {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) error {
 	// TODO version this once "until" filter is supported for volumes
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
@@ -76,7 +77,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)) {
 		return nil
 	}
-	pruneFuncs := []func(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
+	pruneFuncs := []func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
 		container.RunPrune,
 		network.RunPrune,
 	}
@@ -90,7 +91,7 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 
 	var spaceReclaimed uint64
 	for _, pruneFn := range pruneFuncs {
-		spc, output, err := pruneFn(dockerCli, options.all, options.filter)
+		spc, output, err := pruneFn(ctx, dockerCli, options.all, options.filter)
 		if err != nil {
 			return err
 		}

@@ -33,7 +33,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return RunPull(dockerCli, opts)
+			return RunPull(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "5",
@@ -54,7 +54,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunPull performs a pull against the engine based on the specified options
-func RunPull(dockerCLI command.Cli, opts PullOptions) error {
+func RunPull(ctx context.Context, dockerCLI command.Cli, opts PullOptions) error {
 	distributionRef, err := reference.ParseNormalizedNamed(opts.remote)
 	switch {
 	case err != nil:
@@ -68,7 +68,6 @@ func RunPull(dockerCLI command.Cli, opts PullOptions) error {
 		}
 	}
 
-	ctx := context.Background()
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(dockerCLI), distributionRef.String())
 	if err != nil {
 		return err

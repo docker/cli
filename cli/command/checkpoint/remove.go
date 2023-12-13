@@ -22,7 +22,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove a checkpoint",
 		Args:    cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(dockerCli, args[0], args[1], opts)
+			return runRemove(cmd.Context(), dockerCli, args[0], args[1], opts)
 		},
 	}
 
@@ -32,8 +32,8 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(dockerCli command.Cli, container string, checkpointID string, opts removeOptions) error {
-	return dockerCli.Client().CheckpointDelete(context.Background(), container, checkpoint.DeleteOptions{
+func runRemove(ctx context.Context, dockerCli command.Cli, container string, checkpointID string, opts removeOptions) error {
+	return dockerCli.Client().CheckpointDelete(ctx, container, checkpoint.DeleteOptions{
 		CheckpointID:  checkpointID,
 		CheckpointDir: opts.checkpointDir,
 	})

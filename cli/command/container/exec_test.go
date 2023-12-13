@@ -192,16 +192,16 @@ func TestRunExec(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			cli := test.NewFakeCli(&testcase.client)
+			fakeCLI := test.NewFakeCli(&testcase.client)
 
-			err := RunExec(context.Background(), cli, "thecontainer", testcase.options)
+			err := RunExec(context.TODO(), fakeCLI, "thecontainer", testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
 			} else if !assert.Check(t, err) {
 				return
 			}
-			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
-			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))
+			assert.Check(t, is.Equal(testcase.expectedOut, fakeCLI.OutBuffer().String()))
+			assert.Check(t, is.Equal(testcase.expectedErr, fakeCLI.ErrBuffer().String()))
 		})
 	}
 }

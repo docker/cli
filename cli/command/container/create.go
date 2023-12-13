@@ -55,7 +55,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runCreate(dockerCli, cmd.Flags(), &options, copts)
+			return runCreate(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container create, docker create",
@@ -80,7 +80,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
@@ -104,7 +104,7 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptio
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	id, err := createContainer(context.Background(), dockerCli, containerCfg, options)
+	id, err := createContainer(ctx, dockerCli, containerCfg, options)
 	if err != nil {
 		return err
 	}

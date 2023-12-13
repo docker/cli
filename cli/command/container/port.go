@@ -36,7 +36,7 @@ func NewPortCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				opts.port = args[1]
 			}
-			return runPort(dockerCli, &opts)
+			return runPort(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container port, docker port",
@@ -52,9 +52,7 @@ func NewPortCommand(dockerCli command.Cli) *cobra.Command {
 // TODO(thaJeztah): currently this defaults to show the TCP port if no
 // proto is specified. We should consider changing this to "any" protocol
 // for the given private port.
-func runPort(dockerCli command.Cli, opts *portOptions) error {
-	ctx := context.Background()
-
+func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) error {
 	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
 	if err != nil {
 		return err

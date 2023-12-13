@@ -31,7 +31,7 @@ func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
 			options.repos = args[1:]
-			return removeSigner(dockerCli, options)
+			return removeSigner(cmd.Context(), dockerCli, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -39,11 +39,11 @@ func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func removeSigner(dockerCLI command.Cli, options signerRemoveOptions) error {
+func removeSigner(ctx context.Context, dockerCLI command.Cli, options signerRemoveOptions) error {
 	var errRepos []string
 	for _, repo := range options.repos {
 		fmt.Fprintf(dockerCLI.Out(), "Removing signer \"%s\" from %s...\n", options.signer, repo)
-		if _, err := removeSingleSigner(dockerCLI, repo, options.signer, options.forceYes); err != nil {
+		if _, err := removeSingleSigner(ctx, dockerCLI, repo, options.signer, options.forceYes); err != nil {
 			fmt.Fprintln(dockerCLI.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repo)
 		}
@@ -78,8 +78,7 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 
 // removeSingleSigner attempts to remove a single signer and returns whether signer removal happened.
 // The signer not being removed doesn't necessarily raise an error e.g. user choosing "No" when prompted for confirmation.
-func removeSingleSigner(dockerCLI command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
-	ctx := context.Background()
+func removeSingleSigner(ctx context.Context, dockerCLI command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), repoName)
 	if err != nil {
 		return false, err
