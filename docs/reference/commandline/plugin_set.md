@@ -123,6 +123,7 @@ $ docker plugin inspect -f '{{with $device := index .Settings.Devices 0}}{{$devi
 ```
 
 > **Note**
+>
 > Since only `path` is settable in `mydevice`,
 > `docker plugins set mydevice=/dev/bar myplugin` would work too.
 

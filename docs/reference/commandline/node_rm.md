@@ -42,7 +42,7 @@ Node swarm-node-02 removed from swarm
 Removes the specified nodes from the swarm, but only if the nodes are in the
 down state. If you attempt to remove an active node you will receive an error:
 
-```non
+```console
 $ docker node rm swarm-node-03
 
 Error response from daemon: rpc error: code = 9 desc = node swarm-node-03 is not

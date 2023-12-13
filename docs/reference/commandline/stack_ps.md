@@ -203,7 +203,7 @@ t72q3z038jehe1wbh9gdum076   voting_redis.2        redis:alpine@sha256:9cd405cd1e
 ### <a name="quiet"></a> Only display task IDs (-q, --quiet)
 
 The `-q ` or `--quiet` option only shows IDs of the tasks in the stack.
-This example outputs all task IDs of the "voting" stack;
+This example outputs all task IDs of the `voting` stack:
 
 ```console
 $ docker stack ps -q voting
@@ -219,7 +219,7 @@ t72q3z038jeh
 
 This option can be used to perform batch operations. For example, you can use
 the task IDs as input for other commands, such as `docker inspect`. The
-following example inspects all tasks of the "voting" stack;
+following example inspects all tasks of the `voting` stack:
 
 ```console
 $ docker inspect $(docker stack ps -q voting)

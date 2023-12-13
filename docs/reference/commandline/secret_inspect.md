@@ -36,7 +36,7 @@ For detailed information about using secrets, refer to [manage sensitive data wi
 
 ### Inspect a secret by name or ID
 
-You can inspect a secret, either by its *name*, or *ID*
+You can inspect a secret, either by its name or ID.
 
 For example, given the following secret:
 
@@ -75,7 +75,7 @@ The output is in JSON format, for example:
 
 ### <a name="format"></a> Format the output (--format)
 
-You can use the --format option to obtain specific information about a
+You can use the `--format` option to obtain specific information about a
 secret. The following example command outputs the creation time of the
 secret.
 

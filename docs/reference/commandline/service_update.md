@@ -229,7 +229,7 @@ ID            NAME  MODE        REPLICAS  IMAGE
 
 ```
 
-Roll back the `web` service...
+The following example rolls back the `web` service:
 
 ```console
 $ docker service update --rollback web

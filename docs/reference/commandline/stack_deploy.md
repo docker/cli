@@ -34,7 +34,7 @@ Create and update a stack from a `compose` file on the swarm.
 
 ### <a name="compose-file"></a> Compose file (--compose-file)
 
-The `deploy` command supports compose file version `3.0` and above.
+The `deploy` command supports Compose file version `3.0` and above.
 
 ```console
 $ docker stack deploy --compose-file docker-compose.yml vossibility

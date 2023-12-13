@@ -45,7 +45,7 @@ mem02h8n73mybpgqjf0kfi1n0   test_secret                 3 seconds ago       3 se
 ### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
-than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`).
 
 The currently supported filters are:
 

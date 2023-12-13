@@ -49,7 +49,7 @@ bk658fpbex0d   redis.2   redis:3.0.5  worker2   Running        Running 9 seconds
 8eaxrb2fqpbn   redis.10  redis:3.0.5  manager1  Running        Running 8 seconds
 ```
 
-In addition to _running_ tasks, the output also shows the task history. For
+In addition to running tasks, the output also shows the task history. For
 example, after updating the service to use the `redis:3.0.6` image, the output
 may look like this:
 
@@ -73,10 +73,11 @@ The number of items in the task history is determined by the
 change the task history retention limit using the
 [`docker swarm update`](swarm_update.md) command.
 
-When deploying a service, docker resolves the digest for the service's
-image, and pins the service to that digest. The digest is not shown by
-default, but is printed if `--no-trunc` is used. The `--no-trunc` option
-also shows the non-truncated task ID, and error-messages, as can be seen below;
+When deploying a service, docker resolves the digest for the service's image,
+and pins the service to that digest. The digest is not shown by default, but is
+printed if `--no-trunc` is used. The `--no-trunc` option also shows the
+non-truncated task ID, and error messages, as can be seen in the following
+example:
 
 ```console
 $ docker service ps --no-trunc redis

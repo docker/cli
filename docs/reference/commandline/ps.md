@@ -70,7 +70,7 @@ For more information, refer to the [container size on disk](https://docs.docker.
 ### <a name="filter"></a> Filtering (--filter)
 
 The `--filter` (or `-f`) flag format is a `key=value` pair. If there is more
-than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`).
 
 The currently supported filters are:
 
@@ -264,7 +264,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 ##### before
 
 The `before` filter shows only containers created before the container with
-given id or name. For example, having these containers created:
+a given ID or name. For example, having these containers created:
 
 ```console
 $ docker ps
@@ -287,8 +287,8 @@ CONTAINER ID        IMAGE       COMMAND       CREATED              STATUS       
 
 ##### since
 
-The `since` filter shows only containers created since the container with given
-id or name. For example, with the same containers as in `before` filter:
+The `since` filter shows only containers created since the container with a given
+ID or name. For example, with the same containers as in `before` filter:
 
 ```console
 $ docker ps -f since=6e63f6ff38b0
@@ -318,7 +318,7 @@ CONTAINER ID        MOUNTS
 #### network
 
 The `network` filter shows only containers that are connected to a network with
-a given name or id.
+a given name or ID.
 
 The following filter matches all containers that are connected to a network
 with a name containing `net1`.
@@ -333,9 +333,9 @@ CONTAINER ID        IMAGE       COMMAND       CREATED             STATUS        
 9d4893ed80fe        ubuntu      "top"         10 minutes ago      Up 10 minutes                           test1
 ```
 
-The network filter matches on both the network's name and id. The following
+The network filter matches on both the network's name and ID. The following
 example shows all containers that are attached to the `net1` network, using
-the network id as a filter;
+the network ID as a filter:
 
 ```console
 $ docker network inspect --format "{{.ID}}" net1

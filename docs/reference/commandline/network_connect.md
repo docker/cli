@@ -50,7 +50,7 @@ $ docker network connect --ip 10.10.36.122 multi-host-network container2
 
 ### <a name="link"></a> Use the legacy `--link` option (--link)
 
-You can use `--link` option to link another container with a preferred alias
+You can use `--link` option to link another container with a preferred alias.
 
 ```console
 $ docker network connect --link container1:c1 multi-host-network container2

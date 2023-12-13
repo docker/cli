@@ -20,7 +20,7 @@ List services
 
 ## Description
 
-This command lists services are running in the swarm.
+This command lists services that are running in the swarm.
 
 > **Note**
 >
@@ -43,7 +43,7 @@ iwe3278osahj  mongo     global          7/7                  mongo:3.3
 hh08h9uu8uwr  job       replicated-job  1/1 (3/5 completed)  nginx:latest
 ```
 
-The `REPLICAS` column shows both the *actual* and *desired* number of tasks for
+The `REPLICAS` column shows both the actual and desired number of tasks for
 the service. If the service is in `replicated-job` or `global-job`, it will
 additionally show the completion status of the job as completed tasks over
 total tasks the job will execute.
@@ -51,7 +51,7 @@ total tasks the job will execute.
 ### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
-than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`).
 
 The currently supported filters are:
 
@@ -62,7 +62,7 @@ The currently supported filters are:
 
 #### id
 
-The `id` filter matches all or part of a service's id.
+The `id` filter matches all or part of a service's ID.
 
 ```console
 $ docker service ls -f "id=0bcjw"

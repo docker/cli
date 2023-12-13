@@ -16,7 +16,7 @@ Remove unused images
 
 ## Description
 
-Remove all dangling images. If `-a` is specified, will also remove all images not referenced by any container.
+Remove all dangling images. If `-a` is specified, also remove all images not referenced by any container.
 
 ## Examples
 
@@ -89,10 +89,10 @@ images without the specified labels.
 > same filtering syntax to see which images match your filter.
 >
 > However, if you are using negative filtering (testing for the absence of a
-> label or that a label does *not* have a specific value), this type of filter
-> does not work with `docker image ls` so you cannot easily predict which images
+> label or that a label doesn't have a specific value), this type of filter
+> doesn't work with `docker image ls` so you cannot easily predict which images
 > will be removed. In addition, the confirmation prompt for `docker image prune`
-> always warns that *all* dangling images will be removed, even if you are using
+> always warns that all dangling images will be removed, even if you are using
 > `--filter`.
 
 The following removes images created before `2017-01-04T00:00:00`:
@@ -190,7 +190,7 @@ $ docker image prune --filter="label!=maintainer=john"
 >
 > You are prompted for confirmation before the `prune` removes
 > anything, but you are not shown a list of what will potentially be removed.
-> In addition, `docker image ls` does not support negative filtering, so it
+> In addition, `docker image ls` doesn't support negative filtering, so it
 > difficult to predict what images will actually be removed.
 
 ## Related commands

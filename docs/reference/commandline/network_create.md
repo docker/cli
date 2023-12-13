@@ -34,7 +34,7 @@ built-in network drivers. If you have installed a third party or your own custom
 network driver you can specify that `DRIVER` here also. If you don't specify the
 `--driver` option, the command automatically creates a `bridge` network for you.
 When you install Docker Engine it creates a `bridge` network automatically. This
-network corresponds to the `docker0` bridge that Engine has traditionally relied
+network corresponds to the `docker0` bridge that Docker Engine has traditionally relied
 on. When you launch a new container with  `docker run` it automatically connects to
 this bridge network. You cannot remove this default bridge network, but you can
 create new ones using the `network create` command.
@@ -43,8 +43,8 @@ create new ones using the `network create` command.
 $ docker network create -d bridge my-bridge-network
 ```
 
-Bridge networks are isolated networks on a single Engine installation. If you
-want to create a network that spans multiple Docker hosts each running an
+Bridge networks are isolated networks on a single Docker Engine installation. If you
+want to create a network that spans multiple Docker hosts each running Docker
 Engine, you must enable Swarm mode, and create an `overlay` network. To read more
 about overlay networks with Swarm mode, see ["*use overlay networks*"](https://docs.docker.com/network/overlay/).
 
@@ -97,17 +97,17 @@ You can connect multiple containers to the same network. Once connected, the
 containers can communicate using only another container's IP address or name.
 For `overlay` networks or custom plugins that support multi-host connectivity,
 containers connected to the same multi-host network but launched from different
-Engines can also communicate in this way.
+daemons can also communicate in this way.
 
 You can disconnect a container from a network using the `docker network
 disconnect` command.
 
 ### Specify advanced options
 
-When you create a network, Engine creates a non-overlapping subnetwork for the
-network by default. This subnetwork is not a subdivision of an existing network.
-It is purely for ip-addressing purposes. You can override this default and
-specify subnetwork values directly using the `--subnet` option. On a
+When you create a network, Docker Engine creates a non-overlapping subnetwork
+for the network by default. This subnetwork is not a subdivision of an existing
+network. It is purely for ip-addressing purposes. You can override this default
+and specify subnetwork values directly using the `--subnet` option. On a
 `bridge` network you can only create a single subnet:
 
 ```console
@@ -126,8 +126,8 @@ $ docker network create \
   br0
 ```
 
-If you omit the `--gateway` flag the Engine selects one for you from inside a
-preferred pool. For `overlay` networks and for network driver plugins that
+If you omit the `--gateway` flag, Docker Engine selects one for you from inside
+a preferred pool. For `overlay` networks and for network driver plugins that
 support it you can create multiple subnetworks. This example uses two `/25`
 subnet mask to adhere to the current guidance of not having more than 256 IPs in
 a single overlay network. Each of the subnetworks has 126 usable addresses.
@@ -144,13 +144,13 @@ $ docker network create -d overlay \
 ```
 
 Be sure that your subnetworks do not overlap. If they do, the network create
-fails and Engine returns an error.
+fails and Docker Engine returns an error.
 
 ### Bridge driver options
 
 When creating a custom network, the default network driver (i.e. `bridge`) has
 additional options that can be passed. The following are those options and the
-equivalent docker daemon flags used for docker0 bridge:
+equivalent Docker daemon flags used for docker0 bridge:
 
 | Option                                           | Equivalent  | Description                                           |
 |--------------------------------------------------|-------------|-------------------------------------------------------|
@@ -207,7 +207,7 @@ $ docker network create -d overlay \
 
 ### Run services on predefined networks
 
-You can create services on the predefined docker networks `bridge` and `host`.
+You can create services on the predefined Docker networks `bridge` and `host`.
 
 ```console
 $ docker service create --name my-service \
