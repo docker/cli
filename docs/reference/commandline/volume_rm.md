@@ -20,7 +20,7 @@ Remove one or more volumes. You cannot remove a volume that is in use by a conta
 
 ## Description
 
-Remove one or more volumes. You cannot remove a volume that is in use by a container.
+Remove one or more volumes. You can't remove a volume that's in use by a container.
 
 ## Examples
 

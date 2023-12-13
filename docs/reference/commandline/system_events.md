@@ -108,11 +108,11 @@ Docker daemons report the following events:
 The `--since` and `--until` parameters can be Unix timestamps, date formatted
 timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
 relative to the client machine’s time. If you do not provide the `--since` option,
-the command returns only new and/or live events.  Supported formats for date
+the command returns only new and/or live events. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
 `2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
-`+-00:00` timezone offset at the end of the timestamp.  When providing Unix
+`+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
 that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
@@ -124,25 +124,25 @@ The filtering flag (`-f` or `--filter`) format is of "key=value". If you would
 like to use multiple filters, pass multiple flags (e.g.,
 `--filter "foo=bar" --filter "bif=baz"`)
 
-Using the same filter multiple times will be handled as a *OR*; for example
-`--filter container=588a23dac085 --filter container=a8f7720b8c22` will display
-events for container 588a23dac085 *OR* container a8f7720b8c22
+Using the same filter multiple times will be handled as a logical `OR`; for example,
+`--filter container=588a23dac085 --filter container=a8f7720b8c22` displays
+events for container `588a23dac085` or container `a8f7720b8c22`.
 
-Using multiple filters will be handled as a *AND*; for example
-`--filter container=588a23dac085 --filter event=start` will display events for
-container container 588a23dac085 *AND* the event type is *start*
+Using multiple filters will be handled as a logical `AND`; for example,
+`--filter container=588a23dac085 --filter event=start` displays events for
+container `588a23dac085` and where the event type is `start`.
 
 The currently supported filters are:
 
-* container (`container=<name or id>`)
-* daemon (`daemon=<name or id>`)
-* event (`event=<event action>`)
-* image (`image=<tag or id>`)
-* label (`label=<key>` or `label=<key>=<value>`)
-* network (`network=<name or id>`)
-* plugin (`plugin=<name or id>`)
-* type (`type=<container or image or volume or network or daemon or plugin>`)
-* volume (`volume=<name or id>`)
+- container (`container=<name or id>`)
+- daemon (`daemon=<name or id>`)
+- event (`event=<event action>`)
+- image (`image=<tag or id>`)
+- label (`label=<key>` or `label=<key>=<value>`)
+- network (`network=<name or id>`)
+- plugin (`plugin=<name or id>`)
+- type (`type=<container or image or volume or network or daemon or plugin>`)
+- volume (`volume=<name or id>`)
 
 ## Examples
 
@@ -181,7 +181,7 @@ To exit the `docker system events` command, use `CTRL+C`.
 ### Filter events by time
 
 You can filter the output by an absolute timestamp or relative time on the host
-machine, using the following different time syntaxes:
+machine, using the following different time formats:
 
 ```console
 $ docker system events --since 1483283804
@@ -307,7 +307,7 @@ $ docker system events --filter 'type=plugin'
 
 ### <a name="format"></a> Format the output (--format)
 
-If a format (`--format`) is specified, the given template will be executed
+If you specify a format (`--format`), the given template is executed
 instead of the default format. Go's [text/template](https://pkg.go.dev/text/template)
 package describes all the details of the format.
 
@@ -324,8 +324,8 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
-If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to https://jsonlines.org/ .
+If a format is set to `{{json .}}`, events are streamed in the JSON Lines format.
+For information about JSON Lines, see <https://jsonlines.org/>.
 
 ```console
 $ docker system events --format '{{json .}}'

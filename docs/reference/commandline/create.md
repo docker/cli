@@ -120,14 +120,14 @@ Create a new container
 The `docker container create` (or shorthand: `docker create`) command creates a
 new container from the specified image, without starting it.
 
-When creating a container, the docker daemon creates a writeable container layer
-over the specified image and prepares it for running the specified command.  The
-container ID is then printed to `STDOUT`.  This is similar to `docker run -d`
+When creating a container, the Docker daemon creates a writeable container layer
+over the specified image and prepares it for running the specified command. The
+container ID is then printed to `STDOUT`. This is similar to `docker run -d`
 except the container is never started. You can then use the `docker container start`
 (or shorthand: `docker start`) command to start the container at any point.
 
 This is useful when you want to set up a container configuration ahead of time
-so that it is ready to start when you need it. The initial status of the
+so that it's ready to start when you need it. The initial status of the
 new container is `created`.
 
 The `docker create` command shares most of its options with the `docker run`

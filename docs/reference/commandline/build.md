@@ -60,11 +60,11 @@ pre-packaged tarball contexts and plain text files.
 
 When the `URL` parameter points to the location of a Git repository, the
 repository acts as the build context. The system recursively fetches the
-repository and its submodules. The commit history is not preserved. A
+repository and its submodules. The commit history isn't preserved. A
 repository is first pulled into a temporary directory on your local host. After
 that succeeds, the directory is sent to the Docker daemon as the context.
 Local copy gives you the ability to access private repositories using local
-user credentials, VPN's, and so forth.
+user credentials, VPNs, and so forth.
 
 > **Note**
 >
@@ -100,18 +100,18 @@ contexts:
 
 ### Tarball contexts
 
-If you pass an URL to a remote tarball, the URL itself is sent to the daemon:
+If you pass a URL to a remote tarball, the URL itself is sent to the daemon:
 
 ```console
 $ docker build http://server/context.tar.gz
 ```
 
 The download operation will be performed on the host the Docker daemon is
-running on, which is not necessarily the same host from which the build command
+running on, which isn't necessarily the same host from which the build command
 is being issued. The Docker daemon will fetch `context.tar.gz` and use it as the
 build context. Tarball contexts must be tar archives conforming to the standard
-`tar` UNIX format and can be compressed with any one of the 'xz', 'bzip2',
-'gzip' or 'identity' (no compression) formats.
+`tar` Unix format and can be compressed with any one of the `xz`, `bzip2`,
+`gzip` or `identity` (no compression) formats.
 
 ### Text files
 
@@ -122,7 +122,7 @@ Instead of specifying a context, you can pass a single `Dockerfile` in the
 $ docker build - < Dockerfile
 ```
 
-With Powershell on Windows, you can run:
+With PowerShell on Windows, you can run:
 
 ```powershell
 Get-Content Dockerfile | docker build -
@@ -136,8 +136,7 @@ By default the `docker build` command will look for a `Dockerfile` at the root
 of the build context. The `-f`, `--file`, option lets you specify the path to
 an alternative file to use instead. This is useful in cases where the same set
 of files are used for multiple builds. The path must be to a file within the
-build context. If a relative path is specified then it is interpreted as
-relative to the root of the context.
+build context. Relative path are interpreted as relative to the root of the context.
 
 In most cases, it's best to put each Dockerfile in an empty directory. Then,
 add to that directory only the files needed for building the Dockerfile. To
@@ -152,8 +151,7 @@ running at the time the build is cancelled, the pull is cancelled as well.
 
 ## Return code
 
-On a successful build, a return code of success `0` will be returned.  When the
-build fails, a non-zero failure code will be returned.
+Successful builds return exit code `0`. Failed builds return a non-zero exit code.
 
 There should be informational output of the reason for failure output to
 `STDERR`:
@@ -214,15 +212,15 @@ local directory get `tar`d and sent to the Docker daemon. The `PATH` specifies
 where to find the files for the "context" of the build on the Docker daemon.
 Remember that the daemon could be running on a remote machine and that no
 parsing of the Dockerfile happens at the client side (where you're running
-`docker build`). That means that *all* the files at `PATH` get sent, not just
-the ones listed to [*ADD*](https://docs.docker.com/engine/reference/builder/#add)
+`docker build`). That means that all the files at `PATH` get sent, not just
+the ones listed to [`ADD`](https://docs.docker.com/engine/reference/builder/#add)
 in the Dockerfile.
 
 The transfer of context from the local machine to the Docker daemon is what the
 `docker` client means when you see the "Sending build context" message.
 
 If you wish to keep the intermediate containers after the build is complete,
-you must use `--rm=false`. This does not affect the build cache.
+you must use `--rm=false`. This doesn't affect the build cache.
 
 ### Build with URL
 
@@ -252,7 +250,7 @@ Successfully built 377c409b35e4
 
 This sends the URL `http://server/ctx.tar.gz` to the Docker daemon, which
 downloads and extracts the referenced tarball. The `-f ctx/Dockerfile`
-parameter specifies a path inside `ctx.tar.gz` to the `Dockerfile` that is used
+parameter specifies a path inside `ctx.tar.gz` to the `Dockerfile` used
 to build the image. Any `ADD` commands in that `Dockerfile` that refers to local
 paths must be relative to the root of the contents inside `ctx.tar.gz`. In the
 example above, the tarball contains a directory `ctx/`, so the `ADD
@@ -274,7 +272,7 @@ $ docker build - < context.tar.gz
 ```
 
 This will build an image for a compressed context read from `STDIN`.  Supported
-formats are: bzip2, gzip and xz.
+formats are: `bzip2`, `gzip` and `xz`.
 
 ### Use a .dockerignore file
 
@@ -313,7 +311,6 @@ for an ignore file named `myapp.Dockerfile.dockerignore`. If such a file is not
 found, the `.dockerignore` file is used if present. Using a Dockerfile based
 `.dockerignore` is useful if a project contains multiple Dockerfiles that expect
 to ignore different sets of files.
-
 
 ### <a name="tag"></a> Tag an image (-t, --tag)
 
@@ -375,12 +372,12 @@ the command line.
 > **Note**
 >
 > `docker build` returns a `no such file or directory` error if the
-> file or directory does not exist in the uploaded context. This may
-> happen if there is no context, or if you specify a file that is
+> file or directory doesn't exist in the uploaded context. This may
+> happen if there is no context, or if you specify a file that's
 > elsewhere on the Host system. The context is limited to the current
 > directory (and its children) for security reasons, and to ensure
 > repeatable builds on remote Docker hosts. This is also the reason why
-> `ADD ../file` does not work.
+> `ADD ../file` doesn't work.
 
 ### <a name="cgroup-parent"></a> Use a custom parent cgroup (--cgroup-parent)
 
@@ -396,7 +393,7 @@ container to be started using those [`--ulimit` flag values](run.md#ulimit).
 
 You can use `ENV` instructions in a Dockerfile to define variable
 values. These values persist in the built image. However, often
-persistence is not what you want. Users want to specify variables differently
+persistence isn't what you want. Users want to specify variables differently
 depending on which host they build an image on.
 
 A good example is `http_proxy` or source versions for pulling intermediate
@@ -410,7 +407,7 @@ $ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 --build-arg FTP_PRO
 This flag allows you to pass the build-time variables that are
 accessed like regular environment variables in the `RUN` instruction of the
 Dockerfile. Also, these values don't persist in the intermediate or final images
-like `ENV` values do.   You must add `--build-arg` for each build argument.
+like `ENV` values do. You must add `--build-arg` for each build argument.
 
 Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
@@ -638,14 +635,13 @@ $ docker build --cache-from myname/myapp .
 #### Overview
 
 Once the image is built, squash the new layers into a new image with a single
-new layer. Squashing does not destroy any existing image, rather it creates a new
+new layer. Squashing doesn't destroy any existing image, rather it creates a new
 image with the content of the squashed layers. This effectively makes it look
 like all `Dockerfile` commands were created with a single layer. The build
 cache is preserved with this method.
 
-The `--squash` option is an experimental feature, and should not be considered
+The `--squash` option is an experimental feature, and shouldn't be considered
 stable.
-
 
 Squashing layers can be beneficial if your Dockerfile produces multiple layers
 modifying the same files, for example, files that are created in one step, and
@@ -656,15 +652,14 @@ images (saving space).
 
 For most use cases, multi-stage builds are a better alternative, as they give more
 fine-grained control over your build, and can take advantage of future
-optimizations in the builder. Refer to the [use multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build/)
-section in the userguide for more information.
-
+optimizations in the builder. Refer to the [Multi-stage builds](https://docs.docker.com/build/building/multi-stage/)
+section for more information.
 
 #### Known limitations
 
 The `--squash` option has a number of known limitations:
 
-- When squashing layers, the resulting image cannot take advantage of layer
+- When squashing layers, the resulting image can't take advantage of layer
   sharing with other images, and may use significantly more space. Sharing the
   base image is still supported.
 - When using this option you may see significantly more space used due to
@@ -672,8 +667,8 @@ The `--squash` option has a number of known limitations:
   layers intact, and one for the squashed version.
 - While squashing layers may produce smaller images, it may have a negative
   impact on performance, as a single layer takes longer to extract, and
-  downloading a single layer cannot be parallelized.
-- When attempting to squash an image that does not make changes to the
+  downloading a single layer can't be parallelized.
+- When attempting to squash an image that doesn't make changes to the
   filesystem (for example, the Dockerfile only contains `ENV` instructions),
   the squash step will fail (see [issue #33823](https://github.com/moby/moby/issues/33823)).
 
@@ -686,7 +681,7 @@ the Docker daemon or setting `experimental: true` in the `daemon.json` configura
 file.
 
 By default, experimental mode is disabled. To see the current configuration of
-the docker daemon, use the `docker version` command and check the `Experimental`
+the Docker daemon, use the `docker version` command and check the `Experimental`
 line in the `Engine` section:
 
 ```console
@@ -711,10 +706,10 @@ Server: Docker Engine - Community
  [...]
 ```
 
-To enable experimental mode, users need to restart the docker daemon with the
+To enable experimental mode, users need to restart the Docker daemon with the
 experimental flag enabled.
 
-#### Enable Docker experimental
+#### Enable experimental features
 
 To enable experimental features, you need to start the Docker daemon with
 `--experimental` flag. You can also enable the daemon flag via
@@ -735,7 +730,7 @@ true
 
 #### Build an image with `--squash` argument
 
-The following is an example of docker build with `--squash` argument
+The following is an example of a build with `--squash` argument
 
 ```dockerfile
 FROM busybox

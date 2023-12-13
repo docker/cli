@@ -48,8 +48,8 @@ machine are created with the `UID:GID` of the user which invoked the `docker cp`
 command. However, if you specify the `-a` option, `docker cp` sets the ownership
 to the user and primary group at the source.
 If you specify the `-L` option, `docker cp` follows any symbolic link
-in the `SRC_PATH`.  `docker cp` does *not* create parent directories for
-`DEST_PATH` if they do not exist.
+in the `SRC_PATH`.  `docker cp` doesn't create parent directories for
+`DEST_PATH` if they don't exist.
 
 Assuming a path separator of `/`, a first argument of `SRC_PATH` and second
 argument of `DEST_PATH`, the behavior is as follows:
@@ -111,7 +111,7 @@ $ docker cp CONTAINER:/var/logs/app.log - | tar x -O | grep "ERROR"
 
 ### Corner cases
 
-It is not possible to copy certain system files such as resources under
+It isn't possible to copy certain system files such as resources under
 `/proc`, `/sys`, `/dev`, [tmpfs](run.md#tmpfs), and mounts created by
 the user in the container. However, you can still copy such files by manually
 running `tar` in `docker exec`. Both of the following examples do the same thing

@@ -21,7 +21,7 @@ For detailed information about using configs, refer to [store configuration data
 
 > **Note**
 >
-> This is a cluster management command, and must be executed on a swarm
+> This is a cluster management command, and must be executed on a Swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
 > documentation.
@@ -87,7 +87,6 @@ $ docker config inspect my_config
     }
 ]
 ```
-
 
 ## Related commands
 

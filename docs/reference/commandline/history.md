@@ -62,9 +62,9 @@ Valid placeholders for the Go template are listed below:
 | `.Size`         | Image disk size                                                                                           |
 | `.Comment`      | Comment for image                                                                                         |
 
-When using the `--format` option, the `history` command will either
-output the data exactly as the template declares or, when using the
-`table` directive, will include column headers as well.
+When using the `--format` option, the `history` command either
+outputs the data exactly as the template declares or, when using the
+`table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
 `ID` and `CreatedSince` entries separated by a colon (`:`) for the `busybox`

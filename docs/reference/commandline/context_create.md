@@ -31,16 +31,16 @@ $ docker context create my-context --description "some description" --docker "ho
 
 ## Description
 
-Creates a new `context`. This allows you to quickly switch the cli
-configuration to connect to different clusters or single nodes.
+Creates a new `context`. This lets you switch the daemon your `docker` CLI
+connects to.
 
 ## Examples
 
-### <a name="docker"></a> Create a context with a docker endpoint (--docker)
+### <a name="docker"></a> Create a context with a Docker endpoint (--docker)
 
-To create a context from scratch provide the docker and, if required,
-kubernetes options. The example below creates the context `my-context`
-with a docker endpoint of `/var/run/docker.sock`:
+Use the `--docker` flag to create a context with a custom endpoint. The
+following example creates a context named `my-context` with a docker endpoint
+of `/var/run/docker.sock`:
 
 ```console
 $ docker context create \
@@ -58,7 +58,7 @@ from the existing context `existing-context`:
 $ docker context create --from existing-context my-context
 ```
 
-If the `--from` option is not set, the `context` is created from the current context:
+If the `--from` option isn't set, the `context` is created from the current context:
 
 ```console
 $ docker context create my-context
