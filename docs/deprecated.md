@@ -50,6 +50,7 @@ The table below provides an overview of the current status of deprecated feature
 
 | Status     | Feature                                                                                                                            | Deprecated | Remove |
 |------------|------------------------------------------------------------------------------------------------------------------------------------|------------|--------|
+| Deprecated | [logentries logging driver](#logentries-logging-driver)                                                                            | v24.0      | v25.0  |
 | Deprecated | [OOM-score adjust for the daemon](#oom-score-adjust-for-the-daemon)                                                                | v24.0      | v25.0  |
 | Removed    | [Buildkit build information](#buildkit-build-information)                                                                          | v23.0      | v24.0  |
 | Deprecated | [Legacy builder for Linux images](#legacy-builder-for-linux-images)                                                                | v23.0      | -      |
@@ -105,6 +106,14 @@ The table below provides an overview of the current status of deprecated feature
 | Removed    | [`--api-enable-cors` flag on `dockerd`](#--api-enable-cors-flag-on-dockerd)                                                        | v1.6       | v17.09 |
 | Removed    | [`--run` flag on `docker commit`](#--run-flag-on-docker-commit)                                                                    | v0.10      | v1.13  |
 | Removed    | [Three arguments form in `docker import`](#three-arguments-form-in-docker-import)                                                  | v0.6.7     | v1.12  |
+
+### Logentries logging driver
+
+**Target For Removal In Release: v25.0**
+
+The logentries service SaaS was shut down on November 15, 2022, rendering
+this logging driver non-functional. Users should no longer use this logging
+driver, and the driver will be removed in Docker 25.0.
 
 ### OOM-score adjust for the daemon
 
