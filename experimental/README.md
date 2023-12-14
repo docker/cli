@@ -32,10 +32,16 @@ true
 ## Current experimental features
 
 Docker service logs command to view logs for a Docker service. This is needed in Swarm mode.
+
 Option to squash image layers to the base image after successful builds.
+
 Checkpoint and restore support for Containers.
+
 Metrics (Prometheus) output for basic container, image, and daemon operations.
+
+IPv6 --ip6tables firewall generation (can also be set in daemon.json with `"ip6tables": true` ).
 
  * [External graphdriver plugins](../docs/extend/plugins_graphdriver.md)
  * [Checkpoint & Restore](../docs/reference/commandline/checkpoint.md)
  * [Docker build with --squash argument](../docs/reference/commandline/build.md#squash-an-images-layers---squash-experimental)
+ * [IPv6 ip6tables pull request](https://github.com/moby/moby/pull/41622)
