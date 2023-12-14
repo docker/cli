@@ -18,7 +18,6 @@ init() {
   cat > go.mod <<EOL
 module github.com/docker/cli
 
-go 1.19
 EOL
 }
 
