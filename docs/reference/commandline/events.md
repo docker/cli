@@ -169,7 +169,7 @@ Using the same filter multiple times will be handled as a *OR*; for example
 `--filter container=588a23dac085 --filter container=a8f7720b8c22` will display
 events for container 588a23dac085 *OR* container a8f7720b8c22
 
-Using multiple filters will be handled as a *AND*; for example
+Using multiple filters will be handled as an *AND*; for example
 `--filter container=588a23dac085 --filter event=start` will display events for
 container container 588a23dac085 *AND* the event type is *start*
 
