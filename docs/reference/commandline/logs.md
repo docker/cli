@@ -60,13 +60,13 @@ fraction of a second no more than nine digits long. You can combine the
 
 ### <a name="until"></a> Retrieve logs until a specific point in time (--until)
 
-In order to retrieve logs before a specific point in time, run:
+In order to retrieve logs before a specific point in time in the future, run:
 
 ```console
 $ docker run --name test -d busybox sh -c "while true; do $(echo date); sleep 1; done"
 $ date
 Tue 14 Nov 2017 16:40:00 CET
-$ docker logs -f --until=2s test
+$ docker logs -f --until=-2s test
 Tue 14 Nov 2017 16:40:00 CET
 Tue 14 Nov 2017 16:40:01 CET
 Tue 14 Nov 2017 16:40:02 CET
