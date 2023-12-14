@@ -904,8 +904,6 @@ the `--cgroup-parent` option on the daemon.
 #### Daemon metrics
 
 The `--metrics-addr` option takes a tcp address to serve the metrics API.
-This feature is still experimental, therefore, the daemon must be running in experimental
-mode for this feature to work.
 
 To serve the metrics API on `localhost:9323` you would specify `--metrics-addr 127.0.0.1:9323`,
 allowing you to make requests on the API at `127.0.0.1:9323/metrics` to receive metrics in the
@@ -925,10 +923,6 @@ scrape_configs:
     static_configs:
       - targets: ['127.0.0.1:9323']
 ```
-
-Please note that this feature is still marked as experimental as metrics and metric
-names could change while this feature is still in experimental.  Please provide
-feedback on what you would like to see collected in the API.
 
 #### Node Generic Resources
 
