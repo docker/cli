@@ -84,6 +84,8 @@ The sections below provide an inexhaustive overview of available plugins.
 | [REX-Ray plugin](https://github.com/emccode/rexray)                                                | A volume plugin which is written in Go and provides advanced storage functionality for many platforms including VirtualBox, EC2, Google Compute Engine, OpenStack, and EMC.                                                                                                                                   |
 | [Virtuozzo Storage and Ploop plugin](https://github.com/virtuozzo/docker-volume-ploop)             | A volume plugin with support for Virtuozzo Storage distributed cloud file system as well as ploop devices.                                                                                                                                                                                                    |
 | [VMware vSphere Storage Plugin](https://github.com/vmware/docker-volume-vsphere)                   | Docker Volume Driver for vSphere enables customers to address persistent storage requirements for Docker containers in vSphere environments.                                                                                                                                                                  |
+| [smokserwis/zookeeper-volume](https://github.com/smok-serwis/zookeeper-volume)                     | A volume plugin written in Python that allows mounting ZooKeeper data structures using [zookeeper-fuse](https://https://github.com/borowskk/zookeeper-fuse)                       |
+
 
 ### Authorization plugins
 
