@@ -17,6 +17,7 @@ require (
 	github.com/docker/go-connections v0.4.1-0.20231110212414-fa09c952e3ea
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.0.2
+	github.com/gofrs/flock v0.8.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.5.9
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
