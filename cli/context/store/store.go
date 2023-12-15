@@ -12,12 +12,15 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/docker/docker/errdefs"
+	"github.com/gofrs/flock"
+	"github.com/hashicorp/go-multierror"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 )
@@ -98,6 +101,7 @@ type ContextTLSData struct {
 // If the directory does not exist or is empty, initialize it
 func New(dir string, cfg Config) *ContextStore {
 	metaRoot := filepath.Join(dir, metadataDir)
+	lockPath := filepath.Join(dir, lockFile)
 	tlsRoot := filepath.Join(dir, tlsDir)
 
 	return &ContextStore{
@@ -108,17 +112,44 @@ func New(dir string, cfg Config) *ContextStore {
 		tls: &tlsStore{
 			root: tlsRoot,
 		},
+		lockFile: flock.New(lockPath),
 	}
 }
 
 // ContextStore implements Store.
 type ContextStore struct {
-	meta *metadataStore
-	tls  *tlsStore
+	meta     *metadataStore
+	tls      *tlsStore
+	lockFile *flock.Flock
+}
+
+func (s *ContextStore) lock() error {
+	if err := os.MkdirAll(filepath.Dir(s.lockFile.Path()), 0o755); err != nil {
+		return errors.Wrapf(err, "creating context store lock directory")
+	}
+	if err := s.lockFile.Lock(); err != nil {
+		return errors.Wrapf(err, "locking context store lock")
+	}
+	return nil
+}
+
+func (s *ContextStore) unlock() error {
+	if err := s.lockFile.Unlock(); err != nil {
+		return errors.Wrapf(err, "unlocking context store lock")
+	}
+	return nil
 }
 
 // List return all contexts.
-func (s *ContextStore) List() ([]Metadata, error) {
+func (s *ContextStore) List() (_ []Metadata, errs error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	return s.meta.list()
 }
 
@@ -136,12 +167,28 @@ func Names(s Lister) ([]string, error) {
 }
 
 // CreateOrUpdate creates or updates metadata for the context.
-func (s *ContextStore) CreateOrUpdate(meta Metadata) error {
+func (s *ContextStore) CreateOrUpdate(meta Metadata) (errs error) {
+	if err := s.lock(); err != nil {
+		return err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	return s.meta.createOrUpdate(meta)
 }
 
 // Remove deletes the context with the given name, if found.
-func (s *ContextStore) Remove(name string) error {
+func (s *ContextStore) Remove(name string) (errs error) {
+	if err := s.lock(); err != nil {
+		return err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	if err := s.meta.remove(name); err != nil {
 		return errors.Wrapf(err, "failed to remove context %s", name)
 	}
@@ -153,13 +200,29 @@ func (s *ContextStore) Remove(name string) error {
 
 // GetMetadata returns the metadata for the context with the given name.
 // It returns an errdefs.ErrNotFound if the context was not found.
-func (s *ContextStore) GetMetadata(name string) (Metadata, error) {
+func (s *ContextStore) GetMetadata(name string) (_ Metadata, errs error) {
+	if err := s.lock(); err != nil {
+		return Metadata{}, err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	return s.meta.get(name)
 }
 
 // ResetTLSMaterial removes TLS data for all endpoints in the context and replaces
 // it with the new data.
-func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) error {
+func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) (errs error) {
+	if err := s.lock(); err != nil {
+		return err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	if err := s.tls.remove(name); err != nil {
 		return err
 	}
@@ -178,7 +241,15 @@ func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) error
 
 // ResetEndpointTLSMaterial removes TLS data for the given context and endpoint,
 // and replaces it with the new data.
-func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) error {
+func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName string, data *EndpointTLSData) (errs error) {
+	if err := s.lock(); err != nil {
+		return err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	if err := s.tls.removeEndpoint(contextName, endpointName); err != nil {
 		return err
 	}
@@ -195,13 +266,29 @@ func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName
 
 // ListTLSFiles returns the list of TLS files present for each endpoint in the
 // context.
-func (s *ContextStore) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
+func (s *ContextStore) ListTLSFiles(name string) (_ map[string]EndpointFiles, errs error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	return s.tls.listContextData(name)
 }
 
 // GetTLSData reads, and returns the content of the given fileName for an endpoint.
 // It returns an errdefs.ErrNotFound if the file was not found.
-func (s *ContextStore) GetTLSData(contextName, endpointName, fileName string) ([]byte, error) {
+func (s *ContextStore) GetTLSData(contextName, endpointName, fileName string) (_ []byte, errs error) {
+	if err := s.lock(); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := s.unlock(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}()
 	return s.tls.getData(contextName, endpointName, fileName)
 }
 
