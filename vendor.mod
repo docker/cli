@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.24.0
 
+tool golang.org/x/mod/modfile // for module compatibility check
+
 require (
 	dario.cat/mergo v1.0.2
 	github.com/containerd/errdefs v1.0.0
@@ -98,6 +100,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.40.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
+	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409 // indirect
