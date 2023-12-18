@@ -40,7 +40,7 @@ require (
 	golang.org/x/sync v0.3.0
 	golang.org/x/sys v0.15.0
 	golang.org/x/term v0.13.0
-	golang.org/x/text v0.13.0
+	golang.org/x/text v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.5.1
 	tags.cncf.io/container-device-interface v0.6.2
