@@ -529,6 +529,7 @@ type serviceOptions struct {
 	capAdd          opts.ListOpts
 	capDrop         opts.ListOpts
 	ulimits         opts.UlimitOpt
+	devices         opts.ListOpts
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -575,6 +576,7 @@ func newServiceOptions() *serviceOptions {
 		capAdd:          opts.NewListOpts(nil),
 		capDrop:         opts.NewListOpts(nil),
 		ulimits:         *opts.NewUlimitOpt(nil),
+		devices:         opts.NewListOpts(nil),
 	}
 }
 
@@ -1043,6 +1045,7 @@ const (
 	flagUlimit                  = "ulimit"
 	flagUlimitAdd               = "ulimit-add"
 	flagUlimitRemove            = "ulimit-rm"
+	flagDevice                  = "device"
 )
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {

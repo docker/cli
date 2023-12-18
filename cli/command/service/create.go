@@ -68,6 +68,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagSysCtl, "version", []string{"1.40"})
 	flags.Var(&opts.ulimits, flagUlimit, "Ulimit options")
 	flags.SetAnnotation(flagUlimit, "version", []string{"1.41"})
+	flags.Var(&opts.devices, flagDevice, "Devices to add")
+	flags.SetAnnotation(flagDevice, "version", []string{"1.42"})
 
 	flags.Var(cliopts.NewListOptsRef(&opts.resources.resGenericResources, ValidateSingleGenericResource), "generic-resource", "User defined resources")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
