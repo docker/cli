@@ -10,6 +10,8 @@ import (
 	"bytes"
 	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -20,9 +22,7 @@ import (
 
 	"github.com/docker/docker/errdefs"
 	"github.com/gofrs/flock"
-	"github.com/hashicorp/go-multierror"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 )
 
 const restrictedNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.+-]+$"
@@ -125,17 +125,17 @@ type ContextStore struct {
 
 func (s *ContextStore) lock() error {
 	if err := os.MkdirAll(filepath.Dir(s.lockFile.Path()), 0o755); err != nil {
-		return errors.Wrapf(err, "creating context store lock directory")
+		return fmt.Errorf("creating context store lock directory: %w", err)
 	}
 	if err := s.lockFile.Lock(); err != nil {
-		return errors.Wrapf(err, "locking context store lock")
+		return fmt.Errorf("locking context store lock: %w", err)
 	}
 	return nil
 }
 
 func (s *ContextStore) unlock() error {
 	if err := s.lockFile.Unlock(); err != nil {
-		return errors.Wrapf(err, "unlocking context store lock")
+		return fmt.Errorf("unlocking context store lock: %w", err)
 	}
 	return nil
 }
@@ -147,7 +147,7 @@ func (s *ContextStore) List() (_ []Metadata, errs error) {
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	return s.meta.list()
@@ -173,7 +173,7 @@ func (s *ContextStore) CreateOrUpdate(meta Metadata) (errs error) {
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	return s.meta.createOrUpdate(meta)
@@ -186,14 +186,14 @@ func (s *ContextStore) Remove(name string) (errs error) {
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	if err := s.meta.remove(name); err != nil {
-		return errors.Wrapf(err, "failed to remove context %s", name)
+		return fmt.Errorf("failed to remove context %s: %w", name, err)
 	}
 	if err := s.tls.remove(name); err != nil {
-		return errors.Wrapf(err, "failed to remove context %s", name)
+		return fmt.Errorf("failed to remove context %s: %w", name, err)
 	}
 	return nil
 }
@@ -206,7 +206,7 @@ func (s *ContextStore) GetMetadata(name string) (_ Metadata, errs error) {
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	return s.meta.get(name)
@@ -220,7 +220,7 @@ func (s *ContextStore) ResetTLSMaterial(name string, data *ContextTLSData) (errs
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	if err := s.tls.remove(name); err != nil {
@@ -247,7 +247,7 @@ func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	if err := s.tls.removeEndpoint(contextName, endpointName); err != nil {
@@ -272,7 +272,7 @@ func (s *ContextStore) ListTLSFiles(name string) (_ map[string]EndpointFiles, er
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	return s.tls.listContextData(name)
@@ -286,7 +286,7 @@ func (s *ContextStore) GetTLSData(contextName, endpointName, fileName string) (_
 	}
 	defer func() {
 		if err := s.unlock(); err != nil {
-			errs = multierror.Append(errs, err)
+			errs = errors.Join(errs, err)
 		}
 	}()
 	return s.tls.getData(contextName, endpointName, fileName)
@@ -310,7 +310,7 @@ func ValidateContextName(name string) error {
 		return errors.New(`"default" is a reserved context name`)
 	}
 	if !restrictedNameRegEx.MatchString(name) {
-		return errors.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
+		return fmt.Errorf("context name %q is invalid, names are validated against regexp %q", name, restrictedNamePattern)
 	}
 	return nil
 }
@@ -458,7 +458,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 		if err := isValidFilePath(hdr.Name); err != nil {
-			return errors.Wrap(err, hdr.Name)
+			return fmt.Errorf("%s: %w", hdr.Name, err)
 		}
 		if hdr.Name == metaFile {
 			data, err := io.ReadAll(tr)
@@ -510,7 +510,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 		if err := isValidFilePath(zf.Name); err != nil {
-			return errors.Wrap(err, zf.Name)
+			return fmt.Errorf("%s: %w", zf.Name, err)
 		}
 		if zf.Name == metaFile {
 			f, err := zf.Open()
