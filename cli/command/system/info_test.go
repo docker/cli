@@ -98,10 +98,12 @@ var sampleInfoNoSwarm = system.Info{
 	Labels:            []string{"provider=digitalocean"},
 	ExperimentalBuild: false,
 	ServerVersion:     "17.06.1-ce",
-	Runtimes: map[string]system.Runtime{
+	Runtimes: map[string]system.RuntimeWithStatus{
 		"runc": {
-			Path: "docker-runc",
-			Args: nil,
+			Runtime: system.Runtime{
+				Path: "docker-runc",
+				Args: nil,
+			},
 		},
 	},
 	DefaultRuntime:     "runc",
