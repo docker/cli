@@ -52,7 +52,7 @@ than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "b
 
 The currently supported filters are:
 
-- dangling (boolean - true or false, 0 or 1)
+- dangling (Boolean - true or false, 0 or 1)
 - driver (a volume driver's name)
 - label (`label=<key>` or `label=<key>=<value>`)
 - name (a volume's name)
@@ -89,7 +89,7 @@ local               tyler
 The `label` filter matches volumes based on the presence of a `label` alone or
 a `label` and a value.
 
-First, let's create some volumes to illustrate this;
+First, create some volumes to illustrate this;
 
 ```console
 $ docker volume create the-doctor --label is-timelord=yes

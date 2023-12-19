@@ -20,7 +20,7 @@ Remove trust for an image
 
 ### Revoke signatures from a signed tag
 
-Here's an example of a repo with two signed tags:
+Here's an example of a repository with two signed tags:
 
 
 ```console

@@ -18,7 +18,7 @@ Manage checkpoints
 ## Description
 
 Checkpoint and Restore is an experimental feature that allows you to freeze a running
-container by checkpointing it, which turns its state into a collection of files
+container by specifying a checkpoint, which turns the container state into a collection of files
 on disk. Later, the container can be restored from the point it was frozen.
 
 This is accomplished using a tool called [CRIU](https://criu.org), which is an
@@ -29,7 +29,7 @@ checkpoint and restore in Docker is available in this
 ### Installing CRIU
 
 If you use a Debian system, you can add the CRIU PPA and install with `apt-get`
-[from the criu launchpad](https://launchpad.net/~criu/+archive/ubuntu/ppa).
+[from the CRIU launchpad](https://launchpad.net/~criu/+archive/ubuntu/ppa).
 
 Alternatively, you can [build CRIU from source](https://criu.org/Installation).
 
@@ -91,17 +91,17 @@ abc0123
 ```
 
 This process just logs an incrementing counter to stdout. If you run `docker logs`
-in between running/checkpoint/restoring you should see that the counter
-increases while the process is running, stops while it's checkpointed, and
+in-between running/checkpoint/restoring, you should see that the counter
+increases while the process is running, stops while it's frozen, and
 resumes from the point it left off once you restore.
 
 ### Known limitations
 
-seccomp is only supported by CRIU in very up to date kernels.
+`seccomp` is only supported by CRIU in very up-to-date kernels.
 
-External terminal (i.e. `docker run -t ..`) is not supported at the moment.
+External terminals (i.e. `docker run -t ..`) aren't supported.
 If you try to create a checkpoint for a container with an external terminal,
-it would fail:
+it fails:
 
 ```console
 $ docker checkpoint create cr checkpoint1

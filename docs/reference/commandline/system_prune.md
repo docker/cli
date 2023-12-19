@@ -17,7 +17,7 @@ Remove unused data
 
 ## Description
 
-Remove all unused containers, networks, images (both dangling and unreferenced),
+Remove all unused containers, networks, images (both dangling and unused),
 and optionally, volumes.
 
 ## Examples
@@ -48,7 +48,7 @@ deleted: sha256:45761469c965421a92a69cc50e92c01e0cfa94fe026cdd1233445ea00e96289a
 Total reclaimed space: 1.84kB
 ```
 
-By default, volumes are not removed to prevent important data from being
+By default, volumes aren't removed to prevent important data from being
 deleted if there is currently no container using the volume. Use the `--volumes`
 flag when running the command to prune anonymous volumes as well:
 
@@ -109,7 +109,7 @@ relative to the daemon machine’s time. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
 `2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
 timezone on the daemon will be used if you do not provide either a `Z` or a
-`+-00:00` timezone offset at the end of the timestamp.  When providing Unix
+`+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
 that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a

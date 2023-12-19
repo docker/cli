@@ -18,7 +18,7 @@ Remove a signer
 
 ## Examples
 
-### Remove a signer from a repo
+### Remove a signer from a repository
 
 To remove an existing signer, `alice`, from this repository:
 
@@ -49,7 +49,7 @@ Enter passphrase for repository key with ID 642692c:
 Successfully removed alice from example/trust-demo
 ```
 
-`docker trust inspect --pretty` now does not list `alice` as a valid signer:
+`docker trust inspect --pretty` now doesn't list `alice` as a valid signer:
 
 ```console
 $ docker trust inspect --pretty example/trust-demo
@@ -67,7 +67,7 @@ Repository Key: ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-### Remove a signer from multiple repos
+### Remove a signer from multiple repositories
 
 To remove an existing signer, `alice`, from multiple repositories:
 
@@ -154,9 +154,8 @@ Repository Key: ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d926
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-`docker trust signer remove` removes signers to repositories on a best effort
-basis, so it will continue to remove the signer from subsequent repositories if
-one attempt fails:
+`docker trust signer remove` removes signers to repositories on a best effort basis.
+It continues to remove the signer from subsequent repositories if one attempt fails:
 
 ```console
 $ docker trust signer remove alice example/unauthorized example/authorized
@@ -170,4 +169,3 @@ Successfully removed alice from example/authorized
 
 Error removing signer from: example/unauthorized
 ```
-

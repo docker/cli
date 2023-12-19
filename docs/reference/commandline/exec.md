@@ -28,17 +28,16 @@ Execute a command in a running container
 
 The `docker exec` command runs a new command in a running container.
 
-The command started using `docker exec` only runs while the container's primary
-process (`PID 1`) is running, and it is not restarted if the container is
-restarted.
+The command you specify with `docker exec` only runs while the container's
+primary process (`PID 1`) is running, and it isn't restarted if the container
+is restarted.
 
-COMMAND runs in the default directory of the container. If the underlying image
-has a custom directory specified with the WORKDIR directive in its Dockerfile,
-this directory is used instead.
+The command runs in the default working directory of the container.
 
-COMMAND must be an executable. A chained or a quoted command does not work.
-For example, `docker exec -it my_container sh -c "echo a && echo b"` does
-work, but `docker exec -it my_container "echo a && echo b"` does not.
+The command must be an executable. A chained or a quoted command doesn't work.
+
+- This works: `docker exec -it my_container sh -c "echo a && echo b"`
+- This doesn't work: `docker exec -it my_container "echo a && echo b"`
 
 ## Examples
 
@@ -82,10 +81,10 @@ time the container is created. Use the `--env` (or the `-e` shorthand) to
 override global environment variables, or to set additional environment
 variables for the process started by `docker exec`.
 
-The example below creates a new shell session in the container `mycontainer` with
-environment variables `$VAR_A` and `$VAR_B` set to "1" and "2" respectively.
+The following example creates a new shell session in the container `mycontainer`,
+with environment variables `$VAR_A` set to `1`, and `$VAR_B` set to `2`.
 These environment variables are only valid for the `sh` process started by that
-`docker exec` command, and are not available to other processes running inside
+`docker exec` command, and aren't available to other processes running inside
 the container.
 
 ```console
@@ -99,7 +98,7 @@ HOME=/root
 
 ### <a name="workdir"></a> Set the working directory for the exec process (--workdir, -w)
 
-By default `docker exec` command runs in the same working directory set when 
+By default `docker exec` command runs in the same working directory set when
 the container was created.
 
 ```console
@@ -107,14 +106,13 @@ $ docker exec -it mycontainer pwd
 /
 ```
 
-You can specify an alternative working directory for the command to execute 
+You can specify an alternative working directory for the command to execute
 using the `--workdir` option (or the `-w` shorthand):
 
 ```console
 $ docker exec -it -w /root mycontainer pwd
 /root
 ```
-
 
 ### Try to run `docker exec` on a paused container
 

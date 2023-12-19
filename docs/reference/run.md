@@ -1207,7 +1207,7 @@ The health status is also displayed in the `docker ps` output.
 
 ### User
 
-The default user within a container is `root` (id = 0). You can set a default
+The default user within a container is `root` (uid = 0). You can set a default
 user to run the first process with the Dockerfile `USER` instruction. When
 starting a container, you can override the `USER` instruction by passing the
 `-u` option.
@@ -1240,4 +1240,4 @@ $ docker run --rm -w /my/workdir alpine pwd
 /my/workdir
 ```
 
-If the directory doesn't already exist in the container, it will be created.
+If the directory doesn't already exist in the container, it's created.

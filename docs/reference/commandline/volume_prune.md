@@ -51,7 +51,6 @@ which removes volumes with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
 volumes without the specified labels.
 
-
 ## Related commands
 
 * [volume create](volume_create.md)

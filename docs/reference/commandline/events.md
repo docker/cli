@@ -23,7 +23,7 @@ Get real time events from the server
 
 Use `docker events` to get real-time events from the server. These events differ
 per Docker object type. Different event types have different scopes. Local
-scoped events are only seen on the node they take place on, and swarm scoped
+scoped events are only seen on the node they take place on, and Swarm scoped
 events are seen on all managers.
 
 Only the last 1000 log events are returned. You can use filters to further limit
@@ -146,11 +146,11 @@ Docker configs report the following events:
 The `--since` and `--until` parameters can be Unix timestamps, date formatted
 timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
 relative to the client machine’s time. If you do not provide the `--since` option,
-the command returns only new and/or live events.  Supported formats for date
+the command returns only new and/or live events. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
 `2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
-`+-00:00` timezone offset at the end of the timestamp.  When providing Unix
+`+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
 that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
@@ -165,40 +165,39 @@ The filtering flag (`-f` or `--filter`) format is of "key=value". If you would
 like to use multiple filters, pass multiple flags (e.g.,
 `--filter "foo=bar" --filter "bif=baz"`)
 
-Using the same filter multiple times will be handled as a *OR*; for example
-`--filter container=588a23dac085 --filter container=a8f7720b8c22` will display
-events for container 588a23dac085 *OR* container a8f7720b8c22
+Using the same filter multiple times is interpreted as a logical `OR`; for example,
+`--filter container=588a23dac085 --filter container=a8f7720b8c22` displays
+events for container `588a23dac085` or container `a8f7720b8c22`.
 
-Using multiple filters will be handled as a *AND*; for example
-`--filter container=588a23dac085 --filter event=start` will display events for
-container container 588a23dac085 *AND* the event type is *start*
+Using multiple filters is interpreted as a logical `AND`; for example,
+`--filter container=588a23dac085 --filter event=start` displays events for
+container `588a23dac085` and where the event type is `start`.
 
 The currently supported filters are:
 
-* config (`config=<name or id>`)
-* container (`container=<name or id>`)
-* daemon (`daemon=<name or id>`)
-* event (`event=<event action>`)
-* image (`image=<repository or tag>`)
-* label (`label=<key>` or `label=<key>=<value>`)
-* network (`network=<name or id>`)
-* node (`node=<id>`)
-* plugin (`plugin=<name or id>`)
-* scope (`scope=<local or swarm>`)
-* secret (`secret=<name or id>`)
-* service (`service=<name or id>`)
-* type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
-* volume (`volume=<name>`)
+- config (`config=<name or id>`)
+- container (`container=<name or id>`)
+- daemon (`daemon=<name or id>`)
+- event (`event=<event action>`)
+- image (`image=<repository or tag>`)
+- label (`label=<key>` or `label=<key>=<value>`)
+- network (`network=<name or id>`)
+- node (`node=<id>`)
+- plugin (`plugin=<name or id>`)
+- scope (`scope=<local or swarm>`)
+- secret (`secret=<name or id>`)
+- service (`service=<name or id>`)
+- type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
+- volume (`volume=<name>`)
 
 #### <a name="format"></a> Format the output (--format)
 
-If a format (`--format`) is specified, the given template will be executed
-instead of the default
-format. Go's [text/template](https://pkg.go.dev/text/template) package
-describes all the details of the format.
+If you specify a format (`--format`), the given template is executed
+instead of the default format. Go's [text/template](https://pkg.go.dev/text/template)
+package describes all the details of the format.
 
-If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to https://jsonlines.org/.
+If a format is set to `{{json .}}`, events are streamed in the JSON Lines format.
+For information about JSON Lines, see <https://jsonlines.org/>.
 
 ## Examples
 
@@ -237,7 +236,7 @@ To exit the `docker events` command, use `CTRL+C`.
 ### Filter events by time
 
 You can filter the output by an absolute timestamp or relative time on the host
-machine, using the following different time syntaxes:
+machine, using the following different time formats:
 
 ```console
 $ docker events --since 1483283804
@@ -401,8 +400,8 @@ Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299
 
 #### Format as JSON
 
-To list events in JSON format, use the `json` directive, which is the equivalent
-of `--format '{{ json . }}`.
+To list events in JSON format, use the `json` directive, which is the same
+`--format '{{ json . }}`.
 
 ```console
 $ docker events --format json
@@ -413,5 +412,3 @@ $ docker events --format json
 {"status":"start","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f42..
 {"status":"resize","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
 ```
-
-.

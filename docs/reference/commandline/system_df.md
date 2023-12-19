@@ -16,11 +16,11 @@ Show docker disk usage
 ## Description
 
 The `docker system df` command displays information regarding the
-amount of disk space used by the docker daemon.
+amount of disk space used by the Docker daemon.
 
 ## Examples
 
-By default the command will just show a summary of the data used:
+By default the command displays a summary of the data used:
 
 ```console
 $ docker system df
@@ -31,7 +31,7 @@ Containers          2                   0                   212 B               
 Local Volumes       2                   1                   36 B                0 B (0%)
 ```
 
-A more detailed view can be requested using the `-v, --verbose` flag:
+Use the `-v, --verbose` flag to get more detailed information:
 
 ```console
 $ docker system df -v
@@ -59,19 +59,19 @@ my-named-vol                                                       0            
 ```
 
 * `SHARED SIZE` is the amount of space that an image shares with another one (i.e. their common data)
-* `UNIQUE SIZE` is the amount of space that is only used by a given image
-* `SIZE` is the virtual size of the image, it is the sum of `SHARED SIZE` and `UNIQUE SIZE`
+* `UNIQUE SIZE` is the amount of space that's only used by a given image
+* `SIZE` is the virtual size of the image, it's the sum of `SHARED SIZE` and `UNIQUE SIZE`
 
 > **Note**
 >
-> Network information is not shown because it does not consume disk space.
+> Network information isn't shown, because it doesn't consume disk space.
 
 ## Performance
 
-The `system df` command can be very resource-intensive. It traverses the
+Running the `system df` command can be resource-intensive. It traverses the
 filesystem of every image, container, and volume in the system. You should be
 careful running this command in systems with lots of images, containers, or
-volumes or in systems where some images, containers, or volumes have very large
+volumes or in systems where some images, containers, or volumes have large
 filesystems with many files. You should also be careful not to run this command
 in systems where performance is critical.
 
@@ -92,7 +92,7 @@ Valid placeholders for the Go template are listed below:
 
 When using the `--format` option, the `system df` command outputs
 the data exactly as the template declares or, when using the
-`table` directive, will include column headers as well.
+`table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
 `Type` and `TotalCount` entries separated by a colon (`:`):

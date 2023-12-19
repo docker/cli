@@ -125,7 +125,6 @@ The `docker run` command runs a command in a new container, pulling the image if
 You can restart a stopped container with all its previous changes intact using `docker start`.
 Use `docker ps -a` to view a list of all containers, including those that are stopped.
 
-
 ## Examples
 
 ### <a name="name"></a> Assign name (--name)
@@ -281,9 +280,14 @@ container.
 
 The UTS namespace is for setting the hostname and the domain that's visible to
 running processes in that namespace. By default, all containers, including
-those with `--network=host`, have their own UTS namespace. The `host` setting
-will result in the container using the same UTS namespace as the host. Note
-that `--hostname` and `--domainname` are invalid in `host` UTS mode.
+those with `--network=host`, have their own UTS namespace. Setting `--uts` to
+`host` results in the container using the same UTS namespace as the host.
+
+> **Note**
+>
+> Docker disallows combining the `--hostname` and `--domainname` flags with
+> `--uts=host`. This is to prevent containers running in the host's UTS
+> namespace from attempting to change the hosts' configuration.
 
 You may wish to share the UTS namespace with the host if you would like the
 hostname of the container to change as the hostname of the host changes. A more
@@ -309,8 +313,9 @@ The `--ipc` flag accepts the following values:
 If not specified, daemon default is used, which can either be `"private"`
 or `"shareable"`, depending on the daemon version and configuration.
 
-IPC (POSIX/SysV IPC) namespace provides separation of named shared memory
-segments, semaphores and message queues.
+[System V interprocess communication (IPC)](https://linux.die.net/man/5/ipc)
+namespaces provide separation of named shared memory segments, semaphores and
+message queues.
 
 Shared memory segments are used to accelerate inter-process communication at
 memory speed, rather than through pipes or through the network stack. Shared
@@ -323,15 +328,17 @@ container, and `"container:<donor-name-or-ID>"` for other containers.
 
 ### <a name="privileged"></a> Full container capabilities (--privileged)
 
+The following example doesn't work, because by default, Docker drops most
+potentially dangerous kernel capabilities, including `CAP_SYS_ADMIN ` (which is
+required to mount filesystems).
+
 ```console
 $ docker run -t -i --rm ubuntu bash
 root@bc338942ef20:/# mount -t tmpfs none /mnt
 mount: permission denied
 ```
 
-This *doesn't* work, because by default, Docker drops most potentially dangerous kernel
-capabilities, including `CAP_SYS_ADMIN ` (which is required to mount
-filesystems). However, the `--privileged` flag allows it to run:
+It works when you add the `--privileged` flag:
 
 ```console
 $ docker run -t -i --privileged ubuntu bash
@@ -341,7 +348,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 none            1.9G     0  1.9G   0% /mnt
 ```
 
-The `--privileged` flag gives *all* capabilities to the container, and it also
+The `--privileged` flag gives all capabilities to the container, and it also
 lifts all the limitations enforced by the `device` cgroup controller. In other
 words, the container can then do almost everything that the host can do. This
 flag exists to allow special use-cases, like running Docker within Docker.
@@ -349,11 +356,11 @@ flag exists to allow special use-cases, like running Docker within Docker.
 ### <a name="workdir"></a> Set working directory (-w, --workdir)
 
 ```console
-$ docker  run -w /path/to/dir/ -i -t  ubuntu pwd
+$ docker run -w /path/to/dir/ -i -t ubuntu pwd
 ```
 
 The `-w` option runs the command executed inside the directory specified, in this example,
-`/path/to/dir/`. If the path does not exist, Docker creates it inside the container.
+`/path/to/dir/`. If the path doesn't exist, Docker creates it inside the container.
 
 ### <a name="storage-opt"></a> Set storage driver options per container (--storage-opt)
 
@@ -383,6 +390,8 @@ container with the `rw`, `noexec`, `nosuid`, `size=65536k` options.
 ```console
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 ```
+
+For more information, see [tmpfs mounts](https://docs.docker.com/storage/tmpfs/#tmpfs-mounts).
 
 ### <a name="volume"></a> Mount volume (-v)
 
@@ -597,14 +606,15 @@ VAR2=value2
 
 When running the command, the Docker CLI client checks the value the variable
 has in your local environment and passes it to the container.
-If no `=` is provided and that variable is not exported in your local
-environment, the variable isn't set in the container.
+If no `=` is provided and that variable isn't exported in your local
+environment, the variable is unset in the container.
 
 You can also load the environment variables from a file. This file should use
 the syntax `<variable>=value` (which sets the variable to the given value) or
-`<variable>` (which takes the value from the local environment), and `#` for comments.
-Additionally, it's important to note that lines beginning with `#` are treated as line comments
-and are ignored, whereas a `#` appearing anywhere else in a line is treated as part of the variable value.
+`<variable>` (which takes the value from the local environment), and `#` for
+comments. Lines beginning with `#` are treated as line comments and are
+ignored, whereas a `#` appearing anywhere else in a line is treated as part of
+the variable value.
 
 ```console
 $ cat env.list
@@ -657,9 +667,8 @@ com.example.label3
 
 You can load multiple label-files by supplying multiple  `--label-file` flags.
 
-For additional information on working with labels, see [*Labels - custom
-metadata in Docker*](https://docs.docker.com/config/labels-custom-metadata/) in
-the Docker User Guide.
+For additional information on working with labels, see
+[Labels](https://docs.docker.com/config/labels-custom-metadata/).
 
 ### <a name="network"></a> Connect a container to a network (--network)
 
@@ -887,9 +896,9 @@ $ cat somefile | docker run -i -a stdin mybuilder dobuild
 
 > **Note**
 >
-> A process running as PID 1 inside a container is treated specially by Linux:
-> it ignores any signal with the default action. As a result, the process will
-> not terminate on `SIGINT` or `SIGTERM` unless it is coded to do so.
+> A process running as PID 1 inside a container is treated specially by
+> Linux: it ignores any signal with the default action. So, the process
+> doesn't terminate on `SIGINT` or `SIGTERM` unless it's coded to do so.
 
 See also [the `docker cp` command](cp.md).
 
@@ -1047,8 +1056,8 @@ Docker supports the following restart policies:
 $ docker run --restart=always redis
 ```
 
-This will run the `redis` container with a restart policy of **always**
-so that if the container exits, Docker restarts it.
+This runs the `redis` container with a restart policy of **always**.
+If the container exits, Docker restarts it.
 
 When a restart policy is active on a container, it shows as either `Up` or
 `Restarting` in [`docker ps`](ps.md). It can also be useful to use [`docker
@@ -1120,16 +1129,16 @@ the container and remove the file system when the container exits, use the
 >
 > If you set the `--rm` flag, Docker also removes the anonymous volumes
 > associated with the container when the container is removed. This is similar
-> to running `docker rm -v my-container`. Only volumes that are specified without
-> a name are removed. For example, when running:
+> to running `docker rm -v my-container`. Only volumes that are specified
+> without a name are removed. For example, when running the following command,
+> volume `/foo` is removed, but not `/bar`:
 >
 > ```console
 > $ docker run --rm -v /foo -v awesome:/bar busybox top
 > ```
 >
-> the volume for `/foo` will be removed, but the volume for `/bar` will not.
-> Volumes inherited via `--volumes-from` will be removed with the same logic: if
-> the original volume was specified with a name it will **not** be removed.
+> Volumes inherited via `--volumes-from` are removed with the same logic:
+> if the original volume was specified with a name it isn't removed.
 
 ### <a name="add-host"></a> Add entries to container hosts file (--add-host)
 
@@ -1315,7 +1324,7 @@ use the following command:
 $ docker run --security-opt no-new-privileges -it ubuntu bash
 ```
 
-This means that commands that raise privileges such as `su` or `sudo` will no longer work.
+This means that commands that raise privileges such as `su` or `sudo` no longer work.
 It also causes any seccomp filters to be applied later, after privileges have been dropped
 which may mean you can have a more restrictive set of filters.
 For more details, see the [kernel documentation](https://www.kernel.org/doc/Documentation/prctl/no_new_privs.txt).

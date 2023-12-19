@@ -14,7 +14,7 @@ Load a private key file for signing
 
 ## Description
 
-`docker trust key load` adds private keys to the local docker trust keystore.
+`docker trust key load` adds private keys to the local Docker trust keystore.
 
 To add a signer to a repository use `docker trust signer add`.
 
