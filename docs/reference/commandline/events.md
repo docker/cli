@@ -165,30 +165,46 @@ The filtering flag (`-f` or `--filter`) format is of "key=value". If you would
 like to use multiple filters, pass multiple flags (e.g.,
 `--filter "foo=bar" --filter "bif=baz"`)
 
-Using the same filter multiple times will be handled as a *OR*; for example
-`--filter container=588a23dac085 --filter container=a8f7720b8c22` will display
-events for container 588a23dac085 *OR* container a8f7720b8c22
+When using multiple filters, filters are handled as an *AND*. The following
+example shows container `start` events for a container with **ID** or **name**
+`588a23dac085`:
 
-Using multiple filters will be handled as a *AND*; for example
-`--filter container=588a23dac085 --filter event=start` will display events for
-container container 588a23dac085 *AND* the event type is *start*
+```console
+$ docker events --filter container=588a23dac085 --filter event=start
+````
+
+When using the _same_ filter multiple times, those filters are handled as an
+*OR*. For example, the following example displays events for container with
+**name** (or **ID**) `588a23dac085` *OR* `a8f7720b8c22`:
+
+```console
+$ docker events --filter container=588a23dac085 --filter container=a8f7720b8c22
+```
 
 The currently supported filters are:
 
-* config (`config=<name or id>`)
-* container (`container=<name or id>`)
-* daemon (`daemon=<name or id>`)
-* event (`event=<event action>`)
-* image (`image=<repository or tag>`)
-* label (`label=<key>` or `label=<key>=<value>`)
-* network (`network=<name or id>`)
-* node (`node=<id>`)
-* plugin (`plugin=<name or id>`)
-* scope (`scope=<local or swarm>`)
-* secret (`secret=<name or id>`)
-* service (`service=<name or id>`)
-* type (`type=<container or image or volume or network or daemon or plugin or service or node or secret or config>`)
-* volume (`volume=<name>`)
+Filter      | Example                                              | Description
+------------|:-----------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+`type`      | `type=<object-type>`                                 | Only show events for the given object type. Valid values are `config`, `container`, `daemon`, `image`, `network`, `node`, `plugin`, `secret`, `service`, or `volume`.
+`event`     | `event=<event action>`                               | Only show events with the given event action (e.g. `create`).
+`scope`     | `scope=<local or swarm>`                             | Only show events in the given scope. Use `local` for local events, and `swarm` for events in the Swarm cluster.
+`label`     | `label=<label-name>` or `label=<label-name>=<value>` | Only show events for objects that have a label with the given `label-name` and (optionally) `value`.
+
+The filters listed below allow you to filter by object reference (object `name`, `name`  prefix, `id`, or `id` prefix).
+
+Filter      | Example                                              | Description
+------------|:-----------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+`config`    | `config=<name or id>`                                | Only show events for swarm configs with the given `name` or `id`.
+`container` | `container=<name or id>`                             | Only show events for containers with the given `name` or `id`.
+`daemon`    | `daemon=<name or id>`                                | Only show events for daemons with the given `name` or `id`.
+`image`     | `image=<repository or tag>`                          | Only show events for images with the given `repository` or `tag`.
+`network`   | `network=<name or id>`                               | Only show events for swarm configs with the given `name` or `id`.
+`node`      | `node=<id>`                                          | Only show events for swarm nodes with the given `id`.
+`plugin`    | `plugin=<name or id>`                                | Only show events for plugins with the given `name` or `id`.
+`secret`    | `secret=<name or id>`                                | Only show events for swarm secrets with the given `name` or `id`.
+`service`   | `service=<name or id>`                               | Only show events for swarm services with the given `name` or `id`.
+`volume`    | `volume=<name>`                                      | Only show events for volumes with the given `name`.
+
 
 #### <a name="format"></a> Format the output (--format)
 
