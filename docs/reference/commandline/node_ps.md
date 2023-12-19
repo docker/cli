@@ -44,8 +44,9 @@ redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:3.0.6  swarm-manager1  Running        
 
 ### <a name="filter"></a> Filtering (--filter)
 
-The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
-than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
+The filtering flag (`-f` or `--filter`) format is of "key=value". If there is
+more than one filter, then pass multiple flags (e.g., `--filter "foo=bar"
+--filter "bif=baz"`).
 
 The currently supported filters are:
 

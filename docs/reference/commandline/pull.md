@@ -95,7 +95,7 @@ debian       latest     4eacea30377a   8 days ago     124MB
 Docker uses a content-addressable image store, and the image ID is a SHA256
 digest covering the image's configuration and layers. In the example above,
 `debian:bookworm` and `debian:latest` have the same image ID because they are
-the *same* image tagged with different names. Because they are the same image,
+the same image tagged with different names. Because they are the same image,
 their layers are stored only once and do not consume extra disk space.
 
 For more information about images, layers, and the content-addressable store,
@@ -112,7 +112,7 @@ For example, `docker pull ubuntu:22.04` pulls the latest version of the Ubuntu
 
 In some cases you don't want images to be updated to newer versions, but prefer
 to use a fixed version of an image. Docker enables you to pull an image by its
-*digest*. When pulling an image by digest, you specify *exactly* which version
+digest. When pulling an image by digest, you specify exactly which version
 of an image to pull. Doing so, allows you to "pin" an image to that version,
 and guarantee that the image you're using is always the same.
 
@@ -136,7 +136,7 @@ above, the digest of the image is:
 sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
 ```
 
-Docker also prints the digest of an image when *pushing* to a registry. This
+Docker also prints the digest of an image when pushing to a registry. This
 may be useful if you want to pin to a version of the image you just pushed.
 
 A digest takes the place of the tag when pulling an image, for example, to
@@ -189,7 +189,7 @@ registry is allowed to be accessed over an insecure connection. Refer to the
 
 ### <a name="all-tags"></a> Pull a repository with multiple images (-a, --all-tags)
 
-By default, `docker pull` pulls a *single* image from the registry. A repository
+By default, `docker pull` pulls a single image from the registry. A repository
 can contain multiple images. To pull all images from a repository, provide the
 `-a` (or `--all-tags`) option when using `docker pull`.
 

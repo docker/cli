@@ -46,7 +46,7 @@ a running container with kernel memory initialized.
 >
 > The `docker update` and `docker container update` commands are not supported
 > for Windows containers.
-{: .warning }
+{ .warning }
 
 ## Examples
 
@@ -75,7 +75,7 @@ $ docker update --cpu-shares 512 -m 300M abebf7571666 hopeful_morse
 You can update a container's kernel memory limit using the `--kernel-memory`
 option. On kernel version older than 4.6, this option can be updated on a
 running container only if the container was started with `--kernel-memory`.
-If the container was started *without* `--kernel-memory` you need to stop
+If the container was started without `--kernel-memory` you need to stop
 the container before updating kernel memory.
 
 > **Note**
@@ -94,7 +94,7 @@ You can update kernel memory while the container is running:
 $ docker update --kernel-memory 80M test
 ```
 
-If you started a container *without* kernel memory initialized:
+If you started a container without kernel memory initialized:
 
 ```console
 $ docker run -dit --name test2 --memory 300M ubuntu bash
@@ -119,6 +119,6 @@ To update restart policy for one or more containers:
 $ docker update --restart=on-failure:3 abebf7571666 hopeful_morse
 ```
 
-Note that if the container is started with "--rm" flag, you cannot update the restart
+Note that if the container is started with `--rm` flag, you cannot update the restart
 policy for it. The `AutoRemove` and `RestartPolicy` are mutually exclusive for the
 container.

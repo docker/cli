@@ -65,7 +65,7 @@ that restricts the list to images that match the argument. If you specify
 `REPOSITORY`but no `TAG`, the `docker images` command lists all images in the
 given repository.
 
-For example, to list all images in the "java" repository, run this command :
+For example, to list all images in the `java` repository, run the following command:
 
 ```console
 $ docker images java
@@ -76,12 +76,12 @@ java                7                   493d82594c15        3 months ago        
 java                latest              2711b1d6f3aa        5 months ago        603.9 MB
 ```
 
-The `[REPOSITORY[:TAG]]` value must be an "exact match". This means that, for example,
+The `[REPOSITORY[:TAG]]` value must be an exact match. This means that, for example,
 `docker images jav` does not match the image `java`.
 
 If both `REPOSITORY` and `TAG` are provided, only images matching that
-repository and tag are listed.  To find all local images in the "java"
-repository with tag "8" you can use:
+repository and tag are listed.  To find all local images in the `java`
+repository with tag `8` you can use:
 
 ```console
 $ docker images java:8
@@ -136,7 +136,7 @@ also reference by digest in `create`, `run`, and `rmi` commands, as well as the
 ### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is of "key=value". If there is more
-than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`).
 
 The currently supported filters are:
 
@@ -166,7 +166,7 @@ intermediary layers). These images occur when a new build of an image takes the
 A warning will be issued if trying to remove an image when a container is presently
 using it. By having this flag it allows for batch cleanup.
 
-You can use this in conjunction with `docker rmi ...`:
+You can use this in conjunction with `docker rmi`:
 
 ```console
 $ docker rmi $(docker images -f "dangling=true" -q)
@@ -216,7 +216,7 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 #### Filter images by time
 
 The `before` filter shows only images created before the image with
-given id or reference. For example, having these images:
+a given ID or reference. For example, having these images:
 
 ```console
 $ docker images

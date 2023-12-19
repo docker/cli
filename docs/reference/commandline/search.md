@@ -78,7 +78,7 @@ value is set, the default is set by the daemon.
 ### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
-than one filter, then pass multiple flags (e.g. `--filter is-official=true --filter stars=3`)
+than one filter, then pass multiple flags (e.g. `--filter is-official=true --filter stars=3`).
 
 The currently supported filters are:
 

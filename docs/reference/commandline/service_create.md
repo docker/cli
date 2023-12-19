@@ -132,7 +132,7 @@ $ docker service  create \
 
 This passes the login token from your local client to the swarm nodes where the
 service is deployed, using the encrypted WAL logs. With this information, the
-nodes are able to log into the registry and pull the image.
+nodes are able to log in to the registry and pull the image.
 
 ### <a name="replicas"></a> Create a service with 5 replica tasks (--replicas)
 
@@ -147,7 +147,7 @@ $ docker service create --name redis --replicas=5 redis:3.0.6
 
 The above command sets the *desired* number of tasks for the service. Even
 though the command returns immediately, actual scaling of the service may take
-some time. The `REPLICAS` column shows both the *actual* and *desired* number
+some time. The `REPLICAS` column shows both the actual and desired number
 of replica tasks for the service.
 
 In the following example the desired state is  `5` replicas, but the current
@@ -300,8 +300,8 @@ metadata](https://docs.docker.com/config/labels-custom-metadata/).
 
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
-on memory filesystems. These types are _data volumes_ (often referred to simply
-as volumes), _bind mounts_, _tmpfs_, and _named pipes_.
+on memory filesystems. These types are data volumes (often referred to simply
+as volumes), bind mounts, tmpfs, and named pipes.
 
 A **bind mount** makes a file or directory on the host available to the
 container it is mounted within. A bind mount may be either read-only or
@@ -403,7 +403,7 @@ volumes in a service:
   </tr>
 </table>
 
-#### Options for Bind Mounts
+#### Options for bind mounts
 
 The following options can only be used for bind mounts (`type=bind`):
 

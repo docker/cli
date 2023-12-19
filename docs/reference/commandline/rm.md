@@ -80,7 +80,7 @@ the `docker rm` command:
 $ docker rm $(docker ps --filter status=exited -q)
 ```
 
-Or, using the `xargs` Linux utility;
+Or, using the `xargs` Linux utility:
 
 ```console
 $ docker ps --filter status=exited -q | xargs docker rm

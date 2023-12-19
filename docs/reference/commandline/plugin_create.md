@@ -14,8 +14,8 @@ Create a plugin from a rootfs and configuration. Plugin data directory must cont
 
 ## Description
 
-Creates a plugin. Before creating the plugin, prepare the plugin's root filesystem as well as
-[the config.json](../../extend/config.md)
+Creates a plugin. Before creating the plugin, prepare the plugin's root
+filesystem as well as the [config.json](../../extend/config.md).
 
 ## Examples
 

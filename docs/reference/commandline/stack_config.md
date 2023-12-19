@@ -21,13 +21,13 @@ Outputs the final Compose file, after doing the merges and interpolations of the
 
 The following command outputs the result of the merge and interpolation of two Compose files.
 
-```bash
+```console
 $ docker stack config --compose-file docker-compose.yml --compose-file docker-compose.prod.yml
 ```
 
 The Compose file can also be provided as standard input with `--compose-file -`:
 
-```bash
+```console
 $ cat docker-compose.yml | docker stack config --compose-file -
 ```
 
@@ -38,7 +38,7 @@ For example, when you want to pipe the output of this command back to `stack dep
 
 If you have a regex for a redirect route in an environment variable for your webserver you would use two `$` signs to prevent `stack deploy` from interpolating `${1}`.
 
-```bash
+```yaml
   service: webserver
   environment:
     REDIRECT_REGEX=http://host/redirect/$${1} 
@@ -49,7 +49,7 @@ with `REDIRECT_REGEX=http://host/redirect/${1}`, but then when piping it back to
 command it will be interpolated again and result in undefined behavior. 
 That is why, when piping the output back to `stack deploy` one should always prefer the `--skip-interpolation` option.
 
-```
+```console
 $ docker stack config --compose-file web.yml --compose-file web.prod.yml --skip-interpolation | docker stack deploy --compose-file -
 ```
 
