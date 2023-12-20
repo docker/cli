@@ -21,40 +21,58 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// statsOptions defines options for runStats.
-type statsOptions struct {
-	// all allows including both running and stopped containers. The default
+// StatsOptions defines options for [RunStats].
+type StatsOptions struct {
+	// All allows including both running and stopped containers. The default
 	// is to only include running containers.
-	all bool
+	All bool
 
-	// noStream disables streaming stats. If enabled, stats are collected once,
+	// NoStream disables streaming stats. If enabled, stats are collected once,
 	// and the result is printed.
-	noStream bool
+	NoStream bool
 
-	// noTrunc disables truncating the output. The default is to truncate
+	// NoTrunc disables truncating the output. The default is to truncate
 	// output such as container-IDs.
-	noTrunc bool
+	NoTrunc bool
 
-	// format is a custom template to use for presenting the stats.
+	// Format is a custom template to use for presenting the stats.
 	// Refer to [flagsHelper.FormatHelp] for accepted formats.
-	format string
+	Format string
 
-	// containers is the list of container names or IDs to include in the stats.
-	// If empty, all containers are included.
-	containers []string
+	// Containers is the list of container names or IDs to include in the stats.
+	// If empty, all containers are included. It is mutually exclusive with the
+	// Filters option, and an error is produced if both are set.
+	Containers []string
+
+	// Filters provides optional filters to filter the list of containers and their
+	// associated container-events to include in the stats if no list of containers
+	// is set. If no filter is provided, all containers are included. Filters and
+	// Containers are currently mutually exclusive, and setting both options
+	// produces an error.
+	//
+	// These filters are used both to collect the initial list of containers and
+	// to refresh the list of containers based on container-events, accepted
+	// filters are limited to the intersection of filters accepted by "events"
+	// and "container list".
+	//
+	// Currently only "label" / "label=value" filters are accepted. Additional
+	// filter options may be added in future (within the constraints described
+	// above), but may require daemon-side validation as the list of accepted
+	// filters can differ between daemon- and API versions.
+	Filters *filters.Args
 }
 
 // NewStatsCommand creates a new [cobra.Command] for "docker stats".
 func NewStatsCommand(dockerCLI command.Cli) *cobra.Command {
-	var options statsOptions
+	options := StatsOptions{}
 
 	cmd := &cobra.Command{
 		Use:   "stats [OPTIONS] [CONTAINER...]",
 		Short: "Display a live stream of container(s) resource usage statistics",
 		Args:  cli.RequiresMinArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.containers = args
-			return runStats(cmd.Context(), dockerCLI, &options)
+			options.Containers = args
+			return RunStats(cmd.Context(), dockerCLI, &options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container stats, docker stats",
@@ -63,18 +81,29 @@ func NewStatsCommand(dockerCLI command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&options.all, "all", "a", false, "Show all containers (default shows just running)")
-	flags.BoolVar(&options.noStream, "no-stream", false, "Disable streaming stats and only pull the first result")
-	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")
-	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
+	flags.BoolVarP(&options.All, "all", "a", false, "Show all containers (default shows just running)")
+	flags.BoolVar(&options.NoStream, "no-stream", false, "Disable streaming stats and only pull the first result")
+	flags.BoolVar(&options.NoTrunc, "no-trunc", false, "Do not truncate output")
+	flags.StringVar(&options.Format, "format", "", flagsHelper.FormatHelp)
 	return cmd
 }
 
-// runStats displays a live stream of resource usage statistics for one or more containers.
+// acceptedStatsFilters is the list of filters accepted by [RunStats] (through
+// the [StatsOptions.Filters] option).
+//
+// TODO(thaJeztah): don't hard-code the list of accept filters, and expand
+// to the intersection of filters accepted by both "container list" and
+// "system events". Validating filters may require an initial API call
+// to both endpoints ("container list" and "system events").
+var acceptedStatsFilters = map[string]bool{
+	"label": true,
+}
+
+// RunStats displays a live stream of resource usage statistics for one or more containers.
 // This shows real-time information on CPU usage, memory usage, and network I/O.
 //
 //nolint:gocyclo
-func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions) error {
+func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions) error {
 	apiClient := dockerCLI.Client()
 
 	// Get the daemonOSType if not set already
@@ -88,23 +117,34 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 
 	// waitFirst is a WaitGroup to wait first stat data's reach for each container
 	waitFirst := &sync.WaitGroup{}
+	// closeChan is a non-buffered channel used to collect errors from goroutines.
 	closeChan := make(chan error)
 	cStats := stats{}
 
-	showAll := len(options.containers) == 0
+	showAll := len(options.Containers) == 0
 	if showAll {
 		// If no names were specified, start a long-running goroutine which
 		// monitors container events. We make sure we're subscribed before
 		// retrieving the list of running containers to avoid a race where we
 		// would "miss" a creation.
 		started := make(chan struct{})
+
+		if options.Filters == nil {
+			f := filters.NewArgs()
+			options.Filters = &f
+		}
+
+		if err := options.Filters.Validate(acceptedStatsFilters); err != nil {
+			return err
+		}
+
 		eh := command.InitEventHandler()
-		if options.all {
+		if options.All {
 			eh.Handle(events.ActionCreate, func(e events.Message) {
 				s := NewStats(e.Actor.ID[:12])
 				if cStats.add(s) {
 					waitFirst.Add(1)
-					go collect(ctx, s, apiClient, !options.noStream, waitFirst)
+					go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 				}
 			})
 		}
@@ -113,11 +153,11 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 			s := NewStats(e.Actor.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
-				go collect(ctx, s, apiClient, !options.noStream, waitFirst)
+				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		})
 
-		if !options.all {
+		if !options.All {
 			eh.Handle(events.ActionDie, func(e events.Message) {
 				cStats.remove(e.Actor.ID[:12])
 			})
@@ -126,7 +166,11 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 		// monitorContainerEvents watches for container creation and removal (only
 		// used when calling `docker stats` without arguments).
 		monitorContainerEvents := func(started chan<- struct{}, c chan events.Message, stopped <-chan struct{}) {
-			f := filters.NewArgs()
+			// Create a copy of the custom filters so that we don't mutate
+			// the original set of filters. Custom filters are used both
+			// to list containers and to filter events, but the "type" filter
+			// is not valid for filtering containers.
+			f := options.Filters.Clone()
 			f.Add("type", string(events.ContainerEventType))
 			eventChan, errChan := apiClient.Events(ctx, types.EventsOptions{
 				Filters: f,
@@ -161,7 +205,8 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 		// After the initial list was collected, we start listening for events
 		// to refresh the list of containers.
 		cs, err := apiClient.ContainerList(ctx, container.ListOptions{
-			All: options.all,
+			All:     options.All,
+			Filters: *options.Filters,
 		})
 		if err != nil {
 			return err
@@ -170,20 +215,28 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 			s := NewStats(ctr.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
-				go collect(ctx, s, apiClient, !options.noStream, waitFirst)
+				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		}
 
 		// make sure each container get at least one valid stat data
 		waitFirst.Wait()
 	} else {
+		// TODO(thaJeztah): re-implement options.Containers as a filter so that
+		// only a single code-path is needed, and custom filters can be combined
+		// with a list of container names/IDs.
+
+		if options.Filters != nil && options.Filters.Len() > 0 {
+			return fmt.Errorf("filtering is not supported when specifying a list of containers")
+		}
+
 		// Create the list of containers, and start collecting stats for all
 		// containers passed.
-		for _, ctr := range options.containers {
+		for _, ctr := range options.Containers {
 			s := NewStats(ctr)
 			if cStats.add(s) {
 				waitFirst.Add(1)
-				go collect(ctx, s, apiClient, !options.noStream, waitFirst)
+				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		}
 
@@ -206,7 +259,7 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 		}
 	}
 
-	format := options.format
+	format := options.Format
 	if len(format) == 0 {
 		if len(dockerCLI.ConfigFile().StatsFormat) > 0 {
 			format = dockerCLI.ConfigFile().StatsFormat
@@ -219,7 +272,7 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 		Format: NewStatsFormat(format, daemonOSType),
 	}
 	cleanScreen := func() {
-		if !options.noStream {
+		if !options.NoStream {
 			_, _ = fmt.Fprint(dockerCLI.Out(), "\033[2J")
 			_, _ = fmt.Fprint(dockerCLI.Out(), "\033[H")
 		}
@@ -236,13 +289,13 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 			ccStats = append(ccStats, c.GetStatistics())
 		}
 		cStats.mu.RUnlock()
-		if err = statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.noTrunc); err != nil {
+		if err = statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 			break
 		}
 		if len(cStats.cs) == 0 && !showAll {
 			break
 		}
-		if options.noStream {
+		if options.NoStream {
 			break
 		}
 		select {
