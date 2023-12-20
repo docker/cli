@@ -31,10 +31,10 @@ Aleksandrs Fadins <aleks@s-ko.net>
 Alessandro Boch <aboch@tetrationanalytics.com> <aboch@docker.com>
 Alex Chen <alexchenunix@gmail.com> <root@localhost.localdomain>
 Alex Ellis <alexellis2@gmail.com>
+Alexander Chneerov <achneerov@gmail.com>
 Alexander Larsson <alexl@redhat.com> <alexander.larsson@gmail.com>
 Alexander Morozov <lk4d4math@gmail.com>
 Alexander Morozov <lk4d4math@gmail.com> <lk4d4@docker.com>
-Alexander Chneerov <achneerov@gmail.com>
 Alexandre Beslic <alexandre.beslic@gmail.com> <abronan@docker.com>
 Alexis Couvreur <alexiscouvreur.pro@gmail.com>
 Alicia Lauerman <alicia@eta.im> <allydevour@me.com>
@@ -76,8 +76,8 @@ Bin Liu <liubin0329@gmail.com>
 Bin Liu <liubin0329@gmail.com> <liubin0329@users.noreply.github.com>
 Bingshen Wang <bingshen.wbs@alibaba-inc.com>
 Bjorn Neergaard <bjorn.neergaard@docker.com>
-Bjorn Neergaard <bjorn.neergaard@docker.com> <bneergaard@mirantis.com>
 Bjorn Neergaard <bjorn.neergaard@docker.com> <bjorn@neersighted.com>
+Bjorn Neergaard <bjorn.neergaard@docker.com> <bneergaard@mirantis.com>
 Boaz Shuster <ripcurld.github@gmail.com>
 Brad Baker <brad@brad.fi>
 Brad Baker <brad@brad.fi> <88946291+brdbkr@users.noreply.github.com>
@@ -98,6 +98,8 @@ Chen Chuanliang <chen.chuanliang@zte.com.cn>
 Chen Mingjie <chenmingjie0828@163.com>
 Chen Qiu <cheney-90@hotmail.com>
 Chen Qiu <cheney-90@hotmail.com> <21321229@zju.edu.cn>
+Chris Chinchilla <chris@chrischinchilla.com>
+Chris Chinchilla <chris@chrischinchilla.com> <chris.ward@docker.com>
 Chris Dias <cdias@microsoft.com>
 Chris McKinnel <chris.mckinnel@tangentlabs.co.uk>
 Christopher Biscardi <biscarch@sketcht.com>
@@ -118,11 +120,11 @@ Daehyeok Mun <daehyeok@gmail.com> <daehyeok@daehyeok-ui-MacBook-Air.local>
 Daehyeok Mun <daehyeok@gmail.com> <daehyeok@daehyeokui-MacBook-Air.local>
 Daisuke Ito <itodaisuke00@gmail.com>
 Dan Feldman <danf@jfrog.com>
+Danial Gharib <danial.mail.gh@gmail.com>
 Daniel Dao <dqminh@cloudflare.com>
 Daniel Dao <dqminh@cloudflare.com> <dqminh89@gmail.com>
 Daniel Garcia <daniel@danielgarcia.info>
 Daniel Gasienica <daniel@gasienica.ch> <dgasienica@zynga.com>
-Danial Gharib <danial.mail.gh@gmail.com>
 Daniel Goosen <daniel.goosen@surveysampling.com> <djgoosen@users.noreply.github.com>
 Daniel Grunwell <mwgrunny@gmail.com>
 Daniel J Walsh <dwalsh@redhat.com>
@@ -192,6 +194,8 @@ Gerwim Feiken <g.feiken@tfe.nl> <gerwim@gmail.com>
 Giampaolo Mancini <giampaolo@trampolineup.com>
 Gopikannan Venugopalsamy <gopikannan.venugopalsamy@gmail.com>
 Gou Rao <gou@portworx.com> <gourao@users.noreply.github.com>
+Graeme Wiebe <graeme.wiebe@gmail.com>
+Graeme Wiebe <graeme.wiebe@gmail.com> <79593869+TheRealGramdalf@users.noreply.github.com>
 Greg Stephens <greg@udon.org>
 Guillaume J. Charmes <guillaume.charmes@docker.com> <charmes.guillaume@gmail.com>
 Guillaume J. Charmes <guillaume.charmes@docker.com> <guillaume.charmes@dotcloud.com>
@@ -318,6 +322,7 @@ Kyle Mitofsky <Kylemit@gmail.com>
 Lajos Papp <lajos.papp@sequenceiq.com> <lalyos@yahoo.com>
 Lei Jitang <leijitang@huawei.com>
 Lei Jitang <leijitang@huawei.com> <leijitang@gmail.com>
+Li Fu Bang <lifubang@acmcoder.com>
 Liang Mingqiang <mqliang.zju@gmail.com>
 Liang-Chi Hsieh <viirya@gmail.com>
 Liao Qingwei <liaoqingwei@huawei.com>
@@ -412,6 +417,9 @@ Paul Liljenberg <liljenberg.paul@gmail.com> <letters@paulnotcom.se>
 Pavel Tikhomirov <ptikhomirov@virtuozzo.com> <ptikhomirov@parallels.com>
 Pawel Konczalski <mail@konczalski.de>
 Paweł Pokrywka <pepawel@users.noreply.github.com>
+Per Lundberg <perlun@gmail.com>
+Per Lundberg <perlun@gmail.com> <per.lundberg@ecraft.com>
+Per Lundberg <perlun@gmail.com> <per.lundberg@hibox.tv>
 Peter Choi <phkchoi89@gmail.com> <reikani@Peters-MacBook-Pro.local>
 Peter Dave Hello <hsu@peterdavehello.org> <PeterDaveHello@users.noreply.github.com>
 Peter Hsu <shhsu@microsoft.com>
@@ -427,6 +435,8 @@ Qiang Huang <h.huangqiang@huawei.com>
 Qiang Huang <h.huangqiang@huawei.com> <qhuang@10.0.2.15>
 Ray Tsang <rayt@google.com> <saturnism@users.noreply.github.com>
 Renaud Gaubert <rgaubert@nvidia.com> <renaud.gaubert@gmail.com>
+Rob Murray <rob.murray@docker.com>
+Rob Murray <rob.murray@docker.com> <148866618+robmry@users.noreply.github.com>
 Robert Terhaar <rterhaar@atlanticdynamic.com> <robbyt@users.noreply.github.com>
 Roberto G. Hashioka <roberto.hashioka@docker.com> <roberto_hashioka@hotmail.com>
 Roberto Muñoz Fernández <robertomf@gmail.com> <roberto.munoz.fernandez.contractor@bbva.com>
