@@ -140,7 +140,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.networkMode, "network", "default", "Set the networking mode for the RUN instructions during build")
 	flags.SetAnnotation("network", "version", []string{"1.25"})
 	flags.Var(&options.extraHosts, "add-host", `Add a custom host-to-IP mapping ("host:ip")`)
-	flags.StringVar(&options.target, "target", "", "Set the target build stage to build.")
+	flags.StringVar(&options.target, "target", "", "Set the target build stage to build. If no target is specified, the target will be the last stage defined in the Dockerfile")
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
