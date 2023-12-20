@@ -135,24 +135,6 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 			}
 		}
 
-		// getContainerList simulates creation event for all previously existing
-		// containers (only used when calling `docker stats` without arguments).
-		getContainerList := func() {
-			cs, err := apiClient.ContainerList(ctx, container.ListOptions{
-				All: options.all,
-			})
-			if err != nil {
-				closeChan <- err
-			}
-			for _, ctr := range cs {
-				s := NewStats(ctr.ID[:12])
-				if cStats.add(s) {
-					waitFirst.Add(1)
-					go collect(ctx, s, apiClient, !options.noStream, waitFirst)
-				}
-			}
-		}
-
 		eventChan := make(chan events.Message)
 		go eh.Watch(eventChan)
 		stopped := make(chan struct{})
@@ -160,17 +142,30 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 		defer close(stopped)
 		<-started
 
-		// Start a short-lived goroutine to retrieve the initial list of
-		// containers.
-		getContainerList()
+		// Fetch the initial list of containers and collect stats for them.
+		// After the initial list was collected, we start listening for events
+		// to refresh the list of containers.
+		cs, err := apiClient.ContainerList(ctx, container.ListOptions{
+			All: options.all,
+		})
+		if err != nil {
+			return err
+		}
+		for _, ctr := range cs {
+			s := NewStats(ctr.ID[:12])
+			if cStats.add(s) {
+				waitFirst.Add(1)
+				go collect(ctx, s, apiClient, !options.noStream, waitFirst)
+			}
+		}
 
 		// make sure each container get at least one valid stat data
 		waitFirst.Wait()
 	} else {
-		// Artificially send creation events for the containers we were asked to
-		// monitor (same code path than we use when monitoring all containers).
-		for _, name := range options.containers {
-			s := NewStats(name)
+		// Create the list of containers, and start collecting stats for all
+		// containers passed.
+		for _, ctr := range options.containers {
+			s := NewStats(ctr)
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, apiClient, !options.noStream, waitFirst)
