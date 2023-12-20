@@ -129,15 +129,15 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 		// would "miss" a creation.
 		started := make(chan struct{})
 		eh := command.InitEventHandler()
-		eh.Handle(events.ActionCreate, func(e events.Message) {
-			if options.all {
+		if options.all {
+			eh.Handle(events.ActionCreate, func(e events.Message) {
 				s := NewStats(e.Actor.ID[:12])
 				if cStats.add(s) {
 					waitFirst.Add(1)
 					go collect(ctx, s, apiClient, !options.noStream, waitFirst)
 				}
-			}
-		})
+			})
+		}
 
 		eh.Handle(events.ActionStart, func(e events.Message) {
 			s := NewStats(e.Actor.ID[:12])
@@ -147,11 +147,11 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 			}
 		})
 
-		eh.Handle(events.ActionDie, func(e events.Message) {
-			if !options.all {
+		if !options.all {
+			eh.Handle(events.ActionDie, func(e events.Message) {
 				cStats.remove(e.Actor.ID[:12])
-			}
-		})
+			})
+		}
 
 		eventChan := make(chan events.Message)
 		go eh.Watch(eventChan)
