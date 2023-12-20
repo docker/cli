@@ -21,11 +21,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// statsOptions defines options for runStats.
 type statsOptions struct {
-	all        bool
-	noStream   bool
-	noTrunc    bool
-	format     string
+	// all allows including both running and stopped containers. The default
+	// is to only include running containers.
+	all bool
+
+	// noStream disables streaming stats. If enabled, stats are collected once,
+	// and the result is printed.
+	noStream bool
+
+	// noTrunc disables truncating the output. The default is to truncate
+	// output such as container-IDs.
+	noTrunc bool
+
+	// format is a custom template to use for presenting the stats.
+	// Refer to [flagsHelper.FormatHelp] for accepted formats.
+	format string
+
+	// containers is the list of container names or IDs to include in the stats.
+	// If empty, all containers are included.
 	containers []string
 }
 
