@@ -60,36 +60,7 @@ func NewStatsCommand(dockerCLI command.Cli) *cobra.Command {
 //
 //nolint:gocyclo
 func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions) error {
-	showAll := len(options.containers) == 0
-	closeChan := make(chan error)
 	apiClient := dockerCLI.Client()
-
-	// monitorContainerEvents watches for container creation and removal (only
-	// used when calling `docker stats` without arguments).
-	monitorContainerEvents := func(started chan<- struct{}, c chan events.Message, stopped <-chan struct{}) {
-		f := filters.NewArgs()
-		f.Add("type", string(events.ContainerEventType))
-		eventChan, errChan := apiClient.Events(ctx, types.EventsOptions{
-			Filters: f,
-		})
-
-		// Whether we successfully subscribed to eventChan or not, we can now
-		// unblock the main goroutine.
-		close(started)
-		defer close(c)
-
-		for {
-			select {
-			case <-stopped:
-				return
-			case event := <-eventChan:
-				c <- event
-			case err := <-errChan:
-				closeChan <- err
-				return
-			}
-		}
-	}
 
 	// Get the daemonOSType if not set already
 	if daemonOSType == "" {
@@ -102,26 +73,10 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 
 	// waitFirst is a WaitGroup to wait first stat data's reach for each container
 	waitFirst := &sync.WaitGroup{}
-
+	closeChan := make(chan error)
 	cStats := stats{}
-	// getContainerList simulates creation event for all previously existing
-	// containers (only used when calling `docker stats` without arguments).
-	getContainerList := func() {
-		cs, err := apiClient.ContainerList(ctx, container.ListOptions{
-			All: options.all,
-		})
-		if err != nil {
-			closeChan <- err
-		}
-		for _, ctr := range cs {
-			s := NewStats(ctr.ID[:12])
-			if cStats.add(s) {
-				waitFirst.Add(1)
-				go collect(ctx, s, apiClient, !options.noStream, waitFirst)
-			}
-		}
-	}
 
+	showAll := len(options.containers) == 0
 	if showAll {
 		// If no names were specified, start a long-running goroutine which
 		// monitors container events. We make sure we're subscribed before
@@ -151,6 +106,51 @@ func runStats(ctx context.Context, dockerCLI command.Cli, options *statsOptions)
 			eh.Handle(events.ActionDie, func(e events.Message) {
 				cStats.remove(e.Actor.ID[:12])
 			})
+		}
+
+		// monitorContainerEvents watches for container creation and removal (only
+		// used when calling `docker stats` without arguments).
+		monitorContainerEvents := func(started chan<- struct{}, c chan events.Message, stopped <-chan struct{}) {
+			f := filters.NewArgs()
+			f.Add("type", string(events.ContainerEventType))
+			eventChan, errChan := apiClient.Events(ctx, types.EventsOptions{
+				Filters: f,
+			})
+
+			// Whether we successfully subscribed to eventChan or not, we can now
+			// unblock the main goroutine.
+			close(started)
+			defer close(c)
+
+			for {
+				select {
+				case <-stopped:
+					return
+				case event := <-eventChan:
+					c <- event
+				case err := <-errChan:
+					closeChan <- err
+					return
+				}
+			}
+		}
+
+		// getContainerList simulates creation event for all previously existing
+		// containers (only used when calling `docker stats` without arguments).
+		getContainerList := func() {
+			cs, err := apiClient.ContainerList(ctx, container.ListOptions{
+				All: options.all,
+			})
+			if err != nil {
+				closeChan <- err
+			}
+			for _, ctr := range cs {
+				s := NewStats(ctr.ID[:12])
+				if cStats.add(s) {
+					waitFirst.Add(1)
+					go collect(ctx, s, apiClient, !options.noStream, waitFirst)
+				}
+			}
 		}
 
 		eventChan := make(chan events.Message)
