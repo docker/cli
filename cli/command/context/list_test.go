@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -26,7 +27,10 @@ func TestList(t *testing.T) {
 	createTestContext(t, cli, "unset")
 	cli.SetCurrentContext("current")
 	cli.OutBuffer().Reset()
-	assert.NilError(t, runList(cli, &listOptions{}))
+	cmd := &cobra.Command{}
+	cmd.SetOut(cli.Out())
+	cmd.SetErr(cli.Err())
+	assert.NilError(t, runList(cmd, cli, &listOptions{}))
 	golden.Assert(t, cli.OutBuffer().String(), "list.golden")
 }
 
@@ -36,7 +40,7 @@ func TestListQuiet(t *testing.T) {
 	createTestContext(t, cli, "other")
 	cli.SetCurrentContext("current")
 	cli.OutBuffer().Reset()
-	assert.NilError(t, runList(cli, &listOptions{quiet: true}))
+	assert.NilError(t, runList(&cobra.Command{}, cli, &listOptions{quiet: true}))
 	golden.Assert(t, cli.OutBuffer().String(), "quiet-list.golden")
 }
 
