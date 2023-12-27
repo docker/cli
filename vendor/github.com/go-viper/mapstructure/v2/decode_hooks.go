@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/netip"
 	"reflect"
 	"strconv"
 	"strings"
@@ -40,8 +41,8 @@ func typedDecodeHook(h DecodeHookFunc) DecodeHookFunc {
 // that took reflect.Kind instead of reflect.Type.
 func DecodeHookExec(
 	raw DecodeHookFunc,
-	from reflect.Value, to reflect.Value) (interface{}, error) {
-
+	from reflect.Value, to reflect.Value,
+) (interface{}, error) {
 	switch f := typedDecodeHook(raw).(type) {
 	case DecodeHookFuncType:
 		return f(from.Type(), to.Type(), from.Interface())
@@ -103,10 +104,14 @@ func OrComposeDecodeHookFunc(ff ...DecodeHookFunc) DecodeHookFunc {
 // string to []string by splitting on the given sep.
 func StringToSliceHookFunc(sep string) DecodeHookFunc {
 	return func(
-		f reflect.Kind,
-		t reflect.Kind,
-		data interface{}) (interface{}, error) {
-		if f != reflect.String || t != reflect.Slice {
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+		if t != reflect.SliceOf(f) {
 			return data, nil
 		}
 
@@ -125,7 +130,8 @@ func StringToTimeDurationHookFunc() DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{}) (interface{}, error) {
+		data interface{},
+	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -144,7 +150,8 @@ func StringToIPHookFunc() DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{}) (interface{}, error) {
+		data interface{},
+	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -168,7 +175,8 @@ func StringToIPNetHookFunc() DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{}) (interface{}, error) {
+		data interface{},
+	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -188,7 +196,8 @@ func StringToTimeHookFunc(layout string) DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{}) (interface{}, error) {
+		data interface{},
+	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -209,7 +218,8 @@ func StringToTimeHookFunc(layout string) DecodeHookFunc {
 func WeaklyTypedHook(
 	f reflect.Kind,
 	t reflect.Kind,
-	data interface{}) (interface{}, error) {
+	data interface{},
+) (interface{}, error) {
 	dataVal := reflect.ValueOf(data)
 	switch t {
 	case reflect.String:
@@ -262,7 +272,8 @@ func TextUnmarshallerHookFunc() DecodeHookFuncType {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
-		data interface{}) (interface{}, error) {
+		data interface{},
+	) (interface{}, error) {
 		if f.Kind() != reflect.String {
 			return data, nil
 		}
@@ -271,9 +282,53 @@ func TextUnmarshallerHookFunc() DecodeHookFuncType {
 		if !ok {
 			return data, nil
 		}
-		if err := unmarshaller.UnmarshalText([]byte(data.(string))); err != nil {
+		str, ok := data.(string)
+		if !ok {
+			str = reflect.Indirect(reflect.ValueOf(&data)).Elem().String()
+		}
+		if err := unmarshaller.UnmarshalText([]byte(str)); err != nil {
 			return nil, err
 		}
 		return result, nil
+	}
+}
+
+// StringToNetIPAddrHookFunc returns a DecodeHookFunc that converts
+// strings to netip.Addr.
+func StringToNetIPAddrHookFunc() DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+		if t != reflect.TypeOf(netip.Addr{}) {
+			return data, nil
+		}
+
+		// Convert it by parsing
+		return netip.ParseAddr(data.(string))
+	}
+}
+
+// StringToNetIPAddrPortHookFunc returns a DecodeHookFunc that converts
+// strings to netip.AddrPort.
+func StringToNetIPAddrPortHookFunc() DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{},
+	) (interface{}, error) {
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+		if t != reflect.TypeOf(netip.AddrPort{}) {
+			return data, nil
+		}
+
+		// Convert it by parsing
+		return netip.ParseAddrPort(data.(string))
 	}
 }
