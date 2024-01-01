@@ -4140,6 +4140,11 @@ _docker_manifest() {
 		inspect
 		push
 		rm
+		ls
+	"
+
+	local aliases="
+		list
 	"
 	__docker_subcommands "$subcommands" && return
 
@@ -4245,6 +4250,14 @@ _docker_manifest_rm() {
 			;;
 		*)
 			__docker_complete_images --force-tag --id
+			;;
+	esac
+}
+
+_docker_manifest_ls() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format --help --quiet -q" -- "$cur" ) )
 			;;
 	esac
 }
