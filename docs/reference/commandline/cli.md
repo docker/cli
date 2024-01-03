@@ -213,18 +213,20 @@ different location.
 These fields allow you to customize the default output format for some commands
 if no `--format` flag is provided.
 
-| Property               | Description                                                                                                                                                                                                              |
-|:-----------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `configFormat`         | Custom default format for `docker config ls` output. Refer to the [**format the output** section in the `docker config ls` documentation](config_ls.md#format) for a list of supported formatting directives.            |
-| `imagesFormat`         | Custom default format for `docker images` / `docker image ls` output. Refer to the [**format the output** section in the `docker images` documentation](images.md#format) for a list of supported formatting directives. |
-| `nodesFormat`          | Custom default format for `docker node ls` output. Refer to the [**formatting** section in the `docker node ls` documentation](node_ls.md#format) for a list of supported formatting directives.                         |
-| `pluginsFormat`        | Custom default format for `docker plugin ls` output. Refer to the [**formatting** section in the `docker plugin ls` documentation](plugin_ls.md#format) for a list of supported formatting directives.                   |
-| `psFormat`             | Custom default format for `docker ps` / `docker container ps` output. Refer to the [**formatting** section in the `docker ps` documentation](ps.md#format) for a list of supported formatting directives.                |
-| `secretFormat`         | Custom default format for `docker secret ls` output. Refer to the [**format the output** section in the `docker secret ls` documentation](secret_ls.md#format) for a list of supported formatting directives.            |
-| `serviceInspectFormat` | Custom default format for `docker service inspect` output. Refer to the [**formatting** section in the `docker service inspect` documentation](service_inspect.md#format) for a list of supported formatting directives. |
-| `servicesFormat`       | Custom default format for `docker service ls` output. Refer to the [**formatting** section in the `docker service ls` documentation](service_ls.md#format) for a list of supported formatting directives.                |
-| `statsFormat`          | Custom default format for `docker stats` output. Refer to the [**formatting** section in the `docker stats` documentation](stats.md#format) for a list of supported formatting directives.                               |
-
+| Property               | Description                                                                                                                                                         |
+| :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `configFormat`         | Custom default format for `docker config ls` output. See [`docker config ls`](config_ls.md#format) for a list of supported formatting directives.                   |
+| `imagesFormat`         | Custom default format for `docker images` / `docker image ls` output. See [`docker images`](images.md#format) for a list of supported formatting directives.        |
+| `networksFormat`       | Custom default format for `docker network ls` output. See [`docker network ls`](network_ls.md#format) for a list of supported formatting directives.                |
+| `nodesFormat`          | Custom default format for `docker node ls` output. See [`docker node ls`](node_ls.md#format) for a list of supported formatting directives.                         |
+| `pluginsFormat`        | Custom default format for `docker plugin ls` output. See [`docker plugin ls`](plugin_ls.md#format) for a list of supported formatting directives.                   |
+| `psFormat`             | Custom default format for `docker ps` / `docker container ps` output. See [`docker ps`](ps.md#format) for a list of supported formatting directives.                |
+| `secretFormat`         | Custom default format for `docker secret ls` output. See [`docker secret ls`](secret_ls.md#format) for a list of supported formatting directives.                   |
+| `serviceInspectFormat` | Custom default format for `docker service inspect` output. See [`docker service inspect`](service_inspect.md#format) for a list of supported formatting directives. |
+| `servicesFormat`       | Custom default format for `docker service ls` output. See [`docker service ls`](service_ls.md#format) for a list of supported formatting directives.                |
+| `statsFormat`          | Custom default format for `docker stats` output. See [`docker stats`](stats.md#format) for a list of supported formatting directives.                               |
+| `tasksFormat`          | Custom default format for `docker stack ps` output. See [`docker stack ps`](stack_ps.md#format) for a list of supported formatting directives.                      |
+| `volumesFormat`        | Custom default format for `docker volume ls` output. See [`docker volume ls`](volume_ls.md#format) for a list of supported formatting directives.                   |
 
 ### Custom HTTP headers
 
