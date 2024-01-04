@@ -22,6 +22,13 @@ else
     BUILDTIME=${BUILDTIME:-$(TZ=UTC date -u --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
 fi
 
+case "$VERSION" in
+	refs/tags/v*) VERSION=${VERSION#refs/tags/v} ;;
+	refs/tags/*) VERSION=${VERSION#refs/tags/} ;;
+	refs/heads/*) VERSION=$(echo "${VERSION#refs/heads/}" | sed -r 's#/+#-#g') ;;
+	refs/pull/*) VERSION=pr-$(echo "$VERSION" | grep -o '[0-9]\+') ;;
+esac
+
 GOOS="$(go env GOOS)"
 GOARCH="$(go env GOARCH)"
 if [ "${GOARCH}" = "arm" ]; then
