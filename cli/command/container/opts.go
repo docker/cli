@@ -28,6 +28,20 @@ import (
 	cdi "tags.cncf.io/container-device-interface/pkg/parser"
 )
 
+const (
+	// TODO(thaJeztah): define these in the API-types, or query available defaults
+	//  from the daemon, or require "local" profiles to be an absolute path or
+	//  relative paths starting with "./". The daemon-config has consts for this
+	//  but we don't want to import that package:
+	//  https://github.com/moby/moby/blob/v23.0.0/daemon/config/config.go#L63-L67
+
+	// seccompProfileDefault is the built-in default seccomp profile.
+	seccompProfileDefault = "builtin"
+	// seccompProfileUnconfined is a special profile name for seccomp to use an
+	// "unconfined" seccomp profile.
+	seccompProfileUnconfined = "unconfined"
+)
+
 var deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) [rwm]{1,3}$`)
 
 // containerOptions is a data object with all the options for creating a container
@@ -914,16 +928,23 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 			// "no-new-privileges" is the only option that does not require a value.
 			return securityOpts, errors.Errorf("Invalid --security-opt: %q", opt)
 		}
-		if k == "seccomp" && v != "unconfined" {
-			f, err := os.ReadFile(v)
-			if err != nil {
-				return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", v, err)
+		if k == "seccomp" {
+			switch v {
+			case seccompProfileDefault, seccompProfileUnconfined:
+				// known special names for built-in profiles, nothing to do.
+			default:
+				// value may be a filename, in which case we send the profile's
+				// content if it's valid JSON.
+				f, err := os.ReadFile(v)
+				if err != nil {
+					return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", v, err)
+				}
+				b := bytes.NewBuffer(nil)
+				if err := json.Compact(b, f); err != nil {
+					return securityOpts, errors.Errorf("compacting json for seccomp profile (%s) failed: %v", v, err)
+				}
+				securityOpts[key] = fmt.Sprintf("seccomp=%s", b.Bytes())
 			}
-			b := bytes.NewBuffer(nil)
-			if err := json.Compact(b, f); err != nil {
-				return securityOpts, errors.Errorf("compacting json for seccomp profile (%s) failed: %v", v, err)
-			}
-			securityOpts[key] = fmt.Sprintf("seccomp=%s", b.Bytes())
 		}
 	}
 

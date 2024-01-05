@@ -1274,17 +1274,18 @@ in the image, or `SIGTERM` if the image has no `STOPSIGNAL` defined.
 
 ### <a name="security-opt"></a> Optional security options (--security-opt)
 
-| Option                                    | Description                                                               |
-|:------------------------------------------|:--------------------------------------------------------------------------|
-| `--security-opt="label=user:USER"`        | Set the label user for the container                                      |
-| `--security-opt="label=role:ROLE"`        | Set the label role for the container                                      |
-| `--security-opt="label=type:TYPE"`        | Set the label type for the container                                      |
-| `--security-opt="label=level:LEVEL"`      | Set the label level for the container                                     |
-| `--security-opt="label=disable"`          | Turn off label confinement for the container                              |
-| `--security-opt="apparmor=PROFILE"`       | Set the apparmor profile to be applied to the container                   |
-| `--security-opt="no-new-privileges=true"` | Disable container processes from gaining new privileges                   |
-| `--security-opt="seccomp=unconfined"`     | Turn off seccomp confinement for the container                            |
-| `--security-opt="seccomp=profile.json"`   | White-listed syscalls seccomp Json file to be used as a seccomp filter    |
+| Option                                    | Description                                                                                                                                                                                                      |
+|:------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--security-opt="label=user:USER"`        | Set the label user for the container                                                                                                                                                                             |
+| `--security-opt="label=role:ROLE"`        | Set the label role for the container                                                                                                                                                                             |
+| `--security-opt="label=type:TYPE"`        | Set the label type for the container                                                                                                                                                                             |
+| `--security-opt="label=level:LEVEL"`      | Set the label level for the container                                                                                                                                                                            |
+| `--security-opt="label=disable"`          | Turn off label confinement for the container                                                                                                                                                                     |
+| `--security-opt="apparmor=PROFILE"`       | Set the apparmor profile to be applied to the container                                                                                                                                                          |
+| `--security-opt="no-new-privileges=true"` | Disable container processes from gaining new privileges                                                                                                                                                          |
+| `--security-opt="seccomp=unconfined"`     | Turn off seccomp confinement for the container                                                                                                                                                                   |
+| `--security-opt="seccomp=builtin"`        | Use the default (built-in) seccomp profile for the container. This can be used to enable seccomp for a container running on a daemon with a custom default profile set, or with seccomp disabled ("unconfined"). |
+| `--security-opt="seccomp=profile.json"`   | White-listed syscalls seccomp Json file to be used as a seccomp filter                                                                                                                                           |
 
 The `--security-opt` flag lets you override the default labeling scheme for a
 container. Specifying the level in the following command allows you to share
