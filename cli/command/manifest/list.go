@@ -1,7 +1,6 @@
 package manifest
 
 import (
-	"context"
 	"sort"
 
 	"github.com/distribution/reference"
@@ -28,7 +27,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List local manifest lists",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd.Context(), dockerCli, options)
+			return runList(dockerCli, options)
 		},
 	}
 
@@ -38,7 +37,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
+func runList(dockerCli command.Cli, options listOptions) error {
 	manifestStore := dockerCli.ManifestStore()
 
 	var manifestLists []reference.Reference
