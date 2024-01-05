@@ -100,7 +100,7 @@ github.com/docker/docker-credential-helpers/credentials
 # github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
 ## explicit
 github.com/docker/go/canonical/json
-# github.com/docker/go-connections v0.4.1-0.20231110212414-fa09c952e3ea
+# github.com/docker/go-connections v0.5.0
 ## explicit; go 1.18
 github.com/docker/go-connections/nat
 github.com/docker/go-connections/sockets
