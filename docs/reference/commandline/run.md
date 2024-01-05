@@ -293,7 +293,7 @@ You may wish to share the UTS namespace with the host if you would like the
 hostname of the container to change as the hostname of the host changes. A more
 advanced use case would be changing the host's hostname from a container.
 
-## <a name="ipc"></a> IPC settings (--ipc)
+### <a name="ipc"></a> IPC settings (--ipc)
 
 ```text
 --ipc="MODE"  : Set the IPC mode for the container
@@ -934,7 +934,7 @@ $ docker run --rm -i busybox echo "foo bar baz" \
 rab
 ```
 
-## <a name="init"></a> Specify an init process
+### <a name="init"></a> Specify an init process
 
 You can use the `--init` flag to indicate that an init process should be used as
 the PID 1 in the container. Specifying an init process ensures the usual
@@ -981,7 +981,7 @@ You can use the `-t` flag without `-i` flag. This still allocates a pseudo-TTY
 to the container, but with no way of writing to `STDIN`. The only time this
 might be useful is if the output of the container requires a TTY environment.
 
-## <a name="cgroup-parent"></a> Specify custom cgroups
+### <a name="cgroup-parent"></a> Specify custom cgroups
 
 Using the `--cgroup-parent` flag, you can pass a specific cgroup to run a
 container in. This allows you to create and manage cgroups on their own. You can
@@ -1194,7 +1194,7 @@ The `--add-host` flag also accepts a `:` separator, for example:
 $ docker run --add-host=my-hostname:8.8.8.8 --rm -it alpine
 ```
 
-## <a name="log-driver"></a> Logging drivers (--log-driver)
+### <a name="log-driver"></a> Logging drivers (--log-driver)
 
 The container can have a different logging driver than the Docker daemon. Use
 the `--log-driver=<DRIVER>` with the `docker run` command to configure the
