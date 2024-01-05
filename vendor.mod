@@ -14,7 +14,7 @@ require (
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v25.0.0-rc.1+incompatible
 	github.com/docker/docker-credential-helpers v0.8.0
-	github.com/docker/go-connections v0.4.1-0.20231110212414-fa09c952e3ea
+	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/gogo/protobuf v1.3.2
