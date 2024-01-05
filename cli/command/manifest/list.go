@@ -39,7 +39,6 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
-
 	manifestStore := dockerCli.ManifestStore()
 
 	var manifestLists []reference.Reference
