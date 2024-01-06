@@ -1,16 +1,21 @@
 package manifest
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/manifest/types"
 )
 
 const (
 	defaultManifestListQuietFormat = "{{.Name}}"
-	defaultManifestListTableFormat = "table {{.Repository}}\t{{.Tag}}"
+	defaultManifestListTableFormat = "table {{.Repository}}\t{{.Tag}}\t{{.Platforms}}"
 
 	repositoryHeader = "REPOSITORY"
 	tagHeader        = "TAG"
+	platformsHeader  = "PLATFORMS"
 )
 
 // NewFormat returns a Format for rendering using a manifest list Context
@@ -31,15 +36,16 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes formatted manifestLists using the Context
-func FormatWrite(ctx formatter.Context, manifestLists []reference.Reference) error {
+func FormatWrite(ctx formatter.Context, manifestLists []reference.Reference, manifests map[string][]types.ImageManifest) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, manifestList := range manifestLists {
 			if n, ok := manifestList.(reference.Named); ok {
 				if nt, ok := n.(reference.NamedTagged); ok {
 					if err := format(&manifestListContext{
-						name: reference.FamiliarString(manifestList),
-						repo: reference.FamiliarName(nt),
-						tag:  nt.Tag(),
+						name:           reference.FamiliarString(manifestList),
+						repo:           reference.FamiliarName(nt),
+						tag:            nt.Tag(),
+						imageManifests: manifests[manifestList.String()],
 					}); err != nil {
 						return err
 					}
@@ -53,9 +59,10 @@ func FormatWrite(ctx formatter.Context, manifestLists []reference.Reference) err
 
 type manifestListContext struct {
 	formatter.HeaderContext
-	name string
-	repo string
-	tag  string
+	name           string
+	repo           string
+	tag            string
+	imageManifests []types.ImageManifest
 }
 
 func newManifestListContext() *manifestListContext {
@@ -64,6 +71,7 @@ func newManifestListContext() *manifestListContext {
 		"Name":       formatter.NameHeader,
 		"Repository": repositoryHeader,
 		"Tag":        tagHeader,
+		"Platforms":  platformsHeader,
 	}
 	return &manifestListCtx
 }
@@ -82,4 +90,14 @@ func (c *manifestListContext) Repository() string {
 
 func (c *manifestListContext) Tag() string {
 	return c.tag
+}
+
+func (c *manifestListContext) Platforms() string {
+	platforms := []string{}
+	for _, manifest := range c.imageManifests {
+		os := manifest.Descriptor.Platform.OS
+		arch := manifest.Descriptor.Platform.Architecture
+		platforms = append(platforms, fmt.Sprintf("%s/%s", os, arch))
+	}
+	return strings.Join(platforms, ", ")
 }

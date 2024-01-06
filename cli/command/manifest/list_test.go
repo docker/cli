@@ -58,7 +58,10 @@ func TestList(t *testing.T) {
 	err := manifestStore.Save(list1, namedRef, fullImageManifest(t, namedRef))
 	assert.NilError(t, err)
 	namedRef = ref(t, "alpine:3.1")
-	err = manifestStore.Save(list1, namedRef, fullImageManifest(t, namedRef))
+	imageManifest := fullImageManifest(t, namedRef)
+	imageManifest.Descriptor.Platform.OS = "linux"
+	imageManifest.Descriptor.Platform.Architecture = "arm64"
+	err = manifestStore.Save(list1, namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	list2 := ref(t, "second:2")

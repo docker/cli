@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/cli/manifest/types"
 	"github.com/fvbommel/sortorder"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -42,9 +42,16 @@ func runList(dockerCli command.Cli, options listOptions) error {
 
 	var manifestLists []reference.Reference
 
-	manifestLists, searchErr := manifestStore.List()
-	if searchErr != nil {
-		return errors.New(searchErr.Error())
+	manifestLists, err := manifestStore.List()
+	if err != nil {
+		return err
+	}
+
+	manifests := map[string][]types.ImageManifest{}
+	for _, manifestList := range manifestLists {
+		if imageManifests, err := manifestStore.GetList(manifestList); err == nil {
+			manifests[manifestList.String()] = imageManifests
+		}
 	}
 
 	format := options.format
@@ -63,5 +70,5 @@ func runList(dockerCli command.Cli, options listOptions) error {
 	sort.Slice(manifestLists, func(i, j int) bool {
 		return sortorder.NaturalLess(manifestLists[i].String(), manifestLists[j].String())
 	})
-	return FormatWrite(manifestListsCtx, manifestLists)
+	return FormatWrite(manifestListsCtx, manifestLists, manifests)
 }
