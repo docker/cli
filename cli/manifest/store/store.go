@@ -170,13 +170,13 @@ func manifestToFilename(root, manifestList, manifest string) string {
 }
 
 func makeFilesafeName(ref string) string {
-	fileName := strings.ReplaceAll(ref, ":", "--")
-	return strings.ReplaceAll(fileName, "/", "__")
+	fileName := strings.ReplaceAll(ref, ":", "%")
+	return strings.ReplaceAll(fileName, "/", "#")
 }
 
 func filenameToRefString(filename string) string {
-	refString := strings.ReplaceAll(filename, "--", ":")
-	return strings.ReplaceAll(refString, "__", "/")
+	refString := strings.ReplaceAll(filename, "%", ":")
+	return strings.ReplaceAll(refString, "#", "/")
 }
 
 type notFoundError struct {
