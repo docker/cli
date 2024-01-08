@@ -17,7 +17,7 @@ func TestMarshallConfig(t *testing.T) {
 
 	actual, err := yaml.Marshal(cfg)
 	assert.NilError(t, err)
-	golden.AssertBytes(t, actual, "full-example.yaml.golden")
+	golden.Assert(t, string(actual), "full-example.yaml.golden")
 
 	// Make sure the expected can be parsed.
 	yamlData, err := os.ReadFile("testdata/full-example.yaml.golden")
@@ -34,7 +34,7 @@ func TestJSONMarshallConfig(t *testing.T) {
 	cfg := fullExampleConfig(workingDir, homeDir)
 	actual, err := json.MarshalIndent(cfg, "", "  ")
 	assert.NilError(t, err)
-	golden.AssertBytes(t, actual, "full-example.json.golden")
+	golden.Assert(t, string(actual), "full-example.json.golden")
 
 	jsonData, err := os.ReadFile("testdata/full-example.json.golden")
 	assert.NilError(t, err)
