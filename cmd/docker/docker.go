@@ -230,12 +230,16 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	// we send a SIGKILL to the plugin process and exit
 	go func() {
 		retries := 0
-		for range signals {
+		for s := range signals {
 			if conn != nil {
 				if err := conn.Close(); err != nil {
 					_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
 				}
 				conn = nil
+			} else {
+				// When the plugin is communicating via socket with the host CLI, we perform job control via the socket.
+				// However, if the plugin is an old version that is not socket-aware, we need to explicitly forward termination signals.
+				plugincmd.Process.Signal(s)
 			}
 			retries++
 			if retries >= exitLimit {
