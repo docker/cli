@@ -104,6 +104,7 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
+	copts.autoRemove = dockerCli.ConfigFile().AutoRemove
 	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	// just in case the parse does not exit
 	if err != nil {

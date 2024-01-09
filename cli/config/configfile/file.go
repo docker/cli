@@ -41,6 +41,7 @@ type ConfigFile struct {
 	CLIPluginsExtraDirs  []string                     `json:"cliPluginsExtraDirs,omitempty"`
 	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
 	Aliases              map[string]string            `json:"aliases,omitempty"`
+	AutoRemove           bool                         `json:"autoRemove,omitempty"`
 }
 
 // ProxyConfig contains proxy configuration settings
