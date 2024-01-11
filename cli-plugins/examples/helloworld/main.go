@@ -45,8 +45,8 @@ func main() {
 		}
 
 		var (
-			who, context  string
-			preRun, debug bool
+			who, optContext string
+			preRun, debug   bool
 		)
 		cmd := &cobra.Command{
 			Use:   "helloworld",
@@ -65,7 +65,7 @@ func main() {
 					fmt.Fprintf(dockerCli.Err(), "Plugin debug mode enabled")
 				}
 
-				switch context {
+				switch optContext {
 				case "Christmas":
 					fmt.Fprintf(dockerCli.Out(), "Merry Christmas!\n")
 					return nil
@@ -92,7 +92,7 @@ func main() {
 		// These are intended to deliberately clash with the CLIs own top
 		// level arguments.
 		flags.BoolVarP(&debug, "debug", "D", false, "Enable debug")
-		flags.StringVarP(&context, "context", "c", "", "Is it Christmas?")
+		flags.StringVarP(&optContext, "context", "c", "", "Is it Christmas?")
 
 		cmd.AddCommand(goodbye, apiversion, exitStatus2)
 		return cmd
