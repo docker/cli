@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -25,7 +26,9 @@ import (
 )
 
 func main() {
-	dockerCli, err := command.NewDockerCli()
+	ctx := context.Background()
+
+	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
