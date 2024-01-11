@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -14,7 +15,8 @@ import (
 )
 
 func main() {
-	plugin.Run(RootCmd, manager.Metadata{
+	ctx := context.Background()
+	plugin.Run(ctx, RootCmd, manager.Metadata{
 		SchemaVersion: "0.1.0",
 		Vendor:        "Docker Inc.",
 		Version:       "test",

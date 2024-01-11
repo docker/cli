@@ -98,7 +98,8 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 				dockerCli.ConfigFile().Aliases = map[string]string{"builder": "buildx"}
 			}
 
-			tcmd := newDockerCommand(dockerCli)
+			ctx := context.TODO()
+			tcmd := newDockerCommand(ctx, dockerCli)
 			tcmd.SetArgs([]string{"build", "."})
 
 			cmd, args, err := tcmd.HandleGlobalFlags()
@@ -144,7 +145,8 @@ func TestBuildkitDisabled(t *testing.T) {
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
 
-	tcmd := newDockerCommand(dockerCli)
+	ctx := context.TODO()
+	tcmd := newDockerCommand(ctx, dockerCli)
 	tcmd.SetArgs([]string{"build", "."})
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
@@ -179,7 +181,8 @@ func TestBuilderBroken(t *testing.T) {
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
 
-	tcmd := newDockerCommand(dockerCli)
+	ctx := context.TODO()
+	tcmd := newDockerCommand(ctx, dockerCli)
 	tcmd.SetArgs([]string{"build", "."})
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
@@ -216,7 +219,8 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
 
-	tcmd := newDockerCommand(dockerCli)
+	ctx := context.TODO()
+	tcmd := newDockerCommand(ctx, dockerCli)
 	tcmd.SetArgs([]string{"build", "."})
 
 	cmd, args, err := tcmd.HandleGlobalFlags()

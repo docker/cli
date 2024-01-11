@@ -35,7 +35,7 @@ func main() {
 	}
 	logrus.SetOutput(dockerCli.Err())
 
-	if err := runDocker(dockerCli); err != nil {
+	if err := runDocker(ctx, dockerCli); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)
@@ -52,7 +52,7 @@ func main() {
 	}
 }
 
-func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
+func newDockerCommand(ctx context.Context, dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
 		opts    *cliflags.ClientOptions
 		helpCmd *cobra.Command
@@ -85,7 +85,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetOut(dockerCli.Out())
 	cmd.SetErr(dockerCli.Err())
 
-	opts, helpCmd = cli.SetupRootCommand(cmd)
+	opts, helpCmd = cli.SetupRootCommand(ctx, cmd)
 	_ = registerCompletionFuncForGlobalFlags(dockerCli.ContextStore(), cmd)
 	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
 	setFlagErrorFunc(dockerCli, cmd)
@@ -281,8 +281,8 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	return nil
 }
 
-func runDocker(dockerCli *command.DockerCli) error {
-	tcmd := newDockerCommand(dockerCli)
+func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
+	tcmd := newDockerCommand(ctx, dockerCli)
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
 	if err != nil {

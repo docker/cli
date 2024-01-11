@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,7 +23,8 @@ import (
 
 // setupCommonRootCommand contains the setup common to
 // SetupRootCommand and SetupPluginRootCommand.
-func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *cobra.Command) {
+func setupCommonRootCommand(ctx context.Context, rootCmd *cobra.Command) (*cliflags.ClientOptions, *cobra.Command) {
+	rootCmd.SetContext(ctx)
 	opts := cliflags.NewClientOptions()
 	opts.InstallFlags(rootCmd.Flags())
 
@@ -74,14 +76,14 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *c
 
 // SetupRootCommand sets default usage, help, and error handling for the
 // root command.
-func SetupRootCommand(rootCmd *cobra.Command) (opts *cliflags.ClientOptions, helpCmd *cobra.Command) {
+func SetupRootCommand(ctx context.Context, rootCmd *cobra.Command) (opts *cliflags.ClientOptions, helpCmd *cobra.Command) {
 	rootCmd.SetVersionTemplate("Docker version {{.Version}}\n")
-	return setupCommonRootCommand(rootCmd)
+	return setupCommonRootCommand(ctx, rootCmd)
 }
 
 // SetupPluginRootCommand sets default usage, help and error handling for a plugin root command.
-func SetupPluginRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
-	opts, _ := setupCommonRootCommand(rootCmd)
+func SetupPluginRootCommand(ctx context.Context, rootCmd *cobra.Command) (*cliflags.ClientOptions, *pflag.FlagSet) {
+	opts, _ := setupCommonRootCommand(ctx, rootCmd)
 	return opts, rootCmd.Flags()
 }
 

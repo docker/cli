@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"testing"
@@ -18,7 +19,8 @@ func TestClientDebugEnabled(t *testing.T) {
 
 	cli, err := command.NewDockerCli()
 	assert.NilError(t, err)
-	tcmd := newDockerCommand(cli)
+	ctx := context.TODO()
+	tcmd := newDockerCommand(ctx, cli)
 	tcmd.SetFlag("debug", "true")
 	cmd, _, err := tcmd.HandleGlobalFlags()
 	assert.NilError(t, err)
@@ -41,7 +43,8 @@ func runCliCommand(t *testing.T, r io.ReadCloser, w io.Writer, args ...string) e
 	}
 	cli, err := command.NewDockerCli(command.WithInputStream(r), command.WithCombinedStreams(w))
 	assert.NilError(t, err)
-	tcmd := newDockerCommand(cli)
+	ctx := context.TODO()
+	tcmd := newDockerCommand(ctx, cli)
 
 	tcmd.SetArgs(args)
 	cmd, _, err := tcmd.HandleGlobalFlags()

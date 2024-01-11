@@ -27,21 +27,15 @@ import (
 var PersistentPreRunE func(*cobra.Command, []string) error
 
 // RunPlugin executes the specified plugin command
-func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
-	tcmd := newPluginCommand(dockerCli, plugin, meta)
+func RunPlugin(ctx context.Context, dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
+	tcmd := newPluginCommand(ctx, dockerCli, plugin, meta)
 
 	var persistentPreRunOnce sync.Once
 	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
 		var err error
 		persistentPreRunOnce.Do(func() {
-			cmdContext := cmd.Context()
-			// TODO: revisit and make sure this check makes sense
-			// see: https://github.com/docker/cli/pull/4599#discussion_r1422487271
-			if cmdContext == nil {
-				cmdContext = context.TODO()
-			}
-			ctx, cancel := context.WithCancel(cmdContext)
-			cmd.SetContext(ctx)
+			ctx2, cancel := context.WithCancel(cmd.Context())
+			cmd.SetContext(ctx2)
 			// Set up the context to cancel based on signalling via CLI socket.
 			socket.ConnectAndWait(cancel)
 
@@ -65,8 +59,8 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 }
 
 // Run is the top-level entry point to the CLI plugin framework. It should be called from your plugin's `main()` function.
-func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
-	dockerCli, err := command.NewDockerCli()
+func Run(ctx context.Context, makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
+	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -74,7 +68,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 
 	plugin := makeCmd(dockerCli)
 
-	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
+	if err := RunPlugin(ctx, dockerCli, plugin, meta); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)
@@ -123,7 +117,7 @@ func withPluginClientConn(name string) command.CLIOption {
 	})
 }
 
-func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) *cli.TopLevelCommand {
+func newPluginCommand(ctx context.Context, dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) *cli.TopLevelCommand {
 	name := plugin.Name()
 	fullname := manager.NamePrefix + name
 
@@ -144,7 +138,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 			DisableDescriptions: true,
 		},
 	}
-	opts, _ := cli.SetupPluginRootCommand(cmd)
+	opts, _ := cli.SetupPluginRootCommand(ctx, cmd)
 
 	cmd.SetIn(dockerCli.In())
 	cmd.SetOut(dockerCli.Out())
