@@ -59,7 +59,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetErr(dockerCli.Err())
 
 	opts, helpCmd = cli.SetupRootCommand(cmd)
-	registerCompletionFuncForGlobalFlags(dockerCli, cmd)
+	_ = registerCompletionFuncForGlobalFlags(dockerCli.ContextStore(), cmd)
 	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
 	setFlagErrorFunc(dockerCli, cmd)
 
