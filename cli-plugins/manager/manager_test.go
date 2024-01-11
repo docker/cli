@@ -149,7 +149,7 @@ func TestGetPluginDirs(t *testing.T) {
 	expected := append([]string{pluginDir}, defaultSystemPluginDirs...)
 
 	var pluginDirs []string
-	pluginDirs, err = getPluginDirs(cli)
+	pluginDirs, err = getPluginDirs(cli.ConfigFile())
 	assert.Equal(t, strings.Join(expected, ":"), strings.Join(pluginDirs, ":"))
 	assert.NilError(t, err)
 
@@ -160,7 +160,7 @@ func TestGetPluginDirs(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		CLIPluginsExtraDirs: extras,
 	})
-	pluginDirs, err = getPluginDirs(cli)
+	pluginDirs, err = getPluginDirs(cli.ConfigFile())
 	assert.DeepEqual(t, expected, pluginDirs)
 	assert.NilError(t, err)
 }
