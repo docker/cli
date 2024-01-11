@@ -25,6 +25,31 @@ import (
 	"github.com/spf13/pflag"
 )
 
+func main() {
+	dockerCli, err := command.NewDockerCli()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	logrus.SetOutput(dockerCli.Err())
+
+	if err := runDocker(dockerCli); err != nil {
+		if sterr, ok := err.(cli.StatusError); ok {
+			if sterr.Status != "" {
+				fmt.Fprintln(dockerCli.Err(), sterr.Status)
+			}
+			// StatusError should only be used for errors, and all errors should
+			// have a non-zero exit status, so never exit with 0
+			if sterr.StatusCode == 0 {
+				os.Exit(1)
+			}
+			os.Exit(sterr.StatusCode)
+		}
+		fmt.Fprintln(dockerCli.Err(), err)
+		os.Exit(1)
+	}
+}
+
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
 		opts    *cliflags.ClientOptions
@@ -307,31 +332,6 @@ func runDocker(dockerCli *command.DockerCli) error {
 	// which remain.
 	cmd.SetArgs(args)
 	return cmd.Execute()
-}
-
-func main() {
-	dockerCli, err := command.NewDockerCli()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	logrus.SetOutput(dockerCli.Err())
-
-	if err := runDocker(dockerCli); err != nil {
-		if sterr, ok := err.(cli.StatusError); ok {
-			if sterr.Status != "" {
-				fmt.Fprintln(dockerCli.Err(), sterr.Status)
-			}
-			// StatusError should only be used for errors, and all errors should
-			// have a non-zero exit status, so never exit with 0
-			if sterr.StatusCode == 0 {
-				os.Exit(1)
-			}
-			os.Exit(sterr.StatusCode)
-		}
-		fmt.Fprintln(dockerCli.Err(), err)
-		os.Exit(1)
-	}
 }
 
 type versionDetails interface {
