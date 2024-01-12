@@ -165,3 +165,26 @@ target "e2e-gencerts" {
     dockerfile = "./e2e/testdata/Dockerfile.gencerts"
     output = ["./e2e/testdata"]
 }
+
+target "docker-metadata-action" {
+  tags = ["cli-bin:local"]
+}
+
+target "bin-image" {
+  inherits = ["binary", "docker-metadata-action"]
+  output = ["type=docker"]
+}
+
+target "bin-image-cross" {
+  inherits = ["bin-image"]
+  output = ["type=image"]
+  platforms = [
+    "linux/amd64",
+    "linux/arm/v6",
+    "linux/arm/v7",
+    "linux/arm64",
+    "linux/ppc64le",
+    "linux/s390x",
+    "windows/amd64"
+  ]
+}
