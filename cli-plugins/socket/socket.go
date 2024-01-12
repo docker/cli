@@ -16,7 +16,7 @@ const EnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 // SetupConn sets up a Unix socket listener, establishes a goroutine to handle connections
 // and update the conn pointer, and returns the environment variable to pass to the plugin.
 func SetupConn(conn **net.UnixConn) (string, error) {
-	listener, err := listen()
+	listener, err := listen("docker_cli_" + uuid.Generate().String())
 	if err != nil {
 		return "", err
 	}
@@ -24,13 +24,6 @@ func SetupConn(conn **net.UnixConn) (string, error) {
 	accept(listener, conn)
 
 	return EnvKey + "=" + listener.Addr().String(), nil
-}
-
-func listen() (*net.UnixListener, error) {
-	return net.ListenUnix("unix", &net.UnixAddr{
-		Name: "@docker_cli_" + uuid.Generate().String(),
-		Net:  "unix",
-	})
 }
 
 func accept(listener *net.UnixListener, conn **net.UnixConn) {
@@ -41,6 +34,8 @@ func accept(listener *net.UnixListener, conn **net.UnixConn) {
 			// ignore error here, if we failed to accept a connection,
 			// conn is nil and we fallback to previous behavior
 			*conn, _ = listener.AcceptUnix()
+			// perform any platform-specific actions on accept (e.g. unlink non-abstract sockets)
+			onAccept(*conn, listener)
 		}
 	}()
 }
