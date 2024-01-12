@@ -124,4 +124,4 @@ FROM scratch AS plugins
 COPY --from=build-plugins /out .
 
 FROM scratch AS binary
-COPY --from=build /out/docker /docker
+COPY --from=build /out .
