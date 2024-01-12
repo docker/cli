@@ -3,25 +3,18 @@ package plugin
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net"
 	"os"
 	"sync"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
-
-// CLIPluginSocketEnvKey is used to pass the plugin being
-// executed the abstract socket name it should listen on to know
-// when the CLI has exited.
-const CLIPluginSocketEnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 
 // PersistentPreRunE must be called by any plugin command (or
 // subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
@@ -32,38 +25,6 @@ const CLIPluginSocketEnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 // PersistentPreRunE hook and must not be run unless Run has been
 // called.
 var PersistentPreRunE func(*cobra.Command, []string) error
-
-// closeOnCLISocketClose connects to the socket specified
-// by the DOCKER_CLI_PLUGIN_SOCKET env var, if present, and attempts
-// to read from it until it receives an EOF, which signals that
-// the CLI is going to exit and the plugin should also exit.
-func closeOnCLISocketClose(cancel func()) {
-	socketAddr, ok := os.LookupEnv(CLIPluginSocketEnvKey)
-	if !ok {
-		// if a plugin compiled against a more recent version of docker/cli
-		// is executed by an older CLI binary, ignore missing environment
-		// variable and behave as usual
-		return
-	}
-	addr, err := net.ResolveUnixAddr("unix", socketAddr)
-	if err != nil {
-		return
-	}
-	cliCloseConn, err := net.DialUnix("unix", nil, addr)
-	if err != nil {
-		return
-	}
-
-	go func() {
-		b := make([]byte, 1)
-		for {
-			_, err := cliCloseConn.Read(b)
-			if errors.Is(err, io.EOF) {
-				cancel()
-			}
-		}
-	}()
-}
 
 // RunPlugin executes the specified plugin command
 func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
@@ -81,7 +42,8 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 			}
 			ctx, cancel := context.WithCancel(cmdContext)
 			cmd.SetContext(ctx)
-			closeOnCLISocketClose(cancel)
+			// Set up the context to cancel based on signalling via CLI socket.
+			socket.ConnectAndWait(cancel)
 
 			var opts []command.CLIOption
 			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {

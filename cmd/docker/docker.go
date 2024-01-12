@@ -11,13 +11,12 @@ import (
 
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli-plugins/plugin"
+	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
-	"github.com/docker/distribution/uuid"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -216,34 +215,20 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func setupPluginSocket() (*net.UnixListener, error) {
-	return net.ListenUnix("unix", &net.UnixAddr{
-		Name: "@docker_cli_" + uuid.Generate().String(),
-		Net:  "unix",
-	})
-}
-
 func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
 	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
 	if err != nil {
 		return err
 	}
-	plugincmd.Env = append(envs, plugincmd.Env...)
 
+	// Establish the plugin socket, adding it to the environment under a well-known key if successful.
 	var conn *net.UnixConn
-	listener, err := setupPluginSocket()
+	socketenv, err := socket.SetupConn(&conn)
 	if err == nil {
-		defer listener.Close()
-		plugincmd.Env = append(plugincmd.Env, plugin.CLIPluginSocketEnvKey+"="+listener.Addr().String())
-
-		go func() {
-			for {
-				// ignore error here, if we failed to accept a connection,
-				// conn is nil and we fallback to previous behavior
-				conn, _ = listener.AcceptUnix()
-			}
-		}()
+		envs = append(envs, socketenv)
 	}
+
+	plugincmd.Env = append(envs, plugincmd.Env...)
 
 	const exitLimit = 3
 
