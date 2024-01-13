@@ -63,7 +63,7 @@ The `--since` option shows only the service logs generated after
 a given date. You can specify the date as an RFC 3339 date, a UNIX
 timestamp, or a Go duration string (e.g. `1m30s`, `3h`). Besides RFC3339 date
 format you may also use RFC3339Nano, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
