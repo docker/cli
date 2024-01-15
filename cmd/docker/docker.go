@@ -241,6 +241,11 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	go func() {
 		retries := 0
 		for range signals {
+			if dockerCli.Out().IsTerminal() {
+				// running attached to a terminal, so the plugin will already
+				// receive signals due to sharing a pgid with the parent CLI
+				continue
+			}
 			if conn != nil {
 				if err := conn.Close(); err != nil {
 					_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
