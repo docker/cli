@@ -223,9 +223,10 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 
 	// Establish the plugin socket, adding it to the environment under a well-known key if successful.
 	var conn *net.UnixConn
-	socketenv, err := socket.SetupConn(&conn)
+	listener, err := socket.SetupConn(&conn)
 	if err == nil {
-		envs = append(envs, socketenv)
+		envs = append(envs, socket.EnvKey+"="+listener.Addr().String())
+		defer listener.Close()
 	}
 
 	plugincmd.Env = append(envs, plugincmd.Env...)
