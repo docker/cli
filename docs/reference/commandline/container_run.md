@@ -391,7 +391,7 @@ container with the `rw`, `noexec`, `nosuid`, `size=65536k` options.
 $ docker run -d --tmpfs /run:rw,noexec,nosuid,size=65536k my_image
 ```
 
-For more information, see [tmpfs mounts](https://docs.docker.com/storage/tmpfs/#tmpfs-mounts).
+For more information, see [tmpfs mounts](https://docs.docker.com/storage/tmpfs/).
 
 ### <a name="volume"></a> Mount volume (-v)
 
