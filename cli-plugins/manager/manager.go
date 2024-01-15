@@ -233,7 +233,6 @@ func PluginRunCommand(dockerCli command.Cli, name string, rootcmd *cobra.Command
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		configureOSSpecificCommand(cmd)
 
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, ReexecEnvvar+"="+os.Args[0])
