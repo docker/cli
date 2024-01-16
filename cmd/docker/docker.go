@@ -223,9 +223,10 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 
 	// Establish the plugin socket, adding it to the environment under a well-known key if successful.
 	var conn *net.UnixConn
-	socketenv, err := socket.SetupConn(&conn)
+	listener, err := socket.SetupConn(&conn)
 	if err == nil {
-		envs = append(envs, socketenv)
+		envs = append(envs, socket.EnvKey+"="+listener.Addr().String())
+		defer listener.Close()
 	}
 
 	plugincmd.Env = append(envs, plugincmd.Env...)
@@ -240,16 +241,17 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	// we send a SIGKILL to the plugin process and exit
 	go func() {
 		retries := 0
-		for s := range signals {
+		for range signals {
+			if dockerCli.Out().IsTerminal() {
+				// running attached to a terminal, so the plugin will already
+				// receive signals due to sharing a pgid with the parent CLI
+				continue
+			}
 			if conn != nil {
 				if err := conn.Close(); err != nil {
 					_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
 				}
 				conn = nil
-			} else {
-				// When the plugin is communicating via socket with the host CLI, we perform job control via the socket.
-				// However, if the plugin is an old version that is not socket-aware, we need to explicitly forward termination signals.
-				plugincmd.Process.Signal(s)
 			}
 			retries++
 			if retries >= exitLimit {
