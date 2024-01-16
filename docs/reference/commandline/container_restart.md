@@ -1,4 +1,4 @@
-# container restart
+# restart
 
 <!---MARKER_GEN_START-->
 Restart one or more containers
@@ -17,6 +17,8 @@ Restart one or more containers
 
 <!---MARKER_GEN_END-->
 
-## Description
+## Examples
 
-See [docker restart](restart.md) for more information.
+```console
+$ docker restart my_container
+```

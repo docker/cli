@@ -1,4 +1,4 @@
-# container top
+# top
 
 <!---MARKER_GEN_START-->
 Display the running processes of a container
@@ -9,7 +9,3 @@ Display the running processes of a container
 
 
 <!---MARKER_GEN_END-->
-
-## Description
-
-See [docker top](top.md) for more information.

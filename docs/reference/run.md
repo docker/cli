@@ -114,13 +114,13 @@ $ docker attach 0246aa4d1448
 For more information about `docker run` flags related to foreground and
 background modes, see:
 
-- [`docker run --detach`](commandline/run.md#detach): run container in background
-- [`docker run --attach`](commandline/run.md#attach): attach to `stdin`, `stdout`, and `stderr`
-- [`docker run --tty`](commandline/run.md#tty): allocate a pseudo-tty
-- [`docker run --interactive`](commandline/run.md#interactive): keep `stdin` open even if not attached
+- [`docker run --detach`](commandline/container_run.md#detach): run container in background
+- [`docker run --attach`](commandline/container_run.md#attach): attach to `stdin`, `stdout`, and `stderr`
+- [`docker run --tty`](commandline/container_run.md#tty): allocate a pseudo-tty
+- [`docker run --interactive`](commandline/container_run.md#interactive): keep `stdin` open even if not attached
 
 For more information about re-attaching to a background container, see
-[`docker attach`](commandline/attach.md).
+[`docker attach`](commandline/container_attach.md).
 
 ## Container identification
 
@@ -135,7 +135,7 @@ You can identify a container in three ways:
 The UUID identifier is a random ID assigned to the container by the daemon.
 
 The daemon generates a random string name for containers automatically. You can
-also defined a custom name using [the `--name` flag](./commandline/run.md#name).
+also defined a custom name using [the `--name` flag](./commandline/container_run.md#name).
 Defining a `name` can be a handy way to add meaning to a container. If you
 specify a `name`, you can use it when referring to the container in a
 user-defined network. This works for both background and foreground Docker

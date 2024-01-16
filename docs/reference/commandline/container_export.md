@@ -1,4 +1,4 @@
-# container export
+# export
 
 <!---MARKER_GEN_START-->
 Export a container's filesystem as a tar archive
@@ -18,4 +18,22 @@ Export a container's filesystem as a tar archive
 
 ## Description
 
-See [docker export](export.md) for more information.
+The `docker export` command doesn't export the contents of volumes associated
+with the container. If a volume is mounted on top of an existing directory in
+the container, `docker export` exports the contents of the underlying
+directory, not the contents of the volume.
+
+Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes)
+in the user guide for examples on exporting data in a volume.
+
+## Examples
+
+The following commands produce the same result.
+
+```console
+$ docker export red_panda > latest.tar
+```
+
+```console
+$ docker export --output="latest.tar" red_panda
+```
