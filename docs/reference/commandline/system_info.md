@@ -47,17 +47,17 @@ information about the `overlay2` storage driver is shown:
 ```console
 $ docker info
 
-Client: Docker Engine - Community
- Version:    24.0.0
+Client:
+ Version:    25.0.0
  Context:    default
  Debug Mode: false
  Plugins:
   buildx: Docker Buildx (Docker Inc.)
-    Version:  v0.10.4
-    Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+    Version:  v0.12.1
+    Path:     /usr/local/libexec/docker/cli-plugins/docker-buildx
   compose: Docker Compose (Docker Inc.)
-    Version:  v2.17.2
-    Path:     /usr/libexec/docker/cli-plugins/docker-compose
+    Version:  v2.24.1
+    Path:     /usr/local/libexec/docker/cli-plugins/docker-compose
 
 Server:
  Containers: 14
@@ -65,15 +65,11 @@ Server:
   Paused: 1
   Stopped: 10
  Images: 52
- Server Version: 23.0.3
- Storage Driver: overlay2
-  Backing Filesystem: extfs
-  Supports d_type: true
-  Using metacopy: false
-  Native Overlay Diff: true
-  userxattr: false
+ Server Version: 25.0.0
+ Storage Driver: overlayfs
+  driver-type: io.containerd.snapshotter.v1
  Logging Driver: json-file
- Cgroup Driver: systemd
+ Cgroup Driver: cgroupfs
  Cgroup Version: 2
  Plugins:
   Volume: local
@@ -83,33 +79,31 @@ Server:
   /etc/cdi
   /var/run/cdi
  Swarm: inactive
- Runtimes: io.containerd.runc.v2 runc
+ Runtimes: runc io.containerd.runc.v2
  Default Runtime: runc
  Init Binary: docker-init
- containerd version: 2806fc1057397dbaeefbea0e4e17bddfbd388f38
- runc version: v1.1.5-0-gf19387a
+ containerd version: 71909c1814c544ac47ab91d2e8b84718e517bb99
+ runc version: v1.1.11-0-g4bccb38
  init version: de40ad0
  Security Options:
-  apparmor
   seccomp
    Profile: builtin
   cgroupns
- Kernel Version: 5.15.0-25-generic
- Operating System: Ubuntu 22.04 LTS
+ Kernel Version: 6.5.11-linuxkit
+ Operating System: Alpine Linux v3.19
  OSType: linux
- Architecture: x86_64
- CPUs: 1
- Total Memory: 991.7 MiB
- Name: ip-172-30-0-91.ec2.internal
- ID: 4cee4408-10d2-4e17-891c-a41736ac4536
+ Architecture: aarch64
+ CPUs: 10
+ Total Memory: 7.663GiB
+ Name: 4a7ed206a70d
+ ID: c20f7230-59a2-4824-a2f4-fda71c982ee6
  Docker Root Dir: /var/lib/docker
  Debug Mode: false
- Username: gordontheturtle
  Experimental: false
  Insecure Registries:
-  myinsecurehost:5000
   127.0.0.0/8
  Live Restore Enabled: false
+ Product License: Community Engine
 ```
 
 ### <a name="format"></a> Format the output (--format)
