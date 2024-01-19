@@ -321,7 +321,7 @@ $ docker build -t vieux/apache:2.0 .
 This examples builds in the same way as the previous example, but it then tags the resulting
 image. The repository name will be `vieux/apache` and the tag `2.0`.
 
-[Read more about valid tags](tag.md).
+[Read more about valid tags](image_tag.md).
 
 You can apply multiple tags to an image. For example, you can apply the `latest`
 tag to a newly built image and add another tag that references a specific

@@ -29,66 +29,65 @@ The base command for the Docker CLI.
 
 ### Subcommands
 
-| Name                          | Description                                                                   |
-|:------------------------------|:------------------------------------------------------------------------------|
-| [`attach`](attach.md)         | Attach local standard input, output, and error streams to a running container |
-| [`build`](build.md)           | Build an image from a Dockerfile                                              |
-| [`builder`](builder.md)       | Manage builds                                                                 |
-| [`checkpoint`](checkpoint.md) | Manage checkpoints                                                            |
-| [`commit`](commit.md)         | Create a new image from a container's changes                                 |
-| [`config`](config.md)         | Manage Swarm configs                                                          |
-| [`container`](container.md)   | Manage containers                                                             |
-| [`context`](context.md)       | Manage contexts                                                               |
-| [`cp`](cp.md)                 | Copy files/folders between a container and the local filesystem               |
-| [`create`](create.md)         | Create a new container                                                        |
-| [`diff`](diff.md)             | Inspect changes to files or directories on a container's filesystem           |
-| [`events`](events.md)         | Get real time events from the server                                          |
-| [`exec`](exec.md)             | Execute a command in a running container                                      |
-| [`export`](export.md)         | Export a container's filesystem as a tar archive                              |
-| [`history`](history.md)       | Show the history of an image                                                  |
-| [`image`](image.md)           | Manage images                                                                 |
-| [`images`](images.md)         | List images                                                                   |
-| [`import`](import.md)         | Import the contents from a tarball to create a filesystem image               |
-| [`info`](info.md)             | Display system-wide information                                               |
-| [`inspect`](inspect.md)       | Return low-level information on Docker objects                                |
-| [`kill`](kill.md)             | Kill one or more running containers                                           |
-| [`load`](load.md)             | Load an image from a tar archive or STDIN                                     |
-| [`login`](login.md)           | Log in to a registry                                                          |
-| [`logout`](logout.md)         | Log out from a registry                                                       |
-| [`logs`](logs.md)             | Fetch the logs of a container                                                 |
-| [`manifest`](manifest.md)     | Manage Docker image manifests and manifest lists                              |
-| [`network`](network.md)       | Manage networks                                                               |
-| [`node`](node.md)             | Manage Swarm nodes                                                            |
-| [`pause`](pause.md)           | Pause all processes within one or more containers                             |
-| [`plugin`](plugin.md)         | Manage plugins                                                                |
-| [`port`](port.md)             | List port mappings or a specific mapping for the container                    |
-| [`ps`](ps.md)                 | List containers                                                               |
-| [`pull`](pull.md)             | Download an image from a registry                                             |
-| [`push`](push.md)             | Upload an image to a registry                                                 |
-| [`rename`](rename.md)         | Rename a container                                                            |
-| [`restart`](restart.md)       | Restart one or more containers                                                |
-| [`rm`](rm.md)                 | Remove one or more containers                                                 |
-| [`rmi`](rmi.md)               | Remove one or more images                                                     |
-| [`run`](run.md)               | Create and run a new container from an image                                  |
-| [`save`](save.md)             | Save one or more images to a tar archive (streamed to STDOUT by default)      |
-| [`search`](search.md)         | Search Docker Hub for images                                                  |
-| [`secret`](secret.md)         | Manage Swarm secrets                                                          |
-| [`service`](service.md)       | Manage Swarm services                                                         |
-| [`stack`](stack.md)           | Manage Swarm stacks                                                           |
-| [`start`](start.md)           | Start one or more stopped containers                                          |
-| [`stats`](stats.md)           | Display a live stream of container(s) resource usage statistics               |
-| [`stop`](stop.md)             | Stop one or more running containers                                           |
-| [`swarm`](swarm.md)           | Manage Swarm                                                                  |
-| [`system`](system.md)         | Manage Docker                                                                 |
-| [`tag`](tag.md)               | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                         |
-| [`top`](top.md)               | Display the running processes of a container                                  |
-| [`trust`](trust.md)           | Manage trust on Docker images                                                 |
-| [`unpause`](unpause.md)       | Unpause all processes within one or more containers                           |
-| [`update`](update.md)         | Update configuration of one or more containers                                |
-| [`version`](version.md)       | Show the Docker version information                                           |
-| [`volume`](volume.md)         | Manage volumes                                                                |
-| [`wait`](wait.md)             | Block until one or more containers stop, then print their exit codes          |
-
+| Name                              | Description                                                                   |
+| :-------------------------------- | :---------------------------------------------------------------------------- |
+| [`attach`](container_attach.md)   | Attach local standard input, output, and error streams to a running container |
+| [`build`](image_build.md)         | Build an image from a Dockerfile                                              |
+| [`builder`](builder.md)           | Manage builds                                                                 |
+| [`checkpoint`](checkpoint.md)     | Manage checkpoints                                                            |
+| [`commit`](container_commit.md)   | Create a new image from a container's changes                                 |
+| [`config`](config.md)             | Manage Swarm configs                                                          |
+| [`container`](container.md)       | Manage containers                                                             |
+| [`context`](context.md)           | Manage contexts                                                               |
+| [`cp`](container_cp.md)           | Copy files/folders between a container and the local filesystem               |
+| [`create`](container_create.md)   | Create a new container                                                        |
+| [`diff`](container_diff.md)       | Inspect changes to files or directories on a container's filesystem           |
+| [`events`](system_events.md)      | Get real time events from the server                                          |
+| [`exec`](container_exec.md)       | Execute a command in a running container                                      |
+| [`export`](container_export.md)   | Export a container's filesystem as a tar archive                              |
+| [`history`](image_history.md)     | Show the history of an image                                                  |
+| [`image`](image.md)               | Manage images                                                                 |
+| [`images`](image_ls.md)           | List images                                                                   |
+| [`import`](image_import.md)       | Import the contents from a tarball to create a filesystem image               |
+| [`info`](system_info.md)          | Display system-wide information                                               |
+| [`inspect`](inspect.md)           | Return low-level information on Docker objects                                |
+| [`kill`](container_kill.md)       | Kill one or more running containers                                           |
+| [`load`](image_load.md)           | Load an image from a tar archive or STDIN                                     |
+| [`login`](login.md)               | Log in to a registry                                                          |
+| [`logout`](logout.md)             | Log out from a registry                                                       |
+| [`logs`](container_logs.md)       | Fetch the logs of a container                                                 |
+| [`manifest`](manifest.md)         | Manage Docker image manifests and manifest lists                              |
+| [`network`](network.md)           | Manage networks                                                               |
+| [`node`](node.md)                 | Manage Swarm nodes                                                            |
+| [`pause`](container_pause.md)     | Pause all processes within one or more containers                             |
+| [`plugin`](plugin.md)             | Manage plugins                                                                |
+| [`port`](container_port.md)       | List port mappings or a specific mapping for the container                    |
+| [`ps`](container_ls.md)           | List containers                                                               |
+| [`pull`](image_pull.md)           | Download an image from a registry                                             |
+| [`push`](image_push.md)           | Upload an image to a registry                                                 |
+| [`rename`](container_rename.md)   | Rename a container                                                            |
+| [`restart`](container_restart.md) | Restart one or more containers                                                |
+| [`rm`](container_rm.md)           | Remove one or more containers                                                 |
+| [`rmi`](image_rm.md)              | Remove one or more images                                                     |
+| [`run`](container_run.md)         | Create and run a new container from an image                                  |
+| [`save`](image_save.md)           | Save one or more images to a tar archive (streamed to STDOUT by default)      |
+| [`search`](search.md)             | Search Docker Hub for images                                                  |
+| [`secret`](secret.md)             | Manage Swarm secrets                                                          |
+| [`service`](service.md)           | Manage Swarm services                                                         |
+| [`stack`](stack.md)               | Manage Swarm stacks                                                           |
+| [`start`](container_start.md)     | Start one or more stopped containers                                          |
+| [`stats`](container_stats.md)     | Display a live stream of container(s) resource usage statistics               |
+| [`stop`](container_stop.md)       | Stop one or more running containers                                           |
+| [`swarm`](swarm.md)               | Manage Swarm                                                                  |
+| [`system`](system.md)             | Manage Docker                                                                 |
+| [`tag`](image_tag.md)             | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                         |
+| [`top`](container_top.md)         | Display the running processes of a container                                  |
+| [`trust`](trust.md)               | Manage trust on Docker images                                                 |
+| [`unpause`](container_unpause.md) | Unpause all processes within one or more containers                           |
+| [`update`](container_update.md)   | Update configuration of one or more containers                                |
+| [`version`](version.md)           | Show the Docker version information                                           |
+| [`volume`](volume.md)             | Manage volumes                                                                |
+| [`wait`](container_wait.md)       | Block until one or more containers stop, then print their exit codes          |
 
 ### Options
 
@@ -124,7 +123,7 @@ The following list of environment variables are supported by the `docker` comman
 line:
 
 | Variable                      | Description                                                                                                                                                                                                                                                  |
-|:------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DOCKER_API_VERSION`          | Override the negotiated API version to use for debugging (e.g. `1.19`)                                                                                                                                                                                       |
 | `DOCKER_CERT_PATH`            | Location of your authentication keys. This variable is used both by the `docker` CLI and the [`dockerd` daemon](dockerd.md)                                                                                                                                  |
 | `DOCKER_CONFIG`               | The location of your client configuration files.                                                                                                                                                                                                             |
@@ -136,7 +135,7 @@ line:
 | `DOCKER_HOST`                 | Daemon socket to connect to.                                                                                                                                                                                                                                 |
 | `DOCKER_TLS`                  | Enable TLS for connections made by the `docker` CLI (equivalent of the `--tls` command-line option). Set to a non-empty value to enable TLS. Note that TLS is enabled automatically if any of the other TLS options are set.                                 |
 | `DOCKER_TLS_VERIFY`           | When set Docker uses TLS and verifies the remote. This variable is used both by the `docker` CLI and the [`dockerd` daemon](dockerd.md)                                                                                                                      |
-| `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`) when [building](build.md) with [BuildKit backend](https://docs.docker.com/build/buildkit/). Use plain to show container output (default `auto`).                                                        |
+| `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`) when [building](image_build.md) with [BuildKit backend](https://docs.docker.com/build/buildkit/). Use plain to show container output (default `auto`).                                                  |
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
@@ -215,15 +214,15 @@ if no `--format` flag is provided.
 | Property               | Description                                                                                                                                                         |
 | :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `configFormat`         | Custom default format for `docker config ls` output. See [`docker config ls`](config_ls.md#format) for a list of supported formatting directives.                   |
-| `imagesFormat`         | Custom default format for `docker images` / `docker image ls` output. See [`docker images`](images.md#format) for a list of supported formatting directives.        |
+| `imagesFormat`         | Custom default format for `docker images` / `docker image ls` output. See [`docker images`](image_ls.md#format) for a list of supported formatting directives.      |
 | `networksFormat`       | Custom default format for `docker network ls` output. See [`docker network ls`](network_ls.md#format) for a list of supported formatting directives.                |
 | `nodesFormat`          | Custom default format for `docker node ls` output. See [`docker node ls`](node_ls.md#format) for a list of supported formatting directives.                         |
 | `pluginsFormat`        | Custom default format for `docker plugin ls` output. See [`docker plugin ls`](plugin_ls.md#format) for a list of supported formatting directives.                   |
-| `psFormat`             | Custom default format for `docker ps` / `docker container ps` output. See [`docker ps`](ps.md#format) for a list of supported formatting directives.                |
+| `psFormat`             | Custom default format for `docker ps` / `docker container ps` output. See [`docker ps`](container_ls.md#format) for a list of supported formatting directives.      |
 | `secretFormat`         | Custom default format for `docker secret ls` output. See [`docker secret ls`](secret_ls.md#format) for a list of supported formatting directives.                   |
 | `serviceInspectFormat` | Custom default format for `docker service inspect` output. See [`docker service inspect`](service_inspect.md#format) for a list of supported formatting directives. |
 | `servicesFormat`       | Custom default format for `docker service ls` output. See [`docker service ls`](service_ls.md#format) for a list of supported formatting directives.                |
-| `statsFormat`          | Custom default format for `docker stats` output. See [`docker stats`](stats.md#format) for a list of supported formatting directives.                               |
+| `statsFormat`          | Custom default format for `docker stats` output. See [`docker stats`](container_stats.md#format) for a list of supported formatting directives.                     |
 | `tasksFormat`          | Custom default format for `docker stack ps` output. See [`docker stack ps`](stack_ps.md#format) for a list of supported formatting directives.                      |
 | `volumesFormat`        | Custom default format for `docker volume ls` output. See [`docker volume ls`](volume_ls.md#format) for a list of supported formatting directives.                   |
 

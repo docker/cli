@@ -900,7 +900,7 @@ $ cat somefile | docker run -i -a stdin mybuilder dobuild
 > Linux: it ignores any signal with the default action. So, the process
 > doesn't terminate on `SIGINT` or `SIGTERM` unless it's coded to do so.
 
-See also [the `docker cp` command](cp.md).
+See also [the `docker cp` command](container_cp.md).
 
 ### <a name="interactive"></a> Keep STDIN open (-i, --interactive)
 
@@ -1060,8 +1060,8 @@ This runs the `redis` container with a restart policy of **always**.
 If the container exits, Docker restarts it.
 
 When a restart policy is active on a container, it shows as either `Up` or
-`Restarting` in [`docker ps`](ps.md). It can also be useful to use [`docker
-events`](events.md) to see the restart policy in effect.
+`Restarting` in [`docker ps`](container_ls.md). It can also be useful to use
+[`docker events`](system_events.md) to see the restart policy in effect.
 
 An increasing delay (double the previous delay, starting at 100 milliseconds)
 is added before each restart to prevent flooding the server. This means the
@@ -1092,8 +1092,8 @@ restart limit is only valid for the **on-failure** policy.
 #### Inspect container restarts
 
 The number of (attempted) restarts for a container can be obtained using the
-[`docker inspect`](commandline/inspect.md) command. For example, to get the
-number of restarts for container "my-container";
+[`docker inspect`](inspect.md) command. For example, to get the number of
+restarts for container "my-container";
 
 ```console
 $ docker inspect -f "{{ .RestartCount }}" my-container
