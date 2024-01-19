@@ -23,8 +23,8 @@ Upload an image to a registry
 Use `docker image push` to share your images to the [Docker Hub](https://hub.docker.com)
 registry or to a self-hosted one.
 
-Refer to the [`docker image tag`](tag.md) reference for more information about valid
-image and tag names.
+Refer to the [`docker image tag`](image_tag.md) reference for more information
+about valid image and tag names.
 
 Killing the `docker image push` process, for example by pressing `CTRL-c` while it is
 running in a terminal, terminates the push operation.
@@ -46,9 +46,9 @@ this via the `--max-concurrent-uploads` daemon option. See the
 
 ### Push a new image to a registry
 
-First save the new image by finding the container ID (using [`docker container ls`](ps.md))
-and then committing it to a new image name.  Note that only `a-z0-9-_.` are
-allowed when naming images:
+First save the new image by finding the container ID (using [`docker container
+ls`](container_ls.md)) and then committing it to a new image name. Note that
+only `a-z0-9-_.` are allowed when naming images:
 
 ```console
 $ docker container commit c16378f943fe rhel-httpd:latest

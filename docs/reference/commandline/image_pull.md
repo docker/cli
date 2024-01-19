@@ -81,7 +81,7 @@ Status: Downloaded newer image for debian:bookworm
 docker.io/library/debian:bookworm
 ```
 
-To see which images are present locally, use the [`docker images`](images.md)
+To see which images are present locally, use the [`docker images`](image_ls.md)
 command:
 
 ```console
