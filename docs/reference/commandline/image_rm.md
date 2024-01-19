@@ -26,7 +26,7 @@ removed.
 
 This does not remove images from a registry. You cannot remove an image of a
 running container unless you use the `-f` option. To see all images on a host
-use the [`docker image ls`](images.md) command.
+use the [`docker image ls`](image_ls.md) command.
 
 ## Examples
 
