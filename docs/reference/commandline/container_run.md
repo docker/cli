@@ -858,6 +858,38 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 > The `--device` option is only supported on process-isolated Windows containers,
 > and produces an error if the container isolation is `hyperv`.
 
+#### CDI devices
+
+> **Note**
+>
+> This is experimental feature and as such doesn't represent a stable API.
+
+Container Device Interface (CDI) is a
+[standardized](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
+mechanism for container runtimes to create containers which are able to
+interact with third party devices.
+
+With CDI, device configurations are defined using a JSON file. In addition to
+enabling the container to interact with the device node, it also lets you
+specify additional configuration for the device, such as kernel modules, host
+libraries, and environment variables.
+
+You can reference a CDI device with the `--device` flag using the
+fully-qualified name of the device, as shown in the following example:
+
+```console
+$ docker run --device=vendor.com/class=device-name --rm -it ubuntu
+```
+
+This starts an `ubuntu` container with access to the specified CDI device,
+`vendor.com/class=device-name`, assuming that:
+
+- A valid CDI specification (JSON file) for the requested device is available
+  on the system running the daemon, in one of the configured CDI specification
+  directories.
+- The CDI feature has been enabled on the daemon side, see [Enable CDI
+  devices](dockerd.md#enable-cdi-devices).
+
 ### <a name="attach"></a> Attach to STDIN/STDOUT/STDERR (-a, --attach)
 
 The `--attach` (or `-a`) flag tells `docker run` to bind to the container's
@@ -1015,6 +1047,11 @@ the required device when it is added.
 
 The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install the [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
+
+> **Note**
+>
+> You can also specify a GPU as a CDI device with the `--device` flag, see
+> [CDI devices](#cdi-devices).
 
 Read [Specify a container's resources](https://docs.docker.com/config/containers/resource_constraints/)
 for more information.
