@@ -334,23 +334,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 			jsonGolden:   "docker-info-with-swarm",
 		},
 		{
-			doc: "info with legacy warnings",
-			dockerInfo: dockerInfo{
-				Info: &infoWithWarningsLinux,
-				ClientInfo: &clientInfo{
-					clientVersion: clientVersion{
-						Platform: &platformInfo{Name: "Docker Engine - Community"},
-						Version:  "24.0.0",
-						Context:  "default",
-					},
-					Debug: true,
-				},
-			},
-			prettyGolden:   "docker-info-no-swarm",
-			warningsGolden: "docker-info-warnings",
-			jsonGolden:     "docker-info-legacy-warnings",
-		},
-		{
 			doc: "info with daemon warnings",
 			dockerInfo: dockerInfo{
 				Info: &sampleInfoDaemonWarnings,
