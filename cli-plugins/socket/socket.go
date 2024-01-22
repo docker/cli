@@ -65,6 +65,7 @@ func ConnectAndWait(cb func()) {
 			_, err := conn.Read(b)
 			if errors.Is(err, io.EOF) {
 				cb()
+				return
 			}
 		}
 	}()
