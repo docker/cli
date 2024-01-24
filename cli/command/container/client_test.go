@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
@@ -23,7 +24,7 @@ type fakeClient struct {
 		platform *specs.Platform,
 		containerName string) (container.CreateResponse, error)
 	containerStartFunc      func(containerID string, options container.StartOptions) error
-	imageCreateFunc         func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
+	imageCreateFunc         func(parentReference string, options image.CreateOptions) (io.ReadCloser, error)
 	infoFunc                func() (system.Info, error)
 	containerStatPathFunc   func(containerID, path string) (types.ContainerPathStat, error)
 	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
@@ -90,7 +91,7 @@ func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, op
 	return nil
 }
 
-func (f *fakeClient) ImageCreate(_ context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ImageCreate(_ context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 	if f.imageCreateFunc != nil {
 		return f.imageCreateFunc(parentReference, options)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	dockeropts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/spf13/cobra"
 )
@@ -78,7 +79,7 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 		}
 	}
 
-	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, types.ImageImportOptions{
+	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, image.ImportOptions{
 		Message:  options.message,
 		Changes:  options.changes.GetAll(),
 		Platform: options.platform,

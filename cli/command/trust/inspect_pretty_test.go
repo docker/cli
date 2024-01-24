@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/system"
 	apiclient "github.com/docker/docker/client"
 	"github.com/theupdateframework/notary"
@@ -36,7 +37,7 @@ func (c *fakeClient) ImageInspectWithRaw(context.Context, string) (types.ImageIn
 	return types.ImageInspect{}, []byte{}, nil
 }
 
-func (c *fakeClient) ImagePush(context.Context, string, types.ImagePushOptions) (io.ReadCloser, error) {
+func (c *fakeClient) ImagePush(context.Context, string, image.PushOptions) (io.ReadCloser, error) {
 	return &utils.NoopCloser{Reader: bytes.NewBuffer([]byte{})}, nil
 }
 

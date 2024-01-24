@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -17,7 +18,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 		name            string
 		args            []string
 		expectedError   string
-		imageImportFunc func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error)
+		imageImportFunc func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -28,7 +29,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 			name:          "import-failed",
 			args:          []string{"testdata/import-command-success.input.txt"},
 			expectedError: "something went wrong",
-			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
+			imageImportFunc: func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error) {
 				return nil, errors.Errorf("something went wrong")
 			},
 		},
@@ -52,7 +53,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name            string
 		args            []string
-		imageImportFunc func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error)
+		imageImportFunc func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
 	}{
 		{
 			name: "simple",
@@ -65,7 +66,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 		{
 			name: "double",
 			args: []string{"-", "image:local"},
-			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
+			imageImportFunc: func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error) {
 				assert.Check(t, is.Equal("image:local", ref))
 				return io.NopCloser(strings.NewReader("")), nil
 			},
@@ -73,7 +74,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 		{
 			name: "message",
 			args: []string{"--message", "test message", "-"},
-			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
+			imageImportFunc: func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error) {
 				assert.Check(t, is.Equal("test message", options.Message))
 				return io.NopCloser(strings.NewReader("")), nil
 			},
@@ -81,7 +82,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 		{
 			name: "change",
 			args: []string{"--change", "ENV DEBUG=true", "-"},
-			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
+			imageImportFunc: func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error) {
 				assert.Check(t, is.Equal("ENV DEBUG=true", options.Changes[0]))
 				return io.NopCloser(strings.NewReader("")), nil
 			},
@@ -89,7 +90,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 		{
 			name: "change legacy syntax",
 			args: []string{"--change", "ENV DEBUG true", "-"},
-			imageImportFunc: func(source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error) {
+			imageImportFunc: func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error) {
 				assert.Check(t, is.Equal("ENV DEBUG true", options.Changes[0]))
 				return io.NopCloser(strings.NewReader("")), nil
 			},
