@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
@@ -16,7 +16,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 		name          string
 		args          []string
 		expectedError string
-		imagePushFunc func(ref string, options types.ImagePushOptions) (io.ReadCloser, error)
+		imagePushFunc func(ref string, options image.PushOptions) (io.ReadCloser, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -32,7 +32,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 			name:          "push-failed",
 			args:          []string{"image:repo"},
 			expectedError: "Failed to push",
-			imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
+			imagePushFunc: func(ref string, options image.PushOptions) (io.ReadCloser, error) {
 				return io.NopCloser(strings.NewReader("")), errors.Errorf("Failed to push")
 			},
 		},
@@ -67,7 +67,7 @@ func TestNewPushCommandSuccess(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				imagePushFunc: func(ref string, options types.ImagePushOptions) (io.ReadCloser, error) {
+				imagePushFunc: func(ref string, options image.PushOptions) (io.ReadCloser, error) {
 					return io.NopCloser(strings.NewReader("")), nil
 				},
 			})

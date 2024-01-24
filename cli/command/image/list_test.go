@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -20,7 +19,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		name          string
 		args          []string
 		expectedError string
-		imageListFunc func(options types.ImageListOptions) ([]image.Summary, error)
+		imageListFunc func(options image.ListOptions) ([]image.Summary, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -30,7 +29,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		{
 			name:          "failed-list",
 			expectedError: "something went wrong",
-			imageListFunc: func(options types.ImageListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
 				return []image.Summary{}, errors.Errorf("something went wrong")
 			},
 		},
@@ -48,7 +47,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		name          string
 		args          []string
 		imageFormat   string
-		imageListFunc func(options types.ImageListOptions) ([]image.Summary, error)
+		imageListFunc func(options image.ListOptions) ([]image.Summary, error)
 	}{
 		{
 			name: "simple",
@@ -65,7 +64,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		{
 			name: "match-name",
 			args: []string{"image"},
-			imageListFunc: func(options types.ImageListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
 				assert.Check(t, is.Equal("image", options.Filters.Get("reference")[0]))
 				return []image.Summary{}, nil
 			},
@@ -73,7 +72,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		{
 			name: "filters",
 			args: []string{"--filter", "name=value"},
-			imageListFunc: func(options types.ImageListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
 				assert.Check(t, is.Equal("value", options.Filters.Get("name")[0]))
 				return []image.Summary{}, nil
 			},

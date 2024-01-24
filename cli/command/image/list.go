@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/spf13/cobra"
 )
 
@@ -68,7 +68,7 @@ func runImages(ctx context.Context, dockerCli command.Cli, options imagesOptions
 		filters.Add("reference", options.matchName)
 	}
 
-	listOptions := types.ImageListOptions{
+	listOptions := image.ListOptions{
 		All:     options.all,
 		Filters: filters,
 	}

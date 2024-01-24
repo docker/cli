@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,7 @@ type ValidArgsFn func(cmd *cobra.Command, args []string, toComplete string) ([]s
 // ImageNames offers completion for images present within the local store
 func ImageNames(dockerCli command.Cli) ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCli.Client().ImageList(cmd.Context(), types.ImageListOptions{})
+		list, err := dockerCli.Client().ImageList(cmd.Context(), image.ListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

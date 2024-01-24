@@ -15,8 +15,8 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/system"
 	"github.com/google/go-cmp/cmp"
@@ -134,7 +134,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 						return container.CreateResponse{ID: containerID}, nil
 					}
 				},
-				imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+				imageCreateFunc: func(parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 					defer func() { pullCounter++ }()
 					return io.NopCloser(strings.NewReader("")), nil
 				},

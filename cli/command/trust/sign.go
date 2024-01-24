@@ -12,7 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/docker/api/types"
+	imagetypes "github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	apiclient "github.com/docker/docker/client"
 	"github.com/pkg/errors"
@@ -98,7 +98,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			if err != nil {
 				return err
 			}
-			options := types.ImagePushOptions{
+			options := imagetypes.PushOptions{
 				RegistryAuth:  encodedAuth,
 				PrivilegeFunc: requestPrivilege,
 			}

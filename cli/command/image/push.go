@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
@@ -80,7 +80,7 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		return err
 	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
-	options := types.ImagePushOptions{
+	options := image.PushOptions{
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,

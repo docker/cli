@@ -15,8 +15,8 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -119,7 +119,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().ImageCreate(ctx, img, types.ImageCreateOptions{
+	responseBody, err := dockerCli.Client().ImageCreate(ctx, img, imagetypes.CreateOptions{
 		RegistryAuth: encodedAuth,
 		Platform:     options.platform,
 	})
