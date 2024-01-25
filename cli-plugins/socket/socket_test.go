@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -49,17 +50,17 @@ func TestSetupConn(t *testing.T) {
 		listener, err := SetupConn(&conn)
 		assert.NilError(t, err)
 		assert.Check(t, listener != nil, "returned nil listener but no error")
-		checkDirClean(t)
+		checkDirNoPluginSocket(t)
 
 		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
 		assert.NilError(t, err, "failed to resolve listener address")
 		_, err = net.DialUnix("unix", nil, addr)
 		assert.NilError(t, err, "failed to dial returned listener")
-		checkDirClean(t)
+		checkDirNoPluginSocket(t)
 	})
 }
 
-func checkDirClean(t *testing.T) {
+func checkDirNoPluginSocket(t *testing.T) {
 	t.Helper()
 
 	files, err := os.ReadDir(".")
@@ -68,7 +69,8 @@ func checkDirClean(t *testing.T) {
 	for _, f := range files {
 		info, err := f.Info()
 		assert.NilError(t, err, "failed to check file info")
-		if info.Mode().Type() == fs.ModeSocket {
+		// check for a socket with `docker_cli_` in the name (from `SetupConn()`)
+		if strings.Contains(f.Name(), "docker_cli_") && info.Mode().Type() == fs.ModeSocket {
 			t.Fatal("found socket in a local directory")
 		}
 	}
@@ -96,6 +98,8 @@ func TestConnectAndWait(t *testing.T) {
 		}
 	})
 
+	// TODO: this test cannot be executed with `t.Parallel()`, due to
+	// relying on goroutine numbers to ensure correct behaviour
 	t.Run("connect goroutine exits after EOF", func(t *testing.T) {
 		var conn *net.UnixConn
 		listener, err := SetupConn(&conn)
