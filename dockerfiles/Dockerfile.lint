@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.20.12
-ARG ALPINE_VERSION=3.17
+ARG GO_VERSION=1.20.13
+ARG ALPINE_VERSION=3.18
 ARG GOLANGCI_LINT_VERSION=v1.52.2
 
 FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
@@ -11,7 +11,7 @@ ENV GO111MODULE=off
 ENV CGO_ENABLED=0
 ENV GOGC=75
 WORKDIR /go/src/github.com/docker/cli
-COPY --from=golangci-lint /usr/bin/golangci-lint /usr/bin/golangci-lint
+COPY --link --from=golangci-lint /usr/bin/golangci-lint /usr/bin/golangci-lint
 RUN --mount=type=bind,target=. \
     --mount=type=cache,target=/root/.cache \
         golangci-lint run

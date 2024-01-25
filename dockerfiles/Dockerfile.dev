@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.20.12
-ARG ALPINE_VERSION=3.17
+ARG GO_VERSION=1.20.13
+ARG ALPINE_VERSION=3.18
 
 ARG BUILDX_VERSION=0.11.2
 FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
@@ -48,11 +48,11 @@ CMD bash
 ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENV PATH=$PATH:/go/src/github.com/docker/cli/build
 
-COPY --from=buildx          /buildx /usr/libexec/docker/cli-plugins/docker-buildx
-COPY --from=gofumpt         /go/bin/* /go/bin/
-COPY --from=gotestsum       /go/bin/* /go/bin/
-COPY --from=goversioninfo   /go/bin/* /go/bin/
+COPY --link --from=buildx          /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link --from=gofumpt         /go/bin/* /go/bin/
+COPY --link --from=gotestsum       /go/bin/* /go/bin/
+COPY --link --from=goversioninfo   /go/bin/* /go/bin/
 
 WORKDIR /go/src/github.com/docker/cli
 ENV GO111MODULE=auto
-COPY . .
+COPY --link . .

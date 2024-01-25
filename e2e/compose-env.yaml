@@ -1,5 +1,3 @@
-version: '2.1'
-
 services:
   registry:
     image: 'registry:2'
@@ -25,4 +23,3 @@ services:
       ports:
         - 4444:4443
       command: ['notary-server', '-config=/fixtures/notary-config.json']
-
