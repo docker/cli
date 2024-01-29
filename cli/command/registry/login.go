@@ -55,7 +55,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
 	flags.StringVarP(&opts.password, "password", "p", "", "Password")
-	flags.BoolVarP(&opts.passwordStdin, "password-stdin", "", false, "Take the password from stdin")
+	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
 }

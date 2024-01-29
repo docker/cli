@@ -38,7 +38,7 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&listOpts.Quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVarP(&listOpts.Format, "format", "", "", flagsHelper.FormatHelp)
+	flags.StringVar(&listOpts.Format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&listOpts.Filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd

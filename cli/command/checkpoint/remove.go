@@ -27,7 +27,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.checkpointDir, "checkpoint-dir", "", "", "Use a custom checkpoint storage directory")
+	flags.StringVar(&opts.checkpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
 
 	return cmd
 }
