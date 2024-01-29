@@ -35,7 +35,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.leaveRunning, "leave-running", false, "Leave the container running after checkpoint")
-	flags.StringVarP(&opts.checkpointDir, "checkpoint-dir", "", "", "Use a custom checkpoint storage directory")
+	flags.StringVar(&opts.checkpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
 
 	return cmd
 }

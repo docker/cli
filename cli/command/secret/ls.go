@@ -38,7 +38,7 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVarP(&options.format, "format", "", "", flagsHelper.FormatHelp)
+	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
