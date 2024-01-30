@@ -5,8 +5,11 @@ import (
 	"context"
 	"net"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/connhelper/commandconn"
 	"github.com/docker/cli/cli/connhelper/ssh"
 	"github.com/pkg/errors"
@@ -52,6 +55,7 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 					args = append(args, "--host", "unix://"+sp.Path)
 				}
 				sshFlags = addSSHTimeout(sshFlags)
+				sshFlags = addMultiplexingArgs(sshFlags)
 				args = append(args, "system", "dial-stdio")
 				return commandconn.New(ctx, "ssh", append(sshFlags, sp.Args(args...)...)...)
 			},
@@ -71,6 +75,22 @@ func GetCommandConnectionHelper(cmd string, flags ...string) (*ConnectionHelper,
 		},
 		Host: "http://docker.example.com",
 	}, nil
+}
+
+func addMultiplexingArgs(sshFlags []string) []string {
+	if v := os.Getenv("DOCKER_SSH_NO_MUX"); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil && b {
+			return nil
+		}
+	}
+	if err := os.MkdirAll(config.Dir(), 0o700); err != nil {
+		return nil
+	}
+	sshFlags = append(sshFlags, "-o", "ControlMaster=auto", "-o", "ControlPath="+config.Dir()+"/%r@%h:%p")
+	if v := os.Getenv("DOCKER_SSH_MUX_PERSIST"); v != "" {
+		sshFlags = append(sshFlags, "-o", "ControlPersist="+v)
+	}
+	return sshFlags
 }
 
 func addSSHTimeout(sshFlags []string) []string {
