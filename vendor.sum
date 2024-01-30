@@ -166,8 +166,8 @@ github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyua
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/moby/patternmatcher v0.6.0 h1:GmP9lR19aU5GqSSFko+5pRqHi+Ohk1O69aFiKkVGiPk=
 github.com/moby/patternmatcher v0.6.0/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
-github.com/moby/swarmkit/v2 v2.0.0-20230911190601-f082dd7a0cee h1:T7Mz81wbNduphN0195OfYadKSs/uQKr4zrKtsCSfQTc=
-github.com/moby/swarmkit/v2 v2.0.0-20230911190601-f082dd7a0cee/go.mod h1:z90qBxgz/fNu4YjmMHi0hyPDKDitpOWzOJnvv9+KB2U=
+github.com/moby/swarmkit/v2 v2.0.0-20240125134710-dcda100a8261 h1:mjLf2jYrqtIS4LvLzg0gNyJR4rMXS4X5Bg1A4hOhVMs=
+github.com/moby/swarmkit/v2 v2.0.0-20240125134710-dcda100a8261/go.mod h1:oRJU1d0hrkkwCtouwfQGcIAKcVEkclMYoLWocqrg6gI=
 github.com/moby/sys/sequential v0.5.0 h1:OPvI35Lzn9K04PBbCLW0g4LcFAJgHsvXsRyewg5lXtc=
 github.com/moby/sys/sequential v0.5.0/go.mod h1:tH2cOOs5V9MlPiXcQzRC+eEyab644PWKGRYaaV5ZZlo=
 github.com/moby/sys/signal v0.7.0 h1:25RW3d5TnQEoKvRbEKUGay6DCQ46IxAVTT9CUMgmsSI=
