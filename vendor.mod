@@ -10,7 +10,7 @@ require (
 	github.com/containerd/containerd v1.6.21
 	github.com/creack/pty v1.1.18
 	github.com/docker/distribution v2.8.2+incompatible
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/docker v24.0.8+incompatible
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-units v0.5.0
@@ -61,7 +61,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/sys/symlink v0.2.0 // indirect
-	github.com/opencontainers/runc v1.1.7 // indirect
+	github.com/opencontainers/runc v1.1.11 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
