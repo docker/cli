@@ -31,7 +31,7 @@ jobs:
           targets: test-coverage
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./build/coverage/coverage.txt
 
@@ -73,7 +73,7 @@ jobs:
         shell: bash
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
