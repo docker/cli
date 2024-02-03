@@ -68,12 +68,10 @@ func runImages(ctx context.Context, dockerCli command.Cli, options imagesOptions
 		filters.Add("reference", options.matchName)
 	}
 
-	listOptions := image.ListOptions{
+	images, err := dockerCli.Client().ImageList(ctx, image.ListOptions{
 		All:     options.all,
 		Filters: filters,
-	}
-
-	images, err := dockerCli.Client().ImageList(ctx, listOptions)
+	})
 	if err != nil {
 		return err
 	}
