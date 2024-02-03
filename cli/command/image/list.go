@@ -24,7 +24,7 @@ type imagesOptions struct {
 }
 
 // NewImagesCommand creates a new `docker images` command
-func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
+func NewImagesCommand(dockerCLI command.Cli) *cobra.Command {
 	options := imagesOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -35,7 +35,7 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				options.matchName = args[0]
 			}
-			return runImages(cmd.Context(), dockerCli, options)
+			return runImages(cmd.Context(), dockerCLI, options)
 		},
 		Annotations: map[string]string{
 			"category-top": "7",
@@ -55,20 +55,20 @@ func NewImagesCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
-	cmd := *NewImagesCommand(dockerCli)
+func newListCommand(dockerCLI command.Cli) *cobra.Command {
+	cmd := *NewImagesCommand(dockerCLI)
 	cmd.Aliases = []string{"list"}
 	cmd.Use = "ls [OPTIONS] [REPOSITORY[:TAG]]"
 	return &cmd
 }
 
-func runImages(ctx context.Context, dockerCli command.Cli, options imagesOptions) error {
+func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions) error {
 	filters := options.filter.Value()
 	if options.matchName != "" {
 		filters.Add("reference", options.matchName)
 	}
 
-	images, err := dockerCli.Client().ImageList(ctx, image.ListOptions{
+	images, err := dockerCLI.Client().ImageList(ctx, image.ListOptions{
 		All:     options.all,
 		Filters: filters,
 	})
@@ -78,8 +78,8 @@ func runImages(ctx context.Context, dockerCli command.Cli, options imagesOptions
 
 	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ImagesFormat) > 0 && !options.quiet {
-			format = dockerCli.ConfigFile().ImagesFormat
+		if len(dockerCLI.ConfigFile().ImagesFormat) > 0 && !options.quiet {
+			format = dockerCLI.ConfigFile().ImagesFormat
 		} else {
 			format = formatter.TableFormatKey
 		}
@@ -87,7 +87,7 @@ func runImages(ctx context.Context, dockerCli command.Cli, options imagesOptions
 
 	imageCtx := formatter.ImageContext{
 		Context: formatter.Context{
-			Output: dockerCli.Out(),
+			Output: dockerCLI.Out(),
 			Format: formatter.NewImageFormat(format, options.quiet, options.showDigests),
 			Trunc:  !options.noTrunc,
 		},
