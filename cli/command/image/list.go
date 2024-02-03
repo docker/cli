@@ -2,6 +2,8 @@ package image
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -21,6 +23,7 @@ type imagesOptions struct {
 	showDigests bool
 	format      string
 	filter      opts.FilterOpt
+	calledAs    string
 }
 
 // NewImagesCommand creates a new `docker images` command
@@ -35,6 +38,10 @@ func NewImagesCommand(dockerCLI command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				options.matchName = args[0]
 			}
+			// Pass through how the command was invoked. We use this to print
+			// warnings when an ambiguous argument was passed when using the
+			// legacy (top-level) "docker images" subcommand.
+			options.calledAs = cmd.CalledAs()
 			return runImages(cmd.Context(), dockerCLI, options)
 		},
 		Annotations: map[string]string{
@@ -93,5 +100,44 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		},
 		Digest: options.showDigests,
 	}
-	return formatter.ImageWrite(imageCtx, images)
+	if err := formatter.ImageWrite(imageCtx, images); err != nil {
+		return err
+	}
+	if options.matchName != "" && len(images) == 0 && options.calledAs == "images" {
+		printAmbiguousHint(dockerCLI.Err(), options.matchName)
+	}
+	return nil
+}
+
+// printAmbiguousHint prints an informational warning if the provided filter
+// argument is ambiguous.
+//
+// The "docker images" top-level subcommand predates the "docker <object> <verb>"
+// convention (e.g. "docker image ls"), but accepts a positional argument to
+// search/filter images by name (globbing). It's common for users to accidentally
+// mistake these commands, and to use (e.g.) "docker images ls", expecting
+// to see all images, but ending up with an empty list because no image named
+// "ls" was found.
+//
+// Disallowing these search-terms would be a breaking change, but we can print
+// and informational message to help the users correct their mistake.
+func printAmbiguousHint(stdErr io.Writer, matchName string) {
+	switch matchName {
+	// List of subcommands for "docker image" and their aliases (see "docker image --help"):
+	case "build",
+		"history",
+		"import",
+		"inspect",
+		"list",
+		"load",
+		"ls",
+		"prune",
+		"pull",
+		"push",
+		"rm",
+		"save",
+		"tag":
+
+		_, _ = fmt.Fprintf(stdErr, "\nNo images found matching %q: did you mean \"docker image %[1]s\"?\n", matchName)
+	}
 }
