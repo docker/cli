@@ -95,3 +95,17 @@ func TestNewListCommandAlias(t *testing.T) {
 	assert.Check(t, cmd.HasAlias("list"))
 	assert.Check(t, !cmd.HasAlias("other"))
 }
+
+func TestNewListCommandAmbiguous(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{})
+	cmd := NewImagesCommand(cli)
+	cmd.SetOut(io.Discard)
+
+	// Set the Use field to mimic that the command was called as "docker images",
+	// not "docker image ls".
+	cmd.Use = "images"
+	cmd.SetArgs([]string{"ls"})
+	err := cmd.Execute()
+	assert.NilError(t, err)
+	golden.Assert(t, cli.ErrBuffer().String(), "list-command-ambiguous.golden")
+}
