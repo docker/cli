@@ -73,13 +73,15 @@ func TestVolumePruneSuccess(t *testing.T) {
 	testCases := []struct {
 		name            string
 		args            []string
+		input           string
 		volumePruneFunc func(args filters.Args) (types.VolumesPruneReport, error)
 	}{
 		{
-			name: "all",
-			args: []string{"--all"},
+			name:  "all",
+			args:  []string{"--all"},
+			input: "y",
 			volumePruneFunc: func(pruneFilter filters.Args) (types.VolumesPruneReport, error) {
-				assert.Check(t, is.Equal([]string{"true"}, pruneFilter.Get("all")))
+				assert.Check(t, is.DeepEqual([]string{"true"}, pruneFilter.Get("all")))
 				return types.VolumesPruneReport{}, nil
 			},
 		},
@@ -91,10 +93,11 @@ func TestVolumePruneSuccess(t *testing.T) {
 			},
 		},
 		{
-			name: "label-filter",
-			args: []string{"--filter", "label=foobar"},
+			name:  "label-filter",
+			args:  []string{"--filter", "label=foobar"},
+			input: "y",
 			volumePruneFunc: func(pruneFilter filters.Args) (types.VolumesPruneReport, error) {
-				assert.Check(t, is.Equal([]string{"foobar"}, pruneFilter.Get("label")))
+				assert.Check(t, is.DeepEqual([]string{"foobar"}, pruneFilter.Get("label")))
 				return types.VolumesPruneReport{}, nil
 			},
 		},
@@ -104,6 +107,9 @@ func TestVolumePruneSuccess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{volumePruneFunc: tc.volumePruneFunc})
 			cmd := NewPruneCommand(cli)
+			if tc.input != "" {
+				cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(tc.input))))
+			}
 			cmd.SetOut(io.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()

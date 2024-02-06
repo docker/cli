@@ -32,6 +32,10 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCli, options)
 			if err != nil {
+				if errdefs.IsCancelled(err) {
+					fmt.Fprintln(dockerCli.Out(), output)
+					return nil
+				}
 				return err
 			}
 			if output != "" {
@@ -77,7 +81,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		warning = allVolumesWarning
 	}
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return 0, "", nil
+		return 0, "", errdefs.Cancelled(errors.New("user cancelled operation"))
 	}
 
 	report, err := dockerCli.Client().VolumesPrune(ctx, pruneFilters)
