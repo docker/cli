@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.19
 
+replace github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20240206152341-c365bcb4ac80+incompatible // testing https://github.com/moby/moby/pull/47347
+
 require (
 	dario.cat/mergo v1.0.0
 	github.com/containerd/containerd v1.7.12
