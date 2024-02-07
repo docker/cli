@@ -1302,12 +1302,14 @@ services:
     extra_hosts:
       "zulu": "162.242.195.82"
       "alpha": "50.31.209.229"
+      "beta": "[fd20:f8a7:6e5b::2]"
       "host.docker.internal": "host-gateway"
 `)
 	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"alpha:50.31.209.229",
+		"beta:fd20:f8a7:6e5b::2",
 		"host.docker.internal:host-gateway",
 		"zulu:162.242.195.82",
 	}
@@ -1324,16 +1326,25 @@ services:
     image: busybox
     extra_hosts:
       - "zulu:162.242.195.82"
+      - "whiskey=162.242.195.83"
       - "alpha:50.31.209.229"
       - "zulu:ff02::1"
-      - "host.docker.internal:host-gateway"
+      - "whiskey=ff02::2"
+      - "foxtrot=[ff02::3]"
+      - "bravo:[ff02::4]"
+      - "host.docker.internal=host-gateway"
+      - "noaddress"
 `)
 	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"zulu:162.242.195.82",
+		"whiskey:162.242.195.83",
 		"alpha:50.31.209.229",
 		"zulu:ff02::1",
+		"whiskey:ff02::2",
+		"foxtrot:ff02::3",
+		"bravo:ff02::4",
 		"host.docker.internal:host-gateway",
 	}
 
