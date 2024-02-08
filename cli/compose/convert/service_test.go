@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
@@ -71,17 +71,18 @@ func TestConvertEnvironmentWhenNilValueExists(t *testing.T) {
 }
 
 func TestConvertExtraHosts(t *testing.T) {
-	source := composetypes.HostsList{
+	source, err := composetypes.NewHostsList([]string{
 		"zulu:127.0.0.2",
 		"alpha:127.0.0.1",
 		"zulu:ff02::1",
-	}
-	assert.Check(t, is.DeepEqual([]string{"127.0.0.2 zulu", "127.0.0.1 alpha", "ff02::1 zulu"}, convertExtraHosts(source)))
+	})
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual([]string{"127.0.0.1 alpha", "127.0.0.2 zulu", "ff02::1 zulu"}, convertExtraHosts(source)))
 }
 
 func TestConvertResourcesFull(t *testing.T) {
 	source := composetypes.Resources{
-		Limits: &composetypes.ResourceLimit{
+		Limits: &composetypes.Resource{
 			NanoCPUs:    "0.003",
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
@@ -108,7 +109,7 @@ func TestConvertResourcesFull(t *testing.T) {
 
 func TestConvertResourcesOnlyMemory(t *testing.T) {
 	source := composetypes.Resources{
-		Limits: &composetypes.ResourceLimit{
+		Limits: &composetypes.Resource{
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
 		Reservations: &composetypes.Resource{
@@ -183,15 +184,16 @@ func TestConvertEndpointSpec(t *testing.T) {
 		{
 			Protocol:  "udp",
 			Target:    53,
-			Published: 1053,
+			Published: "1053",
 			Mode:      "host",
 		},
 		{
 			Target:    8080,
-			Published: 80,
+			Published: "80",
 		},
 	}
-	endpoint := convertEndpointSpec("vip", source)
+	endpoint, err := convertEndpointSpec("vip", source)
+	assert.NilError(t, err)
 
 	expected := swarm.EndpointSpec{
 		Mode: swarm.ResolutionMode(strings.ToLower("vip")),
@@ -232,7 +234,7 @@ func TestConvertServiceNetworksOnlyDefault(t *testing.T) {
 func TestConvertServiceNetworks(t *testing.T) {
 	networkConfigs := networkMap{
 		"front": composetypes.NetworkConfig{
-			External: composetypes.External{External: true},
+			External: true,
 			Name:     "fronttier",
 		},
 		"back": composetypes.NetworkConfig{},
@@ -275,7 +277,7 @@ func TestConvertServiceNetworks(t *testing.T) {
 func TestConvertServiceNetworksCustomDefault(t *testing.T) {
 	networkConfigs := networkMap{
 		"default": composetypes.NetworkConfig{
-			External: composetypes.External{External: true},
+			External: true,
 			Name:     "custom",
 		},
 	}
@@ -332,7 +334,7 @@ func TestConvertDNSConfigSearch(t *testing.T) {
 func TestConvertCredentialSpec(t *testing.T) {
 	tests := []struct {
 		name        string
-		in          composetypes.CredentialSpecConfig
+		in          *composetypes.CredentialSpecConfig
 		out         *swarm.CredentialSpec
 		configs     []*swarm.ConfigReference
 		expectedErr string
@@ -342,27 +344,27 @@ func TestConvertCredentialSpec(t *testing.T) {
 		},
 		{
 			name:        "config-and-file",
-			in:          composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", File: "somefile.json"},
+			in:          &composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", File: "somefile.json"},
 			expectedErr: `invalid credential spec: cannot specify both "Config" and "File"`,
 		},
 		{
 			name:        "config-and-registry",
-			in:          composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", Registry: "testing"},
+			in:          &composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", Registry: "testing"},
 			expectedErr: `invalid credential spec: cannot specify both "Config" and "Registry"`,
 		},
 		{
 			name:        "file-and-registry",
-			in:          composetypes.CredentialSpecConfig{File: "somefile.json", Registry: "testing"},
+			in:          &composetypes.CredentialSpecConfig{File: "somefile.json", Registry: "testing"},
 			expectedErr: `invalid credential spec: cannot specify both "File" and "Registry"`,
 		},
 		{
 			name:        "config-and-file-and-registry",
-			in:          composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", File: "somefile.json", Registry: "testing"},
+			in:          &composetypes.CredentialSpecConfig{Config: "0bt9dmxjvjiqermk6xrop3ekq", File: "somefile.json", Registry: "testing"},
 			expectedErr: `invalid credential spec: cannot specify both "Config", "File", and "Registry"`,
 		},
 		{
 			name:        "missing-config-reference",
-			in:          composetypes.CredentialSpecConfig{Config: "missing"},
+			in:          &composetypes.CredentialSpecConfig{Config: "missing"},
 			expectedErr: "invalid credential spec: spec specifies config missing, but no such config can be found",
 			configs: []*swarm.ConfigReference{
 				{
@@ -373,7 +375,7 @@ func TestConvertCredentialSpec(t *testing.T) {
 		},
 		{
 			name: "namespaced-config",
-			in:   composetypes.CredentialSpecConfig{Config: "name"},
+			in:   &composetypes.CredentialSpecConfig{Config: "name"},
 			configs: []*swarm.ConfigReference{
 				{
 					ConfigName: "namespaced-config_name",
@@ -384,7 +386,7 @@ func TestConvertCredentialSpec(t *testing.T) {
 		},
 		{
 			name: "config",
-			in:   composetypes.CredentialSpecConfig{Config: "someName"},
+			in:   &composetypes.CredentialSpecConfig{Config: "someName"},
 			configs: []*swarm.ConfigReference{
 				{
 					ConfigName: "someOtherName",
@@ -398,12 +400,12 @@ func TestConvertCredentialSpec(t *testing.T) {
 		},
 		{
 			name: "file",
-			in:   composetypes.CredentialSpecConfig{File: "somefile.json"},
+			in:   &composetypes.CredentialSpecConfig{File: "somefile.json"},
 			out:  &swarm.CredentialSpec{File: "somefile.json"},
 		},
 		{
 			name: "registry",
-			in:   composetypes.CredentialSpecConfig{Registry: "testing"},
+			in:   &composetypes.CredentialSpecConfig{Registry: "testing"},
 			out:  &swarm.CredentialSpec{Registry: "testing"},
 		},
 	}
@@ -556,7 +558,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 			{Source: "foo_config"},
 			{Source: "bar_config"},
 		},
-		CredentialSpec: composetypes.CredentialSpecConfig{
+		CredentialSpec: &composetypes.CredentialSpecConfig{
 			Config: "baz_config",
 		},
 	}

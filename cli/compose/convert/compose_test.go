@@ -3,7 +3,7 @@ package convert
 import (
 	"testing"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -46,7 +46,7 @@ func TestNetworks(t *testing.T) {
 		"attachablenet": {},
 		"named":         {},
 	}
-	source := networkMap{
+	source := composetypes.Networks{
 		"normal": composetypes.NetworkConfig{
 			Driver: "overlay",
 			DriverOpts: map[string]string{
@@ -65,7 +65,7 @@ func TestNetworks(t *testing.T) {
 			},
 		},
 		"outside": composetypes.NetworkConfig{
-			External: composetypes.External{External: true},
+			External: true,
 			Name:     "special",
 		},
 		"attachablenet": composetypes.NetworkConfig{
@@ -130,9 +130,7 @@ func TestSecrets(t *testing.T) {
 			Labels: map[string]string{"monster": "mash"},
 		},
 		"ext": {
-			External: composetypes.External{
-				External: true,
-			},
+			External: true,
 		},
 	}
 
@@ -161,9 +159,7 @@ func TestConfigs(t *testing.T) {
 			Labels: map[string]string{"monster": "mash"},
 		},
 		"ext": {
-			External: composetypes.External{
-				External: true,
-			},
+			External: true,
 		},
 	}
 

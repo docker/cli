@@ -4,20 +4,22 @@
 package loader
 
 import (
+	"path/filepath"
 	"time"
 
-	"github.com/docker/cli/cli/compose/types"
+	"github.com/compose-spec/compose-go/v2/types"
+	clitypes "github.com/docker/cli/cli/compose/types"
 )
 
-func fullExampleConfig(workingDir, homeDir string) *types.Config {
-	return &types.Config{
-		Version:  "3.13",
+func fullExampleConfig(workingDir, homeDir string) *types.Project {
+	return &types.Project{
+		Name:     "full-example",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
 		Configs:  configs(workingDir),
 		Secrets:  secrets(workingDir),
-		Extras: map[string]any{
+		Extensions: map[string]any{
 			"x-foo": "bar",
 			"x-bar": "baz",
 			"x-nested": map[string]any{
@@ -28,12 +30,11 @@ func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	}
 }
 
-func services(workingDir, homeDir string) []types.ServiceConfig {
-	return []types.ServiceConfig{
-		{
+func services(workingDir, homeDir string) types.Services {
+	return types.Services{
+		"foo": {
 			Name: "foo",
-
-			Build: types.BuildConfig{
+			Build: &types.BuildConfig{
 				Context:    "./dir",
 				Dockerfile: "Dockerfile",
 				Args:       map[string]*string{"foo": strPtr("bar")},
@@ -41,8 +42,8 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				Network:    "foo",
 				CacheFrom:  []string{"foo", "bar"},
 				ExtraHosts: types.HostsList{
-					"ipv4.example.com:127.0.0.1",
-					"ipv6.example.com:::1",
+					"ipv4.example.com": []string{"127.0.0.1"},
+					"ipv6.example.com": []string{"::1"},
 				},
 				Labels: map[string]string{"FOO": "BAR"},
 			},
@@ -63,10 +64,13 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				},
 			},
 			ContainerName: "my-web-container",
-			DependsOn:     []string{"db", "redis"},
-			Deploy: types.DeployConfig{
+			DependsOn: types.DependsOnConfig{
+				"db":    {Condition: types.ServiceConditionStarted, Required: true},
+				"redis": {Condition: types.ServiceConditionStarted, Required: true},
+			},
+			Deploy: &types.DeployConfig{
 				Mode:     "replicated",
-				Replicas: uint64Ptr(6),
+				Replicas: intPtr(6),
 				Labels:   map[string]string{"FOO": "BAR"},
 				RollbackConfig: &types.UpdateConfig{
 					Parallelism:     uint64Ptr(3),
@@ -85,7 +89,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Order:           "start-first",
 				},
 				Resources: types.Resources{
-					Limits: &types.ResourceLimit{
+					Limits: &types.Resource{
 						NanoCPUs:    "0.001",
 						MemoryBytes: 50 * 1024 * 1024,
 						Pids:        100,
@@ -137,9 +141,15 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				"BAZ": strPtr("baz_from_service_def"),
 				"QUX": strPtr("qux_from_environment"),
 			},
-			EnvFile: []string{
-				"./example1.env",
-				"./example2.env",
+			EnvFiles: []types.EnvFile{
+				{
+					Path:     filepath.Join(workingDir, "example1.env"),
+					Required: true,
+				},
+				{
+					Path:     filepath.Join(workingDir, "example2.env"),
+					Required: false,
+				},
 			},
 			Expose: []string{"3000", "8000"},
 			ExternalLinks: []string{
@@ -147,12 +157,12 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				"project_db_1:mysql",
 				"project_db_1:postgresql",
 			},
-			ExtraHosts: []string{
-				"somehost:162.242.195.82",
-				"otherhost:50.31.209.229",
-				"host.docker.internal:host-gateway",
+			ExtraHosts: types.HostsList{
+				"somehost":             []string{"162.242.195.82"},
+				"otherhost":            []string{"50.31.209.229"},
+				"host.docker.internal": []string{"host-gateway"},
 			},
-			Extras: map[string]any{
+			Extensions: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -238,101 +248,101 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				{
 					Mode:      "ingress",
 					Target:    8000,
-					Published: 8000,
+					Published: "8000",
 					Protocol:  "tcp",
 				},
 				// "9090-9091:8080-8081",
 				{
 					Mode:      "ingress",
 					Target:    8080,
-					Published: 9090,
+					Published: "9090",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    8081,
-					Published: 9091,
+					Published: "9091",
 					Protocol:  "tcp",
 				},
 				// "49100:22",
 				{
 					Mode:      "ingress",
 					Target:    22,
-					Published: 49100,
+					Published: "49100",
 					Protocol:  "tcp",
 				},
 				// "127.0.0.1:8001:8001",
 				{
 					Mode:      "ingress",
 					Target:    8001,
-					Published: 8001,
+					Published: "8001",
 					Protocol:  "tcp",
 				},
 				// "127.0.0.1:5000-5010:5000-5010",
 				{
 					Mode:      "ingress",
 					Target:    5000,
-					Published: 5000,
+					Published: "5000",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5001,
-					Published: 5001,
+					Published: "5001",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5002,
-					Published: 5002,
+					Published: "5002",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5003,
-					Published: 5003,
+					Published: "5003",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5004,
-					Published: 5004,
+					Published: "5004",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5005,
-					Published: 5005,
+					Published: "5005",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5006,
-					Published: 5006,
+					Published: "5006",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5007,
-					Published: 5007,
+					Published: "5007",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5008,
-					Published: 5008,
+					Published: "5008",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5009,
-					Published: 5009,
+					Published: "5009",
 					Protocol:  "tcp",
 				},
 				{
 					Mode:      "ingress",
 					Target:    5010,
-					Published: 5010,
+					Published: "5010",
 					Protocol:  "tcp",
 				},
 			},
@@ -383,7 +393,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				{Source: "datavolume", Target: "/var/lib/mysql", Type: "volume"},
 				{Source: workingDir + "/opt", Target: "/opt", Consistency: "cached", Type: "bind"},
 				{Target: "/opt", Type: "tmpfs", Tmpfs: &types.ServiceVolumeTmpfs{
-					Size: int64(10000),
+					Size: types.UnitBytes(10000),
 				}},
 				{Source: "group:mygroup", Target: "/srv", Type: "cluster"},
 			},
@@ -416,13 +426,13 @@ func networks() map[string]types.NetworkConfig {
 
 		"external-network": {
 			Name:     "external-network",
-			External: types.External{External: true},
+			External: true,
 		},
 
 		"other-external-network": {
 			Name:     "my-cool-network",
-			External: types.External{External: true},
-			Extras: map[string]any{
+			External: true,
+			Extensions: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -453,53 +463,55 @@ func volumes() map[string]types.VolumeConfig {
 		},
 		"external-volume": {
 			Name:     "external-volume",
-			External: types.External{External: true},
+			External: true,
 		},
 		"other-external-volume": {
 			Name:     "my-cool-volume",
-			External: types.External{External: true},
+			External: true,
 		},
 		"external-volume3": {
 			Name:     "this-is-volume3",
-			External: types.External{External: true},
-			Extras: map[string]any{
+			External: true,
+			Extensions: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
 		},
 		"cluster-volume": {
 			Driver: "my-csi-driver",
-			Spec: &types.ClusterVolumeSpec{
-				Group: "mygroup",
-				AccessMode: &types.AccessMode{
-					Scope:       "single",
-					Sharing:     "none",
-					BlockVolume: &types.BlockVolume{},
-				},
-				AccessibilityRequirements: &types.TopologyRequirement{
-					Requisite: []types.Topology{
-						{
-							Segments: types.Mapping{"region": "R1", "zone": "Z1"},
+			Extensions: map[string]any{
+				"x-cluster-spec": clitypes.ClusterVolumeSpec{
+					Group: "mygroup",
+					AccessMode: &clitypes.AccessMode{
+						Scope:       "single",
+						Sharing:     "none",
+						BlockVolume: &clitypes.BlockVolume{},
+					},
+					AccessibilityRequirements: &clitypes.TopologyRequirement{
+						Requisite: []clitypes.Topology{
+							{
+								Segments: types.Mapping{"region": "R1", "zone": "Z1"},
+							},
+							{
+								Segments: types.Mapping{"region": "R1", "zone": "Z2"},
+							},
 						},
-						{
-							Segments: types.Mapping{"region": "R1", "zone": "Z2"},
+						Preferred: []clitypes.Topology{
+							{
+								Segments: types.Mapping{"region": "R1", "zone": "Z1"},
+							},
 						},
 					},
-					Preferred: []types.Topology{
-						{
-							Segments: types.Mapping{"region": "R1", "zone": "Z1"},
-						},
+					CapacityRange: &clitypes.CapacityRange{
+						RequiredBytes: types.UnitBytes(1 * 1024 * 1024 * 1024),
+						LimitBytes:    types.UnitBytes(8 * 1024 * 1024 * 1024),
 					},
+					Secrets: []clitypes.VolumeSecret{
+						{Key: "mycsisecret", Secret: "secret1"},
+						{Key: "mycsisecret2", Secret: "secret4"},
+					},
+					Availability: "active",
 				},
-				CapacityRange: &types.CapacityRange{
-					RequiredBytes: types.UnitBytes(1 * 1024 * 1024 * 1024),
-					LimitBytes:    types.UnitBytes(8 * 1024 * 1024 * 1024),
-				},
-				Secrets: []types.VolumeSecret{
-					{Key: "mycsisecret", Secret: "secret1"},
-					{Key: "mycsisecret2", Secret: "secret4"},
-				},
-				Availability: "active",
 			},
 		},
 	}
@@ -515,16 +527,16 @@ func configs(workingDir string) map[string]types.ConfigObjConfig {
 		},
 		"config2": {
 			Name:     "my_config",
-			External: types.External{External: true},
+			External: true,
 		},
 		"config3": {
 			Name:     "config3",
-			External: types.External{External: true},
+			External: true,
 		},
 		"config4": {
 			Name: "foo",
 			File: workingDir,
-			Extras: map[string]any{
+			Extensions: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -542,19 +554,36 @@ func secrets(workingDir string) map[string]types.SecretConfig {
 		},
 		"secret2": {
 			Name:     "my_secret",
-			External: types.External{External: true},
+			External: true,
 		},
 		"secret3": {
 			Name:     "secret3",
-			External: types.External{External: true},
+			External: true,
 		},
 		"secret4": {
 			Name: "bar",
 			File: workingDir,
-			Extras: map[string]any{
+			Extensions: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
 		},
 	}
+}
+
+func durationPtr(value time.Duration) *types.Duration {
+	result := types.Duration(value)
+	return &result
+}
+
+func intPtr(value int) *int {
+	return &value
+}
+
+func uint64Ptr(value uint64) *uint64 {
+	return &value
+}
+
+func uint32Ptr(value uint32) *uint32 {
+	return &value
 }

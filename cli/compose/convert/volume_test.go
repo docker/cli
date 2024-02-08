@@ -3,7 +3,8 @@ package convert
 import (
 	"testing"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
+	clitypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/mount"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -365,7 +366,7 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{
 			Name:     "special",
-			External: composetypes.External{External: true},
+			External: true,
 		},
 	}
 	namespace := NewNamespace("foo")
@@ -389,7 +390,7 @@ func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{
 			Name:     "special",
-			External: composetypes.External{External: true},
+			External: true,
 		},
 	}
 	namespace := NewNamespace("foo")
@@ -521,14 +522,16 @@ func TestConvertVolumeMountClusterName(t *testing.T) {
 	stackVolumes := volumes{
 		"my-csi": composetypes.VolumeConfig{
 			Driver: "mycsidriver",
-			Spec: &composetypes.ClusterVolumeSpec{
-				Group: "mygroup",
-				AccessMode: &composetypes.AccessMode{
-					Scope:       "single",
-					Sharing:     "none",
-					BlockVolume: &composetypes.BlockVolume{},
+			Extensions: map[string]any{
+				"x-cluster-spec": &clitypes.ClusterVolumeSpec{
+					Group: "mygroup",
+					AccessMode: &clitypes.AccessMode{
+						Scope:       "single",
+						Sharing:     "none",
+						BlockVolume: &clitypes.BlockVolume{},
+					},
+					Availability: "active",
 				},
-				Availability: "active",
 			},
 		},
 	}
@@ -555,14 +558,16 @@ func TestConvertVolumeMountClusterGroup(t *testing.T) {
 	stackVolumes := volumes{
 		"my-csi": composetypes.VolumeConfig{
 			Driver: "mycsidriver",
-			Spec: &composetypes.ClusterVolumeSpec{
-				Group: "mygroup",
-				AccessMode: &composetypes.AccessMode{
-					Scope:       "single",
-					Sharing:     "none",
-					BlockVolume: &composetypes.BlockVolume{},
+			Extensions: map[string]any{
+				"x-cluster-spec": &clitypes.ClusterVolumeSpec{
+					Group: "mygroup",
+					AccessMode: &clitypes.AccessMode{
+						Scope:       "single",
+						Sharing:     "none",
+						BlockVolume: &clitypes.BlockVolume{},
+					},
+					Availability: "active",
 				},
-				Availability: "active",
 			},
 		},
 	}
