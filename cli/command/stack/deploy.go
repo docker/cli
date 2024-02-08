@@ -22,11 +22,11 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			config, err := loader.LoadComposefile(dockerCli, opts)
+			project, err := loader.LoadComposefile(dockerCli, opts)
 			if err != nil {
 				return err
 			}
-			return swarm.RunDeploy(cmd.Context(), dockerCli, opts, config)
+			return swarm.RunDeploy(cmd.Context(), dockerCli, opts, project)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)

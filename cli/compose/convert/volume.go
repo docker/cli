@@ -3,7 +3,7 @@ package convert
 import (
 	"strings"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/pkg/errors"
 )
@@ -46,7 +46,7 @@ func handleVolumeToMount(
 	if volume.Bind != nil {
 		return mount.Mount{}, errors.New("bind options are incompatible with type volume")
 	}
-	if volume.Cluster != nil {
+	if volume.Extensions["x-cluster-spec"] != nil {
 		return mount.Mount{}, errors.New("cluster options are incompatible with type volume")
 	}
 	// Anonymous volumes
@@ -71,7 +71,7 @@ func handleVolumeToMount(
 	}
 
 	// External named volumes
-	if stackVolume.External.External {
+	if stackVolume.External {
 		return result, nil
 	}
 
@@ -98,7 +98,7 @@ func handleBindToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, er
 	if volume.Tmpfs != nil {
 		return mount.Mount{}, errors.New("tmpfs options are incompatible with type bind")
 	}
-	if volume.Cluster != nil {
+	if volume.Extensions["x-cluster-spec"] != nil {
 		return mount.Mount{}, errors.New("cluster options are incompatible with type bind")
 	}
 	if volume.Bind != nil {
@@ -121,12 +121,12 @@ func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	if volume.Volume != nil {
 		return mount.Mount{}, errors.New("volume options are incompatible with type tmpfs")
 	}
-	if volume.Cluster != nil {
+	if _, ok := volume.Extensions["x-cluster-spec"]; ok {
 		return mount.Mount{}, errors.New("cluster options are incompatible with type tmpfs")
 	}
 	if volume.Tmpfs != nil {
 		result.TmpfsOptions = &mount.TmpfsOptions{
-			SizeBytes: volume.Tmpfs.Size,
+			SizeBytes: int64(volume.Tmpfs.Size),
 		}
 	}
 	return result, nil

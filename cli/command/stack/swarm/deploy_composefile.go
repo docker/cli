@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
-	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy, config *composetypes.Config) error {
+func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy, project *composetypes.Project) error {
 	if err := checkDaemonIsSwarmManager(ctx, dockerCli); err != nil {
 		return err
 	}
@@ -25,14 +25,14 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 
 	if opts.Prune {
 		services := map[string]struct{}{}
-		for _, service := range config.Services {
+		for _, service := range project.Services {
 			services[service.Name] = struct{}{}
 		}
 		pruneServices(ctx, dockerCli, namespace, services)
 	}
 
-	serviceNetworks := getServicesDeclaredNetworks(config.Services)
-	networks, externalNetworks := convert.Networks(namespace, config.Networks, serviceNetworks)
+	serviceNetworks := getServicesDeclaredNetworks(project.Services)
+	networks, externalNetworks := convert.Networks(namespace, project.Networks, serviceNetworks)
 	if err := validateExternalNetworks(ctx, dockerCli.Client(), externalNetworks); err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 		return err
 	}
 
-	secrets, err := convert.Secrets(namespace, config.Secrets)
+	secrets, err := convert.Secrets(namespace, project.Secrets)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 		return err
 	}
 
-	configs, err := convert.Configs(namespace, config.Configs)
+	configs, err := convert.Configs(namespace, project.Configs)
 	if err != nil {
 		return err
 	}
@@ -56,14 +56,14 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Depl
 		return err
 	}
 
-	services, err := convert.Services(ctx, namespace, config, dockerCli.Client())
+	services, err := convert.Services(ctx, namespace, project, dockerCli.Client())
 	if err != nil {
 		return err
 	}
 	return deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
 }
 
-func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
+func getServicesDeclaredNetworks(serviceConfigs composetypes.Services) map[string]struct{} {
 	serviceNetworks := map[string]struct{}{}
 	for _, serviceConfig := range serviceConfigs {
 		if len(serviceConfig.Networks) == 0 {
