@@ -328,7 +328,7 @@ func createTransformHook(additionalTransformers ...Transformer) mapstructure.Dec
 		reflect.TypeOf(types.MappingWithEquals{}):                transformMappingOrListFunc("=", true),
 		reflect.TypeOf(types.Labels{}):                           transformMappingOrListFunc("=", false),
 		reflect.TypeOf(types.MappingWithColon{}):                 transformMappingOrListFunc(":", false),
-		reflect.TypeOf(types.HostsList{}):                        transformListOrMappingFunc(":", false),
+		reflect.TypeOf(types.HostsList{}):                        transformHostsList,
 		reflect.TypeOf(types.ServiceVolumeConfig{}):              transformServiceVolumeConfig,
 		reflect.TypeOf(types.BuildConfig{}):                      transformBuildConfig,
 		reflect.TypeOf(types.Duration(0)):                        transformStringToDuration,
@@ -808,26 +808,56 @@ var transformStringList TransformerFunc = func(data any) (any, error) {
 	}
 }
 
-func transformMappingOrListFunc(sep string, allowNil bool) TransformerFunc {
-	return func(data any) (any, error) {
-		return transformMappingOrList(data, sep, allowNil), nil
+var transformHostsList TransformerFunc = func(data any) (any, error) {
+	hl := transformListOrMapping(data, ":", false, []string{"=", ":"})
+
+	// Remove brackets from IP addresses if present (for example "[::1]" -> "::1").
+	result := make([]string, 0, len(hl))
+	for _, hip := range hl {
+		host, ip, _ := strings.Cut(hip, ":")
+		if len(ip) > 2 && ip[0] == '[' && ip[len(ip)-1] == ']' {
+			ip = ip[1 : len(ip)-1]
+		}
+		result = append(result, fmt.Sprintf("%s:%s", host, ip))
 	}
+	return result, nil
 }
 
-func transformListOrMappingFunc(sep string, allowNil bool) TransformerFunc {
-	return func(data any) (any, error) {
-		return transformListOrMapping(data, sep, allowNil), nil
-	}
-}
-
-func transformListOrMapping(listOrMapping any, sep string, allowNil bool) any {
+// transformListOrMapping transforms pairs of strings that may be represented as
+// a map, or a list of '=' or ':' separated strings, into a list of ':' separated
+// strings.
+func transformListOrMapping(listOrMapping any, sep string, allowNil bool, allowSeps []string) []string {
 	switch value := listOrMapping.(type) {
 	case map[string]any:
 		return toStringList(value, sep, allowNil)
 	case []any:
-		return listOrMapping
+		result := make([]string, 0, len(value))
+		for _, entry := range value {
+			for i, allowSep := range allowSeps {
+				entry := fmt.Sprint(entry)
+				k, v, ok := strings.Cut(entry, allowSep)
+				if ok {
+					// Entry uses this allowed separator. Add it to the result, using
+					// sep as a separator.
+					result = append(result, fmt.Sprintf("%s%s%s", k, sep, v))
+					break
+				} else if i == len(allowSeps)-1 {
+					// No more separators to try, keep the entry if allowNil.
+					if allowNil {
+						result = append(result, k)
+					}
+				}
+			}
+		}
+		return result
 	}
 	panic(errors.Errorf("expected a map or a list, got %T: %#v", listOrMapping, listOrMapping))
+}
+
+func transformMappingOrListFunc(sep string, allowNil bool) TransformerFunc {
+	return func(data any) (any, error) {
+		return transformMappingOrList(data, sep, allowNil), nil
+	}
 }
 
 func transformMappingOrList(mappingOrList any, sep string, allowNil bool) any {
