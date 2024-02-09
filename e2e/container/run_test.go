@@ -146,6 +146,6 @@ func TestRunWithCgroupNamespace(t *testing.T) {
 	environment.SkipIfCgroupNamespacesNotSupported(t)
 
 	result := icmd.RunCommand("docker", "run", "--cgroupns=private", "--rm", fixtures.AlpineImage,
-		"/bin/grep", "-q", "':memory:/$'", "/proc/1/cgroup")
+		"cat", "/sys/fs/cgroup/cgroup.controllers")
 	result.Assert(t, icmd.Success)
 }
