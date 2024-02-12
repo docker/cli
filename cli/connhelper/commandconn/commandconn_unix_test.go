@@ -17,9 +17,7 @@ import (
 // For https://github.com/docker/cli/pull/1014#issuecomment-409308139
 func TestEOFWithError(t *testing.T) {
 	ctx := context.TODO()
-	cmd := "sh"
-	args := []string{"-c", "echo hello; echo some error >&2; exit 42"}
-	c, err := New(ctx, cmd, args...)
+	c, err := New(ctx, "sh", "-c", "echo hello; echo some error >&2; exit 42")
 	assert.NilError(t, err)
 	b := make([]byte, 32)
 	n, err := c.Read(b)
@@ -33,9 +31,7 @@ func TestEOFWithError(t *testing.T) {
 
 func TestEOFWithoutError(t *testing.T) {
 	ctx := context.TODO()
-	cmd := "sh"
-	args := []string{"-c", "echo hello; echo some debug log >&2; exit 0"}
-	c, err := New(ctx, cmd, args...)
+	c, err := New(ctx, "sh", "-c", "echo hello; echo some debug log >&2; exit 0")
 	assert.NilError(t, err)
 	b := make([]byte, 32)
 	n, err := c.Read(b)
@@ -47,14 +43,12 @@ func TestEOFWithoutError(t *testing.T) {
 }
 
 func TestCloseRunningCommand(t *testing.T) {
-	cmd := "sh"
-	args := []string{"-c", "while true; sleep 1; done"}
-
+	ctx := context.TODO()
 	done := make(chan struct{})
 	defer close(done)
 
 	go func() {
-		c, err := New(context.TODO(), cmd, args...)
+		c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
 		assert.NilError(t, err)
 		cmdConn := c.(*commandConn)
 		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
@@ -79,12 +73,10 @@ func TestCloseRunningCommand(t *testing.T) {
 }
 
 func TestCloseTwice(t *testing.T) {
-	cmd := "sh"
-	args := []string{"-c", "echo hello; sleep 1; exit 0"}
-
+	ctx := context.TODO()
 	done := make(chan struct{})
 	go func() {
-		c, err := New(context.TODO(), cmd, args...)
+		c, err := New(ctx, "sh", "-c", "echo hello; sleep 1; exit 0")
 		assert.NilError(t, err)
 		cmdConn := c.(*commandConn)
 		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
@@ -113,12 +105,10 @@ func TestCloseTwice(t *testing.T) {
 }
 
 func TestEOFTimeout(t *testing.T) {
-	cmd := "sh"
-	args := []string{"-c", "sleep 20"}
-
+	ctx := context.TODO()
 	done := make(chan struct{})
 	go func() {
-		c, err := New(context.TODO(), cmd, args...)
+		c, err := New(ctx, "sh", "-c", "sleep 20")
 		assert.NilError(t, err)
 		cmdConn := c.(*commandConn)
 		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
@@ -154,10 +144,8 @@ func (mockStdoutEOF) Close() error {
 }
 
 func TestCloseWhileWriting(t *testing.T) {
-	cmd := "sh"
-	args := []string{"-c", "while true; sleep 1; done"}
-
-	c, err := New(context.TODO(), cmd, args...)
+	ctx := context.TODO()
+	c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
 	assert.NilError(t, err)
 	cmdConn := c.(*commandConn)
 	assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
@@ -184,10 +172,8 @@ func TestCloseWhileWriting(t *testing.T) {
 }
 
 func TestCloseWhileReading(t *testing.T) {
-	cmd := "sh"
-	args := []string{"-c", "while true; sleep 1; done"}
-
-	c, err := New(context.TODO(), cmd, args...)
+	ctx := context.TODO()
+	c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
 	assert.NilError(t, err)
 	cmdConn := c.(*commandConn)
 	assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
