@@ -43,12 +43,19 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 
 	result.Assert(t, icmd.Expected{Err: buildkitDisabledWarning})
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
-		0:  output.Prefix("Sending build context to Docker daemon"),
-		1:  output.Suffix("Step 1/4 : FROM registry:5000/alpine:frozen"),
-		3:  output.Suffix("Step 2/4 : COPY run /usr/bin/run"),
-		5:  output.Suffix("Step 3/4 : RUN run"),
-		7:  output.Suffix("running"),
-		8:  output.Contains("Removing intermediate container"),
+		0: output.Prefix("Sending build context to Docker daemon"),
+		1: output.Suffix("Step 1/4 : FROM registry:5000/alpine:frozen"),
+		3: output.Suffix("Step 2/4 : COPY run /usr/bin/run"),
+		5: output.Suffix("Step 3/4 : RUN run"),
+		7: output.Suffix("running"),
+		// TODO(krissetto): ugly, remove when no longer testing against moby 24. see https://github.com/moby/moby/pull/46270
+		8: func(s string) error {
+			err := output.Contains("Removed intermediate container")(s) // moby >= v25
+			if err == nil {
+				return nil
+			}
+			return output.Contains("Removing intermediate container")(s) // moby < v25
+		},
 		10: output.Suffix("Step 4/4 : COPY data /data"),
 		12: output.Contains("Successfully built "),
 		13: output.Suffix("Successfully tagged myimage:latest"),
