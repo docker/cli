@@ -108,3 +108,14 @@ func SkipIfNotPlatform(t *testing.T, platform string) {
 	daemonPlatform := strings.TrimSpace(result.Stdout())
 	skip.If(t, daemonPlatform != platform, "running against a non %s daemon", platform)
 }
+
+// DaemonAPIVersion returns the negotiated daemon API version.
+func DaemonAPIVersion(t *testing.T) string {
+	t.Helper()
+	// Use Client.APIVersion instead of Server.APIVersion.
+	// The latter is the maximum version that the server supports
+	// while the Client.APIVersion contains the negotiated version.
+	result := icmd.RunCmd(icmd.Command("docker", "version", "--format", "{{.Client.APIVersion}}"))
+	result.Assert(t, icmd.Expected{Err: icmd.None})
+	return strings.TrimSpace(result.Stdout())
+}
