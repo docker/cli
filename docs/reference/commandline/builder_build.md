@@ -47,4 +47,4 @@ Build an image from a Dockerfile
 
 ## Description
 
-See [docker build](build.md) for more information.
+See [docker build](image_build.md) for more information.

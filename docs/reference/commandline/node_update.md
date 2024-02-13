@@ -56,7 +56,7 @@ $ docker node update --label-add type=queue worker1
 
 The labels you set for nodes using `docker node update` apply only to the node
 entity within the swarm. Do not confuse them with the docker daemon labels for
-[dockerd](dockerd.md).
+[dockerd](https://docs.docker.com/reference/cli/dockerd/).
 
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).
