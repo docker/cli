@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const (
@@ -30,6 +31,10 @@ const (
 	// is, one which failed it's candidate test) and contains the
 	// reason for the failure.
 	CommandAnnotationPluginInvalid = "com.docker.cli.plugin-invalid"
+
+	// CommandAnnotationPluginCommandPath is added to overwrite the
+	// command path for a plugin invocation.
+	CommandAnnotationPluginCommandPath = "com.docker.cli.plugin.command_path"
 )
 
 var pluginCommandStubsOnce sync.Once
@@ -97,4 +102,39 @@ func AddPluginCommandStubs(dockerCli command.Cli, rootCmd *cobra.Command) (err e
 		}
 	})
 	return err
+}
+
+const (
+	dockerCliAttributePrefix = attribute.Key("docker.cli")
+
+	cobraCommandPath = attribute.Key("cobra.command_path")
+)
+
+func getPluginResourceAttributes(cmd *cobra.Command, plugin Plugin) attribute.Set {
+	commandPath := cmd.Annotations[CommandAnnotationPluginCommandPath]
+	if commandPath == "" {
+		commandPath = fmt.Sprintf("%s %s", cmd.CommandPath(), plugin.Name)
+	}
+
+	attrSet := attribute.NewSet(
+		cobraCommandPath.String(commandPath),
+	)
+
+	kvs := make([]attribute.KeyValue, 0, attrSet.Len())
+	for iter := attrSet.Iter(); iter.Next(); {
+		attr := iter.Attribute()
+		kvs = append(kvs, attribute.KeyValue{
+			Key:   dockerCliAttributePrefix + "." + attr.Key,
+			Value: attr.Value,
+		})
+	}
+	return attribute.NewSet(kvs...)
+}
+
+func appendPluginResourceAttributesEnvvar(env []string, cmd *cobra.Command, plugin Plugin) []string {
+	if attrs := getPluginResourceAttributes(cmd, plugin); attrs.Len() > 0 {
+		envVarVal := attrs.Encoded(attribute.DefaultEncoder())
+		env = append(env, ResourceAttributesEnvvar+"="+envVarVal)
+	}
+	return env
 }
