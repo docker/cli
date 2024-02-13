@@ -14,13 +14,13 @@ PACKAGER_NAME ?=
 
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev$(IMAGE_TAG)
 E2E_IMAGE_NAME = docker-cli-e2e
-E2E_ENGINE_VERSION ?=
+ENGINE_VERSION ?=
 CACHE_VOLUME_NAME := docker-cli-dev-cache
 ifeq ($(DOCKER_CLI_GO_BUILD_CACHE),y)
 DOCKER_CLI_MOUNTS += -v "$(CACHE_VOLUME_NAME):/root/.cache/go-build"
 endif
 VERSION = $(shell cat VERSION)
-ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIRS -e GOOS -e GOARCH -e GOARM -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION)
+ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT -e PLATFORM -e TESTFLAGS -e TESTDIRS -e GOOS -e GOARCH -e GOARM -e ENGINE_VERSION
 
 # Some Dockerfiles use features that are only supported with BuildKit enabled
 export DOCKER_BUILDKIT=1
@@ -132,21 +132,21 @@ test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ss
 
 .PHONY: test-e2e-experimental
 test-e2e-experimental: build-e2e-image # run experimental e2e tests
-	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) \
+	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
 		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 		$(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-non-experimental
 test-e2e-non-experimental: build-e2e-image # run non-experimental e2e tests
-	docker run --rm $(ENVVARS) -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) \
+	docker run --rm $(ENVVARS) \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
 		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 		$(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build-e2e-image # run experimental SSH-connection helper e2e tests
-	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_ENGINE_VERSION=$(E2E_ENGINE_VERSION) -e TEST_CONNHELPER=ssh \
+	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
 		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 		$(E2E_IMAGE_NAME)

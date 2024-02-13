@@ -55,7 +55,7 @@ jobs:
           make -f docker.Makefile test-e2e-${{ matrix.target }}
         env:
           BASE_VARIANT: ${{ matrix.base }}
-          E2E_ENGINE_VERSION: ${{ matrix.engine-version }}
+          ENGINE_VERSION: ${{ matrix.engine-version }}
           TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
       -
         name: Send to Codecov
