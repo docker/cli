@@ -43,8 +43,7 @@ underscores, periods, and hyphens. It can't start with a period or hyphen and
 must be no longer than 128 characters. If you don't specify a tag, the command uses `latest` by default.
 
 You can group your images together using names and tags, and then
-[push](https://docs.docker.com/engine/reference/commandline/push) them to a
-registry.
+[push](image_push.md) them to a registry.
 
 ## Examples
 

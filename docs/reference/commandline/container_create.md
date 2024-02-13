@@ -131,8 +131,8 @@ so that it's ready to start when you need it. The initial status of the
 new container is `created`.
 
 The `docker create` command shares most of its options with the `docker run`
-command (which performs a `docker create` before starting it). Refer to the
-[`docker run` command](run.md) section and the [Docker run reference](../run.md)
+command (which performs a `docker create` before starting it).
+Refer to the [`docker run` CLI reference](container_run.md)
 for details on the available flags and options.
 
 ## Examples

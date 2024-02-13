@@ -21,7 +21,7 @@ in a JSON array.
 
 ### Inspect a plugin
 
-The following example example inspects the `tiborvass/sample-volume-plugin` plugin:
+The following example inspects the `tiborvass/sample-volume-plugin` plugin:
 
 ```console
 $ docker plugin inspect tiborvass/sample-volume-plugin:latest

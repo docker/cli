@@ -50,7 +50,7 @@ Build an image from a Dockerfile
 The `docker build` command builds Docker images from a Dockerfile and a
 "context". A build's context is the set of files located in the specified
 `PATH` or `URL`. The build process can refer to any of the files in the
-context. For example, your build can use a [*COPY*](https://docs.docker.com/engine/reference/builder/#copy)
+context. For example, your build can use a [*COPY*](https://docs.docker.com/reference/dockerfile/#copy)
 instruction to reference a file in the context.
 
 The `URL` parameter can refer to three kinds of resources: Git repositories,
@@ -144,7 +144,7 @@ In most cases, it's best to put each Dockerfile in an empty directory. Then,
 add to that directory only the files needed for building the Dockerfile. To
 increase the build's performance, you can exclude files and directories by
 adding a `.dockerignore` file to that directory as well. For information on
-creating one, see the [.dockerignore file](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
+creating one, see the [.dockerignore file](https://docs.docker.com/reference/dockerfile/#dockerignore-file).
 
 If the Docker client loses connection to the daemon, it cancels the build.
 This happens if you interrupt the Docker client with `CTRL-c` or if the Docker
@@ -172,7 +172,7 @@ $ echo $?
 
 See also:
 
-[*Dockerfile Reference*](https://docs.docker.com/engine/reference/builder/).
+[*Dockerfile Reference*](https://docs.docker.com/reference/dockerfile/).
 
 ## Examples
 
@@ -213,7 +213,7 @@ where to find the files for the "context" of the build on the Docker daemon.
 Remember that the daemon could be running on a remote machine and that no
 parsing of the Dockerfile happens at the client side (where you're running
 `docker build`). That means that all the files at `PATH` are sent, not just
-the ones listed to [`ADD`](https://docs.docker.com/engine/reference/builder/#add)
+the ones listed to [`ADD`](https://docs.docker.com/reference/dockerfile/#add)
 in the Dockerfile.
 
 The transfer of context from the local machine to the Docker daemon is what the
@@ -302,7 +302,7 @@ Successfully built 99cc1ad10469
 This example shows the use of the `.dockerignore` file to exclude the `.git`
 directory from the context. You can see its effect in the changed size of the
 uploaded context. The builder reference contains detailed information on
-[creating a .dockerignore file](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
+[creating a .dockerignore file](https://docs.docker.com/reference/dockerfile/#dockerignore-file).
 
 When using the [BuildKit backend](https://docs.docker.com/build/buildkit/),
 `docker build` searches for a `.dockerignore` file relative to the Dockerfile
@@ -384,12 +384,12 @@ the command line.
 ### <a name="cgroup-parent"></a> Use a custom parent cgroup (--cgroup-parent)
 
 When you run `docker build` with the `--cgroup-parent` option, the daemon runs the containers
-used in the build with the [corresponding `docker run` flag](../run.md#specify-custom-cgroups).
+used in the build with the [corresponding `docker run` flag](container_run.md#cgroup-parent).
 
 ### <a name="ulimit"></a> Set ulimits in container (--ulimit)
 
 Using the `--ulimit` option with `docker build` causes the daemon to start each build step's
-container using those [`--ulimit` flag values](run.md#ulimit).
+container using those [`--ulimit` flag values](container_run.md#ulimit).
 
 ### <a name="build-arg"></a> Set build-time variables (--build-arg)
 
@@ -415,7 +415,7 @@ Using this flag doesn't alter the output you see when the build process echoes t
 Dockerfile.
 
 For detailed information on using `ARG` and `ENV` instructions, see the
-[Dockerfile reference](https://docs.docker.com/engine/reference/builder/).
+[Dockerfile reference](https://docs.docker.com/reference/dockerfile/).
 
 You can also use the `--build-arg` flag without a value, in which case the daemon
 propagates the value from the local environment into the Docker container it's building:
@@ -425,7 +425,7 @@ $ export HTTP_PROXY=http://10.20.30.2:1234
 $ docker build --build-arg HTTP_PROXY .
 ```
 
-This example is similar to how `docker run -e` works. Refer to the [`docker run` documentation](run.md#env)
+This example is similar to how `docker run -e` works. Refer to the [`docker run` documentation](container_run.md#env)
 for more information.
 
 ### <a name="security-opt"></a> Optional security options (--security-opt)
@@ -553,7 +553,7 @@ $ docker build -o - . > out.tar
 
 The `--output` option exports all files from the target stage. A common pattern
 for exporting only specific files is to do multi-stage builds and to copy the
-desired files to a new scratch stage with [`COPY --from`](https://docs.docker.com/engine/reference/builder/#copy).
+desired files to a new scratch stage with [`COPY --from`](https://docs.docker.com/reference/dockerfile/#copy).
 
 The example, the `Dockerfile` below uses a separate stage to collect the
 build artifacts for exporting:
@@ -642,7 +642,7 @@ Available options for the networking mode are:
 - `none`: Run with no network access.
 - `host`: Run in the host’s network environment.
 
-Find more details in the [Dockerfile documentation](https://docs.docker.com/engine/reference/builder/#run---network).
+Find more details in the [Dockerfile documentation](https://docs.docker.com/reference/dockerfile/#run---network).
 
 ### <a name="squash"></a> Squash an image's layers (--squash) (experimental)
 
