@@ -19,7 +19,7 @@ on:
 
 jobs:
   prepare:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
@@ -37,7 +37,7 @@ jobs:
           echo ${{ steps.platforms.outputs.matrix }}
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - prepare
     strategy:
@@ -90,7 +90,7 @@ jobs:
           if-no-files-found: error
 
   bin-image:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
     steps:
       -
@@ -134,7 +134,7 @@ jobs:
             *.cache-to=type=gha,scope=bin-image,mode=max
 
   prepare-plugins:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
@@ -152,7 +152,7 @@ jobs:
           echo ${{ steps.platforms.outputs.matrix }}
 
   plugins:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - prepare-plugins
     strategy:
