@@ -1,12 +1,12 @@
 package socket
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"io"
 	"net"
 	"os"
-
-	"github.com/docker/distribution/uuid"
 )
 
 // EnvKey represents the well-known environment variable used to pass the plugin being
@@ -17,7 +17,7 @@ const EnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 // and update the conn pointer, and returns the listener for the socket (which the caller
 // is responsible for closing when it's no longer needed).
 func SetupConn(conn **net.UnixConn) (*net.UnixListener, error) {
-	listener, err := listen("docker_cli_" + uuid.Generate().String())
+	listener, err := listen("docker_cli_" + randomID())
 	if err != nil {
 		return nil, err
 	}
@@ -25,6 +25,14 @@ func SetupConn(conn **net.UnixConn) (*net.UnixListener, error) {
 	accept(listener, conn)
 
 	return listener, nil
+}
+
+func randomID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		panic(err) // This shouldn't happen
+	}
+	return hex.EncodeToString(b)
 }
 
 func accept(listener *net.UnixListener, conn **net.UnixConn) {
