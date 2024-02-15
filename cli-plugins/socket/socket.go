@@ -16,15 +16,18 @@ const EnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 // SetupConn sets up a Unix socket listener, establishes a goroutine to handle connections
 // and update the conn pointer, and returns the listener for the socket (which the caller
 // is responsible for closing when it's no longer needed).
-func SetupConn(conn **net.UnixConn) (*net.UnixListener, error) {
+func SetupConn() (*net.UnixListener, <-chan *net.UnixConn, error) {
 	listener, err := listen("docker_cli_" + randomID())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	accept(listener, conn)
+	// accept starts a background goroutine
+	// to accept a new connection
+	// once accepted, the connChan will be updated.
+	connChan := accept(listener)
 
-	return listener, nil
+	return listener, connChan, nil
 }
 
 func randomID() string {
@@ -35,16 +38,29 @@ func randomID() string {
 	return hex.EncodeToString(b)
 }
 
-func accept(listener *net.UnixListener, conn **net.UnixConn) {
-	go func() {
+// accept creates a new Unix socket connection
+// and sends it to the *net.UnixConn channel
+// it allows reconnects
+func accept(listener *net.UnixListener) <-chan *net.UnixConn {
+	connChan := make(chan *net.UnixConn, 1)
+
+	go func(connChan chan<- *net.UnixConn) {
 		for {
-			// ignore error here, if we failed to accept a connection,
-			// conn is nil and we fallback to previous behavior
-			*conn, _ = listener.AcceptUnix()
+			// this is a blocking call and will wait
+			// until a new connection is accepted
+			c, err := listener.AcceptUnix()
+
 			// perform any platform-specific actions on accept (e.g. unlink non-abstract sockets)
-			onAccept(*conn, listener)
+			onAccept(listener)
+			// retry accepting a connection if there was an error
+			if err != nil {
+				continue
+			}
+			connChan <- c
 		}
-	}()
+	}(connChan)
+
+	return connChan
 }
 
 // ConnectAndWait connects to the socket passed via well-known env var,

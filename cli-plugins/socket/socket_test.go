@@ -15,8 +15,7 @@ import (
 
 func TestSetupConn(t *testing.T) {
 	t.Run("updates conn when connected", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		listener, conn, err := SetupConn()
 		assert.NilError(t, err)
 		assert.Check(t, listener != nil, "returned nil listener but no error")
 		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
@@ -25,12 +24,11 @@ func TestSetupConn(t *testing.T) {
 		_, err = net.DialUnix("unix", nil, addr)
 		assert.NilError(t, err, "failed to dial returned listener")
 
-		pollConnNotNil(t, &conn)
+		pollConnNotNil(t, conn)
 	})
 
 	t.Run("allows reconnects", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		listener, _, err := SetupConn()
 		assert.NilError(t, err)
 		assert.Check(t, listener != nil, "returned nil listener but no error")
 		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
@@ -46,8 +44,7 @@ func TestSetupConn(t *testing.T) {
 	})
 
 	t.Run("does not leak sockets to local directory", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		listener, _, err := SetupConn()
 		assert.NilError(t, err)
 		assert.Check(t, listener != nil, "returned nil listener but no error")
 		checkDirNoPluginSocket(t)
@@ -78,8 +75,7 @@ func checkDirNoPluginSocket(t *testing.T) {
 
 func TestConnectAndWait(t *testing.T) {
 	t.Run("calls cancel func on EOF", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		listener, connChan, err := SetupConn()
 		assert.NilError(t, err, "failed to setup listener")
 
 		done := make(chan struct{})
@@ -87,8 +83,9 @@ func TestConnectAndWait(t *testing.T) {
 		cancelFunc := func() {
 			done <- struct{}{}
 		}
+
 		ConnectAndWait(cancelFunc)
-		pollConnNotNil(t, &conn)
+		conn := pollConnNotNil(t, connChan)
 		conn.Close()
 
 		select {
@@ -101,8 +98,7 @@ func TestConnectAndWait(t *testing.T) {
 	// TODO: this test cannot be executed with `t.Parallel()`, due to
 	// relying on goroutine numbers to ensure correct behaviour
 	t.Run("connect goroutine exits after EOF", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		listener, connChan, err := SetupConn()
 		assert.NilError(t, err, "failed to setup listener")
 		t.Setenv(EnvKey, listener.Addr().String())
 		numGoroutines := runtime.NumGoroutine()
@@ -110,8 +106,9 @@ func TestConnectAndWait(t *testing.T) {
 		ConnectAndWait(func() {})
 		assert.Equal(t, runtime.NumGoroutine(), numGoroutines+1)
 
-		pollConnNotNil(t, &conn)
+		conn := pollConnNotNil(t, connChan)
 		conn.Close()
+
 		poll.WaitOn(t, func(t poll.LogT) poll.Result {
 			if runtime.NumGoroutine() > numGoroutines+1 {
 				return poll.Continue("waiting for connect goroutine to exit")
@@ -121,13 +118,17 @@ func TestConnectAndWait(t *testing.T) {
 	})
 }
 
-func pollConnNotNil(t *testing.T, conn **net.UnixConn) {
+func pollConnNotNil(t *testing.T, conn <-chan *net.UnixConn) *net.UnixConn {
 	t.Helper()
 
-	poll.WaitOn(t, func(t poll.LogT) poll.Result {
-		if *conn == nil {
-			return poll.Continue("waiting for conn to not be nil")
+	select {
+	case c := <-conn:
+		if c == nil {
+			t.Fatal("conn is nil")
 		}
-		return poll.Success()
-	}, poll.WithDelay(1*time.Millisecond), poll.WithTimeout(10*time.Millisecond))
+		return c
+	case <-time.After(10 * time.Millisecond):
+		t.Fatal("timeout waiting for conn to be set")
+	}
+	return nil
 }

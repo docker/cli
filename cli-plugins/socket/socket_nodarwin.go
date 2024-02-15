@@ -13,7 +13,7 @@ func listen(socketname string) (*net.UnixListener, error) {
 	})
 }
 
-func onAccept(conn *net.UnixConn, listener *net.UnixListener) {
+func onAccept(listener *net.UnixListener) {
 	// do nothing
 	// while on darwin and OpenBSD we would unlink here;
 	// on non-darwin the socket is abstract and not present on the filesystem
