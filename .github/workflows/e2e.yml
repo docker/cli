@@ -16,7 +16,7 @@ on:
 
 jobs:
   e2e:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -28,11 +28,11 @@ jobs:
           - alpine
           - debian
         engine-version:
-#          - 20.10-dind # FIXME: Fails on 20.10
-          - stable-dind # TODO: Use 20.10-dind, stable-dind is deprecated
-        include:
-          - target: non-experimental
-            engine-version: 19.03-dind
+          - 25.0  # latest
+          - 24.0  # latest - 1
+          - 23.0  # mirantis lts
+          # TODO(krissetto) 19.03 needs a look, doesn't work ubuntu 22.04 (cgroup errors). 
+          # we could have a separate job that tests it against ubuntu 20.04
     steps:
       -
         name: Checkout
@@ -55,7 +55,7 @@ jobs:
           make -f docker.Makefile test-e2e-${{ matrix.target }}
         env:
           BASE_VARIANT: ${{ matrix.base }}
-          E2E_ENGINE_VERSION: ${{ matrix.engine-version }}
+          ENGINE_VERSION: ${{ matrix.engine-version }}
           TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
       -
         name: Send to Codecov

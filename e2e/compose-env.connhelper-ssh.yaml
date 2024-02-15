@@ -3,5 +3,7 @@ services:
       build:
         context: ./testdata
         dockerfile: Dockerfile.connhelper-ssh
+        args: 
+          - ENGINE_VERSION
       environment:
         - TEST_CONNHELPER_SSH_ID_RSA_PUB
