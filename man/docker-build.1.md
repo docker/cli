@@ -11,7 +11,7 @@ docker-build - Build an image from a Dockerfile
 [**-c**|**--cpu-shares**[=*0*]]
 [**--cgroup-parent**[=*CGROUP-PARENT*]]
 [**--help**]
-[**--iidfile**[=*CIDFILE*]]
+[**--iidfile**[=*IIDFILE*]]
 [**-f**|**--file**[=*PATH/Dockerfile*]]
 [**-squash**] *Experimental*
 [**--force-rm**]
