@@ -135,3 +135,18 @@ func TestNetworkOptAdvancedSyntaxInvalid(t *testing.T) {
 		})
 	}
 }
+
+func TestNetworkOptStringNetOptString(t *testing.T) {
+	networkOpt := &NetworkOpt{}
+	result := networkOpt.String()
+	assert.Check(t, is.Equal("", result))
+	if result != "" {
+		t.Errorf("Expected an empty string, got %s", result)
+	}
+}
+
+func TestNetworkOptTypeNetOptType(t *testing.T) {
+	networkOpt := &NetworkOpt{}
+	result := networkOpt.Type()
+	assert.Check(t, is.Equal("network", result))
+}
