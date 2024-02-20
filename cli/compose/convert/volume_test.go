@@ -470,3 +470,60 @@ func TestConvertVolumeMountClusterGroup(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(expected, mnt))
 }
+
+func TestHandleClusterToMountAnonymousCluster(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "invalid cluster source, source cannot be empty")
+}
+
+func TestHandleClusterToMountConflictingOptionsTmpfsInCluster(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "/foo",
+		Target: "/target",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Size: 1000,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "tmpfs options are incompatible with type cluster")
+}
+
+func TestHandleClusterToMountConflictingOptionsVolumeInCluster(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "/foo",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "volume options are incompatible with type cluster")
+}
+
+func TestHandleClusterToMountBind(t *testing.T) {
+	namespace := NewNamespace("foo")
+	config := composetypes.ServiceVolumeConfig{
+		Type:     "cluster",
+		Source:   "/bar",
+		Target:   "/foo",
+		ReadOnly: true,
+		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "bind options are incompatible with type cluster")
+}
