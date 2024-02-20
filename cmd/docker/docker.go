@@ -222,7 +222,7 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	}
 
 	// Establish the plugin socket, adding it to the environment under a well-known key if successful.
-	listener, conn, err := socket.SetupConn()
+	listener, connChan, err := socket.SetupConn()
 	if err == nil {
 		envs = append(envs, socket.EnvKey+"="+listener.Addr().String())
 		defer listener.Close()
@@ -247,13 +247,16 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 				continue
 			}
 			select {
-			case c := <-conn:
+			// connChan will close itself once we receive the connection
+			// thus further loops will not block on connChan
+			case c := <-connChan:
 				if c != nil {
 					if err := c.Close(); err != nil {
 						_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
 					}
 				}
-			case <-time.After(100 * time.Millisecond):
+			// timeout here if for some reason the channel is still open and not populated.
+			case <-time.After(1 * time.Millisecond):
 				// fallthrough and continue with the loop.
 			}
 			retries++

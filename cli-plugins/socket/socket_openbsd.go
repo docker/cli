@@ -14,6 +14,6 @@ func listen(socketname string) (*net.UnixListener, error) {
 	})
 }
 
-func onAccept(conn *net.UnixConn, listener *net.UnixListener) {
+func onAccept(listener *net.UnixListener) {
 	syscall.Unlink(listener.Addr().String())
 }

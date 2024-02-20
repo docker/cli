@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 )
 
 // EnvKey represents the well-known environment variable used to pass the plugin being
@@ -44,21 +45,32 @@ func randomID() string {
 func accept(listener *net.UnixListener) <-chan *net.UnixConn {
 	connChan := make(chan *net.UnixConn, 1)
 
-	go func(connChan chan<- *net.UnixConn) {
-		for {
+	go func() {
+		const maxRetries = 10
+		const waitBetweenRetries = 100 * time.Millisecond
+
+		var conn *net.UnixConn
+		var err error
+
+		// retry accepting a connection if there was an error
+		for i := 0; i < maxRetries; i++ {
 			// this is a blocking call and will wait
 			// until a new connection is accepted
-			c, err := listener.AcceptUnix()
+			// or until the timout is reached
+			conn, err = listener.AcceptUnix()
 
-			// perform any platform-specific actions on accept (e.g. unlink non-abstract sockets)
-			onAccept(listener)
-			// retry accepting a connection if there was an error
 			if err != nil {
+				time.Sleep(waitBetweenRetries)
 				continue
 			}
-			connChan <- c
+			break
 		}
-	}(connChan)
+		// perform any platform-specific actions on accept (e.g. unlink non-abstract sockets)
+		onAccept(listener)
+		connChan <- conn
+		// close the channel to signal we won't accept any more connections
+		close(connChan)
+	}()
 
 	return connChan
 }
