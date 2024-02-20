@@ -16,6 +16,16 @@ func TestNamespaceScope(t *testing.T) {
 	assert.Check(t, is.Equal("foo_bar", scoped))
 }
 
+func TestNamespaceDescope(t *testing.T) {
+	descoped := Namespace{name: "foo"}.Descope("foo_bar")
+	assert.Check(t, is.Equal("bar", descoped))
+}
+
+func TestNamespaceName(t *testing.T) {
+	namespaceName := Namespace{name: "foo"}.Name()
+	assert.Check(t, is.Equal("foo", namespaceName))
+}
+
 func TestAddStackLabel(t *testing.T) {
 	labels := map[string]string{
 		"something": "labeled",

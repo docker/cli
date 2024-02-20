@@ -68,3 +68,11 @@ func TestValidateOutputPath(t *testing.T) {
 		})
 	}
 }
+
+func TestCapitalizeFirstReturnsEmptyStringIfGivenEmptyString(t *testing.T) {
+	assert.Equal(t, capitalizeFirst(""), "")
+}
+
+func TestCapitalizeFirstReturnsStringWithUppercaseFirstLetterIfItWasLowercase(t *testing.T) {
+	assert.Equal(t, capitalizeFirst("blahonga"), "Blahonga")
+}
