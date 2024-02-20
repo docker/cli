@@ -220,7 +220,7 @@ func TestExtractVariables(t *testing.T) {
 		{
 			name: "required-variable",
 			dict: map[string]any{
-				"foo": "${bar?:foo}",
+				"foo": "${bar:?foo}",
 			},
 			expected: map[string]string{
 				"bar": "",
