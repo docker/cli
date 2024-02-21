@@ -74,8 +74,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)) {
-		return nil
+	if !options.force {
+		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)); !r || err != nil {
+			return err
+		}
 	}
 	pruneFuncs := []func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
 		container.RunPrune,

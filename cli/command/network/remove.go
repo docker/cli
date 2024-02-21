@@ -46,10 +46,15 @@ func runRemove(ctx context.Context, dockerCli command.Cli, networks []string, op
 	status := 0
 
 	for _, name := range networks {
-		if nw, _, err := client.NetworkInspectWithRaw(ctx, name, types.NetworkInspectOptions{}); err == nil &&
-			nw.Ingress &&
-			!command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), ingressWarning) {
-			continue
+		nw, _, err := client.NetworkInspectWithRaw(ctx, name, types.NetworkInspectOptions{})
+		if err == nil && nw.Ingress {
+			r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), ingressWarning)
+			if err != nil {
+				return err
+			}
+			if !r {
+				continue
+			}
 		}
 		if err := client.NetworkRemove(ctx, name); err != nil {
 			if opts.force && errdefs.IsNotFound(err) {

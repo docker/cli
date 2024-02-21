@@ -1,0 +1,2 @@
+Upgrading plugin foo/bar from localhost:5000/foo/bar:v0.1.0 to localhost:5000/foo/bar:v1.0.0
+Plugin images do not match, are you sure? [y/N] 

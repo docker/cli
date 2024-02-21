@@ -1,9 +1,11 @@
 package trust
 
 import (
+	"context"
 	"io"
 	"testing"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
@@ -12,6 +14,7 @@ import (
 	"github.com/theupdateframework/notary/trustpinning"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestTrustRevokeCommandErrors(t *testing.T) {
@@ -147,4 +150,19 @@ func TestGetSignableRolesForTargetAndRemoveError(t *testing.T) {
 	target := client.Target{}
 	err = getSignableRolesForTargetAndRemove(target, notaryRepo)
 	assert.Error(t, err, "client is offline")
+}
+
+func TestRevokeTrustPromptTermination(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	cli := test.NewFakeCli(&fakeClient{})
+	cmd := newRevokeCommand(cli)
+	cmd.SetArgs([]string{"example/trust-demo"})
+	test.TerminatePrompt(ctx, t, cmd, cli, func(t *testing.T, err error) {
+		t.Helper()
+		assert.ErrorIs(t, err, command.ErrPromptTerminated)
+	})
+	assert.Equal(t, cli.ErrBuffer().String(), "")
+	golden.Assert(t, cli.OutBuffer().String(), "trust-revoke-prompt-termination.golden")
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/system"
@@ -35,6 +36,7 @@ type fakeClient struct {
 	containerExecResizeFunc func(id string, options container.ResizeOptions) error
 	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
+	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error)
 	Version                 string
 }
 
@@ -163,4 +165,11 @@ func (f *fakeClient) ContainerKill(ctx context.Context, containerID, signal stri
 		return f.containerKillFunc(ctx, containerID, signal)
 	}
 	return nil
+}
+
+func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error) {
+	if f.containerPruneFunc != nil {
+		return f.containerPruneFunc(ctx, pruneFilters)
+	}
+	return types.ContainersPruneReport{}, nil
 }
