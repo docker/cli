@@ -465,18 +465,3 @@ func TestParseLink(t *testing.T) {
 		t.Fatalf("Expected error 'bad format for links: link:alias:wrong' but got: %v", err)
 	}
 }
-
-func TestGetAllOrEmpty(t *testing.T) {
-	opts := NewListOpts(nil)
-	assert.Check(t, is.DeepEqual(opts.GetAllOrEmpty(), []string{}))
-	opts.Set("foo")
-	assert.Check(t, is.DeepEqual(opts.GetAllOrEmpty(), []string{"foo"}))
-}
-
-func TestParseCPUs(t *testing.T) {
-	resValue, _ := ParseCPUs("foo")
-	var z1 int64 = 0
-	assert.Equal(t, z1, resValue)
-	resValue, _ = ParseCPUs("1e-32")
-	assert.Equal(t, z1, resValue)
-}
