@@ -78,7 +78,7 @@ ID                         HOSTNAME       STATUS  AVAILABILITY  MANAGER STATUS
 
 The `label` filter matches nodes based on engine labels and on the presence of a
 `label` alone or a `label` and a value. Engine labels are configured in
-the [daemon configuration](dockerd.md#daemon-configuration-file). To filter on
+the [daemon configuration](https://docs.docker.com/reference/cli/dockerd/#daemon-configuration-file). To filter on
 Swarm `node` labels, use [`node.label` instead](#nodelabel).
 
 The following filter matches nodes with the `foo` label regardless of its value.

@@ -10,11 +10,11 @@ identifier: "smn_cli_guide"
 This section contains reference information on using Docker's command line
 client. Each command has a reference page along with samples. If you are
 unfamiliar with the command line, you should start by reading about how to [Use
-the Docker command line](cli.md).
+the Docker command line](https://docs.docker.com/engine/reference/commandline/cli/).
 
 You start the Docker daemon with the command line. How you start the daemon
 affects your Docker containers. For that reason you should also make sure to
-read the [`dockerd`](dockerd.md) reference page.
+read the [`dockerd`](https://docs.docker.com/reference/cli/dockerd/) reference page.
 
 ## Commands by object
 
@@ -22,7 +22,7 @@ read the [`dockerd`](dockerd.md) reference page.
 
 | Command                           | Description                                          |
 | :-------------------------------- | :--------------------------------------------------- |
-| [dockerd](dockerd.md)             | Launch the Docker daemon                             |
+| [dockerd](../dockerd.md)          | Launch the Docker daemon                             |
 | [inspect](inspect.md)             | Return low-level information on a container or image |
 | [system events](system_events.md) | Get real-time events from the server                 |
 | [system info](system_info.md)     | Display system-wide information                      |
