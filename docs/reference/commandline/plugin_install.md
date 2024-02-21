@@ -9,7 +9,7 @@ Install a plugin
 |:--------------------------|:---------|:--------|:--------------------------------------------------|
 | `--alias`                 | `string` |         | Local name for plugin                             |
 | `--disable`               |          |         | Do not enable the plugin on install               |
-| `--disable-content-trust` |          |         | Skip image verification                           |
+| `--disable-content-trust` | `bool`   | `true`  | Skip image verification                           |
 | `--grant-all-permissions` |          |         | Grant all permissions necessary to run the plugin |
 
 
