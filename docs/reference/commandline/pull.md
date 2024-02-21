@@ -12,7 +12,7 @@ Download an image from a registry
 | Name                      | Type     | Default | Description                                      |
 |:--------------------------|:---------|:--------|:-------------------------------------------------|
 | `-a`, `--all-tags`        |          |         | Download all tagged images in the repository     |
-| `--disable-content-trust` |          |         | Skip image verification                          |
+| `--disable-content-trust` | `bool`   | `true`  | Skip image verification                          |
 | `--platform`              | `string` |         | Set platform if server is multi-platform capable |
 | `-q`, `--quiet`           |          |         | Suppress verbose output                          |
 
