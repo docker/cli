@@ -175,6 +175,50 @@ func TestConvertVolumeToMountConflictingOptionsVolumeInTmpfs(t *testing.T) {
 	assert.Error(t, err, "volume options are incompatible with type tmpfs")
 }
 
+func TestHandleNpipeToMountAnonymousNpipe(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "invalid npipe source, source cannot be empty")
+}
+
+func TestHandleNpipeToMountConflictingOptionsTmpfsInNpipe(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Source: "/foo",
+		Target: "/target",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Size: 1000,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "tmpfs options are incompatible with type npipe")
+}
+
+func TestHandleNpipeToMountConflictingOptionsVolumeInNpipe(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Source: "/foo",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "volume options are incompatible with type npipe")
+}
+
 func TestConvertVolumeToMountNamedVolume(t *testing.T) {
 	stackVolumes := volumes{
 		"normal": composetypes.VolumeConfig{
@@ -385,6 +429,27 @@ func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
 
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.Error(t, err, "invalid tmpfs source, source must be empty")
+}
+
+func TestHandleNpipeToMountBind(t *testing.T) {
+	namespace := NewNamespace("foo")
+	expected := mount.Mount{
+		Type:        mount.TypeNamedPipe,
+		Source:      "/bar",
+		Target:      "/foo",
+		ReadOnly:    true,
+		BindOptions: &mount.BindOptions{Propagation: mount.PropagationShared},
+	}
+	config := composetypes.ServiceVolumeConfig{
+		Type:     "npipe",
+		Source:   "/bar",
+		Target:   "/foo",
+		ReadOnly: true,
+		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
+	}
+	mnt, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountAnonymousNpipe(t *testing.T) {
