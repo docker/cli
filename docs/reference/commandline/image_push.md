@@ -9,11 +9,11 @@ Upload an image to a registry
 
 ### Options
 
-| Name                                         | Type | Default | Description                                 |
-|:---------------------------------------------|:-----|:--------|:--------------------------------------------|
-| [`-a`](#all-tags), [`--all-tags`](#all-tags) |      |         | Push all tags of an image to the repository |
-| `--disable-content-trust`                    |      |         | Skip image signing                          |
-| `-q`, `--quiet`                              |      |         | Suppress verbose output                     |
+| Name                                         | Type   | Default | Description                                 |
+|:---------------------------------------------|:-------|:--------|:--------------------------------------------|
+| [`-a`](#all-tags), [`--all-tags`](#all-tags) |        |         | Push all tags of an image to the repository |
+| `--disable-content-trust`                    | `bool` | `true`  | Skip image signing                          |
+| `-q`, `--quiet`                              |        |         | Suppress verbose output                     |
 
 
 <!---MARKER_GEN_END-->
