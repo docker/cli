@@ -13,9 +13,10 @@ import (
 // executed the socket name it should listen on to coordinate with the host CLI.
 const EnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 
-// SetupConn sets up a Unix socket listener, establishes a goroutine to handle connections
-// and update the conn pointer, and returns the listener for the socket (which the caller
-// is responsible for closing when it's no longer needed).
+// SetupConn sets up a Unix socket listener, establishes a goroutine to handle connections.
+// A listener is returned, along with a connection channel that will receive the established
+// connection. The channel *may* return a nil connection and should be checked once received.
+// The caller is responsible for closing the listener when it's no longer needed.
 func SetupConn() (*net.UnixListener, <-chan *net.UnixConn, error) {
 	listener, err := listen("docker_cli_" + randomID())
 	if err != nil {
@@ -40,11 +41,12 @@ func randomID() string {
 
 // accept creates a new Unix socket connection
 // and sends it to the *net.UnixConn channel
-// it allows reconnects
 func accept(listener *net.UnixListener) <-chan *net.UnixConn {
 	connChan := make(chan *net.UnixConn, 1)
 
 	go func() {
+		// close the channel to signal we won't accept any more connections
+		defer close(connChan)
 		// this is a blocking call and will wait
 		// until a new connection is accepted
 		// or until the timout is reached
@@ -53,8 +55,6 @@ func accept(listener *net.UnixListener) <-chan *net.UnixConn {
 		// perform any platform-specific actions on accept (e.g. unlink non-abstract sockets)
 		onAccept(listener)
 		connChan <- conn
-		// close the channel to signal we won't accept any more connections
-		close(connChan)
 	}()
 
 	return connChan
