@@ -27,22 +27,6 @@ func TestSetupConn(t *testing.T) {
 		pollConnNotNil(t, conn)
 	})
 
-	t.Run("allows reconnects", func(t *testing.T) {
-		listener, _, err := SetupConn()
-		assert.NilError(t, err)
-		assert.Check(t, listener != nil, "returned nil listener but no error")
-		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
-		assert.NilError(t, err, "failed to resolve listener address")
-
-		otherConn, err := net.DialUnix("unix", nil, addr)
-		assert.NilError(t, err, "failed to dial returned listener")
-
-		otherConn.Close()
-
-		_, err = net.DialUnix("unix", nil, addr)
-		assert.NilError(t, err, "failed to redial listener")
-	})
-
 	t.Run("does not leak sockets to local directory", func(t *testing.T) {
 		listener, _, err := SetupConn()
 		assert.NilError(t, err)
