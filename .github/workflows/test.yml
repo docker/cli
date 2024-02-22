@@ -34,6 +34,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           file: ./build/coverage/coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   host:
     runs-on: ${{ matrix.os }}
@@ -77,3 +78,4 @@ jobs:
         with:
           file: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+          token: ${{ secrets.CODECOV_TOKEN }}
