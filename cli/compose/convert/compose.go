@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/docker/api/types"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
@@ -52,7 +52,7 @@ func AddStackLabel(namespace Namespace, labels map[string]string) map[string]str
 type networkMap map[string]composetypes.NetworkConfig
 
 // Networks from the compose-file type to the engine API type
-func Networks(namespace Namespace, networks networkMap, servicesNetworks map[string]struct{}) (map[string]types.NetworkCreate, []string) {
+func Networks(namespace Namespace, networks composetypes.Networks, servicesNetworks map[string]struct{}) (map[string]types.NetworkCreate, []string) {
 	if networks == nil {
 		networks = make(map[string]composetypes.NetworkConfig)
 	}
@@ -61,7 +61,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 	result := make(map[string]types.NetworkCreate)
 	for internalName := range servicesNetworks {
 		network := networks[internalName]
-		if network.External.External {
+		if network.External {
 			externalNetworks = append(externalNetworks, network.Name)
 			continue
 		}
@@ -102,7 +102,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) ([]swarm.SecretSpec, error) {
 	result := []swarm.SecretSpec{}
 	for name, secret := range secrets {
-		if secret.External.External {
+		if secret.External {
 			continue
 		}
 
@@ -137,7 +137,7 @@ func Secrets(namespace Namespace, secrets map[string]composetypes.SecretConfig) 
 func Configs(namespace Namespace, configs map[string]composetypes.ConfigObjConfig) ([]swarm.ConfigSpec, error) {
 	result := []swarm.ConfigSpec{}
 	for name, config := range configs {
-		if config.External.External {
+		if config.External {
 			continue
 		}
 

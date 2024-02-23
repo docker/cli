@@ -1,5 +1,4 @@
 version: '3.3'
-
 services:
   one:
     image: registry:5000/alpine:frozen

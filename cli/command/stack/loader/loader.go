@@ -12,23 +12,26 @@ import (
 	"sort"
 	"strings"
 
+	specloader "github.com/compose-spec/compose-go/v2/loader"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/schema"
-	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/pkg/errors"
 )
 
 // LoadComposefile parse the composefile specified in the cli and returns its Config and version.
-func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Config, error) {
+func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Project, error) {
 	configDetails, err := GetConfigDetails(opts.Composefiles, dockerCli.In())
 	if err != nil {
 		return nil, err
 	}
 
-	dicts := getDictsFrom(configDetails.ConfigFiles)
-	config, err := loader.Load(configDetails)
+	projectNameFunc := func(o *specloader.Options) {
+		o.SetProjectName(opts.Namespace, true)
+	}
+	project, err := loader.Load(configDetails, projectNameFunc)
 	if err != nil {
 		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
 			// this error is intentionally formatted multi-line
@@ -38,28 +41,18 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 		return nil, err
 	}
 
-	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
+	unsupportedProperties := loader.GetUnsupportedProperties(project.Services)
 	if len(unsupportedProperties) > 0 {
 		fmt.Fprintf(dockerCli.Err(), "Ignoring unsupported options: %s\n\n",
 			strings.Join(unsupportedProperties, ", "))
 	}
 
-	deprecatedProperties := loader.GetDeprecatedProperties(dicts...)
+	deprecatedProperties := loader.GetDeprecatedProperties(project.Services)
 	if len(deprecatedProperties) > 0 {
 		fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
 			propertyWarnings(deprecatedProperties))
 	}
-	return config, nil
-}
-
-func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]any {
-	dicts := []map[string]any{}
-
-	for _, configFile := range configFiles {
-		dicts = append(dicts, configFile.Config)
-	}
-
-	return dicts
+	return project, nil
 }
 
 func propertyWarnings(properties map[string]string) string {
@@ -157,7 +150,7 @@ func loadConfigFile(filename string, stdin io.Reader) (*composetypes.ConfigFile,
 		return nil, err
 	}
 
-	config, err := loader.ParseYAML(bytes)
+	config, err := specloader.ParseYAML(bytes)
 	if err != nil {
 		return nil, err
 	}

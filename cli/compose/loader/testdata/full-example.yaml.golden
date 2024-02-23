@@ -1,4 +1,4 @@
-version: "3.12"
+name: full-example
 services:
   foo:
     build:
@@ -12,8 +12,8 @@ services:
       - foo
       - bar
       extra_hosts:
-      - ipv4.example.com:127.0.0.1
-      - ipv6.example.com:::1
+      - ipv4.example.com=127.0.0.1
+      - ipv6.example.com=::1
       network: foo
       target: foo
     cap_add:
@@ -37,8 +37,12 @@ services:
       mode: 288
     container_name: my-web-container
     depends_on:
-    - db
-    - redis
+      db:
+        condition: service_started
+        required: true
+      redis:
+        condition: service_started
+        required: true
     deploy:
       mode: replicated
       replicas: 6
@@ -104,8 +108,9 @@ services:
       FOO: foo_from_env_file
       QUX: qux_from_environment
     env_file:
-    - ./example1.env
-    - ./example2.env
+    - /foo/example1.env
+    - path: /foo/example2.env
+      required: false
     expose:
     - "3000"
     - "8000"
@@ -114,9 +119,9 @@ services:
     - project_db_1:mysql
     - project_db_1:postgresql
     extra_hosts:
-    - somehost:162.242.195.82
-    - otherhost:50.31.209.229
-    - host.docker.internal:host-gateway
+    - host.docker.internal=host-gateway
+    - otherhost=50.31.209.229
+    - somehost=162.242.195.82
     hostname: foo
     healthcheck:
       test:
@@ -174,67 +179,67 @@ services:
       protocol: tcp
     - mode: ingress
       target: 8000
-      published: 8000
+      published: "8000"
       protocol: tcp
     - mode: ingress
       target: 8080
-      published: 9090
+      published: "9090"
       protocol: tcp
     - mode: ingress
       target: 8081
-      published: 9091
+      published: "9091"
       protocol: tcp
     - mode: ingress
       target: 22
-      published: 49100
+      published: "49100"
       protocol: tcp
     - mode: ingress
       target: 8001
-      published: 8001
+      published: "8001"
       protocol: tcp
     - mode: ingress
       target: 5000
-      published: 5000
+      published: "5000"
       protocol: tcp
     - mode: ingress
       target: 5001
-      published: 5001
+      published: "5001"
       protocol: tcp
     - mode: ingress
       target: 5002
-      published: 5002
+      published: "5002"
       protocol: tcp
     - mode: ingress
       target: 5003
-      published: 5003
+      published: "5003"
       protocol: tcp
     - mode: ingress
       target: 5004
-      published: 5004
+      published: "5004"
       protocol: tcp
     - mode: ingress
       target: 5005
-      published: 5005
+      published: "5005"
       protocol: tcp
     - mode: ingress
       target: 5006
-      published: 5006
+      published: "5006"
       protocol: tcp
     - mode: ingress
       target: 5007
-      published: 5007
+      published: "5007"
       protocol: tcp
     - mode: ingress
       target: 5008
-      published: 5008
+      published: "5008"
       protocol: tcp
     - mode: ingress
       target: 5009
-      published: 5009
+      published: "5009"
       protocol: tcp
     - mode: ingress
       target: 5010
-      published: 5010
+      published: "5010"
       protocol: tcp
     privileged: true
     read_only: true
@@ -291,7 +296,7 @@ services:
     - type: tmpfs
       target: /opt
       tmpfs:
-        size: 10000
+        size: "10000"
     - type: cluster
       source: group:mygroup
       target: /srv

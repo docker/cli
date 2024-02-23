@@ -4,11 +4,16 @@ import (
 	"context"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"golang.org/x/exp/slices"
+
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	servicecli "github.com/docker/cli/cli/command/service"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	clitypes "github.com/docker/cli/cli/compose/types"
+
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
@@ -28,21 +33,21 @@ const (
 func Services(
 	ctx context.Context,
 	namespace Namespace,
-	config *composetypes.Config,
+	project *composetypes.Project,
 	apiClient client.CommonAPIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
-	for _, service := range config.Services {
-		secrets, err := convertServiceSecrets(ctx, apiClient, namespace, service.Secrets, config.Secrets)
+	for _, service := range project.Services {
+		secrets, err := convertServiceSecrets(ctx, apiClient, namespace, service.Secrets, project.Secrets)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
-		configs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, config.Configs)
+		configs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, project.Configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
 
-		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
+		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, project.Networks, project.Volumes, secrets, configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
@@ -63,7 +68,13 @@ func Service(
 	configs []*swarm.ConfigReference,
 ) (swarm.ServiceSpec, error) {
 	name := namespace.Scope(service.Name)
-	endpoint := convertEndpointSpec(service.Deploy.EndpointMode, service.Ports)
+	if service.Deploy == nil {
+		service.Deploy = &composetypes.DeployConfig{Replicas: nil}
+	}
+	endpoint, err := convertEndpointSpec(service.Deploy.EndpointMode, service.Ports)
+	if err != nil {
+		return swarm.ServiceSpec{}, err
+	}
 
 	mode, err := convertDeployMode(service.Deploy.Mode, service.Deploy.Replicas)
 	if err != nil {
@@ -135,7 +146,7 @@ func Service(
 				Dir:             service.WorkingDir,
 				User:            service.User,
 				Mounts:          mounts,
-				StopGracePeriod: composetypes.ConvertDurationPtr(service.StopGracePeriod),
+				StopGracePeriod: clitypes.ConvertDurationPtr(service.StopGracePeriod),
 				StopSignal:      service.StopSignal,
 				TTY:             service.Tty,
 				OpenStdin:       service.StdinOpen,
@@ -326,7 +337,7 @@ func convertServiceConfigObjs(
 	// if the credSpec uses a config, then we should grab the config name, and
 	// create a config reference for it. A File or Registry-type CredentialSpec
 	// does not need this operation.
-	if credSpec.Config != "" {
+	if credSpec != nil && credSpec.Config != "" {
 		// look up the config in the configSpecs.
 		obj, err := lookup(credSpec.Config)
 		if err != nil {
@@ -420,12 +431,12 @@ func uint32Ptr(value uint32) *uint32 {
 // "IP-address hostname(s)". The original order of mappings is preserved.
 func convertExtraHosts(extraHosts composetypes.HostsList) []string {
 	hosts := make([]string, 0, len(extraHosts))
-	for _, hostIP := range extraHosts {
-		if hostName, ipAddr, ok := strings.Cut(hostIP, ":"); ok {
-			// Convert to SwarmKit notation: IP-address hostname(s)
-			hosts = append(hosts, ipAddr+" "+hostName)
+	for hostName, hostIPs := range extraHosts {
+		for _, hostIP := range hostIPs {
+			hosts = append(hosts, hostIP+" "+hostName)
 		}
 	}
+	slices.Sort(hosts)
 	return hosts
 }
 
@@ -497,9 +508,9 @@ func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*
 
 	return &swarm.RestartPolicy{
 		Condition:   swarm.RestartPolicyCondition(source.Condition),
-		Delay:       composetypes.ConvertDurationPtr(source.Delay),
+		Delay:       clitypes.ConvertDurationPtr(source.Delay),
 		MaxAttempts: source.MaxAttempts,
-		Window:      composetypes.ConvertDurationPtr(source.Window),
+		Window:      clitypes.ConvertDurationPtr(source.Window),
 	}, nil
 }
 
@@ -570,13 +581,17 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 	return resources, nil
 }
 
-func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) *swarm.EndpointSpec {
+func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) (*swarm.EndpointSpec, error) {
 	portConfigs := []swarm.PortConfig{}
 	for _, port := range source {
+		publishedPort, err := strconv.ParseUint(port.Published, 10, 32)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid port configuration %s", port.Published)
+		}
 		portConfig := swarm.PortConfig{
 			Protocol:      swarm.PortConfigProtocol(port.Protocol),
 			TargetPort:    port.Target,
-			PublishedPort: port.Published,
+			PublishedPort: uint32(publishedPort),
 			PublishMode:   swarm.PortConfigPublishMode(port.Mode),
 		}
 		portConfigs = append(portConfigs, portConfig)
@@ -589,7 +604,7 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 	return &swarm.EndpointSpec{
 		Mode:  swarm.ResolutionMode(strings.ToLower(endpointMode)),
 		Ports: portConfigs,
-	}
+	}, nil
 }
 
 // convertEnvironment converts key/value mappings to a slice, and sorts
@@ -609,9 +624,13 @@ func convertEnvironment(source map[string]*string) []string {
 	return output
 }
 
-func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error) {
+func convertDeployMode(mode string, replicas *int) (swarm.ServiceMode, error) {
 	serviceMode := swarm.ServiceMode{}
-
+	var uintReplicas *uint64
+	if replicas != nil {
+		tmpReplicas := uint64(*replicas)
+		uintReplicas = &tmpReplicas
+	}
 	switch mode {
 	case "global-job":
 		if replicas != nil {
@@ -625,11 +644,11 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 		serviceMode.Global = &swarm.GlobalService{}
 	case "replicated-job":
 		serviceMode.ReplicatedJob = &swarm.ReplicatedJob{
-			MaxConcurrent:    replicas,
-			TotalCompletions: replicas,
+			MaxConcurrent:    uintReplicas,
+			TotalCompletions: uintReplicas,
 		}
 	case "replicated", "":
-		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: replicas}
+		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: uintReplicas}
 	default:
 		return serviceMode, errors.Errorf("Unknown mode: %s", mode)
 	}
@@ -646,9 +665,12 @@ func convertDNSConfig(dns []string, dnsSearch []string) *swarm.DNSConfig {
 	return nil
 }
 
-func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpecConfig, refs []*swarm.ConfigReference) (*swarm.CredentialSpec, error) {
+func convertCredentialSpec(namespace Namespace, spec *composetypes.CredentialSpecConfig, refs []*swarm.ConfigReference) (*swarm.CredentialSpec, error) {
 	var o []string
 
+	if spec == nil {
+		return nil, nil
+	}
 	// Config was added in API v1.40
 	if spec.Config != "" {
 		o = append(o, `"Config"`)
@@ -668,7 +690,11 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 	case l > 2:
 		return nil, errors.Errorf("invalid credential spec: cannot specify both %s, and %s", strings.Join(o[:l-1], ", "), o[l-1])
 	}
-	swarmCredSpec := swarm.CredentialSpec(spec)
+	swarmCredSpec := swarm.CredentialSpec{
+		Config:   spec.Config,
+		File:     spec.File,
+		Registry: spec.Registry,
+	}
 	// if we're using a swarm Config for the credential spec, over-write it
 	// here with the config ID
 	if swarmCredSpec.Config != "" {
