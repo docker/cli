@@ -69,9 +69,6 @@ func (m *MountOpt) Set(value string) error {
 	for _, field := range fields {
 		key, val, ok := strings.Cut(field, "=")
 
-		// TODO(thaJeztah): these options should not be case-insensitive.
-		key = strings.ToLower(key)
-
 		if !ok {
 			switch key {
 			case "readonly", "ro":
