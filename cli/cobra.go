@@ -470,7 +470,7 @@ Common Commands:
 Management Commands:
 
 {{- range managementSubCommands . }}
-  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}{{ if isPlugin .}} {{vendorAndVersion .}}{{ end}}
+  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}
 {{- end}}
 
 {{- end}}
@@ -479,7 +479,7 @@ Management Commands:
 Swarm Commands:
 
 {{- range orchestratorSubCommands . }}
-  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}{{ if isPlugin .}} {{vendorAndVersion .}}{{ end}}
+  {{rpad (decoratedName .) (add .NamePadding 1)}}{{.Short}}
 {{- end}}
 
 {{- end}}
