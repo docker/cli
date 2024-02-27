@@ -313,16 +313,8 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	// Buildkit's detect package currently follows the old otel spec which defaulted to gRPC.
-	// Since the spec changed to default to http/protobuf.
-	// If these env vars are not set then we set them to the new default so detect will give us the expected protocol.
-	// This is the same as on the dockerd side.
-	// This can be removed after buildkit's detect package is updated.
-	if os.Getenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL") == "" && os.Getenv("OTEL_EXPORTER_OTLP_PROTOCOL") == "" {
-		os.Setenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", "http/protobuf")
-	}
 	if v := os.Getenv("OTEL_SERVICE_NAME"); v == "" {
-		os.Setenv("OTEL_SERVICE_NAME", cmd.Root().Name())
+		_ = os.Setenv("OTEL_SERVICE_NAME", cmd.Root().Name())
 	}
 
 	if err := initializeTracing(cmd.Context()); err != nil {
