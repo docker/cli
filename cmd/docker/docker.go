@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -22,6 +23,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.opentelemetry.io/contrib/exporters/autoexport"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func main() {
@@ -68,7 +75,23 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return isSupported(cmd, dockerCli)
+			if err := isSupported(cmd, dockerCli); err != nil {
+				return err
+			}
+
+			name := cmd.Name()
+			for p := cmd.Parent(); p != nil && p != cmd.Root(); p = p.Parent() {
+				name = p.Name() + " " + name
+			}
+
+			ctx, _ := otel.Tracer("").Start(cmd.Context(), name)
+			cmd.SetContext(ctx)
+			_ = dockerCli.Apply(command.WithBaseContext(ctx))
+			return nil
+		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			// TODO: There doesn't seem to be a way to determine if the command returned an error, so we can set the span status here.
+			trace.SpanFromContext(cmd.Context()).End()
 		},
 		Version:               fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 		DisableFlagsInUseLine: true,
@@ -290,6 +313,14 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
+	if v := os.Getenv("OTEL_SERVICE_NAME"); v == "" {
+		_ = os.Setenv("OTEL_SERVICE_NAME", cmd.Root().Name())
+	}
+
+	if err := initializeTracing(cmd.Context()); err != nil {
+		logrus.WithError(err).Debug("Failed to initialize tracing")
+	}
+
 	var envs []string
 	args, os.Args, envs, err = processAliases(dockerCli, cmd, args, os.Args)
 	if err != nil {
@@ -323,6 +354,22 @@ func runDocker(dockerCli *command.DockerCli) error {
 	// which remain.
 	cmd.SetArgs(args)
 	return cmd.Execute()
+}
+
+func initializeTracing(ctx context.Context) error {
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+	exporter, err := autoexport.NewSpanExporter(ctx)
+	if err != nil {
+		return fmt.Errorf("creating span exporter: %w", err)
+	}
+
+	otel.SetTracerProvider(sdktrace.NewTracerProvider(
+		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
+		sdktrace.WithResource(resource.Default()),
+	))
+
+	return nil
 }
 
 type versionDetails interface {

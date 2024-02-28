@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func newRmManifestListCommand(dockerCli command.Cli) *cobra.Command {
@@ -23,11 +24,14 @@ func newRmManifestListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRm(_ context.Context, dockerCli command.Cli, targets []string) error {
+func runRm(ctx context.Context, dockerCli command.Cli, targets []string) error {
+	span := trace.SpanFromContext(ctx)
+
 	var errs []string
 	for _, target := range targets {
 		targetRef, refErr := normalizeReference(target)
 		if refErr != nil {
+			span.RecordError(refErr)
 			errs = append(errs, refErr.Error())
 			continue
 		}
