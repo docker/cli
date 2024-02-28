@@ -2,7 +2,9 @@ package manager
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/docker/cli/cli/command"
@@ -133,8 +135,14 @@ func getPluginResourceAttributes(cmd *cobra.Command, plugin Plugin) attribute.Se
 
 func appendPluginResourceAttributesEnvvar(env []string, cmd *cobra.Command, plugin Plugin) []string {
 	if attrs := getPluginResourceAttributes(cmd, plugin); attrs.Len() > 0 {
-		envVarVal := attrs.Encoded(attribute.DefaultEncoder())
-		env = append(env, ResourceAttributesEnvvar+"="+envVarVal)
+		// values in environment variables need to be in baggage format
+		// otel/baggage package can be used after update to v1.22, currently it encodes incorrectly
+		attrsSlice := make([]string, attrs.Len())
+		for iter := attrs.Iter(); iter.Next(); {
+			i, v := iter.IndexedAttribute()
+			attrsSlice[i] = string(v.Key) + "=" + url.PathEscape(v.Value.AsString())
+		}
+		env = append(env, ResourceAttributesEnvvar+"="+strings.Join(attrsSlice, ","))
 	}
 	return env
 }
