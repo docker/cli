@@ -35,7 +35,7 @@ func TestGlobalHelp(t *testing.T) {
 	for _, s := range []string{
 		`Management Commands:`,
 		`\s+container\s+Manage containers`,
-		`\s+helloworld\*\s+A basic Hello World plugin for tests \(Docker Inc\., testing\)`,
+		`\s+helloworld\*\s+A basic Hello World plugin for tests`,
 		`\s+image\s+Manage images`,
 		`Commands:`,
 		`\s+create\s+Create a new container`,
