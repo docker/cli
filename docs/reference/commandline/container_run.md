@@ -1000,7 +1000,7 @@ text. However, if you try the same thing but also adding the `-t` flag, the
 password is hidden:
 
 ```console
-$ docker run -i debian passwd root
+$ docker run -it debian passwd root
 New password:
 Retype new password:
 passwd: password updated successfully
