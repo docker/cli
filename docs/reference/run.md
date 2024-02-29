@@ -767,7 +767,7 @@ For example, this command creates a container and limits the read rate to
 `1000` IO per second from `/dev/sda`:
 
 ```console
-$ docker run -ti --device-read-iops /dev/sda:1000 ubuntu
+$ docker run -it --device-read-iops /dev/sda:1000 ubuntu
 ```
 
 The `--device-write-iops` flag limits write rate (IO per second) to a device.
@@ -775,7 +775,7 @@ For example, this command creates a container and limits the write rate to
 `1000` IO per second to `/dev/sda`:
 
 ```console
-$ docker run -ti --device-write-iops /dev/sda:1000 ubuntu
+$ docker run -it --device-write-iops /dev/sda:1000 ubuntu
 ```
 
 Both flags take limits in the `<device-path>:<limit>` format. Both read and
