@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
@@ -255,8 +254,7 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 						_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
 					}
 				}
-			// timeout here if for some reason the channel is still open and not populated.
-			case <-time.After(1 * time.Millisecond):
+			default:
 				// fallthrough and continue with the loop.
 			}
 			retries++
