@@ -66,8 +66,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	if options.all {
 		warning = allCacheWarning
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return 0, "", nil
+	if !options.force {
+		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning); !r || err != nil {
+			return 0, "", err
+		}
 	}
 
 	report, err := dockerCli.Client().BuildCachePrune(ctx, types.BuildCachePruneOptions{

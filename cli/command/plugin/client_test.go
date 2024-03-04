@@ -19,6 +19,7 @@ type fakeClient struct {
 	pluginInstallFunc func(name string, options types.PluginInstallOptions) (io.ReadCloser, error)
 	pluginListFunc    func(filter filters.Args) (types.PluginsListResponse, error)
 	pluginInspectFunc func(name string) (*types.Plugin, []byte, error)
+	pluginUpgradeFunc func(name string, options types.PluginInstallOptions) (io.ReadCloser, error)
 }
 
 func (c *fakeClient) PluginCreate(_ context.Context, createContext io.Reader, createOptions types.PluginCreateOptions) error {
@@ -74,4 +75,11 @@ func (c *fakeClient) PluginInspectWithRaw(_ context.Context, name string) (*type
 
 func (c *fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
+}
+
+func (c *fakeClient) PluginUpgrade(ctx context.Context, name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
+	if c.pluginUpgradeFunc != nil {
+		return c.pluginUpgradeFunc(name, options)
+	}
+	return nil, nil
 }

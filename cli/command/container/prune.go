@@ -53,8 +53,10 @@ Are you sure you want to continue?`
 func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return 0, "", nil
+	if !options.force {
+		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning); !r || err != nil {
+			return 0, "", err
+		}
 	}
 
 	report, err := dockerCli.Client().ContainersPrune(ctx, pruneFilters)

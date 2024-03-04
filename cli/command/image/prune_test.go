@@ -1,10 +1,12 @@
 package image
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"testing"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -100,4 +102,20 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		assert.NilError(t, err)
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("prune-command-success.%s.golden", tc.name))
 	}
+}
+
+func TestPrunePromptTermination(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	cli := test.NewFakeCli(&fakeClient{
+		imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
+			return types.ImagesPruneReport{}, errors.New("fakeClient imagesPruneFunc should not be called")
+		},
+	})
+	cmd := NewPruneCommand(cli)
+	test.TerminatePrompt(ctx, t, cmd, cli, func(t *testing.T, err error) {
+		t.Helper()
+		assert.ErrorIs(t, err, command.ErrPromptTerminated)
+	})
 }

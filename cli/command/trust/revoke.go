@@ -3,7 +3,6 @@ package trust
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -44,7 +43,11 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 		return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
 	}
 	if imgRefAndAuth.Tag() == "" && !options.forceYes {
-		deleteRemote := command.PromptForConfirmation(os.Stdin, dockerCLI.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
+		deleteRemote, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
+		if err != nil {
+			fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
+			return errors.Wrap(err, "aborting action")
+		}
 		if !deleteRemote {
 			fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
 			return nil

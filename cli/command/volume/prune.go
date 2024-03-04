@@ -80,8 +80,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		// API < v1.42 removes all volumes (anonymous and named) by default.
 		warning = allVolumesWarning
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return 0, "", errdefs.Cancelled(errors.New("user cancelled operation"))
+	if !options.force {
+		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning); !r || err != nil {
+			return 0, "", errdefs.Cancelled(errors.New("user cancelled operation"))
+		}
 	}
 
 	report, err := dockerCli.Client().VolumesPrune(ctx, pruneFilters)

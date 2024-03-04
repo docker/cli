@@ -3,7 +3,6 @@ package trust
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -76,6 +75,22 @@ func isLastSignerForReleases(roleWithSig data.Role, allRoles []client.RoleWithSi
 	return counter < releasesRoleWithSigs.Threshold, nil
 }
 
+func maybePromptForSignerRemoval(ctx context.Context, dockerCLI command.Cli, repoName, signerName string, isLastSigner, forceYes bool) (bool, error) {
+	if isLastSigner && !forceYes {
+		message := fmt.Sprintf("The signer \"%s\" signed the last released version of %s. "+
+			"Removing this signer will make %s unpullable. "+
+			"Are you sure you want to continue?",
+			signerName, repoName, repoName,
+		)
+		removeSigner, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), message)
+		if err != nil {
+			return false, err
+		}
+		return removeSigner, nil
+	}
+	return false, nil
+}
+
 // removeSingleSigner attempts to remove a single signer and returns whether signer removal happened.
 // The signer not being removed doesn't necessarily raise an error e.g. user choosing "No" when prompted for confirmation.
 func removeSingleSigner(ctx context.Context, dockerCLI command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
@@ -110,28 +125,26 @@ func removeSingleSigner(ctx context.Context, dockerCLI command.Cli, repoName, si
 	if err != nil {
 		return false, err
 	}
-	if ok, err := isLastSignerForReleases(role, allRoles); ok && !forceYes {
-		removeSigner := command.PromptForConfirmation(os.Stdin, dockerCLI.Out(), fmt.Sprintf("The signer \"%s\" signed the last released version of %s. "+
-			"Removing this signer will make %s unpullable. "+
-			"Are you sure you want to continue?",
-			signerName, repoName, repoName,
-		))
 
-		if !removeSigner {
-			fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
-			return false, nil
-		}
-	} else if err != nil {
-		return false, err
-	}
-	if err = notaryRepo.RemoveDelegationKeys(releasesRoleTUFName, role.KeyIDs); err != nil {
-		return false, err
-	}
-	if err = notaryRepo.RemoveDelegationRole(signerDelegation); err != nil {
+	isLastSigner, err := isLastSignerForReleases(role, allRoles)
+	if err != nil {
 		return false, err
 	}
 
-	if err = notaryRepo.Publish(); err != nil {
+	ok, err := maybePromptForSignerRemoval(ctx, dockerCLI, repoName, signerName, isLastSigner, forceYes)
+	if err != nil || !ok {
+		fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
+		return false, err
+	}
+
+	if err := notaryRepo.RemoveDelegationKeys(releasesRoleTUFName, role.KeyIDs); err != nil {
+		return false, err
+	}
+	if err := notaryRepo.RemoveDelegationRole(signerDelegation); err != nil {
+		return false, err
+	}
+
+	if err := notaryRepo.Publish(); err != nil {
 		return false, err
 	}
 

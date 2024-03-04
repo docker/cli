@@ -111,7 +111,8 @@ func TestIsLastSignerForReleases(t *testing.T) {
 	releaserole.Name = releasesRoleTUFName
 	releaserole.Threshold = 1
 	allrole := []client.RoleWithSignatures{releaserole}
-	lastsigner, _ := isLastSignerForReleases(role, allrole)
+	lastsigner, err := isLastSignerForReleases(role, allrole)
+	assert.Error(t, err, "all signed tags are currently revoked, use docker trust sign to fix")
 	assert.Check(t, is.Equal(false, lastsigner))
 
 	role.KeyIDs = []string{"deadbeef"}
@@ -120,13 +121,15 @@ func TestIsLastSignerForReleases(t *testing.T) {
 	releaserole.Signatures = []data.Signature{sig}
 	releaserole.Threshold = 1
 	allrole = []client.RoleWithSignatures{releaserole}
-	lastsigner, _ = isLastSignerForReleases(role, allrole)
+	lastsigner, err = isLastSignerForReleases(role, allrole)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(true, lastsigner))
 
 	sig.KeyID = "8badf00d"
 	releaserole.Signatures = []data.Signature{sig}
 	releaserole.Threshold = 1
 	allrole = []client.RoleWithSignatures{releaserole}
-	lastsigner, _ = isLastSignerForReleases(role, allrole)
+	lastsigner, err = isLastSignerForReleases(role, allrole)
+	assert.NilError(t, err)
 	assert.Check(t, is.Equal(false, lastsigner))
 }

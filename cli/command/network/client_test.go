@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
@@ -15,6 +16,8 @@ type fakeClient struct {
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
 	networkListFunc       func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error)
+	networkPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (types.NetworksPruneReport, error)
+	networkInspectFunc    func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, []byte, error)
 }
 
 func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error) {
@@ -52,6 +55,16 @@ func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string) error 
 	return nil
 }
 
-func (c *fakeClient) NetworkInspectWithRaw(context.Context, string, types.NetworkInspectOptions) (types.NetworkResource, []byte, error) {
+func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, opts types.NetworkInspectOptions) (types.NetworkResource, []byte, error) {
+	if c.networkInspectFunc != nil {
+		return c.networkInspectFunc(ctx, networkID, opts)
+	}
 	return types.NetworkResource{}, nil, nil
+}
+
+func (c *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Args) (types.NetworksPruneReport, error) {
+	if c.networkPruneFunc != nil {
+		return c.networkPruneFunc(ctx, pruneFilter)
+	}
+	return types.NetworksPruneReport{}, nil
 }

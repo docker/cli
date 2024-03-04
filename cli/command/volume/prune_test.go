@@ -1,6 +1,7 @@
 package volume
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"runtime"
@@ -182,4 +183,20 @@ func simplePruneFunc(filters.Args) (types.VolumesPruneReport, error) {
 		},
 		SpaceReclaimed: 2000,
 	}, nil
+}
+
+func TestVolumePrunePromptTerminate(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	cli := test.NewFakeCli(&fakeClient{
+		volumePruneFunc: func(filter filters.Args) (types.VolumesPruneReport, error) {
+			return types.VolumesPruneReport{}, errors.New("fakeClient volumePruneFunc should not be called")
+		},
+	})
+
+	cmd := NewPruneCommand(cli)
+	test.TerminatePrompt(ctx, t, cmd, cli, nil)
+
+	golden.Assert(t, cli.OutBuffer().String(), "volume-prune-terminate.golden")
 }
