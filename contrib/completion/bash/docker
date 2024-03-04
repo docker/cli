@@ -1146,6 +1146,7 @@ __docker_complete_plugin() {
 	local path=$1
 	local completionCommand="__completeNoDesc"
 	local resultArray=($path $completionCommand)
+	local current="$cur"
 	for value in "${words[@]:2}"; do
 		if [ -z "$value" ]; then
 			resultArray+=( "''" )
