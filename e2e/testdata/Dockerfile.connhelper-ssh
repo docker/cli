@@ -1,5 +1,16 @@
-FROM docker:test-dind
-RUN apk --no-cache add shadow openssh-server && \
+# syntax=docker/dockerfile:1
+
+# ENGINE_VERSION is the version of the (docker-in-docker) Docker Engine to
+# test against.
+ARG ENGINE_VERSION=25.0
+
+FROM docker:${ENGINE_VERSION}-dind
+
+# the openssh-client update is needed for security reasons when using docker:23.0-dind, currently maintained as an lts by mirantis
+RUN apk --no-cache upgrade openssh-client && \
+  apk --no-cache add shadow openssh-server && \
+  # TODO(krissetto): `groupadd` can be removed once we only test against moby >= v24
+  # see https://github.com/docker-library/docker/pull/470
   groupadd -f docker && \
   useradd --create-home --shell /bin/sh --password $(head -c32 /dev/urandom | base64) penguin && \
   usermod -aG docker penguin && \

@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
@@ -21,6 +22,8 @@ import (
 const registryPrefix = "registry:5000"
 
 func TestInstallWithContentTrust(t *testing.T) {
+	// TODO(krissetto): remove this skip once the fix (see https://github.com/moby/moby/pull/47299) is deployed to moby versions < 25
+	skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 	skip.If(t, environment.SkipPluginTests())
 
 	pluginName := fmt.Sprintf("%s/plugin-content-trust", registryPrefix)
@@ -50,7 +53,7 @@ func TestInstallWithContentTrust(t *testing.T) {
 		fixtures.WithNotary,
 	)
 	result.Assert(t, icmd.Expected{
-		Out: fmt.Sprintf("Status: Downloaded newer image for %s@sha", pluginName),
+		Out: fmt.Sprintf("Installed plugin %s", pluginName),
 	})
 }
 
