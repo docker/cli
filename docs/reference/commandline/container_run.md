@@ -108,7 +108,7 @@ Create and run a new container from an image
 | [`-t`](#tty), [`--tty`](#tty)                         |               |           | Allocate a pseudo-TTY                                                                                                                                                                                                                                                                                            |
 | [`--ulimit`](#ulimit)                                 | `ulimit`      |           | Ulimit options                                                                                                                                                                                                                                                                                                   |
 | `-u`, `--user`                                        | `string`      |           | Username or UID (format: <name\|uid>[:<group\|gid>])                                                                                                                                                                                                                                                             |
-| `--userns`                                            | `string`      |           | User namespace to use                                                                                                                                                                                                                                                                                            |
+| [`--userns`](#userns)                                 | `string`      |           | User namespace to use                                                                                                                                                                                                                                                                                            |
 | [`--uts`](#uts)                                       | `string`      |           | UTS namespace to use                                                                                                                                                                                                                                                                                             |
 | [`-v`](#volume), [`--volume`](#volume)                | `list`        |           | Bind mount a volume                                                                                                                                                                                                                                                                                              |
 | `--volume-driver`                                     | `string`      |           | Optional volume driver for the container                                                                                                                                                                                                                                                                         |
@@ -270,6 +270,21 @@ container.
    / # strace -p 1
    strace: Process 1 attached
    ```
+
+### <a name="userns"></a> Disable namespace remapping for a container (--userns)
+
+If you enable user namespaces on the daemon,
+all containers are started with user namespaces enabled by default.
+To disable user namespace remapping for a specific container,
+you can set the `--userns` flag to `host`.
+
+```console
+docker run --userns=host hello-world
+```
+
+`host` is the only valid value for the `--userns` flag.
+
+For more information, refer to [Isolate containers with a user namespace](https://docs.docker.com/engine/security/userns-remap/).
 
 ### <a name="uts"></a> UTS settings (--uts)
 
