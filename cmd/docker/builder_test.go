@@ -23,6 +23,9 @@ import (
 var pluginFilename = "docker-buildx"
 
 func TestBuildWithBuilder(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	testcases := []struct {
 		name         string
 		context      string
@@ -64,12 +67,16 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 	for _, tt := range testcases {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			ctx2, cancel2 := context.WithCancel(ctx)
+			defer cancel2()
+
 			if tt.builder != "" {
 				t.Setenv("BUILDX_BUILDER", tt.builder)
 			}
 
 			var b bytes.Buffer
 			dockerCli, err := command.NewDockerCli(
+				command.WithBaseContext(ctx2),
 				command.WithAPIClient(&fakeClient{}),
 				command.WithInputStream(discard),
 				command.WithCombinedStreams(&b),
@@ -98,8 +105,7 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 				dockerCli.ConfigFile().Aliases = map[string]string{"builder": "buildx"}
 			}
 
-			ctx := context.TODO()
-			tcmd := newDockerCommand(ctx, dockerCli)
+			tcmd := newDockerCommand(ctx2, dockerCli)
 			tcmd.SetArgs([]string{"build", "."})
 
 			cmd, args, err := tcmd.HandleGlobalFlags()
@@ -127,6 +133,9 @@ func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {
 }
 
 func TestBuildkitDisabled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, t.Name(),
@@ -137,6 +146,7 @@ func TestBuildkitDisabled(t *testing.T) {
 	b := bytes.NewBuffer(nil)
 
 	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
 		command.WithAPIClient(&fakeClient{}),
 		command.WithInputStream(discard),
 		command.WithCombinedStreams(b),
@@ -145,7 +155,6 @@ func TestBuildkitDisabled(t *testing.T) {
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
 
-	ctx := context.TODO()
 	tcmd := newDockerCommand(ctx, dockerCli)
 	tcmd.SetArgs([]string{"build", "."})
 
@@ -165,6 +174,9 @@ func TestBuildkitDisabled(t *testing.T) {
 }
 
 func TestBuilderBroken(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
 	)
@@ -173,6 +185,7 @@ func TestBuilderBroken(t *testing.T) {
 	b := bytes.NewBuffer(nil)
 
 	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
 		command.WithAPIClient(&fakeClient{}),
 		command.WithInputStream(discard),
 		command.WithCombinedStreams(b),
@@ -181,7 +194,6 @@ func TestBuilderBroken(t *testing.T) {
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
 
-	ctx := context.TODO()
 	tcmd := newDockerCommand(ctx, dockerCli)
 	tcmd.SetArgs([]string{"build", "."})
 
@@ -202,6 +214,8 @@ func TestBuilderBroken(t *testing.T) {
 
 func TestBuilderBrokenEnforced(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "1")
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
@@ -211,6 +225,7 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 	b := bytes.NewBuffer(nil)
 
 	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
 		command.WithAPIClient(&fakeClient{}),
 		command.WithInputStream(discard),
 		command.WithCombinedStreams(b),
@@ -219,7 +234,6 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
 
-	ctx := context.TODO()
 	tcmd := newDockerCommand(ctx, dockerCli)
 	tcmd.SetArgs([]string{"build", "."})
 
