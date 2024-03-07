@@ -100,11 +100,12 @@ func (cli *DockerCli) DefaultVersion() string {
 // CurrentVersion returns the API version currently negotiated, or the default
 // version otherwise.
 func (cli *DockerCli) CurrentVersion() string {
+	ctx := context.TODO()
 	_ = cli.initialize()
 	if cli.client == nil {
 		return api.DefaultVersion
 	}
-	return cli.client.ClientVersion()
+	return cli.client.ClientVersion(ctx)
 }
 
 // Client returns the APIClient
@@ -203,10 +204,10 @@ func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.Registry
 }
 
 // WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
-func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) CLIOption {
+func WithInitializeClient(makeClient func(ctx context.Context, dockerCli *DockerCli) (client.APIClient, error)) CLIOption {
 	return func(dockerCli *DockerCli) error {
 		var err error
-		dockerCli.client, err = makeClient(dockerCli)
+		dockerCli.client, err = makeClient(dockerCli.baseCtx, dockerCli)
 		return err
 	}
 }
@@ -245,7 +246,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 }
 
 // NewAPIClientFromFlags creates a new APIClient from command line flags
-func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
+func NewAPIClientFromFlags(ctx context.Context, opts *cliflags.ClientOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
 		return nil, errors.New("conflicting options: either specify --host or --context, not both")
 	}
@@ -261,10 +262,10 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
-	return newAPIClientFromEndpoint(endpoint, configFile)
+	return newAPIClientFromEndpoint(ctx, endpoint, configFile)
 }
 
-func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
+func newAPIClientFromEndpoint(ctx context.Context, ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	opts, err := ep.ClientOpts()
 	if err != nil {
 		return nil, err
@@ -273,7 +274,7 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 		opts = append(opts, client.WithHTTPHeaders(configFile.HTTPHeaders))
 	}
 	opts = append(opts, client.WithUserAgent(UserAgent()))
-	return client.NewClientWithOpts(opts...)
+	return client.NewClientWithOpts(ctx, opts...)
 }
 
 func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
@@ -337,7 +338,7 @@ func (cli *DockerCli) initializeFromClient() {
 		cli.serverInfo = ServerInfo{HasExperimental: true}
 
 		if ping.APIVersion != "" {
-			cli.client.NegotiateAPIVersionPing(ping)
+			cli.client.NegotiateAPIVersionPing(cli.baseCtx, ping)
 		}
 		return
 	}
@@ -348,7 +349,7 @@ func (cli *DockerCli) initializeFromClient() {
 		BuildkitVersion: ping.BuilderVersion,
 		SwarmStatus:     ping.SwarmStatus,
 	}
-	cli.client.NegotiateAPIVersionPing(ping)
+	cli.client.NegotiateAPIVersionPing(cli.baseCtx, ping)
 }
 
 // NotaryClient provides a Notary Repository to interact with signed metadata for an image
@@ -444,7 +445,7 @@ func (cli *DockerCli) initialize() error {
 			return
 		}
 		if cli.client == nil {
-			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile); cli.initErr != nil {
+			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.baseCtx, cli.dockerEndpoint, cli.configFile); cli.initErr != nil {
 				return
 			}
 		}

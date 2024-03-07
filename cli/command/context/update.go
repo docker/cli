@@ -2,6 +2,7 @@ package context
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -41,7 +42,8 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Name = args[0]
-			return RunUpdate(dockerCli, opts)
+			ctx := cmd.Context()
+			return RunUpdate(ctx, dockerCli, opts)
 		},
 		Long: longUpdateDescription(),
 	}
@@ -52,7 +54,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunUpdate updates a Docker context
-func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
+func RunUpdate(ctx context.Context, dockerCLI command.Cli, o *UpdateOptions) error {
 	if err := store.ValidateContextName(o.Name); err != nil {
 		return err
 	}
@@ -74,7 +76,7 @@ func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
 	tlsDataToReset := make(map[string]*store.EndpointTLSData)
 
 	if o.Docker != nil {
-		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(s, o.Docker)
+		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(ctx, s, o.Docker)
 		if err != nil {
 			return errors.Wrap(err, "unable to create docker endpoint config")
 		}

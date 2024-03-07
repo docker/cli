@@ -40,6 +40,8 @@ type FakeCli struct {
 	dockerEndpoint   docker.Endpoint
 }
 
+var _ command.Cli = (*FakeCli)(nil)
+
 // NewFakeCli returns a fake for the command.Cli interface
 func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 	outBuffer := new(bytes.Buffer)

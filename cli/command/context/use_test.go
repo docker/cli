@@ -2,6 +2,7 @@ package context
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -19,11 +20,14 @@ import (
 )
 
 func TestUse(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	configDir := t.TempDir()
 	configFilePath := filepath.Join(configDir, "config.json")
 	testCfg := configfile.New(configFilePath)
 	cli := makeFakeCli(t, withCliConfig(testCfg))
-	err := RunCreate(cli, &CreateOptions{
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
 	})
@@ -84,12 +88,14 @@ func TestUseDefaultWithoutConfigFile(t *testing.T) {
 
 func TestUseHostOverride(t *testing.T) {
 	t.Setenv("DOCKER_HOST", "tcp://ed:2375/")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	configDir := t.TempDir()
 	configFilePath := filepath.Join(configDir, "config.json")
 	testCfg := configfile.New(configFilePath)
 	cli := makeFakeCli(t, withCliConfig(testCfg))
-	err := RunCreate(cli, &CreateOptions{
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
 	})
@@ -119,6 +125,9 @@ func TestUseHostOverride(t *testing.T) {
 func TestUseHostOverrideEmpty(t *testing.T) {
 	t.Setenv("DOCKER_HOST", "")
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	configDir := t.TempDir()
 	config.SetDir(configDir)
 
@@ -136,7 +145,7 @@ func TestUseHostOverrideEmpty(t *testing.T) {
 		assert.NilError(t, cli.Initialize(flags.NewClientOptions()))
 	}
 	loadCli()
-	err := RunCreate(cli, &CreateOptions{
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{"host": socketPath},
 	})
@@ -153,5 +162,5 @@ func TestUseHostOverrideEmpty(t *testing.T) {
 	assert.Assert(t, is.Contains(out.String(), "test"))
 
 	apiclient := cli.Client()
-	assert.Equal(t, apiclient.DaemonHost(), socketPath)
+	assert.Equal(t, apiclient.DaemonHost(ctx), socketPath)
 }

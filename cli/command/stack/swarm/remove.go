@@ -32,7 +32,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 		}
 
 		var secrets []swarm.Secret
-		if versions.GreaterThanOrEqualTo(client.ClientVersion(), "1.25") {
+		if versions.GreaterThanOrEqualTo(client.ClientVersion(ctx), "1.25") {
 			secrets, err = getStackSecrets(ctx, client, namespace)
 			if err != nil {
 				return err
@@ -40,7 +40,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 		}
 
 		var configs []swarm.Config
-		if versions.GreaterThanOrEqualTo(client.ClientVersion(), "1.30") {
+		if versions.GreaterThanOrEqualTo(client.ClientVersion(ctx), "1.30") {
 			configs, err = getStackConfigs(ctx, client, namespace)
 			if err != nil {
 				return err

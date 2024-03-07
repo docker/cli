@@ -32,7 +32,7 @@ func runDialStdio(ctx context.Context, dockerCli command.Cli) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	dialer := dockerCli.Client().Dialer()
+	dialer := dockerCli.Client().Dialer(ctx)
 	conn, err := dialer(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to open the raw stream connection")

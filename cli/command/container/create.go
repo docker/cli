@@ -85,7 +85,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
+	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(ctx), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
 	for k, v := range proxyConfig {
 		if v == nil {
@@ -100,7 +100,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
+	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion(ctx)); err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
@@ -236,7 +236,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	// create. It will produce an error if you try to set a platform on older API
 	// versions, so check the API version here to maintain backwards
 	// compatibility for CLI users.
-	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
+	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(ctx), "1.41") {
 		p, err := platforms.Parse(options.platform)
 		if err != nil {
 			return "", errors.Wrap(err, "error parsing specified platform")

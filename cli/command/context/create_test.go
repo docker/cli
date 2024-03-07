@@ -4,6 +4,7 @@
 package context
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -93,10 +94,14 @@ func TestCreate(t *testing.T) {
 			expecterErr: `unable to parse docker host`,
 		},
 	}
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.options.Name, func(t *testing.T) {
-			err := RunCreate(cli, &tc.options)
+			err := RunCreate(ctx, cli, &tc.options)
 			if tc.expecterErr == "" {
 				assert.NilError(t, err)
 			} else {
@@ -114,8 +119,10 @@ func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
 
 func TestCreateOrchestratorEmpty(t *testing.T) {
 	cli := makeFakeCli(t)
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 
-	err := RunCreate(cli, &CreateOptions{
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
 	})
@@ -141,9 +148,12 @@ func TestCreateFromContext(t *testing.T) {
 		},
 	}
 
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
+	assert.NilError(t, RunCreate(ctx, cli, &CreateOptions{
 		Name:        "original",
 		Description: "original description",
 		Docker: map[string]string{
@@ -153,7 +163,7 @@ func TestCreateFromContext(t *testing.T) {
 	assertContextCreateLogging(t, cli, "original")
 
 	cli.ResetOutputBuffers()
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
+	assert.NilError(t, RunCreate(ctx, cli, &CreateOptions{
 		Name:        "dummy",
 		Description: "dummy description",
 		Docker: map[string]string{
@@ -168,7 +178,7 @@ func TestCreateFromContext(t *testing.T) {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
-			err := RunCreate(cli, &CreateOptions{
+			err := RunCreate(ctx, cli, &CreateOptions{
 				From:        "original",
 				Name:        c.name,
 				Description: c.description,
@@ -189,6 +199,9 @@ func TestCreateFromContext(t *testing.T) {
 }
 
 func TestCreateFromCurrent(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	cases := []struct {
 		name                string
 		description         string
@@ -208,7 +221,7 @@ func TestCreateFromCurrent(t *testing.T) {
 
 	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
+	assert.NilError(t, RunCreate(ctx, cli, &CreateOptions{
 		Name:        "original",
 		Description: "original description",
 		Docker: map[string]string{
@@ -223,7 +236,7 @@ func TestCreateFromCurrent(t *testing.T) {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
-			err := RunCreate(cli, &CreateOptions{
+			err := RunCreate(ctx, cli, &CreateOptions{
 				Name:        c.name,
 				Description: c.description,
 			})

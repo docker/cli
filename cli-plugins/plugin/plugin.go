@@ -65,14 +65,14 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 }
 
 // Run is the top-level entry point to the CLI plugin framework. It should be called from your plugin's `main()` function.
-func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
+func Run(ctx context.Context, makeCmd func(context.Context, command.Cli) *cobra.Command, meta manager.Metadata) {
 	dockerCli, err := command.NewDockerCli()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
-	plugin := makeCmd(dockerCli)
+	plugin := makeCmd(ctx, dockerCli)
 
 	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
@@ -92,7 +92,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 }
 
 func withPluginClientConn(name string) command.CLIOption {
-	return command.WithInitializeClient(func(dockerCli *command.DockerCli) (client.APIClient, error) {
+	return command.WithInitializeClient(func(ctx context.Context, dockerCli *command.DockerCli) (client.APIClient, error) {
 		cmd := "docker"
 		if x := os.Getenv(manager.ReexecEnvvar); x != "" {
 			cmd = x
@@ -119,7 +119,7 @@ func withPluginClientConn(name string) command.CLIOption {
 			return nil, err
 		}
 
-		return client.NewClientWithOpts(client.WithDialContext(helper.Dialer))
+		return client.NewClientWithOpts(ctx, client.WithDialContext(helper.Dialer))
 	})
 }
 

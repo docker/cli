@@ -164,7 +164,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 			return errors.New("other flags may not be combined with --rollback")
 		}
 
-		if versions.LessThan(apiClient.ClientVersion(), "1.28") {
+		if versions.LessThan(apiClient.ClientVersion(ctx), "1.28") {
 			clientSideRollback = true
 			spec = service.PreviousSpec
 			if spec == nil {
@@ -189,7 +189,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		if err := resolveServiceImageDigestContentTrust(dockerCli, spec); err != nil {
 			return err
 		}
-		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
+		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(ctx), "1.30") {
 			updateOpts.QueryRegistry = true
 		}
 	}
@@ -245,7 +245,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if options.detach || versions.LessThan(apiClient.ClientVersion(ctx), "1.29") {
 		return nil
 	}
 

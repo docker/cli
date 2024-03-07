@@ -5,6 +5,7 @@ package context
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -47,7 +48,8 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Name = args[0]
-			return RunCreate(dockerCLI, opts)
+			ctx := cmd.Context()
+			return RunCreate(ctx, dockerCLI, opts)
 		},
 		Long:              longCreateDescription(),
 		ValidArgsFunction: completion.NoComplete,
@@ -60,7 +62,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 // RunCreate creates a Docker context
-func RunCreate(dockerCLI command.Cli, o *CreateOptions) error {
+func RunCreate(ctx context.Context, dockerCLI command.Cli, o *CreateOptions) error {
 	s := dockerCLI.ContextStore()
 	err := checkContextNameForCreation(s, o.Name)
 	if err != nil {
@@ -72,7 +74,7 @@ func RunCreate(dockerCLI command.Cli, o *CreateOptions) error {
 	case o.From != "":
 		err = createFromExistingContext(s, o.From, o)
 	default:
-		err = createNewContext(s, o)
+		err = createNewContext(ctx, s, o)
 	}
 	if err == nil {
 		fmt.Fprintln(dockerCLI.Out(), o.Name)
@@ -81,11 +83,11 @@ func RunCreate(dockerCLI command.Cli, o *CreateOptions) error {
 	return err
 }
 
-func createNewContext(contextStore store.ReaderWriter, o *CreateOptions) error {
+func createNewContext(ctx context.Context, contextStore store.ReaderWriter, o *CreateOptions) error {
 	if o.Docker == nil {
 		return errors.New("docker endpoint configuration is required")
 	}
-	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(contextStore, o.Docker)
+	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(ctx, contextStore, o.Docker)
 	if err != nil {
 		return errors.Wrap(err, "unable to create docker endpoint config")
 	}

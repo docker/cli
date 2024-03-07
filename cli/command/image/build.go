@@ -325,7 +325,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	for k, auth := range creds {
 		authConfigs[k] = registrytypes.AuthConfig(auth)
 	}
-	buildOptions := imageBuildOptions(dockerCli, options)
+	buildOptions := imageBuildOptions(ctx, dockerCli, options)
 	buildOptions.Version = types.BuilderV1
 	buildOptions.Dockerfile = relDockerfile
 	buildOptions.AuthConfigs = authConfigs
@@ -529,7 +529,7 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 	return pipeReader
 }
 
-func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageBuildOptions {
+func imageBuildOptions(ctx context.Context, dockerCli command.Cli, options buildOptions) types.ImageBuildOptions {
 	configFile := dockerCli.ConfigFile()
 	return types.ImageBuildOptions{
 		Memory:         options.memory.Value(),
@@ -549,7 +549,7 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageB
 		CgroupParent:   options.cgroupParent,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetAll())),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(ctx), opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetAll())),
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		CacheFrom:      options.cacheFrom,
 		SecurityOpt:    options.securityOpt,

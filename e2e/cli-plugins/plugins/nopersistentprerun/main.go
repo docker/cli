@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli-plugins/manager"
@@ -10,7 +11,8 @@ import (
 )
 
 func main() {
-	plugin.Run(func(dockerCli command.Cli) *cobra.Command {
+	ctx := context.Background()
+	plugin.Run(ctx, func(ctx context.Context, dockerCli command.Cli) *cobra.Command {
 		cmd := &cobra.Command{
 			Use:   "nopersistentprerun",
 			Short: "Testing without PersistentPreRun hooks",

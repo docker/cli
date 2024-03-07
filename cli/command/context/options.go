@@ -1,11 +1,12 @@
 package context
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli/context"
+	dockerContext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/docker/client"
@@ -85,7 +86,7 @@ func validateConfig(config map[string]string, allowedKeys map[string]struct{}) e
 	return errors.New(strings.Join(errs, "\n"))
 }
 
-func getDockerEndpoint(contextStore store.Reader, config map[string]string) (docker.Endpoint, error) {
+func getDockerEndpoint(ctx context.Context, contextStore store.Reader, config map[string]string) (docker.Endpoint, error) {
 	if err := validateConfig(config, allowedDockerConfigKeys); err != nil {
 		return docker.Endpoint{}, err
 	}
@@ -99,7 +100,7 @@ func getDockerEndpoint(contextStore store.Reader, config map[string]string) (doc
 		}
 		return docker.Endpoint{}, errors.Errorf("unable to get endpoint from context %q", contextName)
 	}
-	tlsData, err := context.TLSDataFromFiles(config[keyCA], config[keyCert], config[keyKey])
+	tlsData, err := dockerContext.TLSDataFromFiles(config[keyCA], config[keyCert], config[keyKey])
 	if err != nil {
 		return docker.Endpoint{}, err
 	}
@@ -119,14 +120,14 @@ func getDockerEndpoint(contextStore store.Reader, config map[string]string) (doc
 	if err != nil {
 		return docker.Endpoint{}, errors.Wrap(err, "invalid docker endpoint options")
 	}
-	if _, err := client.NewClientWithOpts(opts...); err != nil {
+	if _, err := client.NewClientWithOpts(ctx, opts...); err != nil {
 		return docker.Endpoint{}, errors.Wrap(err, "unable to apply docker endpoint options")
 	}
 	return ep, nil
 }
 
-func getDockerEndpointMetadataAndTLS(contextStore store.Reader, config map[string]string) (docker.EndpointMeta, *store.EndpointTLSData, error) {
-	ep, err := getDockerEndpoint(contextStore, config)
+func getDockerEndpointMetadataAndTLS(ctx context.Context, contextStore store.Reader, config map[string]string) (docker.EndpointMeta, *store.EndpointTLSData, error) {
+	ep, err := getDockerEndpoint(ctx, contextStore, config)
 	if err != nil {
 		return docker.EndpointMeta{}, nil, err
 	}

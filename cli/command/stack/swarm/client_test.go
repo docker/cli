@@ -50,7 +50,7 @@ func (cli *fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	}, nil
 }
 
-func (cli *fakeClient) ClientVersion() string {
+func (cli *fakeClient) ClientVersion(ctx context.Context) string {
 	return cli.version
 }
 

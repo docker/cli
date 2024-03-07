@@ -128,7 +128,7 @@ func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, option
 	return nil, nil
 }
 
-func (f *fakeClient) ClientVersion() string {
+func (f *fakeClient) ClientVersion(_ context.Context) string {
 	return f.Version
 }
 
