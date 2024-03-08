@@ -326,7 +326,37 @@ are broken into multiple containers, you might need to share the IPC mechanisms
 of the containers, using `"shareable"` mode for the main (i.e. "donor")
 container, and `"container:<donor-name-or-ID>"` for other containers.
 
-### <a name="privileged"></a> Full container capabilities (--privileged)
+### <a name="privileged"></a> Escalate container privileges (--privileged)
+
+The `--privileged` flag gives the following capabilities to a container:
+
+- Enables all Linux kernel capabilities
+- Disables the default seccomp profile
+- Disables the default AppArmor profile
+- Disables the SELinux process label
+- Grants access to all host devices
+- Makes `/sys` read-write
+- Makes cgroups mounts read-write
+
+In other words, the container can then do almost everything that the host can
+do. This flag exists to allow special use-cases, like running Docker within
+Docker.
+
+> **Warning**
+>
+> Use the `--privileged` flag with caution.
+> A container with `--privileged` is not a securely sandboxed process.
+> Containers in this mode can get a root shell on the host
+> and take control over the system.
+>
+> For most use cases, this flag should not be the preferred solution.
+> If your container requires escalated privileges,
+> you should prefer to explicitly grant the necessary permissions,
+> for example by adding individual kernel capabilities with `--cap-add`.
+>
+> For more information, see
+> [Runtime privilege and Linux capabilities](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities)
+{ .warning }
 
 The following example doesn't work, because by default, Docker drops most
 potentially dangerous kernel capabilities, including `CAP_SYS_ADMIN ` (which is
@@ -347,11 +377,6 @@ root@50e3f57e16e6:/# df -h
 Filesystem      Size  Used Avail Use% Mounted on
 none            1.9G     0  1.9G   0% /mnt
 ```
-
-The `--privileged` flag gives all capabilities to the container, and it also
-lifts all the limitations enforced by the `device` cgroup controller. In other
-words, the container can then do almost everything that the host can do. This
-flag exists to allow special use-cases, like running Docker within Docker.
 
 ### <a name="workdir"></a> Set working directory (-w, --workdir)
 

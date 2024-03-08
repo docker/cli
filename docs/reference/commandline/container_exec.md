@@ -16,7 +16,7 @@ Execute a command in a running container
 | [`-e`](#env), [`--env`](#env)             | `list`   |         | Set environment variables                              |
 | `--env-file`                              | `list`   |         | Read in a file of environment variables                |
 | `-i`, `--interactive`                     |          |         | Keep STDIN open even if not attached                   |
-| `--privileged`                            |          |         | Give extended privileges to the command                |
+| [`--privileged`](#privileged)             |          |         | Give extended privileges to the command                |
 | `-t`, `--tty`                             |          |         | Allocate a pseudo-TTY                                  |
 | `-u`, `--user`                            | `string` |         | Username or UID (format: `<name\|uid>[:<group\|gid>]`) |
 | [`-w`](#workdir), [`--workdir`](#workdir) | `string` |         | Working directory inside the container                 |
@@ -95,6 +95,10 @@ VAR_A=1
 VAR_B=2
 HOME=/root
 ```
+
+### <a name="privileged"></a> Escalate container privileges (--privileged)
+
+See [`docker run --privileged`](container_run.md#privileged).
 
 ### <a name="workdir"></a> Set the working directory for the exec process (--workdir, -w)
 

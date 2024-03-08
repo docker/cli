@@ -813,11 +813,12 @@ by default a container is not allowed to access any devices, but a
 the documentation on [cgroups devices](https://www.kernel.org/doc/Documentation/cgroup-v1/devices.txt)).
 
 The `--privileged` flag gives all capabilities to the container. When the operator
-executes `docker run --privileged`, Docker will enable access to all devices on
-the host as well as set some configuration in AppArmor or SELinux to allow the
-container nearly all the same access to the host as processes running outside
-containers on the host. Additional information about running with `--privileged`
-is available on the [Docker Blog](https://www.docker.com/blog/docker-can-now-run-within-docker/).
+executes `docker run --privileged`, Docker enables access to all devices on
+the host, and reconfigures AppArmor or SELinux to allow the container
+nearly all the same access to the host as processes running outside
+containers on the host. Use this flag with caution.
+For more information about the `--privileged` flag, see the
+[`docker run` reference](https://docs.docker.com/reference/cli/docker/container/run/#privileged).
 
 If you want to limit access to a specific device or devices you can use
 the `--device` flag. It allows you to specify one or more devices that
