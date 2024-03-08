@@ -162,7 +162,8 @@ equivalent Docker daemon flags used for docker0 bridge:
 | `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          |
 
 The following arguments can be passed to `docker network create` for any
-network driver, again with their approximate equivalents to `docker daemon`.
+network driver, again with their approximate equivalents to Docker daemon
+flags used for the docker0 bridge:
 
 | Argument     | Equivalent     | Description                                |
 |--------------|----------------|--------------------------------------------|
