@@ -162,7 +162,8 @@ equivalent Docker daemon flags used for docker0 bridge:
 | `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          |
 
 The following arguments can be passed to `docker network create` for any
-network driver, again with their approximate equivalents to `docker daemon`.
+network driver, again with their approximate equivalents to Docker daemon
+flags used for the docker0 bridge:
 
 | Argument     | Equivalent     | Description                                |
 |--------------|----------------|--------------------------------------------|
@@ -182,6 +183,12 @@ $ docker network create \
 ```
 
 ### <a name="internal"></a> Network internal mode (--internal)
+
+Containers on an internal network may communicate between each other, but not
+with any other network, as no default route is configured and firewall rules
+are set up to drop all traffic to or from other networks. Communication with
+the gateway IP  address (and thus appropriately configured host services) is
+possible, and the host may communicate with any container IP directly.
 
 By default, when you connect a container to an `overlay` network, Docker also
 connects a bridge network to it to provide external connectivity. If you want
