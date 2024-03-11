@@ -18,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -129,9 +130,9 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			return err
 		}
 
-		eh := command.InitEventHandler()
+		eh := newEventHandler()
 		if options.All {
-			eh.Handle(events.ActionCreate, func(e events.Message) {
+			eh.setHandler(events.ActionCreate, func(e events.Message) {
 				s := NewStats(e.Actor.ID[:12])
 				if cStats.add(s) {
 					waitFirst.Add(1)
@@ -140,7 +141,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			})
 		}
 
-		eh.Handle(events.ActionStart, func(e events.Message) {
+		eh.setHandler(events.ActionStart, func(e events.Message) {
 			s := NewStats(e.Actor.ID[:12])
 			if cStats.add(s) {
 				waitFirst.Add(1)
@@ -149,7 +150,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		})
 
 		if !options.All {
-			eh.Handle(events.ActionDie, func(e events.Message) {
+			eh.setHandler(events.ActionDie, func(e events.Message) {
 				cStats.remove(e.Actor.ID[:12])
 			})
 		}
@@ -186,7 +187,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		}
 
 		eventChan := make(chan events.Message)
-		go eh.Watch(eventChan)
+		go eh.watch(eventChan)
 		stopped := make(chan struct{})
 		go monitorContainerEvents(started, eventChan, stopped)
 		defer close(stopped)
@@ -312,4 +313,32 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		}
 	}
 	return err
+}
+
+// newEventHandler initializes and returns an eventHandler
+func newEventHandler() *eventHandler {
+	return &eventHandler{handlers: make(map[events.Action]func(events.Message))}
+}
+
+// eventHandler allows for registering specific events to setHandler.
+type eventHandler struct {
+	handlers map[events.Action]func(events.Message)
+}
+
+func (eh *eventHandler) setHandler(action events.Action, handler func(events.Message)) {
+	eh.handlers[action] = handler
+}
+
+// watch ranges over the passed in event chan and processes the events based on the
+// handlers created for a given action.
+// To stop watching, close the event chan.
+func (eh *eventHandler) watch(c <-chan events.Message) {
+	for e := range c {
+		h, exists := eh.handlers[e.Action]
+		if !exists {
+			continue
+		}
+		logrus.Debugf("event handler: received event: %v", e)
+		go h(e)
+	}
 }
