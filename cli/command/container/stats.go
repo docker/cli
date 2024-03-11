@@ -106,15 +106,6 @@ var acceptedStatsFilters = map[string]bool{
 func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions) error {
 	apiClient := dockerCLI.Client()
 
-	// Get the daemonOSType if not set already
-	if daemonOSType == "" {
-		sv, err := apiClient.ServerVersion(ctx)
-		if err != nil {
-			return err
-		}
-		daemonOSType = sv.Os
-	}
-
 	// waitFirst is a WaitGroup to wait first stat data's reach for each container
 	waitFirst := &sync.WaitGroup{}
 	// closeChan is a non-buffered channel used to collect errors from goroutines.
@@ -266,6 +257,12 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		} else {
 			format = formatter.TableFormatKey
 		}
+	}
+	if daemonOSType == "" {
+		// Get the daemonOSType if not set already. The daemonOSType variable
+		// should already be set when collecting stats as part of "collect()",
+		// so we unlikely hit this code in practice.
+		daemonOSType = dockerCLI.ServerInfo().OSType
 	}
 	statsCtx := formatter.Context{
 		Output: dockerCLI.Out(),
