@@ -1,33 +1,20 @@
 #!/usr/bin/env bash
 
-set -eu
-
-: "${CLI_DOCS_TOOL_VERSION=v0.7.0}"
+set -Eeuo pipefail
 
 export GO111MODULE=auto
 
-function clean {
-  rm -rf "$buildir"
+# temporary "go.mod" to make -modfile= work
+touch go.mod
+
+function clean() {
+  rm -f "$(pwd)/go.mod"
 }
 
-buildir=$(mktemp -d -t docker-cli-docsgen.XXXXXXXXXX)
 trap clean EXIT
 
-(
-  set -x
-  cp -r . "$buildir/"
-  cd "$buildir"
-  # init dummy go.mod
-  ./scripts/vendor init
-  # install cli-docs-tool and copy docs/tools.go in root folder
-  # to be able to fetch the required depedencies
-  go mod edit -modfile=vendor.mod -require=github.com/docker/cli-docs-tool@${CLI_DOCS_TOOL_VERSION}
-  cp docs/generate/tools.go .
-  # update vendor
-  ./scripts/vendor update
-  # build docsgen
-  go build -mod=vendor -modfile=vendor.mod -tags docsgen -o /tmp/docsgen ./docs/generate/generate.go
-)
+# build docsgen
+go build -mod=vendor -modfile=vendor.mod -tags docsgen -o /tmp/docsgen ./docs/generate/generate.go
 
 mkdir -p docs/yaml
 set -x
