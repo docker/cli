@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+// set by the compile flags to get around content sha being the same
+var (
+	UNIQUEME string
+)
+
 func main() {
 	p, err := filepath.Abs(filepath.Join("run", "docker", "plugins"))
 	if err != nil {

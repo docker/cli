@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
@@ -45,12 +46,10 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 	if imgRefAndAuth.Tag() == "" && !options.forceYes {
 		deleteRemote, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
 		if err != nil {
-			fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
-			return errors.Wrap(err, "aborting action")
+			return err
 		}
 		if !deleteRemote {
-			fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
-			return nil
+			return errdefs.Cancelled(errors.New("`trust revoke` has been cancelled"))
 		}
 	}
 
