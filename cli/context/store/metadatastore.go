@@ -20,6 +20,7 @@ import (
 const (
 	metadataDir = "meta"
 	metaFile    = "meta.json"
+	lockFile    = "lock"
 )
 
 type metadataStore struct {

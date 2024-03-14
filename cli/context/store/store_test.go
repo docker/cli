@@ -22,6 +22,15 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
+func TestNew(t *testing.T) {
+	s := New(path.Join(t.TempDir(), "does", "not", "exist", "yet"), testCfg)
+	assert.Assert(t, s != nil)
+	// Check that the file lock works even when the directory does not exist yet.
+	all, err := s.List()
+	assert.NilError(t, err)
+	assert.Assert(t, len(all) == 0)
+}
+
 type endpoint struct {
 	Foo string `json:"a_very_recognizable_field_name"`
 }
