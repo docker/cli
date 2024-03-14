@@ -69,7 +69,7 @@ user credentials, VPNs, and so forth.
 > **Note**
 >
 > If the `URL` parameter contains a fragment the system recursively clones
-> the repository and its submodules using a `git clone --recursive` command.
+> the repository and its submodules.
 
 Git URLs accept context configuration in their fragment section, separated by a
 colon (`:`).  The first part represents the reference that Git checks out,
