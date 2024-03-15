@@ -69,7 +69,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	}
 
 	// is this a build that should be forwarded to the builder?
-	fwargs, fwosargs, alias, forwarded := forwardBuilder(builderAlias, args, osargs)
+	fwargs, fwosargs, fwcmdpath, forwarded := forwardBuilder(builderAlias, args, osargs)
 	if !forwarded {
 		return args, osargs, nil, nil
 	}
@@ -117,33 +117,37 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	}
 
 	// overwrite the command path for this plugin using the alias name.
-	cmd.Annotations[pluginmanager.CommandAnnotationPluginCommandPath] = fmt.Sprintf("%s %s", cmd.CommandPath(), alias)
+	cmd.Annotations[pluginmanager.CommandAnnotationPluginCommandPath] = strings.Join(append([]string{cmd.CommandPath()}, fwcmdpath...), " ")
 
 	return fwargs, fwosargs, envs, nil
 }
 
-func forwardBuilder(alias string, args, osargs []string) ([]string, []string, string, bool) {
-	aliases := [][2][]string{
+func forwardBuilder(alias string, args, osargs []string) ([]string, []string, []string, bool) {
+	aliases := [][3][]string{
 		{
 			{"builder"},
 			{alias},
+			{"builder"},
 		},
 		{
 			{"build"},
 			{alias, "build"},
+			{},
 		},
 		{
 			{"image", "build"},
 			{alias, "build"},
+			{"image"},
 		},
 	}
 	for _, al := range aliases {
 		if fwargs, changed := command.StringSliceReplaceAt(args, al[0], al[1], 0); changed {
 			fwosargs, _ := command.StringSliceReplaceAt(osargs, al[0], al[1], -1)
-			return fwargs, fwosargs, al[0][0], true
+			fwcmdpath := al[2]
+			return fwargs, fwosargs, fwcmdpath, true
 		}
 	}
-	return args, osargs, "", false
+	return args, osargs, nil, false
 }
 
 // hasBuilderName checks if a builder name is defined in args or env vars
