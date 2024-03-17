@@ -16,6 +16,9 @@ on:
 jobs:
   codeql:
     runs-on: ubuntu-20.04
+    env:
+      DISABLE_WARN_OUTSIDE_CONTAINER: '1'
+    
     steps:
       -
         name: Checkout
