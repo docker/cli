@@ -26,6 +26,8 @@ jobs:
   codeql:
     runs-on: 'ubuntu-latest'
     timeout-minutes: 360
+    env:
+      DISABLE_WARN_OUTSIDE_CONTAINER: '1'
     permissions:
       actions: read
       contents: read
