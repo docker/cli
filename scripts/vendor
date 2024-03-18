@@ -23,7 +23,7 @@ EOL
 }
 
 update() {
-  (set -x ; go mod tidy -compat=1.19 -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
+  (set -x ; go mod tidy -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
 }
 
 validate() {
