@@ -85,6 +85,7 @@ type DockerCli struct {
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig store.Config
 	initTimeout        time.Duration
+	userAgent          string
 
 	// baseCtx is the base context used for internal operations. In the future
 	// this may be replaced by explicitly passing a context to functions that
@@ -199,7 +200,7 @@ func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.Registry
 	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
 		return ResolveAuthConfig(cli.ConfigFile(), index)
 	}
-	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
+	return registryclient.NewRegistryClient(resolver, cli.userAgent, allowInsecure)
 }
 
 // WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
@@ -261,10 +262,10 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to resolve docker endpoint")
 	}
-	return newAPIClientFromEndpoint(endpoint, configFile)
+	return newAPIClientFromEndpoint(endpoint, configFile, client.WithUserAgent(UserAgent()))
 }
 
-func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile) (client.APIClient, error) {
+func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigFile, extraOpts ...client.Opt) (client.APIClient, error) {
 	opts, err := ep.ClientOpts()
 	if err != nil {
 		return nil, err
@@ -272,7 +273,7 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 	if len(configFile.HTTPHeaders) > 0 {
 		opts = append(opts, client.WithHTTPHeaders(configFile.HTTPHeaders))
 	}
-	opts = append(opts, client.WithUserAgent(UserAgent()))
+	opts = append(opts, extraOpts...)
 	return client.NewClientWithOpts(opts...)
 }
 
@@ -353,7 +354,7 @@ func (cli *DockerCli) initializeFromClient() {
 
 // NotaryClient provides a Notary Repository to interact with signed metadata for an image
 func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), cli.userAgent, imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
 // ContextStore returns the ContextStore
@@ -444,7 +445,12 @@ func (cli *DockerCli) initialize() error {
 			return
 		}
 		if cli.client == nil {
-			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile); cli.initErr != nil {
+			cli.client, cli.initErr = newAPIClientFromEndpoint(
+				cli.dockerEndpoint,
+				cli.configFile,
+				client.WithUserAgent(cli.userAgent),
+			)
+			if cli.initErr != nil {
 				return
 			}
 		}
@@ -491,6 +497,7 @@ func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 		WithContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
 		WithStandardStreams(),
+		WithUserAgent(UserAgent()),
 	}
 	ops = append(defaultOps, ops...)
 
@@ -515,7 +522,7 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error
 	return dopts.ParseHost(tlsOptions != nil, host)
 }
 
-// UserAgent returns the user agent string used for making API requests
+// UserAgent returns the default user agent string used for making API requests.
 func UserAgent() string {
 	return "Docker-Client/" + version.Version + " (" + runtime.GOOS + ")"
 }

@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"strconv"
@@ -104,6 +105,17 @@ func WithDefaultContextStoreConfig() CLIOption {
 func WithAPIClient(c client.APIClient) CLIOption {
 	return func(cli *DockerCli) error {
 		cli.client = c
+		return nil
+	}
+}
+
+// WithUserAgent configures the User-Agent string for cli HTTP requests.
+func WithUserAgent(userAgent string) CLIOption {
+	return func(cli *DockerCli) error {
+		if userAgent == "" {
+			return errors.New("user agent cannot be blank")
+		}
+		cli.userAgent = userAgent
 		return nil
 	}
 }

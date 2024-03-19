@@ -307,3 +307,26 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 	})))
 	assert.Check(t, cli.ContextStore() != nil)
 }
+
+func TestNewDockerCliWithCustomUserAgent(t *testing.T) {
+	var received string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		received = r.UserAgent()
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+	host := strings.Replace(ts.URL, "http://", "tcp://", 1)
+	opts := &flags.ClientOptions{Hosts: []string{host}}
+
+	cli, err := NewDockerCli(
+		WithUserAgent("fake-agent/0.0.1"),
+	)
+	assert.NilError(t, err)
+	cli.currentContext = DefaultContextName
+	cli.options = opts
+	cli.configFile = &configfile.ConfigFile{}
+
+	_, err = cli.Client().Ping(context.Background())
+	assert.NilError(t, err)
+	assert.DeepEqual(t, received, "fake-agent/0.0.1")
+}
