@@ -12,7 +12,7 @@ require (
 	github.com/creack/pty v1.1.21
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v25.0.4-0.20240306135850-061aa95809be+incompatible // 25.0 branch (v25.0.4-dev)
+	github.com/docker/docker v25.0.5-0.20240319141229-e63daec8672d+incompatible // 25.0 branch (v25.0.5-dev)
 	github.com/docker/docker-credential-helpers v0.8.1
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
