@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -37,7 +38,9 @@ func gen(opts *options) error {
 		Use:   "docker [OPTIONS] COMMAND [ARG...]",
 		Short: "The base command for the Docker CLI.",
 	}
-	clientOpts, _ := cli.SetupRootCommand(cmd)
+
+	ctx := context.Background()
+	clientOpts, _ := cli.SetupRootCommand(ctx, cmd)
 	if err := dockerCLI.Initialize(clientOpts); err != nil {
 		return err
 	}
