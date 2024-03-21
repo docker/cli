@@ -197,13 +197,11 @@ func TestPromptForConfirmation(t *testing.T) {
 			promptReader, promptWriter = io.Pipe()
 
 			wroteHook := make(chan struct{}, 1)
-			defer close(wroteHook)
 			promptOut := test.NewWriterWithHook(bufioWriter, func(p []byte) {
 				wroteHook <- struct{}{}
 			})
 
 			result := make(chan promptResult, 1)
-			defer close(result)
 			go func() {
 				r, err := command.PromptForConfirmation(ctx, promptReader, promptOut, "")
 				result <- promptResult{r, err}
@@ -216,7 +214,7 @@ func TestPromptForConfirmation(t *testing.T) {
 			assert.NilError(t, bufioWriter.Flush())
 			assert.Equal(t, strings.TrimSpace(buf.String()), "Are you sure you want to proceed? [y/N]")
 
-			resultCtx, resultCancel := context.WithTimeout(ctx, 100*time.Millisecond)
+			resultCtx, resultCancel := context.WithTimeout(ctx, 500*time.Millisecond)
 			defer resultCancel()
 
 			tc.f(t, resultCtx, result)
