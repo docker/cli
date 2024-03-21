@@ -61,6 +61,15 @@ func TestConvertEnvironment(t *testing.T) {
 	assert.Check(t, is.DeepEqual([]string{"foo=bar", "key=value"}, env))
 }
 
+func TestConvertEnvironmentWhenNilValueExists(t *testing.T) {
+	source := map[string]*string{
+		"key":            strPtr("value"),
+		"keyWithNoValue": nil,
+	}
+	env := convertEnvironment(source)
+	assert.Check(t, is.DeepEqual([]string{"key=value", "keyWithNoValue"}, env))
+}
+
 func TestConvertExtraHosts(t *testing.T) {
 	source := composetypes.HostsList{
 		"zulu:127.0.0.2",
