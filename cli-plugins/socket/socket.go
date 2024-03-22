@@ -19,7 +19,14 @@ const EnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 // NewPluginServer creates a plugin server that listens on a new Unix domain
 // socket. h is called for each new connection to the socket in a goroutine.
 func NewPluginServer(h func(net.Conn)) (*PluginServer, error) {
-	l, err := listen("docker_cli_" + randomID())
+	// Listen on a Unix socket, with the address being platform-dependent.
+	// When a non-abstract address is used, Go will unlink(2) the socket
+	// for us once the listener is closed, as documented in
+	// [net.UnixListener.SetUnlinkOnClose].
+	l, err := net.ListenUnix("unix", &net.UnixAddr{
+		Name: socketName("docker_cli_" + randomID()),
+		Net:  "unix",
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -85,9 +92,6 @@ func (pl *PluginServer) Addr() net.Addr {
 //
 // The error value is that of the underlying [net.Listner.Close] call.
 func (pl *PluginServer) Close() error {
-	// Remove the listener socket, if it exists on the filesystem.
-	unlink(pl.l)
-
 	// Close connections first to ensure the connections get io.EOF instead
 	// of a connection reset.
 	pl.closeAllConns()
