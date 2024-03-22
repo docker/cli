@@ -1,11 +1,14 @@
 package socket
 
 import (
+	"errors"
+	"io"
 	"io/fs"
 	"net"
 	"os"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -13,54 +16,110 @@ import (
 	"gotest.tools/v3/poll"
 )
 
-func TestSetupConn(t *testing.T) {
-	t.Run("updates conn when connected", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+func TestPluginServer(t *testing.T) {
+	t.Run("connection closes with EOF when server closes", func(t *testing.T) {
+		called := make(chan struct{})
+		srv, err := NewPluginServer(func(_ net.Conn) { close(called) })
 		assert.NilError(t, err)
-		assert.Check(t, listener != nil, "returned nil listener but no error")
-		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
-		assert.NilError(t, err, "failed to resolve listener address")
+		assert.Assert(t, srv != nil, "returned nil server but no error")
 
-		_, err = net.DialUnix("unix", nil, addr)
-		assert.NilError(t, err, "failed to dial returned listener")
+		addr, err := net.ResolveUnixAddr("unix", srv.Addr().String())
+		assert.NilError(t, err, "failed to resolve server address")
 
-		pollConnNotNil(t, &conn)
+		conn, err := net.DialUnix("unix", nil, addr)
+		assert.NilError(t, err, "failed to dial returned server")
+		defer conn.Close()
+
+		done := make(chan error, 1)
+		go func() {
+			_, err := conn.Read(make([]byte, 1))
+			done <- err
+		}()
+
+		select {
+		case <-called:
+		case <-time.After(10 * time.Millisecond):
+			t.Fatal("handler not called")
+		}
+
+		srv.Close()
+
+		select {
+		case err := <-done:
+			if !errors.Is(err, io.EOF) {
+				t.Fatalf("exepcted EOF error, got: %v", err)
+			}
+		case <-time.After(10 * time.Millisecond):
+		}
 	})
 
 	t.Run("allows reconnects", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		var calls int32
+		h := func(_ net.Conn) {
+			atomic.AddInt32(&calls, 1)
+		}
+
+		srv, err := NewPluginServer(h)
 		assert.NilError(t, err)
-		assert.Check(t, listener != nil, "returned nil listener but no error")
-		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
-		assert.NilError(t, err, "failed to resolve listener address")
+		defer srv.Close()
+
+		assert.Check(t, srv.Addr() != nil, "returned nil addr but no error")
+
+		addr, err := net.ResolveUnixAddr("unix", srv.Addr().String())
+		assert.NilError(t, err, "failed to resolve server address")
+
+		waitForCalls := func(n int) {
+			poll.WaitOn(t, func(t poll.LogT) poll.Result {
+				if atomic.LoadInt32(&calls) == int32(n) {
+					return poll.Success()
+				}
+				return poll.Continue("waiting for handler to be called")
+			})
+		}
 
 		otherConn, err := net.DialUnix("unix", nil, addr)
-		assert.NilError(t, err, "failed to dial returned listener")
-
+		assert.NilError(t, err, "failed to dial returned server")
 		otherConn.Close()
+		waitForCalls(1)
 
-		_, err = net.DialUnix("unix", nil, addr)
-		assert.NilError(t, err, "failed to redial listener")
+		conn, err := net.DialUnix("unix", nil, addr)
+		assert.NilError(t, err, "failed to redial server")
+		defer conn.Close()
+		waitForCalls(2)
+
+		// and again but don't close the existing connection
+		conn2, err := net.DialUnix("unix", nil, addr)
+		assert.NilError(t, err, "failed to redial server")
+		defer conn2.Close()
+		waitForCalls(3)
+
+		srv.Close()
+
+		// now make sure we get EOF on the existing connections
+		buf := make([]byte, 1)
+		_, err = conn.Read(buf)
+		assert.ErrorIs(t, err, io.EOF, "expected EOF error, got: %v", err)
+
+		_, err = conn2.Read(buf)
+		assert.ErrorIs(t, err, io.EOF, "expected EOF error, got: %v", err)
 	})
 
 	t.Run("does not leak sockets to local directory", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
+		srv, err := NewPluginServer(nil)
 		assert.NilError(t, err)
-		assert.Check(t, listener != nil, "returned nil listener but no error")
-		checkDirNoPluginSocket(t)
+		assert.Check(t, srv != nil, "returned nil server but no error")
+		checkDirNoNewPluginServer(t)
 
-		addr, err := net.ResolveUnixAddr("unix", listener.Addr().String())
-		assert.NilError(t, err, "failed to resolve listener address")
+		addr, err := net.ResolveUnixAddr("unix", srv.Addr().String())
+		assert.NilError(t, err, "failed to resolve server address")
+
 		_, err = net.DialUnix("unix", nil, addr)
-		assert.NilError(t, err, "failed to dial returned listener")
-		checkDirNoPluginSocket(t)
+		assert.NilError(t, err, "failed to dial returned server")
+		checkDirNoNewPluginServer(t)
 	})
 }
 
-func checkDirNoPluginSocket(t *testing.T) {
+func checkDirNoNewPluginServer(t *testing.T) {
 	t.Helper()
 
 	files, err := os.ReadDir(".")
@@ -78,18 +137,24 @@ func checkDirNoPluginSocket(t *testing.T) {
 
 func TestConnectAndWait(t *testing.T) {
 	t.Run("calls cancel func on EOF", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
-		assert.NilError(t, err, "failed to setup listener")
+		srv, err := NewPluginServer(nil)
+		assert.NilError(t, err, "failed to setup server")
+		defer srv.Close()
 
 		done := make(chan struct{})
-		t.Setenv(EnvKey, listener.Addr().String())
+		t.Setenv(EnvKey, srv.Addr().String())
 		cancelFunc := func() {
 			done <- struct{}{}
 		}
 		ConnectAndWait(cancelFunc)
-		pollConnNotNil(t, &conn)
-		conn.Close()
+
+		select {
+		case <-done:
+			t.Fatal("unexpectedly done")
+		default:
+		}
+
+		srv.Close()
 
 		select {
 		case <-done:
@@ -101,17 +166,19 @@ func TestConnectAndWait(t *testing.T) {
 	// TODO: this test cannot be executed with `t.Parallel()`, due to
 	// relying on goroutine numbers to ensure correct behaviour
 	t.Run("connect goroutine exits after EOF", func(t *testing.T) {
-		var conn *net.UnixConn
-		listener, err := SetupConn(&conn)
-		assert.NilError(t, err, "failed to setup listener")
-		t.Setenv(EnvKey, listener.Addr().String())
+		srv, err := NewPluginServer(nil)
+		assert.NilError(t, err, "failed to setup server")
+
+		defer srv.Close()
+
+		t.Setenv(EnvKey, srv.Addr().String())
 		numGoroutines := runtime.NumGoroutine()
 
 		ConnectAndWait(func() {})
 		assert.Equal(t, runtime.NumGoroutine(), numGoroutines+1)
 
-		pollConnNotNil(t, &conn)
-		conn.Close()
+		srv.Close()
+
 		poll.WaitOn(t, func(t poll.LogT) poll.Result {
 			if runtime.NumGoroutine() > numGoroutines+1 {
 				return poll.Continue("waiting for connect goroutine to exit")
@@ -119,15 +186,4 @@ func TestConnectAndWait(t *testing.T) {
 			return poll.Success()
 		}, poll.WithDelay(1*time.Millisecond), poll.WithTimeout(10*time.Millisecond))
 	})
-}
-
-func pollConnNotNil(t *testing.T, conn **net.UnixConn) {
-	t.Helper()
-
-	poll.WaitOn(t, func(t poll.LogT) poll.Result {
-		if *conn == nil {
-			return poll.Continue("waiting for conn to not be nil")
-		}
-		return poll.Success()
-	}, poll.WithDelay(1*time.Millisecond), poll.WithTimeout(10*time.Millisecond))
 }

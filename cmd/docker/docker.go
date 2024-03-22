@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -222,11 +221,9 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	}
 
 	// Establish the plugin socket, adding it to the environment under a well-known key if successful.
-	var conn *net.UnixConn
-	listener, err := socket.SetupConn(&conn)
+	srv, err := socket.NewPluginServer(nil)
 	if err == nil {
-		envs = append(envs, socket.EnvKey+"="+listener.Addr().String())
-		defer listener.Close()
+		envs = append(envs, socket.EnvKey+"="+srv.Addr().String())
 	}
 
 	plugincmd.Env = append(envs, plugincmd.Env...)
@@ -247,12 +244,9 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 				// receive signals due to sharing a pgid with the parent CLI
 				continue
 			}
-			if conn != nil {
-				if err := conn.Close(); err != nil {
-					_, _ = fmt.Fprintf(dockerCli.Err(), "failed to signal plugin to close: %v\n", err)
-				}
-				conn = nil
-			}
+
+			srv.Close()
+
 			retries++
 			if retries >= exitLimit {
 				_, _ = fmt.Fprintf(dockerCli.Err(), "got %d SIGTERM/SIGINTs, forcefully exiting\n", retries)
