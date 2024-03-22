@@ -11,12 +11,13 @@ import (
 	"sync"
 )
 
-// EnvKey represents the well-known environment variable used to pass the plugin being
-// executed the socket name it should listen on to coordinate with the host CLI.
+// EnvKey represents the well-known environment variable used to pass the
+// plugin being executed the socket name it should listen on to coordinate with
+// the host CLI.
 const EnvKey = "DOCKER_CLI_PLUGIN_SOCKET"
 
-// NewPluginServer creates a plugin server that listens on a new Unix domain socket.
-// `h` is called for each new connection to the socket in a goroutine.
+// NewPluginServer creates a plugin server that listens on a new Unix domain
+// socket. h is called for each new connection to the socket in a goroutine.
 func NewPluginServer(h func(net.Conn)) (*PluginServer, error) {
 	l, err := listen("docker_cli_" + randomID())
 	if err != nil {
@@ -63,7 +64,7 @@ func (pl *PluginServer) accept() error {
 	defer pl.mu.Unlock()
 
 	if pl.closed {
-		// handle potential race condition between Close and Accept
+		// Handle potential race between Close and accept.
 		conn.Close()
 		return errors.New("plugin server is closed")
 	}
@@ -74,20 +75,25 @@ func (pl *PluginServer) accept() error {
 	return nil
 }
 
+// Addr returns the [net.Addr] of the underlying [net.Listener].
 func (pl *PluginServer) Addr() net.Addr {
 	return pl.l.Addr()
 }
 
-// Close ensures that the server is no longer accepting new connections and closes all existing connections.
-// Existing connections will receive [io.EOF].
+// Close ensures that the server is no longer accepting new connections and
+// closes all existing connections. Existing connections will receive [io.EOF].
+//
+// The error value is that of the underlying [net.Listner.Close] call.
 func (pl *PluginServer) Close() error {
 	// Remove the listener socket, if it exists on the filesystem.
 	unlink(pl.l)
 
-	// Close connections first to ensure the connections get io.EOF instead of a connection reset.
+	// Close connections first to ensure the connections get io.EOF instead
+	// of a connection reset.
 	pl.closeAllConns()
 
-	// Try to ensure that any active connections have a chance to receive io.EOF
+	// Try to ensure that any active connections have a chance to receive
+	// io.EOF.
 	runtime.Gosched()
 
 	return pl.l.Close()
@@ -97,7 +103,7 @@ func (pl *PluginServer) closeAllConns() {
 	pl.mu.Lock()
 	defer pl.mu.Unlock()
 
-	// Prevent new connections from being accepted
+	// Prevent new connections from being accepted.
 	pl.closed = true
 
 	for _, conn := range pl.conns {

@@ -220,33 +220,46 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 		return err
 	}
 
-	// Establish the plugin socket, adding it to the environment under a well-known key if successful.
+	// Establish the plugin socket, adding it to the environment under a
+	// well-known key if successful.
 	srv, err := socket.NewPluginServer(nil)
 	if err == nil {
-		envs = append(envs, socket.EnvKey+"="+srv.Addr().String())
+		plugincmd.Env = append(plugincmd.Env, socket.EnvKey+"="+srv.Addr().String())
 	}
 
-	plugincmd.Env = append(envs, plugincmd.Env...)
+	// Set additional environment variables specified by the caller.
+	plugincmd.Env = append(plugincmd.Env, envs...)
 
+	// Background signal handling logic: block on the signals channel, and
+	// notify the plugin via the PluginServer (or signal) as appropriate.
 	const exitLimit = 3
-
 	signals := make(chan os.Signal, exitLimit)
 	signal.Notify(signals, platformsignals.TerminationSignals...)
-	// signal handling goroutine: listen on signals channel, and if conn is
-	// non-nil, attempt to close it to let the plugin know to exit. Regardless
-	// of whether we successfully signal the plugin or not, after 3 SIGINTs,
-	// we send a SIGKILL to the plugin process and exit
 	go func() {
 		retries := 0
 		for range signals {
+			// If stdin is a TTY, the kernel will forward
+			// signals to the subprocess because the shared
+			// pgid makes the TTY a controlling terminal.
+			//
+			// The plugin should have it's own copy of this
+			// termination logic, and exit after 3 retries
+			// on it's own.
 			if dockerCli.Out().IsTerminal() {
-				// running attached to a terminal, so the plugin will already
-				// receive signals due to sharing a pgid with the parent CLI
 				continue
 			}
 
-			srv.Close()
+			// Terminate the plugin server, which will
+			// close all connections with plugin
+			// subprocesses, and signal them to exit.
+			//
+			// Repeated invocations will result in EINVAL,
+			// or EBADF; but that is fine for our purposes.
+			_ = srv.Close()
 
+			// If we're still running after 3 interruptions
+			// (SIGINT/SIGTERM), send a SIGKILL to the plugin as a
+			// final attempt to terminate, and exit.
 			retries++
 			if retries >= exitLimit {
 				_, _ = fmt.Fprintf(dockerCli.Err(), "got %d SIGTERM/SIGINTs, forcefully exiting\n", retries)
