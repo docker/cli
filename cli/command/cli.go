@@ -65,6 +65,7 @@ type Cli interface {
 	ContextStore() store.Store
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
+	TelemetryClient
 }
 
 // DockerCli is an instance the docker command line client.
@@ -85,6 +86,7 @@ type DockerCli struct {
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig store.Config
 	initTimeout        time.Duration
+	res                telemetryResource
 
 	// baseCtx is the base context used for internal operations. In the future
 	// this may be replaced by explicitly passing a context to functions that
