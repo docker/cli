@@ -602,3 +602,57 @@ func TestPluginConfig(t *testing.T) {
 	assert.NilError(t, err)
 	golden.Assert(t, string(cfg), "plugin-config-2.golden")
 }
+
+func TestSetFeature(t *testing.T) {
+	t.Run("new feature", func(t *testing.T) {
+		configFile := &ConfigFile{}
+
+		configFile.SetFeature("foo", "bar")
+
+		assert.Equal(t, "bar", configFile.Features["foo"])
+	})
+
+	t.Run("update key", func(t *testing.T) {
+		configFile := &ConfigFile{}
+
+		configFile.SetFeature("foo", "bar")
+		assert.Equal(t, "bar", configFile.Features["foo"])
+
+		configFile.SetFeature("foo", "baz")
+		assert.Equal(t, "baz", configFile.Features["foo"])
+	})
+
+	t.Run("remove feature", func(t *testing.T) {
+		configFile := &ConfigFile{}
+
+		configFile.SetFeature("foo", "bar")
+		assert.Equal(t, "bar", configFile.Features["foo"])
+
+		configFile.SetFeature("foo", "")
+		_, exists := configFile.Features["foo"]
+		assert.Check(t, !exists)
+	})
+}
+
+func TestGetFeature(t *testing.T) {
+	t.Run("feature exists", func(t *testing.T) {
+		configFile := &ConfigFile{}
+		configFile.Features = map[string]string{
+			"foo": "bar",
+		}
+
+		f, ok := configFile.GetFeature("foo")
+
+		assert.Check(t, ok)
+		assert.Equal(t, "bar", f)
+	})
+
+	t.Run("missing feature", func(t *testing.T) {
+		configFile := &ConfigFile{}
+
+		f, ok := configFile.GetFeature("baz")
+
+		assert.Check(t, !ok)
+		assert.Equal(t, "", f)
+	})
+}
