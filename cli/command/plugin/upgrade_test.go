@@ -5,11 +5,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
-	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
 
@@ -34,9 +32,6 @@ func TestUpgradePromptTermination(t *testing.T) {
 	// need to set a remote address that does not match the plugin
 	// reference sent by the `pluginInspectFunc`
 	cmd.SetArgs([]string{"foo/bar", "localhost:5000/foo/bar:v1.0.0"})
-	test.TerminatePrompt(ctx, t, cmd, cli, func(t *testing.T, err error) {
-		t.Helper()
-		assert.ErrorIs(t, err, command.ErrPromptTerminated)
-	})
+	test.TerminatePrompt(ctx, t, cmd, cli)
 	golden.Assert(t, cli.OutBuffer().String(), "plugin-upgrade-terminate.golden")
 }

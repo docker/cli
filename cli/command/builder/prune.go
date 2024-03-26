@@ -2,6 +2,7 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/errdefs"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
@@ -67,8 +69,12 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		warning = allCacheWarning
 	}
 	if !options.force {
-		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning); !r || err != nil {
+		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		if err != nil {
 			return 0, "", err
+		}
+		if !r {
+			return 0, "", errdefs.Cancelled(errors.New("`builder prune` has been cancelled"))
 		}
 	}
 

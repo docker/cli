@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -42,6 +43,9 @@ func main() {
 				os.Exit(1)
 			}
 			os.Exit(sterr.StatusCode)
+		}
+		if errdefs.IsCancelled(err) {
+			os.Exit(0)
 		}
 		fmt.Fprintln(dockerCli.Err(), err)
 		os.Exit(1)

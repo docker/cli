@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
@@ -18,7 +17,7 @@ func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
 	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{})
-	assert.NilError(t, cmd.Execute())
+	assert.ErrorContains(t, cmd.Execute(), "`system prune` has been cancelled")
 	expected := `WARNING! This will remove:
   - all stopped containers
   - all networks not used by at least one container
@@ -36,7 +35,7 @@ func TestPrunePromptFilters(t *testing.T) {
 	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{"--filter", "until=24h", "--filter", "label=hello-world", "--filter", "label!=foo=bar", "--filter", "label=bar=baz"})
 
-	assert.NilError(t, cmd.Execute())
+	assert.ErrorContains(t, cmd.Execute(), "`system prune` has been cancelled")
 	expected := `WARNING! This will remove:
   - all stopped containers
   - all networks not used by at least one container
@@ -69,8 +68,5 @@ func TestSystemPrunePromptTermination(t *testing.T) {
 	})
 
 	cmd := newPruneCommand(cli)
-	test.TerminatePrompt(ctx, t, cmd, cli, func(t *testing.T, err error) {
-		t.Helper()
-		assert.ErrorIs(t, err, command.ErrPromptTerminated)
-	})
+	test.TerminatePrompt(ctx, t, cmd, cli)
 }

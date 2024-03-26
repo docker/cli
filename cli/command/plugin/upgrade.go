@@ -8,6 +8,7 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -63,11 +64,12 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 
 	fmt.Fprintf(dockerCli.Out(), "Upgrading plugin %s from %s to %s\n", p.Name, reference.FamiliarString(old), reference.FamiliarString(remote))
 	if !opts.skipRemoteCheck && remote.String() != old.String() {
-		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), "Plugin images do not match, are you sure?"); !r || err != nil {
-			if err != nil {
-				return errors.Wrap(err, "canceling upgrade request")
-			}
-			return errors.New("canceling upgrade request")
+		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), "Plugin images do not match, are you sure?")
+		if err != nil {
+			return err
+		}
+		if !r {
+			return errdefs.Cancelled(errors.New("`plugin upgrade` has been cancelled"))
 		}
 	}
 
