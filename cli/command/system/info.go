@@ -112,11 +112,11 @@ func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opt
 				fprintln(dockerCli.Err(), err)
 			}
 		}
+		info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
 	}
 
 	if opts.format == "" {
 		info.UserName = dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
-		info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
 		return prettyPrintInfo(dockerCli, info)
 	}
 	return formatInfo(dockerCli.Out(), info, opts.format)
