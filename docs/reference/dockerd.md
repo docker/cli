@@ -1236,6 +1236,11 @@ The list of feature options include:
   snapshotters instead of the classic storage drivers for storing image and
   container data. For more information, see
   [containerd storage](https://docs.docker.com/storage/containerd/).
+- `windows-no-dns-proxy`: when set to `true`, the daemon's internal DNS resolver
+  will not forward requests to external servers. Most applications running in
+  the container will still be able to use secondary DNS servers configured in the
+  container itself, but `nslookup` won't be able to resolve external names. This
+  option is only allowed on Windows.
 
 #### Configuration reload behavior
 
