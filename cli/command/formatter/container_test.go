@@ -336,44 +336,48 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 }
 
 func TestContainerContextWriteJSON(t *testing.T) {
-	unix := time.Now().Add(-65 * time.Second).Unix()
+	ts := time.Now().Add(-65 * time.Second)
+	unix := ts.Unix()
 	containers := []types.Container{
 		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: "running"},
 		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: "running"},
 	}
 	expectedCreated := time.Unix(unix, 0).String()
+	expectedCreatedAtTimestamp := ts.Format(time.RFC3339)
 	expectedJSONs := []map[string]any{
 		{
-			"Command":      "\"\"",
-			"CreatedAt":    expectedCreated,
-			"ID":           "containerID1",
-			"Image":        "ubuntu",
-			"Labels":       "",
-			"LocalVolumes": "0",
-			"Mounts":       "",
-			"Names":        "foobar_baz",
-			"Networks":     "",
-			"Ports":        "",
-			"RunningFor":   "About a minute ago",
-			"Size":         "0B",
-			"State":        "running",
-			"Status":       "",
+			"Command":            "\"\"",
+			"CreatedAt":          expectedCreated,
+			"CreatedAtTimestamp": expectedCreatedAtTimestamp,
+			"ID":                 "containerID1",
+			"Image":              "ubuntu",
+			"Labels":             "",
+			"LocalVolumes":       "0",
+			"Mounts":             "",
+			"Names":              "foobar_baz",
+			"Networks":           "",
+			"Ports":              "",
+			"RunningFor":         "About a minute ago",
+			"Size":               "0B",
+			"State":              "running",
+			"Status":             "",
 		},
 		{
-			"Command":      "\"\"",
-			"CreatedAt":    expectedCreated,
-			"ID":           "containerID2",
-			"Image":        "ubuntu",
-			"Labels":       "",
-			"LocalVolumes": "0",
-			"Mounts":       "",
-			"Names":        "foobar_bar",
-			"Networks":     "",
-			"Ports":        "",
-			"RunningFor":   "About a minute ago",
-			"Size":         "0B",
-			"State":        "running",
-			"Status":       "",
+			"Command":            "\"\"",
+			"CreatedAt":          expectedCreated,
+			"CreatedAtTimestamp": expectedCreatedAtTimestamp,
+			"ID":                 "containerID2",
+			"Image":              "ubuntu",
+			"Labels":             "",
+			"LocalVolumes":       "0",
+			"Mounts":             "",
+			"Names":              "foobar_bar",
+			"Networks":           "",
+			"Ports":              "",
+			"RunningFor":         "About a minute ago",
+			"Size":               "0B",
+			"State":              "running",
+			"Status":             "",
 		},
 	}
 	out := bytes.NewBufferString("")
