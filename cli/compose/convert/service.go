@@ -42,7 +42,7 @@ func Services(
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
 
-		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
+		serviceSpec, err := Service(apiClient.ClientVersion(ctx), namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}

@@ -39,7 +39,8 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove unused data",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.pruneBuildCache = versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.31")
+			ctx := cmd.Context()
+			options.pruneBuildCache = versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(ctx), "1.31")
 			return runPrune(cmd.Context(), dockerCli, options)
 		},
 		Annotations:       map[string]string{"version": "1.25"},

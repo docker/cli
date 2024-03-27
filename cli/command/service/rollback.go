@@ -58,7 +58,7 @@ func runRollback(ctx context.Context, dockerCli command.Cli, options *serviceOpt
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
 
-	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if options.detach || versions.LessThan(apiClient.ClientVersion(ctx), "1.29") {
 		return nil
 	}
 

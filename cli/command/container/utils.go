@@ -22,7 +22,7 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 	// Older versions used the Events API, and even older versions did not
 	// support server-side removal. This legacyWaitExitOrRemoved method
 	// preserves that old behavior and any issues it may have.
-	if versions.LessThan(apiClient.ClientVersion(), "1.30") {
+	if versions.LessThan(apiClient.ClientVersion(ctx), "1.30") {
 		return legacyWaitExitOrRemoved(ctx, apiClient, containerID, waitRemove)
 	}
 
@@ -81,7 +81,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 			}
 			if !waitRemove {
 				stopProcessing = true
-			} else if versions.LessThan(apiClient.ClientVersion(), "1.25") {
+			} else if versions.LessThan(apiClient.ClientVersion(ctx), "1.25") {
 				// If we are talking to an older daemon, `AutoRemove` is not supported.
 				// We need to fall back to the old behavior, which is client-side removal
 				go func() {

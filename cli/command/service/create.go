@@ -85,7 +85,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	if err = validateAPIVersion(service, dockerCli.Client().ClientVersion()); err != nil {
+	if err = validateAPIVersion(service, dockerCli.Client().ClientVersion(ctx)); err != nil {
 		return err
 	}
 
@@ -118,7 +118,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	}
 
 	// query registry if flag disabling it was not set
-	if !opts.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
+	if !opts.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(ctx), "1.30") {
 		createOpts.QueryRegistry = true
 	}
 
@@ -133,7 +133,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 
 	fmt.Fprintf(dockerCli.Out(), "%s\n", response.ID)
 
-	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if opts.detach || versions.LessThan(apiClient.ClientVersion(ctx), "1.29") {
 		return nil
 	}
 

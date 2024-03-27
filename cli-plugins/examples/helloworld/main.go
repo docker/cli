@@ -12,7 +12,8 @@ import (
 )
 
 func main() {
-	plugin.Run(func(dockerCli command.Cli) *cobra.Command {
+	ctx := context.Background()
+	plugin.Run(ctx, func(ctx context.Context, dockerCli command.Cli) *cobra.Command {
 		goodbye := &cobra.Command{
 			Use:   "goodbye",
 			Short: "Say Goodbye instead of Hello",

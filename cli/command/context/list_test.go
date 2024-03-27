@@ -1,6 +1,7 @@
 package context
 
 import (
+	"context"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -10,8 +11,10 @@ import (
 
 func createTestContext(t *testing.T, cli command.Cli, name string) {
 	t.Helper()
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 
-	err := RunCreate(cli, &CreateOptions{
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:        name,
 		Description: "description of " + name,
 		Docker:      map[string]string{keyHost: "https://someswarmserver.example.com"},

@@ -31,11 +31,14 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		host = "npipe://./"
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	opts := &flags.ClientOptions{Hosts: []string{host}}
-	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
+	apiClient, err := NewAPIClientFromFlags(ctx, opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
-	assert.Equal(t, apiClient.DaemonHost(), host)
-	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+	assert.Equal(t, apiClient.DaemonHost(ctx), host)
+	assert.Equal(t, apiClient.ClientVersion(ctx), api.DefaultVersion)
 }
 
 func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
@@ -44,11 +47,14 @@ func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		slug = "tcp://127.0.0.1"
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	opts := &flags.ClientOptions{Hosts: []string{host}}
-	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
+	apiClient, err := NewAPIClientFromFlags(ctx, opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
-	assert.Equal(t, apiClient.DaemonHost(), slug+host)
-	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+	assert.Equal(t, apiClient.DaemonHost(ctx), slug+host)
+	assert.Equal(t, apiClient.ClientVersion(ctx), api.DefaultVersion)
 }
 
 func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
@@ -69,10 +75,13 @@ func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
 		},
 	}
 
-	apiClient, err := NewAPIClientFromFlags(opts, configFile)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	apiClient, err := NewAPIClientFromFlags(ctx, opts, configFile)
 	assert.NilError(t, err)
-	assert.Equal(t, apiClient.DaemonHost(), host)
-	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+	assert.Equal(t, apiClient.DaemonHost(ctx), host)
+	assert.Equal(t, apiClient.ClientVersion(ctx), api.DefaultVersion)
 
 	// verify User-Agent is not appended to the configfile. see https://github.com/docker/cli/pull/2756
 	assert.DeepEqual(t, configFile.HTTPHeaders, map[string]string{"My-Header": "Custom-Value"})
@@ -90,12 +99,14 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	customVersion := "v3.3.3"
 	t.Setenv("DOCKER_API_VERSION", customVersion)
 	t.Setenv("DOCKER_HOST", ":2375")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	opts := &flags.ClientOptions{}
 	configFile := &configfile.ConfigFile{}
-	apiclient, err := NewAPIClientFromFlags(opts, configFile)
+	apiclient, err := NewAPIClientFromFlags(ctx, opts, configFile)
 	assert.NilError(t, err)
-	assert.Equal(t, apiclient.ClientVersion(), customVersion)
+	assert.Equal(t, apiclient.ClientVersion(ctx), customVersion)
 }
 
 type fakeClient struct {
@@ -109,11 +120,11 @@ func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {
 	return c.pingFunc()
 }
 
-func (c *fakeClient) ClientVersion() string {
+func (c *fakeClient) ClientVersion(_ context.Context) string {
 	return c.version
 }
 
-func (c *fakeClient) NegotiateAPIVersionPing(types.Ping) {
+func (c *fakeClient) NegotiateAPIVersionPing(_ context.Context, _ types.Ping) {
 	c.negotiated = true
 }
 
@@ -176,9 +187,12 @@ func TestInitializeFromClientHangs(t *testing.T) {
 	l, err := net.Listen("unix", socket)
 	assert.NilError(t, err)
 
-	receiveReqCh := make(chan bool)
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	receiveReqCh := make(chan bool)
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, time.Second)
+	defer timeoutCancel()
 
 	// Simulate a server that hangs on connections.
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +208,7 @@ func TestInitializeFromClientHangs(t *testing.T) {
 
 	opts := &flags.ClientOptions{Hosts: []string{fmt.Sprintf("unix://%s", socket)}}
 	configFile := &configfile.ConfigFile{}
-	apiClient, err := NewAPIClientFromFlags(opts, configFile)
+	apiClient, err := NewAPIClientFromFlags(ctx, opts, configFile)
 	assert.NilError(t, err)
 
 	initializedCh := make(chan bool)
@@ -302,8 +316,8 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 	cli, err := NewDockerCli()
 	assert.NilError(t, err)
-	assert.NilError(t, cli.Initialize(flags.NewClientOptions(), WithInitializeClient(func(cli *DockerCli) (client.APIClient, error) {
-		return client.NewClientWithOpts()
+	assert.NilError(t, cli.Initialize(flags.NewClientOptions(), WithInitializeClient(func(ctx context.Context, cli *DockerCli) (client.APIClient, error) {
+		return client.NewClientWithOpts(ctx)
 	})))
 	assert.Check(t, cli.ContextStore() != nil)
 }

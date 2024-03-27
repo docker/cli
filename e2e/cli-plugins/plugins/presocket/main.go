@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -14,14 +15,15 @@ import (
 )
 
 func main() {
-	plugin.Run(RootCmd, manager.Metadata{
+	ctx := context.TODO()
+	plugin.Run(ctx, RootCmd, manager.Metadata{
 		SchemaVersion: "0.1.0",
 		Vendor:        "Docker Inc.",
 		Version:       "test",
 	})
 }
 
-func RootCmd(dockerCli command.Cli) *cobra.Command {
+func RootCmd(ctx context.Context, dockerCli command.Cli) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "presocket",
 		Short: "testing plugin that does not connect to the socket",

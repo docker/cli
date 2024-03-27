@@ -1,6 +1,7 @@
 package context
 
 import (
+	"context"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -10,15 +11,19 @@ import (
 )
 
 func TestUpdateDescriptionOnly(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	cli := makeFakeCli(t)
-	err := RunCreate(cli, &CreateOptions{
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
+
+	assert.NilError(t, RunUpdate(ctx, cli, &UpdateOptions{
 		Name:        "test",
 		Description: "description",
 	}))
@@ -35,7 +40,11 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 func TestUpdateDockerOnly(t *testing.T) {
 	cli := makeFakeCli(t)
 	createTestContext(t, cli, "test")
-	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
+	assert.NilError(t, RunUpdate(ctx, cli, &UpdateOptions{
 		Name: "test",
 		Docker: map[string]string{
 			keyHost: "tcp://some-host",
@@ -52,12 +61,17 @@ func TestUpdateDockerOnly(t *testing.T) {
 
 func TestUpdateInvalidDockerHost(t *testing.T) {
 	cli := makeFakeCli(t)
-	err := RunCreate(cli, &CreateOptions{
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
+	err := RunCreate(ctx, cli, &CreateOptions{
 		Name:   "test",
 		Docker: map[string]string{},
 	})
 	assert.NilError(t, err)
-	err = RunUpdate(cli, &UpdateOptions{
+
+	err = RunUpdate(ctx, cli, &UpdateOptions{
 		Name: "test",
 		Docker: map[string]string{
 			keyHost: "some///invalid/host",
