@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -21,17 +22,19 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.opentelemetry.io/otel"
 )
 
 func main() {
-	dockerCli, err := command.NewDockerCli()
+	ctx := context.Background()
+	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	logrus.SetOutput(dockerCli.Err())
 
-	if err := runDocker(dockerCli); err != nil {
+	if err := runDocker(ctx, dockerCli); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
 			if sterr.Status != "" {
 				fmt.Fprintln(dockerCli.Err(), sterr.Status)
@@ -286,7 +289,7 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 }
 
 //nolint:gocyclo
-func runDocker(dockerCli *command.DockerCli) error {
+func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
@@ -297,6 +300,11 @@ func runDocker(dockerCli *command.DockerCli) error {
 	if err := tcmd.Initialize(); err != nil {
 		return err
 	}
+
+	mp := dockerCli.MeterProvider(ctx)
+	defer mp.Shutdown(ctx)
+	otel.SetMeterProvider(mp)
+	command.InstrumentCobraCommands(cmd, mp)
 
 	var envs []string
 	args, os.Args, envs, err = processAliases(dockerCli, cmd, args, os.Args)
