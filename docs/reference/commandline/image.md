@@ -8,6 +8,7 @@ Manage images
 | Name                          | Description                                                              |
 |:------------------------------|:-------------------------------------------------------------------------|
 | [`build`](image_build.md)     | Build an image from a Dockerfile                                         |
+| [`convert`](image_convert.md) | Convert multi-platform images                                            |
 | [`history`](image_history.md) | Show the history of an image                                             |
 | [`import`](image_import.md)   | Import the contents from a tarball to create a filesystem image          |
 | [`inspect`](image_inspect.md) | Display detailed information on one or more images                       |
