@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"path"
 
 	"github.com/pkg/errors"
@@ -14,7 +15,11 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-const otelContextFieldName = "otel"
+const (
+	otelContextFieldName     string = "otel"
+	otelExporterOTLPEndpoint string = "OTEL_EXPORTER_OTLP_ENDPOINT"
+	debugEnvVarPrefix        string = "DOCKER_CLI_"
+)
 
 // dockerExporterOTLPEndpoint retrieves the OTLP endpoint used for the docker reporter
 // from the current context.
@@ -49,8 +54,15 @@ func dockerExporterOTLPEndpoint(cli Cli) (endpoint string, secure bool) {
 	}
 
 	// keys from https://opentelemetry.io/docs/concepts/sdk-configuration/otlp-exporter-configuration/
-	endpoint, ok = otelMap["OTEL_EXPORTER_OTLP_ENDPOINT"].(string)
-	if !ok {
+	endpoint, _ = otelMap[otelExporterOTLPEndpoint].(string)
+
+	// Override with env var value if it exists AND IS SET
+	// (ignore otel defaults for this override when the key exists but is empty)
+	if override := os.Getenv(debugEnvVarPrefix + otelExporterOTLPEndpoint); override != "" {
+		endpoint = override
+	}
+
+	if endpoint == "" {
 		return "", false
 	}
 
