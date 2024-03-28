@@ -12,7 +12,11 @@ This repository is the home of the Docker CLI.
 
 ## Development
 
-`docker/cli` is developed using Docker.
+`docker/cli` is developed using Docker.  
+
+See the [`CONTRIBUTING.md`](./CONTRIBUTING.md) doc for more information on seting up a development environment.
+
+### Some useful commands
 
 Build CLI from source:
 
@@ -58,7 +62,11 @@ make help
 
 ### In-container development environment
 
-Start an interactive development environment:
+#### Using a `devcontainer`. 
+
+See [using a devcontainer](./CONTRIBUTING.md#using-a-devcontainer) for more details
+
+#### Start an interactive development environment shell:
 
 ```shell
 make -f docker.Makefile shell

@@ -7,3 +7,7 @@ updates:
     labels:
       - "area/testing"
       - "status/2-code-review"
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: weekly
