@@ -1,7 +1,7 @@
 package context
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"sort"
 
@@ -29,7 +29,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List contexts",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, opts)
+			return runList(cmd, dockerCli, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -40,7 +40,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, opts *listOptions) error {
+func runList(cmd *cobra.Command, dockerCli command.Cli, opts *listOptions) error {
 	if opts.format == "" {
 		opts.format = formatter.TableFormatKey
 	}
@@ -101,19 +101,23 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	sort.Slice(contexts, func(i, j int) bool {
 		return sortorder.NaturalLess(contexts[i].Name, contexts[j].Name)
 	})
-	if err := format(dockerCli, opts, contexts); err != nil {
+	if err := format(cmd.OutOrStdout(), opts, contexts); err != nil {
 		return err
 	}
 	if os.Getenv(client.EnvOverrideHost) != "" {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
+		cmd.PrintErrf("Warning: %[1]s environment variable overrides the active context. "+
 			"To use a context, either set the global --context flag, or unset %[1]s environment variable.\n", client.EnvOverrideHost)
+
+		// Alternatives:
+		// - dockerCli.PrintErrf(.....)
+		// - dockerCli.Err().Printf(.....)
 	}
 	return nil
 }
 
-func format(dockerCli command.Cli, opts *listOptions, contexts []*formatter.ClientContext) error {
+func format(output io.Writer, opts *listOptions, contexts []*formatter.ClientContext) error {
 	contextCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: output,
 		Format: formatter.NewClientContextFormat(opts.format, opts.quiet),
 	}
 	return formatter.ClientContextWrite(contextCtx, contexts)
