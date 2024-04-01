@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
+	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
@@ -33,6 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 	logrus.SetOutput(dockerCli.Err())
+	otel.SetErrorHandler(debug.OTELErrorHandler)
 
 	if err := runDocker(ctx, dockerCli); err != nil {
 		if sterr, ok := err.(cli.StatusError); ok {
