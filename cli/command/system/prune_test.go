@@ -17,7 +17,7 @@ func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
 	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{})
-	assert.ErrorContains(t, cmd.Execute(), "`system prune` has been cancelled")
+	assert.ErrorContains(t, cmd.Execute(), "system prune has been cancelled")
 	expected := `WARNING! This will remove:
   - all stopped containers
   - all networks not used by at least one container
@@ -35,7 +35,7 @@ func TestPrunePromptFilters(t *testing.T) {
 	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{"--filter", "until=24h", "--filter", "label=hello-world", "--filter", "label!=foo=bar", "--filter", "label=bar=baz"})
 
-	assert.ErrorContains(t, cmd.Execute(), "`system prune` has been cancelled")
+	assert.ErrorContains(t, cmd.Execute(), "system prune has been cancelled")
 	expected := `WARNING! This will remove:
   - all stopped containers
   - all networks not used by at least one container

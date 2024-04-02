@@ -57,7 +57,7 @@ func TestTrustRevokeCommandErrors(t *testing.T) {
 }
 
 func TestTrustRevokeCommand(t *testing.T) {
-	revokeCancelledError := "`trust revoke` has been cancelled"
+	revokeCancelledError := "trust revoke has been cancelled"
 
 	testCases := []struct {
 		doc              string

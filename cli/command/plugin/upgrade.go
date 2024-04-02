@@ -69,7 +69,7 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 			return err
 		}
 		if !r {
-			return errdefs.Cancelled(errors.New("`plugin upgrade` has been cancelled"))
+			return errdefs.Cancelled(errors.New("plugin upgrade has been cancelled"))
 		}
 	}
 

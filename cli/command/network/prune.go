@@ -57,7 +57,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return "", err
 		}
 		if !r {
-			return "", errdefs.Cancelled(errors.New("`network prune` cancelled has been cancelled"))
+			return "", errdefs.Cancelled(errors.New("network prune cancelled has been cancelled"))
 		}
 	}
 

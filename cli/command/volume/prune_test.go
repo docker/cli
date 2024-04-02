@@ -173,7 +173,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
 		cmd.SetArgs([]string{})
-		assert.ErrorContains(t, cmd.Execute(), "`volume prune` has been cancelled")
+		assert.ErrorContains(t, cmd.Execute(), "volume prune has been cancelled")
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
 	}
 }

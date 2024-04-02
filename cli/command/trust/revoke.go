@@ -49,7 +49,7 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 			return err
 		}
 		if !deleteRemote {
-			return errdefs.Cancelled(errors.New("`trust revoke` has been cancelled"))
+			return errdefs.Cancelled(errors.New("trust revoke has been cancelled"))
 		}
 	}
 

@@ -75,7 +75,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return 0, "", err
 		}
 		if !r {
-			return 0, "", errdefs.Cancelled(errors.New("`image prune` has been cancelled"))
+			return 0, "", errdefs.Cancelled(errors.New("image prune has been cancelled"))
 		}
 	}
 

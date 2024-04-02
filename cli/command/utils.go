@@ -123,7 +123,7 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 	select {
 	case <-notifyCtx.Done():
 		// print a newline on termination
-		fmt.Fprintln(outs, "")
+		_, _ = fmt.Fprintln(outs, "")
 		return false, ErrPromptTerminated
 	case r := <-result:
 		return r, nil

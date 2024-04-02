@@ -82,7 +82,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return err
 		}
 		if !r {
-			return errdefs.Cancelled(errors.New("`system prune` has been cancelled"))
+			return errdefs.Cancelled(errors.New("system prune has been cancelled"))
 		}
 	}
 	pruneFuncs := []func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
