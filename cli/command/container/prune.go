@@ -8,7 +8,9 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/errdefs"
 	units "github.com/docker/go-units"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -54,8 +56,12 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force {
-		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning); !r || err != nil {
+		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		if err != nil {
 			return 0, "", err
+		}
+		if !r {
+			return 0, "", errdefs.Cancelled(errors.New("container prune has been cancelled"))
 		}
 	}
 

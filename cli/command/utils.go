@@ -19,6 +19,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/errdefs"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -75,9 +76,7 @@ func PrettyPrint(i any) string {
 	}
 }
 
-type PromptError error
-
-var ErrPromptTerminated = PromptError(errors.New("prompt terminated"))
+var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
 
 // PromptForConfirmation requests and checks confirmation from the user.
 // This will display the provided message followed by ' [y/N] '. If the user
@@ -123,6 +122,8 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 
 	select {
 	case <-notifyCtx.Done():
+		// print a newline on termination
+		_, _ = fmt.Fprintln(outs, "")
 		return false, ErrPromptTerminated
 	case r := <-result:
 		return r, nil

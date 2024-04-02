@@ -132,9 +132,11 @@ func removeSingleSigner(ctx context.Context, dockerCLI command.Cli, repoName, si
 	}
 
 	ok, err := maybePromptForSignerRemoval(ctx, dockerCLI, repoName, signerName, isLastSigner, forceYes)
-	if err != nil || !ok {
-		fmt.Fprintf(dockerCLI.Out(), "\nAborting action.\n")
+	if err != nil {
 		return false, err
+	}
+	if !ok {
+		return false, nil
 	}
 
 	if err := notaryRepo.RemoveDelegationKeys(releasesRoleTUFName, role.KeyIDs); err != nil {

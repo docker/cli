@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -94,13 +95,18 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
-		cmd := NewPruneCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("prune-command-success.%s.golden", tc.name))
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
+			// when prompted, answer "Y" to confirm the prune.
+			// will not be prompted if --force is used.
+			cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader("Y\n"))))
+			cmd := NewPruneCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("prune-command-success.%s.golden", tc.name))
+		})
 	}
 }
 
@@ -114,8 +120,5 @@ func TestPrunePromptTermination(t *testing.T) {
 		},
 	})
 	cmd := NewPruneCommand(cli)
-	test.TerminatePrompt(ctx, t, cmd, cli, func(t *testing.T, err error) {
-		t.Helper()
-		assert.ErrorIs(t, err, command.ErrPromptTerminated)
-	})
+	test.TerminatePrompt(ctx, t, cmd, cli)
 }

@@ -155,6 +155,7 @@ func TestVolumePrunePromptYes(t *testing.T) {
 
 		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
+		cmd.SetArgs([]string{})
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-yes.golden")
 	}
@@ -171,7 +172,8 @@ func TestVolumePrunePromptNo(t *testing.T) {
 
 		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 		cmd := NewPruneCommand(cli)
-		assert.NilError(t, cmd.Execute())
+		cmd.SetArgs([]string{})
+		assert.ErrorContains(t, cmd.Execute(), "volume prune has been cancelled")
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
 	}
 }
@@ -196,7 +198,7 @@ func TestVolumePrunePromptTerminate(t *testing.T) {
 	})
 
 	cmd := NewPruneCommand(cli)
-	test.TerminatePrompt(ctx, t, cmd, cli, nil)
-
+	cmd.SetArgs([]string{})
+	test.TerminatePrompt(ctx, t, cmd, cli)
 	golden.Assert(t, cli.OutBuffer().String(), "volume-prune-terminate.golden")
 }

@@ -17,8 +17,10 @@ import (
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -75,8 +77,12 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
 	if !options.force {
-		if r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options)); !r || err != nil {
+		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options))
+		if err != nil {
 			return err
+		}
+		if !r {
+			return errdefs.Cancelled(errors.New("system prune has been cancelled"))
 		}
 	}
 	pruneFuncs := []func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
