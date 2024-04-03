@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -14,6 +16,8 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
+	"github.com/moby/term"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +27,7 @@ type pushOptions struct {
 	remote    string
 	untrusted bool
 	quiet     bool
+	platform  string
 }
 
 // NewPushCommand creates a new `docker push` command
@@ -48,12 +53,32 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	flags.StringVar(&opts.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"),
+		`Push a platform-specific manifest as a single-platform image to the registry.
+'os[/arch[/variant]]': Explicit platform (eg. linux/amd64)`)
+	flags.SetAnnotation("platform", "version", []string{"1.46"})
 
 	return cmd
 }
 
 // RunPush performs a push against the engine based on the specified options
 func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
+	var platform *ocispec.Platform
+	if opts.platform != "" {
+		p, err := platforms.Parse(opts.platform)
+		if err != nil {
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Invalid platform %s", opts.platform)
+			return err
+		}
+		platform = &p
+
+		printNote(dockerCli, `Selecting a single platform will only push one matching image manifest from a multi-platform image index.
+This means that any other components attached to the multi-platform image index (like Buildkit attestations) won't be pushed.
+If you want to only push a single platform image while preserving the attestations, please build an image with only that platform and push it instead.
+Example: echo "FROM %s" | docker build - --platform %s -t <NEW-TAG>
+`, opts.remote, opts.platform)
+	}
+
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
 	switch {
 	case err != nil:
@@ -84,6 +109,7 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
+		Platform:      platform,
 	}
 
 	responseBody, err := dockerCli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
@@ -105,4 +131,13 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		return err
 	}
 	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+}
+
+func printNote(dockerCli command.Cli, format string, args ...any) {
+	if _, isTTY := term.GetFdInfo(dockerCli.Err()); isTTY {
+		_, _ = fmt.Fprint(dockerCli.Err(), "\x1b[1;37m\x1b[1;46m[ NOTE ]\x1b[0m\x1b[0m ")
+	} else {
+		_, _ = fmt.Fprint(dockerCli.Err(), "[ NOTE ] ")
+	}
+	_, _ = fmt.Fprintf(dockerCli.Err(), format+"\n\n", args...)
 }
