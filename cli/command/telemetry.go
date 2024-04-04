@@ -110,7 +110,7 @@ func (r *telemetryResource) init() {
 		return
 	}
 
-	opts := append(r.defaultOptions(), r.opts...)
+	opts := append(defaultResourceOptions(), r.opts...)
 	res, err := resource.New(context.Background(), opts...)
 	if err != nil {
 		otel.Handle(err)
@@ -122,7 +122,7 @@ func (r *telemetryResource) init() {
 	r.opts = nil
 }
 
-func (r *telemetryResource) defaultOptions() []resource.Option {
+func defaultResourceOptions() []resource.Option {
 	return []resource.Option{
 		resource.WithDetectors(serviceNameDetector{}),
 		resource.WithAttributes(
