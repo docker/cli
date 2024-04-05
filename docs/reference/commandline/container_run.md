@@ -1363,6 +1363,7 @@ in the image, or `SIGTERM` if the image has no `STOPSIGNAL` defined.
 | `--security-opt="seccomp=unconfined"`     | Turn off seccomp confinement for the container                                                                                                                                                                   |
 | `--security-opt="seccomp=builtin"`        | Use the default (built-in) seccomp profile for the container. This can be used to enable seccomp for a container running on a daemon with a custom default profile set, or with seccomp disabled ("unconfined"). |
 | `--security-opt="seccomp=profile.json"`   | White-listed syscalls seccomp Json file to be used as a seccomp filter                                                                                                                                           |
+| `--security-opt="systempaths=unconfined"` | Turn off confinement for system paths (masked paths, read-only paths) for the container                                                                                                                           |
 
 The `--security-opt` flag lets you override the default labeling scheme for a
 container. Specifying the level in the following command allows you to share
