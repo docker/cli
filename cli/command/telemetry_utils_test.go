@@ -159,7 +159,7 @@ func TestAttributesFromError(t *testing.T) {
 			testName: "no error",
 			err:      nil,
 			expected: []attribute.KeyValue{
-				attribute.String("command.status.code", "0"),
+				attribute.Int("command.status.code", 0),
 			},
 		},
 		{
@@ -167,7 +167,7 @@ func TestAttributesFromError(t *testing.T) {
 			err:      statusError{StatusCode: 127},
 			expected: []attribute.KeyValue{
 				attribute.String("command.error.type", "generic"),
-				attribute.String("command.status.code", "127"),
+				attribute.Int("command.status.code", 127),
 			},
 		},
 		{
@@ -175,7 +175,7 @@ func TestAttributesFromError(t *testing.T) {
 			err:      context.Canceled,
 			expected: []attribute.KeyValue{
 				attribute.String("command.error.type", "canceled"),
-				attribute.String("command.status.code", "1"),
+				attribute.Int("command.status.code", 1),
 			},
 		},
 	} {

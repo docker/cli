@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -110,7 +109,7 @@ func attributesFromError(err error) []attribute.KeyValue {
 		}
 		attrs = append(attrs, attribute.String("command.error.type", otelErrorType(err)))
 	}
-	attrs = append(attrs, attribute.String("command.status.code", strconv.Itoa(exitCode)))
+	attrs = append(attrs, attribute.Int("command.status.code", exitCode))
 
 	return attrs
 }
