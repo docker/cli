@@ -118,6 +118,27 @@ func TestNetworks(t *testing.T) {
 	assert.DeepEqual(t, []string{"special"}, externals)
 }
 
+func TestNetworksCreatedWithoutServices(t *testing.T) {
+	namespace := Namespace{name: "foo"}
+	serviceNetworks := map[string]struct{}{}
+	source := networkMap{
+		"named": composetypes.NetworkConfig{
+			Name: "othername",
+		},
+	}
+	expected := map[string]types.NetworkCreate{
+		"named": {
+			Labels: map[string]string{
+				LabelNamespace: "foo",
+			},
+		},
+	}
+
+	networks, externals := Networks(namespace, source, serviceNetworks)
+	assert.DeepEqual(t, expected, networks)
+	assert.DeepEqual(t, []string{}, externals)
+}
+
 func TestSecrets(t *testing.T) {
 	namespace := Namespace{name: "foo"}
 
