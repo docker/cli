@@ -150,7 +150,12 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	}
 	if runOpts.sigProxy {
 		sigc := notifyAllSignals()
-		go ForwardAllSignals(ctx, apiClient, containerID, sigc)
+		// since we're explicitly setting up signal handling here, and the daemon will
+		// get notified independently of the clients ctx cancellation, we use this context
+		// but without cancellation to avoid ForwardAllSignals from returning
+		// before all signals are forwarded.
+		bgCtx := context.WithoutCancel(ctx)
+		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 

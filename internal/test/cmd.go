@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"os"
-	"syscall"
 	"testing"
 	"time"
 
@@ -32,8 +31,11 @@ func TerminatePrompt(ctx context.Context, t *testing.T, cmd *cobra.Command, cli 
 	assert.NilError(t, err)
 	cli.SetIn(streams.NewIn(r))
 
+	notifyCtx, notifyCancel := context.WithCancel(ctx)
+	t.Cleanup(notifyCancel)
+
 	go func() {
-		errChan <- cmd.ExecuteContext(ctx)
+		errChan <- cmd.ExecuteContext(notifyCtx)
 	}()
 
 	writeCtx, writeCancel := context.WithTimeout(ctx, 100*time.Millisecond)
@@ -66,7 +68,7 @@ func TerminatePrompt(ctx context.Context, t *testing.T, cmd *cobra.Command, cli 
 
 	// sigint and sigterm are caught by the prompt
 	// this allows us to gracefully exit the prompt with a 0 exit code
-	syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+	notifyCancel()
 
 	select {
 	case <-errCtx.Done():

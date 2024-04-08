@@ -5,11 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
+	"os/signal"
+	"syscall"
 	"testing"
+	"time"
 
+	"github.com/creack/pty"
 	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
@@ -30,6 +37,68 @@ func TestRunLabel(t *testing.T) {
 	cmd := NewRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"--detach=true", "--label", "foo", "busybox"})
 	assert.NilError(t, cmd.Execute())
+}
+
+func TestRunAttachTermination(t *testing.T) {
+	p, tty, err := pty.Open()
+	assert.NilError(t, err)
+
+	defer func() {
+		_ = tty.Close()
+		_ = p.Close()
+	}()
+
+	killCh := make(chan struct{})
+	attachCh := make(chan struct{})
+	fakeCLI := test.NewFakeCli(&fakeClient{
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
+			return container.CreateResponse{
+				ID: "id",
+			}, nil
+		},
+		containerKillFunc: func(ctx context.Context, containerID, signal string) error {
+			killCh <- struct{}{}
+			return nil
+		},
+		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
+			server, client := net.Pipe()
+			t.Cleanup(func() {
+				_ = server.Close()
+			})
+			attachCh <- struct{}{}
+			return types.NewHijackedResponse(client, types.MediaTypeRawStream), nil
+		},
+		Version: "1.36",
+	}, func(fc *test.FakeCli) {
+		fc.SetOut(streams.NewOut(tty))
+		fc.SetIn(streams.NewIn(tty))
+	})
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	defer cancel()
+
+	assert.Equal(t, fakeCLI.In().IsTerminal(), true)
+	assert.Equal(t, fakeCLI.Out().IsTerminal(), true)
+
+	cmd := NewRunCommand(fakeCLI)
+	cmd.SetArgs([]string{"-it", "busybox"})
+	cmd.SilenceUsage = true
+	go func() {
+		assert.ErrorIs(t, cmd.ExecuteContext(ctx), context.Canceled)
+	}()
+
+	select {
+	case <-time.After(5 * time.Second):
+		t.Fatal("containerAttachFunc was not called before the 5 second timeout")
+	case <-attachCh:
+	}
+
+	assert.NilError(t, syscall.Kill(syscall.Getpid(), syscall.SIGTERM))
+	select {
+	case <-time.After(5 * time.Second):
+		cancel()
+		t.Fatal("containerKillFunc was not called before the 5 second timeout")
+	case <-killCh:
+	}
 }
 
 func TestRunCommandWithContentTrustErrors(t *testing.T) {

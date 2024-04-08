@@ -9,11 +9,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
@@ -103,11 +101,6 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 
 	result := make(chan bool)
 
-	// Catch the termination signal and exit the prompt gracefully.
-	// The caller is responsible for properly handling the termination.
-	notifyCtx, notifyCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
-	defer notifyCancel()
-
 	go func() {
 		var res bool
 		scanner := bufio.NewScanner(ins)
@@ -121,8 +114,7 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 	}()
 
 	select {
-	case <-notifyCtx.Done():
-		// print a newline on termination
+	case <-ctx.Done():
 		_, _ = fmt.Fprintln(outs, "")
 		return false, ErrPromptTerminated
 	case r := <-result:

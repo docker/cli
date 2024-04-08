@@ -37,6 +37,7 @@ type fakeClient struct {
 	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
 	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error)
+	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
 	Version                 string
 }
 
@@ -172,4 +173,11 @@ func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.A
 		return f.containerPruneFunc(ctx, pruneFilters)
 	}
 	return types.ContainersPruneReport{}, nil
+}
+
+func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
+	if f.containerAttachFunc != nil {
+		return f.containerAttachFunc(ctx, containerID, options)
+	}
+	return types.HijackedResponse{}, nil
 }
