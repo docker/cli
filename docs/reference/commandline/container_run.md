@@ -714,7 +714,24 @@ For additional information on working with labels, see
 
 To start a container and connect it to a network, use the `--network` option.
 
-The following commands create a network named `my-net` and adds a `busybox` container
+If you want to add a running container to a network use the `docker network connect` subcommand.
+
+You can connect multiple containers to the same network. Once connected, the
+containers can communicate using only another container's IP address
+or name. For `overlay` networks or custom plugins that support multi-host
+connectivity, containers connected to the same multi-host network but launched
+from different Engines can also communicate in this way.
+
+> **Note**
+>
+> The default bridge network only allows containers to communicate with each other using
+> internal IP addresses. User-created bridge networks provide DNS resolution between
+> containers using container names.
+
+You can disconnect a container from a network using the `docker network
+disconnect` command.
+
+The following commands create a network named `my-net` and add a `busybox` container
 to the `my-net` network.
 
 ```console
@@ -731,24 +748,36 @@ $ docker network create --subnet 192.0.2.0/24 my-net
 $ docker run -itd --network=my-net --ip=192.0.2.69 busybox
 ```
 
-If you want to add a running container to a network use the `docker network connect` subcommand.
+To connect the container to more than one network, repeat the `--network` option.
 
-You can connect multiple containers to the same network. Once connected, the
-containers can communicate using only another container's IP address
-or name. For `overlay` networks or custom plugins that support multi-host
-connectivity, containers connected to the same multi-host network but launched
-from different Engines can also communicate in this way.
+```console
+$ docker network create --subnet 192.0.2.0/24 my-net1
+$ docker network create --subnet 192.0.3.0/24 my-net2
+$ docker run -itd --network=my-net1 --network=my-net2 busybox
+```
 
-> **Note**
->
-> The default bridge network only allow containers to communicate with each other using
-> internal IP addresses. User-created bridge networks provide DNS resolution between
-> containers using container names.
+To specify options when connecting to more than one network, use the extended syntax
+for the `--network` flag. Comma-separated options that can be specified in the extended
+`--network` syntax are:
 
-You can disconnect a container from a network using the `docker network
-disconnect` command.
+| Option          | Top-level Equivalent                  | Description                                     |
+|-----------------|---------------------------------------|-------------------------------------------------|
+| `name`          |                                       | The name of the network (mandatory)             |
+| `alias`         | `--network-alias`                     | Add network-scoped alias for the container      |
+| `ip`            | `--ip`                                | IPv4 address (e.g., 172.30.100.104)             |
+| `ip6`           | `--ip6`                               | IPv6 address (e.g., 2001:db8::33)               |
+| `mac-address`   | `--mac-address`                       | Container MAC address (e.g., 92:d0:c6:0a:29:33) |
+| `link-local-ip` | `--link-local-ip`                     | Container IPv4/IPv6 link-local addresses        |
+| `driver-opt`    | `docker network connect --driver-opt` | Network driver options                          |
 
-For more information on connecting a container to a network when using the `run` command, see the ["*Docker network overview*"](https://docs.docker.com/network/).
+```console
+$ docker network create --subnet 192.0.2.0/24 my-net1
+$ docker network create --subnet 192.0.3.0/24 my-net2
+$ docker run -itd --network=name=my-net1,ip=192.0.2.42 --network=name=my-net2,ip=192.0.3.42 busybox
+```
+
+For more information on connecting a container to a network when using the `run` command,
+see the [Docker network overview](https://docs.docker.com/network/).
 
 ### <a name="volumes-from"></a> Mount volumes from container (--volumes-from)
 
