@@ -180,6 +180,8 @@ target "bin-image-cross" {
   inherits = ["bin-image"]
   output = ["type=image"]
   platforms = [
+    "darwin/amd64",
+    "darwin/arm64",
     "linux/amd64",
     "linux/arm/v6",
     "linux/arm/v7",
