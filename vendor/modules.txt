@@ -326,7 +326,7 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.6.0
 ## explicit; go 1.18
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.16.0
+# golang.org/x/sys v0.18.0
 ## explicit; go 1.18
 golang.org/x/sys/plan9
 golang.org/x/sys/unix

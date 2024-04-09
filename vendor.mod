@@ -39,7 +39,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opentelemetry.io/otel v1.21.0
 	golang.org/x/sync v0.6.0
-	golang.org/x/sys v0.16.0
+	golang.org/x/sys v0.18.0
 	golang.org/x/term v0.15.0
 	golang.org/x/text v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
