@@ -8,7 +8,7 @@ go 1.21
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/containerd/containerd v1.7.14
+	github.com/containerd/containerd v1.7.15
 	github.com/creack/pty v1.1.21
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
