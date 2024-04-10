@@ -56,9 +56,6 @@ if [ -z "$CGO_ENABLED" ]; then
                 ;;
             esac
         ;;
-        darwin|windows)
-            CGO_ENABLED=1
-        ;;
         *)
             CGO_ENABLED=0
         ;;
