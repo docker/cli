@@ -23,7 +23,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/patternmatcher v0.6.0
-	github.com/moby/swarmkit/v2 v2.0.0-20240125134710-dcda100a8261
+	github.com/moby/swarmkit/v2 v2.0.0-20240227173239-911c97650f2e
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.5.0
