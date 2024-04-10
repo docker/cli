@@ -8,11 +8,11 @@ go 1.21
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/containerd/containerd v1.7.14
+	github.com/containerd/containerd v1.7.15
 	github.com/creack/pty v1.1.21
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v26.0.0+incompatible
+	github.com/docker/docker v26.0.1-0.20240410103514-f9dfd139ec0d+incompatible // master
 	github.com/docker/docker-credential-helpers v0.8.1
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -23,7 +23,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/patternmatcher v0.6.0
-	github.com/moby/swarmkit/v2 v2.0.0-20240125134710-dcda100a8261
+	github.com/moby/swarmkit/v2 v2.0.0-20240227173239-911c97650f2e
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.5.0
