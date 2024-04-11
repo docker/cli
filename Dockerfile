@@ -123,8 +123,14 @@ COPY --link . .
 FROM scratch AS plugins
 COPY --from=build-plugins /out .
 
-FROM scratch AS bin-image
+FROM scratch AS bin-image-linux
 COPY --from=build /out/docker /docker
+FROM scratch AS bin-image-darwin
+COPY --from=build /out/docker /docker
+FROM scratch AS bin-image-windows
+COPY --from=build /out/docker /docker.exe
+
+FROM bin-image-${TARGETOS} AS bin-image
 
 FROM scratch AS binary
 COPY --from=build /out .
