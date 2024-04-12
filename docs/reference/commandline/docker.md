@@ -1,14 +1,7 @@
----
-title: "Use the Docker command line"
-description: "Docker's CLI command description and usage"
-keywords: "Docker, Docker documentation, CLI, command line, config.json, CLI configuration file"
-aliases:
-  - /reference/commandline/cli/
-  - /engine/reference/commandline/engine/
-  - /engine/reference/commandline/engine_activate/
-  - /engine/reference/commandline/engine_check/
-  - /engine/reference/commandline/engine_update/
----
+# docker
+
+<!---MARKER_GEN_START-->
+<!---MARKER_GEN_END-->
 
 The base command for the Docker CLI is `docker`. For information about the
 available flags and subcommands, refer to the [CLI reference](https://docs.docker.com/reference/cli/docker/)
