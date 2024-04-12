@@ -869,7 +869,7 @@ the following:
 
 These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
 sequences. To configure a different configuration default key sequence for all
-containers, see [**Configuration file** section](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files).
+containers, see [**Configuration file** section](https://docs.docker.com/reference/cli/docker/#configuration-files).
 
 ### <a name="device"></a> Add host device to container (--device)
 
