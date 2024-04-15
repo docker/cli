@@ -902,17 +902,19 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 
 > **Note**
 >
-> This is experimental feature and as such doesn't represent a stable API.
+> The CDI feature is experimental, and potentially subject to change.
+> CDI is currently only supported for Linux containers.
 
-Container Device Interface (CDI) is a
-[standardized](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
-mechanism for container runtimes to create containers which are able to
-interact with third party devices.
+[Container Device Interface
+(CDI)](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
+is a standardized mechanism for container runtimes to create containers which
+are able to interact with third party devices.
 
-With CDI, device configurations are defined using a JSON file. In addition to
-enabling the container to interact with the device node, it also lets you
-specify additional configuration for the device, such as kernel modules, host
-libraries, and environment variables.
+With CDI, device configurations are declaratively defined using a JSON or YAML
+file. In addition to enabling the container to interact with the device node,
+it also lets you specify additional configuration for the device, such as
+environment variables, host mounts (such as shared objects), and executable
+hooks.
 
 You can reference a CDI device with the `--device` flag using the
 fully-qualified name of the device, as shown in the following example:
@@ -924,10 +926,10 @@ $ docker run --device=vendor.com/class=device-name --rm -it ubuntu
 This starts an `ubuntu` container with access to the specified CDI device,
 `vendor.com/class=device-name`, assuming that:
 
-- A valid CDI specification (JSON file) for the requested device is available
-  on the system running the daemon, in one of the configured CDI specification
-  directories.
-- The CDI feature has been enabled on the daemon side, see [Enable CDI
+- A valid CDI specification (JSON or YAML file) for the requested device is
+  available on the system running the daemon, in one of the configured CDI
+  specification directories.
+- The CDI feature has been enabled in the daemon; see [Enable CDI
   devices](https://docs.docker.com/reference/cli/dockerd/#enable-cdi-devices).
 
 ### <a name="attach"></a> Attach to STDIN/STDOUT/STDERR (-a, --attach)
