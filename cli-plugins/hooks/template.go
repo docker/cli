@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/spf13/cobra"
@@ -71,18 +72,18 @@ func TemplateReplaceArg(i int) string {
 	return fmt.Sprintf(hookTemplateArg, strconv.Itoa(i))
 }
 
-func ParseTemplate(hookTemplate string, cmd *cobra.Command) (string, error) {
+func ParseTemplate(hookTemplate string, cmd *cobra.Command) ([]string, error) {
 	tmpl := template.New("").Funcs(commandFunctions)
 	tmpl, err := tmpl.Parse(hookTemplate)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	b := bytes.Buffer{}
 	err = tmpl.Execute(&b, cmd)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return b.String(), nil
+	return strings.Split(b.String(), "\n"), nil
 }
 
 var ErrHookTemplateParse = errors.New("failed to parse hook template")
