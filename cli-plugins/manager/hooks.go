@@ -76,7 +76,7 @@ func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command
 		if err != nil {
 			continue
 		}
-		nextSteps = append(nextSteps, processedHook)
+		nextSteps = append(nextSteps, processedHook...)
 	}
 	return nextSteps
 }

@@ -16,15 +16,15 @@ func TestParseTemplate(t *testing.T) {
 		template       string
 		flags          []testFlag
 		args           []string
-		expectedOutput string
+		expectedOutput []string
 	}{
 		{
 			template:       "",
-			expectedOutput: "",
+			expectedOutput: []string{""},
 		},
 		{
 			template:       "a plain template message",
-			expectedOutput: "a plain template message",
+			expectedOutput: []string{"a plain template message"},
 		},
 		{
 			template: TemplateReplaceFlagValue("tag"),
@@ -34,7 +34,7 @@ func TestParseTemplate(t *testing.T) {
 					value: "my-tag",
 				},
 			},
-			expectedOutput: "my-tag",
+			expectedOutput: []string{"my-tag"},
 		},
 		{
 			template: TemplateReplaceFlagValue("test-one") + " " + TemplateReplaceFlagValue("test2"),
@@ -48,17 +48,21 @@ func TestParseTemplate(t *testing.T) {
 					value: "value2",
 				},
 			},
-			expectedOutput: "value value2",
+			expectedOutput: []string{"value value2"},
 		},
 		{
 			template:       TemplateReplaceArg(0) + " " + TemplateReplaceArg(1),
 			args:           []string{"zero", "one"},
-			expectedOutput: "zero one",
+			expectedOutput: []string{"zero one"},
 		},
 		{
 			template:       "You just pulled " + TemplateReplaceArg(0),
 			args:           []string{"alpine"},
-			expectedOutput: "You just pulled alpine",
+			expectedOutput: []string{"You just pulled alpine"},
+		},
+		{
+			template:       "one line\nanother line!",
+			expectedOutput: []string{"one line", "another line!"},
 		},
 	}
 
@@ -77,6 +81,6 @@ func TestParseTemplate(t *testing.T) {
 
 		out, err := ParseTemplate(tc.template, testCmd)
 		assert.NilError(t, err)
-		assert.Equal(t, out, tc.expectedOutput)
+		assert.DeepEqual(t, out, tc.expectedOutput)
 	}
 }
