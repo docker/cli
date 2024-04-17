@@ -41,23 +41,19 @@ func dockerExporterOTLPEndpoint(cli Cli) (endpoint string, secure bool) {
 		otelCfg = m[otelContextFieldName]
 	}
 
-	if otelCfg == nil {
-		return "", false
+	if otelCfg != nil {
+		otelMap, ok := otelCfg.(map[string]any)
+		if !ok {
+			otel.Handle(errors.Errorf(
+				"unexpected type for field %q: %T (expected: %T)",
+				otelContextFieldName,
+				otelCfg,
+				otelMap,
+			))
+		}
+		// keys from https://opentelemetry.io/docs/concepts/sdk-configuration/otlp-exporter-configuration/
+		endpoint, _ = otelMap[otelExporterOTLPEndpoint].(string)
 	}
-
-	otelMap, ok := otelCfg.(map[string]any)
-	if !ok {
-		otel.Handle(errors.Errorf(
-			"unexpected type for field %q: %T (expected: %T)",
-			otelContextFieldName,
-			otelCfg,
-			otelMap,
-		))
-		return "", false
-	}
-
-	// keys from https://opentelemetry.io/docs/concepts/sdk-configuration/otlp-exporter-configuration/
-	endpoint, _ = otelMap[otelExporterOTLPEndpoint].(string)
 
 	// Override with env var value if it exists AND IS SET
 	// (ignore otel defaults for this override when the key exists but is empty)
