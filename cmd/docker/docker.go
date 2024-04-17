@@ -353,9 +353,6 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// which remain.
 	cmd.SetArgs(args)
 	err = cmd.Execute()
-	if err != nil {
-		return err
-	}
 
 	// If the command is being executed in an interactive terminal,
 	// run the plugin hooks (but don't throw an error if something misbehaves)
@@ -363,7 +360,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		_ = pluginmanager.RunPluginHooks(dockerCli, cmd, subCommand, "", args)
 	}
 
-	return nil
+	return err
 }
 
 type versionDetails interface {
