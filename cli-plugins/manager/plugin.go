@@ -2,6 +2,7 @@ package manager
 
 import (
 	"encoding/json"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -113,7 +114,10 @@ func (p *Plugin) RunHook(cmdName string, flags map[string]string) ([]byte, error
 		return nil, wrapAsPluginError(err, "failed to marshall hook data")
 	}
 
-	hookCmdOutput, err := exec.Command(p.Path, p.Name, HookSubcommandName, string(hDataBytes)).Output()
+	pCmd := exec.Command(p.Path, p.Name, HookSubcommandName, string(hDataBytes))
+	pCmd.Env = os.Environ()
+	pCmd.Env = append(pCmd.Env, ReexecEnvvar+"="+os.Args[0])
+	hookCmdOutput, err := pCmd.Output()
 	if err != nil {
 		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand")
 	}
