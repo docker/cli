@@ -336,7 +336,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			err := tryPluginRun(dockerCli, cmd, args[0], envs)
 			if err == nil {
 				if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && ccmd != nil {
-					_ = pluginmanager.RunPluginHooks(dockerCli, cmd, ccmd, args[0], args)
+					pluginmanager.RunPluginHooks(dockerCli, cmd, ccmd, args)
 				}
 				return nil
 			}
@@ -354,10 +354,10 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	cmd.SetArgs(args)
 	err = cmd.Execute()
 
-	// If the command is being executed in an interactive terminal,
-	// run the plugin hooks (but don't throw an error if something misbehaves)
+	// If the command is being executed in an interactive terminal
+	// and hook are enabled, run the plugin hooks.
 	if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && subCommand != nil {
-		_ = pluginmanager.RunPluginHooks(dockerCli, cmd, subCommand, "", args)
+		pluginmanager.RunCLICommandHooks(dockerCli, cmd, subCommand)
 	}
 
 	return err
