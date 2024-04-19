@@ -9,6 +9,8 @@ type Deploy struct {
 	ResolveImage     string
 	SendRegistryAuth bool
 	Prune            bool
+	Detach           bool
+	Quiet            bool
 }
 
 // Config holds docker stack config options
@@ -36,6 +38,7 @@ type PS struct {
 // Remove holds docker stack remove options
 type Remove struct {
 	Namespaces []string
+	Detach     bool
 }
 
 // Services holds docker stack services options

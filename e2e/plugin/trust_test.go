@@ -1,19 +1,14 @@
 package plugin
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/e2e/testutils"
 	"github.com/docker/cli/internal/test/environment"
-	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
-	"gotest.tools/v3/assert"
-	"gotest.tools/v3/fs"
+	"github.com/docker/docker/api/types/versions"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/skip"
 )
@@ -21,6 +16,8 @@ import (
 const registryPrefix = "registry:5000"
 
 func TestInstallWithContentTrust(t *testing.T) {
+	// TODO(krissetto): remove this skip once the fix (see https://github.com/moby/moby/pull/47299) is deployed to moby versions < 25
+	skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 	skip.If(t, environment.SkipPluginTests())
 
 	pluginName := fmt.Sprintf("%s/plugin-content-trust", registryPrefix)
@@ -28,8 +25,11 @@ func TestInstallWithContentTrust(t *testing.T) {
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
 
-	pluginDir := preparePluginDir(t)
-	defer pluginDir.Remove()
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	pluginDir := testutils.SetupPlugin(t, ctx)
+	t.Cleanup(pluginDir.Remove)
 
 	icmd.RunCommand("docker", "plugin", "create", pluginName, pluginDir.Path()).Assert(t, icmd.Success)
 	result := icmd.RunCmd(icmd.Command("docker", "plugin", "push", pluginName),
@@ -50,7 +50,7 @@ func TestInstallWithContentTrust(t *testing.T) {
 		fixtures.WithNotary,
 	)
 	result.Assert(t, icmd.Expected{
-		Out: fmt.Sprintf("Status: Downloaded newer image for %s@sha", pluginName),
+		Out: fmt.Sprintf("Installed plugin %s", pluginName),
 	})
 }
 
@@ -69,46 +69,4 @@ func TestInstallWithContentTrustUntrusted(t *testing.T) {
 		ExitCode: 1,
 		Err:      "Error: remote trust data does not exist",
 	})
-}
-
-func preparePluginDir(t *testing.T) *fs.Dir {
-	p := &types.PluginConfig{
-		Interface: types.PluginConfigInterface{
-			Socket: "basic.sock",
-			Types:  []types.PluginInterfaceType{{Capability: "docker.dummy/1.0"}},
-		},
-		Entrypoint: []string{"/basic"},
-	}
-	configJSON, err := json.Marshal(p)
-	assert.NilError(t, err)
-
-	binPath, err := ensureBasicPluginBin()
-	assert.NilError(t, err)
-
-	dir := fs.NewDir(t, "plugin_test",
-		fs.WithFile("config.json", string(configJSON), fs.WithMode(0o644)),
-		fs.WithDir("rootfs", fs.WithMode(0o755)),
-	)
-	icmd.RunCommand("/bin/cp", binPath, dir.Join("rootfs", p.Entrypoint[0])).Assert(t, icmd.Success)
-	return dir
-}
-
-func ensureBasicPluginBin() (string, error) {
-	name := "docker-basic-plugin"
-	p, err := exec.LookPath(name)
-	if err == nil {
-		return p, nil
-	}
-
-	goBin, err := exec.LookPath("/usr/local/go/bin/go")
-	if err != nil {
-		return "", err
-	}
-	installPath := filepath.Join(os.Getenv("GOPATH"), "bin", name)
-	cmd := exec.Command(goBin, "build", "-o", installPath, "./basic")
-	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", errors.Wrapf(err, "error building basic plugin bin: %s", string(out))
-	}
-	return installPath, nil
 }

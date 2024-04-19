@@ -18,7 +18,7 @@ Add a signer
 
 ## Examples
 
-### Add a signer to a repo
+### Add a signer to a repository
 
 To add a new signer, `alice`, to this repository:
 
@@ -66,9 +66,9 @@ Repository Key: 642692c14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-## Initialize a new repo and add a signer
+## Initialize a new repository and add a signer
 
-When adding a signer on a repo for the first time, `docker trust signer add` sets up a new repo if it doesn't exist.
+When adding a signer on a repository for the first time, `docker trust signer add` sets up a new repository if it doesn't exist.
 
 ```console
 $ docker trust inspect --pretty example/trust-demo
@@ -107,8 +107,10 @@ Repository Key: 95b9e5565eac3ef5ec01406801bdfb70feb40c17808d2222427c18046eb63beb
 Root Key:       748121c14bd1461f6c58cb3ef39087c8fdc7633bb11a98af844fd9a04e208103
 ```
 
-## Add a signer to multiple repos
+## Add a signer to multiple repositories
+
 To add a signer, `alice`, to multiple repositories:
+
 ```console
 $ docker trust inspect --pretty example/trust-demo
 
@@ -192,8 +194,8 @@ Repository Key: ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d926
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-
-`docker trust signer add` adds signers to repositories on a best effort basis, so it will continue to add the signer to subsequent repositories if one attempt fails:
+`docker trust signer add` adds signers to repositories on a best effort basis.
+It continues to add the signer to subsequent repositories if one attempt fails:
 
 ```console
 $ docker trust signer add alice example/unauthorized example/authorized --key alice.crt

@@ -1,11 +1,10 @@
-version: '2.1'
-
 services:
+
   registry:
     image: 'registry:2'
 
   engine:
-      image: 'docker:${TEST_ENGINE_VERSION:-stable-dind}'
+      image: 'docker:${ENGINE_VERSION:-25.0}-dind'
       privileged: true
       command: ['--insecure-registry=registry:5000']
       environment:
@@ -18,6 +17,7 @@ services:
       ports:
         - 4443:4443
       command: ['notary-server', '-config=/fixtures/notary-config.json']
+
   evil-notary-server:
       build:
         context: ./testdata
@@ -25,4 +25,3 @@ services:
       ports:
         - 4444:4443
       command: ['notary-server', '-config=/fixtures/notary-config.json']
-

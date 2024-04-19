@@ -8,9 +8,9 @@ import (
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -24,7 +24,7 @@ func base64Decode(val string) []byte {
 
 const sampleID = "EKHL:QDUU:QZ7U:MKGD:VDXK:S27Q:GIPU:24B7:R7VT:DGN6:QCSF:2UBX"
 
-var sampleInfoNoSwarm = types.Info{
+var sampleInfoNoSwarm = system.Info{
 	ID:                sampleID,
 	Containers:        0,
 	ContainersRunning: 0,
@@ -39,11 +39,11 @@ var sampleInfoNoSwarm = types.Info{
 		{"Native Overlay Diff", "true"},
 	},
 	SystemStatus: nil,
-	Plugins: types.PluginsInfo{
+	Plugins: system.PluginsInfo{
 		Volume:        []string{"local"},
 		Network:       []string{"bridge", "host", "macvlan", "null", "overlay"},
 		Authorization: nil,
-		Log:           []string{"awslogs", "fluentd", "gcplogs", "gelf", "journald", "json-file", "logentries", "splunk", "syslog"},
+		Log:           []string{"awslogs", "fluentd", "gcplogs", "gelf", "journald", "json-file", "splunk", "syslog"},
 	},
 	MemoryLimit:        true,
 	SwapLimit:          true,
@@ -98,10 +98,12 @@ var sampleInfoNoSwarm = types.Info{
 	Labels:            []string{"provider=digitalocean"},
 	ExperimentalBuild: false,
 	ServerVersion:     "17.06.1-ce",
-	Runtimes: map[string]types.Runtime{
+	Runtimes: map[string]system.RuntimeWithStatus{
 		"runc": {
-			Path: "docker-runc",
-			Args: nil,
+			Runtime: system.Runtime{
+				Path: "docker-runc",
+				Args: nil,
+			},
 		},
 	},
 	DefaultRuntime:     "runc",
@@ -109,25 +111,26 @@ var sampleInfoNoSwarm = types.Info{
 	LiveRestoreEnabled: false,
 	Isolation:          "",
 	InitBinary:         "docker-init",
-	ContainerdCommit: types.Commit{
+	ContainerdCommit: system.Commit{
 		ID:       "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
 		Expected: "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
 	},
-	RuncCommit: types.Commit{
+	RuncCommit: system.Commit{
 		ID:       "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
 		Expected: "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
 	},
-	InitCommit: types.Commit{
+	InitCommit: system.Commit{
 		ID:       "949e6fa",
 		Expected: "949e6fa",
 	},
 	SecurityOptions: []string{"name=apparmor", "name=seccomp,profile=default"},
-	DefaultAddressPools: []types.NetworkAddressPool{
+	DefaultAddressPools: []system.NetworkAddressPool{
 		{
 			Base: "10.123.0.0/16",
 			Size: 24,
 		},
 	},
+	CDISpecDirs: []string{"/etc/cdi", "/var/run/cdi"},
 }
 
 var sampleSwarmInfo = swarm.Info{
@@ -266,7 +269,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 
 	for _, tc := range []struct {
 		doc        string
-		dockerInfo info
+		dockerInfo dockerInfo
 
 		prettyGolden   string
 		warningsGolden string
@@ -275,7 +278,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 	}{
 		{
 			doc: "info without swarm",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info: &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{
 					clientVersion: clientVersion{
@@ -291,7 +294,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 		{
 			doc: "info with plugins",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info: &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{
 					clientVersion: clientVersion{Context: "default"},
@@ -304,7 +307,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 		{
 			doc: "info with nil labels",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info:       &sampleInfoLabelsNil,
 				ClientInfo: &clientInfo{clientVersion: clientVersion{Context: "default"}},
 			},
@@ -312,7 +315,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 		{
 			doc: "info with empty labels",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info:       &sampleInfoLabelsEmpty,
 				ClientInfo: &clientInfo{clientVersion: clientVersion{Context: "default"}},
 			},
@@ -320,7 +323,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 		{
 			doc: "info with swarm",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info: &infoWithSwarm,
 				ClientInfo: &clientInfo{
 					clientVersion: clientVersion{Context: "default"},
@@ -331,25 +334,8 @@ func TestPrettyPrintInfo(t *testing.T) {
 			jsonGolden:   "docker-info-with-swarm",
 		},
 		{
-			doc: "info with legacy warnings",
-			dockerInfo: info{
-				Info: &infoWithWarningsLinux,
-				ClientInfo: &clientInfo{
-					clientVersion: clientVersion{
-						Platform: &platformInfo{Name: "Docker Engine - Community"},
-						Version:  "24.0.0",
-						Context:  "default",
-					},
-					Debug: true,
-				},
-			},
-			prettyGolden:   "docker-info-no-swarm",
-			warningsGolden: "docker-info-warnings",
-			jsonGolden:     "docker-info-legacy-warnings",
-		},
-		{
 			doc: "info with daemon warnings",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info: &sampleInfoDaemonWarnings,
 				ClientInfo: &clientInfo{
 					clientVersion: clientVersion{
@@ -366,7 +352,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 		{
 			doc: "errors for both",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				ServerErrors: []string{"a server error occurred"},
 				ClientErrors: []string{"a client error occurred"},
 			},
@@ -377,7 +363,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 		},
 		{
 			doc: "bad security info",
-			dockerInfo: info{
+			dockerInfo: dockerInfo{
 				Info:         &sampleInfoBadSecurity,
 				ServerErrors: []string{"a server error occurred"},
 				ClientInfo:   &clientInfo{Debug: false},
@@ -423,7 +409,7 @@ func BenchmarkPrettyPrintInfo(b *testing.B) {
 	infoWithSwarm := sampleInfoNoSwarm
 	infoWithSwarm.Swarm = sampleSwarmInfo
 
-	dockerInfo := info{
+	info := dockerInfo{
 		Info: &infoWithSwarm,
 		ClientInfo: &clientInfo{
 			clientVersion: clientVersion{
@@ -438,7 +424,7 @@ func BenchmarkPrettyPrintInfo(b *testing.B) {
 
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_ = prettyPrintInfo(cli, dockerInfo)
+		_ = prettyPrintInfo(cli, info)
 		cli.ResetOutputBuffers()
 	}
 }
@@ -463,23 +449,24 @@ func TestFormatInfo(t *testing.T) {
 		{
 			doc:           "syntax",
 			template:      "{{.badString}}",
-			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.info`,
+			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.dockerInfo`,
 		},
 	} {
 		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
-			info := info{
+			info := dockerInfo{
 				Info:       &sampleInfoNoSwarm,
 				ClientInfo: &clientInfo{Debug: true},
 			}
 			err := formatInfo(cli.Out(), info, tc.template)
-			if tc.expectedOut != "" {
+			switch {
+			case tc.expectedOut != "":
 				assert.NilError(t, err)
 				assert.Equal(t, cli.OutBuffer().String(), tc.expectedOut)
-			} else if tc.expectedError != "" {
+			case tc.expectedError != "":
 				assert.Error(t, err, tc.expectedError)
-			} else {
+			default:
 				t.Fatal("test expected to neither pass nor fail")
 			}
 		})
@@ -529,7 +516,7 @@ func TestNeedsServerInfo(t *testing.T) {
 		},
 	}
 
-	inf := info{ClientInfo: &clientInfo{}}
+	inf := dockerInfo{ClientInfo: &clientInfo{}}
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {

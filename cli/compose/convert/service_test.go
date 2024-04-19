@@ -61,6 +61,15 @@ func TestConvertEnvironment(t *testing.T) {
 	assert.Check(t, is.DeepEqual([]string{"foo=bar", "key=value"}, env))
 }
 
+func TestConvertEnvironmentWhenNilValueExists(t *testing.T) {
+	source := map[string]*string{
+		"key":            strPtr("value"),
+		"keyWithNoValue": nil,
+	}
+	env := convertEnvironment(source)
+	assert.Check(t, is.DeepEqual([]string{"key=value", "keyWithNoValue"}, env))
+}
+
 func TestConvertExtraHosts(t *testing.T) {
 	source := composetypes.HostsList{
 		"zulu:127.0.0.2",
@@ -124,17 +133,24 @@ func TestConvertHealthcheck(t *testing.T) {
 	retries := uint64(10)
 	timeout := composetypes.Duration(30 * time.Second)
 	interval := composetypes.Duration(2 * time.Millisecond)
+	startPeriod := composetypes.Duration(time.Minute)
+	startInterval := composetypes.Duration(1 * time.Second)
+
 	source := &composetypes.HealthCheckConfig{
-		Test:     []string{"EXEC", "touch", "/foo"},
-		Timeout:  &timeout,
-		Interval: &interval,
-		Retries:  &retries,
+		Test:          []string{"EXEC", "touch", "/foo"},
+		Timeout:       &timeout,
+		Interval:      &interval,
+		Retries:       &retries,
+		StartPeriod:   &startPeriod,
+		StartInterval: &startInterval,
 	}
 	expected := &container.HealthConfig{
-		Test:     source.Test,
-		Timeout:  time.Duration(timeout),
-		Interval: time.Duration(interval),
-		Retries:  10,
+		Test:          source.Test,
+		Timeout:       time.Duration(timeout),
+		Interval:      time.Duration(interval),
+		StartPeriod:   time.Duration(startPeriod),
+		StartInterval: time.Duration(startInterval),
+		Retries:       10,
 	}
 
 	healthcheck, err := convertHealthcheck(source)
@@ -490,7 +506,7 @@ func TestConvertServiceSecrets(t *testing.T) {
 			Name: "bar_secret",
 		},
 	}
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		secretListFunc: func(opts types.SecretListOptions) ([]swarm.Secret, error) {
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_secret"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_secret"))
@@ -500,7 +516,8 @@ func TestConvertServiceSecrets(t *testing.T) {
 			}, nil
 		},
 	}
-	refs, err := convertServiceSecrets(client, namespace, secrets, secretSpecs)
+	ctx := context.Background()
+	refs, err := convertServiceSecrets(ctx, apiClient, namespace, secrets, secretSpecs)
 	assert.NilError(t, err)
 	expected := []*swarm.SecretReference{
 		{
@@ -547,7 +564,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 			Name: "baz_config",
 		},
 	}
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		configListFunc: func(opts types.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_config"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_config"))
@@ -559,7 +576,8 @@ func TestConvertServiceConfigs(t *testing.T) {
 			}, nil
 		},
 	}
-	refs, err := convertServiceConfigObjs(client, namespace, service, configSpecs)
+	ctx := context.Background()
+	refs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, configSpecs)
 	assert.NilError(t, err)
 	expected := []*swarm.ConfigReference{
 		{

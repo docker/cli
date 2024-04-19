@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
 )
 
 // Resolve image constants
@@ -22,16 +23,19 @@ const (
 )
 
 // RunDeploy is the swarm implementation of docker stack deploy
-func RunDeploy(dockerCli command.Cli, opts options.Deploy, cfg *composetypes.Config) error {
-	ctx := context.Background()
-
-	if err := validateResolveImageFlag(&opts); err != nil {
+func RunDeploy(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts *options.Deploy, cfg *composetypes.Config) error {
+	if err := validateResolveImageFlag(opts); err != nil {
 		return err
 	}
 	// client side image resolution should not be done when the supported
 	// server version is older than 1.30
 	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
 		opts.ResolveImage = ResolveImageNever
+	}
+
+	if opts.Detach && !flags.Changed("detach") {
+		fmt.Fprintln(dockerCli.Err(), "Since --detach=false was not specified, tasks will be created in the background.\n"+
+			"In a future release, --detach=false will become the default.")
 	}
 
 	return deployCompose(ctx, dockerCli, opts, cfg)

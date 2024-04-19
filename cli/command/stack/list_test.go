@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -38,7 +38,7 @@ func TestListErrors(t *testing.T) {
 		},
 		{
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{*Service()}, nil
+				return []swarm.Service{*builders.Service()}, nil
 			},
 			expectedError: "cannot get label",
 		},
@@ -51,7 +51,7 @@ func TestListErrors(t *testing.T) {
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -101,8 +101,8 @@ func TestStackList(t *testing.T) {
 			var services []swarm.Service
 			for _, name := range tc.serviceNames {
 				services = append(services,
-					*Service(
-						ServiceLabels(map[string]string{
+					*builders.Service(
+						builders.ServiceLabels(map[string]string{
 							"com.docker.stack.namespace": name,
 						}),
 					),
@@ -115,7 +115,7 @@ func TestStackList(t *testing.T) {
 			})
 			cmd := newListCommand(cli)
 			for key, value := range tc.flags {
-				cmd.Flags().Set(key, value)
+				assert.Check(t, cmd.Flags().Set(key, value))
 			}
 			assert.NilError(t, cmd.Execute())
 			golden.Assert(t, cli.OutBuffer().String(), tc.golden)

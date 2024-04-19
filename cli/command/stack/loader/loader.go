@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package loader
 
 import (
@@ -28,9 +31,8 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 	config, err := loader.Load(configDetails)
 	if err != nil {
 		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
-			//nolint:revive // ignore capitalization error; this error is intentionally formatted multi-line
-			return nil, errors.Errorf("Compose file contains unsupported options:\n\n%s\n",
-				propertyWarnings(fpe.Properties))
+			// this error is intentionally formatted multi-line
+			return nil, errors.Errorf("Compose file contains unsupported options:\n\n%s\n", propertyWarnings(fpe.Properties))
 		}
 
 		return nil, err
@@ -50,8 +52,8 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 	return config, nil
 }
 
-func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{} {
-	dicts := []map[string]interface{}{}
+func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]any {
+	dicts := []map[string]any{}
 
 	for _, configFile := range configFiles {
 		dicts = append(dicts, configFile.Config)
@@ -61,7 +63,7 @@ func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]interface{
 }
 
 func propertyWarnings(properties map[string]string) string {
-	var msgs []string
+	msgs := make([]string, 0, len(properties))
 	for name, description := range properties {
 		msgs = append(msgs, fmt.Sprintf("%s: %s", name, description))
 	}
@@ -129,7 +131,7 @@ func buildEnvironment(env []string) (map[string]string, error) {
 }
 
 func loadConfigFiles(filenames []string, stdin io.Reader) ([]composetypes.ConfigFile, error) {
-	var configFiles []composetypes.ConfigFile
+	configFiles := make([]composetypes.ConfigFile, 0, len(filenames))
 
 	for _, filename := range filenames {
 		configFile, err := loadConfigFile(filename, stdin)

@@ -24,7 +24,7 @@ By default, `docker inspect` will render results in a JSON array.
 
 If a format is specified, the given template will be executed for each result.
 
-Go's [text/template](https://golang.org/pkg/text/template/) package describes
+Go's [text/template](https://pkg.go.dev/text/template) package describes
 all the details of the format.
 
 ### <a name="type"></a> Specify target type (--type)
@@ -38,7 +38,7 @@ exist with the same name, making the result ambiguous.
 To restrict `docker inspect` to a specific type of object, use the `--type`
 option.
 
-The following example inspects a _volume_ named "myvolume"
+The following example inspects a volume named `myvolume`.
 
 ```console
 $ docker inspect --type=volume myvolume
@@ -117,7 +117,7 @@ the template language's `index` function does. The `.NetworkSettings.Ports`
 section contains a map of the internal port mappings to a list of external
 address/port objects. To grab just the numeric public port, you use `index` to
 find the specific port map, and then `index` 0 contains the first object inside
-of that. Then we ask for the `HostPort` field to get the public address.
+of that. Then, specify the `HostPort` field to get the public address.
 
 ```console
 $ docker inspect --format='{{(index (index .NetworkSettings.Ports "8787/tcp") 0).HostPort}}' $INSTANCE_ID

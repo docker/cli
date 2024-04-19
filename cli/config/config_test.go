@@ -15,6 +15,7 @@ import (
 )
 
 func setupConfigDir(t *testing.T) string {
+	t.Helper()
 	tmpdir := t.TempDir()
 	oldDir := Dir()
 	SetDir(tmpdir)

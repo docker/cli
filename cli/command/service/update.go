@@ -31,7 +31,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a service",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(dockerCli, cmd.Flags(), options, args[0])
+			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), options, args[0])
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return CompletionFn(dockerCli)(cmd, args, toComplete)
@@ -127,9 +127,8 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 }
 
 //nolint:gocyclo
-func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
+func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCli.Client()
-	ctx := context.Background()
 
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	if err != nil {
@@ -195,14 +194,14 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 		}
 	}
 
-	updatedSecrets, err := getUpdatedSecrets(apiClient, flags, spec.TaskTemplate.ContainerSpec.Secrets)
+	updatedSecrets, err := getUpdatedSecrets(ctx, apiClient, flags, spec.TaskTemplate.ContainerSpec.Secrets)
 	if err != nil {
 		return err
 	}
 
 	spec.TaskTemplate.ContainerSpec.Secrets = updatedSecrets
 
-	updatedConfigs, err := getUpdatedConfigs(apiClient, flags, spec.TaskTemplate.ContainerSpec)
+	updatedConfigs, err := getUpdatedConfigs(ctx, apiClient, flags, spec.TaskTemplate.ContainerSpec)
 	if err != nil {
 		return err
 	}
@@ -219,18 +218,19 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 	if err != nil {
 		return err
 	}
-	if sendAuth {
+	switch {
+	case sendAuth:
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), image)
 		if err != nil {
 			return err
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
-	} else if clientSideRollback {
+	case clientSideRollback:
 		updateOpts.RegistryAuthFrom = types.RegistryAuthFromPreviousSpec
-	} else {
+	default:
 		updateOpts.RegistryAuthFrom = types.RegistryAuthFromSpec
 	}
 
@@ -249,7 +249,7 @@ func runUpdate(dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOpti
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return WaitOnService(ctx, dockerCli, serviceID, options.quiet)
 }
 
 //nolint:gocyclo
@@ -727,8 +727,10 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimi
 			newUlimits[ulimit.Name] = ulimit
 		}
 	}
-
-	var limits []*units.Ulimit
+	if len(newUlimits) == 0 {
+		return nil
+	}
+	limits := make([]*units.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		limits = append(limits, ulimit)
 	}
@@ -760,7 +762,7 @@ func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
 	}
 }
 
-func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {
+func getUpdatedSecrets(ctx context.Context, apiClient client.SecretAPIClient, flags *pflag.FlagSet, secrets []*swarm.SecretReference) ([]*swarm.SecretReference, error) {
 	newSecrets := []*swarm.SecretReference{}
 
 	toRemove := buildToRemoveSet(flags, flagSecretRemove)
@@ -773,7 +775,7 @@ func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, s
 	if flags.Changed(flagSecretAdd) {
 		values := flags.Lookup(flagSecretAdd).Value.(*opts.SecretOpt).Value()
 
-		addSecrets, err := ParseSecrets(apiClient, values)
+		addSecrets, err := ParseSecrets(ctx, apiClient, values)
 		if err != nil {
 			return nil, err
 		}
@@ -783,7 +785,7 @@ func getUpdatedSecrets(apiClient client.SecretAPIClient, flags *pflag.FlagSet, s
 	return newSecrets, nil
 }
 
-func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, spec *swarm.ContainerSpec) ([]*swarm.ConfigReference, error) {
+func getUpdatedConfigs(ctx context.Context, apiClient client.ConfigAPIClient, flags *pflag.FlagSet, spec *swarm.ContainerSpec) ([]*swarm.ConfigReference, error) {
 	var (
 		// credSpecConfigName stores the name of the config specified by the
 		// credential-spec flag. if a Runtime target Config with this name is
@@ -799,7 +801,7 @@ func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, s
 	if flags.Changed(flagCredentialSpec) {
 		credSpec := flags.Lookup(flagCredentialSpec).Value.(*credentialSpecOpt).Value()
 		credSpecConfigName = credSpec.Config
-	} else {
+	} else { //nolint:gocritic // ignore  elseif: can replace 'else {if cond {}}' with 'else if cond {}'
 		// if the credential spec flag has not changed, then check if there
 		// already is a credentialSpec. if there is one, and it's for a Config,
 		// then it's from the old object, and its value is the config ID. we
@@ -832,7 +834,7 @@ func getUpdatedConfigs(apiClient client.ConfigAPIClient, flags *pflag.FlagSet, s
 	}
 
 	if len(resolveConfigs) > 0 {
-		addConfigs, err := ParseConfigs(apiClient, resolveConfigs)
+		addConfigs, err := ParseConfigs(ctx, apiClient, resolveConfigs)
 		if err != nil {
 			return nil, err
 		}
@@ -1292,9 +1294,9 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	// values to spec.TaskTemplate.Networks.
 	specNetworks := spec.TaskTemplate.Networks
 	if len(specNetworks) == 0 {
-		specNetworks = spec.Networks
+		specNetworks = spec.Networks //nolint:staticcheck // ignore SA1019: field is deprecated.
 	}
-	spec.Networks = nil
+	spec.Networks = nil //nolint:staticcheck // ignore SA1019: field is deprecated.
 
 	toRemove := buildToRemoveSet(flags, flagNetworkRemove)
 	idsToRemove := make(map[string]struct{})
@@ -1307,7 +1309,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	}
 
 	existingNetworks := make(map[string]struct{})
-	var newNetworks []swarm.NetworkAttachmentConfig
+	var newNetworks []swarm.NetworkAttachmentConfig //nolint:prealloc
 	for _, network := range specNetworks {
 		if _, exists := idsToRemove[network.Target]; exists {
 			continue
@@ -1362,7 +1364,7 @@ func updateCredSpecConfig(flags *pflag.FlagSet, containerSpec *swarm.ContainerSp
 		// otherwise, set the credential spec to be the parsed value
 		credSpec := credSpecOpt.Value.(*credentialSpecOpt).Value()
 
-		// if this is a Config credential spec, we we still need to replace the
+		// if this is a Config credential spec, we still need to replace the
 		// value of credSpec.Config with the config ID instead of Name.
 		if credSpec.Config != "" {
 			for _, config := range containerSpec.Configs {
@@ -1503,10 +1505,13 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 }
 
 func capsList(caps map[string]bool) []string {
+	if len(caps) == 0 {
+		return nil
+	}
 	if caps[opts.AllCapabilities] {
 		return []string{opts.AllCapabilities}
 	}
-	var out []string
+	out := make([]string, 0, len(caps))
 	for c := range caps {
 		out = append(out, c)
 	}

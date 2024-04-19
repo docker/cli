@@ -1,13 +1,17 @@
 package image
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -65,7 +69,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
 				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{
-					ImagesDeleted:  []types.ImageDeleteResponseItem{{Deleted: "image1"}},
+					ImagesDeleted:  []image.DeleteResponse{{Deleted: "image1"}},
 					SpaceReclaimed: 1,
 				}, nil
 			},
@@ -84,19 +88,37 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
 				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{
-					ImagesDeleted:  []types.ImageDeleteResponseItem{{Untagged: "image1"}},
+					ImagesDeleted:  []image.DeleteResponse{{Untagged: "image1"}},
 					SpaceReclaimed: 2,
 				}, nil
 			},
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
-		cmd := NewPruneCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("prune-command-success.%s.golden", tc.name))
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
+			// when prompted, answer "Y" to confirm the prune.
+			// will not be prompted if --force is used.
+			cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader("Y\n"))))
+			cmd := NewPruneCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("prune-command-success.%s.golden", tc.name))
+		})
 	}
+}
+
+func TestPrunePromptTermination(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	cli := test.NewFakeCli(&fakeClient{
+		imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
+			return types.ImagesPruneReport{}, errors.New("fakeClient imagesPruneFunc should not be called")
+		},
+	})
+	cmd := NewPruneCommand(cli)
+	test.TerminatePrompt(ctx, t, cmd, cli)
 }

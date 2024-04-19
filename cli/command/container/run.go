@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
@@ -43,7 +42,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runRun(dockerCli, cmd.Flags(), &options, copts)
+			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
@@ -90,7 +89,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
@@ -115,18 +114,18 @@ func runRun(dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copt
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
 	}
-	return runContainer(dockerCli, ropts, copts, containerCfg)
+	return runContainer(ctx, dockerCli, ropts, copts, containerCfg)
 }
 
 //nolint:gocyclo
-func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
+func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
 	config := containerCfg.Config
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
 
 	config.ArgsEscaped = false
 
-	if !opts.detach {
+	if !runOpts.detach {
 		if err := dockerCli.In().CheckTty(config.AttachStdin, config.Tty); err != nil {
 			return err
 		}
@@ -141,17 +140,17 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		config.StdinOnce = false
 	}
 
-	ctx, cancelFun := context.WithCancel(context.Background())
+	ctx, cancelFun := context.WithCancel(ctx)
 	defer cancelFun()
 
-	containerID, err := createContainer(ctx, dockerCli, containerCfg, &opts.createOptions)
+	containerID, err := createContainer(ctx, dockerCli, containerCfg, &runOpts.createOptions)
 	if err != nil {
 		reportError(stderr, "run", err.Error(), true)
 		return runStartContainerErr(err)
 	}
-	if opts.sigProxy {
+	if runOpts.sigProxy {
 		sigc := notifyAllSignals()
-		go ForwardAllSignals(ctx, dockerCli, containerID, sigc)
+		go ForwardAllSignals(ctx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 
@@ -170,11 +169,11 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
 	if attach {
 		detachKeys := dockerCli.ConfigFile().DetachKeys
-		if opts.detachKeys != "" {
-			detachKeys = opts.detachKeys
+		if runOpts.detachKeys != "" {
+			detachKeys = runOpts.detachKeys
 		}
 
-		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, types.ContainerAttachOptions{
+		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, container.AttachOptions{
 			Stream:     true,
 			Stdin:      config.AttachStdin,
 			Stdout:     config.AttachStdout,
@@ -187,10 +186,10 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 		defer closeFn()
 	}
 
-	statusChan := waitExitOrRemoved(ctx, dockerCli, containerID, copts.autoRemove)
+	statusChan := waitExitOrRemoved(ctx, apiClient, containerID, copts.autoRemove)
 
 	// start the container
-	if err := client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+	if err := apiClient.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
@@ -239,7 +238,7 @@ func runContainer(dockerCli command.Cli, opts *runOptions, copts *containerOptio
 	return nil
 }
 
-func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options types.ContainerAttachOptions) (func(), error) {
+func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options container.AttachOptions) (func(), error) {
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
 	if errAttach != nil {
 		return nil, errAttach

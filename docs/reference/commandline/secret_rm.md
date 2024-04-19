@@ -36,6 +36,7 @@ sapth4csdo5b6wz2p5uimh5xg
 >
 > Unlike `docker rm`, this command does not ask for confirmation before removing
 > a secret.
+{ .warning }
 
 
 ## Related commands

@@ -20,8 +20,8 @@ Remove one or more plugins
 
 Removes a plugin. You cannot remove a plugin if it is enabled, you must disable
 a plugin using the [`docker plugin disable`](plugin_disable.md) before removing
-it (or use --force, use of force is not recommended, since it can affect
-functioning of running containers using the plugin).
+it, or use `--force`. Use of `--force` is not recommended, since it can affect
+functioning of running containers using the plugin.
 
 ## Examples
 

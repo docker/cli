@@ -3,12 +3,13 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -345,13 +346,13 @@ func (ctx *serviceInspectContext) TaskPlacementPreferences() []string {
 	if ctx.Service.Spec.TaskTemplate.Placement == nil {
 		return nil
 	}
-	var strings []string
+	var out []string
 	for _, pref := range ctx.Service.Spec.TaskTemplate.Placement.Preferences {
 		if pref.Spread != nil {
-			strings = append(strings, "spread="+pref.Spread.SpreadDescriptor)
+			out = append(out, "spread="+pref.Spread.SpreadDescriptor)
 		}
 	}
-	return strings
+	return out
 }
 
 func (ctx *serviceInspectContext) MaxReplicas() uint64 {
@@ -742,12 +743,12 @@ func (pr portRange) String() string {
 	if pr.pEnd > pr.pStart {
 		pub = fmt.Sprintf("%d-%d", pr.pStart, pr.pEnd)
 	} else {
-		pub = fmt.Sprintf("%d", pr.pStart)
+		pub = strconv.FormatUint(uint64(pr.pStart), 10)
 	}
 	if pr.tEnd > pr.tStart {
 		tgt = fmt.Sprintf("%d-%d", pr.tStart, pr.tEnd)
 	} else {
-		tgt = fmt.Sprintf("%d", pr.tStart)
+		tgt = strconv.FormatUint(uint64(pr.tStart), 10)
 	}
 	return fmt.Sprintf("*:%s->%s/%s", pub, tgt, pr.protocol)
 }

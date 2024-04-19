@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -56,7 +56,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				flagAutolock: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
 				return types.SwarmUnlockKeyResponse{}, errors.Errorf("error getting unlock key")
@@ -73,7 +73,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -81,7 +81,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 }
 
 func TestSwarmUpdate(t *testing.T) {
-	swarmInfo := Swarm()
+	swarmInfo := builders.Swarm()
 	swarmInfo.ClusterInfo.TLSInfo.TrustRoot = "trustroot"
 
 	testCases := []struct {
@@ -105,7 +105,6 @@ func TestSwarmUpdate(t *testing.T) {
 				flagMaxSnapshots:        "10",
 				flagSnapshotInterval:    "100",
 				flagAutolock:            "true",
-				flagQuiet:               "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
 				return *swarmInfo, nil
@@ -156,7 +155,7 @@ func TestSwarmUpdate(t *testing.T) {
 				return nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
 				return types.SwarmUnlockKeyResponse{
@@ -174,7 +173,7 @@ func TestSwarmUpdate(t *testing.T) {
 		cmd := newUpdateCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(cli.OutBuffer())
 		assert.NilError(t, cmd.Execute())

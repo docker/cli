@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/distribution/reference"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
@@ -35,7 +35,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return RunPush(dockerCli, opts)
+			return RunPush(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "6",
@@ -53,7 +53,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunPush performs a push against the engine based on the specified options
-func RunPush(dockerCli command.Cli, opts pushOptions) error {
+func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
 	switch {
 	case err != nil:
@@ -73,16 +73,14 @@ func RunPush(dockerCli command.Cli, opts pushOptions) error {
 		return err
 	}
 
-	ctx := context.Background()
-
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
 	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
-	options := types.ImagePushOptions{
+	options := image.PushOptions{
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,

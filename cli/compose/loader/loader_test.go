@@ -1,8 +1,12 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package loader
 
 import (
 	"bytes"
 	"os"
+	"runtime"
 	"sort"
 	"testing"
 	"time"
@@ -12,9 +16,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
-func buildConfigDetails(source map[string]interface{}, env map[string]string) types.ConfigDetails {
+func buildConfigDetails(source map[string]any, env map[string]string) types.ConfigDetails {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -72,39 +77,39 @@ networks:
         - subnet: 172.28.0.0/16
 `
 
-var sampleDict = map[string]interface{}{
+var sampleDict = map[string]any{
 	"version": "3",
-	"services": map[string]interface{}{
-		"foo": map[string]interface{}{
+	"services": map[string]any{
+		"foo": map[string]any{
 			"image":    "busybox",
-			"networks": map[string]interface{}{"with_me": nil},
+			"networks": map[string]any{"with_me": nil},
 		},
-		"bar": map[string]interface{}{
+		"bar": map[string]any{
 			"image":       "busybox",
-			"environment": []interface{}{"FOO=1"},
-			"networks":    []interface{}{"with_ipam"},
+			"environment": []any{"FOO=1"},
+			"networks":    []any{"with_ipam"},
 		},
 	},
-	"volumes": map[string]interface{}{
-		"hello": map[string]interface{}{
+	"volumes": map[string]any{
+		"hello": map[string]any{
 			"driver": "default",
-			"driver_opts": map[string]interface{}{
+			"driver_opts": map[string]any{
 				"beep": "boop",
 			},
 		},
 	},
-	"networks": map[string]interface{}{
-		"default": map[string]interface{}{
+	"networks": map[string]any{
+		"default": map[string]any{
 			"driver": "bridge",
-			"driver_opts": map[string]interface{}{
+			"driver_opts": map[string]any{
 				"beep": "boop",
 			},
 		},
-		"with_ipam": map[string]interface{}{
-			"ipam": map[string]interface{}{
+		"with_ipam": map[string]any{
+			"ipam": map[string]any{
 				"driver": "default",
-				"config": []interface{}{
-					map[string]interface{}{
+				"config": []any{
+					map[string]any{
 						"subnet": "172.28.0.0/16",
 					},
 				},
@@ -179,7 +184,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
-	Version: "3.11",
+	Version: "3.12",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
@@ -252,7 +257,7 @@ services:
 	assert.Check(t, is.Len(actual.Services, 1))
 	service := actual.Services[0]
 	assert.Check(t, is.Equal("busybox", service.Image))
-	extras := map[string]interface{}{
+	extras := map[string]any{
 		"x-foo": "bar",
 	}
 	assert.Check(t, is.DeepEqual(extras, service.Extras))
@@ -964,6 +969,8 @@ func uint32Ptr(value uint32) *uint32 {
 }
 
 func TestFullExample(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows", "FIXME: TestFullExample substitutes platform-specific HOME-directories and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
+
 	data, err := os.ReadFile("full-example.yml")
 	assert.NilError(t, err)
 
@@ -1295,12 +1302,14 @@ services:
     extra_hosts:
       "zulu": "162.242.195.82"
       "alpha": "50.31.209.229"
+      "beta": "[fd20:f8a7:6e5b::2]"
       "host.docker.internal": "host-gateway"
 `)
 	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"alpha:50.31.209.229",
+		"beta:fd20:f8a7:6e5b::2",
 		"host.docker.internal:host-gateway",
 		"zulu:162.242.195.82",
 	}
@@ -1317,16 +1326,25 @@ services:
     image: busybox
     extra_hosts:
       - "zulu:162.242.195.82"
+      - "whiskey=162.242.195.83"
       - "alpha:50.31.209.229"
       - "zulu:ff02::1"
-      - "host.docker.internal:host-gateway"
+      - "whiskey=ff02::2"
+      - "foxtrot=[ff02::3]"
+      - "bravo:[ff02::4]"
+      - "host.docker.internal=host-gateway"
+      - "noaddress"
 `)
 	assert.NilError(t, err)
 
 	expected := types.HostsList{
 		"zulu:162.242.195.82",
+		"whiskey:162.242.195.83",
 		"alpha:50.31.209.229",
 		"zulu:ff02::1",
+		"whiskey:ff02::2",
+		"foxtrot:ff02::3",
+		"bravo:ff02::4",
 		"host.docker.internal:host-gateway",
 	}
 
@@ -1338,9 +1356,9 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
 	buf, cleanup := patchLogrus()
 	defer cleanup()
 
-	source := map[string]interface{}{
-		"foo": map[string]interface{}{
-			"external": map[string]interface{}{
+	source := map[string]any{
+		"foo": map[string]any{
+			"external": map[string]any{
 				"name": "oops",
 			},
 		},
@@ -1368,9 +1386,9 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion33(t *testing.T) {
 	buf, cleanup := patchLogrus()
 	defer cleanup()
 
-	source := map[string]interface{}{
-		"foo": map[string]interface{}{
-			"external": map[string]interface{}{
+	source := map[string]any{
+		"foo": map[string]any{
+			"external": map[string]any{
 				"name": "oops",
 			},
 		},
@@ -1451,9 +1469,9 @@ func TestLoadSecretsWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 	buf, cleanup := patchLogrus()
 	defer cleanup()
 
-	source := map[string]interface{}{
-		"foo": map[string]interface{}{
-			"external": map[string]interface{}{
+	source := map[string]any{
+		"foo": map[string]any{
+			"external": map[string]any{
 				"name": "oops",
 			},
 		},
@@ -1477,9 +1495,9 @@ func TestLoadNetworksWarnOnDeprecatedExternalNameVersion35(t *testing.T) {
 	buf, cleanup := patchLogrus()
 	defer cleanup()
 
-	source := map[string]interface{}{
-		"foo": map[string]interface{}{
-			"external": map[string]interface{}{
+	source := map[string]any{
+		"foo": map[string]any{
+			"external": map[string]any{
 				"name": "oops",
 			},
 		},
@@ -1500,9 +1518,9 @@ func TestLoadNetworksWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
 	buf, cleanup := patchLogrus()
 	defer cleanup()
 
-	source := map[string]interface{}{
-		"foo": map[string]interface{}{
-			"external": map[string]interface{}{
+	source := map[string]any{
+		"foo": map[string]any{
+			"external": map[string]any{
 				"name": "oops",
 			},
 		},
@@ -1661,17 +1679,17 @@ services:
 }
 
 func TestTransform(t *testing.T) {
-	source := []interface{}{
+	source := []any{
 		"80-82:8080-8082",
 		"90-92:8090-8092/udp",
 		"85:8500",
 		8600,
-		map[string]interface{}{
+		map[string]any{
 			"protocol":  "udp",
 			"target":    53,
 			"published": 10053,
 		},
-		map[string]interface{}{
+		map[string]any{
 			"mode":      "host",
 			"target":    22,
 			"published": 10022,

@@ -15,7 +15,7 @@ Generate and load a signing key-pair
 ## Description
 
 `docker trust key generate` generates a key-pair to be used with signing,
- and loads the private key into the local docker trust keystore.
+ and loads the private key into the local Docker trust keystore.
 
 ## Examples
 
@@ -32,7 +32,7 @@ $ ls
 alice.pub
 ```
 
-The private signing key is encrypted by the passphrase and loaded into the docker trust keystore.
+The private signing key is encrypted by the passphrase and loaded into the Docker trust keystore.
 All passphrase requests to sign with the key will be referred to by the provided `NAME`.
 
 The public key component `alice.pub` will be available in the current working directory, and can

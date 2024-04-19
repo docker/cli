@@ -17,7 +17,7 @@ Display detailed information on one or more volumes
 Returns information about a volume. By default, this command renders all results
 in a JSON array. You can specify an alternate format to execute a
 given template for each result. Go's
-[text/template](https://golang.org/pkg/text/template/) package describes all the
+[text/template](https://pkg.go.dev/text/template) package describes all the
 details of the format.
 
 ## Examples

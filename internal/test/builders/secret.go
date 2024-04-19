@@ -42,9 +42,9 @@ func SecretDriver(driver string) func(secret *swarm.Secret) {
 }
 
 // SecretID sets the secret's ID
-func SecretID(ID string) func(secret *swarm.Secret) {
+func SecretID(id string) func(secret *swarm.Secret) {
 	return func(secret *swarm.Secret) {
-		secret.ID = ID
+		secret.ID = id
 	}
 }
 

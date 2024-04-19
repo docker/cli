@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package command
 
 import (
@@ -10,7 +13,7 @@ import (
 func TestDockerContextMetadataKeepAdditionalFields(t *testing.T) {
 	c := DockerContext{
 		Description: "test",
-		AdditionalFields: map[string]interface{}{
+		AdditionalFields: map[string]any{
 			"foo": "bar",
 		},
 	}

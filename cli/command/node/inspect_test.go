@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package functions
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -19,7 +19,7 @@ func TestNodeInspectErrors(t *testing.T) {
 		args            []string
 		flags           map[string]string
 		nodeInspectFunc func() (swarm.Node, []byte, error)
-		infoFunc        func() (types.Info, error)
+		infoFunc        func() (system.Info, error)
 		expectedError   string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestNodeInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"self"},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -37,8 +37,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -47,8 +47,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{Swarm: swarm.Info{NodeID: "abc"}}, nil
+			infoFunc: func() (system.Info, error) {
+				return system.Info{Swarm: swarm.Info{NodeID: "abc"}}, nil
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -57,8 +57,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			flags: map[string]string{
 				"pretty": "true",
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -71,7 +71,7 @@ func TestNodeInspectErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -86,7 +86,7 @@ func TestNodeInspectPretty(t *testing.T) {
 		{
 			name: "simple",
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(NodeLabels(map[string]string{
+				return *builders.Node(builders.NodeLabels(map[string]string{
 					"lbl1": "value1",
 				})), []byte{}, nil
 			},
@@ -94,13 +94,13 @@ func TestNodeInspectPretty(t *testing.T) {
 		{
 			name: "manager",
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 		},
 		{
 			name: "manager-leader",
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager(Leader())), []byte{}, nil
+				return *builders.Node(builders.Manager(builders.Leader())), []byte{}, nil
 			},
 		},
 	}
@@ -110,7 +110,7 @@ func TestNodeInspectPretty(t *testing.T) {
 		})
 		cmd := newInspectCommand(cli)
 		cmd.SetArgs([]string{"nodeID"})
-		cmd.Flags().Set("pretty", "true")
+		assert.Check(t, cmd.Flags().Set("pretty", "true"))
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-inspect-pretty.%s.golden", tc.name))
 	}

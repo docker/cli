@@ -38,7 +38,7 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Initialize a swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInit(dockerCli, cmd.Flags(), opts)
+			return runInit(cmd.Context(), dockerCli, cmd.Flags(), opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
@@ -65,12 +65,10 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInit(dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) error {
-	var defaultAddrPool []string
-
+func runInit(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
+	defaultAddrPool := make([]string, 0, len(opts.defaultAddrPools))
 	for _, p := range opts.defaultAddrPools {
 		defaultAddrPool = append(defaultAddrPool, p.String())
 	}

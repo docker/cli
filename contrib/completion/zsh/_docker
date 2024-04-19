@@ -222,7 +222,7 @@ __docker_get_log_options() {
 
     integer ret=1
     local log_driver=${opt_args[--log-driver]:-"all"}
-    local -a common_options common_options2 awslogs_options fluentd_options gelf_options journald_options json_file_options logentries_options syslog_options splunk_options
+    local -a common_options common_options2 awslogs_options fluentd_options gelf_options journald_options json_file_options syslog_options splunk_options
 
     common_options=("max-buffer-size" "mode")
     common_options2=("env" "env-regex" "labels")
@@ -232,7 +232,6 @@ __docker_get_log_options() {
     gelf_options=($common_options $common_options2 "gelf-address" "gelf-compression-level" "gelf-compression-type" "tag")
     journald_options=($common_options $common_options2 "tag")
     json_file_options=($common_options $common_options2 "max-file" "max-size")
-    logentries_options=($common_options $common_options2 "logentries-token" "tag")
     syslog_options=($common_options $common_options2 "syslog-address" "syslog-facility" "syslog-format" "syslog-tls-ca-cert" "syslog-tls-cert" "syslog-tls-key" "syslog-tls-skip-verify" "tag")
     splunk_options=($common_options $common_options2 "splunk-caname" "splunk-capath" "splunk-format" "splunk-gzip" "splunk-gzip-level" "splunk-index" "splunk-insecureskipverify" "splunk-source" "splunk-sourcetype" "splunk-token" "splunk-url" "splunk-verify-connection" "tag")
 
@@ -242,7 +241,6 @@ __docker_get_log_options() {
     [[ $log_driver = (gelf|all) ]] && _describe -t gelf-options "gelf options" gelf_options "$@" && ret=0
     [[ $log_driver = (journald|all) ]] && _describe -t journald-options "journald options" journald_options "$@" && ret=0
     [[ $log_driver = (json-file|all) ]] && _describe -t json-file-options "json-file options" json_file_options "$@" && ret=0
-    [[ $log_driver = (logentries|all) ]] && _describe -t logentries-options "logentries options" logentries_options "$@" && ret=0
     [[ $log_driver = (syslog|all) ]] && _describe -t syslog-options "syslog options" syslog_options "$@" && ret=0
     [[ $log_driver = (splunk|all) ]] && _describe -t splunk-options "splunk options" splunk_options "$@" && ret=0
 

@@ -116,50 +116,46 @@ func TestLoadKeyFromPath(t *testing.T) {
 	for keyID, keyBytes := range testKeys {
 		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-from-path", keyID), func(t *testing.T) {
-			testLoadKeyFromPath(t, keyID, keyBytes)
+			privKeyFilepath := filepath.Join(t.TempDir(), "privkey.pem")
+			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, notary.PrivNoExecPerms))
+
+			keyStorageDir := t.TempDir()
+
+			const passwd = "password"
+			cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
+			keyFileStore, err := storage.NewPrivateKeyFileStorage(keyStorageDir, notary.KeyExtension)
+			assert.NilError(t, err)
+			privKeyImporters := []trustmanager.Importer{keyFileStore}
+
+			// get the privKeyBytes
+			privKeyBytes, err := getPrivKeyBytesFromPath(privKeyFilepath)
+			assert.NilError(t, err)
+
+			// import the key to our keyStorageDir
+			assert.Check(t, loadPrivKeyBytesToStore(privKeyBytes, privKeyImporters, privKeyFilepath, "signer-name", cannedPasswordRetriever))
+
+			// check that the appropriate ~/<trust_dir>/private/<key_id>.key file exists
+			expectedImportKeyPath := filepath.Join(keyStorageDir, notary.PrivDir, keyID+"."+notary.KeyExtension)
+			_, err = os.Stat(expectedImportKeyPath)
+			assert.NilError(t, err)
+
+			// verify the key content
+			from, _ := os.OpenFile(expectedImportKeyPath, os.O_RDONLY, notary.PrivExecPerms)
+			defer from.Close()
+			fromBytes, _ := io.ReadAll(from)
+			keyPEM, _ := pem.Decode(fromBytes)
+			assert.Check(t, is.Equal("signer-name", keyPEM.Headers["role"]))
+			// the default GUN is empty
+			assert.Check(t, is.Equal("", keyPEM.Headers["gun"]))
+			// assert encrypted header
+			assert.Check(t, is.Equal("ENCRYPTED PRIVATE KEY", keyPEM.Type))
+
+			decryptedKey, err := tufutils.ParsePKCS8ToTufKey(keyPEM.Bytes, []byte(passwd))
+			assert.NilError(t, err)
+			fixturePEM, _ := pem.Decode(keyBytes)
+			assert.Check(t, is.DeepEqual(fixturePEM.Bytes, decryptedKey.Private()))
 		})
 	}
-}
-
-func testLoadKeyFromPath(t *testing.T, privKeyID string, privKeyFixture []byte) {
-	privKeyFilepath := filepath.Join(t.TempDir(), "privkey.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, notary.PrivNoExecPerms))
-
-	keyStorageDir := t.TempDir()
-
-	const passwd = "password"
-	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
-	keyFileStore, err := storage.NewPrivateKeyFileStorage(keyStorageDir, notary.KeyExtension)
-	assert.NilError(t, err)
-	privKeyImporters := []trustmanager.Importer{keyFileStore}
-
-	// get the privKeyBytes
-	privKeyBytes, err := getPrivKeyBytesFromPath(privKeyFilepath)
-	assert.NilError(t, err)
-
-	// import the key to our keyStorageDir
-	assert.Check(t, loadPrivKeyBytesToStore(privKeyBytes, privKeyImporters, privKeyFilepath, "signer-name", cannedPasswordRetriever))
-
-	// check that the appropriate ~/<trust_dir>/private/<key_id>.key file exists
-	expectedImportKeyPath := filepath.Join(keyStorageDir, notary.PrivDir, privKeyID+"."+notary.KeyExtension)
-	_, err = os.Stat(expectedImportKeyPath)
-	assert.NilError(t, err)
-
-	// verify the key content
-	from, _ := os.OpenFile(expectedImportKeyPath, os.O_RDONLY, notary.PrivExecPerms)
-	defer from.Close()
-	fromBytes, _ := io.ReadAll(from)
-	keyPEM, _ := pem.Decode(fromBytes)
-	assert.Check(t, is.Equal("signer-name", keyPEM.Headers["role"]))
-	// the default GUN is empty
-	assert.Check(t, is.Equal("", keyPEM.Headers["gun"]))
-	// assert encrypted header
-	assert.Check(t, is.Equal("ENCRYPTED PRIVATE KEY", keyPEM.Type))
-
-	decryptedKey, err := tufutils.ParsePKCS8ToTufKey(keyPEM.Bytes, []byte(passwd))
-	assert.NilError(t, err)
-	fixturePEM, _ := pem.Decode(privKeyFixture)
-	assert.Check(t, is.DeepEqual(fixturePEM.Bytes, decryptedKey.Private()))
 }
 
 func TestLoadKeyTooPermissive(t *testing.T) {
@@ -167,46 +163,42 @@ func TestLoadKeyTooPermissive(t *testing.T) {
 	for keyID, keyBytes := range testKeys {
 		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-too-permissive", keyID), func(t *testing.T) {
-			testLoadKeyTooPermissive(t, keyBytes)
+			privKeyDir := t.TempDir()
+			privKeyFilepath := filepath.Join(privKeyDir, "privkey477.pem")
+			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, 0o477))
+
+			// import the key to our keyStorageDir
+			_, err := getPrivKeyBytesFromPath(privKeyFilepath)
+			expected := fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
+			assert.Error(t, err, expected)
+
+			privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
+			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, 0o677))
+
+			_, err = getPrivKeyBytesFromPath(privKeyFilepath)
+			expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
+			assert.Error(t, err, expected)
+
+			privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
+			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, 0o777))
+
+			_, err = getPrivKeyBytesFromPath(privKeyFilepath)
+			expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
+			assert.Error(t, err, expected)
+
+			privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
+			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, 0o400))
+
+			_, err = getPrivKeyBytesFromPath(privKeyFilepath)
+			assert.NilError(t, err)
+
+			privKeyFilepath = filepath.Join(privKeyDir, "privkey600.pem")
+			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, 0o600))
+
+			_, err = getPrivKeyBytesFromPath(privKeyFilepath)
+			assert.NilError(t, err)
 		})
 	}
-}
-
-func testLoadKeyTooPermissive(t *testing.T, privKeyFixture []byte) {
-	privKeyDir := t.TempDir()
-	privKeyFilepath := filepath.Join(privKeyDir, "privkey477.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o477))
-
-	// import the key to our keyStorageDir
-	_, err := getPrivKeyBytesFromPath(privKeyFilepath)
-	expected := fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
-	assert.Error(t, err, expected)
-
-	privKeyFilepath = filepath.Join(privKeyDir, "privkey667.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o677))
-
-	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
-	assert.Error(t, err, expected)
-
-	privKeyFilepath = filepath.Join(privKeyDir, "privkey777.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o777))
-
-	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	expected = fmt.Sprintf("private key file %s must not be readable or writable by others", privKeyFilepath)
-	assert.Error(t, err, expected)
-
-	privKeyFilepath = filepath.Join(privKeyDir, "privkey400.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o400))
-
-	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	assert.NilError(t, err)
-
-	privKeyFilepath = filepath.Join(privKeyDir, "privkey600.pem")
-	assert.NilError(t, os.WriteFile(privKeyFilepath, privKeyFixture, 0o600))
-
-	_, err = getPrivKeyBytesFromPath(privKeyFilepath)
-	assert.NilError(t, err)
 }
 
 var pubKeyFixture = []byte(`-----BEGIN PUBLIC KEY-----

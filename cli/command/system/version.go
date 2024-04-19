@@ -116,7 +116,7 @@ func NewVersionCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Show the Docker version information",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runVersion(dockerCli, &opts)
+			return runVersion(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "10",
@@ -144,7 +144,7 @@ func arch() string {
 	return arch
 }
 
-func runVersion(dockerCli command.Cli, opts *versionOptions) error {
+func runVersion(ctx context.Context, dockerCli command.Cli, opts *versionOptions) error {
 	var err error
 	tmpl, err := newVersionTemplate(opts.format)
 	if err != nil {
@@ -156,13 +156,12 @@ func runVersion(dockerCli command.Cli, opts *versionOptions) error {
 	vd := versionInfo{
 		Client: newClientVersion(dockerCli.CurrentContext(), dockerCli),
 	}
-	sv, err := dockerCli.Client().ServerVersion(context.Background())
+	sv, err := dockerCli.Client().ServerVersion(ctx)
 	if err == nil {
 		vd.Server = &sv
 		foundEngine := false
 		for _, component := range sv.Components {
-			switch component.Name {
-			case "Engine":
+			if component.Name == "Engine" {
 				foundEngine = true
 				buildTime, ok := component.Details["BuildTime"]
 				if ok {

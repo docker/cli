@@ -24,7 +24,7 @@ const (
 	pidsHeader      = "PIDS"              // Used only on Linux
 )
 
-// StatsEntry represents represents the statistics data collected from a container
+// StatsEntry represents the statistics data collected from a container
 type StatsEntry struct {
 	Container        string
 	Name             string
@@ -116,9 +116,9 @@ func NewStats(container string) *Stats {
 }
 
 // statsFormatWrite renders the context for a list of containers statistics
-func statsFormatWrite(ctx formatter.Context, Stats []StatsEntry, osType string, trunc bool) error {
+func statsFormatWrite(ctx formatter.Context, stats []StatsEntry, osType string, trunc bool) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, cstats := range Stats {
+		for _, cstats := range stats {
 			statsCtx := &statsContext{
 				s:     cstats,
 				os:    osType,

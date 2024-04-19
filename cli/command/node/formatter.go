@@ -9,8 +9,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	units "github.com/docker/go-units"
 )
 
@@ -100,7 +100,7 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, nodes []swarm.Node, info types.Info) error {
+func FormatWrite(ctx formatter.Context, nodes []swarm.Node, info system.Info) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, node := range nodes {
 			nodeCtx := &nodeContext{n: node, info: info}
@@ -127,7 +127,7 @@ func FormatWrite(ctx formatter.Context, nodes []swarm.Node, info types.Info) err
 type nodeContext struct {
 	formatter.HeaderContext
 	n    swarm.Node
-	info types.Info
+	info system.Info
 }
 
 func (c *nodeContext) MarshalJSON() ([]byte, error) {

@@ -76,8 +76,8 @@ func (c *pluginContext) Name() string {
 }
 
 func (c *pluginContext) Description() string {
-	desc := strings.Replace(c.p.Config.Description, "\n", "", -1)
-	desc = strings.Replace(desc, "\r", "", -1)
+	desc := strings.ReplaceAll(c.p.Config.Description, "\n", "")
+	desc = strings.ReplaceAll(desc, "\r", "")
 	if c.trunc {
 		desc = formatter.Ellipsis(desc, 45)
 	}

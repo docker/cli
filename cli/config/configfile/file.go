@@ -41,6 +41,7 @@ type ConfigFile struct {
 	CLIPluginsExtraDirs  []string                     `json:"cliPluginsExtraDirs,omitempty"`
 	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
 	Aliases              map[string]string            `json:"aliases,omitempty"`
+	Features             map[string]string            `json:"features,omitempty"`
 }
 
 // ProxyConfig contains proxy configuration settings
@@ -94,6 +95,9 @@ func (configFile *ConfigFile) ContainsAuth() bool {
 
 // GetAuthConfigs returns the mapping of repo to auth configuration
 func (configFile *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
+	if configFile.AuthConfigs == nil {
+		configFile.AuthConfigs = make(map[string]types.AuthConfig)
+	}
 	return configFile.AuthConfigs
 }
 

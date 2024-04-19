@@ -24,7 +24,6 @@
 		people = [
 			"albers",
 			"cpuguy83",
-			"ndeloof",
 			"rumpl",
 			"silvin-lubecki",
 			"stevvooe",
@@ -97,11 +96,6 @@
 	Name = "Daniel Nephin"
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
-
-	[people.ndeloof]
-	Name = "Nicolas De Loof"
-	Email = "nicolas.deloof@gmail.com"
-	GitHub = "ndeloof"
 
 	[people.neersighted]
 	Name = "Bjorn Neergaard"

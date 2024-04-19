@@ -9,9 +9,9 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 )
 
-// waitOnService waits for the service to converge. It outputs a progress bar,
+// WaitOnService waits for the service to converge. It outputs a progress bar,
 // if appropriate based on the CLI flags.
-func waitOnService(ctx context.Context, dockerCli command.Cli, serviceID string, quiet bool) error {
+func WaitOnService(ctx context.Context, dockerCli command.Cli, serviceID string, quiet bool) error {
 	errChan := make(chan error, 1)
 	pipeReader, pipeWriter := io.Pipe()
 

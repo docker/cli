@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sort"
@@ -11,8 +12,8 @@ import (
 	"github.com/theupdateframework/notary/client"
 )
 
-func prettyPrintTrustInfo(cli command.Cli, remote string) error {
-	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
+func prettyPrintTrustInfo(ctx context.Context, cli command.Cli, remote string) error {
+	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(ctx, cli, remote)
 	if err != nil {
 		return err
 	}

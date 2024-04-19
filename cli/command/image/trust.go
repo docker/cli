@@ -8,11 +8,12 @@ import (
 	"io"
 	"sort"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
@@ -30,7 +31,7 @@ type target struct {
 }
 
 // TrustedPush handles content trust pushing of an image
-func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, options types.ImagePushOptions) error {
+func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, options image.PushOptions) error {
 	responseBody, err := cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
 	if err != nil {
 		return err
@@ -44,7 +45,7 @@ func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 // PushTrustedReference pushes a canonical reference to the trust server.
 //
 //nolint:gocyclo
-func PushTrustedReference(streams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.
 	target := &client.Target{}
@@ -83,14 +84,14 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 	default:
 		// We want trust signatures to always take an explicit tag,
 		// otherwise it will act as an untrusted push.
-		if err := jsonmessage.DisplayJSONMessagesToStream(in, streams.Out(), nil); err != nil {
+		if err := jsonmessage.DisplayJSONMessagesToStream(in, ioStreams.Out(), nil); err != nil {
 			return err
 		}
-		fmt.Fprintln(streams.Err(), "No tag specified, skipping trust metadata push")
+		fmt.Fprintln(ioStreams.Err(), "No tag specified, skipping trust metadata push")
 		return nil
 	}
 
-	if err := jsonmessage.DisplayJSONMessagesToStream(in, streams.Out(), handleTarget); err != nil {
+	if err := jsonmessage.DisplayJSONMessagesToStream(in, ioStreams.Out(), handleTarget); err != nil {
 		return err
 	}
 
@@ -102,9 +103,9 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		return errors.Errorf("no targets found, please provide a specific tag in order to sign it")
 	}
 
-	fmt.Fprintln(streams.Out(), "Signing and pushing trust metadata")
+	fmt.Fprintln(ioStreams.Out(), "Signing and pushing trust metadata")
 
-	repo, err := trust.GetNotaryRepository(streams.In(), streams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
+	repo, err := trust.GetNotaryRepository(ioStreams.In(), ioStreams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
 	if err != nil {
 		return errors.Wrap(err, "error establishing connection to trust repository")
 	}
@@ -132,7 +133,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		if err := repo.Initialize([]string{rootKeyID}, data.CanonicalSnapshotRole); err != nil {
 			return trust.NotaryError(repoInfo.Name.Name(), err)
 		}
-		fmt.Fprintf(streams.Out(), "Finished initializing %q\n", repoInfo.Name.Name())
+		fmt.Fprintf(ioStreams.Out(), "Finished initializing %q\n", repoInfo.Name.Name())
 		err = repo.AddTarget(target, data.CanonicalTargetsRole)
 	case nil:
 		// already initialized and we have successfully downloaded the latest metadata
@@ -150,7 +151,7 @@ func PushTrustedReference(streams command.Streams, repoInfo *registry.Repository
 		return trust.NotaryError(repoInfo.Name.Name(), err)
 	}
 
-	fmt.Fprintf(streams.Out(), "Successfully signed %s:%s\n", repoInfo.Name.Name(), tag)
+	fmt.Fprintf(ioStreams.Out(), "Successfully signed %s:%s\n", repoInfo.Name.Name(), tag)
 	return nil
 }
 
@@ -267,7 +268,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 		return err
 	}
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull")
-	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), types.ImagePullOptions{
+	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), image.PullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 		All:           opts.all,
@@ -339,6 +340,6 @@ func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canon
 // AuthResolver returns an auth resolver function from a command.Cli
 func AuthResolver(cli command.Cli) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
+		return command.ResolveAuthConfig(cli.ConfigFile(), index)
 	}
 }

@@ -22,6 +22,7 @@ func TestRemove(t *testing.T) {
 }
 
 func deployFullStack(t *testing.T, stackname string) {
+	t.Helper()
 	// TODO: this stack should have full options not minimal options
 	result := icmd.RunCommand("docker", "stack", "deploy",
 		"--compose-file=./testdata/full-stack.yml", stackname)
@@ -31,6 +32,7 @@ func deployFullStack(t *testing.T, stackname string) {
 }
 
 func cleanupFullStack(t *testing.T, stackname string) {
+	t.Helper()
 	// FIXME(vdemeester) we shouldn't have to do that. it is hiding a race on docker stack rm
 	poll.WaitOn(t, stackRm(stackname), pollSettings)
 	poll.WaitOn(t, taskCount(stackname, 0), pollSettings)

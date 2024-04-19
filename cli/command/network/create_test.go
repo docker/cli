@@ -139,7 +139,6 @@ func TestNetworkCreateErrors(t *testing.T) {
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
-
 	}
 }
 

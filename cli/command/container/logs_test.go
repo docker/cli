@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -12,8 +13,8 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-var logFn = func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
-	return func(container string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
+var logFn = func(expectedOut string) func(string, container.LogsOptions) (io.ReadCloser, error) {
+	return func(container string, opts container.LogsOptions) (io.ReadCloser, error) {
 		return io.NopCloser(strings.NewReader(expectedOut)), nil
 	}
 }
@@ -46,13 +47,11 @@ func TestRunLogs(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&testcase.client)
 
-			err := runLogs(cli, testcase.options)
+			err := runLogs(context.TODO(), cli, testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
-			} else {
-				if !assert.Check(t, err) {
-					return
-				}
+			} else if !assert.Check(t, err) {
+				return
 			}
 			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
 			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))

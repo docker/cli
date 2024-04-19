@@ -56,10 +56,10 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 			receivedOptions = options
 			receivedService = service
-			return types.ServiceUpdateResponse{}, nil
+			return swarm.ServiceUpdateResponse{}, nil
 		},
 	})
 
@@ -99,7 +99,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 					},
 				},
 			}
-			err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
+			_, err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(receivedOptions.QueryRegistry, tc.expectedQueryRegistry))
 			assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, tc.expectedImage))

@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package system
 
 import (
@@ -16,9 +19,8 @@ import (
 	"github.com/docker/cli/cli/debug"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/templates"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
@@ -35,12 +37,12 @@ type clientInfo struct {
 	Warnings []string
 }
 
-type info struct {
+type dockerInfo struct {
 	// This field should/could be ServerInfo but is anonymous to
 	// preserve backwards compatibility in the JSON rendering
 	// which has ServerInfo immediately within the top-level
 	// object.
-	*types.Info  `json:",omitempty"`
+	*system.Info `json:",omitempty"`
 	ServerErrors []string `json:",omitempty"`
 	UserName     string   `json:"-"`
 
@@ -48,7 +50,7 @@ type info struct {
 	ClientErrors []string    `json:",omitempty"`
 }
 
-func (i *info) clientPlatform() string {
+func (i *dockerInfo) clientPlatform() string {
 	if i.ClientInfo != nil && i.ClientInfo.Platform != nil {
 		return i.ClientInfo.Platform.Name
 	}
@@ -64,7 +66,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display system-wide information",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInfo(cmd, dockerCli, &opts)
+			return runInfo(cmd.Context(), cmd, dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "12",
@@ -77,8 +79,8 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
-	info := info{
+func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error {
+	info := dockerInfo{
 		ClientInfo: &clientInfo{
 			// Don't pass a dockerCLI to newClientVersion(), because we currently
 			// don't include negotiated API version, and want to avoid making an
@@ -86,7 +88,7 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 			clientVersion: newClientVersion(dockerCli.CurrentContext(), nil),
 			Debug:         debug.IsEnabled(),
 		},
-		Info: &types.Info{},
+		Info: &system.Info{},
 	}
 	if plugins, err := pluginmanager.ListPlugins(dockerCli, cmd.Root()); err == nil {
 		info.ClientInfo.Plugins = plugins
@@ -95,7 +97,6 @@ func runInfo(cmd *cobra.Command, dockerCli command.Cli, opts *infoOptions) error
 	}
 
 	if needsServerInfo(opts.format, info) {
-		ctx := context.Background()
 		if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
 			info.Info = &dinfo
 		} else {
@@ -129,7 +130,7 @@ var placeHolders = regexp.MustCompile(`\.[a-zA-Z]`)
 // If only client-side information is used in the template, we can skip
 // connecting to the daemon. This allows (e.g.) to only get cli-plugin
 // information, without also making a (potentially expensive) API call.
-func needsServerInfo(template string, info info) bool {
+func needsServerInfo(template string, info dockerInfo) bool {
 	if len(template) == 0 || placeHolders.FindString(template) == "" {
 		// The template is empty, or does not contain formatting fields
 		// (e.g. `table` or `raw` or `{{ json .}}`). Assume we need server-side
@@ -160,7 +161,7 @@ func needsServerInfo(template string, info info) bool {
 	return err != nil
 }
 
-func prettyPrintInfo(streams command.Streams, info info) error {
+func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 	// Only append the platform info if it's not empty, to prevent printing a trailing space.
 	if p := info.clientPlatform(); p != "" {
 		fprintln(streams.Out(), "Client:", p)
@@ -215,7 +216,7 @@ func prettyPrintClientInfo(streams command.Streams, info clientInfo) {
 }
 
 //nolint:gocyclo
-func prettyPrintServerInfo(streams command.Streams, info *info) []error {
+func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 	var errs []error
 	output := streams.Out()
 
@@ -250,6 +251,13 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 
 	fprintln(output, "  Log:", strings.Join(info.Plugins.Log, " "))
 
+	if len(info.CDISpecDirs) > 0 {
+		fprintln(output, " CDI spec directories:")
+		for _, dir := range info.CDISpecDirs {
+			fprintf(output, "  %s\n", dir)
+		}
+	}
+
 	fprintln(output, " Swarm:", info.Swarm.LocalNodeState)
 	printSwarmInfo(output, *info.Info)
 
@@ -267,7 +275,7 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 
 		for _, ci := range []struct {
 			Name   string
-			Commit types.Commit
+			Commit system.Commit
 		}{
 			{"containerd", info.ContainerdCommit},
 			{"runc", info.RuncCommit},
@@ -280,15 +288,14 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 			fprintln(output)
 		}
 		if len(info.SecurityOptions) != 0 {
-			if kvs, err := types.DecodeSecurityOptions(info.SecurityOptions); err != nil {
+			if kvs, err := system.DecodeSecurityOptions(info.SecurityOptions); err != nil {
 				errs = append(errs, err)
 			} else {
 				fprintln(output, " Security Options:")
 				for _, so := range kvs {
 					fprintln(output, "  "+so.Name)
 					for _, o := range so.Options {
-						switch o.Key {
-						case "profile":
+						if o.Key == "profile" {
 							fprintln(output, "   Profile:", o.Value)
 						}
 					}
@@ -372,12 +379,15 @@ func prettyPrintServerInfo(streams command.Streams, info *info) []error {
 	}
 
 	fprintln(output)
-	printServerWarnings(streams.Err(), info)
+	for _, w := range info.Warnings {
+		fprintln(streams.Err(), w)
+	}
+
 	return errs
 }
 
 //nolint:gocyclo
-func printSwarmInfo(output io.Writer, info types.Info) {
+func printSwarmInfo(output io.Writer, info system.Info) {
 	if info.Swarm.LocalNodeState == swarm.LocalNodeStateInactive || info.Swarm.LocalNodeState == swarm.LocalNodeStateLocked {
 		return
 	}
@@ -446,83 +456,7 @@ func printSwarmInfo(output io.Writer, info types.Info) {
 	}
 }
 
-func printServerWarnings(stdErr io.Writer, info *info) {
-	if versions.LessThan(info.ClientInfo.APIVersion, "1.42") {
-		printSecurityOptionsWarnings(stdErr, *info.Info)
-	}
-	if len(info.Warnings) > 0 {
-		fprintln(stdErr, strings.Join(info.Warnings, "\n"))
-		return
-	}
-	// daemon didn't return warnings. Fallback to old behavior
-	printServerWarningsLegacy(stdErr, *info.Info)
-}
-
-// printSecurityOptionsWarnings prints warnings based on the security options
-// returned by the daemon.
-// DEPRECATED: warnings are now generated by the daemon, and returned in
-// info.Warnings. This function is used to provide backward compatibility with
-// daemons that do not provide these warnings. No new warnings should be added
-// here.
-func printSecurityOptionsWarnings(stdErr io.Writer, info types.Info) {
-	if info.OSType == "windows" {
-		return
-	}
-	kvs, _ := types.DecodeSecurityOptions(info.SecurityOptions)
-	for _, so := range kvs {
-		if so.Name != "seccomp" {
-			continue
-		}
-		for _, o := range so.Options {
-			if o.Key == "profile" && o.Value != "default" && o.Value != "builtin" {
-				_, _ = fmt.Fprintln(stdErr, "WARNING: You're not using the default seccomp profile")
-			}
-		}
-	}
-}
-
-// printServerWarningsLegacy generates warnings based on information returned by the daemon.
-// DEPRECATED: warnings are now generated by the daemon, and returned in
-// info.Warnings. This function is used to provide backward compatibility with
-// daemons that do not provide these warnings. No new warnings should be added
-// here.
-func printServerWarningsLegacy(stdErr io.Writer, info types.Info) {
-	if info.OSType == "windows" {
-		return
-	}
-	if !info.MemoryLimit {
-		fprintln(stdErr, "WARNING: No memory limit support")
-	}
-	if !info.SwapLimit {
-		fprintln(stdErr, "WARNING: No swap limit support")
-	}
-	if !info.OomKillDisable && info.CgroupVersion != "2" {
-		fprintln(stdErr, "WARNING: No oom kill disable support")
-	}
-	if !info.CPUCfsQuota {
-		fprintln(stdErr, "WARNING: No cpu cfs quota support")
-	}
-	if !info.CPUCfsPeriod {
-		fprintln(stdErr, "WARNING: No cpu cfs period support")
-	}
-	if !info.CPUShares {
-		fprintln(stdErr, "WARNING: No cpu shares support")
-	}
-	if !info.CPUSet {
-		fprintln(stdErr, "WARNING: No cpuset support")
-	}
-	if !info.IPv4Forwarding {
-		fprintln(stdErr, "WARNING: IPv4 forwarding is disabled")
-	}
-	if !info.BridgeNfIptables {
-		fprintln(stdErr, "WARNING: bridge-nf-call-iptables is disabled")
-	}
-	if !info.BridgeNfIP6tables {
-		fprintln(stdErr, "WARNING: bridge-nf-call-ip6tables is disabled")
-	}
-}
-
-func formatInfo(output io.Writer, info info, format string) error {
+func formatInfo(output io.Writer, info dockerInfo, format string) error {
 	if format == formatter.JSONFormatKey {
 		format = formatter.JSONFormat
 	}

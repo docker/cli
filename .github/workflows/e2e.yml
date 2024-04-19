@@ -16,7 +16,7 @@ on:
 
 jobs:
   e2e:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -26,17 +26,17 @@ jobs:
           - connhelper-ssh
         base:
           - alpine
-          - bullseye
+          - debian
         engine-version:
-#          - 20.10-dind # FIXME: Fails on 20.10
-          - stable-dind # TODO: Use 20.10-dind, stable-dind is deprecated
-        include:
-          - target: non-experimental
-            engine-version: 19.03-dind
+          - 25.0  # latest
+          - 24.0  # latest - 1
+          - 23.0  # mirantis lts
+          # TODO(krissetto) 19.03 needs a look, doesn't work ubuntu 22.04 (cgroup errors). 
+          # we could have a separate job that tests it against ubuntu 20.04
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Update daemon.json
         run: |
@@ -48,17 +48,18 @@ jobs:
           docker info
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       -
         name: Run ${{ matrix.target }}
         run: |
           make -f docker.Makefile test-e2e-${{ matrix.target }}
         env:
           BASE_VARIANT: ${{ matrix.base }}
-          E2E_ENGINE_VERSION: ${{ matrix.engine-version }}
+          ENGINE_VERSION: ${{ matrix.engine-version }}
           TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./build/coverage/coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}

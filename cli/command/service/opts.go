@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package service
 
 import (
@@ -8,11 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
@@ -46,7 +49,7 @@ func (i *Uint64Opt) Type() string {
 // String returns a string repr of this option
 func (i *Uint64Opt) String() string {
 	if i.value != nil {
-		return fmt.Sprintf("%v", *i.value)
+		return strconv.FormatUint(*i.value, 10)
 	}
 	return ""
 }
@@ -82,17 +85,17 @@ type placementPrefOpts struct {
 	strings []string
 }
 
-func (opts *placementPrefOpts) String() string {
-	if len(opts.strings) == 0 {
+func (o *placementPrefOpts) String() string {
+	if len(o.strings) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("%v", opts.strings)
+	return fmt.Sprintf("%v", o.strings)
 }
 
 // Set validates the input value and adds it to the internal slices.
 // Note: in the future strategies other than "spread", may be supported,
 // as well as additional comma-separated options.
-func (opts *placementPrefOpts) Set(value string) error {
+func (o *placementPrefOpts) Set(value string) error {
 	strategy, arg, ok := strings.Cut(value, "=")
 	if !ok || strategy == "" {
 		return errors.New(`placement preference must be of the format "<strategy>=<arg>"`)
@@ -101,17 +104,17 @@ func (opts *placementPrefOpts) Set(value string) error {
 		return errors.Errorf("unsupported placement preference %s (only spread is supported)", strategy)
 	}
 
-	opts.prefs = append(opts.prefs, swarm.PlacementPreference{
+	o.prefs = append(o.prefs, swarm.PlacementPreference{
 		Spread: &swarm.SpreadOver{
 			SpreadDescriptor: arg,
 		},
 	})
-	opts.strings = append(opts.strings, value)
+	o.strings = append(o.strings, value)
 	return nil
 }
 
 // Type returns a string name for this Option type
-func (opts *placementPrefOpts) Type() string {
+func (o *placementPrefOpts) Type() string {
 	return "pref"
 }
 
@@ -167,7 +170,7 @@ func updateConfigFromDefaults(defaultUpdateConfig *api.UpdateConfig) *swarm.Upda
 	}
 }
 
-func (opts updateOptions) updateConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
+func (o updateOptions) updateConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
 	if !anyChanged(flags, flagUpdateParallelism, flagUpdateDelay, flagUpdateMonitor, flagUpdateFailureAction, flagUpdateMaxFailureRatio, flagUpdateOrder) {
 		return nil
 	}
@@ -175,28 +178,28 @@ func (opts updateOptions) updateConfig(flags *pflag.FlagSet) *swarm.UpdateConfig
 	updateConfig := updateConfigFromDefaults(defaults.Service.Update)
 
 	if flags.Changed(flagUpdateParallelism) {
-		updateConfig.Parallelism = opts.parallelism
+		updateConfig.Parallelism = o.parallelism
 	}
 	if flags.Changed(flagUpdateDelay) {
-		updateConfig.Delay = opts.delay
+		updateConfig.Delay = o.delay
 	}
 	if flags.Changed(flagUpdateMonitor) {
-		updateConfig.Monitor = opts.monitor
+		updateConfig.Monitor = o.monitor
 	}
 	if flags.Changed(flagUpdateFailureAction) {
-		updateConfig.FailureAction = opts.onFailure
+		updateConfig.FailureAction = o.onFailure
 	}
 	if flags.Changed(flagUpdateMaxFailureRatio) {
-		updateConfig.MaxFailureRatio = opts.maxFailureRatio.Value()
+		updateConfig.MaxFailureRatio = o.maxFailureRatio.Value()
 	}
 	if flags.Changed(flagUpdateOrder) {
-		updateConfig.Order = opts.order
+		updateConfig.Order = o.order
 	}
 
 	return updateConfig
 }
 
-func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
+func (o updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
 	if !anyChanged(flags, flagRollbackParallelism, flagRollbackDelay, flagRollbackMonitor, flagRollbackFailureAction, flagRollbackMaxFailureRatio, flagRollbackOrder) {
 		return nil
 	}
@@ -204,22 +207,22 @@ func (opts updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConf
 	updateConfig := updateConfigFromDefaults(defaults.Service.Rollback)
 
 	if flags.Changed(flagRollbackParallelism) {
-		updateConfig.Parallelism = opts.parallelism
+		updateConfig.Parallelism = o.parallelism
 	}
 	if flags.Changed(flagRollbackDelay) {
-		updateConfig.Delay = opts.delay
+		updateConfig.Delay = o.delay
 	}
 	if flags.Changed(flagRollbackMonitor) {
-		updateConfig.Monitor = opts.monitor
+		updateConfig.Monitor = o.monitor
 	}
 	if flags.Changed(flagRollbackFailureAction) {
-		updateConfig.FailureAction = opts.onFailure
+		updateConfig.FailureAction = o.onFailure
 	}
 	if flags.Changed(flagRollbackMaxFailureRatio) {
-		updateConfig.MaxFailureRatio = opts.maxFailureRatio.Value()
+		updateConfig.MaxFailureRatio = o.maxFailureRatio.Value()
 	}
 	if flags.Changed(flagRollbackOrder) {
-		updateConfig.Order = opts.order
+		updateConfig.Order = o.order
 	}
 
 	return updateConfig
@@ -378,8 +381,9 @@ func resolveNetworkID(ctx context.Context, apiClient client.NetworkAPIClient, ne
 }
 
 func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {
-	var netAttach []swarm.NetworkAttachmentConfig
-	for _, net := range networks.Value() {
+	nws := networks.Value()
+	netAttach := make([]swarm.NetworkAttachmentConfig, 0, len(nws))
+	for _, net := range nws {
 		netAttach = append(netAttach, swarm.NetworkAttachmentConfig{
 			Target:     net.Target,
 			Aliases:    net.Aliases,
@@ -428,41 +432,48 @@ type healthCheckOptions struct {
 	timeout       opts.PositiveDurationOpt
 	retries       int
 	startPeriod   opts.PositiveDurationOpt
+	startInterval opts.PositiveDurationOpt
 	noHealthcheck bool
 }
 
-func (opts *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error) {
+func (o *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error) {
 	var healthConfig *container.HealthConfig
-	haveHealthSettings := opts.cmd != "" ||
-		opts.interval.Value() != nil ||
-		opts.timeout.Value() != nil ||
-		opts.retries != 0
-	if opts.noHealthcheck {
+	haveHealthSettings := o.cmd != "" ||
+		o.interval.Value() != nil ||
+		o.timeout.Value() != nil ||
+		o.startPeriod.Value() != nil ||
+		o.startInterval.Value() != nil ||
+		o.retries != 0
+	if o.noHealthcheck {
 		if haveHealthSettings {
 			return nil, errors.Errorf("--%s conflicts with --health-* options", flagNoHealthcheck)
 		}
 		healthConfig = &container.HealthConfig{Test: []string{"NONE"}}
 	} else if haveHealthSettings {
 		var test []string
-		if opts.cmd != "" {
-			test = []string{"CMD-SHELL", opts.cmd}
+		if o.cmd != "" {
+			test = []string{"CMD-SHELL", o.cmd}
 		}
-		var interval, timeout, startPeriod time.Duration
-		if ptr := opts.interval.Value(); ptr != nil {
+		var interval, timeout, startPeriod, startInterval time.Duration
+		if ptr := o.interval.Value(); ptr != nil {
 			interval = *ptr
 		}
-		if ptr := opts.timeout.Value(); ptr != nil {
+		if ptr := o.timeout.Value(); ptr != nil {
 			timeout = *ptr
 		}
-		if ptr := opts.startPeriod.Value(); ptr != nil {
+		if ptr := o.startPeriod.Value(); ptr != nil {
 			startPeriod = *ptr
 		}
+		if ptr := o.startInterval.Value(); ptr != nil {
+			startInterval = *ptr
+		}
 		healthConfig = &container.HealthConfig{
-			Test:        test,
-			Interval:    interval,
-			Timeout:     timeout,
-			Retries:     opts.retries,
-			StartPeriod: startPeriod,
+			Test:          test,
+			Interval:      interval,
+			Timeout:       timeout,
+			Retries:       o.retries,
+			StartPeriod:   startPeriod,
+			StartInterval: startInterval,
 		}
 	}
 	return healthConfig, nil
@@ -762,7 +773,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	return service, nil
 }
 
-type flagDefaults map[string]interface{}
+type flagDefaults map[string]any
 
 func (fd flagDefaults) getUint64(flagName string) uint64 {
 	if val, ok := fd[flagName].(uint64); ok {
@@ -779,7 +790,7 @@ func (fd flagDefaults) getString(flagName string) string {
 }
 
 func buildServiceDefaultFlagMapping() flagDefaults {
-	defaultFlagValues := make(map[string]interface{})
+	defaultFlagValues := make(map[string]any)
 
 	defaultFlagValues[flagStopGracePeriod], _ = gogotypes.DurationFromProto(defaults.Service.Task.GetContainer().StopGracePeriod)
 	defaultFlagValues[flagRestartCondition] = `"` + defaultRestartCondition() + `"`
@@ -820,7 +831,7 @@ func addDetachFlag(flags *pflag.FlagSet, detach *bool) {
 
 // addServiceFlags adds all flags that are common to both `create` and `update`.
 // Any flags that are not common are added separately in the individual command
-func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValues flagDefaults) {
+func addServiceFlags(flags *pflag.FlagSet, options *serviceOptions, defaultFlagValues flagDefaults) {
 	flagDesc := func(flagName string, desc string) string {
 		if defaultValue, ok := defaultFlagValues[flagName]; ok {
 			return fmt.Sprintf("%s (default %v)", desc, defaultValue)
@@ -828,96 +839,98 @@ func addServiceFlags(flags *pflag.FlagSet, opts *serviceOptions, defaultFlagValu
 		return desc
 	}
 
-	addDetachFlag(flags, &opts.detach)
-	flags.BoolVarP(&opts.quiet, flagQuiet, "q", false, "Suppress progress output")
+	addDetachFlag(flags, &options.detach)
+	flags.BoolVarP(&options.quiet, flagQuiet, "q", false, "Suppress progress output")
 
-	flags.StringVarP(&opts.workdir, flagWorkdir, "w", "", "Working directory inside the container")
-	flags.StringVarP(&opts.user, flagUser, "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
-	flags.Var(&opts.credentialSpec, flagCredentialSpec, "Credential spec for managed service account (Windows only)")
+	flags.StringVarP(&options.workdir, flagWorkdir, "w", "", "Working directory inside the container")
+	flags.StringVarP(&options.user, flagUser, "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
+	flags.Var(&options.credentialSpec, flagCredentialSpec, "Credential spec for managed service account (Windows only)")
 	flags.SetAnnotation(flagCredentialSpec, "version", []string{"1.29"})
-	flags.StringVar(&opts.hostname, flagHostname, "", "Container hostname")
+	flags.StringVar(&options.hostname, flagHostname, "", "Container hostname")
 	flags.SetAnnotation(flagHostname, "version", []string{"1.25"})
-	flags.Var(&opts.entrypoint, flagEntrypoint, "Overwrite the default ENTRYPOINT of the image")
-	flags.Var(&opts.capAdd, flagCapAdd, "Add Linux capabilities")
+	flags.Var(&options.entrypoint, flagEntrypoint, "Overwrite the default ENTRYPOINT of the image")
+	flags.Var(&options.capAdd, flagCapAdd, "Add Linux capabilities")
 	flags.SetAnnotation(flagCapAdd, "version", []string{"1.41"})
-	flags.Var(&opts.capDrop, flagCapDrop, "Drop Linux capabilities")
+	flags.Var(&options.capDrop, flagCapDrop, "Drop Linux capabilities")
 	flags.SetAnnotation(flagCapDrop, "version", []string{"1.41"})
 
-	flags.Var(&opts.resources.limitCPU, flagLimitCPU, "Limit CPUs")
-	flags.Var(&opts.resources.limitMemBytes, flagLimitMemory, "Limit Memory")
-	flags.Var(&opts.resources.resCPU, flagReserveCPU, "Reserve CPUs")
-	flags.Var(&opts.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
-	flags.Int64Var(&opts.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
+	flags.Var(&options.resources.limitCPU, flagLimitCPU, "Limit CPUs")
+	flags.Var(&options.resources.limitMemBytes, flagLimitMemory, "Limit Memory")
+	flags.Var(&options.resources.resCPU, flagReserveCPU, "Reserve CPUs")
+	flags.Var(&options.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
+	flags.Int64Var(&options.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
 	flags.SetAnnotation(flagLimitPids, "version", []string{"1.41"})
 
-	flags.Var(&opts.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
-	flags.Var(&opts.replicas, flagReplicas, "Number of tasks")
-	flags.Var(&opts.maxConcurrent, flagConcurrent, "Number of job tasks to run concurrently (default equal to --replicas)")
+	flags.Var(&options.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
+	flags.Var(&options.replicas, flagReplicas, "Number of tasks")
+	flags.Var(&options.maxConcurrent, flagConcurrent, "Number of job tasks to run concurrently (default equal to --replicas)")
 	flags.SetAnnotation(flagConcurrent, "version", []string{"1.41"})
-	flags.Uint64Var(&opts.maxReplicas, flagMaxReplicas, defaultFlagValues.getUint64(flagMaxReplicas), "Maximum number of tasks per node (default 0 = unlimited)")
+	flags.Uint64Var(&options.maxReplicas, flagMaxReplicas, defaultFlagValues.getUint64(flagMaxReplicas), "Maximum number of tasks per node (default 0 = unlimited)")
 	flags.SetAnnotation(flagMaxReplicas, "version", []string{"1.40"})
 
-	flags.StringVar(&opts.restartPolicy.condition, flagRestartCondition, "", flagDesc(flagRestartCondition, `Restart when condition is met ("none", "on-failure", "any")`))
-	flags.Var(&opts.restartPolicy.delay, flagRestartDelay, flagDesc(flagRestartDelay, "Delay between restart attempts (ns|us|ms|s|m|h)"))
-	flags.Var(&opts.restartPolicy.maxAttempts, flagRestartMaxAttempts, flagDesc(flagRestartMaxAttempts, "Maximum number of restarts before giving up"))
+	flags.StringVar(&options.restartPolicy.condition, flagRestartCondition, "", flagDesc(flagRestartCondition, `Restart when condition is met ("none", "on-failure", "any")`))
+	flags.Var(&options.restartPolicy.delay, flagRestartDelay, flagDesc(flagRestartDelay, "Delay between restart attempts (ns|us|ms|s|m|h)"))
+	flags.Var(&options.restartPolicy.maxAttempts, flagRestartMaxAttempts, flagDesc(flagRestartMaxAttempts, "Maximum number of restarts before giving up"))
 
-	flags.Var(&opts.restartPolicy.window, flagRestartWindow, flagDesc(flagRestartWindow, "Window used to evaluate the restart policy (ns|us|ms|s|m|h)"))
+	flags.Var(&options.restartPolicy.window, flagRestartWindow, flagDesc(flagRestartWindow, "Window used to evaluate the restart policy (ns|us|ms|s|m|h)"))
 
-	flags.Uint64Var(&opts.update.parallelism, flagUpdateParallelism, defaultFlagValues.getUint64(flagUpdateParallelism), "Maximum number of tasks updated simultaneously (0 to update all at once)")
-	flags.DurationVar(&opts.update.delay, flagUpdateDelay, 0, flagDesc(flagUpdateDelay, "Delay between updates (ns|us|ms|s|m|h)"))
-	flags.DurationVar(&opts.update.monitor, flagUpdateMonitor, 0, flagDesc(flagUpdateMonitor, "Duration after each task update to monitor for failure (ns|us|ms|s|m|h)"))
+	flags.Uint64Var(&options.update.parallelism, flagUpdateParallelism, defaultFlagValues.getUint64(flagUpdateParallelism), "Maximum number of tasks updated simultaneously (0 to update all at once)")
+	flags.DurationVar(&options.update.delay, flagUpdateDelay, 0, flagDesc(flagUpdateDelay, "Delay between updates (ns|us|ms|s|m|h)"))
+	flags.DurationVar(&options.update.monitor, flagUpdateMonitor, 0, flagDesc(flagUpdateMonitor, "Duration after each task update to monitor for failure (ns|us|ms|s|m|h)"))
 	flags.SetAnnotation(flagUpdateMonitor, "version", []string{"1.25"})
-	flags.StringVar(&opts.update.onFailure, flagUpdateFailureAction, "", flagDesc(flagUpdateFailureAction, `Action on update failure ("pause", "continue", "rollback")`))
-	flags.Var(&opts.update.maxFailureRatio, flagUpdateMaxFailureRatio, flagDesc(flagUpdateMaxFailureRatio, "Failure rate to tolerate during an update"))
+	flags.StringVar(&options.update.onFailure, flagUpdateFailureAction, "", flagDesc(flagUpdateFailureAction, `Action on update failure ("pause", "continue", "rollback")`))
+	flags.Var(&options.update.maxFailureRatio, flagUpdateMaxFailureRatio, flagDesc(flagUpdateMaxFailureRatio, "Failure rate to tolerate during an update"))
 	flags.SetAnnotation(flagUpdateMaxFailureRatio, "version", []string{"1.25"})
-	flags.StringVar(&opts.update.order, flagUpdateOrder, "", flagDesc(flagUpdateOrder, `Update order ("start-first", "stop-first")`))
+	flags.StringVar(&options.update.order, flagUpdateOrder, "", flagDesc(flagUpdateOrder, `Update order ("start-first", "stop-first")`))
 	flags.SetAnnotation(flagUpdateOrder, "version", []string{"1.29"})
 
-	flags.Uint64Var(&opts.rollback.parallelism, flagRollbackParallelism, defaultFlagValues.getUint64(flagRollbackParallelism),
+	flags.Uint64Var(&options.rollback.parallelism, flagRollbackParallelism, defaultFlagValues.getUint64(flagRollbackParallelism),
 		"Maximum number of tasks rolled back simultaneously (0 to roll back all at once)")
 	flags.SetAnnotation(flagRollbackParallelism, "version", []string{"1.28"})
-	flags.DurationVar(&opts.rollback.delay, flagRollbackDelay, 0, flagDesc(flagRollbackDelay, "Delay between task rollbacks (ns|us|ms|s|m|h)"))
+	flags.DurationVar(&options.rollback.delay, flagRollbackDelay, 0, flagDesc(flagRollbackDelay, "Delay between task rollbacks (ns|us|ms|s|m|h)"))
 	flags.SetAnnotation(flagRollbackDelay, "version", []string{"1.28"})
-	flags.DurationVar(&opts.rollback.monitor, flagRollbackMonitor, 0, flagDesc(flagRollbackMonitor, "Duration after each task rollback to monitor for failure (ns|us|ms|s|m|h)"))
+	flags.DurationVar(&options.rollback.monitor, flagRollbackMonitor, 0, flagDesc(flagRollbackMonitor, "Duration after each task rollback to monitor for failure (ns|us|ms|s|m|h)"))
 	flags.SetAnnotation(flagRollbackMonitor, "version", []string{"1.28"})
-	flags.StringVar(&opts.rollback.onFailure, flagRollbackFailureAction, "", flagDesc(flagRollbackFailureAction, `Action on rollback failure ("pause", "continue")`))
+	flags.StringVar(&options.rollback.onFailure, flagRollbackFailureAction, "", flagDesc(flagRollbackFailureAction, `Action on rollback failure ("pause", "continue")`))
 	flags.SetAnnotation(flagRollbackFailureAction, "version", []string{"1.28"})
-	flags.Var(&opts.rollback.maxFailureRatio, flagRollbackMaxFailureRatio, flagDesc(flagRollbackMaxFailureRatio, "Failure rate to tolerate during a rollback"))
+	flags.Var(&options.rollback.maxFailureRatio, flagRollbackMaxFailureRatio, flagDesc(flagRollbackMaxFailureRatio, "Failure rate to tolerate during a rollback"))
 	flags.SetAnnotation(flagRollbackMaxFailureRatio, "version", []string{"1.28"})
-	flags.StringVar(&opts.rollback.order, flagRollbackOrder, "", flagDesc(flagRollbackOrder, `Rollback order ("start-first", "stop-first")`))
+	flags.StringVar(&options.rollback.order, flagRollbackOrder, "", flagDesc(flagRollbackOrder, `Rollback order ("start-first", "stop-first")`))
 	flags.SetAnnotation(flagRollbackOrder, "version", []string{"1.29"})
 
-	flags.StringVar(&opts.endpoint.mode, flagEndpointMode, defaultFlagValues.getString(flagEndpointMode), "Endpoint mode (vip or dnsrr)")
+	flags.StringVar(&options.endpoint.mode, flagEndpointMode, defaultFlagValues.getString(flagEndpointMode), "Endpoint mode (vip or dnsrr)")
 
-	flags.BoolVar(&opts.registryAuth, flagRegistryAuth, false, "Send registry authentication details to swarm agents")
-	flags.BoolVar(&opts.noResolveImage, flagNoResolveImage, false, "Do not query the registry to resolve image digest and supported platforms")
+	flags.BoolVar(&options.registryAuth, flagRegistryAuth, false, "Send registry authentication details to swarm agents")
+	flags.BoolVar(&options.noResolveImage, flagNoResolveImage, false, "Do not query the registry to resolve image digest and supported platforms")
 	flags.SetAnnotation(flagNoResolveImage, "version", []string{"1.30"})
 
-	flags.StringVar(&opts.logDriver.name, flagLogDriver, "", "Logging driver for service")
-	flags.Var(&opts.logDriver.opts, flagLogOpt, "Logging driver options")
+	flags.StringVar(&options.logDriver.name, flagLogDriver, "", "Logging driver for service")
+	flags.Var(&options.logDriver.opts, flagLogOpt, "Logging driver options")
 
-	flags.StringVar(&opts.healthcheck.cmd, flagHealthCmd, "", "Command to run to check health")
+	flags.StringVar(&options.healthcheck.cmd, flagHealthCmd, "", "Command to run to check health")
 	flags.SetAnnotation(flagHealthCmd, "version", []string{"1.25"})
-	flags.Var(&opts.healthcheck.interval, flagHealthInterval, "Time between running the check (ms|s|m|h)")
+	flags.Var(&options.healthcheck.interval, flagHealthInterval, "Time between running the check (ms|s|m|h)")
 	flags.SetAnnotation(flagHealthInterval, "version", []string{"1.25"})
-	flags.Var(&opts.healthcheck.timeout, flagHealthTimeout, "Maximum time to allow one check to run (ms|s|m|h)")
+	flags.Var(&options.healthcheck.timeout, flagHealthTimeout, "Maximum time to allow one check to run (ms|s|m|h)")
 	flags.SetAnnotation(flagHealthTimeout, "version", []string{"1.25"})
-	flags.IntVar(&opts.healthcheck.retries, flagHealthRetries, 0, "Consecutive failures needed to report unhealthy")
+	flags.IntVar(&options.healthcheck.retries, flagHealthRetries, 0, "Consecutive failures needed to report unhealthy")
 	flags.SetAnnotation(flagHealthRetries, "version", []string{"1.25"})
-	flags.Var(&opts.healthcheck.startPeriod, flagHealthStartPeriod, "Start period for the container to initialize before counting retries towards unstable (ms|s|m|h)")
+	flags.Var(&options.healthcheck.startPeriod, flagHealthStartPeriod, "Start period for the container to initialize before counting retries towards unstable (ms|s|m|h)")
 	flags.SetAnnotation(flagHealthStartPeriod, "version", []string{"1.29"})
-	flags.BoolVar(&opts.healthcheck.noHealthcheck, flagNoHealthcheck, false, "Disable any container-specified HEALTHCHECK")
+	flags.Var(&options.healthcheck.startInterval, flagHealthStartInterval, "Time between running the check during the start period (ms|s|m|h)")
+	flags.SetAnnotation(flagHealthStartInterval, "version", []string{"1.44"})
+	flags.BoolVar(&options.healthcheck.noHealthcheck, flagNoHealthcheck, false, "Disable any container-specified HEALTHCHECK")
 	flags.SetAnnotation(flagNoHealthcheck, "version", []string{"1.25"})
 
-	flags.BoolVarP(&opts.tty, flagTTY, "t", false, "Allocate a pseudo-TTY")
+	flags.BoolVarP(&options.tty, flagTTY, "t", false, "Allocate a pseudo-TTY")
 	flags.SetAnnotation(flagTTY, "version", []string{"1.25"})
 
-	flags.BoolVar(&opts.readOnly, flagReadOnly, false, "Mount the container's root filesystem as read only")
+	flags.BoolVar(&options.readOnly, flagReadOnly, false, "Mount the container's root filesystem as read only")
 	flags.SetAnnotation(flagReadOnly, "version", []string{"1.28"})
 
-	flags.StringVar(&opts.stopSignal, flagStopSignal, "", "Signal to stop the container")
+	flags.StringVar(&options.stopSignal, flagStopSignal, "", "Signal to stop the container")
 	flags.SetAnnotation(flagStopSignal, "version", []string{"1.28"})
-	flags.StringVar(&opts.isolation, flagIsolation, "", "Service container isolation mode")
+	flags.StringVar(&options.isolation, flagIsolation, "", "Service container isolation mode")
 	flags.SetAnnotation(flagIsolation, "version", []string{"1.35"})
 }
 
@@ -1001,7 +1014,7 @@ const (
 	flagTTY                     = "tty"
 	flagUpdateDelay             = "update-delay"
 	flagUpdateFailureAction     = "update-failure-action"
-	flagUpdateMaxFailureRatio   = "update-max-failure-ratio"
+	flagUpdateMaxFailureRatio   = "update-max-failure-ratio" // #nosec G101 -- ignoring: Potential hardcoded credentials (gosec)
 	flagUpdateMonitor           = "update-monitor"
 	flagUpdateOrder             = "update-order"
 	flagUpdateParallelism       = "update-parallelism"
@@ -1016,6 +1029,7 @@ const (
 	flagHealthRetries           = "health-retries"
 	flagHealthTimeout           = "health-timeout"
 	flagHealthStartPeriod       = "health-start-period"
+	flagHealthStartInterval     = "health-start-interval"
 	flagNoHealthcheck           = "no-healthcheck"
 	flagSecret                  = "secret"
 	flagSecretAdd               = "secret-add"
@@ -1033,8 +1047,8 @@ const (
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
 	for _, m := range c.TaskTemplate.ContainerSpec.Mounts {
-		if m.BindOptions != nil && m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
-			return errors.Errorf("bind-nonrecursive requires API v1.40 or later")
+		if err := command.ValidateMountWithAPIVersion(m, serverAPIVersion); err != nil {
+			return err
 		}
 	}
 	return nil

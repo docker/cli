@@ -20,7 +20,7 @@ Inspects the specified secret.
 By default, this renders all results in a JSON array. If a format is specified,
 the given template will be executed for each result.
 
-Go's [text/template](https://golang.org/pkg/text/template/) package
+Go's [text/template](https://pkg.go.dev/text/template) package
 describes all the details of the format.
 
 For detailed information about using secrets, refer to [manage sensitive data with Docker secrets](https://docs.docker.com/engine/swarm/secrets/).
@@ -36,7 +36,7 @@ For detailed information about using secrets, refer to [manage sensitive data wi
 
 ### Inspect a secret by name or ID
 
-You can inspect a secret, either by its *name*, or *ID*
+You can inspect a secret, either by its name or ID.
 
 For example, given the following secret:
 
@@ -75,7 +75,7 @@ The output is in JSON format, for example:
 
 ### <a name="format"></a> Format the output (--format)
 
-You can use the --format option to obtain specific information about a
+You can use the `--format` option to obtain specific information about a
 secret. The following example command outputs the creation time of the
 secret.
 

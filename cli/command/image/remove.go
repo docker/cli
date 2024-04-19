@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -27,7 +27,7 @@ func NewRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove one or more images",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(dockerCli, opts, args)
+			return runRemove(cmd.Context(), dockerCli, opts, args)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image rm, docker image remove, docker rmi",
@@ -49,11 +49,10 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func runRemove(dockerCli command.Cli, opts removeOptions, images []string) error {
+func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions, images []string) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
-	options := types.ImageRemoveOptions{
+	options := image.RemoveOptions{
 		Force:         opts.force,
 		PruneChildren: !opts.noPrune,
 	}

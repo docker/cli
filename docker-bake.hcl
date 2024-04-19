@@ -1,5 +1,5 @@
 variable "GO_VERSION" {
-    default = "1.20.5"
+    default = "1.21.9"
 }
 variable "VERSION" {
     default = ""
@@ -52,7 +52,7 @@ target "binary" {
     platforms = ["local"]
     output = ["build"]
     args = {
-        BASE_VARIANT = USE_GLIBC == "1" ? "bullseye" : "alpine"
+        BASE_VARIANT = USE_GLIBC == "1" ? "debian" : "alpine"
         VERSION = VERSION
         PACKAGER_NAME = PACKAGER_NAME
         GO_STRIP = STRIP_TARGET
@@ -72,7 +72,7 @@ target "plugins" {
     platforms = ["local"]
     output = ["build"]
     args = {
-        BASE_VARIANT = USE_GLIBC == "1" ? "bullseye" : "alpine"
+        BASE_VARIANT = USE_GLIBC == "1" ? "debian" : "alpine"
         VERSION = VERSION
         GO_STRIP = STRIP_TARGET
     }
@@ -155,7 +155,7 @@ target "e2e-image" {
     output = ["type=docker"]
     tags = ["${IMAGE_NAME}"]
     args = {
-        BASE_VARIANT = USE_GLIBC == "1" ? "bullseye" : "alpine"
+        BASE_VARIANT = USE_GLIBC == "1" ? "debian" : "alpine"
         VERSION = VERSION
     }
 }
@@ -164,4 +164,29 @@ target "e2e-gencerts" {
     inherits = ["_common"]
     dockerfile = "./e2e/testdata/Dockerfile.gencerts"
     output = ["./e2e/testdata"]
+}
+
+target "docker-metadata-action" {
+  tags = ["cli-bin:local"]
+}
+
+target "bin-image" {
+  inherits = ["binary", "docker-metadata-action"]
+  target = "bin-image"
+  output = ["type=docker"]
+}
+
+target "bin-image-cross" {
+  inherits = ["bin-image"]
+  output = ["type=image"]
+  platforms = [
+    "linux/amd64",
+    "linux/arm/v6",
+    "linux/arm/v7",
+    "linux/arm64",
+    "linux/ppc64le",
+    "linux/s390x",
+    "windows/amd64",
+    "windows/arm64"
+  ]
 }

@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package config
 
 import (
@@ -27,7 +30,7 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Names = args
-			return RunConfigInspect(dockerCli, opts)
+			return RunConfigInspect(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -40,15 +43,14 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigInspect inspects the given Swarm config.
-func RunConfigInspect(dockerCli command.Cli, opts InspectOptions) error {
+func RunConfigInspect(ctx context.Context, dockerCli command.Cli, opts InspectOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	if opts.Pretty {
 		opts.Format = "pretty"
 	}
 
-	getRef := func(id string) (interface{}, []byte, error) {
+	getRef := func(id string) (any, []byte, error) {
 		return client.ConfigInspectWithRaw(ctx, id)
 	}
 	f := opts.Format

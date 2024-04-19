@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package command
 
 import (
@@ -44,7 +47,9 @@ type EndpointDefaultResolver interface {
 	// the lack of a default (e.g. because the config file which
 	// would contain it is missing). If there is no default then
 	// returns nil, nil, nil.
-	ResolveDefault() (interface{}, *store.EndpointTLSData, error)
+	//
+	//nolint:dupword // ignore "Duplicate words (nil,) found"
+	ResolveDefault() (any, *store.EndpointTLSData, error)
 }
 
 // ResolveDefaultContext creates a Metadata for the current CLI invocation parameters
@@ -53,7 +58,7 @@ func ResolveDefaultContext(opts *cliflags.ClientOptions, config store.Config) (*
 		Endpoints: make(map[string]store.EndpointTLSData),
 	}
 	contextMetadata := store.Metadata{
-		Endpoints: make(map[string]interface{}),
+		Endpoints: make(map[string]any),
 		Metadata: DockerContext{
 			Description: "",
 		},

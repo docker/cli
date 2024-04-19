@@ -26,7 +26,7 @@ func newScaleCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Scale one or multiple replicated services",
 		Args:  scaleArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScale(dockerCli, options, args)
+			return runScale(cmd.Context(), dockerCli, options, args)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return CompletionFn(dockerCli)(cmd, args, toComplete)
@@ -56,10 +56,9 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error {
+func runScale(ctx context.Context, dockerCli command.Cli, options *scaleOptions, args []string) error {
 	var errs []string
 	var serviceIDs []string
-	ctx := context.Background()
 
 	for _, arg := range args {
 		serviceID, scaleStr, _ := strings.Cut(arg, "=")
@@ -76,13 +75,12 @@ func runScale(dockerCli command.Cli, options *scaleOptions, args []string) error
 		} else {
 			serviceIDs = append(serviceIDs, serviceID)
 		}
-
 	}
 
 	if len(serviceIDs) > 0 {
 		if !options.detach && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.29") {
 			for _, serviceID := range serviceIDs {
-				if err := waitOnService(ctx, dockerCli, serviceID, false); err != nil {
+				if err := WaitOnService(ctx, dockerCli, serviceID, false); err != nil {
 					errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
 				}
 			}
@@ -104,11 +102,12 @@ func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID strin
 	}
 
 	serviceMode := &service.Spec.Mode
-	if serviceMode.Replicated != nil {
+	switch {
+	case serviceMode.Replicated != nil:
 		serviceMode.Replicated.Replicas = &scale
-	} else if serviceMode.ReplicatedJob != nil {
+	case serviceMode.ReplicatedJob != nil:
 		serviceMode.ReplicatedJob.TotalCompletions = &scale
-	} else {
+	default:
 		return errors.Errorf("scale can only be used with replicated or replicated-job mode")
 	}
 

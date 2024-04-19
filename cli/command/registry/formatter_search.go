@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultSearchTableFormat = "table {{.Name}}\t{{.Description}}\t{{.StarCount}}\t{{.IsOfficial}}\t{{.IsAutomated}}"
+	defaultSearchTableFormat = "table {{.Name}}\t{{.Description}}\t{{.StarCount}}\t{{.IsOfficial}}"
 
 	starsHeader     = "STARS"
 	officialHeader  = "OFFICIAL"
@@ -19,9 +19,7 @@ const (
 // NewSearchFormat returns a Format for rendering using a network Context
 func NewSearchFormat(source string) formatter.Format {
 	switch source {
-	case "":
-		return defaultSearchTableFormat
-	case formatter.TableFormatKey:
+	case "", formatter.TableFormatKey:
 		return defaultSearchTableFormat
 	}
 	return formatter.Format(source)
@@ -66,8 +64,8 @@ func (c *searchContext) Name() string {
 }
 
 func (c *searchContext) Description() string {
-	desc := strings.Replace(c.s.Description, "\n", " ", -1)
-	desc = strings.Replace(desc, "\r", " ", -1)
+	desc := strings.ReplaceAll(c.s.Description, "\n", " ")
+	desc = strings.ReplaceAll(desc, "\r", " ")
 	if c.trunc {
 		desc = formatter.Ellipsis(desc, 45)
 	}
@@ -95,6 +93,9 @@ func (c *searchContext) IsOfficial() string {
 	return c.formatBool(c.s.IsOfficial)
 }
 
+// IsAutomated formats the IsAutomated field for printing.
+//
+// Deprecated: the "is_automated" field is deprecated and will always be "false" in the future.
 func (c *searchContext) IsAutomated() string {
-	return c.formatBool(c.s.IsAutomated)
+	return c.formatBool(c.s.IsAutomated) //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 }

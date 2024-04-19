@@ -8,10 +8,10 @@ docker-build - Build an image from a Dockerfile
 [**--add-host**[=*[]*]]
 [**--build-arg**[=*[]*]]
 [**--cache-from**[=*[]*]]
-[**--cpu-shares**[=*0*]]
+[**-c**|**--cpu-shares**[=*0*]]
 [**--cgroup-parent**[=*CGROUP-PARENT*]]
 [**--help**]
-[**--iidfile**[=*CIDFILE*]]
+[**--iidfile**[=*IIDFILE*]]
 [**-f**|**--file**[=*PATH/Dockerfile*]]
 [**-squash**] *Experimental*
 [**--force-rm**]
@@ -78,10 +78,10 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
    layers in tact, and one for the squashed version.
 
 **--add-host** []
-   Add a custom host-to-IP mapping (host:ip)
+   Add a custom host-to-IP mapping (host=ip, or host:ip)
 
-   Add a line to /etc/hosts. The format is hostname:ip.  The **--add-host**
-option can be set multiple times.
+   Add a line to /etc/hosts. The format is hostname=ip, or hostname:ip.
+   The **--add-host** option can be set multiple times.
 
 **--build-arg** *variable*
    name and value of a **buildarg**.
@@ -153,7 +153,7 @@ In Linux, default is **bridge**.
   Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes), or `g` (gigabytes). If you omit the unit, the system uses bytes.
   If you omit the size entirely, the system uses `64m`.
 
-**--cpu-shares** *0*
+**-c**, **--cpu-shares** *0*
   CPU shares (relative weight).
 
   By default, all containers get the same proportion of CPU cycles.
@@ -166,7 +166,7 @@ In Linux, default is **bridge**.
   You can change this proportion by adjusting the container's CPU share
   weighting relative to the weighting of all other running containers.
 
-  To modify the proportion from the default of 1024, use the **--cpu-shares**
+  To modify the proportion from the default of 1024, use the **-c** or **--cpu-shares**
   flag to set the weighting to 2 or higher.
 
       Container   CPU share    Flag

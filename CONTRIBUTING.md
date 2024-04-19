@@ -1,9 +1,5 @@
 # Contributing to Docker
 
-Want to hack on Docker? Awesome!  We have a contributor's guide that explains
-[setting up a Docker development environment and the contribution
-process](https://docs.docker.com/opensource/project/who-written-for/). 
-
 This page contains information about reporting issues as well as some tips and
 guidelines useful to experienced open source contributors. Finally, make sure
 you read our [community guidelines](#docker-community-guidelines) before you
@@ -88,7 +84,7 @@ use for simple changes](https://docs.docker.com/opensource/workflow/make-a-contr
   <tr>
     <td>Community Slack</td>
     <td>
-      The Docker Community has a dedicated Slack chat to discuss features and issues.  You can sign-up <a href="https://dockr.ly/slack" target="_blank">with this link</a>.
+      The Docker Community has a dedicated Slack chat to discuss features and issues.  You can sign-up <a href="https://dockr.ly/comm-slack" target="_blank">with this link</a>.
     </td>
   </tr>
   <tr>
@@ -192,7 +188,7 @@ For more details, see the [MAINTAINERS](MAINTAINERS) page.
 The sign-off is a simple line at the end of the explanation for the patch. Your
 signature certifies that you wrote the patch or otherwise have the right to pass
 it on as an open-source patch. The rules are pretty simple: if you can certify
-the below (from [developercertificate.org](http://developercertificate.org/)):
+the below (from [developercertificate.org](https://developercertificate.org):
 
 ```
 Developer Certificate of Origin
@@ -336,9 +332,8 @@ The rules:
 1. All code should be formatted with `gofumpt` (preferred) or `gofmt -s`.
 2. All code should pass the default levels of
    [`golint`](https://github.com/golang/lint).
-3. All code should follow the guidelines covered in [Effective
-   Go](http://golang.org/doc/effective_go.html) and [Go Code Review
-   Comments](https://github.com/golang/go/wiki/CodeReviewComments).
+3. All code should follow the guidelines covered in [Effective Go](https://go.dev/doc/effective_go)
+   and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments).
 4. Comment the code. Tell us the why, the history and the context.
 5. Document _all_ declarations and methods, even private ones. Declare
    expectations, caveats and anything else that may be important. If a type
@@ -360,6 +355,6 @@ The rules:
     guidelines. Since you've read all the rules, you now know that.
 
 If you are having trouble getting into the mood of idiomatic Go, we recommend
-reading through [Effective Go](https://golang.org/doc/effective_go.html). The
-[Go Blog](https://blog.golang.org) is also a great resource. Drinking the
+reading through [Effective Go](https://go.dev/doc/effective_go). The
+[Go Blog](https://go.dev/blog/) is also a great resource. Drinking the
 kool-aid is a lot easier than going thirsty.

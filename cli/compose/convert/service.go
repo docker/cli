@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"context"
 	"os"
 	"sort"
 	"strings"
@@ -25,27 +26,23 @@ const (
 
 // Services from compose-file types to engine API types
 func Services(
+	ctx context.Context,
 	namespace Namespace,
 	config *composetypes.Config,
-	client client.CommonAPIClient,
+	apiClient client.CommonAPIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
-
-	services := config.Services
-	volumes := config.Volumes
-	networks := config.Networks
-
-	for _, service := range services {
-		secrets, err := convertServiceSecrets(client, namespace, service.Secrets, config.Secrets)
+	for _, service := range config.Services {
+		secrets, err := convertServiceSecrets(ctx, apiClient, namespace, service.Secrets, config.Secrets)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
-		configs, err := convertServiceConfigObjs(client, namespace, service, config.Configs)
+		configs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, config.Configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
 
-		serviceSpec, err := Service(client.ClientVersion(), namespace, service, networks, volumes, secrets, configs)
+		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
@@ -179,7 +176,7 @@ func Service(
 	// ServiceSpec.Networks to TaskTemplate.Networks. So which field to use
 	// is conditional on daemon version.
 	if versions.LessThan(apiVersion, "1.29") {
-		serviceSpec.Networks = networks
+		serviceSpec.Networks = networks //nolint:staticcheck // ignore SA1019: field is deprecated.
 	} else {
 		serviceSpec.TaskTemplate.Networks = networks
 	}
@@ -245,7 +242,8 @@ func convertServiceNetworks(
 
 // TODO: fix secrets API so that SecretAPIClient is not required here
 func convertServiceSecrets(
-	client client.SecretAPIClient,
+	ctx context.Context,
+	apiClient client.SecretAPIClient,
 	namespace Namespace,
 	secrets []composetypes.ServiceSecretConfig,
 	secretSpecs map[string]composetypes.SecretConfig,
@@ -272,7 +270,7 @@ func convertServiceSecrets(
 		})
 	}
 
-	secrs, err := servicecli.ParseSecrets(client, refs)
+	secrs, err := servicecli.ParseSecrets(ctx, apiClient, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +287,8 @@ func convertServiceSecrets(
 //
 // TODO: fix configs API so that ConfigsAPIClient is not required here
 func convertServiceConfigObjs(
-	client client.ConfigAPIClient,
+	ctx context.Context,
+	apiClient client.ConfigAPIClient,
 	namespace Namespace,
 	service composetypes.ServiceConfig,
 	configSpecs map[string]composetypes.ConfigObjConfig,
@@ -345,10 +344,9 @@ func convertServiceConfigObjs(
 			ConfigName: name,
 			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
 		})
-
 	}
 
-	confs, err := servicecli.ParseConfigs(client, refs)
+	confs, err := servicecli.ParseConfigs(ctx, apiClient, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -436,8 +434,8 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return nil, nil
 	}
 	var (
-		timeout, interval, startPeriod time.Duration
-		retries                        int
+		timeout, interval, startPeriod, startInterval time.Duration
+		retries                                       int
 	)
 	if healthcheck.Disable {
 		if len(healthcheck.Test) != 0 {
@@ -446,7 +444,6 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return &container.HealthConfig{
 			Test: []string{"NONE"},
 		}, nil
-
 	}
 	if healthcheck.Timeout != nil {
 		timeout = time.Duration(*healthcheck.Timeout)
@@ -457,15 +454,19 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 	if healthcheck.StartPeriod != nil {
 		startPeriod = time.Duration(*healthcheck.StartPeriod)
 	}
+	if healthcheck.StartInterval != nil {
+		startInterval = time.Duration(*healthcheck.StartInterval)
+	}
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)
 	}
 	return &container.HealthConfig{
-		Test:        healthcheck.Test,
-		Timeout:     timeout,
-		Interval:    interval,
-		Retries:     retries,
-		StartPeriod: startPeriod,
+		Test:          healthcheck.Test,
+		Timeout:       timeout,
+		Interval:      interval,
+		Retries:       retries,
+		StartPeriod:   startPeriod,
+		StartInterval: startInterval,
 	}, nil
 }
 
@@ -635,11 +636,11 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	return serviceMode, nil
 }
 
-func convertDNSConfig(DNS []string, DNSSearch []string) *swarm.DNSConfig {
-	if DNS != nil || DNSSearch != nil {
+func convertDNSConfig(dns []string, dnsSearch []string) *swarm.DNSConfig {
+	if dns != nil || dnsSearch != nil {
 		return &swarm.DNSConfig{
-			Nameservers: DNS,
-			Search:      DNSSearch,
+			Nameservers: dns,
+			Search:      dnsSearch,
 		}
 	}
 	return nil
@@ -706,7 +707,7 @@ func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units
 			}
 		}
 	}
-	var ulimits []*units.Ulimit
+	ulimits := make([]*units.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		ulimits = append(ulimits, ulimit)
 	}

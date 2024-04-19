@@ -29,7 +29,7 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List secrets",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSecretList(dockerCli, options)
+			return runSecretList(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -38,15 +38,14 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVarP(&options.format, "format", "", "", flagsHelper.FormatHelp)
+	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
 
-func runSecretList(dockerCli command.Cli, options listOptions) error {
+func runSecretList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	secrets, err := client.SecretList(ctx, types.SecretListOptions{Filters: options.filter.Value()})
 	if err != nil {

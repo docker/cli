@@ -169,8 +169,7 @@ func TestRunExec(t *testing.T) {
 		{
 			doc: "successful detach",
 			options: withDefaultOpts(ExecOptions{
-				Container: "thecontainer",
-				Detach:    true,
+				Detach: true,
 			}),
 			client: fakeClient{execCreateFunc: execCreateWithID},
 		},
@@ -193,18 +192,16 @@ func TestRunExec(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			cli := test.NewFakeCli(&testcase.client)
+			fakeCLI := test.NewFakeCli(&testcase.client)
 
-			err := RunExec(cli, testcase.options)
+			err := RunExec(context.TODO(), fakeCLI, "thecontainer", testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
-			} else {
-				if !assert.Check(t, err) {
-					return
-				}
+			} else if !assert.Check(t, err) {
+				return
 			}
-			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
-			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))
+			assert.Check(t, is.Equal(testcase.expectedOut, fakeCLI.OutBuffer().String()))
+			assert.Check(t, is.Equal(testcase.expectedErr, fakeCLI.ErrBuffer().String()))
 		})
 	}
 }
@@ -265,8 +262,8 @@ func TestNewExecCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{inspectFunc: tc.containerInspectFunc})
-		cmd := NewExecCommand(cli)
+		fakeCLI := test.NewFakeCli(&fakeClient{inspectFunc: tc.containerInspectFunc})
+		cmd := NewExecCommand(fakeCLI)
 		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)

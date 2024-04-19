@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package plugin
 
 import (
@@ -148,7 +151,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 		{ID: "pluginID1", Name: "foobar_baz"},
 		{ID: "pluginID2", Name: "foobar_bar"},
 	}
-	expectedJSONs := []map[string]interface{}{
+	expectedJSONs := []map[string]any{
 		{"Description": "", "Enabled": false, "ID": "pluginID1", "Name": "foobar_baz", "PluginReference": ""},
 		{"Description": "", "Enabled": false, "ID": "pluginID2", "Name": "foobar_bar", "PluginReference": ""},
 	}
@@ -159,7 +162,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
-		var m map[string]interface{}
+		var m map[string]any
 		if err := json.Unmarshal([]byte(line), &m); err != nil {
 			t.Fatal(err)
 		}

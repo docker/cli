@@ -13,117 +13,133 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
+	cdi "tags.cncf.io/container-device-interface/pkg/parser"
+)
+
+const (
+	// TODO(thaJeztah): define these in the API-types, or query available defaults
+	//  from the daemon, or require "local" profiles to be an absolute path or
+	//  relative paths starting with "./". The daemon-config has consts for this
+	//  but we don't want to import that package:
+	//  https://github.com/moby/moby/blob/v23.0.0/daemon/config/config.go#L63-L67
+
+	// seccompProfileDefault is the built-in default seccomp profile.
+	seccompProfileDefault = "builtin"
+	// seccompProfileUnconfined is a special profile name for seccomp to use an
+	// "unconfined" seccomp profile.
+	seccompProfileUnconfined = "unconfined"
 )
 
 var deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) [rwm]{1,3}$`)
 
 // containerOptions is a data object with all the options for creating a container
 type containerOptions struct {
-	attach             opts.ListOpts
-	volumes            opts.ListOpts
-	tmpfs              opts.ListOpts
-	mounts             opts.MountOpt
-	blkioWeightDevice  opts.WeightdeviceOpt
-	deviceReadBps      opts.ThrottledeviceOpt
-	deviceWriteBps     opts.ThrottledeviceOpt
-	links              opts.ListOpts
-	aliases            opts.ListOpts
-	linkLocalIPs       opts.ListOpts
-	deviceReadIOps     opts.ThrottledeviceOpt
-	deviceWriteIOps    opts.ThrottledeviceOpt
-	env                opts.ListOpts
-	labels             opts.ListOpts
-	deviceCgroupRules  opts.ListOpts
-	devices            opts.ListOpts
-	gpus               opts.GpuOpts
-	ulimits            *opts.UlimitOpt
-	sysctls            *opts.MapOpts
-	publish            opts.ListOpts
-	expose             opts.ListOpts
-	dns                opts.ListOpts
-	dnsSearch          opts.ListOpts
-	dnsOptions         opts.ListOpts
-	extraHosts         opts.ListOpts
-	volumesFrom        opts.ListOpts
-	envFile            opts.ListOpts
-	capAdd             opts.ListOpts
-	capDrop            opts.ListOpts
-	groupAdd           opts.ListOpts
-	securityOpt        opts.ListOpts
-	storageOpt         opts.ListOpts
-	labelsFile         opts.ListOpts
-	loggingOpts        opts.ListOpts
-	privileged         bool
-	pidMode            string
-	utsMode            string
-	usernsMode         string
-	cgroupnsMode       string
-	publishAll         bool
-	stdin              bool
-	tty                bool
-	oomKillDisable     bool
-	oomScoreAdj        int
-	containerIDFile    string
-	entrypoint         string
-	hostname           string
-	domainname         string
-	memory             opts.MemBytes
-	memoryReservation  opts.MemBytes
-	memorySwap         opts.MemSwapBytes
-	kernelMemory       opts.MemBytes
-	user               string
-	workingDir         string
-	cpuCount           int64
-	cpuShares          int64
-	cpuPercent         int64
-	cpuPeriod          int64
-	cpuRealtimePeriod  int64
-	cpuRealtimeRuntime int64
-	cpuQuota           int64
-	cpus               opts.NanoCPUs
-	cpusetCpus         string
-	cpusetMems         string
-	blkioWeight        uint16
-	ioMaxBandwidth     opts.MemBytes
-	ioMaxIOps          uint64
-	swappiness         int64
-	netMode            opts.NetworkOpt
-	macAddress         string
-	ipv4Address        string
-	ipv6Address        string
-	ipcMode            string
-	pidsLimit          int64
-	restartPolicy      string
-	readonlyRootfs     bool
-	loggingDriver      string
-	cgroupParent       string
-	volumeDriver       string
-	stopSignal         string
-	stopTimeout        int
-	isolation          string
-	shmSize            opts.MemBytes
-	noHealthcheck      bool
-	healthCmd          string
-	healthInterval     time.Duration
-	healthTimeout      time.Duration
-	healthStartPeriod  time.Duration
-	healthRetries      int
-	runtime            string
-	autoRemove         bool
-	init               bool
-	annotations        *opts.MapOpts
+	attach              opts.ListOpts
+	volumes             opts.ListOpts
+	tmpfs               opts.ListOpts
+	mounts              opts.MountOpt
+	blkioWeightDevice   opts.WeightdeviceOpt
+	deviceReadBps       opts.ThrottledeviceOpt
+	deviceWriteBps      opts.ThrottledeviceOpt
+	links               opts.ListOpts
+	aliases             opts.ListOpts
+	linkLocalIPs        opts.ListOpts
+	deviceReadIOps      opts.ThrottledeviceOpt
+	deviceWriteIOps     opts.ThrottledeviceOpt
+	env                 opts.ListOpts
+	labels              opts.ListOpts
+	deviceCgroupRules   opts.ListOpts
+	devices             opts.ListOpts
+	gpus                opts.GpuOpts
+	ulimits             *opts.UlimitOpt
+	sysctls             *opts.MapOpts
+	publish             opts.ListOpts
+	expose              opts.ListOpts
+	dns                 opts.ListOpts
+	dnsSearch           opts.ListOpts
+	dnsOptions          opts.ListOpts
+	extraHosts          opts.ListOpts
+	volumesFrom         opts.ListOpts
+	envFile             opts.ListOpts
+	capAdd              opts.ListOpts
+	capDrop             opts.ListOpts
+	groupAdd            opts.ListOpts
+	securityOpt         opts.ListOpts
+	storageOpt          opts.ListOpts
+	labelsFile          opts.ListOpts
+	loggingOpts         opts.ListOpts
+	privileged          bool
+	pidMode             string
+	utsMode             string
+	usernsMode          string
+	cgroupnsMode        string
+	publishAll          bool
+	stdin               bool
+	tty                 bool
+	oomKillDisable      bool
+	oomScoreAdj         int
+	containerIDFile     string
+	entrypoint          string
+	hostname            string
+	domainname          string
+	memory              opts.MemBytes
+	memoryReservation   opts.MemBytes
+	memorySwap          opts.MemSwapBytes
+	kernelMemory        opts.MemBytes
+	user                string
+	workingDir          string
+	cpuCount            int64
+	cpuShares           int64
+	cpuPercent          int64
+	cpuPeriod           int64
+	cpuRealtimePeriod   int64
+	cpuRealtimeRuntime  int64
+	cpuQuota            int64
+	cpus                opts.NanoCPUs
+	cpusetCpus          string
+	cpusetMems          string
+	blkioWeight         uint16
+	ioMaxBandwidth      opts.MemBytes
+	ioMaxIOps           uint64
+	swappiness          int64
+	netMode             opts.NetworkOpt
+	macAddress          string
+	ipv4Address         string
+	ipv6Address         string
+	ipcMode             string
+	pidsLimit           int64
+	restartPolicy       string
+	readonlyRootfs      bool
+	loggingDriver       string
+	cgroupParent        string
+	volumeDriver        string
+	stopSignal          string
+	stopTimeout         int
+	isolation           string
+	shmSize             opts.MemBytes
+	noHealthcheck       bool
+	healthCmd           string
+	healthInterval      time.Duration
+	healthTimeout       time.Duration
+	healthStartPeriod   time.Duration
+	healthStartInterval time.Duration
+	healthRetries       int
+	runtime             string
+	autoRemove          bool
+	init                bool
+	annotations         *opts.MapOpts
 
 	Image string
 	Args  []string
@@ -183,7 +199,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.VarP(&copts.labels, "label", "l", "Set meta data on a container")
 	flags.Var(&copts.labelsFile, "label-file", "Read in a line delimited file of labels")
 	flags.BoolVar(&copts.readonlyRootfs, "read-only", false, "Mount the container's root filesystem as read only")
-	flags.StringVar(&copts.restartPolicy, "restart", "no", "Restart policy to apply when a container exits")
+	flags.StringVar(&copts.restartPolicy, "restart", string(container.RestartPolicyDisabled), "Restart policy to apply when a container exits")
 	flags.StringVar(&copts.stopSignal, "stop-signal", "", "Signal to stop the container")
 	flags.IntVar(&copts.stopTimeout, "stop-timeout", 0, "Timeout (in seconds) to stop a container")
 	flags.SetAnnotation("stop-timeout", "version", []string{"1.25"})
@@ -250,6 +266,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.DurationVar(&copts.healthTimeout, "health-timeout", 0, "Maximum time to allow one check to run (ms|s|m|h) (default 0s)")
 	flags.DurationVar(&copts.healthStartPeriod, "health-start-period", 0, "Start period for the container to initialize before starting health-retries countdown (ms|s|m|h) (default 0s)")
 	flags.SetAnnotation("health-start-period", "version", []string{"1.29"})
+	flags.DurationVar(&copts.healthStartInterval, "health-start-interval", 0, "Time between running the check during the start period (ms|s|m|h) (default 0s)")
+	flags.SetAnnotation("health-start-interval", "version", []string{"1.44"})
 	flags.BoolVar(&copts.noHealthcheck, "no-healthcheck", false, "Disable any container-specified HEALTHCHECK")
 
 	// Resource management
@@ -354,7 +372,10 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	volumes := copts.volumes.GetMap()
 	// add any bind targets to the list of container volumes
 	for bind := range copts.volumes.GetMap() {
-		parsed, _ := loader.ParseVolume(bind)
+		parsed, err := loader.ParseVolume(bind)
+		if err != nil {
+			return nil, err
+		}
 
 		if parsed.Source != "" {
 			toBind := bind
@@ -449,12 +470,17 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	// parsing flags, we haven't yet sent a _ping to the daemon to determine
 	// what operating system it is.
 	deviceMappings := []container.DeviceMapping{}
+	var cdiDeviceNames []string
 	for _, device := range copts.devices.GetAll() {
 		var (
 			validated     string
 			deviceMapping container.DeviceMapping
 			err           error
 		)
+		if cdi.IsQualifiedName(device) {
+			cdiDeviceNames = append(cdiDeviceNames, device)
+			continue
+		}
 		validated, err = validateDevice(device, serverOS)
 		if err != nil {
 			return nil, err
@@ -526,7 +552,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		copts.healthInterval != 0 ||
 		copts.healthTimeout != 0 ||
 		copts.healthStartPeriod != 0 ||
-		copts.healthRetries != 0
+		copts.healthRetries != 0 ||
+		copts.healthStartInterval != 0
 	if copts.noHealthcheck {
 		if haveHealthSettings {
 			return nil, errors.Errorf("--no-healthcheck conflicts with --health-* options")
@@ -549,14 +576,27 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if copts.healthStartPeriod < 0 {
 			return nil, fmt.Errorf("--health-start-period cannot be negative")
 		}
+		if copts.healthStartInterval < 0 {
+			return nil, fmt.Errorf("--health-start-interval cannot be negative")
+		}
 
 		healthConfig = &container.HealthConfig{
-			Test:        probe,
-			Interval:    copts.healthInterval,
-			Timeout:     copts.healthTimeout,
-			StartPeriod: copts.healthStartPeriod,
-			Retries:     copts.healthRetries,
+			Test:          probe,
+			Interval:      copts.healthInterval,
+			Timeout:       copts.healthTimeout,
+			StartPeriod:   copts.healthStartPeriod,
+			StartInterval: copts.healthStartInterval,
+			Retries:       copts.healthRetries,
 		}
+	}
+
+	deviceRequests := copts.gpus.Value()
+	if len(cdiDeviceNames) > 0 {
+		cdiDeviceRequest := container.DeviceRequest{
+			Driver:    "cdi",
+			DeviceIDs: cdiDeviceNames,
+		}
+		deviceRequests = append(deviceRequests, cdiDeviceRequest)
 	}
 
 	resources := container.Resources{
@@ -589,7 +629,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Ulimits:              copts.ulimits.GetList(),
 		DeviceCgroupRules:    copts.deviceCgroupRules.GetAll(),
 		Devices:              deviceMappings,
-		DeviceRequests:       copts.gpus.Value(),
+		DeviceRequests:       deviceRequests,
 	}
 
 	config := &container.Config{
@@ -686,6 +726,12 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
+	// Put the endpoint-specific MacAddress of the "main" network attachment into the container Config for backward
+	// compatibility with older daemons.
+	if nw, ok := networkingConfig.EndpointsConfig[hostConfig.NetworkMode.NetworkName()]; ok {
+		config.MacAddress = nw.MacAddress //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
+	}
+
 	return &containerConfig{
 		Config:           config,
 		HostConfig:       hostConfig,
@@ -705,6 +751,20 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		endpoints                         = make(map[string]*networktypes.EndpointSettings, len(copts.netMode.Value()))
 		hasUserDefined, hasNonUserDefined bool
 	)
+
+	if len(copts.netMode.Value()) == 0 {
+		n := opts.NetworkAttachmentOpts{
+			Target: "default",
+		}
+		if err := applyContainerOptions(&n, copts); err != nil {
+			return nil, err
+		}
+		ep, err := parseNetworkAttachmentOpt(n)
+		if err != nil {
+			return nil, err
+		}
+		endpoints["default"] = ep
+	}
 
 	for i, n := range copts.netMode.Value() {
 		n := n
@@ -747,8 +807,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 	return endpoints, nil
 }
 
-func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOptions) error {
-	// TODO should copts.MacAddress actually be set on the first network? (currently it's not)
+func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOptions) error { //nolint:gocyclo
 	// TODO should we error if _any_ advanced option is used? (i.e. forbid to combine advanced notation with the "old" flags (`--network-alias`, `--link`, `--ip`, `--ip6`)?
 	if len(n.Aliases) > 0 && copts.aliases.Len() > 0 {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --network-alias and per-network alias"))
@@ -762,11 +821,17 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if n.IPv6Address != "" && copts.ipv6Address != "" {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --ip6 and per-network IPv6 address"))
 	}
+	if n.MacAddress != "" && copts.macAddress != "" {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --mac-address and per-network MAC address"))
+	}
+	if len(n.LinkLocalIPs) > 0 && copts.linkLocalIPs.Len() > 0 {
+		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --link-local-ip and per-network link-local IP addresses"))
+	}
 	if copts.aliases.Len() > 0 {
 		n.Aliases = make([]string, copts.aliases.Len())
 		copy(n.Aliases, copts.aliases.GetAll())
 	}
-	if copts.links.Len() > 0 {
+	if n.Target != "default" && copts.links.Len() > 0 {
 		n.Links = make([]string, copts.links.Len())
 		copy(n.Links, copts.links.GetAll())
 	}
@@ -776,8 +841,9 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if copts.ipv6Address != "" {
 		n.IPv6Address = copts.ipv6Address
 	}
-
-	// TODO should linkLocalIPs be added to the _first_ network only, or to _all_ networks? (should this be a per-network option as well?)
+	if copts.macAddress != "" {
+		n.MacAddress = copts.macAddress
+	}
 	if copts.linkLocalIPs.Len() > 0 {
 		n.LinkLocalIPs = make([]string, copts.linkLocalIPs.Len())
 		copy(n.LinkLocalIPs, copts.linkLocalIPs.GetAll())
@@ -813,6 +879,12 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 			IPv6Address:  ep.IPv6Address,
 			LinkLocalIPs: ep.LinkLocalIPs,
 		}
+	}
+	if ep.MacAddress != "" {
+		if _, err := opts.ValidateMACAddress(ep.MacAddress); err != nil {
+			return nil, errors.Errorf("%s is not a valid mac address", ep.MacAddress)
+		}
+		epConfig.MacAddress = ep.MacAddress
 	}
 	return epConfig, nil
 }
@@ -856,16 +928,23 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 			// "no-new-privileges" is the only option that does not require a value.
 			return securityOpts, errors.Errorf("Invalid --security-opt: %q", opt)
 		}
-		if k == "seccomp" && v != "unconfined" {
-			f, err := os.ReadFile(v)
-			if err != nil {
-				return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", v, err)
+		if k == "seccomp" {
+			switch v {
+			case seccompProfileDefault, seccompProfileUnconfined:
+				// known special names for built-in profiles, nothing to do.
+			default:
+				// value may be a filename, in which case we send the profile's
+				// content if it's valid JSON.
+				f, err := os.ReadFile(v)
+				if err != nil {
+					return securityOpts, errors.Errorf("opening seccomp profile (%s) failed: %v", v, err)
+				}
+				b := bytes.NewBuffer(nil)
+				if err := json.Compact(b, f); err != nil {
+					return securityOpts, errors.Errorf("compacting json for seccomp profile (%s) failed: %v", v, err)
+				}
+				securityOpts[key] = fmt.Sprintf("seccomp=%s", b.Bytes())
 			}
-			b := bytes.NewBuffer(nil)
-			if err := json.Compact(b, f); err != nil {
-				return securityOpts, errors.Errorf("compacting json for seccomp profile (%s) failed: %v", v, err)
-			}
-			securityOpts[key] = fmt.Sprintf("seccomp=%s", b.Bytes())
 		}
 	}
 
@@ -1061,8 +1140,8 @@ func validateAttach(val string) (string, error) {
 
 func validateAPIVersion(c *containerConfig, serverAPIVersion string) error {
 	for _, m := range c.HostConfig.Mounts {
-		if m.BindOptions != nil && m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
-			return errors.Errorf("bind-nonrecursive requires API v1.40 or later")
+		if err := command.ValidateMountWithAPIVersion(m, serverAPIVersion); err != nil {
+			return err
 		}
 	}
 	return nil

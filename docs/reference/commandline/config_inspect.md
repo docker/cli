@@ -20,14 +20,14 @@ Inspects the specified config.
 By default, this renders all results in a JSON array. If a format is specified,
 the given template will be executed for each result.
 
-Go's [text/template](https://golang.org/pkg/text/template/) package
+Go's [text/template](https://pkg.go.dev/text/template) package
 describes all the details of the format.
 
 For detailed information about using configs, refer to [store configuration data using Docker Configs](https://docs.docker.com/engine/swarm/configs/).
 
 > **Note**
 >
-> This is a cluster management command, and must be executed on a swarm
+> This is a cluster management command, and must be executed on a Swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
 > documentation.
@@ -85,7 +85,6 @@ $ docker config inspect --format='{{.CreatedAt}}' eo7jnzguqgtpdah3cm5srfb97
 
 2017-03-24 08:15:09.735271783 +0000 UTC
 ```
-
 
 ## Related commands
 

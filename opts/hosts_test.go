@@ -2,8 +2,10 @@ package opts
 
 import (
 	"fmt"
-	"strings"
 	"testing"
+
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestParseHost(t *testing.T) {
@@ -57,7 +59,7 @@ func TestParseDockerDaemonHost(t *testing.T) {
 		"udp://127.0.0.1":               "invalid bind address format: udp://127.0.0.1",
 		"udp://127.0.0.1:2375":          "invalid bind address format: udp://127.0.0.1:2375",
 		"tcp://unix:///run/docker.sock": "invalid proto, expected tcp: unix:///run/docker.sock",
-		" tcp://:7777/path ":            "invalid bind address format:  tcp://:7777/path ",
+		" tcp://:7777/path ":            "invalid bind address format:  tcp://:7777/path ", //nolint:gocritic // ignore mapKey: suspucious whitespace
 		"":                              "invalid bind address format: ",
 	}
 	valids := map[string]string{
@@ -146,34 +148,152 @@ func TestParseInvalidUnixAddrInvalid(t *testing.T) {
 }
 
 func TestValidateExtraHosts(t *testing.T) {
-	valid := []string{
-		`myhost:192.168.0.1`,
-		`thathost:10.0.2.1`,
-		`anipv6host:2003:ab34:e::1`,
-		`ipv6local:::1`,
-		`host.docker.internal:host-gateway`,
+	tests := []struct {
+		doc         string
+		input       string
+		expectedOut string // Expect output==input if not set.
+		expectedErr string // Expect success if not set.
+	}{
+		{
+			doc:   "IPv4, colon sep",
+			input: `myhost:192.168.0.1`,
+		},
+		{
+			doc:         "IPv4, eq sep",
+			input:       `myhost=192.168.0.1`,
+			expectedOut: `myhost:192.168.0.1`,
+		},
+		{
+			doc:         "Weird but permitted, IPv4 with brackets",
+			input:       `myhost=[192.168.0.1]`,
+			expectedOut: `myhost:192.168.0.1`,
+		},
+		{
+			doc:   "Host and domain",
+			input: `host.and.domain.invalid:10.0.2.1`,
+		},
+		{
+			doc:   "IPv6, colon sep",
+			input: `anipv6host:2003:ab34:e::1`,
+		},
+		{
+			doc:         "IPv6, colon sep, brackets",
+			input:       `anipv6host:[2003:ab34:e::1]`,
+			expectedOut: `anipv6host:2003:ab34:e::1`,
+		},
+		{
+			doc:         "IPv6, eq sep, brackets",
+			input:       `anipv6host=[2003:ab34:e::1]`,
+			expectedOut: `anipv6host:2003:ab34:e::1`,
+		},
+		{
+			doc:   "IPv6 localhost, colon sep",
+			input: `ipv6local:::1`,
+		},
+		{
+			doc:         "IPv6 localhost, eq sep",
+			input:       `ipv6local=::1`,
+			expectedOut: `ipv6local:::1`,
+		},
+		{
+			doc:         "IPv6 localhost, eq sep, brackets",
+			input:       `ipv6local=[::1]`,
+			expectedOut: `ipv6local:::1`,
+		},
+		{
+			doc:   "IPv6 localhost, non-canonical, colon sep",
+			input: `ipv6local:0:0:0:0:0:0:0:1`,
+		},
+		{
+			doc:         "IPv6 localhost, non-canonical, eq sep",
+			input:       `ipv6local=0:0:0:0:0:0:0:1`,
+			expectedOut: `ipv6local:0:0:0:0:0:0:0:1`,
+		},
+		{
+			doc:         "IPv6 localhost, non-canonical, eq sep, brackets",
+			input:       `ipv6local=[0:0:0:0:0:0:0:1]`,
+			expectedOut: `ipv6local:0:0:0:0:0:0:0:1`,
+		},
+		{
+			doc:   "host-gateway special case, colon sep",
+			input: `host.docker.internal:host-gateway`,
+		},
+		{
+			doc:         "host-gateway special case, eq sep",
+			input:       `host.docker.internal=host-gateway`,
+			expectedOut: `host.docker.internal:host-gateway`,
+		},
+		{
+			doc:         "Bad address, colon sep",
+			input:       `myhost:192.notanipaddress.1`,
+			expectedErr: `invalid IP address in add-host: "192.notanipaddress.1"`,
+		},
+		{
+			doc:         "Bad address, eq sep",
+			input:       `myhost=192.notanipaddress.1`,
+			expectedErr: `invalid IP address in add-host: "192.notanipaddress.1"`,
+		},
+		{
+			doc:         "No sep",
+			input:       `thathost-nosemicolon10.0.0.1`,
+			expectedErr: `bad format for add-host: "thathost-nosemicolon10.0.0.1"`,
+		},
+		{
+			doc:         "Bad IPv6",
+			input:       `anipv6host:::::1`,
+			expectedErr: `invalid IP address in add-host: "::::1"`,
+		},
+		{
+			doc:         "Bad IPv6, trailing colons",
+			input:       `ipv6local:::0::`,
+			expectedErr: `invalid IP address in add-host: "::0::"`,
+		},
+		{
+			doc:         "Bad IPv6, missing close bracket",
+			input:       `ipv6addr=[::1`,
+			expectedErr: `invalid IP address in add-host: "[::1"`,
+		},
+		{
+			doc:         "Bad IPv6, missing open bracket",
+			input:       `ipv6addr=::1]`,
+			expectedErr: `invalid IP address in add-host: "::1]"`,
+		},
+		{
+			doc:         "Missing address, colon sep",
+			input:       `myhost.invalid:`,
+			expectedErr: `invalid IP address in add-host: ""`,
+		},
+		{
+			doc:         "Missing address, eq sep",
+			input:       `myhost.invalid=`,
+			expectedErr: `invalid IP address in add-host: ""`,
+		},
+		{
+			doc:         "IPv6 localhost, bad name",
+			input:       `:=::1`,
+			expectedErr: `bad format for add-host: ":=::1"`,
+		},
+		{
+			doc:         "No input",
+			input:       ``,
+			expectedErr: `bad format for add-host: ""`,
+		},
 	}
 
-	invalid := map[string]string{
-		`myhost:192.notanipaddress.1`:  `invalid IP`,
-		`thathost-nosemicolon10.0.0.1`: `bad format`,
-		`anipv6host:::::1`:             `invalid IP`,
-		`ipv6local:::0::`:              `invalid IP`,
-	}
-
-	for _, extrahost := range valid {
-		if _, err := ValidateExtraHost(extrahost); err != nil {
-			t.Fatalf("ValidateExtraHost(`"+extrahost+"`) should succeed: error %v", err)
+	for _, tc := range tests {
+		tc := tc
+		if tc.expectedOut == "" {
+			tc.expectedOut = tc.input
 		}
-	}
-
-	for extraHost, expectedError := range invalid {
-		if _, err := ValidateExtraHost(extraHost); err == nil {
-			t.Fatalf("ValidateExtraHost(`%q`) should have failed validation", extraHost)
-		} else {
-			if !strings.Contains(err.Error(), expectedError) {
-				t.Fatalf("ValidateExtraHost(`%q`) error should contain %q", extraHost, expectedError)
+		t.Run(tc.input, func(t *testing.T) {
+			actualOut, actualErr := ValidateExtraHost(tc.input)
+			if tc.expectedErr == "" {
+				assert.Check(t, is.Equal(tc.expectedOut, actualOut))
+				assert.NilError(t, actualErr)
+			} else {
+				assert.Check(t, actualOut == "")
+				assert.Check(t, is.Error(actualErr, tc.expectedErr))
 			}
-		}
+		})
 	}
 }

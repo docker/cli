@@ -1,4 +1,4 @@
-# start
+# docker start
 
 <!---MARKER_GEN_START-->
 Start one or more stopped containers
@@ -20,8 +20,3 @@ Start one or more stopped containers
 
 <!---MARKER_GEN_END-->
 
-## Examples
-
-```console
-$ docker start my_container
-```

@@ -36,6 +36,7 @@ Update a service
 | `--health-cmd`                                | `string`          |         | Command to run to check health                                                                      |
 | `--health-interval`                           | `duration`        |         | Time between running the check (ms\|s\|m\|h)                                                        |
 | `--health-retries`                            | `int`             | `0`     | Consecutive failures needed to report unhealthy                                                     |
+| `--health-start-interval`                     | `duration`        |         | Time between running the check during the start period (ms\|s\|m\|h)                                |
 | `--health-start-period`                       | `duration`        |         | Start period for the container to initialize before counting retries towards unstable (ms\|s\|m\|h) |
 | `--health-timeout`                            | `duration`        |         | Maximum time to allow one check to run (ms\|s\|m\|h)                                                |
 | `--host-add`                                  | `list`            |         | Add a custom host-to-IP mapping (`host:ip`)                                                         |
@@ -228,7 +229,7 @@ ID            NAME  MODE        REPLICAS  IMAGE
 
 ```
 
-Roll back the `web` service...
+The following example rolls back the `web` service:
 
 ```console
 $ docker service update --rollback web

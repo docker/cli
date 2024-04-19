@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package service
 
 import (
@@ -283,7 +286,7 @@ func TestServiceContextWriteJSON(t *testing.T) {
 			},
 		},
 	}
-	expectedJSONs := []map[string]interface{}{
+	expectedJSONs := []map[string]any{
 		{"ID": "02_bar", "Name": "bar", "Mode": "replicated", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
 		{"ID": "01_baz", "Name": "baz", "Mode": "global", "Replicas": "1/3", "Image": "", "Ports": "*:80->8080/tcp"},
 	}
@@ -295,7 +298,7 @@ func TestServiceContextWriteJSON(t *testing.T) {
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
-		var m map[string]interface{}
+		var m map[string]any
 		err := json.Unmarshal([]byte(line), &m)
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)

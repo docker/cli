@@ -11,6 +11,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/system"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +31,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List nodes in the swarm",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, options)
+			return runList(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -42,9 +43,8 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, options listOptions) error {
+func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	nodes, err := client.NodeList(
 		ctx,
@@ -53,7 +53,7 @@ func runList(dockerCli command.Cli, options listOptions) error {
 		return err
 	}
 
-	info := types.Info{}
+	info := system.Info{}
 	if len(nodes) > 0 && !options.quiet {
 		// only non-empty nodes and not quiet, should we call /info api
 		info, err = client.Info(ctx)

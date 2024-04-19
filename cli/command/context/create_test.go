@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package context
 
 import (
@@ -16,15 +19,15 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
 	t.Helper()
 	dir := t.TempDir()
 	storeConfig := store.NewConfig(
-		func() interface{} { return &command.DockerContext{} },
-		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
+		func() any { return &command.DockerContext{} },
+		store.EndpointTypeGetter(docker.DockerEndpoint, func() any { return &docker.EndpointMeta{} }),
 	)
-	store := &command.ContextStoreWithDefault{
+	contextStore := &command.ContextStoreWithDefault{
 		Store: store.New(dir, storeConfig),
 		Resolver: func() (*command.DefaultContext, error) {
 			return &command.DefaultContext{
 				Meta: store.Metadata{
-					Endpoints: map[string]interface{}{
+					Endpoints: map[string]any{
 						docker.DockerEndpoint: docker.EndpointMeta{
 							Host: "unix:///var/run/docker.sock",
 						},
@@ -42,7 +45,7 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
 	for _, o := range opts {
 		o(result)
 	}
-	result.SetContextStore(store)
+	result.SetContextStore(contextStore)
 	return result
 }
 
@@ -104,6 +107,7 @@ func TestCreate(t *testing.T) {
 }
 
 func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
+	t.Helper()
 	assert.Equal(t, n+"\n", cli.OutBuffer().String())
 	assert.Equal(t, fmt.Sprintf("Successfully created context %q\n", n), cli.ErrBuffer().String())
 }

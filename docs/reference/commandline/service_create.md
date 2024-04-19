@@ -26,6 +26,7 @@ Create a new service
 | `--health-cmd`                                      | `string`          |              | Command to run to check health                                                                      |
 | `--health-interval`                                 | `duration`        |              | Time between running the check (ms\|s\|m\|h)                                                        |
 | `--health-retries`                                  | `int`             | `0`          | Consecutive failures needed to report unhealthy                                                     |
+| `--health-start-interval`                           | `duration`        |              | Time between running the check during the start period (ms\|s\|m\|h)                                |
 | `--health-start-period`                             | `duration`        |              | Start period for the container to initialize before counting retries towards unstable (ms\|s\|m\|h) |
 | `--health-timeout`                                  | `duration`        |              | Maximum time to allow one check to run (ms\|s\|m\|h)                                                |
 | `--host`                                            | `list`            |              | Set one or more custom host-to-IP mappings (host:ip)                                                |
@@ -131,7 +132,7 @@ $ docker service  create \
 
 This passes the login token from your local client to the swarm nodes where the
 service is deployed, using the encrypted WAL logs. With this information, the
-nodes are able to log into the registry and pull the image.
+nodes are able to log in to the registry and pull the image.
 
 ### <a name="replicas"></a> Create a service with 5 replica tasks (--replicas)
 
@@ -146,7 +147,7 @@ $ docker service create --name redis --replicas=5 redis:3.0.6
 
 The above command sets the *desired* number of tasks for the service. Even
 though the command returns immediately, actual scaling of the service may take
-some time. The `REPLICAS` column shows both the *actual* and *desired* number
+some time. The `REPLICAS` column shows both the actual and desired number
 of replica tasks for the service.
 
 In the following example the desired state is  `5` replicas, but the current
@@ -299,8 +300,8 @@ metadata](https://docs.docker.com/config/labels-custom-metadata/).
 
 Docker supports three different kinds of mounts, which allow containers to read
 from or write to files or directories, either on the host operating system, or
-on memory filesystems. These types are _data volumes_ (often referred to simply
-as volumes), _bind mounts_, _tmpfs_, and _named pipes_.
+on memory filesystems. These types are data volumes (often referred to simply
+as volumes), bind mounts, tmpfs, and named pipes.
 
 A **bind mount** makes a file or directory on the host available to the
 container it is mounted within. A bind mount may be either read-only or
@@ -348,7 +349,7 @@ volumes in a service:
     <td>
       <p>The type of mount, can be either <tt>volume</tt>, <tt>bind</tt>, <tt>tmpfs</tt>, or <tt>npipe</tt>. Defaults to <tt>volume</tt> if no type is specified.</p>
       <ul>
-        <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/engine/reference/commandline/volume_create/">managed volume</a>
+        <li><tt>volume</tt>: mounts a <a href="https://docs.docker.com/reference/cli/docker/volume/create/">managed volume</a>
         into the container.</li> <li><tt>bind</tt>:
         bind-mounts a directory or file from the host into the container.</li>
         <li><tt>tmpfs</tt>: mount a tmpfs in the container</li>
@@ -393,7 +394,7 @@ volumes in a service:
     <td>
       <p>The Engine mounts binds and volumes <tt>read-write</tt> unless <tt>readonly</tt> option
       is given when mounting the bind or volume. Note that setting <tt>readonly</tt> for a
-      bind-mount does not make its submounts <tt>readonly</tt> on the current Linux implementation. See also <tt>bind-nonrecursive</tt>.</p>
+      bind-mount may not make its submounts <tt>readonly</tt> depending on the kernel version. See also <tt>bind-recursive</tt>.</p>
       <ul>
         <li><tt>true</tt> or <tt>1</tt> or no value: Mounts the bind or volume read-only.</li>
         <li><tt>false</tt> or <tt>0</tt>: Mounts the bind or volume read-write.</li>
@@ -402,7 +403,7 @@ volumes in a service:
   </tr>
 </table>
 
-#### Options for Bind Mounts
+#### Options for bind mounts
 
 The following options can only be used for bind mounts (`type=bind`):
 
@@ -431,17 +432,40 @@ The following options can only be used for bind mounts (`type=bind`):
     </td>
   </tr>
   <tr>
-    <td><b>bind-nonrecursive</b></td>
+    <td><b>bind-recursive</b></td>
     <td>
       By default, submounts are recursively bind-mounted as well. However, this behavior can be confusing when a
-      bind mount is configured with <tt>readonly</tt> option, because submounts are not mounted as read-only.
-      Set <tt>bind-nonrecursive</tt> to disable recursive bind-mount.<br />
+      bind mount is configured with <tt>readonly</tt> option, because submounts may not be mounted as read-only,
+      depending on the kernel version.
+      Set <tt>bind-recursive</tt> to control the behavior of the recursive bind-mount.<br />
+      <br />
+      A value is one of:<br />
+      <br />
+      <ul>
+        <li><<tt>enabled</tt>: Enables recursive bind-mount.
+        Read-only mounts are made recursively read-only if kernel is v5.12 or later.
+        Otherwise they are not made recursively read-only.</li>
+        <li><<tt>disabled</tt>: Disables recursive bind-mount.</li>
+        <li><<tt>writable</tt>: Enables recursive bind-mount.
+        Read-only mounts are not made recursively read-only.</li>
+        <li><<tt>readonly</tt>: Enables recursive bind-mount.
+        Read-only mounts are made recursively read-only if kernel is v5.12 or later.
+        Otherwise the Engine raises an error.</li>
+      </ul>
+      When the option is not specified, the default behavior correponds to setting <tt>enabled</tt>.
+    </td>
+  </tr>
+  <tr>
+    <td><b>bind-nonrecursive</b></td>
+    <td>
+      <tt>bind-nonrecursive</tt> is deprecated since Docker Engine v25.0.
+      Use <tt>bind-recursive</tt>instead.<br />
       <br />
       A value is optional:<br />
       <br />
       <ul>
-        <li><tt>true</tt> or <tt>1</tt>: Disables recursive bind-mount.</li>
-        <li><tt>false</tt> or <tt>0</tt>: Default if you do not provide a value. Enables recursive bind-mount.</li>
+        <li><tt>true</tt> or <tt>1</tt>:  Equivalent to <tt>bind-recursive=disabled</tt>.</li>
+        <li><tt>false</tt> or <tt>0</tt>: Equivalent to <tt>bind-recursive=enabled</tt>.</li>
       </ul>
     </td>
   </tr>
@@ -1013,7 +1037,7 @@ registry value must be located in:
 ### Create services using templates
 
 You can use templates for some flags of `service create`, using the syntax
-provided by the Go's [text/template](https://golang.org/pkg/text/template/) package.
+provided by the Go's [text/template](https://pkg.go.dev/text/template) package.
 
 The supported flags are the following :
 

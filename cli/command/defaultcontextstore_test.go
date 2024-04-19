@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package command
 
 import (
@@ -23,14 +26,14 @@ type testContext struct {
 	Bar string `json:"another_very_recognizable_field_name"`
 }
 
-var testCfg = store.NewConfig(func() interface{} { return &testContext{} },
-	store.EndpointTypeGetter("ep1", func() interface{} { return &endpoint{} }),
-	store.EndpointTypeGetter("ep2", func() interface{} { return &endpoint{} }),
+var testCfg = store.NewConfig(func() any { return &testContext{} },
+	store.EndpointTypeGetter("ep1", func() any { return &endpoint{} }),
+	store.EndpointTypeGetter("ep2", func() any { return &endpoint{} }),
 )
 
 func testDefaultMetadata() store.Metadata {
 	return store.Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: testContext{Bar: "baz"},
@@ -149,7 +152,7 @@ func TestErrCreateDefault(t *testing.T) {
 	meta := testDefaultMetadata()
 	s := testStore(t, meta, store.ContextTLSData{})
 	err := s.CreateOrUpdate(store.Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: testContext{Bar: "baz"},

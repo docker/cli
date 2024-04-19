@@ -1,12 +1,11 @@
 package service
 
 import (
-	"context"
 	"encoding/hex"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
@@ -39,7 +38,7 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 			return errors.New("failed to resolve image digest using content trust: reference is not tagged")
 		}
 
-		resolvedImage, err := trustedResolveDigest(context.Background(), dockerCli, taggedRef)
+		resolvedImage, err := trustedResolveDigest(dockerCli, taggedRef)
 		if err != nil {
 			return errors.Wrap(err, "failed to resolve image digest using content trust")
 		}
@@ -51,13 +50,13 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 	return nil
 }
 
-func trustedResolveDigest(ctx context.Context, cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
+func trustedResolveDigest(cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
 	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return nil, err
 	}
 
-	authConfig := command.ResolveAuthConfig(ctx, cli, repoInfo.Index)
+	authConfig := command.ResolveAuthConfig(cli.ConfigFile(), repoInfo.Index)
 
 	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {

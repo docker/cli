@@ -234,7 +234,7 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 // getWithStatusError does an http.Get() and returns an error if the
 // status code is 4xx or 5xx.
 func getWithStatusError(url string) (resp *http.Response, err error) {
-	// #nosec G107
+	//#nosec G107 -- Ignore G107: Potential HTTP request made with variable url
 	if resp, err = http.Get(url); err != nil {
 		return nil, err
 	}

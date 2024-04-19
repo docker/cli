@@ -20,7 +20,7 @@ func equalCIDR(c1 net.IPNet, c2 net.IPNet) bool {
 
 func setUpIPNetFlagSet(ipsp *[]net.IPNet) *pflag.FlagSet {
 	f := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	f.VarP(newIPNetSliceValue([]net.IPNet{}, ipsp), "cidrs", "", "Command separated list!")
+	f.Var(newIPNetSliceValue([]net.IPNet{}, ipsp), "cidrs", "Command separated list!")
 	return f
 }
 
@@ -131,7 +131,6 @@ func TestIPNetBadQuoting(t *testing.T) {
 	}
 
 	for i, test := range tests {
-
 		var cidrs []net.IPNet
 		f := setUpIPNetFlagSet(&cidrs)
 

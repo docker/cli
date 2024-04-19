@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -19,7 +19,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		name             string
 		args             []string
 		flags            map[string]string
-		infoFunc         func() (types.Info, error)
+		infoFunc         func() (system.Info, error)
 		swarmInspectFunc func() (swarm.Swarm, error)
 		swarmUpdateFunc  func(swarm swarm.Spec, flags swarm.UpdateFlags) error
 		nodeInspectFunc  func() (swarm.Node, []byte, error)
@@ -80,8 +80,8 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		{
 			name: "info-failed",
 			args: []string{"worker"},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -96,7 +96,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		cmd := newJoinTokenCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -108,42 +108,42 @@ func TestSwarmJoinToken(t *testing.T) {
 		name             string
 		args             []string
 		flags            map[string]string
-		infoFunc         func() (types.Info, error)
+		infoFunc         func() (system.Info, error)
 		swarmInspectFunc func() (swarm.Swarm, error)
 		nodeInspectFunc  func() (swarm.Node, []byte, error)
 	}{
 		{
 			name: "worker",
 			args: []string{"worker"},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
 					Swarm: swarm.Info{
 						NodeID: "nodeID",
 					},
 				}, nil
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
 			name: "manager",
 			args: []string{"manager"},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
 					Swarm: swarm.Info{
 						NodeID: "nodeID",
 					},
 				}, nil
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -152,18 +152,18 @@ func TestSwarmJoinToken(t *testing.T) {
 			flags: map[string]string{
 				flagRotate: "true",
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
 					Swarm: swarm.Info{
 						NodeID: "nodeID",
 					},
 				}, nil
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -173,10 +173,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				flagQuiet: "true",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 		{
@@ -186,10 +186,10 @@ func TestSwarmJoinToken(t *testing.T) {
 				flagQuiet: "true",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 		},
 	}
@@ -202,7 +202,7 @@ func TestSwarmJoinToken(t *testing.T) {
 		cmd := newJoinTokenCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("jointoken-%s.golden", tc.name))

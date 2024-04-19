@@ -5,12 +5,12 @@ import (
 	"io"
 	"testing"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
-	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -20,12 +20,14 @@ import (
 )
 
 func ref(t *testing.T, name string) reference.Named {
+	t.Helper()
 	named, err := reference.ParseNamed("example.com/" + name)
 	assert.NilError(t, err)
 	return named
 }
 
 func fullImageManifest(t *testing.T, ref reference.Named) types.ImageManifest {
+	t.Helper()
 	man, err := schema2.FromStruct(schema2.Manifest{
 		Versioned: schema2.SchemaVersion,
 		Config: distribution.Descriptor{
@@ -61,10 +63,10 @@ func fullImageManifest(t *testing.T, ref reference.Named) types.ImageManifest {
 }
 
 func TestInspectCommandLocalManifestNotFound(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	refStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(refStore)
 
 	cmd := newInspectCommand(cli)
 	cmd.SetOut(io.Discard)
@@ -74,10 +76,10 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 }
 
 func TestInspectCommandNotFound(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	refStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(refStore)
 	cli.SetRegistryClient(&fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, _ reference.Named) (types.ImageManifest, error) {
 			return types.ImageManifest{}, errors.New("missing")
@@ -95,13 +97,13 @@ func TestInspectCommandNotFound(t *testing.T) {
 }
 
 func TestInspectCommandLocalManifest(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	refStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(refStore)
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
-	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err := refStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	cmd := newInspectCommand(cli)
@@ -113,10 +115,10 @@ func TestInspectCommandLocalManifest(t *testing.T) {
 }
 
 func TestInspectcommandRemoteManifest(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	refStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(refStore)
 	cli.SetRegistryClient(&fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, ref reference.Named) (types.ImageManifest, error) {
 			return fullImageManifest(t, ref), nil

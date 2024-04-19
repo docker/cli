@@ -2,25 +2,27 @@ package loader
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
 	yaml "gopkg.in/yaml.v2"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/golden"
 )
 
 func TestMarshallConfig(t *testing.T) {
 	workingDir := "/foo"
 	homeDir := "/bar"
 	cfg := fullExampleConfig(workingDir, homeDir)
-	expected := fullExampleYAML(workingDir)
 
 	actual, err := yaml.Marshal(cfg)
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal(expected, string(actual)))
+	golden.Assert(t, string(actual), "full-example.yaml.golden")
 
 	// Make sure the expected can be parsed.
-	dict, err := ParseYAML([]byte(expected))
+	yamlData, err := os.ReadFile("testdata/full-example.yaml.golden")
+	assert.NilError(t, err)
+	dict, err := ParseYAML(yamlData)
 	assert.NilError(t, err)
 	_, err = Load(buildConfigDetails(dict, map[string]string{}))
 	assert.NilError(t, err)
@@ -30,13 +32,13 @@ func TestJSONMarshallConfig(t *testing.T) {
 	workingDir := "/foo"
 	homeDir := "/bar"
 	cfg := fullExampleConfig(workingDir, homeDir)
-	expected := fullExampleJSON(workingDir)
-
 	actual, err := json.MarshalIndent(cfg, "", "  ")
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal(expected, string(actual)))
+	golden.Assert(t, string(actual), "full-example.json.golden")
 
-	dict, err := ParseYAML([]byte(expected))
+	jsonData, err := os.ReadFile("testdata/full-example.json.golden")
+	assert.NilError(t, err)
+	dict, err := ParseYAML(jsonData)
 	assert.NilError(t, err)
 	_, err = Load(buildConfigDetails(dict, map[string]string{}))
 	assert.NilError(t, err)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
 
@@ -18,6 +19,7 @@ type fakeClient struct {
 	pluginInstallFunc func(name string, options types.PluginInstallOptions) (io.ReadCloser, error)
 	pluginListFunc    func(filter filters.Args) (types.PluginsListResponse, error)
 	pluginInspectFunc func(name string) (*types.Plugin, []byte, error)
+	pluginUpgradeFunc func(name string, options types.PluginInstallOptions) (io.ReadCloser, error)
 }
 
 func (c *fakeClient) PluginCreate(_ context.Context, createContext io.Reader, createOptions types.PluginCreateOptions) error {
@@ -71,6 +73,13 @@ func (c *fakeClient) PluginInspectWithRaw(_ context.Context, name string) (*type
 	return nil, nil, nil
 }
 
-func (c *fakeClient) Info(context.Context) (types.Info, error) {
-	return types.Info{}, nil
+func (c *fakeClient) Info(context.Context) (system.Info, error) {
+	return system.Info{}, nil
+}
+
+func (c *fakeClient) PluginUpgrade(ctx context.Context, name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
+	if c.pluginUpgradeFunc != nil {
+		return c.pluginUpgradeFunc(name, options)
+	}
+	return nil, nil
 }

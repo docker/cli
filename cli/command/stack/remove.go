@@ -21,11 +21,14 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackNames(opts.Namespaces); err != nil {
 				return err
 			}
-			return swarm.RunRemove(dockerCli, opts)
+			return swarm.RunRemove(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
 		},
 	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&opts.Detach, "detach", "d", true, "Do not wait for stack removal")
 	return cmd
 }

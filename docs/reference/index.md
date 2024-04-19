@@ -14,7 +14,7 @@ keywords: "Engine"
 
 # Engine reference
 
-* [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
+* [Dockerfile reference](https://docs.docker.com/reference/dockerfile/)
 * [Docker run reference](run.md)
 * [Command line reference](commandline/index.md)
 * [API Reference](https://docs.docker.com/engine/api/)

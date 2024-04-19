@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +33,7 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runLogs(dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container logs, docker logs",
@@ -52,15 +52,13 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogs(dockerCli command.Cli, opts *logsOptions) error {
-	ctx := context.Background()
-
+func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) error {
 	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
 	if err != nil {
 		return err
 	}
 
-	options := types.ContainerLogsOptions{
+	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Since:      opts.since,
@@ -69,8 +67,7 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		Follow:     opts.follow,
 		Tail:       opts.tail,
 		Details:    opts.details,
-	}
-	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, options)
+	})
 	if err != nil {
 		return err
 	}

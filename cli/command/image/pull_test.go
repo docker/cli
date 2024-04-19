@@ -8,7 +8,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -27,7 +27,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 		},
 		{
 			name:          "invalid-name",
-			expectedError: "invalid reference format: repository name must be lowercase",
+			expectedError: "invalid reference format: repository name (library/UPPERCASE_REPO) must be lowercase",
 			args:          []string{"UPPERCASE_REPO"},
 		},
 		{
@@ -69,7 +69,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
-			imagePullFunc: func(ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
+			imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
 				assert.Check(t, is.Equal(tc.expectedTag, ref), tc.name)
 				return io.NopCloser(strings.NewReader("")), nil
 			},
@@ -111,7 +111,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
-			imagePullFunc: func(ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
+			imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
 				return io.NopCloser(strings.NewReader("")), fmt.Errorf("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)

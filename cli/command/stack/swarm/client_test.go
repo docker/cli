@@ -35,7 +35,7 @@ type fakeClient struct {
 	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
 	nodeInspectWithRaw func(ref string) (swarm.Node, []byte, error)
 
-	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error)
+	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
 
 	serviceRemoveFunc func(serviceID string) error
 	networkRemoveFunc func(networkID string) error
@@ -135,12 +135,12 @@ func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, ref string) (swarm.
 	return swarm.Node{}, nil, nil
 }
 
-func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 	if cli.serviceUpdateFunc != nil {
 		return cli.serviceUpdateFunc(serviceID, version, service, options)
 	}
 
-	return types.ServiceUpdateResponse{}, nil
+	return swarm.ServiceUpdateResponse{}, nil
 }
 
 func (cli *fakeClient) ServiceRemove(_ context.Context, serviceID string) error {
@@ -213,8 +213,8 @@ func configFromName(name string) swarm.Config {
 	}
 }
 
-func namespaceFromFilters(filters filters.Args) string {
-	label := filters.Get("label")[0]
+func namespaceFromFilters(fltrs filters.Args) string {
+	label := fltrs.Get("label")[0]
 	return strings.TrimPrefix(label, convert.LabelNamespace+"=")
 }
 

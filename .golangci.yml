@@ -3,23 +3,41 @@ linters:
     - bodyclose
     - depguard
     - dogsled
+    - dupword       # Detects duplicate words.
+    - durationcheck
+    - errchkjson
+    - exportloopref # Detects pointers to enclosing loop variables.
+    - gocritic      # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
-    - gofumpt
+    - gofumpt       # Detects whether code was gofumpt-ed.
     - goimports
-    - gosec
+    - gosec         # Detects security problems.
     - gosimple
     - govet
     - ineffassign
     - lll
     - megacheck
-    - misspell
+    - misspell      # Detects commonly misspelled English words in comments.
     - nakedret
-    - revive
+    - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
+    - nolintlint    # Detects ill-formed or insufficient nolint directives.
+    - perfsprint    # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
+    - prealloc      # Detects slice declarations that could potentially be pre-allocated.
+    - predeclared   # Detects code that shadows one of Go's predeclared identifiers
+    - reassign
+    - revive        # Metalinter; drop-in replacement for golint.
     - staticcheck
+    - stylecheck    # Replacement for golint
+    - tenv          # Detects using os.Setenv instead of t.Setenv.
+    - thelper       # Detects test helpers without t.Helper().
+    - tparallel     # Detects inappropriate usage of t.Parallel().
     - typecheck
-    - unconvert
+    - unconvert     # Detects unnecessary type conversions.
     - unparam
     - unused
+    - usestdlibvars
+    - vet
+    - wastedassign
 
   disable:
     - errcheck
@@ -32,21 +50,42 @@ run:
 
 linters-settings:
   depguard:
-    list-type: blacklist
-    include-go-root: true
-    packages:
-      # The io/ioutil package has been deprecated.
-      # https://go.dev/doc/go1.16#ioutil
-      - io/ioutil
+    rules:
+      main:
+        deny:
+          - pkg: io/ioutil
+            desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
   gocyclo:
     min-complexity: 16
   govet:
-    check-shadowing: false
+    check-shadowing: true
+    settings:
+      shadow:
+        strict: true
   lll:
     line-length: 200
   nakedret:
     command: nakedret
     pattern: ^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$
+
+  revive:
+    rules:
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
+      - name: import-shadowing
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-block
+      - name: empty-block
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-lines
+      - name: empty-lines
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
+      - name: use-any
+        severity: warning
+        disabled: false
 
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below
@@ -84,7 +123,7 @@ issues:
         - gosec
     # EXC0008
     # TODO: evaluate these and fix where needed: G307: Deferring unsafe method "*os.File" on type "Close" (gosec)
-    - text: "(G104|G307)"
+    - text: "G307"
       linters:
         - gosec
     # EXC0009
@@ -98,10 +137,13 @@ issues:
 
     # G113 Potential uncontrolled memory consumption in Rat.SetString (CVE-2022-23772)
     # only affects gp < 1.16.14. and go < 1.17.7
-    - text: "(G113)"
+    - text: "G113"
       linters:
         - gosec
-
+    # TODO: G104: Errors unhandled. (gosec)
+    - text: "G104"
+      linters:
+        - gosec
     # Looks like the match in "EXC0007" above doesn't catch this one
     # TODO: consider upstreaming this to golangci-lint's default exclusion rules
     - text: "G204: Subprocess launched with a potential tainted input or cmd arguments"
@@ -117,12 +159,24 @@ issues:
     - text: "package-comments: should have a package comment"
       linters:
         - revive
-
+    # FIXME temporarily suppress these (see https://github.com/gotestyourself/gotest.tools/issues/272)
+    - text: "SA1019: (assert|cmp|is)\\.ErrorType is deprecated"
+      linters:
+        - staticcheck
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
         - errcheck
         - gosec
+    - text: "ST1000: at least one file in a package should have a package comment"
+      linters:
+        - stylecheck
+
+    # Allow "err" and "ok" vars to shadow existing declarations, otherwise we get too many false positives.
+    - text: '^shadow: declaration of "(err|ok)" shadows declaration'
+      linters:
+        - govet
+
 
   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
   max-issues-per-linter: 0

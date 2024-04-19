@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -15,7 +15,7 @@ import (
 func TestCheckpointListErrors(t *testing.T) {
 	testCases := []struct {
 		args               []string
-		checkpointListFunc func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error)
+		checkpointListFunc func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error)
 		expectedError      string
 	}{
 		{
@@ -28,8 +28,8 @@ func TestCheckpointListErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			checkpointListFunc: func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error) {
-				return []types.Checkpoint{}, errors.Errorf("error getting checkpoints for container foo")
+			checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
+				return []checkpoint.Summary{}, errors.Errorf("error getting checkpoints for container foo")
 			},
 			expectedError: "error getting checkpoints for container foo",
 		},
@@ -49,10 +49,10 @@ func TestCheckpointListErrors(t *testing.T) {
 func TestCheckpointListWithOptions(t *testing.T) {
 	var containerID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{
-		checkpointListFunc: func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error) {
+		checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
 			containerID = container
 			checkpointDir = options.CheckpointDir
-			return []types.Checkpoint{
+			return []checkpoint.Summary{
 				{Name: "checkpoint-foo"},
 			}, nil
 		},

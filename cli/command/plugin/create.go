@@ -8,10 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/pkg/errors"
@@ -74,7 +74,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.repoName = args[0]
 			options.context = args[1]
-			return runCreate(dockerCli, options)
+			return runCreate(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -86,7 +86,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, options pluginCreateOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateOptions) error {
 	var (
 		createCtx io.ReadCloser
 		err       error
@@ -114,12 +114,9 @@ func runCreate(dockerCli command.Cli, options pluginCreateOptions) error {
 	createCtx, err = archive.TarWithOptions(absContextDir, &archive.TarOptions{
 		Compression: compression,
 	})
-
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
 
 	createOptions := types.PluginCreateOptions{RepoName: options.repoName}
 	if err = dockerCli.Client().PluginCreate(ctx, createCtx, createOptions); err != nil {

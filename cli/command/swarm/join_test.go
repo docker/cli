@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +18,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 		name          string
 		args          []string
 		swarmJoinFunc func() error
-		infoFunc      func() (types.Info, error)
+		infoFunc      func() (system.Info, error)
 		expectedError string
 	}{
 		{
@@ -41,8 +41,8 @@ func TestSwarmJoinErrors(t *testing.T) {
 		{
 			name: "join-failed-on-init",
 			args: []string{"remote"},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -62,13 +62,13 @@ func TestSwarmJoinErrors(t *testing.T) {
 func TestSwarmJoin(t *testing.T) {
 	testCases := []struct {
 		name     string
-		infoFunc func() (types.Info, error)
+		infoFunc func() (system.Info, error)
 		expected string
 	}{
 		{
 			name: "join-as-manager",
-			infoFunc: func() (types.Info, error) {
-				return types.Info{
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
 					Swarm: swarm.Info{
 						ControlAvailable: true,
 					},
@@ -78,8 +78,8 @@ func TestSwarmJoin(t *testing.T) {
 		},
 		{
 			name: "join-as-worker",
-			infoFunc: func() (types.Info, error) {
-				return types.Info{
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
 					Swarm: swarm.Info{
 						ControlAvailable: false,
 					},

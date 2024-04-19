@@ -8,8 +8,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
@@ -30,7 +29,7 @@ func TestServiceListOrder(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.SetArgs([]string{})
-	cmd.Flags().Set("format", "{{.Name}}")
+	assert.Check(t, cmd.Flags().Set("format", "{{.Name}}"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "service-list-sort.golden")
 }
@@ -162,7 +161,7 @@ func TestServiceListServiceStatus(t *testing.T) {
 		for _, tc := range tests {
 			if quiet {
 				tc.withQuiet = quiet
-				tc.doc = tc.doc + " with quiet"
+				tc.doc += " with quiet"
 			}
 			matrix = append(matrix, tc)
 		}
@@ -248,21 +247,21 @@ func generateServices(t *testing.T, opts clusterOpts) []swarm.Service {
 	}
 
 	return []swarm.Service{
-		*Service(
-			ServiceID("replicated"),
-			ServiceName("01-replicated-service"),
-			ReplicatedService(opts.desiredTasks),
-			ServiceStatus(opts.desiredTasks, opts.runningTasks),
+		*builders.Service(
+			builders.ServiceID("replicated"),
+			builders.ServiceName("01-replicated-service"),
+			builders.ReplicatedService(opts.desiredTasks),
+			builders.ServiceStatus(opts.desiredTasks, opts.runningTasks),
 		),
-		*Service(
-			ServiceID("global"),
-			ServiceName("02-global-service"),
-			GlobalService(),
-			ServiceStatus(opts.activeNodes, globalTasks),
+		*builders.Service(
+			builders.ServiceID("global"),
+			builders.ServiceName("02-global-service"),
+			builders.GlobalService(),
+			builders.ServiceStatus(opts.activeNodes, globalTasks),
 		),
-		*Service(
-			ServiceID("none-id"),
-			ServiceName("03-none-service"),
+		*builders.Service(
+			builders.ServiceID("none-id"),
+			builders.ServiceName("03-none-service"),
 		),
 	}
 }

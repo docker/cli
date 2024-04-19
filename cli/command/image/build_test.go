@@ -25,8 +25,8 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 	buffer := new(bytes.Buffer)
 	fakeBuild := newFakeBuild()
-	fakeImageBuild := func(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-		tee := io.TeeReader(context, buffer)
+	fakeImageBuild := func(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+		tee := io.TeeReader(buildContext, buffer)
 		gzipReader, err := gzip.NewReader(tee)
 		assert.NilError(t, err)
 		return fakeBuild.build(ctx, gzipReader, options)
@@ -48,7 +48,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	options.dockerfileName = "-"
 	options.context = dir.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "foo"}
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
@@ -75,7 +75,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	options := newBuildOptions()
 	options.context = dir.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	headers := fakeBuild.headers(t)
 	expected := []*tar.Header{
@@ -110,7 +110,7 @@ COPY data /data
 	options.context = dir.Path()
 	options.dockerfileName = df.Path()
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	expected := []string{fakeBuild.options.Dockerfile, ".dockerignore", "data"}
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
@@ -170,7 +170,7 @@ RUN echo hello world
 	options := newBuildOptions()
 	options.context = tmpDir.Join("context-link")
 	options.untrusted = true
-	assert.NilError(t, runBuild(cli, options))
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
 }
@@ -184,8 +184,8 @@ func newFakeBuild() *fakeBuild {
 	return &fakeBuild{}
 }
 
-func (f *fakeBuild) build(_ context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
-	f.context = tar.NewReader(context)
+func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	f.context = tar.NewReader(buildContext)
 	f.options = options
 	body := new(bytes.Buffer)
 	return types.ImageBuildResponse{Body: io.NopCloser(body)}, nil

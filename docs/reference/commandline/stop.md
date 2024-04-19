@@ -1,4 +1,4 @@
-# stop
+# docker stop
 
 <!---MARKER_GEN_START-->
 Stop one or more running containers
@@ -17,15 +17,3 @@ Stop one or more running containers
 
 <!---MARKER_GEN_END-->
 
-## Description
-
-The main process inside the container will receive `SIGTERM`, and after a grace
-period, `SIGKILL`. The first signal can be changed with the `STOPSIGNAL`
-instruction in the container's Dockerfile, or the `--stop-signal` option to
-`docker run`.
-
-## Examples
-
-```console
-$ docker stop my_container
-```

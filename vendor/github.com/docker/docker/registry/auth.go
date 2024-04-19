@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containerd/containerd/log"
+	"github.com/containerd/log"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
@@ -125,8 +125,10 @@ func v2AuthHTTPClient(endpoint *url.URL, authTransport http.RoundTripper, modifi
 	}, nil
 }
 
-// ConvertToHostname converts a registry url which has http|https prepended
-// to just an hostname.
+// ConvertToHostname normalizes a registry URL which has http|https prepended
+// to just its hostname. It is used to match credentials, which may be either
+// stored as hostname or as hostname including scheme (in legacy configuration
+// files).
 func ConvertToHostname(url string) string {
 	stripped := url
 	if strings.HasPrefix(url, "http://") {
@@ -147,8 +149,8 @@ func ResolveAuthConfig(authConfigs map[string]registry.AuthConfig, index *regist
 
 	// Maybe they have a legacy config file, we will iterate the keys converting
 	// them to the new format and testing
-	for registry, ac := range authConfigs {
-		if configKey == ConvertToHostname(registry) {
+	for registryURL, ac := range authConfigs {
+		if configKey == ConvertToHostname(registryURL) {
 			return ac
 		}
 	}

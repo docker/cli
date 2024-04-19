@@ -1,25 +1,16 @@
 package command_test
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"testing"
 
-	. "github.com/docker/cli/cli/command" // Prevents a circular import with "github.com/docker/cli/internal/test"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
-
-type fakeClient struct {
-	client.Client
-	infoFunc func() (types.Info, error)
-}
 
 var testAuthConfigs = []registry.AuthConfig{
 	{
@@ -32,13 +23,6 @@ var testAuthConfigs = []registry.AuthConfig{
 		Username:      "u1",
 		Password:      "p1",
 	},
-}
-
-func (cli *fakeClient) Info(_ context.Context) (types.Info, error) {
-	if cli.infoFunc != nil {
-		return cli.infoFunc()
-	}
-	return types.Info{}, nil
 }
 
 func TestGetDefaultAuthConfig(t *testing.T) {
@@ -77,15 +61,13 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 			expectedAuthConfig: testAuthConfigs[1],
 		},
 	}
-	cli := test.NewFakeCli(&fakeClient{})
-	errBuf := new(bytes.Buffer)
-	cli.SetErr(errBuf)
+	cfg := configfile.New("filename")
 	for _, authconfig := range testAuthConfigs {
-		cli.ConfigFile().GetCredentialsStore(authconfig.ServerAddress).Store(configtypes.AuthConfig(authconfig))
+		assert.Check(t, cfg.GetCredentialsStore(authconfig.ServerAddress).Store(configtypes.AuthConfig(authconfig)))
 	}
 	for _, tc := range testCases {
 		serverAddress := tc.inputServerAddress
-		authconfig, err := GetDefaultAuthConfig(cli, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
+		authconfig, err := command.GetDefaultAuthConfig(cfg, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
 		if tc.expectedErr != "" {
 			assert.Check(t, err != nil)
 			assert.Check(t, is.Equal(tc.expectedErr, err.Error()))
@@ -97,15 +79,15 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 }
 
 func TestGetDefaultAuthConfig_HelperError(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{})
-	errBuf := new(bytes.Buffer)
-	cli.SetErr(errBuf)
-	cli.ConfigFile().CredentialsStore = "fake-does-not-exist"
-	serverAddress := "test-server-address"
+	cfg := configfile.New("filename")
+	cfg.CredentialsStore = "fake-does-not-exist"
+
+	const serverAddress = "test-server-address"
 	expectedAuthConfig := registry.AuthConfig{
 		ServerAddress: serverAddress,
 	}
-	authconfig, err := GetDefaultAuthConfig(cli, true, serverAddress, serverAddress == "https://index.docker.io/v1/")
+	const isDefaultRegistry = false // registry is not "https://index.docker.io/v1/"
+	authconfig, err := command.GetDefaultAuthConfig(cfg, true, serverAddress, isDefaultRegistry)
 	assert.Check(t, is.DeepEqual(expectedAuthConfig, authconfig))
 	assert.Check(t, is.ErrorContains(err, "docker-credential-fake-does-not-exist"))
 }

@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package network
 
 import (
@@ -177,7 +180,7 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 		{ID: "networkID1", Name: "foobar_baz"},
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
-	expectedJSONs := []map[string]interface{}{
+	expectedJSONs := []map[string]any{
 		{"Driver": "", "ID": "networkID1", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
 		{"Driver": "", "ID": "networkID2", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
 	}
@@ -189,7 +192,7 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
-		var m map[string]interface{}
+		var m map[string]any
 		err := json.Unmarshal([]byte(line), &m)
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)

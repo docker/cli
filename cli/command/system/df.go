@@ -26,7 +26,7 @@ func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Show docker disk usage",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDiskUsage(dockerCli, opts)
+			return runDiskUsage(cmd.Context(), dockerCli, opts)
 		},
 		Annotations:       map[string]string{"version": "1.25"},
 		ValidArgsFunction: completion.NoComplete,
@@ -40,9 +40,9 @@ func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runDiskUsage(dockerCli command.Cli, opts diskUsageOptions) error {
+func runDiskUsage(ctx context.Context, dockerCli command.Cli, opts diskUsageOptions) error {
 	// TODO expose types.DiskUsageOptions.Types as flag on the command-line and/or as separate commands (docker container df / docker container usage)
-	du, err := dockerCli.Client().DiskUsage(context.Background(), types.DiskUsageOptions{})
+	du, err := dockerCli.Client().DiskUsage(ctx, types.DiskUsageOptions{})
 	if err != nil {
 		return err
 	}

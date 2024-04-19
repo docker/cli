@@ -28,7 +28,6 @@ type ExecOptions struct {
 	Privileged  bool
 	Env         opts.ListOpts
 	Workdir     string
-	Container   string
 	Command     []string
 	EnvFile     opts.ListOpts
 }
@@ -44,15 +43,16 @@ func NewExecOptions() ExecOptions {
 // NewExecCommand creates a new cobra.Command for `docker exec`
 func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	options := NewExecOptions()
+	var container string
 
 	cmd := &cobra.Command{
 		Use:   "exec [OPTIONS] CONTAINER COMMAND [ARG...]",
 		Short: "Execute a command in a running container",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.Container = args[0]
+			container = args[0]
 			options.Command = args[1:]
-			return RunExec(dockerCli, options)
+			return RunExec(cmd.Context(), dockerCli, container, options)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
 			return container.State != "paused"
@@ -66,12 +66,12 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringVarP(&options.DetachKeys, "detach-keys", "", "", "Override the key sequence for detaching a container")
+	flags.StringVar(&options.DetachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
 	flags.BoolVarP(&options.Interactive, "interactive", "i", false, "Keep STDIN open even if not attached")
 	flags.BoolVarP(&options.TTY, "tty", "t", false, "Allocate a pseudo-TTY")
 	flags.BoolVarP(&options.Detach, "detach", "d", false, "Detached mode: run command in the background")
 	flags.StringVarP(&options.User, "user", "u", "", `Username or UID (format: "<name|uid>[:<group|gid>]")`)
-	flags.BoolVarP(&options.Privileged, "privileged", "", false, "Give extended privileges to the command")
+	flags.BoolVar(&options.Privileged, "privileged", false, "Give extended privileges to the command")
 	flags.VarP(&options.Env, "env", "e", "Set environment variables")
 	flags.SetAnnotation("env", "version", []string{"1.25"})
 	flags.Var(&options.EnvFile, "env-file", "Read in a file of environment variables")
@@ -96,20 +96,19 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunExec executes an `exec` command
-func RunExec(dockerCli command.Cli, options ExecOptions) error {
+func RunExec(ctx context.Context, dockerCli command.Cli, container string, options ExecOptions) error {
 	execConfig, err := parseExec(options, dockerCli.ConfigFile())
 	if err != nil {
 		return err
 	}
 
-	ctx := context.Background()
 	client := dockerCli.Client()
 
 	// We need to check the tty _before_ we do the ContainerExecCreate, because
 	// otherwise if we error out we will leak execIDs on the server (and
 	// there's no easy way to clean those up). But also in order to make "not
 	// exist" errors take precedence we do a dummy inspect first.
-	if _, err := client.ContainerInspect(ctx, options.Container); err != nil {
+	if _, err := client.ContainerInspect(ctx, container); err != nil {
 		return err
 	}
 	if !execConfig.Detach {
@@ -120,7 +119,7 @@ func RunExec(dockerCli command.Cli, options ExecOptions) error {
 
 	fillConsoleSize(execConfig, dockerCli)
 
-	response, err := client.ContainerExecCreate(ctx, options.Container, *execConfig)
+	response, err := client.ContainerExecCreate(ctx, container, *execConfig)
 	if err != nil {
 		return err
 	}

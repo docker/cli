@@ -43,7 +43,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				opts.serverAddress = args[0]
 			}
-			return runLogin(dockerCli, opts)
+			return runLogin(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "8",
@@ -55,7 +55,7 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
 	flags.StringVarP(&opts.password, "password", "p", "", "Password")
-	flags.BoolVarP(&opts.passwordStdin, "password-stdin", "", false, "Take the password from stdin")
+	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
 }
@@ -100,8 +100,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	return nil
 }
 
-func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
-	ctx := context.Background()
+func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	clnt := dockerCli.Client()
 	if err := verifyloginOptions(dockerCli, &opts); err != nil {
 		return err
@@ -117,7 +116,7 @@ func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
 	}
 
 	isDefaultRegistry := serverAddress == registry.IndexServer
-	authConfig, err := command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
+	authConfig, err := command.GetDefaultAuthConfig(dockerCli.ConfigFile(), opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
 	if err == nil && authConfig.Username != "" && authConfig.Password != "" {
 		response, err = loginWithCredStoreCreds(ctx, dockerCli, &authConfig)
 	}

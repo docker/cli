@@ -20,8 +20,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/pkg/userns"
+	"github.com/containerd/log"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/pools"
@@ -30,7 +30,6 @@ import (
 	"github.com/moby/patternmatcher"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // ImpliedDirectoryMode represents the mode (Unix permissions) applied to directories that are implied by files in a
@@ -43,7 +42,7 @@ import (
 // This value is currently implementation-defined, and not captured in any cross-runtime specification. Thus, it is
 // subject to change in Moby at any time -- image authors who require consistent or known directory permissions
 // should explicitly control them by ensuring that header entries exist for any applicable path.
-const ImpliedDirectoryMode = 0755
+const ImpliedDirectoryMode = 0o755
 
 type (
 	// Compression is the state represents if compressed or not.
@@ -482,6 +481,8 @@ func FileInfoHeader(name string, fi os.FileInfo, link string) (*tar.Header, erro
 	return hdr, nil
 }
 
+const paxSchilyXattr = "SCHILY.xattr."
+
 // ReadSecurityXattrToTarHeader reads security.capability xattr from filesystem
 // to a tar header
 func ReadSecurityXattrToTarHeader(path string, hdr *tar.Header) error {
@@ -494,15 +495,16 @@ func ReadSecurityXattrToTarHeader(path string, hdr *tar.Header) error {
 	)
 	capability, _ := system.Lgetxattr(path, "security.capability")
 	if capability != nil {
-		length := len(capability)
 		if capability[versionOffset] == vfsCapRevision3 {
 			// Convert VFS_CAP_REVISION_3 to VFS_CAP_REVISION_2 as root UID makes no
 			// sense outside the user namespace the archive is built in.
 			capability[versionOffset] = vfsCapRevision2
-			length = xattrCapsSz2
+			capability = capability[:xattrCapsSz2]
 		}
-		hdr.Xattrs = make(map[string]string)
-		hdr.Xattrs["security.capability"] = string(capability[:length])
+		if hdr.PAXRecords == nil {
+			hdr.PAXRecords = make(map[string]string)
+		}
+		hdr.PAXRecords[paxSchilyXattr+"security.capability"] = string(capability)
 	}
 	return nil
 }
@@ -777,8 +779,12 @@ func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, o
 	}
 
 	var xattrErrs []string
-	for key, value := range hdr.Xattrs {
-		if err := system.Lsetxattr(path, key, []byte(value), 0); err != nil {
+	for key, value := range hdr.PAXRecords {
+		xattr, ok := strings.CutPrefix(key, paxSchilyXattr)
+		if !ok {
+			continue
+		}
+		if err := system.Lsetxattr(path, xattr, []byte(value), 0); err != nil {
 			if bestEffortXattrs && errors.Is(err, syscall.ENOTSUP) || errors.Is(err, syscall.EPERM) {
 				// EPERM occurs if modifying xattrs is not allowed. This can
 				// happen when running in userns with restrictions (ChromeOS).
@@ -790,7 +796,7 @@ func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, o
 	}
 
 	if len(xattrErrs) > 0 {
-		log.G(context.TODO()).WithFields(logrus.Fields{
+		log.G(context.TODO()).WithFields(log.Fields{
 			"errors": xattrErrs,
 		}).Warn("ignored xattrs in archive: underlying filesystem doesn't support them")
 	}
@@ -1312,7 +1318,7 @@ func (archiver *Archiver) CopyWithTar(src, dst string) error {
 	// as owner
 	rootIDs := archiver.IDMapping.RootPair()
 	// Create dst, copy src's content into it
-	if err := idtools.MkdirAllAndChownNew(dst, 0755, rootIDs); err != nil {
+	if err := idtools.MkdirAllAndChownNew(dst, 0o755, rootIDs); err != nil {
 		return err
 	}
 	return archiver.TarUntar(src, dst)
@@ -1337,7 +1343,7 @@ func (archiver *Archiver) CopyFileWithTar(src, dst string) (err error) {
 		dst = filepath.Join(dst, filepath.Base(src))
 	}
 	// Create the holding directory if necessary
-	if err := system.MkdirAll(filepath.Dir(dst), 0700); err != nil {
+	if err := system.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
 		return err
 	}
 

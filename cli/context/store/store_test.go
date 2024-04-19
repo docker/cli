@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package store
 
 import (
@@ -27,16 +30,16 @@ type context struct {
 	Bar string `json:"another_very_recognizable_field_name"`
 }
 
-var testCfg = NewConfig(func() interface{} { return &context{} },
-	EndpointTypeGetter("ep1", func() interface{} { return &endpoint{} }),
-	EndpointTypeGetter("ep2", func() interface{} { return &endpoint{} }),
+var testCfg = NewConfig(func() any { return &context{} },
+	EndpointTypeGetter("ep1", func() any { return &endpoint{} }),
+	EndpointTypeGetter("ep2", func() any { return &endpoint{} }),
 )
 
 func TestExportImport(t *testing.T) {
 	s := New(t.TempDir(), testCfg)
 	err := s.CreateOrUpdate(
 		Metadata{
-			Endpoints: map[string]interface{}{
+			Endpoints: map[string]any{
 				"ep1": endpoint{Foo: "bar"},
 			},
 			Metadata: context{Bar: "baz"},
@@ -90,7 +93,7 @@ func TestRemove(t *testing.T) {
 	s := New(t.TempDir(), testCfg)
 	err := s.CreateOrUpdate(
 		Metadata{
-			Endpoints: map[string]interface{}{
+			Endpoints: map[string]any{
 				"ep1": endpoint{Foo: "bar"},
 			},
 			Metadata: context{Bar: "baz"},
@@ -170,7 +173,7 @@ func TestImportZip(t *testing.T) {
 	w := zip.NewWriter(f)
 
 	meta, err := json.Marshal(Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: context{Bar: "baz"},
@@ -238,7 +241,7 @@ func TestCorruptMetadata(t *testing.T) {
 	s := New(tempDir, testCfg)
 	err := s.CreateOrUpdate(
 		Metadata{
-			Endpoints: map[string]interface{}{
+			Endpoints: map[string]any{
 				"ep1": endpoint{Foo: "bar"},
 			},
 			Metadata: context{Bar: "baz"},

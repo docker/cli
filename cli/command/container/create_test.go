@@ -15,9 +15,10 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/system"
 	"github.com/google/go-cmp/cmp"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
@@ -133,12 +134,12 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 						return container.CreateResponse{ID: containerID}, nil
 					}
 				},
-				imageCreateFunc: func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error) {
+				imageCreateFunc: func(parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 					defer func() { pullCounter++ }()
 					return io.NopCloser(strings.NewReader("")), nil
 				},
-				infoFunc: func() (types.Info, error) {
-					return types.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
+				infoFunc: func() (system.Info, error) {
+					return system.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
 				},
 			}
 			fakeCLI := test.NewFakeCli(client)
@@ -180,6 +181,7 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			dockerCli := test.NewFakeCli(&fakeClient{})
 			err := runCreate(
+				context.TODO(),
 				dockerCli,
 				&pflag.FlagSet{},
 				&createOptions{pull: tc.PullPolicy},
@@ -222,7 +224,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		tc := tc
-		cli := test.NewFakeCli(&fakeClient{
+		fakeCLI := test.NewFakeCli(&fakeClient{
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
@@ -232,8 +234,8 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 				return container.CreateResponse{}, fmt.Errorf("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
-		cli.SetNotaryClient(tc.notaryFunc)
-		cmd := NewCreateCommand(cli)
+		fakeCLI.SetNotaryClient(tc.notaryFunc)
+		cmd := NewCreateCommand(fakeCLI)
 		cmd.SetOut(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
@@ -322,7 +324,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 	}
 	sort.Strings(expected)
 
-	cli := test.NewFakeCli(&fakeClient{
+	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(config *container.Config,
 			hostConfig *container.HostConfig,
 			networkingConfig *network.NetworkingConfig,
@@ -334,7 +336,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 			return container.CreateResponse{}, nil
 		},
 	})
-	cli.SetConfigFile(&configfile.ConfigFile{
+	fakeCLI.SetConfigFile(&configfile.ConfigFile{
 		Proxies: map[string]configfile.ProxyConfig{
 			"default": {
 				HTTPProxy:  "httpProxy",
@@ -345,7 +347,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 			},
 		},
 	})
-	cmd := NewCreateCommand(cli)
+	cmd := NewCreateCommand(fakeCLI)
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()

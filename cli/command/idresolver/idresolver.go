@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package idresolver
 
 import (
@@ -17,20 +20,21 @@ type IDResolver struct {
 }
 
 // New creates a new IDResolver.
-func New(client client.APIClient, noResolve bool) *IDResolver {
+func New(apiClient client.APIClient, noResolve bool) *IDResolver {
 	return &IDResolver{
-		client:    client,
+		client:    apiClient,
 		noResolve: noResolve,
 		cache:     make(map[string]string),
 	}
 }
 
-func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string, error) {
+func (r *IDResolver) get(ctx context.Context, t any, id string) (string, error) {
 	switch t.(type) {
 	case swarm.Node:
 		node, _, err := r.client.NodeInspectWithRaw(ctx, id)
 		if err != nil {
-			return id, nil
+			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
+			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.
 		}
 		if node.Spec.Annotations.Name != "" {
 			return node.Spec.Annotations.Name, nil
@@ -42,7 +46,8 @@ func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string,
 	case swarm.Service:
 		service, _, err := r.client.ServiceInspectWithRaw(ctx, id, types.ServiceInspectOptions{})
 		if err != nil {
-			return id, nil
+			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
+			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.
 		}
 		return service.Spec.Annotations.Name, nil
 	default:
@@ -53,7 +58,7 @@ func (r *IDResolver) get(ctx context.Context, t interface{}, id string) (string,
 // Resolve will attempt to resolve an ID to a Name by querying the manager.
 // Results are stored into a cache.
 // If the `-n` flag is used in the command-line, resolution is disabled.
-func (r *IDResolver) Resolve(ctx context.Context, t interface{}, id string) (string, error) {
+func (r *IDResolver) Resolve(ctx context.Context, t any, id string) (string, error) {
 	if r.noResolve {
 		return id, nil
 	}

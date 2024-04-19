@@ -41,11 +41,11 @@ type FakeCli struct {
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
-func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
+func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 	outBuffer := new(bytes.Buffer)
 	errBuffer := new(bytes.Buffer)
 	c := &FakeCli{
-		client:    client,
+		client:    apiClient,
 		out:       streams.NewOut(outBuffer),
 		outBuffer: outBuffer,
 		err:       errBuffer,
@@ -77,13 +77,13 @@ func (c *FakeCli) SetOut(out *streams.Out) {
 }
 
 // SetConfigFile sets the "fake" config file
-func (c *FakeCli) SetConfigFile(configfile *configfile.ConfigFile) {
-	c.configfile = configfile
+func (c *FakeCli) SetConfigFile(configFile *configfile.ConfigFile) {
+	c.configfile = configFile
 }
 
 // SetContextStore sets the "fake" context store
-func (c *FakeCli) SetContextStore(store store.Store) {
-	c.contextStore = store
+func (c *FakeCli) SetContextStore(contextStore store.Store) {
+	c.contextStore = contextStore
 }
 
 // SetCurrentContext sets the "fake" current context
@@ -186,13 +186,13 @@ func (c *FakeCli) RegistryClient(bool) registryclient.RegistryClient {
 }
 
 // SetManifestStore on the fake cli
-func (c *FakeCli) SetManifestStore(store manifeststore.Store) {
-	c.manifestStore = store
+func (c *FakeCli) SetManifestStore(manifestStore manifeststore.Store) {
+	c.manifestStore = manifestStore
 }
 
 // SetRegistryClient on the fake cli
-func (c *FakeCli) SetRegistryClient(client registryclient.RegistryClient) {
-	c.registryClient = client
+func (c *FakeCli) SetRegistryClient(registryClient registryclient.RegistryClient) {
+	c.registryClient = registryClient
 }
 
 // ContentTrustEnabled on the fake cli

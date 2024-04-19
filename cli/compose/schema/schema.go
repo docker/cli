@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package schema
 
 import (
@@ -11,20 +14,20 @@ import (
 )
 
 const (
-	defaultVersion = "3.11"
+	defaultVersion = "3.12"
 	versionField   = "version"
 )
 
 type portsFormatChecker struct{}
 
-func (checker portsFormatChecker) IsFormat(_ interface{}) bool {
+func (checker portsFormatChecker) IsFormat(_ any) bool {
 	// TODO: implement this
 	return true
 }
 
 type durationFormatChecker struct{}
 
-func (checker durationFormatChecker) IsFormat(input interface{}) bool {
+func (checker durationFormatChecker) IsFormat(input any) bool {
 	value, ok := input.(string)
 	if !ok {
 		return false
@@ -40,9 +43,9 @@ func init() {
 }
 
 // Version returns the version of the config, defaulting to the latest "3.x"
-// version (3.11). If only the major version "3" is specified, it is used as
+// version (3.12). If only the major version "3" is specified, it is used as
 // version "3.x" and returns the default version (latest 3.x).
-func Version(config map[string]interface{}) string {
+func Version(config map[string]any) string {
 	version, ok := config[versionField]
 	if !ok {
 		return defaultVersion
@@ -63,7 +66,7 @@ func normalizeVersion(version string) string {
 var schemas embed.FS
 
 // Validate uses the jsonschema to validate the configuration
-func Validate(config map[string]interface{}, version string) error {
+func Validate(config map[string]any, version string) error {
 	version = normalizeVersion(version)
 	schemaData, err := schemas.ReadFile("data/config_schema_v" + version + ".json")
 	if err != nil {
@@ -141,34 +144,34 @@ func (err validationError) Error() string {
 	return fmt.Sprintf("%s %s", err.parent.Field(), description)
 }
 
-func getMostSpecificError(errors []gojsonschema.ResultError) validationError {
+func getMostSpecificError(errs []gojsonschema.ResultError) validationError {
 	mostSpecificError := 0
-	for i, err := range errors {
-		if specificity(err) > specificity(errors[mostSpecificError]) {
+	for i, err := range errs {
+		if specificity(err) > specificity(errs[mostSpecificError]) {
 			mostSpecificError = i
 			continue
 		}
 
-		if specificity(err) == specificity(errors[mostSpecificError]) {
+		if specificity(err) == specificity(errs[mostSpecificError]) {
 			// Invalid type errors win in a tie-breaker for most specific field name
-			if err.Type() == "invalid_type" && errors[mostSpecificError].Type() != "invalid_type" {
+			if err.Type() == "invalid_type" && errs[mostSpecificError].Type() != "invalid_type" {
 				mostSpecificError = i
 			}
 		}
 	}
 
-	if mostSpecificError+1 == len(errors) {
-		return validationError{parent: errors[mostSpecificError]}
+	if mostSpecificError+1 == len(errs) {
+		return validationError{parent: errs[mostSpecificError]}
 	}
 
-	switch errors[mostSpecificError].Type() {
+	switch errs[mostSpecificError].Type() {
 	case "number_one_of", "number_any_of":
 		return validationError{
-			parent: errors[mostSpecificError],
-			child:  errors[mostSpecificError+1],
+			parent: errs[mostSpecificError],
+			child:  errs[mostSpecificError+1],
 		}
 	default:
-		return validationError{parent: errors[mostSpecificError]}
+		return validationError{parent: errs[mostSpecificError]}
 	}
 }
 

@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -18,7 +19,7 @@ import (
 )
 
 func TestRunLabel(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{
+	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
 			return container.CreateResponse{
 				ID: "id",
@@ -26,7 +27,7 @@ func TestRunLabel(t *testing.T) {
 		},
 		Version: "1.36",
 	})
-	cmd := NewRunCommand(cli)
+	cmd := NewRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"--detach=true", "--label", "foo", "busybox"})
 	assert.NilError(t, cmd.Execute())
 }
@@ -58,7 +59,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
+		fakeCLI := test.NewFakeCli(&fakeClient{
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
 				networkingConfig *network.NetworkingConfig,
@@ -68,13 +69,13 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 				return container.CreateResponse{}, fmt.Errorf("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
-		cli.SetNotaryClient(tc.notaryFunc)
-		cmd := NewRunCommand(cli)
+		fakeCLI.SetNotaryClient(tc.notaryFunc)
+		cmd := NewRunCommand(fakeCLI)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
 		err := cmd.Execute()
 		assert.Assert(t, err != nil)
-		assert.Assert(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))
+		assert.Assert(t, is.Contains(fakeCLI.ErrBuffer().String(), tc.expectedError))
 	}
 }
 
@@ -97,6 +98,7 @@ func TestRunContainerImagePullPolicyInvalid(t *testing.T) {
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			dockerCli := test.NewFakeCli(&fakeClient{})
 			err := runRun(
+				context.TODO(),
 				dockerCli,
 				&pflag.FlagSet{},
 				&runOptions{createOptions: createOptions{pull: tc.PullPolicy}},

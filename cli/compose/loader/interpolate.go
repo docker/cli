@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package loader
 
 import (
@@ -47,16 +50,16 @@ func servicePath(parts ...string) interp.Path {
 	return iPath(append([]string{"services", interp.PathMatchAll}, parts...)...)
 }
 
-func toInt(value string) (interface{}, error) {
+func toInt(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func toFloat(value string) (interface{}, error) {
+func toFloat(value string) (any, error) {
 	return strconv.ParseFloat(value, 64)
 }
 
 // should match http://yaml.org/type/bool.html
-func toBoolean(value string) (interface{}, error) {
+func toBoolean(value string) (any, error) {
 	switch strings.ToLower(value) {
 	case "y", "yes", "true", "on":
 		return true, nil
@@ -67,6 +70,6 @@ func toBoolean(value string) (interface{}, error) {
 	}
 }
 
-func interpolateConfig(configDict map[string]interface{}, opts interp.Options) (map[string]interface{}, error) {
+func interpolateConfig(configDict map[string]any, opts interp.Options) (map[string]any, error) {
 	return interp.Interpolate(configDict, opts)
 }

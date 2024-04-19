@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/containerd/containerd/log"
+	"github.com/containerd/log"
 	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/system"
 )
@@ -222,6 +222,25 @@ func ApplyLayer(dest string, layer io.Reader) (int64, error) {
 // Returns the size in bytes of the contents of the layer.
 func ApplyUncompressedLayer(dest string, layer io.Reader, options *TarOptions) (int64, error) {
 	return applyLayerHandler(dest, layer, options, false)
+}
+
+// IsEmpty checks if the tar archive is empty (doesn't contain any entries).
+func IsEmpty(rd io.Reader) (bool, error) {
+	decompRd, err := DecompressStream(rd)
+	if err != nil {
+		return true, fmt.Errorf("failed to decompress archive: %v", err)
+	}
+	defer decompRd.Close()
+
+	tarReader := tar.NewReader(decompRd)
+	if _, err := tarReader.Next(); err != nil {
+		if err == io.EOF {
+			return true, nil
+		}
+		return false, fmt.Errorf("failed to read next archive header: %v", err)
+	}
+
+	return false, nil
 }
 
 // do the bulk load of ApplyLayer, but allow for not calling DecompressStream

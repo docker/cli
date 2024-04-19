@@ -27,7 +27,7 @@ type signerAddOptions struct {
 	repos  []string
 }
 
-func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
+func newSignerAddCommand(dockerCLI command.Cli) *cobra.Command {
 	var options signerAddOptions
 	cmd := &cobra.Command{
 		Use:   "add OPTIONS NAME REPOSITORY [REPOSITORY...] ",
@@ -36,7 +36,7 @@ func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
 			options.repos = args[1:]
-			return addSigner(dockerCli, options)
+			return addSigner(cmd.Context(), dockerCLI, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -47,7 +47,7 @@ func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 
 var validSignerName = regexp.MustCompile(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
 
-func addSigner(cli command.Cli, options signerAddOptions) error {
+func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOptions) error {
 	signerName := options.signer
 	if !validSignerName(signerName) {
 		return fmt.Errorf("signer name \"%s\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character", signerName)
@@ -65,12 +65,12 @@ func addSigner(cli command.Cli, options signerAddOptions) error {
 	}
 	var errRepos []string
 	for _, repoName := range options.repos {
-		fmt.Fprintf(cli.Out(), "Adding signer \"%s\" to %s...\n", signerName, repoName)
-		if err := addSignerToRepo(cli, signerName, repoName, signerPubKeys); err != nil {
-			fmt.Fprintln(cli.Err(), err.Error()+"\n")
+		fmt.Fprintf(dockerCLI.Out(), "Adding signer \"%s\" to %s...\n", signerName, repoName)
+		if err := addSignerToRepo(ctx, dockerCLI, signerName, repoName, signerPubKeys); err != nil {
+			fmt.Fprintln(dockerCLI.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repoName)
 		} else {
-			fmt.Fprintf(cli.Out(), "Successfully added signer: %s to %s\n\n", signerName, repoName)
+			fmt.Fprintf(dockerCLI.Out(), "Successfully added signer: %s to %s\n\n", signerName, repoName)
 		}
 	}
 	if len(errRepos) > 0 {
@@ -79,14 +79,13 @@ func addSigner(cli command.Cli, options signerAddOptions) error {
 	return nil
 }
 
-func addSignerToRepo(cli command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
-	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), repoName)
+func addSignerToRepo(ctx context.Context, dockerCLI command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), repoName)
 	if err != nil {
 		return err
 	}
 
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := dockerCLI.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
@@ -94,11 +93,11 @@ func addSignerToRepo(cli command.Cli, signerName string, repoName string, signer
 	if _, err = notaryRepo.ListTargets(); err != nil {
 		switch err.(type) {
 		case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:
-			fmt.Fprintf(cli.Out(), "Initializing signed repository for %s...\n", repoName)
+			fmt.Fprintf(dockerCLI.Out(), "Initializing signed repository for %s...\n", repoName)
 			if err := getOrGenerateRootKeyAndInitRepo(notaryRepo); err != nil {
 				return trust.NotaryError(repoName, err)
 			}
-			fmt.Fprintf(cli.Out(), "Successfully initialized %q\n", repoName)
+			fmt.Fprintf(dockerCLI.Out(), "Successfully initialized %q\n", repoName)
 		default:
 			return trust.NotaryError(repoName, err)
 		}

@@ -5,12 +5,13 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
 
 type fakeClient struct {
 	client.Client
-	infoFunc           func() (types.Info, error)
+	infoFunc           func() (system.Info, error)
 	nodeInspectFunc    func() (swarm.Node, []byte, error)
 	nodeListFunc       func() ([]swarm.Node, error)
 	nodeRemoveFunc     func() error
@@ -48,11 +49,11 @@ func (cli *fakeClient) NodeUpdate(_ context.Context, nodeID string, version swar
 	return nil
 }
 
-func (cli *fakeClient) Info(context.Context) (types.Info, error) {
+func (cli *fakeClient) Info(context.Context) (system.Info, error) {
 	if cli.infoFunc != nil {
 		return cli.infoFunc()
 	}
-	return types.Info{}, nil
+	return system.Info{}, nil
 }
 
 func (cli *fakeClient) TaskInspectWithRaw(_ context.Context, taskID string) (swarm.Task, []byte, error) {

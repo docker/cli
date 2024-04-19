@@ -6,9 +6,9 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +18,7 @@ import (
 func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	testCases := []struct {
 		nodeListFunc  func() ([]swarm.Node, error)
-		infoFunc      func() (types.Info, error)
+		infoFunc      func() (system.Info, error)
 		expectedError string
 	}{
 		{
@@ -35,8 +35,8 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 					},
 				}, nil
 			},
-			infoFunc: func() (types.Info, error) {
-				return types.Info{}, errors.Errorf("error asking for node info")
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -56,13 +56,13 @@ func TestNodeList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(NodeID("nodeID1"), Hostname("node-2-foo"), Manager(Leader()), EngineVersion(".")),
-				*Node(NodeID("nodeID2"), Hostname("node-10-foo"), Manager(), EngineVersion("18.03.0-ce")),
-				*Node(NodeID("nodeID3"), Hostname("node-1-foo")),
+				*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("node-2-foo"), builders.Manager(builders.Leader()), builders.EngineVersion(".")),
+				*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("node-10-foo"), builders.Manager(), builders.EngineVersion("18.03.0-ce")),
+				*builders.Node(builders.NodeID("nodeID3"), builders.Hostname("node-1-foo")),
 			}, nil
 		},
-		infoFunc: func() (types.Info, error) {
-			return types.Info{
+		infoFunc: func() (system.Info, error) {
+			return system.Info{
 				Swarm: swarm.Info{
 					NodeID: "nodeID1",
 				},
@@ -79,12 +79,12 @@ func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(NodeID("nodeID1")),
+				*builders.Node(builders.NodeID("nodeID1")),
 			}, nil
 		},
 	})
 	cmd := newListCommand(cli)
-	cmd.Flags().Set("quiet", "true")
+	assert.Check(t, cmd.Flags().Set("quiet", "true"))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal(cli.OutBuffer().String(), "nodeID1\n"))
 }
@@ -93,13 +93,13 @@ func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
-				*Node(NodeID("nodeID2"), Hostname("nodeHostname2"), Manager()),
-				*Node(NodeID("nodeID3"), Hostname("nodeHostname3")),
+				*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("nodeHostname1"), builders.Manager(builders.Leader())),
+				*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("nodeHostname2"), builders.Manager()),
+				*builders.Node(builders.NodeID("nodeID3"), builders.Hostname("nodeHostname3")),
 			}, nil
 		},
-		infoFunc: func() (types.Info, error) {
-			return types.Info{
+		infoFunc: func() (system.Info, error) {
+			return system.Info{
 				Swarm: swarm.Info{
 					NodeID: "nodeID1",
 				},
@@ -118,12 +118,12 @@ func TestNodeListFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		nodeListFunc: func() ([]swarm.Node, error) {
 			return []swarm.Node{
-				*Node(NodeID("nodeID1"), Hostname("nodeHostname1"), Manager(Leader())),
-				*Node(NodeID("nodeID2"), Hostname("nodeHostname2"), Manager()),
+				*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("nodeHostname1"), builders.Manager(builders.Leader())),
+				*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("nodeHostname2"), builders.Manager()),
 			}, nil
 		},
-		infoFunc: func() (types.Info, error) {
-			return types.Info{
+		infoFunc: func() (system.Info, error) {
+			return system.Info{
 				Swarm: swarm.Info{
 					NodeID: "nodeID1",
 				},
@@ -134,7 +134,7 @@ func TestNodeListFormat(t *testing.T) {
 		NodesFormat: "{{.ID}}: {{.Hostname}} {{.Status}}/{{.ManagerStatus}}",
 	})
 	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}")
+	assert.Check(t, cmd.Flags().Set("format", "{{.Hostname}}: {{.ManagerStatus}}"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "node-list-format-flag.golden")
 }

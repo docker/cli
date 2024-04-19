@@ -108,20 +108,22 @@ func TestUint64OptSetAndValue(t *testing.T) {
 func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 	dur := time.Second
 	opt := healthCheckOptions{
-		cmd:         "curl",
-		interval:    opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
-		timeout:     opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
-		startPeriod: opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
-		retries:     10,
+		cmd:           "curl",
+		interval:      opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		timeout:       opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		startPeriod:   opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		startInterval: opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		retries:       10,
 	}
 	config, err := opt.toHealthConfig()
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&container.HealthConfig{
-		Test:        []string{"CMD-SHELL", "curl"},
-		Interval:    time.Second,
-		Timeout:     time.Second,
-		StartPeriod: time.Second,
-		Retries:     10,
+		Test:          []string{"CMD-SHELL", "curl"},
+		Interval:      time.Second,
+		Timeout:       time.Second,
+		StartPeriod:   time.Second,
+		StartInterval: time.Second,
+		Retries:       10,
 	}, config))
 }
 

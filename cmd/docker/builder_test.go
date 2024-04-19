@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package main
 
 import (
@@ -78,8 +81,8 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 				if tt.context != command.DefaultContextName {
 					assert.NilError(t, dockerCli.ContextStore().CreateOrUpdate(store.Metadata{
 						Name: tt.context,
-						Endpoints: map[string]interface{}{
-							"docker": map[string]interface{}{
+						Endpoints: map[string]any{
+							"docker": map[string]any{
 								"host": "unix://" + filepath.Join(t.TempDir(), "docker.sock"),
 							},
 						},

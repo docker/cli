@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,17 +9,20 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/connhelper"
+	"github.com/docker/cli/cli/debug"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
 )
 
 // PersistentPreRunE must be called by any plugin command (or
 // subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
 // which do not make use of `PersistentPreRun*` do not need to call
 // this (although it remains safe to do so). Plugins are recommended
-// to use `PersistenPreRunE` to enable the error to be
+// to use `PersistentPreRunE` to enable the error to be
 // returned. Should not be called outside of a command's
 // PersistentPreRunE hook and must not be run unless Run has been
 // called.
@@ -29,10 +33,21 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 	tcmd := newPluginCommand(dockerCli, plugin, meta)
 
 	var persistentPreRunOnce sync.Once
-	PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
+	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
 		var err error
 		persistentPreRunOnce.Do(func() {
-			var opts []command.InitializeOpt
+			cmdContext := cmd.Context()
+			// TODO: revisit and make sure this check makes sense
+			// see: https://github.com/docker/cli/pull/4599#discussion_r1422487271
+			if cmdContext == nil {
+				cmdContext = context.TODO()
+			}
+			ctx, cancel := context.WithCancel(cmdContext)
+			cmd.SetContext(ctx)
+			// Set up the context to cancel based on signalling via CLI socket.
+			socket.ConnectAndWait(cancel)
+
+			var opts []command.CLIOption
 			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
@@ -53,6 +68,8 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 
 // Run is the top-level entry point to the CLI plugin framework. It should be called from your plugin's `main()` function.
 func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
+	otel.SetErrorHandler(debug.OTELErrorHandler)
+
 	dockerCli, err := command.NewDockerCli()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -78,7 +95,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 	}
 }
 
-func withPluginClientConn(name string) command.InitializeOpt {
+func withPluginClientConn(name string) command.CLIOption {
 	return command.WithInitializeClient(func(dockerCli *command.DockerCli) (client.APIClient, error) {
 		cmd := "docker"
 		if x := os.Getenv(manager.ReexecEnvvar); x != "" {

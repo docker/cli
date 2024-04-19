@@ -5,10 +5,10 @@ import (
 	"io"
 	"testing"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/store"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/distribution/reference"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -41,18 +41,18 @@ func TestManifestCreateErrors(t *testing.T) {
 
 // create a manifest list, then overwrite it, and inspect to see if the old one is still there
 func TestManifestCreateAmend(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
-	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err := manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 	namedRef = ref(t, "alpine:3.1")
 	imageManifest = fullImageManifest(t, namedRef)
-	err = store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err = manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	cmd := newCreateListCommand(cli)
@@ -64,7 +64,7 @@ func TestManifestCreateAmend(t *testing.T) {
 
 	// make a new cli to clear the buffers
 	cli = test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 	inspectCmd := newInspectCommand(cli)
 	inspectCmd.SetArgs([]string{"example.com/list:v1"})
 	assert.NilError(t, inspectCmd.Execute())
@@ -75,13 +75,13 @@ func TestManifestCreateAmend(t *testing.T) {
 
 // attempt to overwrite a saved manifest and get refused
 func TestManifestCreateRefuseAmend(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
-	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err := manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	cmd := newCreateListCommand(cli)
@@ -93,10 +93,10 @@ func TestManifestCreateRefuseAmend(t *testing.T) {
 
 // attempt to make a manifest list without valid images
 func TestManifestCreateNoManifest(t *testing.T) {
-	store := store.NewStore(t.TempDir())
+	manifestStore := store.NewStore(t.TempDir())
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 	cli.SetRegistryClient(&fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
 			return manifesttypes.ImageManifest{}, errors.Errorf("No such image: %v", ref)

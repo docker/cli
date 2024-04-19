@@ -291,23 +291,23 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 	}{
 		{
 			value:         "9999999",
-			expectedError: "Invalid containerPort: 9999999",
+			expectedError: "invalid containerPort: 9999999",
 		},
 		{
 			value:         "80/xyz",
-			expectedError: "Invalid proto: xyz",
+			expectedError: "invalid proto: xyz",
 		},
 		{
 			value:         "tcp",
-			expectedError: "Invalid containerPort: tcp",
+			expectedError: "invalid containerPort: tcp",
 		},
 		{
 			value:         "udp",
-			expectedError: "Invalid containerPort: udp",
+			expectedError: "invalid containerPort: udp",
 		},
 		{
 			value:         "",
-			expectedError: "No port specified: <empty>",
+			expectedError: "no port specified: <empty>",
 		},
 		{
 			value:         "1.1.1.1:80:80",
@@ -361,6 +361,7 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 }
 
 func assertContains(t *testing.T, portConfigs []swarm.PortConfig, expected swarm.PortConfig) {
+	t.Helper()
 	contains := false
 	for _, portConfig := range portConfigs {
 		if portConfig == expected {

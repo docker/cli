@@ -1,4 +1,4 @@
-# container rename
+# rename
 
 <!---MARKER_GEN_START-->
 Rename a container
@@ -12,4 +12,10 @@ Rename a container
 
 ## Description
 
-See [docker rename](rename.md) for more information.
+The `docker rename` command renames a container.
+
+## Examples
+
+```console
+$ docker rename my_container my_new_container
+```

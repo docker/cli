@@ -36,7 +36,7 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.network = args[0]
 			options.container = args[1]
-			return runConnect(dockerCli, options)
+			return runConnect(cmd.Context(), dockerCli, options)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
@@ -57,7 +57,7 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runConnect(dockerCli command.Cli, options connectOptions) error {
+func runConnect(ctx context.Context, dockerCli command.Cli, options connectOptions) error {
 	client := dockerCli.Client()
 
 	driverOpts, err := convertDriverOpt(options.driverOpts)
@@ -75,12 +75,12 @@ func runConnect(dockerCli command.Cli, options connectOptions) error {
 		DriverOpts: driverOpts,
 	}
 
-	return client.NetworkConnect(context.Background(), options.network, options.container, epConfig)
+	return client.NetworkConnect(ctx, options.network, options.container, epConfig)
 }
 
-func convertDriverOpt(opts []string) (map[string]string, error) {
+func convertDriverOpt(options []string) (map[string]string, error) {
 	driverOpt := make(map[string]string)
-	for _, opt := range opts {
+	for _, opt := range options {
 		k, v, ok := strings.Cut(opt, "=")
 		// TODO(thaJeztah): we should probably not accept whitespace here (both for key and value).
 		k = strings.TrimSpace(k)

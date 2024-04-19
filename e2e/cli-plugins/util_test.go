@@ -13,6 +13,7 @@ import (
 )
 
 func prepare(t *testing.T) (func(args ...string) icmd.Cmd, *configfile.ConfigFile, func()) {
+	t.Helper()
 	cfg := fs.NewDir(t, "plugin-test",
 		fs.WithFile("config.json", fmt.Sprintf(`{"cliPluginsExtraDirs": [%q]}`, os.Getenv("DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS"))),
 	)

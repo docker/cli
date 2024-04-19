@@ -1,6 +1,10 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package trust
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -28,7 +32,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.remotes = args
 
-			return runInspect(dockerCli, options)
+			return runInspect(cmd.Context(), dockerCli, options)
 		},
 	}
 
@@ -38,40 +42,40 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
 	if opts.prettyPrint {
 		var err error
 
 		for index, remote := range opts.remotes {
-			if err = prettyPrintTrustInfo(dockerCli, remote); err != nil {
+			if err = prettyPrintTrustInfo(ctx, dockerCLI, remote); err != nil {
 				return err
 			}
 
 			// Additional separator between the inspection output of each image
 			if index < len(opts.remotes)-1 {
-				fmt.Fprint(dockerCli.Out(), "\n\n")
+				fmt.Fprint(dockerCLI.Out(), "\n\n")
 			}
 		}
 
 		return err
 	}
 
-	getRefFunc := func(ref string) (interface{}, []byte, error) {
-		i, err := getRepoTrustInfo(dockerCli, ref)
+	getRefFunc := func(ref string) (any, []byte, error) {
+		i, err := getRepoTrustInfo(ctx, dockerCLI, ref)
 		return nil, i, err
 	}
-	return inspect.Inspect(dockerCli.Out(), opts.remotes, "", getRefFunc)
+	return inspect.Inspect(dockerCLI.Out(), opts.remotes, "", getRefFunc)
 }
 
-func getRepoTrustInfo(cli command.Cli, remote string) ([]byte, error) {
-	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
+func getRepoTrustInfo(ctx context.Context, dockerCLI command.Cli, remote string) ([]byte, error) {
+	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(ctx, dockerCLI, remote)
 	if err != nil {
 		return []byte{}, err
 	}
 	// process the signatures to include repo admin if signed by the base targets role
 	for idx, sig := range signatureRows {
 		if len(sig.Signers) == 0 {
-			signatureRows[idx].Signers = append(sig.Signers, releasedRoleName)
+			signatureRows[idx].Signers = []string{releasedRoleName}
 		}
 	}
 

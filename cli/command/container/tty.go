@@ -9,28 +9,28 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
 	"github.com/sirupsen/logrus"
 )
 
 // resizeTtyTo resizes tty to specific height and width
-func resizeTtyTo(ctx context.Context, client client.ContainerAPIClient, id string, height, width uint, isExec bool) error {
+func resizeTtyTo(ctx context.Context, apiClient client.ContainerAPIClient, id string, height, width uint, isExec bool) error {
 	if height == 0 && width == 0 {
 		return nil
 	}
 
-	options := types.ResizeOptions{
+	options := container.ResizeOptions{
 		Height: height,
 		Width:  width,
 	}
 
 	var err error
 	if isExec {
-		err = client.ContainerExecResize(ctx, id, options)
+		err = apiClient.ContainerExecResize(ctx, id, options)
 	} else {
-		err = client.ContainerResize(ctx, id, options)
+		err = apiClient.ContainerResize(ctx, id, options)
 	}
 
 	if err != nil {

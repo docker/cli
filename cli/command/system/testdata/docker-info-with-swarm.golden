@@ -19,7 +19,10 @@ Server:
  Plugins:
   Volume: local
   Network: bridge host macvlan null overlay
-  Log: awslogs fluentd gcplogs gelf journald json-file logentries splunk syslog
+  Log: awslogs fluentd gcplogs gelf journald json-file splunk syslog
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
  Swarm: active
   NodeID: qo2dfdig9mmxqkawulggepdih
   Is Manager: true

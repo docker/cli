@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 	"github.com/spf13/cobra"
 )
 
@@ -28,28 +28,24 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
 			opts.checkpoint = args[1]
-			return runCreate(dockerCli, opts)
+			return runCreate(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.leaveRunning, "leave-running", false, "Leave the container running after checkpoint")
-	flags.StringVarP(&opts.checkpointDir, "checkpoint-dir", "", "", "Use a custom checkpoint storage directory")
+	flags.StringVar(&opts.checkpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
 
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, opts createOptions) error {
-	client := dockerCli.Client()
-
-	checkpointOpts := types.CheckpointCreateOptions{
+func runCreate(ctx context.Context, dockerCli command.Cli, opts createOptions) error {
+	err := dockerCli.Client().CheckpointCreate(ctx, opts.container, checkpoint.CreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
 		Exit:          !opts.leaveRunning,
-	}
-
-	err := client.CheckpointCreate(context.Background(), opts.container, checkpointOpts)
+	})
 	if err != nil {
 		return err
 	}

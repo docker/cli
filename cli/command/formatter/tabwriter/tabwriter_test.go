@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 	"testing"
 )
 
@@ -36,6 +37,7 @@ func (b *buffer) Write(buf []byte) (written int, err error) {
 func (b *buffer) String() string { return string(b.a) }
 
 func write(t *testing.T, testname string, w *Writer, src string) {
+	t.Helper()
 	written, err := io.WriteString(w, src)
 	if err != nil {
 		t.Errorf("--- test: %s\n--- src:\n%q\n--- write error: %v\n", testname, src, err)
@@ -46,6 +48,7 @@ func write(t *testing.T, testname string, w *Writer, src string) {
 }
 
 func verify(t *testing.T, testname string, w *Writer, b *buffer, src, expected string) {
+	t.Helper()
 	err := w.Flush()
 	if err != nil {
 		t.Errorf("--- test: %s\n--- src:\n%q\n--- flush error: %v\n", testname, src, err)
@@ -58,6 +61,7 @@ func verify(t *testing.T, testname string, w *Writer, b *buffer, src, expected s
 }
 
 func check(t *testing.T, testname string, minwidth, tabwidth, padding int, padchar byte, flags uint, src, expected string) {
+	t.Helper()
 	var b buffer
 	b.init(1000)
 
@@ -622,6 +626,7 @@ func (panicWriter) Write([]byte) (int, error) {
 }
 
 func wantPanicString(t *testing.T, want string) {
+	t.Helper()
 	if e := recover(); e != nil {
 		got, ok := e.(string)
 		switch {
@@ -691,7 +696,7 @@ func BenchmarkPyramid(b *testing.B) {
 	for _, x := range [...]int{10, 100, 1000} {
 		// Build a line with x cells.
 		line := bytes.Repeat([]byte("a\t"), x)
-		b.Run(fmt.Sprintf("%d", x), func(b *testing.B) {
+		b.Run(strconv.Itoa(x), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				w := NewWriter(io.Discard, 4, 4, 1, ' ', 0) // no particular reason for these settings
@@ -713,7 +718,7 @@ func BenchmarkRagged(b *testing.B) {
 		lines[i] = bytes.Repeat([]byte("a\t"), w)
 	}
 	for _, h := range [...]int{10, 100, 1000} {
-		b.Run(fmt.Sprintf("%d", h), func(b *testing.B) {
+		b.Run(strconv.Itoa(h), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				w := NewWriter(io.Discard, 4, 4, 1, ' ', 0) // no particular reason for these settings

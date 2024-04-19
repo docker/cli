@@ -64,21 +64,21 @@ func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 	return flags, copts
 }
 
-func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {
+func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig, *networktypes.NetworkingConfig) {
 	t.Helper()
-	config, hostConfig, _, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
+	config, hostConfig, nwConfig, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
 	assert.NilError(t, err)
-	return config, hostConfig
+	return config, hostConfig, nwConfig
 }
 
 func TestParseRunLinks(t *testing.T) {
-	if _, hostConfig := mustParse(t, "--link a:b"); len(hostConfig.Links) == 0 || hostConfig.Links[0] != "a:b" {
+	if _, hostConfig, _ := mustParse(t, "--link a:b"); len(hostConfig.Links) == 0 || hostConfig.Links[0] != "a:b" {
 		t.Fatalf("Error parsing links. Expected []string{\"a:b\"}, received: %v", hostConfig.Links)
 	}
-	if _, hostConfig := mustParse(t, "--link a:b --link c:d"); len(hostConfig.Links) < 2 || hostConfig.Links[0] != "a:b" || hostConfig.Links[1] != "c:d" {
+	if _, hostConfig, _ := mustParse(t, "--link a:b --link c:d"); len(hostConfig.Links) < 2 || hostConfig.Links[0] != "a:b" || hostConfig.Links[1] != "c:d" {
 		t.Fatalf("Error parsing links. Expected []string{\"a:b\", \"c:d\"}, received: %v", hostConfig.Links)
 	}
-	if _, hostConfig := mustParse(t, ""); len(hostConfig.Links) != 0 {
+	if _, hostConfig, _ := mustParse(t, ""); len(hostConfig.Links) != 0 {
 		t.Fatalf("Error parsing links. No link expected, received: %v", hostConfig.Links)
 	}
 }
@@ -128,7 +128,7 @@ func TestParseRunAttach(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
-			config, _ := mustParse(t, tc.input)
+			config, _, _ := mustParse(t, tc.input)
 			assert.Equal(t, config.AttachStdin, tc.expected.AttachStdin)
 			assert.Equal(t, config.AttachStdout, tc.expected.AttachStdout)
 			assert.Equal(t, config.AttachStderr, tc.expected.AttachStderr)
@@ -186,7 +186,7 @@ func TestParseRunWithInvalidArgs(t *testing.T) {
 func TestParseWithVolumes(t *testing.T) {
 	// A single volume
 	arr, tryit := setupPlatformVolume([]string{`/tmp`}, []string{`c:\tmp`})
-	if config, hostConfig := mustParse(t, tryit); hostConfig.Binds != nil {
+	if config, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds != nil {
 		t.Fatalf("Error parsing volume flags, %q should not mount-bind anything. Received %v", tryit, hostConfig.Binds)
 	} else if _, exists := config.Volumes[arr[0]]; !exists {
 		t.Fatalf("Error parsing volume flags, %q is missing from volumes. Received %v", tryit, config.Volumes)
@@ -194,23 +194,23 @@ func TestParseWithVolumes(t *testing.T) {
 
 	// Two volumes
 	arr, tryit = setupPlatformVolume([]string{`/tmp`, `/var`}, []string{`c:\tmp`, `c:\var`})
-	if config, hostConfig := mustParse(t, tryit); hostConfig.Binds != nil {
+	if config, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds != nil {
 		t.Fatalf("Error parsing volume flags, %q should not mount-bind anything. Received %v", tryit, hostConfig.Binds)
 	} else if _, exists := config.Volumes[arr[0]]; !exists {
 		t.Fatalf("Error parsing volume flags, %s is missing from volumes. Received %v", arr[0], config.Volumes)
-	} else if _, exists := config.Volumes[arr[1]]; !exists {
+	} else if _, exists := config.Volumes[arr[1]]; !exists { //nolint:govet // ignore shadow-check
 		t.Fatalf("Error parsing volume flags, %s is missing from volumes. Received %v", arr[1], config.Volumes)
 	}
 
 	// A single bind mount
 	arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp`}, []string{os.Getenv("TEMP") + `:c:\containerTmp`})
-	if config, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || hostConfig.Binds[0] != arr[0] {
+	if config, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || hostConfig.Binds[0] != arr[0] {
 		t.Fatalf("Error parsing volume flags, %q should mount-bind the path before the colon into the path after the colon. Received %v %v", arr[0], hostConfig.Binds, config.Volumes)
 	}
 
 	// Two bind mounts.
 	arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp`, `/hostVar:/containerVar`}, []string{os.Getenv("ProgramData") + `:c:\ContainerPD`, os.Getenv("TEMP") + `:c:\containerTmp`})
-	if _, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
+	if _, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 		t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 	}
 
@@ -219,26 +219,26 @@ func TestParseWithVolumes(t *testing.T) {
 	arr, tryit = setupPlatformVolume(
 		[]string{`/hostTmp:/containerTmp:ro`, `/hostVar:/containerVar:rw`},
 		[]string{os.Getenv("TEMP") + `:c:\containerTmp:rw`, os.Getenv("ProgramData") + `:c:\ContainerPD:rw`})
-	if _, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
+	if _, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 		t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 	}
 
 	// Similar to previous test but with alternate modes which are only supported by Linux
 	if runtime.GOOS != "windows" {
 		arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp:ro,Z`, `/hostVar:/containerVar:rw,Z`}, []string{})
-		if _, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
+		if _, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 			t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 		}
 
 		arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp:Z`, `/hostVar:/containerVar:z`}, []string{})
-		if _, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
+		if _, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 			t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 		}
 	}
 
 	// One bind mount and one volume
 	arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp`, `/containerVar`}, []string{os.Getenv("TEMP") + `:c:\containerTmp`, `c:\containerTmp`})
-	if config, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || len(hostConfig.Binds) > 1 || hostConfig.Binds[0] != arr[0] {
+	if config, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || len(hostConfig.Binds) > 1 || hostConfig.Binds[0] != arr[0] {
 		t.Fatalf("Error parsing volume flags, %s and %s should only one and only one bind mount %s. Received %s", arr[0], arr[1], arr[0], hostConfig.Binds)
 	} else if _, exists := config.Volumes[arr[1]]; !exists {
 		t.Fatalf("Error parsing volume flags %s and %s. %s is missing from volumes. Received %v", arr[0], arr[1], arr[1], config.Volumes)
@@ -247,7 +247,7 @@ func TestParseWithVolumes(t *testing.T) {
 	// Root to non-c: drive letter (Windows specific)
 	if runtime.GOOS == "windows" {
 		arr, tryit = setupPlatformVolume([]string{}, []string{os.Getenv("SystemDrive") + `\:d:`})
-		if config, hostConfig := mustParse(t, tryit); hostConfig.Binds == nil || len(hostConfig.Binds) > 1 || hostConfig.Binds[0] != arr[0] || len(config.Volumes) != 0 {
+		if config, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || len(hostConfig.Binds) > 1 || hostConfig.Binds[0] != arr[0] || len(config.Volumes) != 0 {
 			t.Fatalf("Error parsing %s. Should have a single bind mount and no volumes", arr[0])
 		}
 	}
@@ -290,8 +290,14 @@ func TestParseWithMacAddress(t *testing.T) {
 	if _, _, _, err := parseRun([]string{invalidMacAddress, "img", "cmd"}); err != nil && err.Error() != "invalidMacAddress is not a valid mac address" {
 		t.Fatalf("Expected an error with %v mac-address, got %v", invalidMacAddress, err)
 	}
-	if config, _ := mustParse(t, validMacAddress); config.MacAddress != "92:d0:c6:0a:29:33" {
-		t.Fatalf("Expected the config to have '92:d0:c6:0a:29:33' as MacAddress, got '%v'", config.MacAddress)
+	config, hostConfig, nwConfig := mustParse(t, validMacAddress)
+	if config.MacAddress != "92:d0:c6:0a:29:33" { //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
+		t.Fatalf("Expected the config to have '92:d0:c6:0a:29:33' as container-wide MacAddress, got '%v'",
+			config.MacAddress) //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
+	}
+	defaultNw := hostConfig.NetworkMode.NetworkName()
+	if nwConfig.EndpointsConfig[defaultNw].MacAddress != "92:d0:c6:0a:29:33" {
+		t.Fatalf("Expected the default endpoint to have the MacAddress '92:d0:c6:0a:29:33' set, got '%v'", nwConfig.EndpointsConfig[defaultNw].MacAddress)
 	}
 }
 
@@ -301,7 +307,7 @@ func TestRunFlagsParseWithMemory(t *testing.T) {
 	err := flags.Parse(args)
 	assert.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
 
-	_, hostconfig := mustParse(t, "--memory=1G")
+	_, hostconfig, _ := mustParse(t, "--memory=1G")
 	assert.Check(t, is.Equal(int64(1073741824), hostconfig.Memory))
 }
 
@@ -311,10 +317,10 @@ func TestParseWithMemorySwap(t *testing.T) {
 	err := flags.Parse(args)
 	assert.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
 
-	_, hostconfig := mustParse(t, "--memory-swap=1G")
+	_, hostconfig, _ := mustParse(t, "--memory-swap=1G")
 	assert.Check(t, is.Equal(int64(1073741824), hostconfig.MemorySwap))
 
-	_, hostconfig = mustParse(t, "--memory-swap=-1")
+	_, hostconfig, _ = mustParse(t, "--memory-swap=-1")
 	assert.Check(t, is.Equal(int64(-1), hostconfig.MemorySwap))
 }
 
@@ -329,14 +335,14 @@ func TestParseHostname(t *testing.T) {
 	hostnameWithDomain := "--hostname=hostname.domainname"
 	hostnameWithDomainTld := "--hostname=hostname.domainname.tld"
 	for hostname, expectedHostname := range validHostnames {
-		if config, _ := mustParse(t, fmt.Sprintf("--hostname=%s", hostname)); config.Hostname != expectedHostname {
+		if config, _, _ := mustParse(t, fmt.Sprintf("--hostname=%s", hostname)); config.Hostname != expectedHostname {
 			t.Fatalf("Expected the config to have 'hostname' as %q, got %q", expectedHostname, config.Hostname)
 		}
 	}
-	if config, _ := mustParse(t, hostnameWithDomain); config.Hostname != "hostname.domainname" || config.Domainname != "" {
+	if config, _, _ := mustParse(t, hostnameWithDomain); config.Hostname != "hostname.domainname" || config.Domainname != "" {
 		t.Fatalf("Expected the config to have 'hostname' as hostname.domainname, got %q", config.Hostname)
 	}
-	if config, _ := mustParse(t, hostnameWithDomainTld); config.Hostname != "hostname.domainname.tld" || config.Domainname != "" {
+	if config, _, _ := mustParse(t, hostnameWithDomainTld); config.Hostname != "hostname.domainname.tld" || config.Domainname != "" {
 		t.Fatalf("Expected the config to have 'hostname' as hostname.domainname.tld, got %q", config.Hostname)
 	}
 }
@@ -350,14 +356,14 @@ func TestParseHostnameDomainname(t *testing.T) {
 		"domainname-63-bytes-long-should-be-valid-and-without-any-errors": "domainname-63-bytes-long-should-be-valid-and-without-any-errors",
 	}
 	for domainname, expectedDomainname := range validDomainnames {
-		if config, _ := mustParse(t, "--domainname="+domainname); config.Domainname != expectedDomainname {
+		if config, _, _ := mustParse(t, "--domainname="+domainname); config.Domainname != expectedDomainname {
 			t.Fatalf("Expected the config to have 'domainname' as %q, got %q", expectedDomainname, config.Domainname)
 		}
 	}
-	if config, _ := mustParse(t, "--hostname=some.prefix --domainname=domainname"); config.Hostname != "some.prefix" || config.Domainname != "domainname" {
+	if config, _, _ := mustParse(t, "--hostname=some.prefix --domainname=domainname"); config.Hostname != "some.prefix" || config.Domainname != "domainname" {
 		t.Fatalf("Expected the config to have 'hostname' as 'some.prefix' and 'domainname' as 'domainname', got %q and %q", config.Hostname, config.Domainname)
 	}
-	if config, _ := mustParse(t, "--hostname=another-prefix --domainname=domainname.tld"); config.Hostname != "another-prefix" || config.Domainname != "domainname.tld" {
+	if config, _, _ := mustParse(t, "--hostname=another-prefix --domainname=domainname.tld"); config.Hostname != "another-prefix" || config.Domainname != "domainname.tld" {
 		t.Fatalf("Expected the config to have 'hostname' as 'another-prefix' and 'domainname' as 'domainname.tld', got %q and %q", config.Hostname, config.Domainname)
 	}
 }
@@ -366,8 +372,8 @@ func TestParseWithExpose(t *testing.T) {
 	invalids := map[string]string{
 		":":                   "invalid port format for --expose: :",
 		"8080:9090":           "invalid port format for --expose: 8080:9090",
-		"/tcp":                "invalid range format for --expose: /tcp, error: Empty string specified for ports.",
-		"/udp":                "invalid range format for --expose: /udp, error: Empty string specified for ports.",
+		"/tcp":                "invalid range format for --expose: /tcp, error: empty string specified for ports",
+		"/udp":                "invalid range format for --expose: /udp, error: empty string specified for ports",
 		"NaN/tcp":             `invalid range format for --expose: NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
 		"NaN-NaN/tcp":         `invalid range format for --expose: NaN-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
 		"8080-NaN/tcp":        `invalid range format for --expose: 8080-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
@@ -417,61 +423,114 @@ func TestParseWithExpose(t *testing.T) {
 
 func TestParseDevice(t *testing.T) {
 	skip.If(t, runtime.GOOS != "linux") // Windows and macOS validate server-side
-	valids := map[string]container.DeviceMapping{
-		"/dev/snd": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/dev/snd",
-			CgroupPermissions: "rwm",
+	testCases := []struct {
+		devices        []string
+		deviceMapping  *container.DeviceMapping
+		deviceRequests []container.DeviceRequest
+	}{
+		{
+			devices: []string{"/dev/snd"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/dev/snd",
+				CgroupPermissions: "rwm",
+			},
 		},
-		"/dev/snd:rw": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/dev/snd",
-			CgroupPermissions: "rw",
+		{
+			devices: []string{"/dev/snd:rw"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/dev/snd",
+				CgroupPermissions: "rw",
+			},
 		},
-		"/dev/snd:/something": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/something",
-			CgroupPermissions: "rwm",
+		{
+			devices: []string{"/dev/snd:/something"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/something",
+				CgroupPermissions: "rwm",
+			},
 		},
-		"/dev/snd:/something:rw": {
-			PathOnHost:        "/dev/snd",
-			PathInContainer:   "/something",
-			CgroupPermissions: "rw",
+		{
+			devices: []string{"/dev/snd:/something:rw"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/something",
+				CgroupPermissions: "rw",
+			},
+		},
+		{
+			devices:       []string{"vendor.com/class=name"},
+			deviceMapping: nil,
+			deviceRequests: []container.DeviceRequest{
+				{
+					Driver:    "cdi",
+					DeviceIDs: []string{"vendor.com/class=name"},
+				},
+			},
+		},
+		{
+			devices: []string{"vendor.com/class=name", "/dev/snd:/something:rw"},
+			deviceMapping: &container.DeviceMapping{
+				PathOnHost:        "/dev/snd",
+				PathInContainer:   "/something",
+				CgroupPermissions: "rw",
+			},
+			deviceRequests: []container.DeviceRequest{
+				{
+					Driver:    "cdi",
+					DeviceIDs: []string{"vendor.com/class=name"},
+				},
+			},
 		},
 	}
-	for device, deviceMapping := range valids {
-		_, hostconfig, _, err := parseRun([]string{fmt.Sprintf("--device=%v", device), "img", "cmd"})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(hostconfig.Devices) != 1 {
-			t.Fatalf("Expected 1 devices, got %v", hostconfig.Devices)
-		}
-		if hostconfig.Devices[0] != deviceMapping {
-			t.Fatalf("Expected %v, got %v", deviceMapping, hostconfig.Devices)
-		}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%s", tc.devices), func(t *testing.T) {
+			var args []string
+			for _, d := range tc.devices {
+				args = append(args, fmt.Sprintf("--device=%v", d))
+			}
+			args = append(args, "img", "cmd")
+
+			_, hostconfig, _, err := parseRun(args)
+
+			assert.NilError(t, err)
+
+			if tc.deviceMapping != nil {
+				if assert.Check(t, is.Len(hostconfig.Devices, 1)) {
+					assert.Check(t, is.DeepEqual(*tc.deviceMapping, hostconfig.Devices[0]))
+				}
+			} else {
+				assert.Check(t, is.Len(hostconfig.Devices, 0))
+			}
+
+			assert.Check(t, is.DeepEqual(tc.deviceRequests, hostconfig.DeviceRequests))
+		})
 	}
 }
 
 func TestParseNetworkConfig(t *testing.T) {
 	tests := []struct {
-		name        string
-		flags       []string
-		expected    map[string]*networktypes.EndpointSettings
-		expectedCfg container.HostConfig
-		expectedErr string
+		name            string
+		flags           []string
+		expected        map[string]*networktypes.EndpointSettings
+		expectedCfg     container.Config
+		expectedHostCfg container.HostConfig
+		expectedErr     string
 	}{
 		{
-			name:        "single-network-legacy",
-			flags:       []string{"--network", "net1"},
-			expected:    map[string]*networktypes.EndpointSettings{},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "single-network-legacy",
+			flags:           []string{"--network", "net1"},
+			expected:        map[string]*networktypes.EndpointSettings{},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
-			name:        "single-network-advanced",
-			flags:       []string{"--network", "name=net1"},
-			expected:    map[string]*networktypes.EndpointSettings{},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "single-network-advanced",
+			flags:           []string{"--network", "name=net1"},
+			expected:        map[string]*networktypes.EndpointSettings{},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name: "single-network-legacy-with-options",
@@ -497,7 +556,7 @@ func TestParseNetworkConfig(t *testing.T) {
 					Aliases: []string{"web1", "web2"},
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name: "multiple-network-advanced-mixed",
@@ -513,6 +572,7 @@ func TestParseNetworkConfig(t *testing.T) {
 				"--network-alias", "web2",
 				"--network", "net2",
 				"--network", "name=net3,alias=web3,driver-opt=field3=value3,ip=172.20.88.22,ip6=2001:db8::8822",
+				"--network", "name=net4,mac-address=02:32:1c:23:00:04,link-local-ip=169.254.169.254",
 			},
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
@@ -534,12 +594,18 @@ func TestParseNetworkConfig(t *testing.T) {
 					},
 					Aliases: []string{"web3"},
 				},
+				"net4": {
+					MacAddress: "02:32:1c:23:00:04",
+					IPAMConfig: &networktypes.EndpointIPAMConfig{
+						LinkLocalIPs: []string{"169.254.169.254"},
+					},
+				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:  "single-network-advanced-with-options",
-			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2,ip=172.20.88.22,ip6=2001:db8::8822"},
+			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2,ip=172.20.88.22,ip6=2001:db8::8822,mac-address=02:32:1c:23:00:04"},
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
 					DriverOpts: map[string]string{
@@ -550,16 +616,30 @@ func TestParseNetworkConfig(t *testing.T) {
 						IPv4Address: "172.20.88.22",
 						IPv6Address: "2001:db8::8822",
 					},
-					Aliases: []string{"web1", "web2"},
+					Aliases:    []string{"web1", "web2"},
+					MacAddress: "02:32:1c:23:00:04",
 				},
 			},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			expectedCfg:     container.Config{MacAddress: "02:32:1c:23:00:04"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
-			name:        "multiple-networks",
-			flags:       []string{"--network", "net1", "--network", "name=net2"},
-			expected:    map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
-			expectedCfg: container.HostConfig{NetworkMode: "net1"},
+			name:            "multiple-networks",
+			flags:           []string{"--network", "net1", "--network", "name=net2"},
+			expected:        map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
+		},
+		{
+			name:  "advanced-options-with-standalone-mac-address-flag",
+			flags: []string{"--network=name=net1,alias=foobar", "--mac-address", "52:0f:f3:dc:50:10"},
+			expected: map[string]*networktypes.EndpointSettings{
+				"net1": {
+					Aliases:    []string{"foobar"},
+					MacAddress: "52:0f:f3:dc:50:10",
+				},
+			},
+			expectedCfg:     container.Config{MacAddress: "52:0f:f3:dc:50:10"},
+			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:        "conflict-network",
@@ -586,11 +666,26 @@ func TestParseNetworkConfig(t *testing.T) {
 			flags:       []string{"--network", "name=host", "--network", "net1"},
 			expectedErr: `conflicting options: cannot attach both user-defined and non-user-defined network-modes`,
 		},
+		{
+			name:        "conflict-options-link-local-ip",
+			flags:       []string{"--network", "name=net1,link-local-ip=169.254.169.254", "--link-local-ip", "169.254.10.8"},
+			expectedErr: `conflicting options: cannot specify both --link-local-ip and per-network link-local IP addresses`,
+		},
+		{
+			name:        "conflict-options-mac-address",
+			flags:       []string{"--network", "name=net1,mac-address=02:32:1c:23:00:04", "--mac-address", "02:32:1c:23:00:04"},
+			expectedErr: `conflicting options: cannot specify both --mac-address and per-network MAC address`,
+		},
+		{
+			name:        "invalid-mac-address",
+			flags:       []string{"--network", "name=net1,mac-address=foobar"},
+			expectedErr: "foobar is not a valid mac address",
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			_, hConfig, nwConfig, err := parseRun(tc.flags)
+			config, hConfig, nwConfig, err := parseRun(tc.flags)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, err, tc.expectedErr)
@@ -598,7 +693,8 @@ func TestParseNetworkConfig(t *testing.T) {
 			}
 
 			assert.NilError(t, err)
-			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedCfg.NetworkMode)
+			assert.DeepEqual(t, config.MacAddress, tc.expectedCfg.MacAddress) //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
+			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedHostCfg.NetworkMode)
 			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected)
 		})
 	}
@@ -648,34 +744,75 @@ func TestRunFlagsParseShmSize(t *testing.T) {
 }
 
 func TestParseRestartPolicy(t *testing.T) {
-	invalids := map[string]string{
-		"always:2:3":         "invalid restart policy format: maximum retry count must be an integer",
-		"on-failure:invalid": "invalid restart policy format: maximum retry count must be an integer",
-	}
-	valids := map[string]container.RestartPolicy{
-		"": {},
-		"always": {
-			Name:              "always",
-			MaximumRetryCount: 0,
+	tests := []struct {
+		input       string
+		expected    container.RestartPolicy
+		expectedErr string
+	}{
+		{
+			input: "",
 		},
-		"on-failure:1": {
-			Name:              "on-failure",
-			MaximumRetryCount: 1,
+		{
+			input: "no",
+			expected: container.RestartPolicy{
+				Name: container.RestartPolicyDisabled,
+			},
+		},
+		{
+			input:       ":1",
+			expectedErr: "invalid restart policy format: no policy provided before colon",
+		},
+		{
+			input: "always",
+			expected: container.RestartPolicy{
+				Name: container.RestartPolicyAlways,
+			},
+		},
+		{
+			input: "always:1",
+			expected: container.RestartPolicy{
+				Name:              container.RestartPolicyAlways,
+				MaximumRetryCount: 1,
+			},
+		},
+		{
+			input:       "always:2:3",
+			expectedErr: "invalid restart policy format: maximum retry count must be an integer",
+		},
+		{
+			input: "on-failure:1",
+			expected: container.RestartPolicy{
+				Name:              container.RestartPolicyOnFailure,
+				MaximumRetryCount: 1,
+			},
+		},
+		{
+			input:       "on-failure:invalid",
+			expectedErr: "invalid restart policy format: maximum retry count must be an integer",
+		},
+		{
+			input: "unless-stopped",
+			expected: container.RestartPolicy{
+				Name: container.RestartPolicyUnlessStopped,
+			},
+		},
+		{
+			input:       "unless-stopped:invalid",
+			expectedErr: "invalid restart policy format: maximum retry count must be an integer",
 		},
 	}
-	for restart, expectedError := range invalids {
-		if _, _, _, err := parseRun([]string{fmt.Sprintf("--restart=%s", restart), "img", "cmd"}); err == nil || err.Error() != expectedError {
-			t.Fatalf("Expected an error with message '%v' for %v, got %v", expectedError, restart, err)
-		}
-	}
-	for restart, expected := range valids {
-		_, hostconfig, _, err := parseRun([]string{fmt.Sprintf("--restart=%v", restart), "img", "cmd"})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if hostconfig.RestartPolicy != expected {
-			t.Fatalf("Expected %v, got %v", expected, hostconfig.RestartPolicy)
-		}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			_, hostConfig, _, err := parseRun([]string{"--restart=" + tc.input, "img", "cmd"})
+			if tc.expectedErr != "" {
+				assert.Check(t, is.Error(err, tc.expectedErr))
+				assert.Check(t, is.Nil(hostConfig))
+			} else {
+				assert.NilError(t, err)
+				assert.Check(t, is.DeepEqual(hostConfig.RestartPolicy, tc.expected))
+			}
+		})
 	}
 }
 
@@ -720,8 +857,8 @@ func TestParseHealth(t *testing.T) {
 	checkError("--no-healthcheck conflicts with --health-* options",
 		"--no-healthcheck", "--health-cmd=/check.sh -q", "img", "cmd")
 
-	health = checkOk("--health-timeout=2s", "--health-retries=3", "--health-interval=4.5s", "--health-start-period=5s", "img", "cmd")
-	if health.Timeout != 2*time.Second || health.Retries != 3 || health.Interval != 4500*time.Millisecond || health.StartPeriod != 5*time.Second {
+	health = checkOk("--health-timeout=2s", "--health-retries=3", "--health-interval=4.5s", "--health-start-period=5s", "--health-start-interval=1s", "img", "cmd")
+	if health.Timeout != 2*time.Second || health.Retries != 3 || health.Interval != 4500*time.Millisecond || health.StartPeriod != 5*time.Second || health.StartInterval != 1*time.Second {
 		t.Fatalf("--health-*: got %#v", health)
 	}
 }
@@ -874,10 +1011,8 @@ func TestValidateDevice(t *testing.T) {
 	for path, expectedError := range invalid {
 		if _, err := validateDevice(path, runtime.GOOS); err == nil {
 			t.Fatalf("ValidateDevice(`%q`) should have failed validation", path)
-		} else {
-			if err.Error() != expectedError {
-				t.Fatalf("ValidateDevice(`%q`) error should contain %q, got %q", path, expectedError, err.Error())
-			}
+		} else if err.Error() != expectedError {
+			t.Fatalf("ValidateDevice(`%q`) error should contain %q, got %q", path, expectedError, err.Error())
 		}
 	}
 }

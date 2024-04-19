@@ -22,7 +22,7 @@ type listOptions struct {
 	filter opts.FilterOpt
 }
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -31,7 +31,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List services",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, options)
+			return runList(cmd.Context(), dockerCLI, options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -44,20 +44,19 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(dockerCli command.Cli, opts listOptions) error {
+func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	var (
-		apiClient = dockerCli.Client()
-		ctx       = context.Background()
+		apiClient = dockerCLI.Client()
 		err       error
 	)
 
 	listOpts := types.ServiceListOptions{
-		Filters: opts.filter.Value(),
+		Filters: options.filter.Value(),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and
 		// up; older API versions ignore this option, and we will have to collect
 		// the information manually below.
-		Status: !opts.quiet,
+		Status: !options.quiet,
 	}
 
 	services, err := apiClient.ServiceList(ctx, listOpts)
@@ -84,18 +83,18 @@ func runList(dockerCli command.Cli, opts listOptions) error {
 		}
 	}
 
-	format := opts.format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.quiet {
-			format = dockerCli.ConfigFile().ServicesFormat
+		if len(dockerCLI.ConfigFile().ServicesFormat) > 0 && !options.quiet {
+			format = dockerCLI.ConfigFile().ServicesFormat
 		} else {
 			format = formatter.TableFormatKey
 		}
 	}
 
 	servicesCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: NewListFormat(format, opts.quiet),
+		Output: dockerCLI.Out(),
+		Format: NewListFormat(format, options.quiet),
 	}
 	return ListFormatWrite(servicesCtx, services)
 }

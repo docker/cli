@@ -78,6 +78,26 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				},
 			},
 		},
+		{
+			value: "name=docknet1,mac-address=52:0f:f3:dc:50:10",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:     "docknet1",
+					Aliases:    []string{},
+					MacAddress: "52:0f:f3:dc:50:10",
+				},
+			},
+		},
+		{
+			value: "name=docknet1,link-local-ip=169.254.169.254,link-local-ip=169.254.10.10",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:       "docknet1",
+					Aliases:      []string{},
+					LinkLocalIPs: []string{"169.254.169.254", "169.254.10.10"},
+				},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
@@ -114,4 +134,19 @@ func TestNetworkOptAdvancedSyntaxInvalid(t *testing.T) {
 			assert.ErrorContains(t, network.Set(tc.value), tc.expectedError)
 		})
 	}
+}
+
+func TestNetworkOptStringNetOptString(t *testing.T) {
+	networkOpt := &NetworkOpt{}
+	result := networkOpt.String()
+	assert.Check(t, is.Equal("", result))
+	if result != "" {
+		t.Errorf("Expected an empty string, got %s", result)
+	}
+}
+
+func TestNetworkOptTypeNetOptType(t *testing.T) {
+	networkOpt := &NetworkOpt{}
+	result := networkOpt.Type()
+	assert.Check(t, is.Equal("network", result))
 }

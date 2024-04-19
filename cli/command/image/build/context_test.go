@@ -23,16 +23,19 @@ func prepareEmpty(_ *testing.T) string {
 }
 
 func prepareNoFiles(t *testing.T) string {
+	t.Helper()
 	return createTestTempDir(t)
 }
 
 func prepareOneFile(t *testing.T) string {
+	t.Helper()
 	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 	return contextDir
 }
 
 func testValidateContextDirectory(t *testing.T, prepare func(t *testing.T) string, excludes []string) {
+	t.Helper()
 	contextDir := prepare(t)
 	err := ValidateContextDirectory(contextDir, excludes)
 	assert.NilError(t, err)
@@ -126,7 +129,6 @@ func TestGetContextFromReaderString(t *testing.T) {
 	tarReader := tar.NewReader(tarArchive)
 
 	_, err = tarReader.Next()
-
 	if err != nil {
 		t.Fatalf("Error when reading tar archive: %s", err)
 	}
@@ -250,6 +252,7 @@ func createTestTempFile(t *testing.T, dir, filename, contents string) string {
 // This function is meant to be executed as a deferred call.
 // When an error occurs, it terminates the test.
 func chdir(t *testing.T, dir string) {
+	t.Helper()
 	workingDirectory, err := os.Getwd()
 	assert.NilError(t, err)
 	assert.NilError(t, os.Chdir(dir))

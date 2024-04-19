@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package formatter
 
 import (
@@ -147,7 +150,7 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}
-	expectedJSONs := []map[string]interface{}{
+	expectedJSONs := []map[string]any{
 		{"Availability": "N/A", "Driver": "foo", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A", "Status": "N/A"},
 		{"Availability": "N/A", "Driver": "bar", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A", "Status": "N/A"},
 	}
@@ -158,7 +161,7 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
-		var m map[string]interface{}
+		var m map[string]any
 		err := json.Unmarshal([]byte(line), &m)
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)

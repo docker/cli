@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package interpolation
 
 import (
@@ -20,25 +23,25 @@ func defaultMapping(name string) (string, bool) {
 }
 
 func TestInterpolate(t *testing.T) {
-	services := map[string]interface{}{
-		"servicea": map[string]interface{}{
+	services := map[string]any{
+		"servicea": map[string]any{
 			"image":   "example:${USER}",
-			"volumes": []interface{}{"$FOO:/target"},
-			"logging": map[string]interface{}{
+			"volumes": []any{"$FOO:/target"},
+			"logging": map[string]any{
 				"driver": "${FOO}",
-				"options": map[string]interface{}{
+				"options": map[string]any{
 					"user": "$USER",
 				},
 			},
 		},
 	}
-	expected := map[string]interface{}{
-		"servicea": map[string]interface{}{
+	expected := map[string]any{
+		"servicea": map[string]any{
 			"image":   "example:jenny",
-			"volumes": []interface{}{"bar:/target"},
-			"logging": map[string]interface{}{
+			"volumes": []any{"bar:/target"},
+			"logging": map[string]any{
 				"driver": "bar",
-				"options": map[string]interface{}{
+				"options": map[string]any{
 					"user": "jenny",
 				},
 			},
@@ -50,8 +53,8 @@ func TestInterpolate(t *testing.T) {
 }
 
 func TestInvalidInterpolation(t *testing.T) {
-	services := map[string]interface{}{
-		"servicea": map[string]interface{}{
+	services := map[string]any{
+		"servicea": map[string]any{
 			"image": "${",
 		},
 	}
@@ -62,13 +65,13 @@ func TestInvalidInterpolation(t *testing.T) {
 func TestInterpolateWithDefaults(t *testing.T) {
 	t.Setenv("FOO", "BARZ")
 
-	config := map[string]interface{}{
-		"networks": map[string]interface{}{
+	config := map[string]any{
+		"networks": map[string]any{
 			"foo": "thing_${FOO}",
 		},
 	}
-	expected := map[string]interface{}{
-		"networks": map[string]interface{}{
+	expected := map[string]any{
+		"networks": map[string]any{
 			"foo": "thing_BARZ",
 		},
 	}
@@ -78,12 +81,12 @@ func TestInterpolateWithDefaults(t *testing.T) {
 }
 
 func TestInterpolateWithCast(t *testing.T) {
-	config := map[string]interface{}{
-		"foo": map[string]interface{}{
+	config := map[string]any{
+		"foo": map[string]any{
 			"replicas": "$count",
 		},
 	}
-	toInt := func(value string) (interface{}, error) {
+	toInt := func(value string) (any, error) {
 		return strconv.Atoi(value)
 	}
 	result, err := Interpolate(config, Options{
@@ -91,8 +94,8 @@ func TestInterpolateWithCast(t *testing.T) {
 		TypeCastMapping: map[Path]Cast{NewPath(PathMatchAll, "replicas"): toInt},
 	})
 	assert.NilError(t, err)
-	expected := map[string]interface{}{
-		"foo": map[string]interface{}{
+	expected := map[string]any{
+		"foo": map[string]any{
 			"replicas": 5,
 		},
 	}

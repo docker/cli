@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.19
+
 package secret
 
 import (
@@ -26,7 +29,7 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args
-			return runSecretInspect(dockerCli, opts)
+			return runSecretInspect(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -38,15 +41,14 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSecretInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runSecretInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	if opts.pretty {
 		opts.format = "pretty"
 	}
 
-	getRef := func(id string) (interface{}, []byte, error) {
+	getRef := func(id string) (any, []byte, error) {
 		return client.SecretInspectWithRaw(ctx, id)
 	}
 	f := opts.format

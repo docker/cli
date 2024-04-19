@@ -50,7 +50,13 @@ The table below provides an overview of the current status of deprecated feature
 
 | Status     | Feature                                                                                                                            | Deprecated | Remove |
 |------------|------------------------------------------------------------------------------------------------------------------------------------|------------|--------|
-| Deprecated | [OOM-score adjust for the daemon](#oom-score-adjust-for-the-daemon)                                                                | v24.0      | v25.0  |
+| Deprecated | [Unauthenticated TCP connections](#unauthenticated-tcp-connections)                                                                | v26.0      | v27.0  |
+| Deprecated | [`Container` and `ContainerConfig` fields in Image inspect](#container-and-containerconfig-fields-in-image-inspect)                | v25.0      | v26.0  |
+| Deprecated | [Deprecate legacy API versions](#deprecate-legacy-api-versions)                                                                    | v25.0      | v26.0  |
+| Removed    | [Container short ID in network Aliases field](#container-short-id-in-network-aliases-field)                                        | v25.0      | v26.0  |
+| Deprecated | [IsAutomated field, and "is-automated" filter on docker search](#isautomated-field-and-is-automated-filter-on-docker-search)       | v25.0      | v26.0  |
+| Removed    | [logentries logging driver](#logentries-logging-driver)                                                                            | v24.0      | v25.0  |
+| Removed    | [OOM-score adjust for the daemon](#oom-score-adjust-for-the-daemon)                                                                | v24.0      | v25.0  |
 | Removed    | [Buildkit build information](#buildkit-build-information)                                                                          | v23.0      | v24.0  |
 | Deprecated | [Legacy builder for Linux images](#legacy-builder-for-linux-images)                                                                | v23.0      | -      |
 | Deprecated | [Legacy builder fallback](#legacy-builder-fallback)                                                                                | v23.0      | -      |
@@ -68,19 +74,19 @@ The table below provides an overview of the current status of deprecated feature
 | Removed    | [`docker build --stream` flag (experimental)](#docker-build---stream-flag-experimental)                                            | v20.10     | v20.10 |
 | Deprecated | [`fluentd-async-connect` log opt](#fluentd-async-connect-log-opt)                                                                  | v20.10     | -      |
 | Removed    | [Configuration options for experimental CLI features](#configuration-options-for-experimental-cli-features)                        | v19.03     | v23.0  |
-| Deprecated | [Pushing and pulling with image manifest v2 schema 1](#pushing-and-pulling-with-image-manifest-v2-schema-1)                        | v19.03     | v20.10 |
+| Deprecated | [Pushing and pulling with image manifest v2 schema 1](#pushing-and-pulling-with-image-manifest-v2-schema-1)                        | v19.03     | v27.0  |
 | Removed    | [`docker engine` subcommands](#docker-engine-subcommands)                                                                          | v19.03     | v20.10 |
 | Removed    | [Top-level `docker deploy` subcommand (experimental)](#top-level-docker-deploy-subcommand-experimental)                            | v19.03     | v20.10 |
 | Removed    | [`docker stack deploy` using "dab" files (experimental)](#docker-stack-deploy-using-dab-files-experimental)                        | v19.03     | v20.10 |
 | Removed    | [Support for the `overlay2.override_kernel_check` storage option](#support-for-the-overlay2override_kernel_check-storage-option)   | v19.03     | v24.0  |
 | Removed    | [AuFS storage driver](#aufs-storage-driver)                                                                                        | v19.03     | v24.0  |
 | Removed    | [Legacy "overlay" storage driver](#legacy-overlay-storage-driver)                                                                  | v18.09     | v24.0  |
-| Disabled   | [Device mapper storage driver](#device-mapper-storage-driver)                                                                      | v18.09     | -      |
+| Removed    | [Device mapper storage driver](#device-mapper-storage-driver)                                                                      | v18.09     | v25.0  |
 | Removed    | [Use of reserved namespaces in engine labels](#use-of-reserved-namespaces-in-engine-labels)                                        | v18.06     | v20.10 |
 | Removed    | [`--disable-legacy-registry` override daemon option](#--disable-legacy-registry-override-daemon-option)                            | v17.12     | v19.03 |
 | Removed    | [Interacting with V1 registries](#interacting-with-v1-registries)                                                                  | v17.06     | v17.12 |
 | Removed    | [Asynchronous `service create` and `service update` as default](#asynchronous-service-create-and-service-update-as-default)        | v17.05     | v17.10 |
-| Removed    | [`-g` and `--graph` flags on `dockerd`](#-g-and---graph-flags-on-dockerd)                                                          | v17.05     | -      |
+| Removed    | [`-g` and `--graph` flags on `dockerd`](#-g-and---graph-flags-on-dockerd)                                                          | v17.05     | v23.0  |
 | Deprecated | [Top-level network properties in NetworkSettings](#top-level-network-properties-in-networksettings)                                | v1.13      | v17.12 |
 | Removed    | [`filter` param for `/images/json` endpoint](#filter-param-for-imagesjson-endpoint)                                                | v1.13      | v20.10 |
 | Removed    | [`repository:shortid` image references](#repositoryshortid-image-references)                                                       | v1.13      | v17.12 |
@@ -106,10 +112,144 @@ The table below provides an overview of the current status of deprecated feature
 | Removed    | [`--run` flag on `docker commit`](#--run-flag-on-docker-commit)                                                                    | v0.10      | v1.13  |
 | Removed    | [Three arguments form in `docker import`](#three-arguments-form-in-docker-import)                                                  | v0.6.7     | v1.12  |
 
+### Unauthenticated TCP connections
+
+**Deprecated in Release: v26.0**
+**Target For Removal In Release: v27.0**
+
+Configuring the Docker daemon to listen on a TCP address will require mandatory
+TLS verification. This change aims to ensure secure communication by preventing
+unauthorized access to the Docker daemon over potentially insecure networks.
+This mandatory TLS requirement applies to all TCP addresses except `tcp://localhost`.
+
+In version 27.0 and later, specifying `--tls=false` or `--tlsverify=false` CLI flags
+causes the daemon to fail to start if it's also configured to accept remote connections over TCP.
+This also applies to the equivalent configuration options in `daemon.json`.
+
+To facilitate remote access to the Docker daemon over TCP, you'll need to
+implement TLS verification. This secures the connection by encrypting data in
+transit and providing a mechanism for mutual authentication.
+
+For environments remote daemon access isn't required,
+we recommend binding the Docker daemon to a Unix socket.
+For daemon's where remote access is required and where TLS encryption is not feasible,
+you may want to consider using SSH as an alternative solution.
+
+For further information, assistance, and step-by-step instructions on
+configuring TLS (or SSH) for the Docker daemon, refer to
+[Protect the Docker daemon socket](https://docs.docker.com/engine/security/protect-access/).
+
+### `Container` and `ContainerConfig` fields in Image inspect
+
+**Deprecated in Release: v25.0**
+**Target For Removal In Release: v26.0**
+
+The `Container` and `ContainerConfig` fields returned by `docker inspect` are
+mostly an implementation detail of the classic (non-BuildKit) image builder.
+These fields are not portable and are empty when using the
+BuildKit-based builder (enabled by default since v23.0).
+These fields are deprecated in v25.0 and will be omitted starting from v26.0.
+If image configuration of an image is needed, you can obtain it from the
+`Config` field.
+
+### Deprecate legacy API versions
+
+**Deprecated in Release: v25.0**
+**Target For Removal In Release: v26.0**
+
+The Docker daemon provides a versioned API for backward compatibility with old
+clients. Docker clients can perform API-version negotiation to select the most
+recent API version supported by the daemon (downgrading to and older version of
+the API when necessary). API version negotiation was introduced in Docker v1.12.0
+(API 1.24), and clients before that used a fixed API version.
+
+Docker Engine versions through v25.0 provide support for all [API versions](https://docs.docker.com/engine/api/#api-version-matrix)
+included in stable releases for a given platform. For Docker daemons on Linux,
+the earliest supported API version is 1.12 (corresponding with Docker Engine
+v1.0.0), whereas for Docker daemons on Windows, the earliest supported API
+version is 1.24 (corresponding with Docker Engine v1.12.0).
+
+Support for legacy API versions (providing old API versions on current versions
+of the Docker Engine) is primarily intended to provide compatibility with recent,
+but still supported versions of the client, which is a common scenario (the Docker
+daemon may be updated to the latest release, but not all clients may be up-to-date
+or vice versa). Support for API versions before that (API versions provided by
+EOL versions of the Docker Daemon) is provided on a "best effort" basis.
+
+Use of old API versions is very rare, and support for legacy API versions
+involves significant complexity (Docker 1.0.0 having been released 10 years ago).
+Because of this, we'll start deprecating support for legacy API versions.
+
+Docker Engine v25.0 by default disables API version older than 1.24 (aligning
+the minimum supported API version between Linux and Windows daemons). When
+connecting with a client that uses an API version version older than 1.24,
+the daemon returns an error. The following example configures the docker
+CLI to use API version 1.23, which produces an error:
+
+```console
+DOCKER_API_VERSION=1.23 docker version
+Error response from daemon: client version 1.23 is too old. Minimum supported API version is 1.24, please upgrade your client to a newer version
+```
+
+An environment variable (`DOCKER_MIN_API_VERSION`) is introduced that allows
+re-enabling older API versions in the daemon. This environment variable must
+be set in the daemon's environment (for example, through a [systemd override
+file](https://docs.docker.com/config/daemon/systemd/)), and the specified
+API version must be supported by the daemon (`1.12` or higher on Linux, or
+`1.24` or higher on Windows).
+
+Support for API versions lower than `1.24` will be permanently removed in Docker
+Engine v26, and the minimum supported API version will be incrementally raised
+in releases following that.
+
+We do not recommend depending on the `DOCKER_MIN_API_VERSION` environment
+variable other than for exceptional cases where it's not possible to update
+old clients, and those clients must be supported.
+
+### Container short ID in network Aliases field
+
+**Deprecated in Release: v25.0**
+**Removed In Release: v26.0**
+
+The `Aliases` field returned by `docker inspect` contains the container short
+ID once the container is started. This behavior is deprecated in v25.0 but
+kept until the next release, v26.0. Starting with that version, the `Aliases`
+field will only contain the aliases set through the `docker container create`
+and `docker run` flag `--network-alias`.
+
+A new field `DNSNames` containing the container name (if one was specified),
+the hostname, the network aliases, as well as the container short ID, has been
+introduced in v25.0 and should be used instead of the `Aliases` field.
+
+### IsAutomated field, and "is-automated" filter on docker search
+
+**Deprecated in Release: v25.0**
+**Target For Removal In Release: v26.0**
+
+The "is_automated" field has been deprecated by Docker Hub's search API.
+Consequently, the `IsAutomated` field in image search will always be set
+to `false` in future, and searching for "is-automated=true" will yield no
+results.
+
+The `AUTOMATED` column has been removed from the default `docker search`
+and `docker image search` output in v25.0, and the corresponding `IsAutomated`
+templating option will be removed in v26.0.
+
+### Logentries logging driver
+
+**Deprecated in Release: v24.0**
+**Removed in Release: v25.0**
+
+The logentries service SaaS was shut down on November 15, 2022, rendering
+this logging driver non-functional. Users should no longer use this logging
+driver, and the driver has been removed in Docker 25.0. Existing containers
+using this logging-driver are migrated to use the "local" logging driver
+after upgrading.
+
 ### OOM-score adjust for the daemon
 
 **Deprecated in Release: v24.0**
-**Target For Removal In Release: v25.0**
+**Removed in Release: v25.0**
 
 The `oom-score-adjust` option was added to prevent the daemon from being
 OOM-killed before other processes. This option was mostly added as a
@@ -460,15 +600,35 @@ for the old option will be removed in a future release.
 
 **Deprecated in Release: v19.03**
 
-**Target For Removal In Release: v20.10**
+**Disabled by default in Release: v26.0**
 
-The image manifest
-[v2 schema 1](https://github.com/docker/distribution/blob/fda42e5ef908bdba722d435ff1f330d40dfcd56c/docs/spec/manifest-v2-1.md)
-format is deprecated in favor of the
-[v2 schema 2](https://github.com/docker/distribution/blob/fda42e5ef908bdba722d435ff1f330d40dfcd56c/docs/spec/manifest-v2-2.md) format.
+**Target For Removal In Release: v27.0**
 
-If the registry you are using still supports v2 schema 1, urge their administrators to move to v2 schema 2.
+The image manifest [v2 schema 1](https://distribution.github.io/distribution/spec/deprecated-schema-v1/)
+and "Docker Image v1" formats were deprecated in favor of the
+[v2 schema 2](https://distribution.github.io/distribution/spec/manifest-v2-2/)
+and [OCI image spec](https://github.com/opencontainers/image-spec/tree/v1.1.0)
+formats.
 
+These legacy formats should no longer be used, and users are recommended to
+update images to use current formats, or to upgrade to more current images.
+Starting with Docker v26.0, pulling these images is disabled by default, and
+produces an error when attempting to pull the image:
+
+```console
+$ docker pull ubuntu:10.04
+Error response from daemon:
+[DEPRECATION NOTICE] Docker Image Format v1 and Docker Image manifest version 2, schema 1 support is disabled by default and will be removed in an upcoming release.
+Suggest the author of docker.io/library/ubuntu:10.04 to upgrade the image to the OCI Format or Docker Image manifest v2, schema 2.
+More information at https://docs.docker.com/go/deprecated-image-specs/
+```
+
+An environment variable (`DOCKER_ENABLE_DEPRECATED_PULL_SCHEMA_1_IMAGE`) is
+added in Docker v26.0 that allows re-enabling support for these image formats
+in the daemon. This environment variable must be set to a non-empty value in
+the daemon's environment (for example, through a [systemd override file](https://docs.docker.com/config/daemon/systemd/)).
+Support for the `DOCKER_ENABLE_DEPRECATED_PULL_SCHEMA_1_IMAGE` environment-variable
+will be removed in Docker v27.0 after which this functionality is removed permanently.
 
 ### `docker engine` subcommands
 
@@ -801,9 +961,7 @@ Because of which, the driver specific log tag options `syslog-tag`, `gelf-tag` a
 `fluentd-tag` have been deprecated in favor of the generic `tag` option.
 
 ```console
-{% raw %}
 $ docker --log-driver=syslog --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}"
-{% endraw %}
 ```
 
 
