@@ -105,11 +105,8 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 
 // RunHook executes the plugin's hooks command
 // and returns its unprocessed output.
-func (p *Plugin) RunHook(cmdName string, flags map[string]string) ([]byte, error) {
-	hDataBytes, err := json.Marshal(HookPluginData{
-		RootCmd: cmdName,
-		Flags:   flags,
-	})
+func (p *Plugin) RunHook(hookData HookPluginData) ([]byte, error) {
+	hDataBytes, err := json.Marshal(hookData)
 	if err != nil {
 		return nil, wrapAsPluginError(err, "failed to marshall hook data")
 	}
