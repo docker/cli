@@ -14,31 +14,41 @@ import (
 // that plugins declaring support for hooks get passed when
 // being invoked following a CLI command execution.
 type HookPluginData struct {
+	// RootCmd is a string representing the matching hook configuration
+	// which is currently being invoked. If a hook for `docker context` is
+	// configured and the user executes `docker context ls`, the plugin will
+	// be invoked with `context`.
 	RootCmd string
 	Flags   map[string]string
 }
 
-// RunPluginHooks calls the hook subcommand for all present
-// CLI plugins that declare support for hooks in their metadata
-// and parses/prints their responses.
-func RunPluginHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, plugin string, args []string) error {
-	subCmdName := subCommand.Name()
-	if plugin != "" {
-		subCmdName = plugin
-	}
-	var flags map[string]string
-	if plugin == "" {
-		flags = getCommandFlags(subCommand)
-	} else {
-		flags = getNaiveFlags(args)
-	}
-	nextSteps := invokeAndCollectHooks(dockerCli, rootCmd, subCommand, subCmdName, flags)
+// RunCLICommandHooks is the entrypoint into the hooks execution flow after
+// a main CLI command was executed. It calls the hook subcommand for all
+// present CLI plugins that declare support for hooks in their metadata and
+// parses/prints their responses.
+func RunCLICommandHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command) {
+	commandName := strings.TrimPrefix(subCommand.CommandPath(), rootCmd.Name()+" ")
+	flags := getCommandFlags(subCommand)
 
-	hooks.PrintNextSteps(dockerCli.Err(), nextSteps)
-	return nil
+	runHooks(dockerCli, rootCmd, subCommand, commandName, flags)
 }
 
-func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command, hookCmdName string, flags map[string]string) []string {
+// RunPluginHooks is the entrypoint for the hooks execution flow
+// after a plugin command was just executed by the CLI.
+func RunPluginHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, args []string) {
+	commandName := strings.Join(args, " ")
+	flags := getNaiveFlags(args)
+
+	runHooks(dockerCli, rootCmd, subCommand, commandName, flags)
+}
+
+func runHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string) {
+	nextSteps := invokeAndCollectHooks(dockerCli, rootCmd, subCommand, invokedCommand, flags)
+
+	hooks.PrintNextSteps(dockerCli.Err(), nextSteps)
+}
+
+func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string) []string {
 	pluginsCfg := dockerCli.ConfigFile().Plugins
 	if pluginsCfg == nil {
 		return nil
@@ -46,7 +56,8 @@ func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command
 
 	nextSteps := make([]string, 0, len(pluginsCfg))
 	for pluginName, cfg := range pluginsCfg {
-		if !registersHook(cfg, hookCmdName) {
+		match, ok := pluginMatch(cfg, subCmdStr)
+		if !ok {
 			continue
 		}
 
@@ -55,7 +66,7 @@ func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command
 			continue
 		}
 
-		hookReturn, err := p.RunHook(hookCmdName, flags)
+		hookReturn, err := p.RunHook(match, flags)
 		if err != nil {
 			// skip misbehaving plugins, but don't halt execution
 			continue
@@ -81,18 +92,41 @@ func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command
 	return nextSteps
 }
 
-func registersHook(pluginCfg map[string]string, subCmdName string) bool {
-	hookCmdStr, ok := pluginCfg["hooks"]
-	if !ok {
-		return false
+// pluginMatch takes a plugin configuration and a string representing the
+// command being executed (such as 'image ls' – the root 'docker' is omitted)
+// and, if the configuration includes a hook for the invoked command, returns
+// the configured hook string.
+func pluginMatch(pluginCfg map[string]string, subCmd string) (string, bool) {
+	configuredPluginHooks, ok := pluginCfg["hooks"]
+	if !ok || configuredPluginHooks == "" {
+		return "", false
 	}
-	commands := strings.Split(hookCmdStr, ",")
+
+	commands := strings.Split(configuredPluginHooks, ",")
 	for _, hookCmd := range commands {
-		if hookCmd == subCmdName {
-			return true
+		if hookMatch(hookCmd, subCmd) {
+			return hookCmd, true
 		}
 	}
-	return false
+
+	return "", false
+}
+
+func hookMatch(hookCmd, subCmd string) bool {
+	hookCmdTokens := strings.Split(hookCmd, " ")
+	subCmdTokens := strings.Split(subCmd, " ")
+
+	if len(hookCmdTokens) > len(subCmdTokens) {
+		return false
+	}
+
+	for i, v := range hookCmdTokens {
+		if v != subCmdTokens[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func getCommandFlags(cmd *cobra.Command) map[string]string {
