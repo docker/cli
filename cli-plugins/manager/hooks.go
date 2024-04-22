@@ -18,19 +18,20 @@ type HookPluginData struct {
 	// which is currently being invoked. If a hook for `docker context` is
 	// configured and the user executes `docker context ls`, the plugin will
 	// be invoked with `context`.
-	RootCmd string
-	Flags   map[string]string
+	RootCmd      string
+	Flags        map[string]string
+	CommandError string
 }
 
 // RunCLICommandHooks is the entrypoint into the hooks execution flow after
 // a main CLI command was executed. It calls the hook subcommand for all
 // present CLI plugins that declare support for hooks in their metadata and
 // parses/prints their responses.
-func RunCLICommandHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command) {
+func RunCLICommandHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, cmdErrorMessage string) {
 	commandName := strings.TrimPrefix(subCommand.CommandPath(), rootCmd.Name()+" ")
 	flags := getCommandFlags(subCommand)
 
-	runHooks(dockerCli, rootCmd, subCommand, commandName, flags)
+	runHooks(dockerCli, rootCmd, subCommand, commandName, flags, cmdErrorMessage)
 }
 
 // RunPluginHooks is the entrypoint for the hooks execution flow
@@ -39,16 +40,16 @@ func RunPluginHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, a
 	commandName := strings.Join(args, " ")
 	flags := getNaiveFlags(args)
 
-	runHooks(dockerCli, rootCmd, subCommand, commandName, flags)
+	runHooks(dockerCli, rootCmd, subCommand, commandName, flags, "")
 }
 
-func runHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string) {
-	nextSteps := invokeAndCollectHooks(dockerCli, rootCmd, subCommand, invokedCommand, flags)
+func runHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
+	nextSteps := invokeAndCollectHooks(dockerCli, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
 
 	hooks.PrintNextSteps(dockerCli.Err(), nextSteps)
 }
 
-func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string) []string {
+func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
 	pluginsCfg := dockerCli.ConfigFile().Plugins
 	if pluginsCfg == nil {
 		return nil
@@ -66,7 +67,11 @@ func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command
 			continue
 		}
 
-		hookReturn, err := p.RunHook(match, flags)
+		hookReturn, err := p.RunHook(HookPluginData{
+			RootCmd:      match,
+			Flags:        flags,
+			CommandError: cmdErrorMessage,
+		})
 		if err != nil {
 			// skip misbehaving plugins, but don't halt execution
 			continue
