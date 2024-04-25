@@ -29,6 +29,7 @@ import (
 
 func main() {
 	ctx := context.Background()
+
 	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -352,7 +353,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// We've parsed global args already, so reset args to those
 	// which remain.
 	cmd.SetArgs(args)
-	err = cmd.Execute()
+	err = cmd.ExecuteContext(ctx)
 
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.

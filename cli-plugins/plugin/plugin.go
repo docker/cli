@@ -36,13 +36,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
 		var err error
 		persistentPreRunOnce.Do(func() {
-			cmdContext := cmd.Context()
-			// TODO: revisit and make sure this check makes sense
-			// see: https://github.com/docker/cli/pull/4599#discussion_r1422487271
-			if cmdContext == nil {
-				cmdContext = context.TODO()
-			}
-			ctx, cancel := context.WithCancel(cmdContext)
+			ctx, cancel := context.WithCancel(cmd.Context())
 			cmd.SetContext(ctx)
 			// Set up the context to cancel based on signalling via CLI socket.
 			socket.ConnectAndWait(cancel)
