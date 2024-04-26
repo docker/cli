@@ -32,7 +32,7 @@ jobs:
           desc=$(echo "$block" |  awk NF)
 
           if [ -z "$desc" ]; then
-            echo "::error::Changelog section is empty. Please provide a description for the changelog."
+            echo "::error::Changelog section is empty. Provide a description for the changelog."
             exit 1
           fi
 

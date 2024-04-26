@@ -88,7 +88,7 @@ func printUnlockCommand(out io.Writer, unlockKey string) {
 	if len(unlockKey) > 0 {
 		fmt.Fprintf(out, "To unlock a swarm manager after it restarts, "+
 			"run the `docker swarm unlock`\ncommand and provide the following key:\n\n    %s\n\n"+
-			"Please remember to store this key in a password manager, since without it you\n"+
+			"Remember to store this key in a password manager, since without it you\n"+
 			"will not be able to restart the manager.\n", unlockKey)
 	}
 }

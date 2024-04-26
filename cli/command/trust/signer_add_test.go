@@ -34,7 +34,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		{
 			name:          "reserved-releases-signer-add",
 			args:          []string{"releases", "my-image", "--key", "/path/to/key"},
-			expectedError: "releases is a reserved keyword, please use a different signer name",
+			expectedError: "releases is a reserved keyword, use a different signer name",
 		},
 		{
 			name:          "disallowed-chars",

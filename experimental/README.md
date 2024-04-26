@@ -7,7 +7,7 @@ provided for test and evaluation in your sandbox environments.
 The information below describes each feature and the GitHub pull requests and
 issues associated with it. If necessary, links are provided to additional
 documentation on an issue.  As an active Docker user and community member,
-please feel free to provide any feedback on these features you wish.
+feel free to provide any feedback on these features you wish.
 
 ## Use Docker experimental
 

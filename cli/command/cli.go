@@ -546,7 +546,7 @@ func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error
 	case 1:
 		host = hosts[0]
 	default:
-		return "", errors.New("Please specify only one -H")
+		return "", errors.New("Specify only one -H")
 	}
 
 	return dopts.ParseHost(tlsOptions != nil, host)
