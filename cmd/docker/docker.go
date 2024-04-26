@@ -337,7 +337,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			err := tryPluginRun(dockerCli, cmd, args[0], envs)
 			if err == nil {
 				if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && ccmd != nil {
-					pluginmanager.RunPluginHooks(dockerCli, cmd, ccmd, args)
+					pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args)
 				}
 				return nil
 			}
@@ -362,7 +362,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		if err != nil {
 			errMessage = err.Error()
 		}
-		pluginmanager.RunCLICommandHooks(dockerCli, cmd, subCommand, errMessage)
+		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, errMessage)
 	}
 
 	return err
