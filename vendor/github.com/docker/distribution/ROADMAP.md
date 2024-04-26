@@ -143,7 +143,7 @@ We expect that someone attempts to address the problem with the existing tools
 and propose it as a standard search API or uses it to inform a standardization
 process. Once this has been explored, we integrate with the docker client.
 
-Please see the following for more detail:
+See the following for more detail:
 
 - https://github.com/docker/distribution/issues/206
 
@@ -228,11 +228,11 @@ operation. The following approaches are being considered:
   registry metadata. However, metadata is generally not the main bottleneck
   when serving images.
 
-Please let us know if other solutions exist that we have yet to enumerate.
+Let us know if other solutions exist that we have yet to enumerate.
 Note that for any approach, implementation is a massive consideration. For
 example, a mark-sweep based solution may seem simple but the amount of work in
 coordination offset the extra work it might take to build a _Centralized
-Oracle_. We'll accept proposals for any solution but please coordinate with us
+Oracle_. We'll accept proposals for any solution but coordinate with us
 before dropping code.
 
 At this time, we have traded off simplicity and ease of deployment for disk
@@ -241,7 +241,7 @@ which is currently the most expensive resource in software engineering. Taking
 on any solution for deletes will greatly effect these factors, trading off
 very cheap disk space for a complex deployment and operational story.
 
-Please see the following issues for more detail:
+See the following issues for more detail:
 
 - https://github.com/docker/distribution/issues/422
 - https://github.com/docker/distribution/issues/461
@@ -253,9 +253,9 @@ At its core, the Distribution Project is a set of Go packages that make up
 Distribution Components. At this time, most of these packages make up the
 Registry implementation. 
 
-The package itself is considered unstable. If you're using it, please take care to vendor the dependent version. 
+The package itself is considered unstable. If you're using it, take care to vendor the dependent version. 
 
-For feature additions, please see the Registry section. In the future, we may break out a
+For feature additions, see the Registry section. In the future, we may break out a
 separate Roadmap for distribution-specific features that apply to more than
 just the registry.
 

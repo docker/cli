@@ -49,7 +49,7 @@ func NewDigestFromBytes(alg Algorithm, p []byte) Digest {
 	return NewDigestFromEncoded(alg, alg.Encode(p))
 }
 
-// NewDigestFromHex is deprecated. Please use NewDigestFromEncoded.
+// NewDigestFromHex is deprecated. Use NewDigestFromEncoded.
 func NewDigestFromHex(alg, hex string) Digest {
 	return NewDigestFromEncoded(Algorithm(alg), hex)
 }
@@ -137,7 +137,7 @@ func (d Digest) Encoded() string {
 	return string(d[d.sepIndex()+1:])
 }
 
-// Hex is deprecated. Please use Digest.Encoded.
+// Hex is deprecated. Use Digest.Encoded.
 func (d Digest) Hex() string {
 	return d.Encoded()
 }

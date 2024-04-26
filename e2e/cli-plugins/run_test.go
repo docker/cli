@@ -9,7 +9,7 @@ import (
 	"gotest.tools/v3/icmd"
 )
 
-const shortHFlagDeprecated = "Flag shorthand -h has been deprecated, please use --help\n"
+const shortHFlagDeprecated = "Flag shorthand -h has been deprecated, use --help\n"
 
 // TestRunNonexisting ensures correct behaviour when running a nonexistent plugin.
 func TestRunNonexisting(t *testing.T) {

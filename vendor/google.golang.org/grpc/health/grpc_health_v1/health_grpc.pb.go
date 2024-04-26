@@ -42,7 +42,7 @@ const (
 
 // HealthClient is the client API for Health service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HealthClient interface {
 	// Check gets the health of the specified service. If the requested service
 	// is unknown, the call will fail with status NOT_FOUND. If the caller does

@@ -33,7 +33,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // upgrade the proto package
 
 type NodeCertificateStatusRequest struct {
 	NodeID string `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
@@ -580,7 +580,7 @@ const _ = grpc.SupportPackageIsVersion4
 
 // CAClient is the client API for CA service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CAClient interface {
 	GetRootCACertificate(ctx context.Context, in *GetRootCACertificateRequest, opts ...grpc.CallOption) (*GetRootCACertificateResponse, error)
 	// GetUnlockKey returns the current unlock key for the cluster for the role of the client
@@ -692,7 +692,7 @@ var _CA_serviceDesc = grpc.ServiceDesc{
 
 // NodeCAClient is the client API for NodeCA service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type NodeCAClient interface {
 	IssueNodeCertificate(ctx context.Context, in *IssueNodeCertificateRequest, opts ...grpc.CallOption) (*IssueNodeCertificateResponse, error)
 	NodeCertificateStatus(ctx context.Context, in *NodeCertificateStatusRequest, opts ...grpc.CallOption) (*NodeCertificateStatusResponse, error)

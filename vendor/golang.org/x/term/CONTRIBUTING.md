@@ -19,7 +19,7 @@ The gophers there will answer or ask you to file an issue if you've tripped over
 
 ## Contributing code
 
-Please read the [Contribution Guidelines](https://golang.org/doc/contribute.html)
+Read the [Contribution Guidelines](https://golang.org/doc/contribute.html)
 before sending patches.
 
 Unless otherwise noted, the Go source files are distributed under

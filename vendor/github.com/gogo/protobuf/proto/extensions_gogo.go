@@ -50,7 +50,7 @@ type slowExtensionAdapter struct {
 }
 
 func (s slowExtensionAdapter) extensionsWrite() map[int32]Extension {
-	panic("Please report a bug to github.com/gogo/protobuf if you see this message: Writing extensions is not supported for extensions stored in a byte slice field.")
+	panic("Report a bug to github.com/gogo/protobuf if you see this message: Writing extensions is not supported for extensions stored in a byte slice field.")
 }
 
 func (s slowExtensionAdapter) extensionsRead() (map[int32]Extension, sync.Locker) {

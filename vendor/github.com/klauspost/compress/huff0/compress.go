@@ -676,7 +676,7 @@ func (s *Scratch) setMaxHeight(lastNonNull int) uint8 {
 				}
 			}
 			// only triggered when no more rank 1 symbol left => find closest one (note : there is necessarily at least one !)
-			// HUF_MAX_TABLELOG test just to please gcc 5+; but it should not be necessary
+			// HUF_MAX_TABLELOG test just to gcc 5+; but it should not be necessary
 			// FIXME: try to remove
 			for (nBitsToDecrease <= tableLogMax) && (rankLast[nBitsToDecrease] == noSymbol) {
 				nBitsToDecrease++

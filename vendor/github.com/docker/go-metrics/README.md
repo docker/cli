@@ -62,7 +62,7 @@ Bytes       Unit = "bytes"
 Total       Unit = "total"
 ```
 
-If you need to use a unit but it is not defined in the package please open a PR to add it but first try to see if one of the already created units will work for your metric, i.e. seconds or nanoseconds vs adding milliseconds.
+If you need to use a unit but it is not defined in the package, open a PR to add it but first try to see if one of the already created units will work for your metric, i.e. seconds or nanoseconds vs adding milliseconds.
 
 ## Docs
 

@@ -80,7 +80,7 @@ type Descriptor struct {
 	// This should only be used when referring to a manifest.
 	Platform *v1.Platform `json:"platform,omitempty"`
 
-	// NOTE: Before adding a field here, please ensure that all
+	// NOTE: Before adding a field here, ensure that all
 	// other options have been exhausted. Much of the type relationships
 	// depend on the simplicity of this type.
 }

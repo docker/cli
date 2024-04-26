@@ -148,7 +148,7 @@ func iimportCommon(fset *token.FileSet, getPackages GetPackagesFunc, data []byte
 				} else if version > currentVersion {
 					err = fmt.Errorf("cannot import %q (%v), export data is newer version - update tool", path, e)
 				} else {
-					err = fmt.Errorf("internal error while importing %q (%v); please report an issue", path, e)
+					err = fmt.Errorf("internal error while importing %q (%v); report an issue", path, e)
 				}
 			}
 		}()

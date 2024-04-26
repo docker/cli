@@ -103,7 +103,7 @@ Copy files from container to local path
 $ docker cp CONTAINER:/var/logs/ /tmp/app_logs
 ```
 
-Copy a file from container to stdout. Please note `cp` command produces a tar stream
+Copy a file from container to stdout. Note `cp` command produces a tar stream
 
 ```console
 $ docker cp CONTAINER:/var/logs/app.log - | tar x -O | grep "ERROR"

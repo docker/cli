@@ -65,7 +65,7 @@ To build Go code, there are several options:
 
 ### Compiling error, undefined: grpc.SupportPackageIsVersion
 
-Please update to the latest version of gRPC-Go using
+Update to the latest version of gRPC-Go using
 `go get google.golang.org/grpc`.
 
 ### How to turn on logging

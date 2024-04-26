@@ -114,7 +114,7 @@ common-style:
 	@fmtRes=$$($(GOFMT) -d $$(find . -path ./vendor -prune -o -name '*.go' -print)); \
 	if [ -n "$${fmtRes}" ]; then \
 		echo "gofmt checking failed!"; echo "$${fmtRes}"; echo; \
-		echo "Please ensure you are using $$($(GO) version) for formatting code."; \
+		echo "Ensure you are using $$($(GO) version) for formatting code."; \
 		exit 1; \
 	fi
 

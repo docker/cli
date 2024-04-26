@@ -33,7 +33,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // upgrade the proto package
 
 // WatchActionKind distinguishes between creations, updates, and removals. It
 // is structured as a bitmap so multiple kinds of events can be requested with
@@ -1224,7 +1224,7 @@ const _ = grpc.SupportPackageIsVersion4
 
 // WatchClient is the client API for Watch service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type WatchClient interface {
 	// Watch starts a stream that returns any changes to objects that match
 	// the specified selectors. When the stream begins, it immediately sends

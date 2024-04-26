@@ -39,7 +39,7 @@ command and provide the following key:
 
     SWMKEY-1-fySn8TY4w5lKcWcJPIpKufejh9hxx5KYwx6XZigx3Q4
 
-Please remember to store this key in a password manager, since without it you
+Remember to store this key in a password manager, since without it you
 will not be able to restart the manager.
 ```
 
@@ -56,7 +56,7 @@ command and provide the following key:
 
     SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8
 
-Please remember to store this key in a password manager, since without it you
+Remember to store this key in a password manager, since without it you
 will not be able to restart the manager.
 ```
 

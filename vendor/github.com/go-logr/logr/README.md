@@ -100,7 +100,7 @@ some conversion functions.
 
 ### Inspiration
 
-Before you consider this package, please read [this blog post by the
+Before you consider this package, read [this blog post by the
 inimitable Dave Cheney][warning-makes-no-sense].  We really appreciate what
 he has to say, and it largely aligns with our own experiences.
 

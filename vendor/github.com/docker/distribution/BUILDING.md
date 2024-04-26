@@ -22,7 +22,7 @@ If you are a casual user with no development experience, and no preliminary know
 ## Build the development environment
 
 The first prerequisite of properly building distribution targets is to have a Go
-development environment setup. Please follow [How to Write Go Code](https://golang.org/doc/code.html)
+development environment setup. Follow [How to Write Go Code](https://golang.org/doc/code.html)
 for proper setup. If done correctly, you should have a GOROOT and GOPATH set in the
 environment.
 
@@ -65,11 +65,11 @@ If it is working, one should see the above log messages.
 
 For the full development experience, one should `cd` into
 `$GOPATH/src/github.com/docker/distribution`. From there, the regular `go`
-commands, such as `go test`, should work per package (please see
+commands, such as `go test`, should work per package (see
 [Developing](#developing) if they don't work).
 
 A `Makefile` has been provided as a convenience to support repeatable builds.
-Please install the following into `GOPATH` for it to work:
+Install the following into `GOPATH` for it to work:
 
     go get github.com/golang/lint/golint
 

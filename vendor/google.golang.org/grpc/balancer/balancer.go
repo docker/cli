@@ -178,7 +178,7 @@ type ClientConn interface {
 	// It doesn't block and wait for the connections to be established.
 	// Behaviors of the SubConn can be controlled by options.
 	//
-	// Deprecated: please be aware that in a future version, SubConns will only
+	// Deprecated: be aware that in a future version, SubConns will only
 	// support one address per SubConn.
 	NewSubConn([]resolver.Address, NewSubConnOptions) (SubConn, error)
 	// RemoveSubConn removes the SubConn from ClientConn.

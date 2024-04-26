@@ -4,7 +4,7 @@
 
 Common digest package used across the container ecosystem.
 
-Please see the [godoc](https://godoc.org/github.com/opencontainers/go-digest) for more information.
+See the [godoc](https://godoc.org/github.com/opencontainers/go-digest) for more information.
 
 # What is a digest?
 
@@ -73,7 +73,7 @@ As always, before using a package export, read the [godoc](https://godoc.org/git
 This package is considered fairly complete.
 It has been in production in thousands (millions?) of deployments and is fairly battle-hardened.
 New additions will be met with skepticism.
-If you think there is a missing feature, please file a bug clearly describing the problem and the alternatives you tried before submitting a PR.
+If you think there is a missing feature, file a bug clearly describing the problem and the alternatives you tried before submitting a PR.
 
 ## Code of Conduct
 
@@ -81,7 +81,7 @@ Participation in the OpenContainers community is governed by [OpenContainer's Co
 
 ## Security
 
-If you find an issue, please follow the [security][security] protocol to report it.
+If you find an issue, follow the [security][security] protocol to report it.
 
 # Copyright and license
 

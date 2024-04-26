@@ -71,7 +71,7 @@ type ReadOnlySpan interface {
 	InstrumentationScope() instrumentation.Scope
 	// InstrumentationLibrary returns information about the instrumentation
 	// library that created the span.
-	// Deprecated: please use InstrumentationScope instead.
+	// Deprecated: use InstrumentationScope instead.
 	InstrumentationLibrary() instrumentation.Library
 	// Resource returns information about the entity that produced the span.
 	Resource() *resource.Resource

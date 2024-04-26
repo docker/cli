@@ -33,7 +33,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // upgrade the proto package
 
 type AttachNetworkRequest struct {
 	Config      *NetworkAttachmentConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
@@ -318,7 +318,7 @@ const _ = grpc.SupportPackageIsVersion4
 
 // ResourceAllocatorClient is the client API for ResourceAllocator service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ResourceAllocatorClient interface {
 	AttachNetwork(ctx context.Context, in *AttachNetworkRequest, opts ...grpc.CallOption) (*AttachNetworkResponse, error)
 	DetachNetwork(ctx context.Context, in *DetachNetworkRequest, opts ...grpc.CallOption) (*DetachNetworkResponse, error)

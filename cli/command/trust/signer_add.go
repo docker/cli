@@ -53,7 +53,7 @@ func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOpti
 		return fmt.Errorf("signer name \"%s\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character", signerName)
 	}
 	if signerName == "releases" {
-		return fmt.Errorf("releases is a reserved keyword, please use a different signer name")
+		return fmt.Errorf("releases is a reserved keyword, use a different signer name")
 	}
 
 	if options.keys.Len() == 0 {

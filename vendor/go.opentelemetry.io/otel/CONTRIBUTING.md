@@ -96,7 +96,7 @@ All pull requests are squashed to a single commit upon merge to `main`.
 
 ### How to Receive Comments
 
-* If the PR is not ready for review, please put `[WIP]` in the title,
+* If the PR is not ready for review, put `[WIP]` in the title,
   tag it as `work-in-progress`, or mark it as
   [`draft`](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
 * Make sure CLA is signed and CI is clear.
@@ -245,7 +245,7 @@ type config struct {
 In general the `config` type will not need to be used externally to the
 package and should be unexported. If, however, it is expected that the user
 will likely want to build custom options for the configuration, the `config`
-should be exported. Please, include in the documentation for the `config`
+should be exported. Include in the documentation for the `config`
 how the user can extend the configuration.
 
 It is important that internal `config` are not shared across package boundaries.

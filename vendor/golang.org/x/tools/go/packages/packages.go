@@ -96,23 +96,23 @@ const (
 
 const (
 	// Deprecated: LoadFiles exists for historical compatibility
-	// and should not be used. Please directly specify the needed fields using the Need values.
+	// and should not be used. Directly specify the needed fields using the Need values.
 	LoadFiles = NeedName | NeedFiles | NeedCompiledGoFiles
 
 	// Deprecated: LoadImports exists for historical compatibility
-	// and should not be used. Please directly specify the needed fields using the Need values.
+	// and should not be used. Directly specify the needed fields using the Need values.
 	LoadImports = LoadFiles | NeedImports
 
 	// Deprecated: LoadTypes exists for historical compatibility
-	// and should not be used. Please directly specify the needed fields using the Need values.
+	// and should not be used. Directly specify the needed fields using the Need values.
 	LoadTypes = LoadImports | NeedTypes | NeedTypesSizes
 
 	// Deprecated: LoadSyntax exists for historical compatibility
-	// and should not be used. Please directly specify the needed fields using the Need values.
+	// and should not be used. Directly specify the needed fields using the Need values.
 	LoadSyntax = LoadTypes | NeedSyntax | NeedTypesInfo
 
 	// Deprecated: LoadAllSyntax exists for historical compatibility
-	// and should not be used. Please directly specify the needed fields using the Need values.
+	// and should not be used. Directly specify the needed fields using the Need values.
 	LoadAllSyntax = LoadSyntax | NeedDeps
 
 	// Deprecated: NeedExportsFile is a historical misspelling of NeedExportFile.
@@ -955,7 +955,7 @@ func (ld *loader) loadPackage(lpkg *loaderPackage) {
 				Kind: UnknownError,
 			})
 
-			// If you see this error message, please file a bug.
+			// If you see this error message, file a bug.
 			log.Printf("internal error: error %q (%T) without position", err, err)
 		}
 

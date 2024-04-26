@@ -18,7 +18,7 @@ git add -A
 cp -rf /out/* .
 diff=$(git status --porcelain -- AUTHORS)
 if [ -n "$diff" ]; then
-  echo >&2 'ERROR: Authors result differs. Please update with "make -f docker.Makefile authors"'
+  echo >&2 'ERROR: Authors result differs. Update with "make -f docker.Makefile authors"'
   echo "$diff"
   exit 1
 fi

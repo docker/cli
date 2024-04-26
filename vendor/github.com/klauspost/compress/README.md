@@ -482,7 +482,7 @@ While the release has been extensively tested, it is recommended to testing when
 * Apr 02, 2017: Change back to official crc32, since changes were merged in Go 1.7.
 * Jan 14, 2017: Reduce stack pressure due to array copies. See [Issue #18625](https://github.com/golang/go/issues/18625).
 * Oct 25, 2016: Level 2-4 have been rewritten and now offers significantly better performance than before.
-* Oct 20, 2016: Port zlib changes from Go 1.7 to fix zlib writer issue. Please update.
+* Oct 20, 2016: Port zlib changes from Go 1.7 to fix zlib writer issue. Update.
 * Oct 16, 2016: Go 1.7 changes merged. Apples to apples this package is a few percent faster, but has a significantly better balance between speed and compression per level. 
 * Mar 24, 2016: Always attempt Huffman encoding on level 4-7. This improves base 64 encoded data compression.
 * Mar 24, 2016: Small speedup for level 1-3.
@@ -501,7 +501,7 @@ While the release has been extensively tested, it is recommended to testing when
 * Jan 8 2016: Merge [CL 18317](https://go-review.googlesource.com/#/c/18317): fix reading, writing of zip64 archives.
 * Dec 8 2015: Make level 1 and -2 deterministic even if write size differs.
 * Dec 8 2015: Split encoding functions, so hashing and matching can potentially be inlined. 1-3% faster on AMD64. 5% faster on other platforms.
-* Dec 8 2015: Fixed rare [one byte out-of bounds read](https://github.com/klauspost/compress/issues/20). Please update!
+* Dec 8 2015: Fixed rare [one byte out-of bounds read](https://github.com/klauspost/compress/issues/20). Update!
 * Nov 23 2015: Optimization on token writer. ~2-4% faster. Contributed by [@dsnet](https://github.com/dsnet).
 * Nov 20 2015: Small optimization to bit writer on 64 bit systems.
 * Nov 17 2015: Fixed out-of-bound errors if the underlying Writer returned an error. See [#15](https://github.com/klauspost/compress/issues/15).

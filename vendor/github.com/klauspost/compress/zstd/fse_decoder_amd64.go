@@ -14,7 +14,7 @@ type buildDtableAsmContext struct {
 	dt         *uint64
 
 	// outputs --- set by the procedure in the case of error;
-	// for interpretation please see the error handling part below
+	// for interpretation see the error handling part below
 	errParam1 uint64
 	errParam2 uint64
 }
@@ -25,7 +25,7 @@ type buildDtableAsmContext struct {
 //go:noescape
 func buildDtable_asm(s *fseDecoder, ctx *buildDtableAsmContext) int
 
-// please keep in sync with _generate/gen_fse.go
+// keep in sync with _generate/gen_fse.go
 const (
 	errorCorruptedNormalizedCounter = 1
 	errorNewStateTooBig             = 2

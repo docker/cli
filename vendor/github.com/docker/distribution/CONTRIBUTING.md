@@ -8,7 +8,7 @@
  - your account on the [Docker Hub](https://hub.docker.com/)
  - any other [Docker Hub](https://hub.docker.com/) issue
 
-Then please do not report your issue here - you should instead report it to [https://support.docker.com](https://support.docker.com)
+Then do not report your issue here - you should instead report it to [https://support.docker.com](https://support.docker.com)
 
 ### If you...
 
@@ -16,7 +16,7 @@ Then please do not report your issue here - you should instead report it to [htt
  - can't figure out something
  - are not sure what's going on or what your problem is
 
-Then please do not open an issue here yet - you should first try one of the following support forums:
+Then do not open an issue here yet - you should first try one of the following support forums:
 
  - irc: #docker-distribution on freenode
  - mailing-list: <distribution@dockerproject.org> or https://groups.google.com/a/dockerproject.org/forum/#!forum/distribution
@@ -24,9 +24,9 @@ Then please do not open an issue here yet - you should first try one of the foll
 ### Reporting security issues
 
 The Docker maintainers take security seriously. If you discover a security
-issue, please bring it to their attention right away!
+issue, bring it to their attention right away!
 
-Please **DO NOT** file a public issue, instead send your report privately to
+**DO NOT** file a public issue, instead send your report privately to
 [security@docker.com](mailto:security@docker.com).
 
 ## Reporting an issue properly
@@ -37,8 +37,8 @@ By following these simple rules you will get better and faster feedback on your 
 
 ### If you found an issue that describes your problem:
 
- - please read other user comments first, and confirm this is the same issue: a given error condition might be indicative of different problems - you may also find a workaround in the comments
- - please refrain from adding "same thing here" or "+1" comments
+ - read other user comments first, and confirm this is the same issue: a given error condition might be indicative of different problems - you may also find a workaround in the comments
+ - refrain from adding "same thing here" or "+1" comments
  - you don't need to comment on an issue to get notified of updates: just hit the "subscribe" button
  - comment if you have some new, technical and relevant information to add to the case
  - __DO NOT__ comment on closed issues or merged PRs. If you think you have a related problem, open up a new issue and reference the PR or issue.
@@ -77,7 +77,7 @@ Some simple rules to ensure quick merge:
 
  - clearly point to the issue(s) you want to fix in your PR comment (e.g., `closes #12345`)
  - prefer multiple (smaller) PRs addressing individual issues over a big one trying to address multiple issues at once
- - if you need to amend your PR following comments, please squash instead of adding more commits
+ - if you need to amend your PR following comments, squash instead of adding more commits
 
 ## Contributing new features
 

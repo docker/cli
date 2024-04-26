@@ -224,16 +224,16 @@ It is possible to deprecate a flag, or just its shorthand. Deprecating a flag/sh
 **Example #1**: You want to deprecate a flag named "badflag" as well as inform the users what flag they should use instead.
 ```go
 // deprecate a flag by specifying its name and a usage message
-flags.MarkDeprecated("badflag", "please use --good-flag instead")
+flags.MarkDeprecated("badflag", "use --good-flag instead")
 ```
-This hides "badflag" from help text, and prints `Flag --badflag has been deprecated, please use --good-flag instead` when "badflag" is used.
+This hides "badflag" from help text, and prints `Flag --badflag has been deprecated, use --good-flag instead` when "badflag" is used.
 
 **Example #2**: You want to keep a flag name "noshorthandflag" but deprecate its shortname "n".
 ```go
 // deprecate a flag shorthand by specifying its flag name and a usage message
-flags.MarkShorthandDeprecated("noshorthandflag", "please use --noshorthandflag only")
+flags.MarkShorthandDeprecated("noshorthandflag", "use --noshorthandflag only")
 ```
-This hides the shortname "n" from help text, and prints `Flag shorthand -n has been deprecated, please use --noshorthandflag only` when the shorthand "n" is used.
+This hides the shortname "n" from help text, and prints `Flag shorthand -n has been deprecated, use --noshorthandflag only` when the shorthand "n" is used.
 
 Note that usage message is essential here, and it should not be empty.
 

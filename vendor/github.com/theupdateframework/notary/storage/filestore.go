@@ -82,7 +82,7 @@ func (f *FilesystemStore) migrateTo0Dot4() {
 	if _, err := os.Stat(rootKeysSubDir); !os.IsNotExist(err) && f.Location() != rootKeysSubDir {
 		if rootKeysSubDir == "" || rootKeysSubDir == "/" {
 			// making sure we don't remove a user's homedir
-			logrus.Warn("The directory for root keys is an unsafe value, we are not going to delete the directory. Please delete it manually")
+			logrus.Warn("The directory for root keys is an unsafe value, we are not going to delete the directory. Delete it manually")
 		} else {
 			// root_keys exists, migrate things from it
 			listOnlyRootKeysDirStore, _ := NewFileStore(rootKeysSubDir, f.ext)
@@ -97,7 +97,7 @@ func (f *FilesystemStore) migrateTo0Dot4() {
 	if _, err := os.Stat(nonRootKeysSubDir); !os.IsNotExist(err) && f.Location() != nonRootKeysSubDir {
 		if nonRootKeysSubDir == "" || nonRootKeysSubDir == "/" {
 			// making sure we don't remove a user's homedir
-			logrus.Warn("The directory for non root keys is an unsafe value, we are not going to delete the directory. Please delete it manually")
+			logrus.Warn("The directory for non root keys is an unsafe value, we are not going to delete the directory. Delete it manually")
 		} else {
 			// tuf_keys exists, migrate things from it
 			listOnlyNonRootKeysDirStore, _ := NewFileStore(nonRootKeysSubDir, f.ext)
@@ -112,7 +112,7 @@ func (f *FilesystemStore) migrateTo0Dot4() {
 	// if we have a trusted_certificates folder, let's delete for a complete migration since it is unused by new clients
 	certsSubDir := filepath.Join(f.Location(), "trusted_certificates")
 	if certsSubDir == "" || certsSubDir == "/" {
-		logrus.Warn("The directory for trusted certificate is an unsafe value, we are not going to delete the directory. Please delete it manually")
+		logrus.Warn("The directory for trusted certificate is an unsafe value, we are not going to delete the directory. Delete it manually")
 	} else {
 		os.RemoveAll(certsSubDir)
 	}

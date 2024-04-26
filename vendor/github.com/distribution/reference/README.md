@@ -10,16 +10,16 @@ Go library to handle references to container images.
 [![codecov](https://codecov.io/gh/distribution/reference/branch/main/graph/badge.svg)](https://codecov.io/gh/distribution/reference)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fdistribution%2Freference.svg?type=shield)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fdistribution%2Freference?ref=badge_shield)
 
-This repository contains a library for handling refrences to container images held in container registries. Please see [godoc](https://pkg.go.dev/github.com/distribution/reference) for details.
+This repository contains a library for handling refrences to container images held in container registries. See [godoc](https://pkg.go.dev/github.com/distribution/reference) for details.
 
 ## Contribution
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute
 issues, fixes, and patches to this project.
 
 ## Communication
 
-For async communication and long running discussions please use issues and pull requests on the github repo.
+For async communication and long running discussions use issues and pull requests on the github repo.
 This will be the best place to discuss design and implementation.
 
 For sync communication we have a #distribution channel in the [CNCF Slack](https://slack.cncf.io/)

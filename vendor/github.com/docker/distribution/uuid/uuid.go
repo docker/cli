@@ -1,7 +1,7 @@
 // Package uuid provides simple UUID generation. Only version 4 style UUIDs
 // can be generated.
 //
-// Please see http://tools.ietf.org/html/rfc4122 for details on UUIDs.
+// See http://tools.ietf.org/html/rfc4122 for details on UUIDs.
 package uuid
 
 import (

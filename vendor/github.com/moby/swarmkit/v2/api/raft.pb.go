@@ -32,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // upgrade the proto package
 
 // StoreActionKind defines the operation to take on the store for the target of
 // a storage action.
@@ -1114,7 +1114,7 @@ const _ = grpc.SupportPackageIsVersion4
 
 // RaftClient is the client API for Raft service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type RaftClient interface {
 	// ProcessRaftMessage sends a raft message to be processed on a raft member, it is
 	// called from the RaftMember willing to send a message to its destination ('To' field)
@@ -1309,7 +1309,7 @@ var _Raft_serviceDesc = grpc.ServiceDesc{
 
 // RaftMembershipClient is the client API for RaftMembership service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs,  refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type RaftMembershipClient interface {
 	// Join adds a RaftMember to the raft cluster.
 	Join(ctx context.Context, in *JoinRequest, opts ...grpc.CallOption) (*JoinResponse, error)

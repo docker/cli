@@ -23,7 +23,7 @@ import (
 )
 
 // DefaultClient is the default Client and is used by Get, Head, Post and PostForm.
-// Please be careful of intitialization order - for example, if you change
+// Be careful of intitialization order - for example, if you change
 // the global propagator, the DefaultClient might still be using the old one.
 var DefaultClient = &http.Client{Transport: NewTransport(http.DefaultTransport)}
 

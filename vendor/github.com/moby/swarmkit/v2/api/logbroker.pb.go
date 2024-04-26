@@ -34,7 +34,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // upgrade the proto package
 
 // LogStream defines the stream from which the log message came.
 type LogStream int32
@@ -902,7 +902,7 @@ const _ = grpc.SupportPackageIsVersion4
 
 // LogsClient is the client API for Logs service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type LogsClient interface {
 	// SubscribeLogs starts a subscription with the specified selector and options.
 	//
@@ -1013,7 +1013,7 @@ var _Logs_serviceDesc = grpc.ServiceDesc{
 
 // LogBrokerClient is the client API for LogBroker service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type LogBrokerClient interface {
 	// ListenSubscriptions starts a subscription stream for the node. For each
 	// message received, the node should attempt to satisfy the subscription.

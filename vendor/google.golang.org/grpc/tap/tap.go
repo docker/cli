@@ -52,7 +52,7 @@ type Info struct {
 //
 // It's intended to be used in situations where you don't want to waste the
 // resources to accept the new stream (e.g. rate-limiting). For other general
-// usages, please use interceptors.
+// usages, use interceptors.
 //
 // Note that it is executed in the per-connection I/O goroutine(s) instead of
 // per-RPC goroutine. Therefore, users should NOT have any

@@ -103,9 +103,9 @@ It can be installed by running:
 go install github.com/spf13/cobra-cli@latest
 ```
 
-For complete details on using the Cobra-CLI generator, please read [The Cobra Generator README](https://github.com/spf13/cobra-cli/blob/main/README.md)
+For complete details on using the Cobra-CLI generator, read [The Cobra Generator README](https://github.com/spf13/cobra-cli/blob/main/README.md)
 
-For complete details on using the Cobra library, please read the [The Cobra User Guide](site/content/user_guide.md).
+For complete details on using the Cobra library, read the [The Cobra User Guide](site/content/user_guide.md).
 
 # License
 

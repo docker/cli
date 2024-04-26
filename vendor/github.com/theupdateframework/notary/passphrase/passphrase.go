@@ -19,8 +19,8 @@ const (
 	idBytesToDisplay            = 7
 	tufRootAlias                = "root"
 	tufRootKeyGenerationWarning = `You are about to create a new root signing key passphrase. This passphrase
-will be used to protect the most sensitive key in your signing system. Please
-choose a long, complex passphrase and be careful to keep the password and the
+will be used to protect the most sensitive key in your signing system. Choose
+a long, complex passphrase and be careful to keep the password and the
 key file itself secure and backed up. It is highly recommended that you use a
 password manager to generate the passphrase and keep it safe. There will be no
 way to recover this key. You can find the key in your config directory.`
@@ -40,7 +40,7 @@ var (
 	ErrTooManyAttempts = errors.New("Too many attempts")
 
 	// ErrNoInput is returned if we do not have a valid input method for passphrases
-	ErrNoInput = errors.New("Please either use environment variables or STDIN with a terminal to provide key passphrases")
+	ErrNoInput = errors.New("Either use environment variables or STDIN with a terminal to provide key passphrases")
 )
 
 // PromptRetriever returns a new Retriever which will provide a prompt on stdin
@@ -77,7 +77,7 @@ func (br *boundRetriever) getPassphrase(keyName, alias string, createNew bool, n
 		if numAttempts > 3 {
 			return "", true, ErrTooManyAttempts
 		}
-		fmt.Fprintln(br.out, "Passphrase incorrect. Please retry.")
+		fmt.Fprintln(br.out, "Passphrase incorrect. Retry.")
 	}
 
 	// passphrase not cached and we're not aborting, get passphrase from user!
@@ -144,7 +144,7 @@ func (br *boundRetriever) requestPassphrase(keyName, alias string, createNew boo
 
 func (br *boundRetriever) verifyAndConfirmPassword(stdin *bufio.Reader, retPass, displayAlias, withID string) error {
 	if len(retPass) < 8 {
-		fmt.Fprintln(br.out, "Passphrase is too short. Please use a password manager to generate and store a good random passphrase.")
+		fmt.Fprintln(br.out, "Passphrase is too short. Use a password manager to generate and store a good random passphrase.")
 		return ErrTooShort
 	}
 
@@ -158,7 +158,7 @@ func (br *boundRetriever) verifyAndConfirmPassword(stdin *bufio.Reader, retPass,
 	confirmationStr := strings.TrimSpace(string(confirmation))
 
 	if retPass != confirmationStr {
-		fmt.Fprintln(br.out, "Passphrases do not match. Please retry.")
+		fmt.Fprintln(br.out, "Passphrases do not match. Retry.")
 		return ErrDontMatch
 	}
 	return nil

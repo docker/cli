@@ -299,7 +299,7 @@ func withBackoff(bs internalbackoff.Strategy) DialOption {
 // underlying connection is up. Without this, Dial returns immediately and
 // connecting the server happens in background.
 //
-// Use of this feature is not recommended.  For more information, please see:
+// Use of this feature is not recommended.  For more information, see:
 // https://github.com/grpc/grpc-go/blob/master/Documentation/anti-patterns.md
 func WithBlock() DialOption {
 	return newFuncDialOption(func(o *dialOptions) {
@@ -312,7 +312,7 @@ func WithBlock() DialOption {
 // the context.DeadlineExceeded error.
 // Implies WithBlock()
 //
-// Use of this feature is not recommended.  For more information, please see:
+// Use of this feature is not recommended.  For more information, see:
 // https://github.com/grpc/grpc-go/blob/master/Documentation/anti-patterns.md
 //
 // # Experimental
@@ -408,7 +408,7 @@ func WithTimeout(d time.Duration) DialOption {
 // option to true from the Control field. For a concrete example of how to do
 // this, see internal.NetDialerWithTCPKeepalive().
 //
-// For more information, please see [issue 23459] in the Go github repo.
+// For more information, see [issue 23459] in the Go github repo.
 //
 // [issue 23459]: https://github.com/golang/go/issues/23459
 func WithContextDialer(f func(context.Context, string) (net.Conn, error)) DialOption {
@@ -468,7 +468,7 @@ func withBinaryLogger(bl binarylog.Logger) DialOption {
 // FailOnNonTempDialError only affects the initial dial, and does not do
 // anything useful unless you are also using WithBlock().
 //
-// Use of this feature is not recommended.  For more information, please see:
+// Use of this feature is not recommended.  For more information, see:
 // https://github.com/grpc/grpc-go/blob/master/Documentation/anti-patterns.md
 //
 // # Experimental

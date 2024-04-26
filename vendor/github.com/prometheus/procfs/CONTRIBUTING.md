@@ -11,7 +11,7 @@ Prometheus uses GitHub to manage reviews of pull requests.
 * If you plan to do something more involved, first discuss your ideas
   on our [mailing list](https://groups.google.com/forum/?fromgroups#!forum/prometheus-developers).
   This will avoid unnecessary work and surely give you and us a good deal
-  of inspiration. Also please see our [non-goals issue](https://github.com/prometheus/docs/issues/149) on areas that the Prometheus community doesn't plan to work on.
+  of inspiration. Also see our [non-goals issue](https://github.com/prometheus/docs/issues/149) on areas that the Prometheus community doesn't plan to work on.
 
 * Relevant coding style guidelines are the [Go Code Review
   Comments](https://code.google.com/p/go-wiki/wiki/CodeReviewComments)
@@ -23,9 +23,9 @@ Prometheus uses GitHub to manage reviews of pull requests.
 
 ## Steps to Contribute
 
-Should you wish to work on an issue, please claim it first by commenting on the GitHub issue that you want to work on it. This is to prevent duplicated efforts from contributors on the same issue.
+Should you wish to work on an issue, claim it first by commenting on the GitHub issue that you want to work on it. This is to prevent duplicated efforts from contributors on the same issue.
 
-Please check the [`help-wanted`](https://github.com/prometheus/procfs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) label to find issues that are good for getting started. If you have questions about one of the issues, with or without the tag, please comment on them and one of the maintainers will clarify it. For a quicker response, contact us over [IRC](https://prometheus.io/community).
+Check the [`help-wanted`](https://github.com/prometheus/procfs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) label to find issues that are good for getting started. If you have questions about one of the issues, with or without the tag, comment on them and one of the maintainers will clarify it. For a quicker response, contact us over [IRC](https://prometheus.io/community).
 
 For quickly compiling and testing your changes do:
 ```

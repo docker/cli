@@ -108,7 +108,7 @@ go test -bench=.*CallerTracing
 #### Case-sensitivity
 
 The organization's name was changed to lower-case--and this will not be changed
-back. If you are getting import conflicts due to case sensitivity, please use
+back. If you are getting import conflicts due to case sensitivity, use
 the lower-case import: `github.com/sirupsen/logrus`.
 
 #### Example
@@ -285,7 +285,7 @@ func init() {
   }
 }
 ```
-Note: Syslog hook also support connecting to local syslog (Ex. "/dev/log" or "/var/run/syslog" or "/var/run/log"). For the detail, please check the [syslog hook README](hooks/syslog/README.md).
+Note: Syslog hook also support connecting to local syslog (Ex. "/dev/log" or "/var/run/syslog" or "/var/run/log"). For the detail, check the [syslog hook README](hooks/syslog/README.md).
 
 A list of currently known service hooks can be found in this wiki [page](https://github.com/sirupsen/logrus/wiki/Hooks)
 
@@ -317,7 +317,7 @@ log.SetLevel(log.InfoLevel)
 It may be useful to set `log.Level = logrus.DebugLevel` in a debug or verbose
 environment if your application has that.
 
-Note: If you want different log levels for global (`log.SetLevel(...)`) and syslog logging, please check the [syslog hook README](hooks/syslog/README.md#different-log-levels-for-local-and-remote-logging).
+Note: If you want different log levels for global (`log.SetLevel(...)`) and syslog logging, Check the [syslog hook README](hooks/syslog/README.md#different-log-levels-for-local-and-remote-logging).
 
 #### Entries
 

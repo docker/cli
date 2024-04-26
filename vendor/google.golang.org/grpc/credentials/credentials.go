@@ -107,7 +107,7 @@ type ProtocolInfo struct {
 	// credentials, not a value that reflects per-connection protocol negotiation.  To retrieve
 	// details about the credentials used for a connection, use the Peer's AuthInfo field instead.
 	//
-	// Deprecated: please use Peer.AuthInfo.
+	// Deprecated: use Peer.AuthInfo.
 	SecurityVersion string
 	// ServerName is the user-configured server name.
 	ServerName string

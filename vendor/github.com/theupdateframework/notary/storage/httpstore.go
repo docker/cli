@@ -5,7 +5,7 @@
 //   else validation error details, etc. will be unparsable.  The errors
 //   should have a github.com/theupdateframework/notary/tuf/validation/SerializableError
 //   in the Details field.
-//   If writing your own server, please have a look at
+//   If writing your own server, have a look at
 //   github.com/docker/distribution/registry/api/errcode
 
 package storage

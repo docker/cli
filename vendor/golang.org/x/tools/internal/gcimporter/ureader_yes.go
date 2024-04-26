@@ -67,7 +67,7 @@ func UImportData(fset *token.FileSet, imports map[string]*types.Package, data []
 	if !debug {
 		defer func() {
 			if x := recover(); x != nil {
-				err = fmt.Errorf("internal error in importing %q (%v); please report an issue", path, x)
+				err = fmt.Errorf("internal error in importing %q (%v); report an issue", path, x)
 			}
 		}()
 	}

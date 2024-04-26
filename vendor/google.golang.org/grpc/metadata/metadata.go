@@ -17,7 +17,7 @@
  */
 
 // Package metadata define the structure of the metadata supported by gRPC library.
-// Please refer to https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
+// refer to https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
 // for more information about custom-metadata.
 package metadata // import "google.golang.org/grpc/metadata"
 
@@ -168,7 +168,7 @@ func NewOutgoingContext(ctx context.Context, md MD) context.Context {
 }
 
 // AppendToOutgoingContext returns a new context with the provided kv merged
-// with any existing metadata in the context. Please refer to the documentation
+// with any existing metadata in the context. refer to the documentation
 // of Pairs for a description of kv.
 func AppendToOutgoingContext(ctx context.Context, kv ...string) context.Context {
 	if len(kv)%2 == 1 {

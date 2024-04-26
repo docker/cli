@@ -49,7 +49,7 @@ if [[ "$1" = "-install" ]]; then
       bin/protoc --version
       popd
     elif not which protoc > /dev/null; then
-      die "Please install protoc into your path"
+      die "install protoc into your path"
     fi
   fi
   exit 0
@@ -130,7 +130,7 @@ grep -v "(ST1000)" "${SC_OUT}" | grep -v "(SA1019)" | grep -v "(ST1003)" | not g
 grep "(ST1003)" "${SC_OUT}" | not grep -v '\(.pb.go:\)\|\(code_string_test.go:\)'
 
 # Error for duplicate imports not including grpc protos.
-grep "(ST1019)\|\(other import of\)" "${SC_OUT}" | not grep -Fv 'XXXXX PleaseIgnoreUnused
+grep "(ST1019)\|\(other import of\)" "${SC_OUT}" | not grep -Fv 'XXXXX IgnoreUnused
 channelz/grpc_channelz_v1"
 go-control-plane/envoy
 grpclb/grpc_lb_v1"
@@ -141,14 +141,14 @@ proto/grpc_gcp"
 proto/grpc_lookup_v1"
 reflection/grpc_reflection_v1"
 reflection/grpc_reflection_v1alpha"
-XXXXX PleaseIgnoreUnused'
+XXXXX IgnoreUnused'
 
 # Error for any package comments not in generated code.
 grep "(ST1000)" "${SC_OUT}" | not grep -v "\.pb\.go:"
 
 # Only ignore the following deprecated types/fields/functions and exclude
 # generated code.
-grep "(SA1019)" "${SC_OUT}" | not grep -Fv 'XXXXX PleaseIgnoreUnused
+grep "(SA1019)" "${SC_OUT}" | not grep -Fv 'XXXXX IgnoreUnused
 XXXXX Protobuf related deprecation errors:
 "github.com/golang/protobuf
 .pb.go:
@@ -187,6 +187,6 @@ GetValidationContextCertificateProviderInstance
 XXXXX TODO: Remove the below deprecation usages:
 CloseNotifier
 Roots.Subjects
-XXXXX PleaseIgnoreUnused'
+XXXXX IgnoreUnused'
 
 echo SUCCESS

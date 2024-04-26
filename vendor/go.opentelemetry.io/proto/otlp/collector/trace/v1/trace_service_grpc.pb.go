@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 // TraceServiceClient is the client API for TraceService service.
 //
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+// For semantics around ctx use and closing/ending streaming RPCs, refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TraceServiceClient interface {
 	// For performance reasons, it is recommended to keep this RPC
 	// alive for the entire life of the application.

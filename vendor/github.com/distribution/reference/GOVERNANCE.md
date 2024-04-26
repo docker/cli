@@ -2,7 +2,7 @@
 
 Distribution [Code of Conduct](./CODE-OF-CONDUCT.md) can be found here.
 
-For specific guidance on practical contribution steps please
+For specific guidance on practical contribution steps
 see our [CONTRIBUTING.md](./CONTRIBUTING.md) guide.
 
 ## Maintainership
@@ -128,7 +128,7 @@ add a DCO signature in a pull requests's comment, or a maintainer can simply
 note that the change is sufficiently trivial that it does not substantially
 change the existing contribution - i.e., a spelling change.
 
-When you add someone's DCO, please also add your own to keep a log.
+When you add someone's DCO, also add your own to keep a log.
 
 ## I'm a maintainer. Should I make pull requests too?
 

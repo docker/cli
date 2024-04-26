@@ -896,7 +896,7 @@ func (c *Command) execute(a []string) (err error) {
 	if err != nil {
 		// should be impossible to get here as we always declare a help
 		// flag in InitDefaultHelpFlag()
-		c.Println("\"help\" flag declared as non-bool. Please correct your code")
+		c.Println("\"help\" flag declared as non-bool. Correct your code")
 		return err
 	}
 
@@ -908,7 +908,7 @@ func (c *Command) execute(a []string) (err error) {
 	if c.Version != "" {
 		versionVal, err := c.Flags().GetBool("version")
 		if err != nil {
-			c.Println("\"version\" flag declared as non-bool. Please correct your code")
+			c.Println("\"version\" flag declared as non-bool. Correct your code")
 			return err
 		}
 		if versionVal {

@@ -29,7 +29,7 @@ update() {
 validate() {
   diff=$(git status --porcelain -- vendor.mod vendor.sum vendor)
   if [ -n "$diff" ]; then
-    echo >&2 'ERROR: Vendor result differs. Please vendor your package with "make -f docker.Makefile vendor"'
+    echo >&2 'ERROR: Vendor result differs. Vendor your package with "make -f docker.Makefile vendor"'
     echo "$diff"
     exit 1
   fi

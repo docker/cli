@@ -9,7 +9,7 @@ to reuse the thread to schedule another goroutine. This limits support to Window
 newer operating systems. This is similar to the implementation of network sockets in Go's net
 package.
 
-Please see the LICENSE file for licensing information.
+See the LICENSE file for licensing information.
 
 ## Contributing
 
@@ -33,7 +33,7 @@ to certify they either authored the work themselves or otherwise have permission
 
 A range of commits can be signed off using [`git rebase --signoff`][git-rebase-s].
 
-Please see [the developer certificate](https://developercertificate.org) for more info,
+See [the developer certificate](https://developercertificate.org) for more info,
 as well as to make sure that you can attest to the rules listed.
 Our CI uses the DCO Github app to ensure that all commits in a given PR are signed-off.
 

@@ -25,14 +25,14 @@ type decodeSyncAsmContext struct {
 	litPosition int
 	history     []byte
 	windowSize  int
-	ll          int // set on error (not for all errors, please refer to _generate/gen.go)
-	ml          int // set on error (not for all errors, please refer to _generate/gen.go)
-	mo          int // set on error (not for all errors, please refer to _generate/gen.go)
+	ll          int // set on error (not for all errors, refer to _generate/gen.go)
+	ml          int // set on error (not for all errors, refer to _generate/gen.go)
+	mo          int // set on error (not for all errors, refer to _generate/gen.go)
 }
 
 // sequenceDecs_decodeSync_amd64 implements the main loop of sequenceDecs.decodeSync in x86 asm.
 //
-// Please refer to seqdec_generic.go for the reference implementation.
+// Refer to seqdec_generic.go for the reference implementation.
 //
 //go:noescape
 func sequenceDecs_decodeSync_amd64(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
@@ -211,14 +211,14 @@ const errorOverread = 6
 
 // sequenceDecs_decode implements the main loop of sequenceDecs in x86 asm.
 //
-// Please refer to seqdec_generic.go for the reference implementation.
+// Refer to seqdec_generic.go for the reference implementation.
 //
 //go:noescape
 func sequenceDecs_decode_amd64(s *sequenceDecs, br *bitReader, ctx *decodeAsmContext) int
 
 // sequenceDecs_decode implements the main loop of sequenceDecs in x86 asm.
 //
-// Please refer to seqdec_generic.go for the reference implementation.
+// Refer to seqdec_generic.go for the reference implementation.
 //
 //go:noescape
 func sequenceDecs_decode_56_amd64(s *sequenceDecs, br *bitReader, ctx *decodeAsmContext) int
@@ -331,7 +331,7 @@ type executeAsmContext struct {
 //
 // Returns false if a match offset is too big.
 //
-// Please refer to seqdec_generic.go for the reference implementation.
+// Refer to seqdec_generic.go for the reference implementation.
 //
 //go:noescape
 func sequenceDecs_executeSimple_amd64(ctx *executeAsmContext) bool

@@ -82,7 +82,7 @@ func SetTouchToSignUI(notifier func(), callback func()) {
 }
 
 var touchToSignUI = func() {
-	fmt.Println("Please touch the attached Yubikey to perform signing.")
+	fmt.Println("Touch the attached Yubikey to perform signing.")
 }
 
 var touchDoneCallback = func() {

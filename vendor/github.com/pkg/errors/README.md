@@ -52,7 +52,7 @@ With the upcoming [Go2 error proposals](https://go.googlesource.com/proposal/+/m
 
 Because of the Go2 errors changes, this package is not accepting proposals for new functionality. With that said, we welcome pull requests, bug fixes and issue reports. 
 
-Before sending a PR, please discuss your change by raising an issue.
+Before sending a PR, discuss your change by raising an issue.
 
 ## License
 

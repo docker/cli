@@ -9,14 +9,14 @@ The retries exponentially increase and stop increasing when a certain threshold 
 
 ## Usage
 
-Import path is `github.com/cenkalti/backoff/v4`. Please note the version part at the end.
+Import path is `github.com/cenkalti/backoff/v4`. Note the version part at the end.
 
 Use https://pkg.go.dev/github.com/cenkalti/backoff/v4 to view the documentation.
 
 ## Contributing
 
 * I would like to keep this library as small as possible.
-* Please don't send a PR without opening an issue and discussing it first.
+* Don't send a PR without opening an issue and discussing it first.
 * If proposed change is not a common use case, I will probably not accept it.
 
 [godoc]: https://pkg.go.dev/github.com/cenkalti/backoff/v4

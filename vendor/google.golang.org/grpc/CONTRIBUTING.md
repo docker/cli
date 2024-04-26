@@ -1,10 +1,10 @@
 # How to contribute
 
-We definitely welcome your patches and contributions to gRPC! Please read the gRPC
+We definitely welcome your patches and contributions to gRPC! Read the gRPC
 organization's [governance rules](https://github.com/grpc/grpc-community/blob/master/governance.md)
 and [contribution guidelines](https://github.com/grpc/grpc-community/blob/master/CONTRIBUTING.md) before proceeding.
 
-If you are new to github, please start by reading [Pull Request howto](https://help.github.com/articles/about-pull-requests/)
+If you are new to github, start by reading [Pull Request howto](https://help.github.com/articles/about-pull-requests/)
 
 ## Legal requirements
 
@@ -44,7 +44,7 @@ How to get your contributions merged smoothly and quickly.
 - If you want to fix formatting or style, consider whether your changes are an 
   obvious improvement or might be considered a personal preference. If a style 
   change is based on preference, it likely will not be accepted. If it corrects 
-  widely agreed-upon anti-patterns, then please do create a PR and explain the 
+  widely agreed-upon anti-patterns, then do create a PR and explain the 
   benefits of the change.
 
 - Unless your PR is trivial, you should expect there will be reviewer comments

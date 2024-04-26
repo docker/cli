@@ -11,7 +11,7 @@ however, there are tools that automate much of the process.
 
 There are currently two ways we generate the necessary files. We are currently
 migrating the build system to use containers so the builds are reproducible.
-This is being done on an OS-by-OS basis. Please update this documentation as
+This is being done on an OS-by-OS basis. Update this documentation as
 components of the build system change.
 
 ### Old Build System (currently for `GOOS != "linux"`)

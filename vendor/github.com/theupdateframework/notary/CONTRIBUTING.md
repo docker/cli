@@ -8,7 +8,7 @@
  - your account on the [Docker Hub](https://hub.docker.com/)
  - any other [Docker Hub](https://hub.docker.com/) issue
 
-Then please do not report your issue here - you should instead report it to [https://support.docker.com](https://support.docker.com)
+Then do not report your issue here - you should instead report it to [https://support.docker.com](https://support.docker.com)
 
 ### If you...
 
@@ -16,7 +16,7 @@ Then please do not report your issue here - you should instead report it to [htt
  - can't figure out something
  - are not sure what's going on or what your problem is
 
-Then please do not open an issue here yet - you should first try one of the following support forums:
+Then do not open an issue here yet - you should first try one of the following support forums:
 
  - irc: #docker-trust on freenode
 
@@ -28,8 +28,8 @@ By following these simple rules you will get better and faster feedback on your 
 
 ### If you found an issue that describes your problem:
 
- - please read other user comments first, and confirm this is the same issue: a given error condition might be indicative of different problems - you may also find a workaround in the comments
- - please refrain from adding "same thing here" or "+1" comments
+ - read other user comments first, and confirm this is the same issue: a given error condition might be indicative of different problems - you may also find a workaround in the comments
+ - refrain from adding "same thing here" or "+1" comments
  - you don't need to comment on an issue to get notified of updates: just hit the "subscribe" button
  - comment if you have some new, technical and relevant information to add to the case
 
@@ -40,7 +40,7 @@ By following these simple rules you will get better and faster feedback on your 
    - good title: "Publish fail: 400 error with E_INVALID_DIGEST"
  2. copy the output of:
    - `notary version` or `docker version`
- 3. Run `notary` or `docker` with the `-D` option for debug output, and please include a copy of the command and the output.
+ 3. Run `notary` or `docker` with the `-D` option for debug output, and include a copy of the command and the output.
  4. If relevant, copy your `notaryserver` and `notarysigner` logs that show the error (this is likely the output from running `docker-compose up`)
 
 ## Contributing a patch for a known bug, or a small correction
@@ -61,8 +61,8 @@ Some simple rules to ensure quick merge:
 
  - clearly point to the issue(s) you want to fix in your PR comment (e.g., `closes #12345`)
  - prefer multiple (smaller) PRs addressing individual issues over a big one trying to address multiple issues at once
- - if you need to amend your PR following comments, please squash instead of adding more commits
- - if fixing a bug or adding a feature, please add or update the relevant `CHANGELOG.md` entry with your pull request number
+ - if you need to amend your PR following comments, squash instead of adding more commits
+ - if fixing a bug or adding a feature, add or update the relevant `CHANGELOG.md` entry with your pull request number
    and a description of the change
 
 ## Contributing new features
@@ -91,5 +91,5 @@ Complying to these simple rules will greatly accelerate the review process, and 
 
 ## Vendoring new dependency versions
 
-We use [VNDR](https://github.com/LK4D4/vndr); please update `vendor.conf` with the new dependency or the new version, and run
+We use [VNDR](https://github.com/LK4D4/vndr); update `vendor.conf` with the new dependency or the new version, and run
 `vndr <top level package name>`.
