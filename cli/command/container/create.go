@@ -39,6 +39,7 @@ type createOptions struct {
 	untrusted bool
 	pull      string // always, missing, never
 	quiet     bool
+	replace   bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -69,6 +70,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
+	flags.BoolVarP(&options.replace, "replace", "", false, "If a container with the same name exists, replace it")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -247,6 +249,18 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if options.pull == PullImageAlways {
 		if err := pullAndTagImage(); err != nil {
 			return "", err
+		}
+	}
+
+	if options.replace {
+		if len(options.name) != 0 {
+			dockerCli.Client().ContainerRemove(ctx, options.name, container.RemoveOptions{
+				RemoveVolumes: false,
+				RemoveLinks:   false,
+				Force:         true,
+			})
+		} else {
+			return "", errors.Errorf("Error: cannot replace container without --name being set")
 		}
 	}
 
