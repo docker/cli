@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/docker/docker/api/types"
@@ -36,6 +37,8 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 	statusC := make(chan int)
 	go func() {
 		select {
+		case <-ctx.Done():
+			return
 		case result := <-resultC:
 			if result.Error != nil {
 				logrus.Errorf("Error waiting for container: %v", result.Error.Message)
@@ -44,6 +47,9 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 				statusC <- int(result.StatusCode)
 			}
 		case err := <-errC:
+			if errors.Is(err, context.Canceled) {
+				return
+			}
 			logrus.Errorf("error waiting for container: %v", err)
 			statusC <- 125
 		}
