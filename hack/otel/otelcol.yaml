@@ -1,0 +1,20 @@
+# Receive signals over gRPC and HTTP
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+# Establish an endpoint for Prometheus to scrape from
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  otlp/aspire:
+    endpoint: aspire-dashboard:18889
+    tls::insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus, otlp/aspire]

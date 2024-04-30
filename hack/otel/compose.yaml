@@ -1,0 +1,39 @@
+name: cli-otel
+
+services:
+  
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prom.yaml"
+    ports:
+      # Publish the Prometheus frontend on localhost:9091
+      - 9091:9090
+    restart: always
+    volumes:
+      # Store Prometheus data in a volume:
+      - prom_data:/prometheus
+      # Mount the prom.yml config file
+      - ./prom.yaml:/etc/prometheus/prom.yaml
+
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:8.0-preview
+    ports:
+      - 18888:18888
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: 'true'
+  
+  otelcol:
+    image: otel/opentelemetry-collector:latest
+    restart: always
+    depends_on:
+      - prometheus
+      - aspire-dashboard
+    ports:
+      - 4317:4317
+    volumes:
+      # Mount the otelcol.yml config file
+      - ./otelcol.yaml:/etc/otelcol/config.yaml
+
+volumes:
+  prom_data:
