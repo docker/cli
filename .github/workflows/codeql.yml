@@ -44,16 +44,6 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           git checkout HEAD^2
-      - 
-        name: Update Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-      -
-        name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: go
       # CodeQL 2.16.4's auto-build added support for multi-module repositories,
       # and is trying to be smart by searching for modules in every directory,
       # including vendor directories. If no module is found, it's creating one
@@ -64,6 +54,16 @@ jobs:
         run: |
           ln -s vendor.mod go.mod
           ln -s vendor.sum go.sum
+      -
+        name: Update Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      -
+        name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
       -
         name: Autobuild
         uses: github/codeql-action/autobuild@v3
