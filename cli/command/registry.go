@@ -29,7 +29,10 @@ const patSuggest = "You can log in with your password or a Personal Access " +
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
 	return func() (string, error) {
 		fmt.Fprintf(cli.Out(), "\nPlease login prior to %s:\n", cmdName)
-		indexServer := registry.GetAuthConfigKey(index)
+		indexServer := index.Name
+		if index.Official {
+			indexServer = registry.IndexServer
+		}
 		isDefaultRegistry := indexServer == registry.IndexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
