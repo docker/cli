@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/builder"
 	"github.com/docker/cli/cli/command/checkpoint"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/config"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/context"
@@ -62,6 +63,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		service.NewServiceCommand(dockerCli),
 		stack.NewStackCommand(dockerCli),
 		swarm.NewSwarmCommand(dockerCli),
+
+		// completion command
+		completion.NewCompletionCommand(dockerCli),
 
 		// legacy commands may be hidden
 		hide(container.NewAttachCommand(dockerCli)),
