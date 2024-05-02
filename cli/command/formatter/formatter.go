@@ -5,6 +5,7 @@ package formatter
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"text/template"
@@ -90,6 +91,18 @@ func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
 		t.Write([]byte("\n"))
 		c.buffer.WriteTo(t)
 		t.Flush()
+	} else if c.Format.IsJSON() {
+		var finalOutput string
+		for {
+			readbuff, err := c.buffer.ReadBytes('\n')
+			if readbuff == nil || err != nil {
+				break
+			}
+			finalOutput += strings.TrimSuffix(string(readbuff), "\n") + ","
+		}
+		finalOutput = fmt.Sprintf("[%s]", strings.TrimSuffix(finalOutput, ","))
+		c.buffer.WriteString(finalOutput)
+		c.buffer.WriteTo(c.Output)
 	} else {
 		c.buffer.WriteTo(c.Output)
 	}

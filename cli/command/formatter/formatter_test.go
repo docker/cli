@@ -1,6 +1,6 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
 //go:build go1.19
 
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
 package formatter
 
 import (
@@ -39,10 +39,9 @@ func TestContext(t *testing.T) {
 		expected string
 	}{
 		{
-			name:   "json format",
-			format: JSONFormatKey,
-			expected: `{"Name":"test"}
-`,
+			name:     "json format",
+			format:   JSONFormatKey,
+			expected: `[{"Name":"test"}]`,
 		},
 		{
 			name:   "table format",
