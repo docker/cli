@@ -43,7 +43,7 @@
 #   "yes" - Show names and ids
 #
 # You can tailor completion for the "events", "history", "inspect", "run",
-# "rmi" and "save" commands by settings the following environment
+# "rmi" and "save" commands by setting the following environment
 # variables:
 #
 # DOCKER_COMPLETION_SHOW_IMAGE_IDS
