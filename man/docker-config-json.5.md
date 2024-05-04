@@ -20,25 +20,25 @@ properties you specify in a `config.json` file.
 
 The `config.json` file stores a JSON encoding of several properties:
 
-* The `HttpHeaders` property specifies a set of headers to include in all messages
+\[bu] The `HttpHeaders` property specifies a set of headers to include in all messages
 sent from the Docker client to the daemon. Docker does not try to interpret or
 understand these header; it simply puts them into the messages. Docker does not
 allow these headers to change any headers it sets for itself.
 
-* The `psFormat` property specifies the default format for `docker ps` output.
+\[bu] The `psFormat` property specifies the default format for `docker ps` output.
 When the `--format` flag is not provided with the `docker ps` command,
 Docker's client uses this property. If this property is not set, the client
 falls back to the default table format. For a list of supported formatting
 directives, see **docker-ps(1)**.
 
-* The `detachKeys` property specifies the default key sequence which
+\[bu] The `detachKeys` property specifies the default key sequence which
 detaches the container. When the `--detach-keys` flag is not provide
 with the `docker attach`, `docker exec`, `docker run` or `docker
 start`, Docker's client uses this property. If this property is not
 set, the client falls back to the default sequence `ctrl-p,ctrl-q`.
 
 
-* The `imagesFormat` property  specifies the default format for `docker images`
+\[bu] The `imagesFormat` property  specifies the default format for `docker images`
 output. When the `--format` flag is not provided with the `docker images`
 command, Docker's client uses this property. If this property is not set, the
 client falls back to the default table format. For a list of supported
