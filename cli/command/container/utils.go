@@ -36,6 +36,7 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 
 	statusC := make(chan int)
 	go func() {
+		defer close(statusC)
 		select {
 		case <-ctx.Done():
 			return
