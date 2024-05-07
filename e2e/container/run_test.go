@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
@@ -32,6 +33,22 @@ func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 	result.Assert(t, icmd.Success)
 	assert.Check(t, is.Equal("this is output\n", result.Stdout()))
 	golden.Assert(t, result.Stderr(), "run-attached-from-remote-and-remove.golden")
+}
+
+// Regression test for https://github.com/docker/cli/issues/5053
+func TestRunInvalidEntrypointWithAutoremove(t *testing.T) {
+	environment.SkipIfDaemonNotLinux(t)
+
+	result := make(chan *icmd.Result)
+	go func() {
+		result <- icmd.RunCommand("docker", "run", "--rm", fixtures.AlpineImage, "invalidcommand")
+	}()
+	select {
+	case r := <-result:
+		r.Assert(t, icmd.Expected{ExitCode: 127})
+	case <-time.After(4 * time.Second):
+		t.Fatal("test took too long, shouldn't hang")
+	}
 }
 
 func TestRunWithContentTrust(t *testing.T) {
