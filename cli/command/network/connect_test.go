@@ -52,7 +52,8 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 		Links:   []string{"otherctr"},
 		Aliases: []string{"poor-yorick"},
 		DriverOpts: map[string]string{
-			"adriveropt": "anoptval",
+			"driveropt1": "optval1,optval2",
+			"driveropt2": "optval4",
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{
@@ -67,7 +68,9 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 	cmd.SetArgs(args)
 	for _, opt := range []struct{ name, value string }{
 		{"alias", "poor-yorick"},
-		{"driver-opt", "adriveropt=anoptval"},
+		{"driver-opt", "\"driveropt1=optval1,optval2\""},
+		{"driver-opt", "driveropt2=optval3"},
+		{"driver-opt", "driveropt2=optval4"}, // replaces value
 		{"ip", "192.168.4.1"},
 		{"ip6", "fdef:f401:8da0:1234::5678"},
 		{"link", "otherctr"},
