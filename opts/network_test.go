@@ -98,6 +98,20 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				},
 			},
 		},
+		{
+			value: "name=docknet1,\"driver-opt=com.docker.network.endpoint.sysctls=net.ipv6.conf.IFNAME.accept_ra=2,net.ipv6.conf.IFNAME.forwarding=1\"",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:  "docknet1",
+					Aliases: []string{},
+					DriverOpts: map[string]string{
+						// The CLI converts IFNAME to ifname - it probably shouldn't, but the API
+						// allows ifname to cater for this.
+						"com.docker.network.endpoint.sysctls": "net.ipv6.conf.ifname.accept_ra=2,net.ipv6.conf.ifname.forwarding=1",
+					},
+				},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
