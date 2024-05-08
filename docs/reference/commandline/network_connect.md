@@ -65,6 +65,26 @@ being connected to.
 $ docker network connect --alias db --alias mysql multi-host-network container2
 ```
 
+### <a name="sysctl"></a> Set sysctls for a container's interface (--driver-opt)
+
+`sysctl` settings that start with `net.ipv4.` and `net.ipv6.` can be set per-interface
+using `--driver-opt` label `com.docker.network.endpoint.sysctls`. The name of the
+interface must be replaced by `IFNAME`.
+
+To set more than one `sysctl` for an interface, quote the whole value of the
+`driver-opt` field, remembering to escape the quotes for the shell if necessary.
+For example, if the interface to `my-net` is given name `eth3`, the following example
+sets `net.ipv4.conf.eth3.log_martians=1` and `net.ipv4.conf.eth3.forwarding=0`.
+
+```console
+$ docker network connect --driver-opt=\"com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\" multi-host-network container2
+```
+
+> **Note**
+>
+> Network drivers may restrict the sysctl settings that can be modified and, to protect
+> the operation of the network, new restrictions may be added in the future.
+
 ### Network implications of stopping, pausing, or restarting containers
 
 You can pause, restart, and stop containers that are connected to a network.
