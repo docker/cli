@@ -776,6 +776,26 @@ $ docker network create --subnet 192.0.3.0/24 my-net2
 $ docker run -itd --network=name=my-net1,ip=192.0.2.42 --network=name=my-net2,ip=192.0.3.42 busybox
 ```
 
+`sysctl` settings that start with `net.ipv4.`, `net.ipv6.` or `net.mpls.` can be
+set per-interface using `driver-opt` label `com.docker.network.endpoint.sysctls`.
+The interface name must be the string `IFNAME`.
+
+To set more than one `sysctl` for an interface, quote the whole `driver-opt` field,
+remembering to escape the quotes for the shell if necessary. For example, if the
+interface to `my-net` is given name `eth0`, the following example sets sysctls
+`net.ipv4.conf.eth0.log_martians=1` and `net.ipv4.conf.eth0.forwarding=0`, and
+assigns the IPv4 address `192.0.2.42`.
+
+```console
+$ docker network create --subnet 192.0.2.0/24 my-net
+$ docker run -itd --network=name=my-net,\"driver-opt=com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\",ip=192.0.2.42 busybox
+```
+
+> **Note**
+>
+> Network drivers may restrict the sysctl settings that can be modified and, to protect
+> the operation of the network, new restrictions may be added in the future.
+
 For more information on connecting a container to a network when using the `run` command,
 see the [Docker network overview](https://docs.docker.com/network/).
 
