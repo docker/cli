@@ -136,13 +136,12 @@ func runInstall(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 	return nil
 }
 
-func acceptPrivileges(dockerCli command.Cli, name string) func(privileges types.PluginPrivileges) (bool, error) {
-	return func(privileges types.PluginPrivileges) (bool, error) {
+func acceptPrivileges(dockerCli command.Cli, name string) func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
+	return func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
 		fmt.Fprintf(dockerCli.Out(), "Plugin %q is requesting the following privileges:\n", name)
 		for _, privilege := range privileges {
 			fmt.Fprintf(dockerCli.Out(), " - %s: %v\n", privilege.Name, privilege.Value)
 		}
-		ctx := context.TODO()
 		return command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), "Do you grant the above permissions?")
 	}
 }
