@@ -117,6 +117,12 @@ data traffic from the management traffic of the cluster.
 
 If unspecified, the IP address or interface of the advertise address is used.
 
+Setting `--data-path-addr` does not restrict which interfaces or source IP
+addresses the VXLAN socket is bound to. Similar to `--advertise-addr`, the
+purpose of this flag is to inform other members of the swarm about which
+address to use for control plane traffic. To restrict access to the VXLAN port
+of the node, use firewall rules.
+
 ### <a name="data-path-port"></a> Configure port number for data traffic (--data-path-port)
 
 The `--data-path-port` flag allows you to configure the UDP port number to use
