@@ -273,6 +273,11 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
 		},
 	}
+
+	// TODO(krissetto): pass ctx to the funcs instead of using this
+	cli.createGlobalMeterProvider(cli.baseCtx)
+	cli.createGlobalTracerProvider(cli.baseCtx)
+
 	return nil
 }
 
