@@ -315,7 +315,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		fmt.Fprint(dockerCli.Err(), "Warning: Unexpected OTEL error, metrics may not be flushed")
 	}
 
-	dockerCli.InstrumentCobraCommands(cmd, mp)
+	dockerCli.InstrumentCobraCommands(ctx, cmd)
 
 	var envs []string
 	args, os.Args, envs, err = processAliases(dockerCli, cmd, args, os.Args)

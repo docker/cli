@@ -186,17 +186,21 @@ func newCLIReader(exp sdkmetric.Exporter) sdkmetric.Reader {
 }
 
 func (r *cliReader) Shutdown(ctx context.Context) error {
-	var rm metricdata.ResourceMetrics
-	if err := r.Reader.Collect(ctx, &rm); err != nil {
-		return err
-	}
-
 	// Place a pretty tight constraint on the actual reporting.
 	// We don't want CLI metrics to prevent the CLI from exiting
 	// so if there's some kind of issue we need to abort pretty
 	// quickly.
 	ctx, cancel := context.WithTimeout(ctx, exportTimeout)
 	defer cancel()
+
+	return r.ForceFlush(ctx)
+}
+
+func (r *cliReader) ForceFlush(ctx context.Context) error {
+	var rm metricdata.ResourceMetrics
+	if err := r.Reader.Collect(ctx, &rm); err != nil {
+		return err
+	}
 
 	return r.exporter.Export(ctx, &rm)
 }
