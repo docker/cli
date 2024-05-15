@@ -52,6 +52,24 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
 			err = tcmd.Initialize(opts...)
+			ogRunE := cmd.RunE
+			if ogRunE == nil {
+				ogRun := cmd.Run
+				// necessary because error will always be nil here
+				// see: https://github.com/golangci/golangci-lint/issues/1379
+				//nolint:unparam
+				ogRunE = func(cmd *cobra.Command, args []string) error {
+					ogRun(cmd, args)
+					return nil
+				}
+				cmd.Run = nil
+			}
+			cmd.RunE = func(cmd *cobra.Command, args []string) error {
+				stopInstrumentation := dockerCli.StartInstrumentation(cmd)
+				err := ogRunE(cmd, args)
+				stopInstrumentation(err)
+				return err
+			}
 		})
 		return err
 	}
