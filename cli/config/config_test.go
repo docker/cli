@@ -352,6 +352,7 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 	expected.PsFormat = "format"
 
 	assert.Check(t, is.DeepEqual(expected, configFile))
+	assert.Check(t, is.Equal(buffer.String(), ""))
 }
 
 func TestConfigPath(t *testing.T) {
