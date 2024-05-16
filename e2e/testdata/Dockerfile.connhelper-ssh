@@ -2,7 +2,7 @@
 
 # ENGINE_VERSION is the version of the (docker-in-docker) Docker Engine to
 # test against.
-ARG ENGINE_VERSION=25.0
+ARG ENGINE_VERSION=26.1
 
 FROM docker:${ENGINE_VERSION}-dind
 
