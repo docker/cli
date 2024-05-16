@@ -75,7 +75,7 @@ func Path(p ...string) (string, error) {
 }
 
 // LoadFromReader is a convenience function that creates a ConfigFile object from
-// a reader
+// a reader. It returns an error if configData is malformed.
 func LoadFromReader(configData io.Reader) (*configfile.ConfigFile, error) {
 	configFile := configfile.ConfigFile{
 		AuthConfigs: make(map[string]types.AuthConfig),
@@ -88,6 +88,10 @@ func LoadFromReader(configData io.Reader) (*configfile.ConfigFile, error) {
 // If no directory is given, it uses the default [Dir]. A [*configfile.ConfigFile]
 // is returned containing the contents of the configuration file, or a default
 // struct if no configfile exists in the given location.
+//
+// Load returns an error if a configuration file exists in the given location,
+// but cannot be read, or is malformed. Consumers must handle errors to prevent
+// overwriting an existing configuration file.
 func Load(configDir string) (*configfile.ConfigFile, error) {
 	if configDir == "" {
 		configDir = Dir()
@@ -102,19 +106,17 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			//
-			// if file is there but we can't stat it for any reason other
-			// than it doesn't exist then stop
+			// It is OK for no configuration file to be present, in which
+			// case we return a default struct.
 			return configFile, nil
 		}
-		// if file is there but we can't stat it for any reason other
-		// than it doesn't exist then stop
-		return configFile, nil
+		// Any other error happening when failing to read the file must be returned.
+		return configFile, errors.Wrap(err, "loading config file")
 	}
 	defer file.Close()
 	err = configFile.LoadFromReader(file)
 	if err != nil {
-		err = errors.Wrap(err, filename)
+		err = errors.Wrapf(err, "loading config file: %s: ", filename)
 	}
 	return configFile, err
 }
@@ -133,7 +135,8 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 func LoadDefaultConfigFile(stderr io.Writer) *configfile.ConfigFile {
 	configFile, err := load(Dir())
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "WARNING: Error loading config file: %v\n", err)
+		// FIXME(thaJeztah): we should not proceed here to prevent overwriting existing (but malformed) config files; see https://github.com/docker/cli/issues/5075
+		_, _ = fmt.Fprintln(stderr, "WARNING: Error", err)
 	}
 	if !configFile.ContainsAuth() {
 		configFile.CredentialsStore = credentials.DetectDefaultStore(configFile.CredentialsStore)
