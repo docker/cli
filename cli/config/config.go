@@ -84,8 +84,10 @@ func LoadFromReader(configData io.Reader) (*configfile.ConfigFile, error) {
 	return &configFile, err
 }
 
-// Load reads the configuration files in the given directory, and sets up
-// the auth config information and returns values.
+// Load reads the configuration file ([ConfigFileName]) from the given directory.
+// If no directory is given, it uses the default [Dir]. A [*configfile.ConfigFile]
+// is returned containing the contents of the configuration file, or a default
+// struct if no configfile exists in the given location.
 func Load(configDir string) (*configfile.ConfigFile, error) {
 	if configDir == "" {
 		configDir = Dir()
@@ -118,7 +120,16 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 }
 
 // LoadDefaultConfigFile attempts to load the default config file and returns
-// an initialized ConfigFile struct if none is found.
+// a reference to the ConfigFile struct. If none is found or when failing to load
+// the configuration file, it initializes a default ConfigFile struct. If no
+// credentials-store is set in the configuration file, it attempts to discover
+// the default store to use for the current platform.
+//
+// Important: LoadDefaultConfigFile prints a warning to stderr when failing to
+// load the configuration file, but otherwise ignores errors. Consumers should
+// consider using [Load] (and [credentials.DetectDefaultStore]) to detect errors
+// when updating the configuration file, to prevent discarding a (malformed)
+// configuration file.
 func LoadDefaultConfigFile(stderr io.Writer) *configfile.ConfigFile {
 	configFile, err := load(Dir())
 	if err != nil {
