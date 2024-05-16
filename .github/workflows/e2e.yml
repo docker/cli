@@ -28,8 +28,8 @@ jobs:
           - alpine
           - debian
         engine-version:
-          - 25.0  # latest
-          - 24.0  # latest - 1
+          - 26.1  # latest
+          - 25.0  # latest - 1
           - 23.0  # mirantis lts
           # TODO(krissetto) 19.03 needs a look, doesn't work ubuntu 22.04 (cgroup errors). 
           # we could have a separate job that tests it against ubuntu 20.04
