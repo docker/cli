@@ -48,6 +48,27 @@ func TestMissingFile(t *testing.T) {
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
 }
 
+// TestLoadDanglingSymlink verifies that we gracefully handle dangling symlinks.
+//
+// TODO(thaJeztah): consider whether we want dangling symlinks to be an error condition instead.
+func TestLoadDanglingSymlink(t *testing.T) {
+	cfgDir := t.TempDir()
+	cfgFile := filepath.Join(cfgDir, ConfigFileName)
+	err := os.Symlink(filepath.Join(cfgDir, "no-such-file"), cfgFile)
+	assert.NilError(t, err)
+
+	config, err := Load(cfgDir)
+	assert.NilError(t, err)
+
+	// Now save it and make sure it shows up in new form
+	saveConfigAndValidateNewFormat(t, config, cfgDir)
+
+	// Make sure we kept the symlink.
+	fi, err := os.Lstat(cfgFile)
+	assert.NilError(t, err)
+	assert.Equal(t, fi.Mode()&os.ModeSymlink, os.ModeSymlink, "expected %v to be a symlink", cfgFile)
+}
+
 func TestSaveFileToDirs(t *testing.T) {
 	tmpHome := filepath.Join(t.TempDir(), ".docker")
 	config, err := Load(tmpHome)
