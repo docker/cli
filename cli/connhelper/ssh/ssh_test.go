@@ -28,6 +28,13 @@ func TestParseURL(t *testing.T) {
 			},
 		},
 		{
+			url: "ssh://foo#/path/to/ssh_config",
+			expectedArgs: []string{
+				"-F", "/path/to/ssh_config",
+				"--", "foo",
+			},
+		},
+		{
 			url:           "ssh://me:passw0rd@foo",
 			expectedError: "plain-text password is not supported",
 		},
@@ -40,10 +47,6 @@ func TestParseURL(t *testing.T) {
 		{
 			url:           "ssh://foo?bar",
 			expectedError: `extra query after the host: "bar"`,
-		},
-		{
-			url:           "ssh://foo#bar",
-			expectedError: `extra fragment after the host: "bar"`,
 		},
 		{
 			url:           "ssh://",

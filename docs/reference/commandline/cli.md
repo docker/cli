@@ -336,6 +336,14 @@ component to the end of the SSH address.
 $ docker -H ssh://user@192.168.64.5/var/run/docker.sock ps
 ```
 
+In addition, you can optionally specify an SSH config file by appending a
+fragment component to the end of the SSH address (that is, behind a hash `#`).
+The given file path is passed to SSH using the `ssh -F` option.
+
+```console
+$ docker -H ssh://user@192.168.64.5#/path/to/ssh_config ps
+```
+
 ### Display help text
 
 To list the help on any command just execute the command, followed by the

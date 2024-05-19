@@ -34,23 +34,25 @@ func ParseURL(daemonURL string) (*Spec, error) {
 	if u.RawQuery != "" {
 		return nil, errors.Errorf("extra query after the host: %q", u.RawQuery)
 	}
-	if u.Fragment != "" {
-		return nil, errors.Errorf("extra fragment after the host: %q", u.Fragment)
-	}
+	sp.SSHConfig = u.Fragment
 	return &sp, err
 }
 
 // Spec of SSH URL
 type Spec struct {
-	User string
-	Host string
-	Port string
-	Path string
+	User      string
+	Host      string
+	Port      string
+	Path      string
+	SSHConfig string
 }
 
 // Args returns args except "ssh" itself combined with optional additional command args
 func (sp *Spec) Args(add ...string) []string {
 	var args []string
+	if sp.SSHConfig != "" {
+		args = append(args, "-F", sp.SSHConfig)
+	}
 	if sp.User != "" {
 		args = append(args, "-l", sp.User)
 	}
