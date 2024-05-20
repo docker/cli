@@ -2,6 +2,7 @@ package command
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -27,7 +28,7 @@ const patSuggest = "You can log in with your password or a Personal Access " +
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
-	return func() (string, error) {
+	return func(ctx context.Context) (string, error) {
 		fmt.Fprintf(cli.Out(), "\nPlease login prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
 		isDefaultRegistry := indexServer == registry.IndexServer
@@ -35,6 +36,13 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 		if err != nil {
 			fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
 		}
+
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+		}
+
 		err = ConfigureAuth(cli, "", "", &authConfig, isDefaultRegistry)
 		if err != nil {
 			return "", err
