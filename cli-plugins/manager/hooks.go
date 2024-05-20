@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli-plugins/hooks"
 	"github.com/docker/cli/cli/command"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -100,9 +101,33 @@ func invokeAndCollectHooks(ctx context.Context, dockerCli command.Cli, rootCmd, 
 		if err != nil {
 			continue
 		}
-		nextSteps = append(nextSteps, processedHook...)
+
+		var appended bool
+		nextSteps, appended = appendNextSteps(nextSteps, processedHook)
+		if !appended {
+			logrus.Debugf("Plugin %s responded with an empty hook message %q. Ignoring.", pluginName, string(hookReturn))
+		}
 	}
 	return nextSteps
+}
+
+// appendNextSteps appends the processed hook output to the nextSteps slice.
+// If the processed hook output is empty, it is not appended.
+// Empty lines are not stripped if there's at least one non-empty line.
+func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
+	empty := true
+	for _, l := range processed {
+		if strings.TrimSpace(l) != "" {
+			empty = false
+			break
+		}
+	}
+
+	if empty {
+		return nextSteps, false
+	}
+
+	return append(nextSteps, processed...), true
 }
 
 // pluginMatch takes a plugin configuration and a string representing the
