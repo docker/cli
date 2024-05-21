@@ -208,7 +208,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(copts.ulimits, "ulimit", "Ulimit options")
 	flags.StringVarP(&copts.user, "user", "u", "", "Username or UID (format: <name|uid>[:<group|gid>])")
 	flags.StringVarP(&copts.workingDir, "workdir", "w", "", "Working directory inside the container")
-	flags.BoolVar(&copts.autoRemove, "rm", false, "Automatically remove the container when it exits")
+	flags.BoolVar(&copts.autoRemove, "rm", false, "Automatically remove the container and its associated anonymous volumes when it exits")
 
 	// Security
 	flags.Var(&copts.capAdd, "cap-add", "Add Linux capabilities")
