@@ -13,7 +13,7 @@ require (
 	github.com/distribution/reference v0.5.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v26.1.1-0.20240516211257-06e3a49d66fa+incompatible
-	github.com/docker/docker-credential-helpers v0.8.1
+	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.0.2
