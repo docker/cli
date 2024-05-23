@@ -116,6 +116,15 @@ func setFlagErrorFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	// is called.
 	flagErrorFunc := cmd.FlagErrorFunc()
 	cmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		// When TraverseChildren is set to true on a parent command,
+		// Cobra will parse flags before looking for the appropriate command to run.
+		// First check the command exists before raising a flag error
+		args := os.Args[1:]
+		commandExists := findCommand(cmd, args)
+
+		if !commandExists {
+			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
+		}
 		if err := pluginmanager.AddPluginCommandStubs(dockerCli, cmd.Root()); err != nil {
 			return err
 		}
