@@ -16,12 +16,19 @@
 
 package platforms
 
-// DefaultString returns the default string specifier for the platform.
-func DefaultString() string {
-	return Format(DefaultSpec())
-}
+import (
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
+)
 
-// DefaultStrict returns strict form of Default.
-func DefaultStrict() MatchComparer {
-	return OnlyStrict(DefaultSpec())
+// NewMatcher returns a Windows matcher that will match on osVersionPrefix if
+// the platform is Windows otherwise use the default matcher
+func newDefaultMatcher(platform specs.Platform) Matcher {
+	prefix := prefix(platform.OSVersion)
+	return windowsmatcher{
+		Platform:        platform,
+		osVersionPrefix: prefix,
+		defaultMatcher: &matcher{
+			Platform: Normalize(platform),
+		},
+	}
 }
