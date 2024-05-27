@@ -16,28 +16,15 @@
 
 package platforms
 
-import (
-	"runtime"
-	"sync"
+import "errors"
 
-	"github.com/containerd/containerd/log"
+// These errors mirror the errors defined in [github.com/containerd/containerd/errdefs],
+// however, they are not exported as they are not expected to be used as sentinel
+// errors by consumers of this package.
+//
+//nolint:unused // not all errors are used on all platforms.
+var (
+	errNotFound        = errors.New("not found")
+	errInvalidArgument = errors.New("invalid argument")
+	errNotImplemented  = errors.New("not implemented")
 )
-
-// Present the ARM instruction set architecture, eg: v7, v8
-// Don't use this value directly; call cpuVariant() instead.
-var cpuVariantValue string
-
-var cpuVariantOnce sync.Once
-
-func cpuVariant() string {
-	cpuVariantOnce.Do(func() {
-		if isArmArch(runtime.GOARCH) {
-			var err error
-			cpuVariantValue, err = getCPUVariant()
-			if err != nil {
-				log.L.Errorf("Error getCPUVariant for OS %s: %v", runtime.GOOS, err)
-			}
-		}
-	})
-	return cpuVariantValue
-}

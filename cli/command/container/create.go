@@ -7,7 +7,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -239,7 +239,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
 		p, err := platforms.Parse(options.platform)
 		if err != nil {
-			return "", errors.Wrap(err, "error parsing specified platform")
+			return "", errors.Wrap(errdefs.InvalidParameter(err), "error parsing specified platform")
 		}
 		platform = &p
 	}
