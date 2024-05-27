@@ -221,14 +221,7 @@ To run `htop` in a container that shares the process namespac of the host:
 2. Install `htop` in the container:
 
    ```console
-   / # apk add htop
-   fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/main/aarch64/APKINDEX.tar.gz
-   fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/community/aarch64/APKINDEX.tar.gz
-   (1/3) Installing ncurses-terminfo-base (6.4_p20230506-r0)
-   (2/3) Installing libncursesw (6.4_p20230506-r0)
-   (3/3) Installing htop (3.2.2-r1)
-   Executing busybox-1.36.1-r2.trigger
-   OK: 9 MiB in 18 packages
+   / # apk add --quiet htop
    ```
 
 3. Invoke the `htop` command.
