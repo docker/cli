@@ -107,7 +107,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			Options: options.ipamOpt.GetAll(),
 		},
 		Internal:   options.internal,
-		EnableIPv6: options.ipv6,
+		EnableIPv6: &options.ipv6,
 		Attachable: options.attachable,
 		Ingress:    options.ingress,
 		Scope:      options.scope,
