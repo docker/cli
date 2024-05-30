@@ -66,6 +66,8 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 				Name:    rawMeta.Name,
 				Current: isCurrent,
 				Error:   err.Error(),
+
+				ContextType: getContextType(nil, opts.format),
 			})
 			continue
 		}
@@ -80,6 +82,8 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			Description:    meta.Description,
 			DockerEndpoint: dockerEndpoint.Host,
 			Error:          errMsg,
+
+			ContextType: getContextType(meta.AdditionalFields, opts.format),
 		}
 		contexts = append(contexts, &desc)
 	}
@@ -96,6 +100,8 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			Name:    curContext,
 			Current: true,
 			Error:   errMsg,
+
+			ContextType: getContextType(nil, opts.format),
 		})
 	}
 	sort.Slice(contexts, func(i, j int) bool {
@@ -109,6 +115,30 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			"To use a context, either set the global --context flag, or unset %[1]s environment variable.\n", client.EnvOverrideHost)
 	}
 	return nil
+}
+
+// getContextType sets the LegacyContextType field for compatibility with
+// Visual Studio, which depends on this field from the "cloud integration"
+// wrapper.
+//
+// https://github.com/docker/compose-cli/blob/c156ce6da4c2b317174d42daf1b019efa87e9f92/api/context/store/contextmetadata.go#L28-L34
+// https://github.com/docker/compose-cli/blob/c156ce6da4c2b317174d42daf1b019efa87e9f92/api/context/store/store.go#L34-L51
+//
+// TODO(thaJeztah): remove this and [ClientContext.ContextType] once Visual Studio is updated to no longer depend on this.
+func getContextType(meta map[string]any, format string) string {
+	if format != formatter.JSONFormat && format != formatter.JSONFormatKey {
+		// We only need the ContextType field when formatting as JSON,
+		// which is the format-string used by Visual Studio to detect the
+		// context-type.
+		return ""
+	}
+	if ct, ok := meta["Type"]; ok {
+		// If the context on-disk has a context-type (ecs, aci), return it.
+		return ct.(string)
+	}
+
+	// Use the default context-type.
+	return "moby"
 }
 
 func format(dockerCli command.Cli, opts *listOptions, contexts []*formatter.ClientContext) error {
