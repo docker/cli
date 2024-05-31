@@ -11,17 +11,19 @@ import (
 func createTestContexts(t *testing.T, cli command.Cli, name ...string) {
 	t.Helper()
 	for _, n := range name {
-		createTestContext(t, cli, n)
+		createTestContext(t, cli, n, nil)
 	}
 }
 
-func createTestContext(t *testing.T, cli command.Cli, name string) {
+func createTestContext(t *testing.T, cli command.Cli, name string, metaData map[string]any) {
 	t.Helper()
 
 	err := RunCreate(cli, &CreateOptions{
 		Name:        name,
 		Description: "description of " + name,
 		Docker:      map[string]string{keyHost: "https://someswarmserver.example.com"},
+
+		metaData: metaData,
 	})
 	assert.NilError(t, err)
 }
