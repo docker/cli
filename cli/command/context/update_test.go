@@ -34,7 +34,7 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 
 func TestUpdateDockerOnly(t *testing.T) {
 	cli := makeFakeCli(t)
-	createTestContext(t, cli, "test")
+	createTestContext(t, cli, "test", nil)
 	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
 		Name: "test",
 		Docker: map[string]string{

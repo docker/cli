@@ -8,7 +8,7 @@ import (
 
 func TestShow(t *testing.T) {
 	cli := makeFakeCli(t)
-	createTestContext(t, cli, "current")
+	createTestContext(t, cli, "current", nil)
 	cli.SetCurrentContext("current")
 
 	cli.OutBuffer().Reset()
