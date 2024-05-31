@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context/docker"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/assert/cmp"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestUpdateDescriptionOnly(t *testing.T) {
@@ -34,7 +34,7 @@ func TestUpdateDescriptionOnly(t *testing.T) {
 
 func TestUpdateDockerOnly(t *testing.T) {
 	cli := makeFakeCli(t)
-	createTestContext(t, cli, "test")
+	createTestContext(t, cli, "test", nil)
 	assert.NilError(t, RunUpdate(cli, &UpdateOptions{
 		Name: "test",
 		Docker: map[string]string{
@@ -46,7 +46,7 @@ func TestUpdateDockerOnly(t *testing.T) {
 	dc, err := command.GetDockerContext(c)
 	assert.NilError(t, err)
 	assert.Equal(t, dc.Description, "description of test")
-	assert.Check(t, cmp.Contains(c.Endpoints, docker.DockerEndpoint))
+	assert.Check(t, is.Contains(c.Endpoints, docker.DockerEndpoint))
 	assert.Equal(t, c.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host, "tcp://some-host")
 }
 
