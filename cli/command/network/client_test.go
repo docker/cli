@@ -11,20 +11,20 @@ import (
 
 type fakeClient struct {
 	client.Client
-	networkCreateFunc     func(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error)
+	networkCreateFunc     func(ctx context.Context, name string, options types.NetworkCreate) (network.CreateResponse, error)
 	networkConnectFunc    func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
 	networkListFunc       func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error)
 	networkPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (types.NetworksPruneReport, error)
-	networkInspectFunc    func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, []byte, error)
+	networkInspectFunc    func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, []byte, error)
 }
 
-func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error) {
+func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options types.NetworkCreate) (network.CreateResponse, error) {
 	if c.networkCreateFunc != nil {
 		return c.networkCreateFunc(ctx, name, options)
 	}
-	return types.NetworkCreateResponse{}, nil
+	return network.CreateResponse{}, nil
 }
 
 func (c *fakeClient) NetworkConnect(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
@@ -55,7 +55,7 @@ func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string) error 
 	return nil
 }
 
-func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, opts types.NetworkInspectOptions) (types.NetworkResource, []byte, error) {
+func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, opts network.InspectOptions) (types.NetworkResource, []byte, error) {
 	if c.networkInspectFunc != nil {
 		return c.networkInspectFunc(ctx, networkID, opts)
 	}

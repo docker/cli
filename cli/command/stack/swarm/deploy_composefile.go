@@ -12,6 +12,7 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	apiclient "github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -81,8 +82,8 @@ func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) ma
 			serviceNetworks["default"] = struct{}{}
 			continue
 		}
-		for network := range serviceConfig.Networks {
-			serviceNetworks[network] = struct{}{}
+		for nw := range serviceConfig.Networks {
+			serviceNetworks[nw] = struct{}{}
 		}
 	}
 	return serviceNetworks
@@ -95,14 +96,14 @@ func validateExternalNetworks(ctx context.Context, client apiclient.NetworkAPICl
 			// local-scoped networks, so there's no need to inspect them.
 			continue
 		}
-		network, err := client.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
+		nw, err := client.NetworkInspect(ctx, networkName, network.InspectOptions{})
 		switch {
 		case errdefs.IsNotFound(err):
 			return fmt.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 		case err != nil:
 			return err
-		case network.Scope != "swarm":
-			return fmt.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of \"swarm\"", networkName, network.Scope)
+		case nw.Scope != "swarm":
+			return fmt.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of \"swarm\"", networkName, nw.Scope)
 		}
 	}
 	return nil
@@ -165,8 +166,8 @@ func createNetworks(ctx context.Context, dockerCli command.Cli, namespace conver
 	}
 
 	existingNetworkMap := make(map[string]types.NetworkResource)
-	for _, network := range existingNetworks {
-		existingNetworkMap[network.Name] = network
+	for _, nw := range existingNetworks {
+		existingNetworkMap[nw.Name] = nw
 	}
 
 	for name, createOpts := range networks {

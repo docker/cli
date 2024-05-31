@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/internal/test/network"
 	"github.com/docker/docker/api/types"
+	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
@@ -50,7 +51,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 
 	for _, testcase := range testcases {
 		fakeClient := &network.FakeClient{
-			NetworkInspectFunc: func(_ context.Context, _ string, _ types.NetworkInspectOptions) (types.NetworkResource, error) {
+			NetworkInspectFunc: func(_ context.Context, _ string, _ networktypes.InspectOptions) (types.NetworkResource, error) {
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}

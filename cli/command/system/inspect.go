@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -72,7 +73,7 @@ func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFun
 
 func inspectNetwork(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{})
+		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, network.InspectOptions{})
 	}
 }
 

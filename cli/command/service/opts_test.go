@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -192,10 +193,10 @@ func TestToServiceNetwork(t *testing.T) {
 	}
 
 	client := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
-			for _, network := range nws {
-				if network.ID == networkID || network.Name == networkID {
-					return network, nil
+		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, error) {
+			for _, nw := range nws {
+				if nw.ID == networkID || nw.Name == networkID {
+					return nw, nil
 				}
 			}
 			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
