@@ -18,7 +18,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		networkCreateFunc func(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error)
+		networkCreateFunc func(ctx context.Context, name string, options types.NetworkCreate) (network.CreateResponse, error)
 		expectedError     string
 	}{
 		{
@@ -26,8 +26,8 @@ func TestNetworkCreateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"toto"},
-			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
-				return types.NetworkCreateResponse{}, errors.Errorf("error creating network")
+			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (network.CreateResponse, error) {
+				return network.CreateResponse{}, errors.Errorf("error creating network")
 			},
 			expectedError: "error creating network",
 		},
@@ -153,10 +153,10 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{
-		networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
+		networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (network.CreateResponse, error) {
 			assert.Check(t, is.Equal(expectedDriver, createBody.Driver), "not expected driver error")
 			assert.Check(t, is.DeepEqual(expectedOpts, createBody.IPAM.Config), "not expected driver error")
-			return types.NetworkCreateResponse{
+			return network.CreateResponse{
 				ID: name,
 			}, nil
 		},

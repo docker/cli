@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -66,9 +67,9 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	getNetwork := func(ref string) (any, []byte, error) {
-		network, _, err := client.NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{Scope: "swarm"})
+		nw, _, err := client.NetworkInspectWithRaw(ctx, ref, network.InspectOptions{Scope: "swarm"})
 		if err == nil || !errdefs.IsNotFound(err) {
-			return network, nil, err
+			return nw, nil, err
 		}
 		return nil, nil, errors.Errorf("Error: no such network: %s", ref)
 	}
