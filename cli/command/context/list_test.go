@@ -8,6 +8,13 @@ import (
 	"gotest.tools/v3/golden"
 )
 
+func createTestContexts(t *testing.T, cli command.Cli, name ...string) {
+	t.Helper()
+	for _, n := range name {
+		createTestContext(t, cli, n)
+	}
+}
+
 func createTestContext(t *testing.T, cli command.Cli, name string) {
 	t.Helper()
 
@@ -21,9 +28,7 @@ func createTestContext(t *testing.T, cli command.Cli, name string) {
 
 func TestList(t *testing.T) {
 	cli := makeFakeCli(t)
-	createTestContext(t, cli, "current")
-	createTestContext(t, cli, "other")
-	createTestContext(t, cli, "unset")
+	createTestContexts(t, cli, "current", "other", "unset")
 	cli.SetCurrentContext("current")
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runList(cli, &listOptions{}))
@@ -32,8 +37,7 @@ func TestList(t *testing.T) {
 
 func TestListQuiet(t *testing.T) {
 	cli := makeFakeCli(t)
-	createTestContext(t, cli, "current")
-	createTestContext(t, cli, "other")
+	createTestContexts(t, cli, "current", "other")
 	cli.SetCurrentContext("current")
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runList(cli, &listOptions{quiet: true}))
