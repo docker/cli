@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/formatter"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -35,6 +36,33 @@ func TestList(t *testing.T) {
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runList(cli, &listOptions{}))
 	golden.Assert(t, cli.OutBuffer().String(), "list.golden")
+}
+
+func TestListJSON(t *testing.T) {
+	cli := makeFakeCli(t)
+	createTestContext(t, cli, "current", nil)
+	createTestContext(t, cli, "context1", map[string]any{"Type": "aci"})
+	createTestContext(t, cli, "context2", map[string]any{"Type": "ecs"})
+	createTestContext(t, cli, "context3", map[string]any{"Type": "moby"})
+	cli.SetCurrentContext("current")
+
+	t.Run("format={{json .}}", func(t *testing.T) {
+		cli.OutBuffer().Reset()
+		assert.NilError(t, runList(cli, &listOptions{format: formatter.JSONFormat}))
+		golden.Assert(t, cli.OutBuffer().String(), "list-json.golden")
+	})
+
+	t.Run("format=json", func(t *testing.T) {
+		cli.OutBuffer().Reset()
+		assert.NilError(t, runList(cli, &listOptions{format: formatter.JSONFormatKey}))
+		golden.Assert(t, cli.OutBuffer().String(), "list-json.golden")
+	})
+
+	t.Run("format={{ json .Name }}", func(t *testing.T) {
+		cli.OutBuffer().Reset()
+		assert.NilError(t, runList(cli, &listOptions{format: `{{ json .Name }}`}))
+		golden.Assert(t, cli.OutBuffer().String(), "list-json-name.golden")
+	})
 }
 
 func TestListQuiet(t *testing.T) {
