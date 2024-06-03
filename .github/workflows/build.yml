@@ -77,13 +77,13 @@ jobs:
           platformPair=${platform//\//-}
           tar -cvzf "/tmp/out/docker-${platformPair}.tar.gz" .
           if [ -z "${{ matrix.use_glibc }}" ]; then
-            echo "ARTIFACT_NAME=${{ matrix.target }}" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}" >> $GITHUB_ENV
           else
-            echo "ARTIFACT_NAME=${{ matrix.target }}-glibc" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}-glibc" >> $GITHUB_ENV
           fi
       -
         name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: /tmp/out/*
