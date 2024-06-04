@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types/filters"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // ImportOptions holds information to import images from the client host.
@@ -58,4 +59,11 @@ type ListOptions struct {
 type RemoveOptions struct {
 	Force         bool
 	PruneChildren bool
+}
+
+// ConvertOptions holds parameters to convert images.
+type ConvertOptions struct {
+	OnlyAvailablePlatforms bool
+	Platforms              []ocispec.Platform
+	NoAttestations         bool
 }
