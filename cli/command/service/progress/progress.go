@@ -832,7 +832,7 @@ func (u *globalJobProgressUpdater) writeOverallProgress(complete int) {
 	// total progress.
 	u.progressOut.WriteProgress(progress.Progress{
 		// see (*replicatedJobProgressUpdater).writeOverallProgress for an
-		// explanation fo the advanced fmt use in this function.
+		// explanation of the advanced fmt use in this function.
 		ID: "job progress",
 		Action: fmt.Sprintf(
 			"%*d out of %d complete", u.progressDigits, complete, u.total,

@@ -281,7 +281,7 @@ func convertServiceSecrets(
 
 // convertServiceConfigObjs takes an API client, a namespace, a ServiceConfig,
 // and a set of compose Config specs, and creates the swarm ConfigReferences
-// required by the serivce. Unlike convertServiceSecrets, this takes the whole
+// required by the service. Unlike convertServiceSecrets, this takes the whole
 // ServiceConfig, because some Configs may be needed as a result of other
 // fields (like CredentialSpecs).
 //

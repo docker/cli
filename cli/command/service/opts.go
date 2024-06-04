@@ -131,7 +131,7 @@ func (s *ShlexOpt) Set(value string) error {
 	return nil
 }
 
-// Type returns the tyep of the value
+// Type returns the type of the value
 func (s *ShlexOpt) Type() string {
 	return "command"
 }
