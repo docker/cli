@@ -30,9 +30,9 @@ func NewSecretCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // completeNames offers completion for swarm secrets
-func completeNames(dockerCli command.Cli) completion.ValidArgsFn {
+func completeNames(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCli.Client().SecretList(cmd.Context(), types.SecretListOptions{})
+		list, err := dockerCLI.Client().SecretList(cmd.Context(), types.SecretListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
