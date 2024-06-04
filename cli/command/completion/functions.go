@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +24,8 @@ func ImageNames(dockerCli command.Cli) ValidArgsFn {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, image := range list {
-			names = append(names, image.RepoTags...)
+		for _, img := range list {
+			names = append(names, img.RepoTags...)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
@@ -45,10 +46,10 @@ func ContainerNames(dockerCli command.Cli, all bool, filters ...func(types.Conta
 		showContainerIDs := os.Getenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS") == "yes"
 
 		var names []string
-		for _, container := range list {
+		for _, ctr := range list {
 			skip := false
 			for _, fn := range filters {
-				if !fn(container) {
+				if !fn(ctr) {
 					skip = true
 					break
 				}
@@ -57,9 +58,9 @@ func ContainerNames(dockerCli command.Cli, all bool, filters ...func(types.Conta
 				continue
 			}
 			if showContainerIDs {
-				names = append(names, container.ID)
+				names = append(names, ctr.ID)
 			}
-			names = append(names, formatter.StripNamePrefix(container.Names)...)
+			names = append(names, formatter.StripNamePrefix(ctr.Names)...)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
@@ -83,19 +84,19 @@ func VolumeNames(dockerCli command.Cli) ValidArgsFn {
 // NetworkNames offers completion for networks
 func NetworkNames(dockerCli command.Cli) ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCli.Client().NetworkList(cmd.Context(), types.NetworkListOptions{})
+		list, err := dockerCli.Client().NetworkList(cmd.Context(), network.ListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, network := range list {
-			names = append(names, network.Name)
+		for _, nw := range list {
+			names = append(names, nw.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
 }
 
 // NoComplete is used for commands where there's no relevant completion
-func NoComplete(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
+func NoComplete(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }

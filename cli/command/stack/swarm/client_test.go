@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 )
@@ -28,7 +29,7 @@ type fakeClient struct {
 	removedConfigs  []string
 
 	serviceListFunc    func(options types.ServiceListOptions) ([]swarm.Service, error)
-	networkListFunc    func(options types.NetworkListOptions) ([]types.NetworkResource, error)
+	networkListFunc    func(options network.ListOptions) ([]types.NetworkResource, error)
 	secretListFunc     func(options types.SecretListOptions) ([]swarm.Secret, error)
 	configListFunc     func(options types.ConfigListOptions) ([]swarm.Config, error)
 	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
@@ -69,7 +70,7 @@ func (cli *fakeClient) ServiceList(_ context.Context, options types.ServiceListO
 	return servicesList, nil
 }
 
-func (cli *fakeClient) NetworkList(_ context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
+func (cli *fakeClient) NetworkList(_ context.Context, options network.ListOptions) ([]types.NetworkResource, error) {
 	if cli.networkListFunc != nil {
 		return cli.networkListFunc(options)
 	}

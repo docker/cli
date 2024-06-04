@@ -15,7 +15,7 @@ type fakeClient struct {
 	networkConnectFunc    func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
-	networkListFunc       func(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error)
+	networkListFunc       func(ctx context.Context, options network.ListOptions) ([]types.NetworkResource, error)
 	networkPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (types.NetworksPruneReport, error)
 	networkInspectFunc    func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, []byte, error)
 }
@@ -41,7 +41,7 @@ func (c *fakeClient) NetworkDisconnect(ctx context.Context, networkID, container
 	return nil
 }
 
-func (c *fakeClient) NetworkList(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
+func (c *fakeClient) NetworkList(ctx context.Context, options network.ListOptions) ([]types.NetworkResource, error) {
 	if c.networkListFunc != nil {
 		return c.networkListFunc(ctx, options)
 	}
