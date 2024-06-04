@@ -30,9 +30,9 @@ func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // completeNames offers completion for swarm configs
-func completeNames(dockerCli command.Cli) completion.ValidArgsFn {
+func completeNames(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCli.Client().ConfigList(cmd.Context(), types.ConfigListOptions{})
+		list, err := dockerCLI.Client().ConfigList(cmd.Context(), types.ConfigListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

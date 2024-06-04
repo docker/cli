@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"io"
 	"sort"
 
 	"github.com/docker/cli/cli"
@@ -36,22 +37,22 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunList performs a stack list against the specified swarm cluster
 func RunList(ctx context.Context, dockerCli command.Cli, opts options.List) error {
-	ss, err := swarm.GetStacks(ctx, dockerCli)
+	ss, err := swarm.GetStacks(ctx, dockerCli.Client())
 	if err != nil {
 		return err
 	}
 	stacks := make([]*formatter.Stack, 0, len(ss))
 	stacks = append(stacks, ss...)
-	return format(dockerCli, opts, stacks)
+	return format(dockerCli.Out(), opts, stacks)
 }
 
-func format(dockerCli command.Cli, opts options.List, stacks []*formatter.Stack) error {
+func format(out io.Writer, opts options.List, stacks []*formatter.Stack) error {
 	fmt := formatter.Format(opts.Format)
 	if fmt == "" || fmt == formatter.TableFormatKey {
 		fmt = formatter.SwarmStackTableFormat
 	}
 	stackCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: out,
 		Format: fmt,
 	}
 	sort.Slice(stacks, func(i, j int) bool {
