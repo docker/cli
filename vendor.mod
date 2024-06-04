@@ -50,7 +50,7 @@ require (
 	golang.org/x/text v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.5.1
-	tags.cncf.io/container-device-interface v0.6.2
+	tags.cncf.io/container-device-interface v0.7.2
 )
 
 require (
