@@ -48,7 +48,7 @@ type Mapping func(string) (string, bool)
 // the substitution and an error.
 type SubstituteFunc func(string, Mapping) (string, bool, error)
 
-// SubstituteWith subsitute variables in the string with their values.
+// SubstituteWith substitutes variables in the string with their values.
 // It accepts additional substitute function.
 func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, subsFuncs ...SubstituteFunc) (string, error) {
 	var err error
