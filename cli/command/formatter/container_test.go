@@ -163,7 +163,7 @@ containerID2   ubuntu    ""        24 hours ago                       foobar_bar
 		},
 		{
 			Context{Format: NewContainerFormat("table {{.Image}}", true, false)},
-			"IMAGE\nubuntu\nubuntu\n",
+			"containerID1\ncontainerID2\n",
 		},
 		{
 			Context{Format: NewContainerFormat("table", true, false)},
