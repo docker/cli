@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
@@ -105,8 +104,8 @@ func TestNetworkRemovePromptTermination(t *testing.T) {
 		networkRemoveFunc: func(ctx context.Context, networkID string) error {
 			return errors.New("fakeClient networkRemoveFunc should not be called")
 		},
-		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, []byte, error) {
-			return types.NetworkResource{
+		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, []byte, error) {
+			return network.Inspect{
 				ID:      "existing-network",
 				Name:    "existing-network",
 				Ingress: true,

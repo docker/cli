@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stringid"
 )
 
@@ -35,10 +35,10 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, networks []types.NetworkResource) error {
+func FormatWrite(ctx formatter.Context, networks []network.Summary) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, network := range networks {
-			networkCtx := &networkContext{trunc: ctx.Trunc, n: network}
+		for _, nw := range networks {
+			networkCtx := &networkContext{trunc: ctx.Trunc, n: nw}
 			if err := format(networkCtx); err != nil {
 				return err
 			}
@@ -62,7 +62,7 @@ func FormatWrite(ctx formatter.Context, networks []types.NetworkResource) error 
 type networkContext struct {
 	formatter.HeaderContext
 	trunc bool
-	n     types.NetworkResource
+	n     network.Summary
 }
 
 func (c *networkContext) MarshalJSON() ([]byte, error) {

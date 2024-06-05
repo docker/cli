@@ -847,20 +847,20 @@ func TestRemoveGenericResources(t *testing.T) {
 
 func TestUpdateNetworks(t *testing.T) {
 	ctx := context.Background()
-	nws := []types.NetworkResource{
+	nws := []network.Summary{
 		{Name: "aaa-network", ID: "id555"},
 		{Name: "mmm-network", ID: "id999"},
 		{Name: "zzz-network", ID: "id111"},
 	}
 
 	client := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, error) {
+		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
 					return nw, nil
 				}
 			}
-			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)
 		},
 	}
 

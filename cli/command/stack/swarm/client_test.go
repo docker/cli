@@ -29,7 +29,7 @@ type fakeClient struct {
 	removedConfigs  []string
 
 	serviceListFunc    func(options types.ServiceListOptions) ([]swarm.Service, error)
-	networkListFunc    func(options network.ListOptions) ([]types.NetworkResource, error)
+	networkListFunc    func(options network.ListOptions) ([]network.Summary, error)
 	secretListFunc     func(options types.SecretListOptions) ([]swarm.Secret, error)
 	configListFunc     func(options types.ConfigListOptions) ([]swarm.Config, error)
 	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
@@ -70,13 +70,13 @@ func (cli *fakeClient) ServiceList(_ context.Context, options types.ServiceListO
 	return servicesList, nil
 }
 
-func (cli *fakeClient) NetworkList(_ context.Context, options network.ListOptions) ([]types.NetworkResource, error) {
+func (cli *fakeClient) NetworkList(_ context.Context, options network.ListOptions) ([]network.Summary, error) {
 	if cli.networkListFunc != nil {
 		return cli.networkListFunc(options)
 	}
 
 	namespace := namespaceFromFilters(options.Filters)
-	networksList := []types.NetworkResource{}
+	networksList := []network.Summary{}
 	for _, name := range cli.networks {
 		if belongToNamespace(name, namespace) {
 			networksList = append(networksList, networkFromName(name))
@@ -189,8 +189,8 @@ func serviceFromName(name string) swarm.Service {
 	}
 }
 
-func networkFromName(name string) types.NetworkResource {
-	return types.NetworkResource{
+func networkFromName(name string) network.Summary {
+	return network.Summary{
 		ID:   "ID-" + name,
 		Name: name,
 	}

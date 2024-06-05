@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/network"
-	"github.com/docker/docker/api/types"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -19,7 +18,7 @@ func (n notFound) NotFound() {}
 
 func TestValidateExternalNetworks(t *testing.T) {
 	testcases := []struct {
-		inspectResponse types.NetworkResource
+		inspectResponse networktypes.Inspect
 		inspectError    error
 		expectedMsg     string
 		network         string
@@ -45,13 +44,13 @@ func TestValidateExternalNetworks(t *testing.T) {
 		},
 		{
 			network:         "user",
-			inspectResponse: types.NetworkResource{Scope: "swarm"},
+			inspectResponse: networktypes.Inspect{Scope: "swarm"},
 		},
 	}
 
 	for _, testcase := range testcases {
 		fakeClient := &network.FakeClient{
-			NetworkInspectFunc: func(_ context.Context, _ string, _ networktypes.InspectOptions) (types.NetworkResource, error) {
+			NetworkInspectFunc: func(_ context.Context, _ string, _ networktypes.InspectOptions) (networktypes.Inspect, error) {
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}

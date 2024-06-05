@@ -13,7 +13,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -29,36 +29,36 @@ func TestNetworkContext(t *testing.T) {
 		call       func() string
 	}{
 		{networkContext{
-			n:     types.NetworkResource{ID: networkID},
+			n:     network.Summary{ID: networkID},
 			trunc: false,
 		}, networkID, ctx.ID},
 		{networkContext{
-			n:     types.NetworkResource{ID: networkID},
+			n:     network.Summary{ID: networkID},
 			trunc: true,
 		}, stringid.TruncateID(networkID), ctx.ID},
 		{networkContext{
-			n: types.NetworkResource{Name: "network_name"},
+			n: network.Summary{Name: "network_name"},
 		}, "network_name", ctx.Name},
 		{networkContext{
-			n: types.NetworkResource{Driver: "driver_name"},
+			n: network.Summary{Driver: "driver_name"},
 		}, "driver_name", ctx.Driver},
 		{networkContext{
-			n: types.NetworkResource{EnableIPv6: true},
+			n: network.Summary{EnableIPv6: true},
 		}, "true", ctx.IPv6},
 		{networkContext{
-			n: types.NetworkResource{EnableIPv6: false},
+			n: network.Summary{EnableIPv6: false},
 		}, "false", ctx.IPv6},
 		{networkContext{
-			n: types.NetworkResource{Internal: true},
+			n: network.Summary{Internal: true},
 		}, "true", ctx.Internal},
 		{networkContext{
-			n: types.NetworkResource{Internal: false},
+			n: network.Summary{Internal: false},
 		}, "false", ctx.Internal},
 		{networkContext{
-			n: types.NetworkResource{},
+			n: network.Summary{},
 		}, "", ctx.Labels},
 		{networkContext{
-			n: types.NetworkResource{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
+			n: network.Summary{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
 		}, "label1=value1,label2=value2", ctx.Labels},
 	}
 
@@ -155,7 +155,7 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 	timestamp1, _ := time.Parse("2006-01-02", "2016-01-01")
 	timestamp2, _ := time.Parse("2006-01-02", "2017-01-01")
 
-	networks := []types.NetworkResource{
+	networks := []network.Summary{
 		{ID: "networkID1", Name: "foobar_baz", Driver: "foo", Scope: "local", Created: timestamp1},
 		{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2},
 	}
@@ -176,7 +176,7 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 }
 
 func TestNetworkContextWriteJSON(t *testing.T) {
-	networks := []types.NetworkResource{
+	networks := []network.Summary{
 		{ID: "networkID1", Name: "foobar_baz"},
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
@@ -200,7 +200,7 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 }
 
 func TestNetworkContextWriteJSONField(t *testing.T) {
-	networks := []types.NetworkResource{
+	networks := []network.Summary{
 		{ID: "networkID1", Name: "foobar_baz"},
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
