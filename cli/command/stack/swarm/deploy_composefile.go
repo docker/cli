@@ -165,7 +165,7 @@ func createNetworks(ctx context.Context, dockerCli command.Cli, namespace conver
 		return err
 	}
 
-	existingNetworkMap := make(map[string]types.NetworkResource)
+	existingNetworkMap := make(map[string]network.Summary)
 	for _, nw := range existingNetworks {
 		existingNetworkMap[nw.Name] = nw
 	}

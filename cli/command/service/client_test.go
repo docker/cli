@@ -18,7 +18,7 @@ type fakeClient struct {
 	serviceListFunc           func(context.Context, types.ServiceListOptions) ([]swarm.Service, error)
 	taskListFunc              func(context.Context, types.TaskListOptions) ([]swarm.Task, error)
 	infoFunc                  func(ctx context.Context) (system.Info, error)
-	networkInspectFunc        func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, error)
+	networkInspectFunc        func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error)
 	nodeListFunc              func(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error)
 }
 
@@ -67,11 +67,11 @@ func (f *fakeClient) Info(ctx context.Context) (system.Info, error) {
 	return f.infoFunc(ctx)
 }
 
-func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, error) {
+func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
 	if f.networkInspectFunc != nil {
 		return f.networkInspectFunc(ctx, networkID, options)
 	}
-	return types.NetworkResource{}, nil
+	return network.Inspect{}, nil
 }
 
 func newService(id string, name string) swarm.Service {

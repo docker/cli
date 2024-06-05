@@ -34,7 +34,7 @@ func getStackServices(ctx context.Context, apiclient client.APIClient, namespace
 	return apiclient.ServiceList(ctx, types.ServiceListOptions{Filters: getStackFilter(namespace)})
 }
 
-func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) ([]types.NetworkResource, error) {
+func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) ([]network.Summary, error) {
 	return apiclient.NetworkList(ctx, network.ListOptions{Filters: getStackFilter(namespace)})
 }
 

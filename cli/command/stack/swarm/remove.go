@@ -8,7 +8,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	apiclient "github.com/docker/docker/client"
@@ -102,14 +102,14 @@ func removeServices(
 func removeNetworks(
 	ctx context.Context,
 	dockerCli command.Cli,
-	networks []types.NetworkResource,
+	networks []network.Summary,
 ) bool {
 	var hasError bool
-	for _, network := range networks {
-		fmt.Fprintf(dockerCli.Out(), "Removing network %s\n", network.Name)
-		if err := dockerCli.Client().NetworkRemove(ctx, network.ID); err != nil {
+	for _, nw := range networks {
+		fmt.Fprintf(dockerCli.Out(), "Removing network %s\n", nw.Name)
+		if err := dockerCli.Client().NetworkRemove(ctx, nw.ID); err != nil {
 			hasError = true
-			fmt.Fprintf(dockerCli.Err(), "Failed to remove network %s: %s", network.ID, err)
+			fmt.Fprintf(dockerCli.Err(), "Failed to remove network %s: %s", nw.ID, err)
 		}
 	}
 	return hasError

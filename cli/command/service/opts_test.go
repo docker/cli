@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
@@ -186,20 +185,20 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 }
 
 func TestToServiceNetwork(t *testing.T) {
-	nws := []types.NetworkResource{
+	nws := []network.Inspect{
 		{Name: "aaa-network", ID: "id555"},
 		{Name: "mmm-network", ID: "id999"},
 		{Name: "zzz-network", ID: "id111"},
 	}
 
 	client := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (types.NetworkResource, error) {
+		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
 					return nw, nil
 				}
 			}
-			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)
 		},
 	}
 
