@@ -182,7 +182,7 @@ func TestAttributesFromError(t *testing.T) {
 		tc := tc
 		t.Run(tc.testName, func(t *testing.T) {
 			t.Parallel()
-			actual := attributesFromError(tc.err)
+			actual := attributesFromCommandError(tc.err)
 			assert.Check(t, reflect.DeepEqual(actual, tc.expected))
 		})
 	}

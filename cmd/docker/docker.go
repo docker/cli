@@ -136,9 +136,15 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 	helpCmd.Run = nil
 	helpCmd.RunE = func(c *cobra.Command, args []string) error {
 		if len(args) > 0 {
-			helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], rootCmd)
+			helpRunCmd, err := pluginmanager.PluginRunCommand(dockerCli, args[0], rootCmd)
 			if err == nil {
-				return helpcmd.Run()
+				if dockerCli, ok := dockerCli.(*command.DockerCli); ok {
+					helpcmd := dockerCli.InstrumentPluginCommand(helpRunCmd)
+					return helpcmd.TimedRun()
+				}
+				// This should not happen. continue without instrumenting the cmd if it does
+				fmt.Fprint(dockerCli.Err(), "Warning: Unexpected error, the help command will not have OTEL metrics")
+				return helpRunCmd.Run()
 			}
 			if !pluginmanager.IsNotFound(err) {
 				return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
@@ -159,11 +165,17 @@ func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string
 	if err != nil {
 		return err
 	}
-	helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, cmd.Name(), root)
+	helpRunCmd, err := pluginmanager.PluginRunCommand(dockerCli, cmd.Name(), root)
 	if err != nil {
 		return err
 	}
-	return helpcmd.Run()
+	if dockerCli, ok := dockerCli.(*command.DockerCli); ok {
+		helpcmd := dockerCli.InstrumentPluginCommand(helpRunCmd)
+		return helpcmd.TimedRun()
+	}
+	// This should not happen. continue without instrumenting the cmd if it does
+	fmt.Fprint(dockerCli.Err(), "Warning: Unexpected error, the plugin help command will not have OTEL metrics")
+	return helpRunCmd.Run()
 }
 
 func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
@@ -224,11 +236,13 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
-	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
+func tryPluginRun(dockerCli *command.DockerCli, cmd *cobra.Command, subcommand string, envs []string) error {
+	pluginRunCmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
 	if err != nil {
 		return err
 	}
+
+	plugincmd := dockerCli.InstrumentPluginCommand(pluginRunCmd)
 
 	// Establish the plugin socket, adding it to the environment under a
 	// well-known key if successful.
@@ -279,7 +293,7 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 		}
 	}()
 
-	if err := plugincmd.Run(); err != nil {
+	if err := plugincmd.TimedRun(); err != nil {
 		statusCode := 1
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
@@ -303,6 +317,8 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	if err != nil {
 		return err
 	}
+
+	cmd.SetContext(ctx)
 
 	if err := tcmd.Initialize(); err != nil {
 		return err
@@ -357,7 +373,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// We've parsed global args already, so reset args to those
 	// which remain.
 	cmd.SetArgs(args)
-	err = cmd.ExecuteContext(ctx)
+	err = cmd.Execute()
 
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
