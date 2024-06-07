@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -62,8 +63,8 @@ func TestSystemPrunePromptTermination(t *testing.T) {
 		containerPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error) {
 			return types.ContainersPruneReport{}, errors.New("fakeClient containerPruneFunc should not be called")
 		},
-		networkPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (types.NetworksPruneReport, error) {
-			return types.NetworksPruneReport{}, errors.New("fakeClient networkPruneFunc should not be called")
+		networkPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (network.PruneReport, error) {
+			return network.PruneReport{}, errors.New("fakeClient networkPruneFunc should not be called")
 		},
 	})
 

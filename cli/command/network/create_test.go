@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -18,7 +17,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		networkCreateFunc func(ctx context.Context, name string, options types.NetworkCreate) (network.CreateResponse, error)
+		networkCreateFunc func(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error)
 		expectedError     string
 	}{
 		{
@@ -26,7 +25,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"toto"},
-			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (network.CreateResponse, error) {
+			networkCreateFunc: func(ctx context.Context, name string, createBody network.CreateOptions) (network.CreateResponse, error) {
 				return network.CreateResponse{}, errors.Errorf("error creating network")
 			},
 			expectedError: "error creating network",
@@ -153,9 +152,9 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{
-		networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (network.CreateResponse, error) {
-			assert.Check(t, is.Equal(expectedDriver, createBody.Driver), "not expected driver error")
-			assert.Check(t, is.DeepEqual(expectedOpts, createBody.IPAM.Config), "not expected driver error")
+		networkCreateFunc: func(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error) {
+			assert.Check(t, is.Equal(expectedDriver, options.Driver), "not expected driver error")
+			assert.Check(t, is.DeepEqual(expectedOpts, options.IPAM.Config), "not expected driver error")
 			return network.CreateResponse{
 				ID: name,
 			}, nil
@@ -212,7 +211,7 @@ func TestNetworkCreateIPv6(t *testing.T) {
 		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (network.CreateResponse, error) {
+				networkCreateFunc: func(ctx context.Context, name string, createBody network.CreateOptions) (network.CreateResponse, error) {
 					assert.Check(t, is.DeepEqual(tc.expected, createBody.EnableIPv6))
 					return network.CreateResponse{ID: name}, nil
 				},
