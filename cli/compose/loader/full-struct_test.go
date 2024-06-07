@@ -11,7 +11,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.12",
+		Version:  "3.13",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
