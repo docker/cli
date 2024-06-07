@@ -172,3 +172,58 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("banana", strings.TrimSpace(cli.OutBuffer().String())))
 }
+
+// TestNetworkCreateIPv6 verifies behavior of the "--ipv6" option. This option
+// is an optional bool, and must default to "nil", not "true" or "false".
+func TestNetworkCreateIPv6(t *testing.T) {
+	strPtr := func(val bool) *bool { return &val }
+
+	tests := []struct {
+		doc, name string
+		flags     []string
+		expected  *bool
+	}{
+		{
+			doc:      "IPV6 default",
+			name:     "ipv6-default",
+			expected: nil,
+		},
+		{
+			doc:      "IPV6 enabled",
+			name:     "ipv6-enabled",
+			flags:    []string{"--ipv6=true"},
+			expected: strPtr(true),
+		},
+		{
+			doc:      "IPV6 enabled (shorthand)",
+			name:     "ipv6-enabled-shorthand",
+			flags:    []string{"--ipv6"},
+			expected: strPtr(true),
+		},
+		{
+			doc:      "IPV6 disabled",
+			name:     "ipv6-disabled",
+			flags:    []string{"--ipv6=false"},
+			expected: strPtr(false),
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (network.CreateResponse, error) {
+					assert.Check(t, is.DeepEqual(tc.expected, createBody.EnableIPv6))
+					return network.CreateResponse{ID: name}, nil
+				},
+			})
+			cmd := newCreateCommand(cli)
+			cmd.SetArgs([]string{tc.name})
+			if tc.expected != nil {
+				assert.Check(t, cmd.ParseFlags(tc.flags))
+			}
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, is.Equal(tc.name, strings.TrimSpace(cli.OutBuffer().String())))
+		})
+	}
+}
