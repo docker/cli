@@ -18,7 +18,7 @@ Create a network
 | `--ip-range`              | `stringSlice` |           | Allocate container ip from a sub-range                  |
 | `--ipam-driver`           | `string`      | `default` | IP Address Management Driver                            |
 | `--ipam-opt`              | `map`         | `map[]`   | Set IPAM driver specific options                        |
-| `--ipv6`                  |               |           | Enable IPv6 networking                                  |
+| `--ipv6`                  |               |           | Enable or disable IPv6 networking                       |
 | `--label`                 | `list`        |           | Set metadata on a network                               |
 | `-o`, `--opt`             | `map`         | `map[]`   | Set driver specific options                             |
 | `--scope`                 | `string`      |           | Control the network's scope                             |
@@ -170,7 +170,7 @@ flags used for the docker0 bridge:
 | `--gateway`  | -              | IPv4 or IPv6 Gateway for the master subnet |
 | `--ip-range` | `--fixed-cidr` | Allocate IPs from a range                  |
 | `--internal` | -              | Restrict external access to the network    |
-| `--ipv6`     | `--ipv6`       | Enable IPv6 networking                     |
+| `--ipv6`     | `--ipv6`       | Enable or disable IPv6 networking          |
 | `--subnet`   | `--bip`        | Subnet for network                         |
 
 For example, let's use `-o` or `--opt` options to specify an IP address binding
