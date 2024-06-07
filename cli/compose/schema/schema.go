@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultVersion = "3.12"
+	defaultVersion = "3.13"
 	versionField   = "version"
 )
 
@@ -43,7 +43,7 @@ func init() {
 }
 
 // Version returns the version of the config, defaulting to the latest "3.x"
-// version (3.12). If only the major version "3" is specified, it is used as
+// version (3.13). If only the major version "3" is specified, it is used as
 // version "3.x" and returns the default version (latest 3.x).
 func Version(config map[string]any) string {
 	version, ok := config[versionField]

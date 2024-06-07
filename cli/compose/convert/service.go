@@ -215,16 +215,19 @@ func convertServiceNetworks(
 			return nil, errors.Errorf("undefined network %q", networkName)
 		}
 		var aliases []string
+		var driverOpts map[string]string
 		if network != nil {
 			aliases = network.Aliases
+			driverOpts = network.DriverOpts
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.Name != "" {
 			target = networkConfig.Name
 		}
 		netAttachConfig := swarm.NetworkAttachmentConfig{
-			Target:  target,
-			Aliases: aliases,
+			Target:     target,
+			Aliases:    aliases,
+			DriverOpts: driverOpts,
 		}
 		// Only add default aliases to user defined networks. Other networks do
 		// not support aliases.

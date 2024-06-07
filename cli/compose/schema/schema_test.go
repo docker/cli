@@ -104,6 +104,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.10"},
 		{version: "3.11"},
 		{version: "3.12"},
+		{version: "3.13"},
 		{version: "3"},
 		{version: ""},
 	}

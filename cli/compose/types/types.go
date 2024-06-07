@@ -374,9 +374,10 @@ type PlacementPreferences struct {
 
 // ServiceNetworkConfig is the network configuration for a service
 type ServiceNetworkConfig struct {
-	Aliases     []string `yaml:",omitempty" json:"aliases,omitempty"`
-	Ipv4Address string   `mapstructure:"ipv4_address" yaml:"ipv4_address,omitempty" json:"ipv4_address,omitempty"`
-	Ipv6Address string   `mapstructure:"ipv6_address" yaml:"ipv6_address,omitempty" json:"ipv6_address,omitempty"`
+	Aliases     []string          `yaml:",omitempty" json:"aliases,omitempty"`
+	DriverOpts  map[string]string `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
+	Ipv4Address string            `mapstructure:"ipv4_address" yaml:"ipv4_address,omitempty" json:"ipv4_address,omitempty"`
+	Ipv6Address string            `mapstructure:"ipv6_address" yaml:"ipv6_address,omitempty" json:"ipv6_address,omitempty"`
 }
 
 // ServicePortConfig is the port configuration for a service
