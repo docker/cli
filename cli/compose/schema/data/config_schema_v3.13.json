@@ -197,6 +197,12 @@
                       "type": "object",
                       "properties": {
                         "aliases": {"$ref": "#/definitions/list_of_strings"},
+                        "driver_opts": {
+                          "type": "object",
+                          "patternProperties": {
+                            "^.+$": { "type": ["string", "number"] }
+                          }
+                        },
                         "ipv4_address": {"type": "string"},
                         "ipv6_address": {"type": "string"}
                       },

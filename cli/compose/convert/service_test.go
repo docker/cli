@@ -240,6 +240,10 @@ func TestConvertServiceNetworks(t *testing.T) {
 	networks := map[string]*composetypes.ServiceNetworkConfig{
 		"front": {
 			Aliases: []string{"something"},
+			DriverOpts: map[string]string{
+				"driver.opt1": "optval1",
+				"driver.opt2": "optval2",
+			},
 		},
 		"back": {
 			Aliases: []string{"other"},
@@ -257,6 +261,10 @@ func TestConvertServiceNetworks(t *testing.T) {
 		{
 			Target:  "fronttier",
 			Aliases: []string{"something", "service"},
+			DriverOpts: map[string]string{
+				"driver.opt1": "optval1",
+				"driver.opt2": "optval2",
+			},
 		},
 	}
 

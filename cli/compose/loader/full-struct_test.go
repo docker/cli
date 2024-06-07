@@ -190,6 +190,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Aliases:     []string{"alias1", "alias3"},
 					Ipv4Address: "",
 					Ipv6Address: "",
+					DriverOpts: map[string]string{
+						"driveropt1": "optval1",
+						"driveropt2": "optval2",
+					},
 				},
 				"other-network": {
 					Ipv4Address: "172.16.238.10",
