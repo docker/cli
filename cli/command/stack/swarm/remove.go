@@ -11,37 +11,37 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )
 
 // RunRemove is the swarm implementation of docker stack remove
 func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) error {
-	client := dockerCli.Client()
+	apiClient := dockerCli.Client()
 
 	var errs []string
 	for _, namespace := range opts.Namespaces {
-		services, err := getStackServices(ctx, client, namespace)
+		services, err := getStackServices(ctx, apiClient, namespace)
 		if err != nil {
 			return err
 		}
 
-		networks, err := getStackNetworks(ctx, client, namespace)
+		networks, err := getStackNetworks(ctx, apiClient, namespace)
 		if err != nil {
 			return err
 		}
 
 		var secrets []swarm.Secret
-		if versions.GreaterThanOrEqualTo(client.ClientVersion(), "1.25") {
-			secrets, err = getStackSecrets(ctx, client, namespace)
+		if versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.25") {
+			secrets, err = getStackSecrets(ctx, apiClient, namespace)
 			if err != nil {
 				return err
 			}
 		}
 
 		var configs []swarm.Config
-		if versions.GreaterThanOrEqualTo(client.ClientVersion(), "1.30") {
-			configs, err = getStackConfigs(ctx, client, namespace)
+		if versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
+			configs, err = getStackConfigs(ctx, apiClient, namespace)
 			if err != nil {
 				return err
 			}
@@ -63,7 +63,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 		}
 
 		if !opts.Detach {
-			err = waitOnTasks(ctx, client, namespace)
+			err = waitOnTasks(ctx, apiClient, namespace)
 			if err != nil {
 				errs = append(errs, fmt.Sprintf("Failed to wait on tasks of stack: %s: %s", namespace, err))
 			}
@@ -82,11 +82,7 @@ func sortServiceByName(services []swarm.Service) func(i, j int) bool {
 	}
 }
 
-func removeServices(
-	ctx context.Context,
-	dockerCli command.Cli,
-	services []swarm.Service,
-) bool {
+func removeServices(ctx context.Context, dockerCli command.Cli, services []swarm.Service) bool {
 	var hasError bool
 	sort.Slice(services, sortServiceByName(services))
 	for _, service := range services {
@@ -99,11 +95,7 @@ func removeServices(
 	return hasError
 }
 
-func removeNetworks(
-	ctx context.Context,
-	dockerCli command.Cli,
-	networks []network.Summary,
-) bool {
+func removeNetworks(ctx context.Context, dockerCli command.Cli, networks []network.Summary) bool {
 	var hasError bool
 	for _, nw := range networks {
 		fmt.Fprintf(dockerCli.Out(), "Removing network %s\n", nw.Name)
@@ -115,11 +107,7 @@ func removeNetworks(
 	return hasError
 }
 
-func removeSecrets(
-	ctx context.Context,
-	dockerCli command.Cli,
-	secrets []swarm.Secret,
-) bool {
+func removeSecrets(ctx context.Context, dockerCli command.Cli, secrets []swarm.Secret) bool {
 	var hasError bool
 	for _, secret := range secrets {
 		fmt.Fprintf(dockerCli.Out(), "Removing secret %s\n", secret.Spec.Name)
@@ -131,11 +119,7 @@ func removeSecrets(
 	return hasError
 }
 
-func removeConfigs(
-	ctx context.Context,
-	dockerCli command.Cli,
-	configs []swarm.Config,
-) bool {
+func removeConfigs(ctx context.Context, dockerCli command.Cli, configs []swarm.Config) bool {
 	var hasError bool
 	for _, config := range configs {
 		fmt.Fprintf(dockerCli.Out(), "Removing config %s\n", config.Spec.Name)
@@ -167,10 +151,10 @@ func terminalState(state swarm.TaskState) bool {
 	return numberedStates[state] > numberedStates[swarm.TaskStateRunning]
 }
 
-func waitOnTasks(ctx context.Context, client apiclient.APIClient, namespace string) error {
+func waitOnTasks(ctx context.Context, apiClient client.APIClient, namespace string) error {
 	terminalStatesReached := 0
 	for {
-		tasks, err := getStackTasks(ctx, client, namespace)
+		tasks, err := getStackTasks(ctx, apiClient, namespace)
 		if err != nil {
 			return fmt.Errorf("failed to get tasks: %w", err)
 		}

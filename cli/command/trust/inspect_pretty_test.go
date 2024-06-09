@@ -13,9 +13,9 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/system"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 	"github.com/theupdateframework/notary"
-	"github.com/theupdateframework/notary/client"
+	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 	"github.com/theupdateframework/notary/tuf/utils"
 	"gotest.tools/v3/assert"
@@ -26,7 +26,7 @@ import (
 // TODO(n4ss): remove common tests with the regular inspect command
 
 type fakeClient struct {
-	apiclient.Client
+	client.Client
 }
 
 func (c *fakeClient) Info(context.Context) (system.Info, error) {
@@ -212,7 +212,7 @@ func mockDelegationRoleWithName(name string) data.DelegationRole {
 
 func TestMatchEmptySignatures(t *testing.T) {
 	// first try empty targets
-	emptyTgts := []client.TargetSignedStruct{}
+	emptyTgts := []notaryclient.TargetSignedStruct{}
 
 	matchedSigRows := matchReleasedSignatures(emptyTgts)
 	assert.Check(t, is.Len(matchedSigRows, 0))
@@ -220,11 +220,11 @@ func TestMatchEmptySignatures(t *testing.T) {
 
 func TestMatchUnreleasedSignatures(t *testing.T) {
 	// try an "unreleased" target with 3 signatures, 0 rows will appear
-	unreleasedTgts := []client.TargetSignedStruct{}
+	unreleasedTgts := []notaryclient.TargetSignedStruct{}
 
-	tgt := client.Target{Name: "unreleased", Hashes: data.Hashes{notary.SHA256: []byte("hash")}}
+	tgt := notaryclient.Target{Name: "unreleased", Hashes: data.Hashes{notary.SHA256: []byte("hash")}}
 	for _, unreleasedRole := range []string{"targets/a", "targets/b", "targets/c"} {
-		unreleasedTgts = append(unreleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: tgt})
+		unreleasedTgts = append(unreleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: tgt})
 	}
 
 	matchedSigRows := matchReleasedSignatures(unreleasedTgts)
@@ -233,16 +233,16 @@ func TestMatchUnreleasedSignatures(t *testing.T) {
 
 func TestMatchOneReleasedSingleSignature(t *testing.T) {
 	// now try only 1 "released" target with no additional sigs, 1 row will appear with 0 signers
-	oneReleasedTgt := []client.TargetSignedStruct{}
+	oneReleasedTgt := []notaryclient.TargetSignedStruct{}
 
 	// make and append the "released" target to our mock input
-	releasedTgt := client.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
-	oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: releasedTgt})
+	releasedTgt := notaryclient.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
+	oneReleasedTgt = append(oneReleasedTgt, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: releasedTgt})
 
 	// make and append 3 non-released signatures on the "unreleased" target
-	unreleasedTgt := client.Target{Name: "unreleased", Hashes: data.Hashes{notary.SHA256: []byte("hash")}}
+	unreleasedTgt := notaryclient.Target{Name: "unreleased", Hashes: data.Hashes{notary.SHA256: []byte("hash")}}
 	for _, unreleasedRole := range []string{"targets/a", "targets/b", "targets/c"} {
-		oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: unreleasedTgt})
+		oneReleasedTgt = append(oneReleasedTgt, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: unreleasedTgt})
 	}
 
 	matchedSigRows := matchReleasedSignatures(oneReleasedTgt)
@@ -257,17 +257,17 @@ func TestMatchOneReleasedSingleSignature(t *testing.T) {
 
 func TestMatchOneReleasedMultiSignature(t *testing.T) {
 	// now try only 1 "released" target with 3 additional sigs, 1 row will appear with 3 signers
-	oneReleasedTgt := []client.TargetSignedStruct{}
+	oneReleasedTgt := []notaryclient.TargetSignedStruct{}
 
 	// make and append the "released" target to our mock input
-	releasedTgt := client.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
-	oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: releasedTgt})
+	releasedTgt := notaryclient.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
+	oneReleasedTgt = append(oneReleasedTgt, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: releasedTgt})
 
 	// make and append 3 non-released signatures on both the "released" and "unreleased" targets
-	unreleasedTgt := client.Target{Name: "unreleased", Hashes: data.Hashes{notary.SHA256: []byte("hash")}}
+	unreleasedTgt := notaryclient.Target{Name: "unreleased", Hashes: data.Hashes{notary.SHA256: []byte("hash")}}
 	for _, unreleasedRole := range []string{"targets/a", "targets/b", "targets/c"} {
-		oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: unreleasedTgt})
-		oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: releasedTgt})
+		oneReleasedTgt = append(oneReleasedTgt, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: unreleasedTgt})
+		oneReleasedTgt = append(oneReleasedTgt, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName(unreleasedRole), Target: releasedTgt})
 	}
 
 	matchedSigRows := matchReleasedSignatures(oneReleasedTgt)
@@ -285,29 +285,29 @@ func TestMatchMultiReleasedMultiSignature(t *testing.T) {
 	// target-a is signed by targets/releases and targets/a - a will be the signer
 	// target-b is signed by targets/releases, targets/a, targets/b - a and b will be the signers
 	// target-c is signed by targets/releases, targets/a, targets/b, targets/c - a, b, and c will be the signers
-	multiReleasedTgts := []client.TargetSignedStruct{}
+	multiReleasedTgts := []notaryclient.TargetSignedStruct{}
 	// make target-a, target-b, and target-c
-	targetA := client.Target{Name: "target-a", Hashes: data.Hashes{notary.SHA256: []byte("target-a-hash")}}
-	targetB := client.Target{Name: "target-b", Hashes: data.Hashes{notary.SHA256: []byte("target-b-hash")}}
-	targetC := client.Target{Name: "target-c", Hashes: data.Hashes{notary.SHA256: []byte("target-c-hash")}}
+	targetA := notaryclient.Target{Name: "target-a", Hashes: data.Hashes{notary.SHA256: []byte("target-a-hash")}}
+	targetB := notaryclient.Target{Name: "target-b", Hashes: data.Hashes{notary.SHA256: []byte("target-b-hash")}}
+	targetC := notaryclient.Target{Name: "target-c", Hashes: data.Hashes{notary.SHA256: []byte("target-c-hash")}}
 
 	// have targets/releases "sign" on all of these targets so they are released
-	multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: targetA})
-	multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: targetB})
-	multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: targetC})
+	multiReleasedTgts = append(multiReleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: targetA})
+	multiReleasedTgts = append(multiReleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: targetB})
+	multiReleasedTgts = append(multiReleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/releases"), Target: targetC})
 
 	// targets/a signs off on all three targets (target-a, target-b, target-c):
-	for _, tgt := range []client.Target{targetA, targetB, targetC} {
-		multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/a"), Target: tgt})
+	for _, tgt := range []notaryclient.Target{targetA, targetB, targetC} {
+		multiReleasedTgts = append(multiReleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/a"), Target: tgt})
 	}
 
 	// targets/b signs off on the final two targets (target-b, target-c):
-	for _, tgt := range []client.Target{targetB, targetC} {
-		multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/b"), Target: tgt})
+	for _, tgt := range []notaryclient.Target{targetB, targetC} {
+		multiReleasedTgts = append(multiReleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/b"), Target: tgt})
 	}
 
 	// targets/c only signs off on the last target (target-c):
-	multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/c"), Target: targetC})
+	multiReleasedTgts = append(multiReleasedTgts, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/c"), Target: targetC})
 
 	matchedSigRows := matchReleasedSignatures(multiReleasedTgts)
 	assert.Check(t, is.Len(matchedSigRows, 3))
@@ -331,10 +331,10 @@ func TestMatchMultiReleasedMultiSignature(t *testing.T) {
 
 func TestMatchReleasedSignatureFromTargets(t *testing.T) {
 	// now try only 1 "released" target with no additional sigs, one rows will appear
-	oneReleasedTgt := []client.TargetSignedStruct{}
+	oneReleasedTgt := []notaryclient.TargetSignedStruct{}
 	// make and append the "released" target to our mock input
-	releasedTgt := client.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
-	oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName(data.CanonicalTargetsRole.String()), Target: releasedTgt})
+	releasedTgt := notaryclient.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
+	oneReleasedTgt = append(oneReleasedTgt, notaryclient.TargetSignedStruct{Role: mockDelegationRoleWithName(data.CanonicalTargetsRole.String()), Target: releasedTgt})
 	matchedSigRows := matchReleasedSignatures(oneReleasedTgt)
 	assert.Check(t, is.Len(matchedSigRows, 1))
 	outputRow := matchedSigRows[0]
@@ -405,7 +405,7 @@ func TestFormatAdminRole(t *testing.T) {
 		},
 		Name: "targets/alice",
 	}
-	aliceRoleWithSigs := client.RoleWithSignatures{Role: aliceRole, Signatures: nil}
+	aliceRoleWithSigs := notaryclient.RoleWithSignatures{Role: aliceRole, Signatures: nil}
 	assert.Check(t, is.Equal("", formatAdminRole(aliceRoleWithSigs)))
 
 	releasesRole := data.Role{
@@ -414,7 +414,7 @@ func TestFormatAdminRole(t *testing.T) {
 		},
 		Name: "targets/releases",
 	}
-	releasesRoleWithSigs := client.RoleWithSignatures{Role: releasesRole, Signatures: nil}
+	releasesRoleWithSigs := notaryclient.RoleWithSignatures{Role: releasesRole, Signatures: nil}
 	assert.Check(t, is.Equal("", formatAdminRole(releasesRoleWithSigs)))
 
 	timestampRole := data.Role{
@@ -423,7 +423,7 @@ func TestFormatAdminRole(t *testing.T) {
 		},
 		Name: data.CanonicalTimestampRole,
 	}
-	timestampRoleWithSigs := client.RoleWithSignatures{Role: timestampRole, Signatures: nil}
+	timestampRoleWithSigs := notaryclient.RoleWithSignatures{Role: timestampRole, Signatures: nil}
 	assert.Check(t, is.Equal("", formatAdminRole(timestampRoleWithSigs)))
 
 	snapshotRole := data.Role{
@@ -432,7 +432,7 @@ func TestFormatAdminRole(t *testing.T) {
 		},
 		Name: data.CanonicalSnapshotRole,
 	}
-	snapshotRoleWithSigs := client.RoleWithSignatures{Role: snapshotRole, Signatures: nil}
+	snapshotRoleWithSigs := notaryclient.RoleWithSignatures{Role: snapshotRole, Signatures: nil}
 	assert.Check(t, is.Equal("", formatAdminRole(snapshotRoleWithSigs)))
 
 	rootRole := data.Role{
@@ -441,7 +441,7 @@ func TestFormatAdminRole(t *testing.T) {
 		},
 		Name: data.CanonicalRootRole,
 	}
-	rootRoleWithSigs := client.RoleWithSignatures{Role: rootRole, Signatures: nil}
+	rootRoleWithSigs := notaryclient.RoleWithSignatures{Role: rootRole, Signatures: nil}
 	assert.Check(t, is.Equal("Root Key:\tkey11\n", formatAdminRole(rootRoleWithSigs)))
 
 	targetsRole := data.Role{
@@ -450,7 +450,7 @@ func TestFormatAdminRole(t *testing.T) {
 		},
 		Name: data.CanonicalTargetsRole,
 	}
-	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
+	targetsRoleWithSigs := notaryclient.RoleWithSignatures{Role: targetsRole, Signatures: nil}
 	assert.Check(t, is.Equal("Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs)))
 }
 
