@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -37,10 +38,10 @@ TWO=2
 	testcases := []struct {
 		options    ExecOptions
 		configFile configfile.ConfigFile
-		expected   types.ExecConfig
+		expected   container.ExecOptions
 	}{
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -48,7 +49,7 @@ TWO=2
 			options: withDefaultOpts(ExecOptions{}),
 		},
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command1", "command2"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -63,7 +64,7 @@ TWO=2
 				TTY:         true,
 				User:        "uid",
 			}),
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				User:         "uid",
 				AttachStdin:  true,
 				AttachStdout: true,
@@ -74,7 +75,7 @@ TWO=2
 		},
 		{
 			options: withDefaultOpts(ExecOptions{Detach: true}),
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Detach: true,
 				Cmd:    []string{"command"},
 			},
@@ -85,7 +86,7 @@ TWO=2
 				Interactive: true,
 				Detach:      true,
 			}),
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Detach: true,
 				Tty:    true,
 				Cmd:    []string{"command"},
@@ -94,7 +95,7 @@ TWO=2
 		{
 			options:    withDefaultOpts(ExecOptions{Detach: true}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:        []string{"command"},
 				DetachKeys: "de",
 				Detach:     true,
@@ -106,14 +107,14 @@ TWO=2
 				DetachKeys: "ab",
 			}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:        []string{"command"},
 				DetachKeys: "ab",
 				Detach:     true,
 			},
 		},
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -126,7 +127,7 @@ TWO=2
 			}(),
 		},
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -206,7 +207,7 @@ func TestRunExec(t *testing.T) {
 	}
 }
 
-func execCreateWithID(_ string, _ types.ExecConfig) (types.IDResponse, error) {
+func execCreateWithID(_ string, _ container.ExecOptions) (types.IDResponse, error) {
 	return types.IDResponse{ID: "execid"}, nil
 }
 
@@ -235,9 +236,9 @@ func TestGetExecExitStatus(t *testing.T) {
 
 	for _, testcase := range testcases {
 		client := &fakeClient{
-			execInspectFunc: func(id string) (types.ContainerExecInspect, error) {
+			execInspectFunc: func(id string) (container.ExecInspect, error) {
 				assert.Check(t, is.Equal(execID, id))
-				return types.ContainerExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
+				return container.ExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
 			},
 		}
 		err := getExecExitStatus(context.Background(), client, execID)

@@ -21,11 +21,11 @@ type fakeClient struct {
 	imagePushFunc    func(ref string, options image.PushOptions) (io.ReadCloser, error)
 	infoFunc         func() (system.Info, error)
 	imagePullFunc    func(ref string, options image.PullOptions) (io.ReadCloser, error)
-	imagesPruneFunc  func(pruneFilter filters.Args) (types.ImagesPruneReport, error)
-	imageLoadFunc    func(input io.Reader, quiet bool) (types.ImageLoadResponse, error)
+	imagesPruneFunc  func(pruneFilter filters.Args) (image.PruneReport, error)
+	imageLoadFunc    func(input io.Reader, quiet bool) (image.LoadResponse, error)
 	imageListFunc    func(options image.ListOptions) ([]image.Summary, error)
 	imageInspectFunc func(image string) (types.ImageInspect, []byte, error)
-	imageImportFunc  func(source types.ImageImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
+	imageImportFunc  func(source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
 	imageHistoryFunc func(image string) ([]image.HistoryResponseItem, error)
 	imageBuildFunc   func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
 }
@@ -74,18 +74,18 @@ func (cli *fakeClient) ImagePull(_ context.Context, ref string, options image.Pu
 	return io.NopCloser(strings.NewReader("")), nil
 }
 
-func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter filters.Args) (types.ImagesPruneReport, error) {
+func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter filters.Args) (image.PruneReport, error) {
 	if cli.imagesPruneFunc != nil {
 		return cli.imagesPruneFunc(pruneFilter)
 	}
-	return types.ImagesPruneReport{}, nil
+	return image.PruneReport{}, nil
 }
 
-func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, quiet bool) (types.ImageLoadResponse, error) {
+func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, quiet bool) (image.LoadResponse, error) {
 	if cli.imageLoadFunc != nil {
 		return cli.imageLoadFunc(input, quiet)
 	}
-	return types.ImageLoadResponse{}, nil
+	return image.LoadResponse{}, nil
 }
 
 func (cli *fakeClient) ImageList(_ context.Context, options image.ListOptions) ([]image.Summary, error) {
@@ -102,7 +102,7 @@ func (cli *fakeClient) ImageInspectWithRaw(_ context.Context, img string) (types
 	return types.ImageInspect{}, nil, nil
 }
 
-func (cli *fakeClient) ImageImport(_ context.Context, source types.ImageImportSource, ref string,
+func (cli *fakeClient) ImageImport(_ context.Context, source image.ImportSource, ref string,
 	options image.ImportOptions,
 ) (io.ReadCloser, error) {
 	if cli.imageImportFunc != nil {

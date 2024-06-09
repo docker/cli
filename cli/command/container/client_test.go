@@ -17,8 +17,8 @@ import (
 type fakeClient struct {
 	client.Client
 	inspectFunc         func(string) (types.ContainerJSON, error)
-	execInspectFunc     func(execID string) (types.ContainerExecInspect, error)
-	execCreateFunc      func(containerID string, config types.ExecConfig) (types.IDResponse, error)
+	execInspectFunc     func(execID string) (container.ExecInspect, error)
+	execCreateFunc      func(containerID string, options container.ExecOptions) (types.IDResponse, error)
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
@@ -27,8 +27,8 @@ type fakeClient struct {
 	containerStartFunc      func(containerID string, options container.StartOptions) error
 	imageCreateFunc         func(parentReference string, options image.CreateOptions) (io.ReadCloser, error)
 	infoFunc                func() (system.Info, error)
-	containerStatPathFunc   func(containerID, path string) (types.ContainerPathStat, error)
-	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
+	containerStatPathFunc   func(containerID, path string) (container.PathStat, error)
+	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, container.PathStat, error)
 	logFunc                 func(string, container.LogsOptions) (io.ReadCloser, error)
 	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
 	containerListFunc       func(container.ListOptions) ([]types.Container, error)
@@ -36,7 +36,7 @@ type fakeClient struct {
 	containerExecResizeFunc func(id string, options container.ResizeOptions) error
 	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
-	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error)
+	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
 	Version                 string
 }
@@ -55,21 +55,21 @@ func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (ty
 	return types.ContainerJSON{}, nil
 }
 
-func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config types.ExecConfig) (types.IDResponse, error) {
+func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config container.ExecOptions) (types.IDResponse, error) {
 	if f.execCreateFunc != nil {
 		return f.execCreateFunc(containerID, config)
 	}
 	return types.IDResponse{}, nil
 }
 
-func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (types.ContainerExecInspect, error) {
+func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (container.ExecInspect, error) {
 	if f.execInspectFunc != nil {
 		return f.execInspectFunc(execID)
 	}
-	return types.ContainerExecInspect{}, nil
+	return container.ExecInspect{}, nil
 }
 
-func (f *fakeClient) ContainerExecStart(context.Context, string, types.ExecStartCheck) error {
+func (f *fakeClient) ContainerExecStart(context.Context, string, container.ExecStartOptions) error {
 	return nil
 }
 
@@ -108,18 +108,18 @@ func (f *fakeClient) Info(_ context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (f *fakeClient) ContainerStatPath(_ context.Context, containerID, path string) (types.ContainerPathStat, error) {
+func (f *fakeClient) ContainerStatPath(_ context.Context, containerID, path string) (container.PathStat, error) {
 	if f.containerStatPathFunc != nil {
 		return f.containerStatPathFunc(containerID, path)
 	}
-	return types.ContainerPathStat{}, nil
+	return container.PathStat{}, nil
 }
 
-func (f *fakeClient) CopyFromContainer(_ context.Context, containerID, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
+func (f *fakeClient) CopyFromContainer(_ context.Context, containerID, srcPath string) (io.ReadCloser, container.PathStat, error) {
 	if f.containerCopyFromFunc != nil {
 		return f.containerCopyFromFunc(containerID, srcPath)
 	}
-	return nil, types.ContainerPathStat{}, nil
+	return nil, container.PathStat{}, nil
 }
 
 func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, options container.LogsOptions) (io.ReadCloser, error) {
@@ -168,11 +168,11 @@ func (f *fakeClient) ContainerKill(ctx context.Context, containerID, signal stri
 	return nil
 }
 
-func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error) {
+func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error) {
 	if f.containerPruneFunc != nil {
 		return f.containerPruneFunc(ctx, pruneFilters)
 	}
-	return types.ContainersPruneReport{}, nil
+	return container.PruneReport{}, nil
 }
 
 func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {

@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -123,7 +124,7 @@ func RunExec(ctx context.Context, dockerCli command.Cli, containerIDorName strin
 	}
 
 	if execOptions.Detach {
-		return apiClient.ContainerExecStart(ctx, execID, types.ExecStartCheck{
+		return apiClient.ContainerExecStart(ctx, execID, container.ExecStartOptions{
 			Detach:      execOptions.Detach,
 			Tty:         execOptions.Tty,
 			ConsoleSize: execOptions.ConsoleSize,
@@ -132,14 +133,14 @@ func RunExec(ctx context.Context, dockerCli command.Cli, containerIDorName strin
 	return interactiveExec(ctx, dockerCli, execOptions, execID)
 }
 
-func fillConsoleSize(execConfig *types.ExecConfig, dockerCli command.Cli) {
-	if execConfig.Tty {
+func fillConsoleSize(execOptions *container.ExecOptions, dockerCli command.Cli) {
+	if execOptions.Tty {
 		height, width := dockerCli.Out().GetTtySize()
-		execConfig.ConsoleSize = &[2]uint{height, width}
+		execOptions.ConsoleSize = &[2]uint{height, width}
 	}
 }
 
-func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *types.ExecConfig, execID string) error {
+func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *container.ExecOptions, execID string) error {
 	// Interactive exec requested.
 	var (
 		out, stderr io.Writer
@@ -162,7 +163,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *ty
 	fillConsoleSize(execOptions, dockerCli)
 
 	apiClient := dockerCli.Client()
-	resp, err := apiClient.ContainerExecAttach(ctx, execID, types.ExecStartCheck{
+	resp, err := apiClient.ContainerExecAttach(ctx, execID, container.ExecAttachOptions{
 		Tty:         execOptions.Tty,
 		ConsoleSize: execOptions.ConsoleSize,
 	})
@@ -222,8 +223,8 @@ func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient,
 
 // parseExec parses the specified args for the specified command and generates
 // an ExecConfig from it.
-func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*types.ExecConfig, error) {
-	execOptions := &types.ExecConfig{
+func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*container.ExecOptions, error) {
+	execOptions := &container.ExecOptions{
 		User:       execOpts.User,
 		Privileged: execOpts.Privileged,
 		Tty:        execOpts.TTY,

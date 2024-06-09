@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -52,9 +52,9 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 	tarContent := "the tar content"
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
+		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
 			assert.Check(t, is.Equal("container", ctr))
-			return io.NopCloser(strings.NewReader(tarContent)), types.ContainerPathStat{}, nil
+			return io.NopCloser(strings.NewReader(tarContent)), container.PathStat{}, nil
 		},
 	})
 	err := runCopy(context.TODO(), cli, copyOptions{
@@ -72,10 +72,10 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 	defer destDir.Remove()
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
+		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
 			assert.Check(t, is.Equal("container", ctr))
 			readCloser, err := archive.TarWithOptions(destDir.Path(), &archive.TarOptions{})
-			return readCloser, types.ContainerPathStat{}, err
+			return readCloser, container.PathStat{}, err
 		},
 	})
 	err := runCopy(context.TODO(), cli, copyOptions{
@@ -98,10 +98,10 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 	defer destDir.Remove()
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
+		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
 			assert.Check(t, is.Equal("container", ctr))
 			readCloser, err := archive.TarWithOptions(destDir.Path(), &archive.TarOptions{})
-			return readCloser, types.ContainerPathStat{}, err
+			return readCloser, container.PathStat{}, err
 		},
 	})
 	err := runCopy(context.TODO(), cli, copyOptions{
