@@ -3,6 +3,7 @@ package registry
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -33,7 +34,7 @@ func (c fakeClient) Info(context.Context) (system.Info, error) {
 
 func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	if auth.Password == expiredPassword {
-		return registrytypes.AuthenticateOKBody{}, fmt.Errorf("Invalid Username or Password")
+		return registrytypes.AuthenticateOKBody{}, errors.New("Invalid Username or Password")
 	}
 	if auth.Password == useToken {
 		return registrytypes.AuthenticateOKBody{
@@ -41,7 +42,7 @@ func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConf
 		}, nil
 	}
 	if auth.Username == unknownUser {
-		return registrytypes.AuthenticateOKBody{}, fmt.Errorf(errUnknownUser)
+		return registrytypes.AuthenticateOKBody{}, errors.New(errUnknownUser)
 	}
 	return registrytypes.AuthenticateOKBody{}, nil
 }

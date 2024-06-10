@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"testing"
 
@@ -29,7 +29,7 @@ func TestPluginEnableErrors(t *testing.T) {
 		{
 			args: []string{"plugin-foo"},
 			pluginEnableFunc: func(name string, options types.PluginEnableOptions) error {
-				return fmt.Errorf("failed to enable plugin")
+				return errors.New("failed to enable plugin")
 			},
 			expectedError: "failed to enable plugin",
 		},
@@ -43,10 +43,9 @@ func TestPluginEnableErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newEnableCommand(
-			test.NewFakeCli(&fakeClient{
-				pluginEnableFunc: tc.pluginEnableFunc,
-			}))
+		cmd := newEnableCommand(test.NewFakeCli(&fakeClient{
+			pluginEnableFunc: tc.pluginEnableFunc,
+		}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
