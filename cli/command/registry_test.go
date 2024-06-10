@@ -3,7 +3,6 @@ package command_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -68,7 +67,7 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		},
 		{
 			checkCredStore:     true,
-			inputServerAddress: fmt.Sprintf("https://%s", testAuthConfigs[1].ServerAddress),
+			inputServerAddress: "https://" + testAuthConfigs[1].ServerAddress,
 			expectedAuthConfig: testAuthConfigs[1],
 		},
 	}

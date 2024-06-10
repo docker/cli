@@ -99,7 +99,7 @@ func getDescription(err validationError) string {
 	switch err.parent.Type() {
 	case "invalid_type":
 		if expectedType, ok := err.parent.Details()["expected"].(string); ok {
-			return fmt.Sprintf("must be a %s", humanReadableType(expectedType))
+			return "must be a " + humanReadableType(expectedType)
 		}
 	case jsonschemaOneOf, jsonschemaAnyOf:
 		if err.child == nil {

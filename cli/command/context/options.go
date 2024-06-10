@@ -1,7 +1,6 @@
 package context
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -77,7 +76,7 @@ func validateConfig(config map[string]string, allowedKeys map[string]struct{}) e
 	var errs []string
 	for k := range config {
 		if _, ok := allowedKeys[k]; !ok {
-			errs = append(errs, fmt.Sprintf("%s: unrecognized config key", k))
+			errs = append(errs, "unrecognized config key: "+k)
 		}
 	}
 	if len(errs) == 0 {

@@ -1,7 +1,6 @@
 package trust
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
@@ -30,7 +29,7 @@ func TestSignLocalImage(t *testing.T) {
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary)
 	result.Assert(t, icmd.Success)
-	assert.Check(t, is.Contains(result.Stdout(), fmt.Sprintf("v1: digest: sha256:%s", fixtures.AlpineSha)))
+	assert.Check(t, is.Contains(result.Stdout(), "v1: digest: sha256:"+fixtures.AlpineSha))
 }
 
 func TestSignWithLocalFlag(t *testing.T) {
@@ -44,7 +43,7 @@ func TestSignWithLocalFlag(t *testing.T) {
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary)
 	result.Assert(t, icmd.Success)
-	assert.Check(t, is.Contains(result.Stdout(), fmt.Sprintf("v1: digest: sha256:%s", fixtures.BusyboxSha)))
+	assert.Check(t, is.Contains(result.Stdout(), "v1: digest: sha256:"+fixtures.BusyboxSha))
 }
 
 func setupTrustedImageForOverwrite(t *testing.T, dir fs.Dir) {
@@ -55,7 +54,7 @@ func setupTrustedImageForOverwrite(t *testing.T, dir fs.Dir) {
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary)
 	result.Assert(t, icmd.Success)
-	assert.Check(t, is.Contains(result.Stdout(), fmt.Sprintf("v1: digest: sha256:%s", fixtures.AlpineSha)))
+	assert.Check(t, is.Contains(result.Stdout(), "v1: digest: sha256:"+fixtures.AlpineSha))
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.BusyboxImage)).Assert(t, icmd.Success)
 	icmd.RunCommand("docker", "tag", fixtures.BusyboxImage, localImage).Assert(t, icmd.Success)
 }
