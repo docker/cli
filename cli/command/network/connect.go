@@ -2,7 +2,7 @@ package network
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -83,7 +83,7 @@ func convertDriverOpt(opts []string) (map[string]string, error) {
 		// TODO(thaJeztah): we should probably not accept whitespace here (both for key and value).
 		k = strings.TrimSpace(k)
 		if !ok || k == "" {
-			return nil, fmt.Errorf("invalid key/value pair format in driver options")
+			return nil, errors.New("invalid key/value pair format in driver options")
 		}
 		driverOpt[k] = strings.TrimSpace(v)
 	}

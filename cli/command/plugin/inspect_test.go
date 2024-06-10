@@ -1,13 +1,13 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -52,7 +52,7 @@ func TestInspectErrors(t *testing.T) {
 			args:          []string{"foo"},
 			expectedError: "error inspecting plugin",
 			inspectFunc: func(name string) (*types.Plugin, []byte, error) {
-				return nil, nil, fmt.Errorf("error inspecting plugin")
+				return nil, nil, errors.New("error inspecting plugin")
 			},
 		},
 		{

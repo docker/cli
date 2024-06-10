@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -112,7 +113,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
 			imagePullFunc: func(ref string, options types.ImagePullOptions) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), fmt.Errorf("shouldn't try to pull image")
+				return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)

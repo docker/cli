@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -167,7 +168,7 @@ func prettyPrintInfo(dockerCli command.Cli, info info) error {
 	}
 
 	if len(info.ServerErrors) > 0 || len(info.ClientErrors) > 0 {
-		return fmt.Errorf("errors pretty printing info")
+		return errors.New("errors pretty printing info")
 	}
 	return nil
 }
