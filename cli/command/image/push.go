@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -12,11 +13,13 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/moby/term"
+	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -62,6 +65,8 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunPush performs a push against the engine based on the specified options
+//
+//nolint:gocyclo
 func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	var platform *ocispec.Platform
 	if opts.platform != "" {
@@ -74,9 +79,8 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 
 		printNote(dockerCli, `Selecting a single platform will only push one matching image manifest from a multi-platform image index.
 This means that any other components attached to the multi-platform image index (like Buildkit attestations) won't be pushed.
-If you want to only push a single platform image while preserving the attestations, please build an image with only that platform and push it instead.
-Example: echo "FROM %s" | docker build - --platform %s -t <NEW-TAG>
-`, opts.remote, opts.platform)
+If you want to only push a single platform image while preserving the attestations, please use 'docker convert\n'
+`)
 	}
 
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
@@ -117,6 +121,13 @@ Example: echo "FROM %s" | docker build - --platform %s -t <NEW-TAG>
 		return err
 	}
 
+	defer func() {
+		for _, note := range notes {
+			fmt.Fprintln(dockerCli.Err(), "")
+			printNote(dockerCli, note)
+		}
+	}()
+
 	defer responseBody.Close()
 	if !opts.untrusted {
 		// TODO PushTrustedReference currently doesn't respect `--quiet`
@@ -124,20 +135,51 @@ Example: echo "FROM %s" | docker build - --platform %s -t <NEW-TAG>
 	}
 
 	if opts.quiet {
-		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), nil)
+		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), handleAux(dockerCli))
 		if err == nil {
 			fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), handleAux(dockerCli))
+}
+
+var notes []string
+
+func handleAux(dockerCli command.Cli) func(jm jsonmessage.JSONMessage) {
+	return func(jm jsonmessage.JSONMessage) {
+		b := []byte(*jm.Aux)
+
+		var stripped auxprogress.ManifestPushedInsteadOfIndex
+		err := json.Unmarshal(b, &stripped)
+		if err == nil && stripped.ManifestPushedInsteadOfIndex {
+			note := fmt.Sprintf("Not all multiplatform-content is present and only the available single-platform image was pushed\n%s -> %s",
+				aec.RedF.Apply(stripped.OriginalIndex.Digest.String()),
+				aec.GreenF.Apply(stripped.SelectedManifest.Digest.String()),
+			)
+			notes = append(notes, note)
+		}
+
+		var missing auxprogress.ContentMissing
+		err = json.Unmarshal(b, &missing)
+		if err == nil && missing.ContentMissing {
+			note := `You're trying to push a manifest list/index which 
+				references multiple platform specific manifests, but not all of them are available locally
+				or available to the remote repository.
+
+				Make sure you have all the referenced content and try again.
+
+				You can also push only a single platform specific manifest directly by specifying the platform you want to push with the --platform flag.`
+			notes = append(notes, note)
+		}
+	}
 }
 
 func printNote(dockerCli command.Cli, format string, args ...any) {
 	if _, isTTY := term.GetFdInfo(dockerCli.Err()); isTTY {
-		_, _ = fmt.Fprint(dockerCli.Err(), "\x1b[1;37m\x1b[1;46m[ NOTE ]\x1b[0m\x1b[0m ")
+		_, _ = fmt.Fprint(dockerCli.Err(), aec.WhiteF.Apply(aec.CyanB.Apply("[ NOTE ]"))+" ")
 	} else {
 		_, _ = fmt.Fprint(dockerCli.Err(), "[ NOTE ] ")
 	}
-	_, _ = fmt.Fprintf(dockerCli.Err(), format+"\n\n", args...)
+	_, _ = fmt.Fprintf(dockerCli.Err(), aec.Bold.Apply(format)+"\n", args...)
 }
