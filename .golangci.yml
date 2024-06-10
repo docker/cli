@@ -44,9 +44,6 @@ linters:
 
 run:
   timeout: 5m
-  skip-files:
-    - cli/compose/schema/bindata.go
-    - .*generated.*
 
 linters-settings:
   depguard:
@@ -58,7 +55,8 @@ linters-settings:
   gocyclo:
     min-complexity: 16
   govet:
-    check-shadowing: true
+    enable:
+      - shadow
     settings:
       shadow:
         strict: true
@@ -93,6 +91,10 @@ issues:
 
   exclude:
     - parameter .* always receives
+
+  exclude-files:
+    - cli/compose/schema/bindata.go
+    - .*generated.*
 
   exclude-rules:
     # We prefer to use an "exclude-list" so that new "default" exclusions are not
