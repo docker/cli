@@ -335,7 +335,7 @@ func TestParseHostname(t *testing.T) {
 	hostnameWithDomain := "--hostname=hostname.domainname"
 	hostnameWithDomainTld := "--hostname=hostname.domainname.tld"
 	for hostname, expectedHostname := range validHostnames {
-		if config, _, _ := mustParse(t, fmt.Sprintf("--hostname=%s", hostname)); config.Hostname != expectedHostname {
+		if config, _, _ := mustParse(t, "--hostname="+hostname); config.Hostname != expectedHostname {
 			t.Fatalf("Expected the config to have 'hostname' as %q, got %q", expectedHostname, config.Hostname)
 		}
 	}

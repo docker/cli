@@ -192,7 +192,7 @@ func TestInitializeFromClientHangs(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	opts := &flags.ClientOptions{Hosts: []string{fmt.Sprintf("unix://%s", socket)}}
+	opts := &flags.ClientOptions{Hosts: []string{"unix://" + socket}}
 	configFile := &configfile.ConfigFile{}
 	apiClient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)

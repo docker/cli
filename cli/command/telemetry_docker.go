@@ -5,7 +5,6 @@ package command
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -85,7 +84,7 @@ func dockerExporterOTLPEndpoint(cli Cli) (endpoint string, secure bool) {
 		// needs the scheme to use the correct resolver.
 		//
 		// We'll just handle this in a special way and add the unix:// back to the endpoint.
-		endpoint = fmt.Sprintf("unix://%s", path.Join(u.Host, u.Path))
+		endpoint = "unix://" + path.Join(u.Host, u.Path)
 	case "https":
 		secure = true
 		fallthrough

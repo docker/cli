@@ -58,7 +58,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 		hasError = removeNetworks(ctx, dockerCli, networks) || hasError
 
 		if hasError {
-			errs = append(errs, fmt.Sprintf("Failed to remove some resources from stack: %s", namespace))
+			errs = append(errs, "Failed to remove some resources from stack: "+namespace)
 			continue
 		}
 

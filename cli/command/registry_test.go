@@ -1,7 +1,6 @@
 package command_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -52,7 +51,7 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		},
 		{
 			checkCredStore:     true,
-			inputServerAddress: fmt.Sprintf("https://%s", testAuthConfigs[1].ServerAddress),
+			inputServerAddress: "https://" + testAuthConfigs[1].ServerAddress,
 			expectedAuthConfig: testAuthConfigs[1],
 		},
 	}
