@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -36,14 +37,14 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.network = args[0]
 			options.container = args[1]
-			return runConnect(dockerCli, options)
+			return runConnect(cmd.Context(), dockerCli.Client(), options)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
 				return completion.NetworkNames(dockerCli)(cmd, args, toComplete)
 			}
-			network := args[0]
-			return completion.ContainerNames(dockerCli, true, not(isConnected(network)))(cmd, args, toComplete)
+			nw := args[0]
+			return completion.ContainerNames(dockerCli, true, not(isConnected(nw)))(cmd, args, toComplete)
 		},
 	}
 
@@ -57,14 +58,13 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runConnect(dockerCli command.Cli, options connectOptions) error {
-	client := dockerCli.Client()
-
+func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options connectOptions) error {
 	driverOpts, err := convertDriverOpt(options.driverOpts)
 	if err != nil {
 		return err
 	}
-	epConfig := &network.EndpointSettings{
+
+	return apiClient.NetworkConnect(ctx, options.network, options.container, &network.EndpointSettings{
 		IPAMConfig: &network.EndpointIPAMConfig{
 			IPv4Address:  options.ipaddress,
 			IPv6Address:  options.ipv6address,
@@ -73,9 +73,7 @@ func runConnect(dockerCli command.Cli, options connectOptions) error {
 		Links:      options.links.GetAll(),
 		Aliases:    options.aliases,
 		DriverOpts: driverOpts,
-	}
-
-	return client.NetworkConnect(context.Background(), options.network, options.container, epConfig)
+	})
 }
 
 func convertDriverOpt(opts []string) (map[string]string, error) {
