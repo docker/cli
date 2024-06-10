@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
@@ -164,7 +163,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			// is not valid for filtering containers.
 			f := options.Filters.Clone()
 			f.Add("type", string(events.ContainerEventType))
-			eventChan, errChan := apiClient.Events(ctx, types.EventsOptions{
+			eventChan, errChan := apiClient.Events(ctx, events.ListOptions{
 				Filters: f,
 			})
 

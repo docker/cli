@@ -14,10 +14,10 @@ import (
 	"github.com/docker/cli/cli/trust"
 	imagetypes "github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/theupdateframework/notary/client"
+	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
@@ -64,7 +64,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 	// get the latest repository metadata so we can figure out which roles to sign
 	if _, err = notaryRepo.ListTargets(); err != nil {
 		switch err.(type) {
-		case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:
+		case notaryclient.ErrRepoNotInitialized, notaryclient.ErrRepositoryNotExist:
 			// before initializing a new repo, check that the image exists locally:
 			if err := checkLocalImageExistence(ctx, dockerCLI.Client(), imageName); err != nil {
 				return err
@@ -86,7 +86,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 	if err != nil || options.local {
 		switch err := err.(type) {
 		// If the error is nil then the local flag is set
-		case client.ErrNoSuchTarget, client.ErrRepositoryNotExist, nil:
+		case notaryclient.ErrNoSuchTarget, notaryclient.ErrRepositoryNotExist, nil:
 			// Fail fast if the image doesn't exist locally
 			if err := checkLocalImageExistence(ctx, dockerCLI.Client(), imageName); err != nil {
 				return err
@@ -110,7 +110,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 	return signAndPublishToTarget(dockerCLI.Out(), imgRefAndAuth, notaryRepo, target)
 }
 
-func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, notaryRepo client.Repository, target client.Target) error {
+func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, notaryRepo notaryclient.Repository, target notaryclient.Target) error {
 	tag := imgRefAndAuth.Tag()
 	fmt.Fprintf(out, "Signing and pushing trust metadata for %s\n", imgRefAndAuth.Name())
 	existingSigInfo, err := getExistingSignatureInfoForReleasedTag(notaryRepo, tag)
@@ -140,13 +140,13 @@ func validateTag(imgRefAndAuth trust.ImageRefAndAuth) error {
 	return nil
 }
 
-func checkLocalImageExistence(ctx context.Context, apiClient apiclient.APIClient, imageName string) error {
+func checkLocalImageExistence(ctx context.Context, apiClient client.APIClient, imageName string) error {
 	_, _, err := apiClient.ImageInspectWithRaw(ctx, imageName)
 	return err
 }
 
-func createTarget(notaryRepo client.Repository, tag string) (client.Target, error) {
-	target := &client.Target{}
+func createTarget(notaryRepo notaryclient.Repository, tag string) (notaryclient.Target, error) {
+	target := &notaryclient.Target{}
 	var err error
 	if tag == "" {
 		return *target, errors.New("no tag specified")
@@ -156,7 +156,7 @@ func createTarget(notaryRepo client.Repository, tag string) (client.Target, erro
 	return *target, err
 }
 
-func getSignedManifestHashAndSize(notaryRepo client.Repository, tag string) (data.Hashes, int64, error) {
+func getSignedManifestHashAndSize(notaryRepo notaryclient.Repository, tag string) (data.Hashes, int64, error) {
 	targets, err := notaryRepo.GetAllTargetMetadataByName(tag)
 	if err != nil {
 		return nil, 0, err
@@ -164,16 +164,16 @@ func getSignedManifestHashAndSize(notaryRepo client.Repository, tag string) (dat
 	return getReleasedTargetHashAndSize(targets, tag)
 }
 
-func getReleasedTargetHashAndSize(targets []client.TargetSignedStruct, tag string) (data.Hashes, int64, error) {
+func getReleasedTargetHashAndSize(targets []notaryclient.TargetSignedStruct, tag string) (data.Hashes, int64, error) {
 	for _, tgt := range targets {
 		if isReleasedTarget(tgt.Role.Name) {
 			return tgt.Target.Hashes, tgt.Target.Length, nil
 		}
 	}
-	return nil, 0, client.ErrNoSuchTarget(tag)
+	return nil, 0, notaryclient.ErrNoSuchTarget(tag)
 }
 
-func getExistingSignatureInfoForReleasedTag(notaryRepo client.Repository, tag string) (trustTagRow, error) {
+func getExistingSignatureInfoForReleasedTag(notaryRepo notaryclient.Repository, tag string) (trustTagRow, error) {
 	targets, err := notaryRepo.GetAllTargetMetadataByName(tag)
 	if err != nil {
 		return trustTagRow{}, err
@@ -191,7 +191,7 @@ func prettyPrintExistingSignatureInfo(out io.Writer, existingSigInfo trustTagRow
 	fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.SignedTag, existingSigInfo.Digest, joinedSigners)
 }
 
-func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.RoleName) error {
+func initNotaryRepoWithSigners(notaryRepo notaryclient.Repository, newSigner data.RoleName) error {
 	rootKey, err := getOrGenerateNotaryKey(notaryRepo, data.CanonicalRootRole)
 	if err != nil {
 		return err
@@ -215,7 +215,7 @@ func initNotaryRepoWithSigners(notaryRepo client.Repository, newSigner data.Role
 }
 
 // generates an ECDSA key without a GUN for the specified role
-func getOrGenerateNotaryKey(notaryRepo client.Repository, role data.RoleName) (data.PublicKey, error) {
+func getOrGenerateNotaryKey(notaryRepo notaryclient.Repository, role data.RoleName) (data.PublicKey, error) {
 	// use the signer name in the PEM headers if this is a delegation key
 	if data.IsDelegation(role) {
 		role = data.RoleName(notaryRoleToSigner(role))
@@ -242,7 +242,7 @@ func getOrGenerateNotaryKey(notaryRepo client.Repository, role data.RoleName) (d
 }
 
 // stages changes to add a signer with the specified name and key(s).  Adds to targets/<name> and targets/releases
-func addStagedSigner(notaryRepo client.Repository, newSigner data.RoleName, signerKeys []data.PublicKey) error {
+func addStagedSigner(notaryRepo notaryclient.Repository, newSigner data.RoleName, signerKeys []data.PublicKey) error {
 	// create targets/<username>
 	if err := notaryRepo.AddDelegationRoleAndKeys(newSigner, signerKeys); err != nil {
 		return err

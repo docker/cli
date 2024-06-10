@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
@@ -68,11 +67,11 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 	f := filters.NewArgs()
 	f.Add("type", "container")
 	f.Add("container", containerID)
-	options := types.EventsOptions{
-		Filters: f,
-	}
+
 	eventCtx, cancel := context.WithCancel(ctx)
-	eventq, errq := apiClient.Events(eventCtx, options)
+	eventq, errq := apiClient.Events(eventCtx, events.ListOptions{
+		Filters: f,
+	})
 
 	eventProcessor := func(e events.Message) bool {
 		stopProcessing := false

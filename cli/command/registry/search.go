@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
@@ -65,7 +64,7 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 	}
 
 	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
-	results, err := dockerCli.Client().ImageSearch(ctx, options.term, types.ImageSearchOptions{
+	results, err := dockerCli.Client().ImageSearch(ctx, options.term, registrytypes.SearchOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 		Filters:       options.filter.Value(),
