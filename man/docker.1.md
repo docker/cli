@@ -60,7 +60,7 @@ unix://[/path/to/socket] to use.
 Use "docker help" or "docker --help" to get an overview of available commands.
 
 # EXAMPLES
-For specific client examples please see the man page for the specific Docker
+For specific client examples see the man page for the specific Docker
 command. For example:
 
     man docker-run
