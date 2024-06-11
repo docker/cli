@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/system"
@@ -69,7 +70,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
 		errBuf := new(bytes.Buffer)
-		cli.SetErr(errBuf)
+		cli.SetErr(streams.NewOut(errBuf))
 		loginWithCredStoreCreds(ctx, cli, &tc.inputAuthConfig)
 		outputString := cli.OutBuffer().String()
 		assert.Check(t, is.Equal(tc.expectedMsg, outputString))

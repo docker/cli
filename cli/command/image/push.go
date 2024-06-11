@@ -18,7 +18,6 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
-	"github.com/moby/term"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -176,7 +175,7 @@ func handleAux(dockerCli command.Cli) func(jm jsonmessage.JSONMessage) {
 }
 
 func printNote(dockerCli command.Cli, format string, args ...any) {
-	if _, isTTY := term.GetFdInfo(dockerCli.Err()); isTTY {
+	if dockerCli.Err().IsTerminal() {
 		_, _ = fmt.Fprint(dockerCli.Err(), aec.WhiteF.Apply(aec.CyanB.Apply("[ NOTE ]"))+" ")
 	} else {
 		_, _ = fmt.Fprint(dockerCli.Err(), "[ NOTE ] ")
