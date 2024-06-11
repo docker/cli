@@ -53,11 +53,11 @@ func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOpti
 		return fmt.Errorf("signer name \"%s\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character", signerName)
 	}
 	if signerName == "releases" {
-		return fmt.Errorf("releases is a reserved keyword, please use a different signer name")
+		return errors.New("releases is a reserved keyword, please use a different signer name")
 	}
 
 	if options.keys.Len() == 0 {
-		return fmt.Errorf("path to a public key must be provided using the `--key` flag")
+		return errors.New("path to a public key must be provided using the `--key` flag")
 	}
 	signerPubKeys, err := ingestPublicKeys(options.keys.GetAll())
 	if err != nil {

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -125,7 +124,7 @@ type existingTokenHandler struct {
 }
 
 func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string]string) error {
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", th.token))
+	req.Header.Set("Authorization", "Bearer "+th.token)
 	return nil
 }
 

@@ -218,7 +218,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// with a list of container names/IDs.
 
 		if options.Filters != nil && options.Filters.Len() > 0 {
-			return fmt.Errorf("filtering is not supported when specifying a list of containers")
+			return errors.New("filtering is not supported when specifying a list of containers")
 		}
 
 		// Create the list of containers, and start collecting stats for all

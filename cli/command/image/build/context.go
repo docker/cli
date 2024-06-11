@@ -226,7 +226,7 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 	progressOutput := streamformatter.NewProgressOutput(out)
 
 	// Pass the response body through a progress reader.
-	progReader := progress.NewProgressReader(response.Body, progressOutput, response.ContentLength, "", fmt.Sprintf("Downloading build context from remote url: %s", remoteURL))
+	progReader := progress.NewProgressReader(response.Body, progressOutput, response.ContentLength, "", "Downloading build context from remote url: "+remoteURL)
 
 	return GetContextFromReader(ioutils.NewReadCloserWrapper(progReader, func() error { return response.Body.Close() }), dockerfileName)
 }
@@ -234,7 +234,7 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 // getWithStatusError does an http.Get() and returns an error if the
 // status code is 4xx or 5xx.
 func getWithStatusError(url string) (resp *http.Response, err error) {
-	//#nosec G107 -- Ignore G107: Potential HTTP request made with variable url
+	//nolint:gosec // Ignore G107: Potential HTTP request made with variable url
 	if resp, err = http.Get(url); err != nil {
 		return nil, err
 	}

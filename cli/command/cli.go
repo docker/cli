@@ -315,7 +315,7 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 
 func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
 	if s == nil {
-		return docker.Endpoint{}, fmt.Errorf("no context store initialized")
+		return docker.Endpoint{}, errors.New("no context store initialized")
 	}
 	ctxMeta, err := s.GetMetadata(contextName)
 	if err != nil {

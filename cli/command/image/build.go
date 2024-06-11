@@ -458,7 +458,7 @@ func rewriteDockerfileFromForContentTrust(ctx context.Context, dockerfile io.Rea
 					return nil, nil, err
 				}
 
-				line = dockerfileFromLinePattern.ReplaceAllLiteralString(line, fmt.Sprintf("FROM %s", reference.FamiliarString(trustedRef)))
+				line = dockerfileFromLinePattern.ReplaceAllLiteralString(line, "FROM "+reference.FamiliarString(trustedRef))
 				resolvedTags = append(resolvedTags, &resolvedTag{
 					digestRef: trustedRef,
 					tagRef:    ref,

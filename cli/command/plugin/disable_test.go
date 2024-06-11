@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"testing"
 
@@ -27,9 +27,9 @@ func TestPluginDisableErrors(t *testing.T) {
 		},
 		{
 			args:          []string{"plugin-foo"},
-			expectedError: "Error disabling plugin",
+			expectedError: "error disabling plugin",
 			pluginDisableFunc: func(name string, disableOptions types.PluginDisableOptions) error {
-				return fmt.Errorf("Error disabling plugin")
+				return errors.New("error disabling plugin")
 			},
 		},
 	}

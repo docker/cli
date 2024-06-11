@@ -109,7 +109,7 @@ func decodePrivKeyIfNecessary(privPemBytes []byte, passRet notary.PassRetriever)
 		if _, ok := pemBlock.Headers["path"]; !ok {
 			privKey, _, err := trustmanager.GetPasswdDecryptBytes(passRet, privPemBytes, "", "encrypted")
 			if err != nil {
-				return []byte{}, fmt.Errorf("could not decrypt key")
+				return []byte{}, errors.New("could not decrypt key")
 			}
 			privPemBytes = privKey.Private()
 		}
