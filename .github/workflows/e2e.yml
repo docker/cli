@@ -16,7 +16,7 @@ on:
 
 jobs:
   e2e:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -40,8 +40,15 @@ jobs:
       -
         name: Update daemon.json
         run: |
-          sudo jq '.experimental = true' < /etc/docker/daemon.json > /tmp/docker.json
-          sudo mv /tmp/docker.json /etc/docker/daemon.json
+          if [ ! -f /etc/docker/daemon.json ]; then
+            # ubuntu 24.04 runners no longer have a default daemon.json present
+            sudo mkdir -p /etc/docker/
+            echo '{"experimental": true}' | sudo tee /etc/docker/daemon.json
+          else
+            # but if there is one; let's patch it to keep other options that may be set.
+            sudo jq '.experimental = true' < /etc/docker/daemon.json > /tmp/docker.json
+            sudo mv /tmp/docker.json /etc/docker/daemon.json
+          fi
           sudo cat /etc/docker/daemon.json
           sudo service docker restart
           docker version
