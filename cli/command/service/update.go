@@ -109,6 +109,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
 	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
 	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
+	flags.Var(&options.oomScoreAdj, flagOomScoreAdj, "oom score adjustment (-1000 to 1000)")
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
@@ -366,6 +367,10 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		taskResources().Reservations = spec.TaskTemplate.Resources.Reservations
 		updateInt64Value(flagReserveCPU, &task.Resources.Reservations.NanoCPUs)
 		updateInt64Value(flagReserveMemory, &task.Resources.Reservations.MemoryBytes)
+	}
+
+	if anyChanged(flags, flagOomScoreAdj) {
+		updateInt64(flagOomScoreAdj, &task.ContainerSpec.OomScoreAdj)
 	}
 
 	if err := addGenericResources(flags, task); err != nil {
