@@ -5,9 +5,9 @@ import (
 	"os"
 	gosignal "os/signal"
 
+	"github.com/containerd/log"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
-	"github.com/sirupsen/logrus"
 )
 
 // ForwardAllSignals forwards signals to the container
@@ -49,7 +49,7 @@ func ForwardAllSignals(ctx context.Context, apiClient client.ContainerAPIClient,
 		}
 
 		if err := apiClient.ContainerKill(ctx, cid, sig); err != nil {
-			logrus.Debugf("Error sending signal: %s", err)
+			log.G(ctx).Debugf("Error sending signal: %s", err)
 		}
 	}
 }

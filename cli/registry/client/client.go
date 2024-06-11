@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/cli/trust"
@@ -14,7 +15,6 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // RegistryClient is a client used to communicate with a Docker distribution
@@ -86,14 +86,14 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 	lu, err := repo.Blobs(ctx).Create(ctx, distributionclient.WithMountFrom(sourceRef))
 	switch err.(type) {
 	case distribution.ErrBlobMounted:
-		logrus.Debugf("mount of blob %s succeeded", sourceRef)
+		log.G(ctx).Debugf("mount of blob %s succeeded", sourceRef)
 		return nil
 	case nil:
 	default:
 		return errors.Wrapf(err, "failed to mount blob %s to %s", sourceRef, targetRef)
 	}
 	lu.Cancel(ctx)
-	logrus.Debugf("mount of blob %s created", sourceRef)
+	log.G(ctx).Debugf("mount of blob %s created", sourceRef)
 	return ErrBlobCreated{From: sourceRef, Target: targetRef}
 }
 

@@ -28,19 +28,19 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // New returns net.Conn
-func New(_ context.Context, cmd string, args ...string) (net.Conn, error) {
+func New(ctx context.Context, cmd string, args ...string) (net.Conn, error) {
 	var (
 		c   commandConn
 		err error
 	)
 	c.cmd = exec.Command(cmd, args...)
 	// we assume that args never contains sensitive information
-	logrus.Debugf("commandconn: starting %s with %v", cmd, args)
+	log.G(ctx).Debugf("commandconn: starting %s with %v", cmd, args)
 	c.cmd.Env = os.Environ()
 	c.cmd.SysProcAttr = &syscall.SysProcAttr{}
 	setPdeathsig(c.cmd)
@@ -224,11 +224,11 @@ func (c *commandConn) Close() error {
 	defer c.closing.Store(false)
 
 	if err := c.CloseRead(); err != nil {
-		logrus.Warnf("commandConn.Close: CloseRead: %v", err)
+		log.G(context.TODO()).Warnf("commandConn.Close: CloseRead: %v", err)
 		return err
 	}
 	if err := c.CloseWrite(); err != nil {
-		logrus.Warnf("commandConn.Close: CloseWrite: %v", err)
+		log.G(context.TODO()).Warnf("commandConn.Close: CloseWrite: %v", err)
 		return err
 	}
 
@@ -244,17 +244,17 @@ func (c *commandConn) RemoteAddr() net.Addr {
 }
 
 func (c *commandConn) SetDeadline(t time.Time) error {
-	logrus.Debugf("unimplemented call: SetDeadline(%v)", t)
+	log.G(context.TODO()).Debugf("unimplemented call: SetDeadline(%v)", t)
 	return nil
 }
 
 func (c *commandConn) SetReadDeadline(t time.Time) error {
-	logrus.Debugf("unimplemented call: SetReadDeadline(%v)", t)
+	log.G(context.TODO()).Debugf("unimplemented call: SetReadDeadline(%v)", t)
 	return nil
 }
 
 func (c *commandConn) SetWriteDeadline(t time.Time) error {
-	logrus.Debugf("unimplemented call: SetWriteDeadline(%v)", t)
+	log.G(context.TODO()).Debugf("unimplemented call: SetWriteDeadline(%v)", t)
 	return nil
 }
 
@@ -278,7 +278,7 @@ type stderrWriter struct {
 }
 
 func (w *stderrWriter) Write(p []byte) (int, error) {
-	logrus.Debugf("%s%s", w.debugPrefix, string(p))
+	log.G(context.TODO()).Debug(w.debugPrefix + string(p))
 	w.stderrMu.Lock()
 	if w.stderr.Len() > 4096 {
 		w.stderr.Reset()

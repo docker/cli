@@ -5,15 +5,16 @@ package inspect
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"strings"
 	"text/template"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/templates"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // Inspector defines an interface to implement to process elements
@@ -84,7 +85,7 @@ func Inspect(out io.Writer, references []string, tmplStr string, getRef GetRefFu
 	}
 
 	if err := inspector.Flush(); err != nil {
-		logrus.Errorf("%s\n", err)
+		log.G(context.TODO()).Errorf("%s\n", err)
 	}
 
 	if len(inspectErrs) != 0 {

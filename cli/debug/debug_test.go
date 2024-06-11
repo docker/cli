@@ -4,20 +4,20 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sirupsen/logrus"
+	"github.com/containerd/log"
 )
 
 func TestEnable(t *testing.T) {
 	defer func() {
-		os.Setenv("DEBUG", "")
-		logrus.SetLevel(logrus.InfoLevel)
+		_ = os.Setenv("DEBUG", "")
+		_ = log.SetLevel("info")
 	}()
 	Enable()
 	if os.Getenv("DEBUG") != "1" {
 		t.Fatalf("expected DEBUG=1, got %s\n", os.Getenv("DEBUG"))
 	}
-	if logrus.GetLevel() != logrus.DebugLevel {
-		t.Fatalf("expected log level %v, got %v\n", logrus.DebugLevel, logrus.GetLevel())
+	if log.GetLevel() != log.DebugLevel {
+		t.Fatalf("expected log level %v, got %v\n", log.DebugLevel, log.GetLevel())
 	}
 }
 
@@ -26,8 +26,8 @@ func TestDisable(t *testing.T) {
 	if os.Getenv("DEBUG") != "" {
 		t.Fatalf("expected DEBUG=\"\", got %s\n", os.Getenv("DEBUG"))
 	}
-	if logrus.GetLevel() != logrus.InfoLevel {
-		t.Fatalf("expected log level %v, got %v\n", logrus.InfoLevel, logrus.GetLevel())
+	if log.GetLevel() != log.InfoLevel {
+		t.Fatalf("expected log level %v, got %v\n", log.InfoLevel, log.GetLevel())
 	}
 }
 

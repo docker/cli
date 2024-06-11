@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -9,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/go-connections/nat"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -149,7 +150,7 @@ func ConvertPortToPortConfig(
 
 	for _, binding := range portBindings[port] {
 		if p := net.ParseIP(binding.HostIP); p != nil && !p.IsUnspecified() {
-			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), port)
+			log.G(context.TODO()).Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), port)
 		}
 
 		startHostPort, endHostPort, err := nat.ParsePortRange(binding.HostPort)

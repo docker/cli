@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type stats struct {
@@ -51,7 +51,7 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 }
 
 func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bool, waitFirst *sync.WaitGroup) {
-	logrus.Debugf("collecting stats for %s", s.Container)
+	log.G(ctx).Debugf("collecting stats for %s", s.Container)
 	var (
 		getFirst       bool
 		previousCPU    uint64

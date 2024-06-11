@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/distribution/registry/client/auth"
@@ -22,7 +23,6 @@ import (
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/passphrase"
@@ -108,7 +108,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	if err != nil {
 		return nil, err
 	}
-	logrus.Debugf("reading certificate directory: %s", certDir)
+	log.G(context.TODO()).Debugf("reading certificate directory: %s", certDir)
 
 	if err := registry.ReadCertsDirectory(cfg, certDir); err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	resp, err := pingClient.Do(req)
 	if err != nil {
 		// Ignore error on ping to operate in offline mode
-		logrus.Debugf("Error pinging notary server %q: %s", endpointStr, err)
+		log.G(context.TODO()).Debugf("Error pinging notary server %q: %s", endpointStr, err)
 	} else {
 		defer resp.Body.Close()
 
@@ -212,7 +212,7 @@ func GetPassphraseRetriever(in io.Reader, out io.Writer) notary.PassRetriever {
 func NotaryError(repoName string, err error) error {
 	switch err.(type) {
 	case *json.SyntaxError:
-		logrus.Debugf("Notary syntax error: %s", err)
+		log.G(context.TODO()).Debugf("Notary syntax error: %s", err)
 		return errors.Errorf("Error: no trust data available for remote repository %s. Try running notary server and setting DOCKER_CONTENT_TRUST_SERVER to its HTTPS address?", repoName)
 	case signed.ErrExpired:
 		return errors.Errorf("Error: remote repository %s out-of-date: %v", repoName, err)

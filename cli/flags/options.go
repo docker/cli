@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 )
 
@@ -135,14 +135,11 @@ func (o *ClientOptions) SetDefaultOptions(flags *pflag.FlagSet) {
 
 // SetLogLevel sets the logrus logging level
 func SetLogLevel(logLevel string) {
-	if logLevel != "" {
-		lvl, err := logrus.ParseLevel(logLevel)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to parse logging level: %s\n", logLevel)
-			os.Exit(1)
-		}
-		logrus.SetLevel(lvl)
-	} else {
-		logrus.SetLevel(logrus.InfoLevel)
+	if logLevel == "" {
+		logLevel = "info"
+	}
+	if err := log.SetLevel(logLevel); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Unable to parse logging level:", logLevel)
+		os.Exit(1)
 	}
 }

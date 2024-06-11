@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -180,6 +180,6 @@ func resizeTTY(ctx context.Context, dockerCli command.Cli, containerID string) {
 	// After the above resizing occurs, the call to MonitorTtySize below will handle resetting back
 	// to the actual size.
 	if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
-		logrus.Debugf("Error monitoring TTY size: %s", err)
+		log.G(ctx).Debugf("Error monitoring TTY size: %s", err)
 	}
 }

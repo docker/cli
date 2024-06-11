@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -107,7 +107,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateO
 
 	compression := archive.Uncompressed
 	if options.compress {
-		logrus.Debugf("compression enabled")
+		log.G(ctx).Debugf("compression enabled")
 		compression = archive.Gzip
 	}
 

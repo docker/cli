@@ -8,6 +8,7 @@ import (
 	"io"
 	"sort"
 
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
@@ -19,7 +20,6 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 )
@@ -256,7 +256,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 		return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
 	}
 
-	logrus.Debugf("retrieving target for %s role", t.Role)
+	log.G(context.TODO()).Debugf("retrieving target for %s role", t.Role)
 	r, err := convertTarget(t.Target)
 	return []target{r}, err
 }

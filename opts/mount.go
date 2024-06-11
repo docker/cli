@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -9,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/containerd/log"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/go-units"
-	"github.com/sirupsen/logrus"
 )
 
 // MountOpt is a Value type for parsing mounts
@@ -114,7 +115,7 @@ func (m *MountOpt) Set(value string) error {
 			if err != nil {
 				return fmt.Errorf("invalid value for %s: %s", key, val)
 			}
-			logrus.Warn("bind-nonrecursive is deprecated, use bind-recursive=disabled instead")
+			log.G(context.TODO()).Warn("bind-nonrecursive is deprecated, use bind-recursive=disabled instead")
 		case "bind-recursive":
 			switch val {
 			case "enabled": // read-only mounts are recursively read-only if Engine >= v25 && kernel >= v5.12, otherwise writable

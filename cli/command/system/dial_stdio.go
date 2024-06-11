@@ -5,11 +5,11 @@ import (
 	"io"
 	"os"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -74,10 +74,10 @@ func runDialStdio(ctx context.Context, dockerCli command.Cli) error {
 func copier(to halfWriteCloser, from halfReadCloser, debugDescription string) error {
 	defer func() {
 		if err := from.CloseRead(); err != nil {
-			logrus.Errorf("error while CloseRead (%s): %v", debugDescription, err)
+			log.G(context.TODO()).Errorf("error while CloseRead (%s): %v", debugDescription, err)
 		}
 		if err := to.CloseWrite(); err != nil {
-			logrus.Errorf("error while CloseWrite (%s): %v", debugDescription, err)
+			log.G(context.TODO()).Errorf("error while CloseWrite (%s): %v", debugDescription, err)
 		}
 	}()
 	if _, err := io.Copy(to, from); err != nil {

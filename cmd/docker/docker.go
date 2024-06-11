@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/socket"
@@ -21,7 +22,6 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.opentelemetry.io/otel"
@@ -43,7 +43,7 @@ func dockerMain() int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	logrus.SetOutput(dockerCli.Err())
+	log.G(ctx).Logger.SetOutput(dockerCli.Err())
 	otel.SetErrorHandler(debug.OTELErrorHandler)
 
 	if err := runDocker(ctx, dockerCli); err != nil {
