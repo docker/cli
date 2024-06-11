@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -194,7 +194,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 	}
 
 	if err := <-errCh; err != nil {
-		logrus.Debugf("Error hijack: %s", err)
+		log.G(ctx).Debugf("Error hijack: %s", err)
 		return err
 	}
 

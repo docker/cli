@@ -2,13 +2,14 @@ package swarmopts
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"testing"
 
+	"github.com/containerd/log"
 	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -352,7 +353,8 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 	}
 
 	var b bytes.Buffer
-	logrus.SetOutput(&b)
+	log.G(context.TODO()).Logger.SetOutput(&b)
+	defer log.G(context.TODO()).Logger.SetOutput(os.Stderr)
 	for _, tc := range testCases {
 		t.Run(tc.value, func(t *testing.T) {
 			_, err := ConvertPortToPortConfig(network.MustParsePort("80/tcp"), map[nat.Port][]nat.PortBinding{
@@ -366,7 +368,6 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 			}
 		})
 	}
-	logrus.SetOutput(os.Stderr)
 }
 
 func assertContains(t *testing.T, portConfigs []swarm.PortConfig, expected swarm.PortConfig) {

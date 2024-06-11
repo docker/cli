@@ -3,7 +3,7 @@ package debug
 import (
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"github.com/containerd/log"
 	"go.opentelemetry.io/otel"
 )
 
@@ -11,14 +11,14 @@ import (
 // and makes the logger to log at debug level.
 func Enable() {
 	_ = os.Setenv("DEBUG", "1")
-	logrus.SetLevel(logrus.DebugLevel)
+	_ = log.SetLevel("debug")
 }
 
 // Disable sets the DEBUG env var to false
 // and makes the logger to log at info level.
 func Disable() {
 	_ = os.Setenv("DEBUG", "")
-	logrus.SetLevel(logrus.InfoLevel)
+	_ = log.SetLevel("info")
 }
 
 // IsEnabled checks whether the debug flag is set or not.
@@ -36,5 +36,5 @@ var OTELErrorHandler otel.ErrorHandler = otel.ErrorHandlerFunc(func(err error) {
 	if err == nil {
 		return
 	}
-	logrus.WithError(err).Debug("otel error")
+	log.L.WithError(err).Debug("otel error")
 })

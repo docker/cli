@@ -1,6 +1,7 @@
 package configfile
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -10,10 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/memorystore"
 	"github.com/docker/cli/cli/config/types"
-	"github.com/sirupsen/logrus"
 )
 
 // ConfigFile ~/.docker/config.json file info
@@ -180,7 +181,7 @@ func (configFile *ConfigFile) Save() (retErr error) {
 		_ = temp.Close()
 		if retErr != nil {
 			if err := os.Remove(temp.Name()); err != nil {
-				logrus.WithError(err).WithField("file", temp.Name()).Debug("Error cleaning up temp file")
+				log.G(context.TODO()).WithError(err).WithField("file", temp.Name()).Debug("Error cleaning up temp file")
 			}
 		}
 	}()
@@ -390,8 +391,7 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 	for registryHostname := range configFile.CredentialHelpers {
 		newAuth, err := configFile.GetAuthConfig(registryHostname)
 		if err != nil {
-			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
-			logrus.WithError(err).Warnf("Failed to get credentials for registry: %s", registryHostname)
+			log.G(context.TODO()).WithError(err).Warnf("Failed to get credentials for registry: %s", registryHostname)
 			continue
 		}
 		auths[registryHostname] = newAuth

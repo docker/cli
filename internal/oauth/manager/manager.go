@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
@@ -17,8 +18,6 @@ import (
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	"github.com/morikuni/aec"
-	"github.com/sirupsen/logrus"
-
 	"github.com/pkg/browser"
 )
 
@@ -85,12 +84,12 @@ var ErrDeviceLoginStartFail = errors.New("failed to start device code flow login
 func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.AuthConfig, error) {
 	state, err := m.api.GetDeviceCode(ctx, m.audience)
 	if err != nil {
-		logrus.Debugf("failed to start device code login: %v", err)
+		log.G(ctx).WithError(err).Debug("failed to start device code login")
 		return nil, ErrDeviceLoginStartFail
 	}
 
 	if state.UserCode == "" {
-		logrus.Debugf("failed to start device code login: missing user code")
+		log.G(ctx).Debug("failed to start device code login: missing user code")
 		return nil, ErrDeviceLoginStartFail
 	}
 

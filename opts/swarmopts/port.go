@@ -4,6 +4,7 @@
 package swarmopts
 
 import (
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -12,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -163,8 +164,7 @@ func ConvertPortToPortConfig(
 	ports := make([]swarm.PortConfig, 0, len(portBindings))
 	for _, binding := range portBindings[nat.Port(portProto.String())] {
 		if p := net.ParseIP(binding.HostIP); p != nil && !p.IsUnspecified() {
-			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
-			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), portProto.String())
+			log.G(context.TODO()).Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), portProto.String())
 		}
 
 		pr, err := network.ParsePortRange(binding.HostPort)

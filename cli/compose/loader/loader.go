@@ -4,6 +4,7 @@
 package loader
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/log"
 	interp "github.com/docker/cli/cli/compose/interpolation"
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
@@ -27,7 +29,6 @@ import (
 	"github.com/google/shlex"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client/pkg/versions"
-	"github.com/sirupsen/logrus"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -515,7 +516,7 @@ func expandUser(srcPath string, lookupEnv template.Mapping) string {
 	if strings.HasPrefix(srcPath, "~") {
 		home, ok := lookupEnv("HOME")
 		if !ok {
-			logrus.Warn("cannot expand '~', because the environment lacks HOME")
+			log.G(context.TODO()).Warn("cannot expand '~', because the environment lacks HOME")
 			return srcPath
 		}
 		return strings.Replace(srcPath, "~", home, 1)
@@ -555,7 +556,7 @@ func LoadNetworks(source map[string]any, version string) (map[string]types.Netwo
 				return nil, fmt.Errorf("network %s: network.external.name and network.name conflict; only use network.name", name)
 			}
 			if versions.GreaterThanOrEqualTo(version, "3.5") {
-				logrus.Warnf("network %s: network.external.name is deprecated in favor of network.name", name)
+				log.G(context.TODO()).Warnf("network %s: network.external.name is deprecated in favor of network.name", name)
 			}
 			nw.Name = nw.External.Name
 			nw.External.Name = ""
@@ -596,7 +597,7 @@ func LoadVolumes(source map[string]any, version string) (map[string]types.Volume
 				return nil, fmt.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
 			}
 			if versions.GreaterThanOrEqualTo(version, "3.4") {
-				logrus.Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
+				log.G(context.TODO()).Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
 			}
 			volume.Name = volume.External.Name
 			volume.External.Name = ""
@@ -657,7 +658,7 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 				return obj, fmt.Errorf("%[1]s %[2]s: %[1]s.external.name and %[1]s.name conflict; only use %[1]s.name", objType, name)
 			}
 			if versions.GreaterThanOrEqualTo(details.Version, "3.5") {
-				logrus.Warnf("%[1]s %[2]s: %[1]s.external.name is deprecated in favor of %[1]s.name", objType, name)
+				log.G(context.TODO()).Warnf("%[1]s %[2]s: %[1]s.external.name is deprecated in favor of %[1]s.name", objType, name)
 			}
 			obj.Name = obj.External.Name
 			obj.External.Name = ""

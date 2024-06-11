@@ -8,10 +8,10 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
-	"github.com/sirupsen/logrus"
 )
 
 // TODO(thaJeztah): split resizeTTYTo
@@ -40,7 +40,7 @@ func resizeTTYTo(ctx context.Context, apiClient resizeClient, id string, height,
 	}
 
 	if err != nil {
-		logrus.Debugf("Error resize: %s\r", err)
+		log.G(ctx).Debugf("Error resize: %s\r", err)
 	}
 	return err
 }
