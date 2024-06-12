@@ -20,7 +20,7 @@ import (
 
 const unencryptedWarning = `WARNING! Your password will be stored unencrypted in %s.
 Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+https://docs.docker.com/engine/reference/commandline/login/#credential-stores
 `
 
 type loginOptions struct {
