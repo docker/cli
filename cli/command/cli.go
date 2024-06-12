@@ -44,7 +44,7 @@ const defaultInitTimeout = 2 * time.Second
 type Streams interface {
 	In() *streams.In
 	Out() *streams.Out
-	Err() io.Writer
+	Err() *streams.Out
 }
 
 // Cli represents the docker command line client.
@@ -75,7 +75,7 @@ type DockerCli struct {
 	options            *cliflags.ClientOptions
 	in                 *streams.In
 	out                *streams.Out
-	err                io.Writer
+	err                *streams.Out
 	client             client.APIClient
 	serverInfo         ServerInfo
 	contentTrust       bool
@@ -124,7 +124,7 @@ func (cli *DockerCli) Out() *streams.Out {
 }
 
 // Err returns the writer used for stderr
-func (cli *DockerCli) Err() io.Writer {
+func (cli *DockerCli) Err() *streams.Out {
 	return cli.err
 }
 
