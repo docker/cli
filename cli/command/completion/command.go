@@ -17,23 +17,47 @@ func NewCompletionCommand(dockerCli command.Cli) *cobra.Command {
 		ValidArgs:          []string{"bash", "zsh", "fish", "powershell", "install"},
 		DisableFlagParsing: false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			shellSetup := NewUnixShellSetup("", "docker")
-
-			if cmd.Flag("manual").Changed {
-				_, _ = fmt.Fprint(dockerCli.Out(), shellSetup.GetManualInstructions(supportedCompletionShell(args[0])))
-				return nil
-			}
 
 			switch args[0] {
 			case "install":
-				return shellSetup.InstallCompletions(cmd.Context(), supportedCompletionShell(os.Getenv("SHELL")))
+
+				userHome, err := os.UserHomeDir()
+				if err != nil {
+					return err
+				}
+
+				opts := []NewShellCompletionOptsFunc{}
+				if cmd.Flag("shell").Changed {
+					opts = append(opts, WithShellOverride(cmd.Flag("shell").Value.String()))
+				}
+
+				shellSetup, err := NewShellCompletionSetup(userHome, cmd.Root(), opts...)
+				if err != nil {
+					return err
+				}
+
+				if cmd.Flag("manual").Changed {
+					_, _ = fmt.Fprint(dockerCli.Out(), shellSetup.GetManualInstructions(cmd.Context()))
+					return nil
+				}
+
+				msg := fmt.Sprintf("\nDetected shell [%s]\n\nThe automatic installer will do the following:\n\n%s\n\nAre you sure you want to continue?", shellSetup.GetShell(), shellSetup.GetManualInstructions(cmd.Context()))
+				ok, err := command.PromptForConfirmation(cmd.Context(), dockerCli.In(), dockerCli.Out(), msg)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					return nil
+				}
+
+				return shellSetup.InstallCompletions(cmd.Context())
 			case "bash":
 
-				return cmd.GenBashCompletionV2(dockerCli.Out(), true)
+				return cmd.Root().GenBashCompletionV2(dockerCli.Out(), true)
 			case "zsh":
-				return cmd.GenZshCompletion(dockerCli.Out())
+				return cmd.Root().GenZshCompletion(dockerCli.Out())
 			case "fish":
-				return cmd.GenFishCompletion(dockerCli.Out(), true)
+				return cmd.Root().GenFishCompletion(dockerCli.Out(), true)
 			default:
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
 			}
@@ -41,6 +65,7 @@ func NewCompletionCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().Bool("manual", false, "Display instructions for installing autocompletion")
+	cmd.PersistentFlags().String("shell", "", "Shell type for autocompletion (bash, zsh, fish, powershell)")
 
 	return cmd
 }

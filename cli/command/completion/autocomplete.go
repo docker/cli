@@ -1,51 +1,16 @@
+//go:build unix
+
 package completion
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
-
-type shellCompletionSetup interface {
-	// Generate completions for the Docker CLI based on the provided shell.
-	DockerCompletion(ctx context.Context, shell supportedCompletionShell) ([]byte, error)
-	// Set up completions for the Docker CLI for the provided shell.
-	//
-	// For zsh completions, this function should also configure the user's
-	// .zshrc file to load the completions correctly.
-	// Please see https://zsh.sourceforge.io/Doc/Release/Completion-System.html
-	// for more information.
-	InstallCompletions(ctx context.Context, shell supportedCompletionShell) error
-	// Get the completion directory for the provided shell.
-	GetCompletionDir(shell supportedCompletionShell) string
-	// Get the manual instructions for the provided shell.
-	GetManualInstructions(shell supportedCompletionShell) string
-}
-
-type supportedCompletionShell string
-
-const (
-	bash       supportedCompletionShell = "bash"
-	fish       supportedCompletionShell = "fish"
-	zsh        supportedCompletionShell = "zsh"
-	powershell supportedCompletionShell = "powershell"
-)
-
-func (s supportedCompletionShell) FileName() string {
-	switch s {
-	case zsh:
-		return "_docker"
-	case bash:
-		return "docker"
-	case fish:
-		return "docker.fish"
-	}
-	return ""
-}
 
 const (
 	zshrc             = ".zshrc"
@@ -60,12 +25,6 @@ const (
 // is 0755/0751.
 const filePerm = 0755
 
-type common struct {
-	command         func(ctx context.Context, name string, arg ...string) *exec.Cmd
-	homeDirectory   string
-	dockerCliBinary string
-}
-
 type unixShellSetup struct {
 	zshrc             string
 	zshCompletionDir  string
@@ -75,30 +34,52 @@ type unixShellSetup struct {
 	common
 }
 
-func unixDefaultShell() (supportedCompletionShell, error) {
-	currentShell := os.Getenv("SHELL")
+var (
+	ErrCompletionNotInstalled    = errors.New("completion not installed")
+	ErrCompletionOutdated        = errors.New("completion file is outdated")
+	ErrZshrcCouldNotWrite        = errors.New("could not write to .zshrc file since it may not exist or have the necessary permissions")
+	ErrCompletionDirectoryCreate = errors.New("could not create the completions directory")
+	ErrCompletionFileWrite       = errors.New("could not write to the completions file")
+	ErrCompletionGenerated       = errors.New("could not generate completions")
+	ErrZshFpathNotFound          = errors.New("completions file not found in the FPATH environment variable")
+)
 
-	if len(currentShell) == 0 {
-		return "", errors.New("SHELL environment variable not set")
+var _ ShellCompletionSetup = &unixShellSetup{}
+
+func hasCompletionInFpath(zshrc, completionDir string) (bool, error) {
+	// check the FPATH environment variable first which contains a string of directories
+	if fpathEnv := os.Getenv("FPATH"); fpathEnv != "" && strings.Contains(fpathEnv, completionDir) {
+		return true, nil
 	}
 
-	t := strings.Split(currentShell, "/")
-
-	switch t[len(t)-1] {
-	case "bash":
-		return bash, nil
-	case "zsh":
-		return zsh, nil
-	case "fish":
-		return fish, nil
+	if _, err := os.Stat(zshrc); err != nil {
+		return false, fmt.Errorf("unable to edit %s since it does not exist. Setup your zsh completions manually or create the .zshrc file inside of your home directory and try again", zshrc)
 	}
 
-	return "", errors.New("unsupported shell")
+	// This should error if it does not exist.
+	zshrcContent, err := os.ReadFile(zshrc)
+	if err != nil {
+		return false, fmt.Errorf("unable to edit %s. Make sure that your .zshrc file is set up correctly before continuing", zshrc)
+	}
+
+	fpath := fmt.Sprintf("fpath=(%s $fpath)", completionDir)
+	if strings.Contains(string(zshrcContent), fpath) {
+		return true, nil
+	}
+
+	return false, nil
 }
 
-var _ shellCompletionSetup = &unixShellSetup{}
+func NewShellCompletionSetup(homeDirectory string, generateCompletions generateCompletions, opts ...NewShellCompletionOptsFunc) (ShellCompletionSetup, error) {
+	return newUnixShellSetup(homeDirectory, generateCompletions, opts...)
+}
 
-func NewUnixShellSetup(homeDirectory string, dockerCliBinary string) shellCompletionSetup {
+func newUnixShellSetup(homeDirectory string, generateCompletions generateCompletions, opts ...NewShellCompletionOptsFunc) (*unixShellSetup, error) {
+	shell, shellRawString, err := shellFromEnv()
+	if err != nil {
+		return nil, err
+	}
+
 	zshrcFile := filepath.Join(homeDirectory, zshrc)
 	// override the default directory if ZDOTDIR is set
 	// if this is set, we assume the user has set up their own zshrc
@@ -116,31 +97,54 @@ func NewUnixShellSetup(homeDirectory string, dockerCliBinary string) shellComple
 			hasOhMyZsh = true
 		}
 	}
-	return &unixShellSetup{
+
+	c := &common{
+		homeDirectory:         homeDirectory,
+		command:               generateCompletions,
+		currentShell:          shell,
+		currentShellRawString: shellRawString,
+	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	u := &unixShellSetup{
 		zshrc:             zshrcFile,
 		zshCompletionDir:  zshCompletionDir,
 		fishCompletionDir: filepath.Join(homeDirectory, fishCompletionDir),
 		bashCompletionDir: filepath.Join(homeDirectory, bashCompletionDir),
 		hasOhMyZsh:        hasOhMyZsh,
-		common: common{
-			homeDirectory:   homeDirectory,
-			dockerCliBinary: dockerCliBinary,
-			command:         exec.CommandContext,
-		},
+		common:            *c,
 	}
+
+	return u, nil
 }
 
-func (u *unixShellSetup) DockerCompletion(ctx context.Context, shell supportedCompletionShell) ([]byte, error) {
-	dockerCmd := u.command(ctx, u.dockerCliBinary, "completion", string(shell))
-	out, err := dockerCmd.Output()
+func (u *unixShellSetup) GetCompletionScript(ctx context.Context) ([]byte, error) {
+	var err error
+	var buff bytes.Buffer
+
+	switch u.currentShell {
+	case zsh:
+		err = u.command.GenZshCompletion(&buff)
+	case bash:
+		err = u.command.GenBashCompletionV2(&buff, true)
+	case fish:
+		err = u.command.GenFishCompletion(&buff, true)
+	default:
+		return nil, ErrShellUnsupported
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+
+	return buff.Bytes(), nil
 }
 
-func (u *unixShellSetup) GetCompletionDir(shell supportedCompletionShell) string {
-	switch shell {
+func (u *unixShellSetup) GetCompletionDir(ctx context.Context) string {
+	switch u.currentShell {
 	case zsh:
 		return u.zshCompletionDir
 	case fish:
@@ -151,13 +155,13 @@ func (u *unixShellSetup) GetCompletionDir(shell supportedCompletionShell) string
 	return ""
 }
 
-func (u *unixShellSetup) GetManualInstructions(shell supportedCompletionShell) string {
-	completionDir := u.GetCompletionDir(shell)
-	completionsFile := filepath.Join(completionDir, shell.FileName())
+func (u *unixShellSetup) GetManualInstructions(ctx context.Context) string {
+	completionDir := u.GetCompletionDir(ctx)
+	completionsFile := filepath.Join(completionDir, u.currentShell.FileName())
 
-	instructions := fmt.Sprintf(`mkdir -p %s && docker completion %s > %s`, completionDir, shell, completionsFile)
+	instructions := fmt.Sprintf("\tmkdir -p %s\n\tdocker completion %s > %s", completionDir, u.currentShell, completionsFile)
 
-	if shell == zsh && !u.hasOhMyZsh {
+	if u.currentShell == zsh && !u.hasOhMyZsh {
 		instructions += "\n"
 		instructions += fmt.Sprintf("cat <<EOT >> %s\n"+
 			"# The following lines have been added by Docker to enable Docker CLI completions.\n"+
@@ -171,18 +175,18 @@ func (u *unixShellSetup) GetManualInstructions(shell supportedCompletionShell) s
 	return instructions
 }
 
-func (u *unixShellSetup) InstallCompletions(ctx context.Context, shell supportedCompletionShell) error {
-	completionDir := u.GetCompletionDir(shell)
+func (u *unixShellSetup) InstallCompletions(ctx context.Context) error {
+	completionDir := u.GetCompletionDir(ctx)
 
 	if err := os.MkdirAll(completionDir, filePerm); err != nil {
 		return err
 	}
 
-	completionFile := filepath.Join(completionDir, shell.FileName())
+	completionFile := filepath.Join(completionDir, u.currentShell.FileName())
 
 	_ = os.Remove(completionFile)
 
-	completions, err := u.DockerCompletion(ctx, shell)
+	completions, err := u.GetCompletionScript(ctx)
 	if err != nil {
 		return err
 	}
@@ -198,13 +202,13 @@ func (u *unixShellSetup) InstallCompletions(ctx context.Context, shell supported
 	}
 
 	// only configure fpath for zsh if oh-my-zsh is not installed
-	if shell == zsh && !u.hasOhMyZsh {
+	if u.currentShell == zsh && !u.hasOhMyZsh {
 
 		// This should error if it does not exist.
 		zshrcContent, err := os.ReadFile(u.zshrc)
 		if err != nil {
 			// TODO: what should we do here? The error message might not be too helpful.
-			return fmt.Errorf("could not open %s. Please ensure that your .zshrc file is set up correctly before continuing.", u.zshrc)
+			return fmt.Errorf("could not open %s. Please ensure that your .zshrc file is set up correctly before continuing", u.zshrc)
 		}
 
 		fpath := fmt.Sprintf("fpath=(%s $fpath)", completionDir)
@@ -236,4 +240,72 @@ func (u *unixShellSetup) InstallCompletions(ctx context.Context, shell supported
 	}
 
 	return nil
+}
+
+func (u *unixShellSetup) GetShell() supportedCompletionShell {
+	return u.currentShell
+}
+
+func (u *unixShellSetup) InstallStatus(ctx context.Context) (*ShellCompletionInstallStatus, error) {
+	installStatus := &ShellCompletionInstallStatus{
+		Shell:  u.currentShellRawString,
+		Status: StatusNotInstalled,
+	}
+
+	ok, err := u.currentShell.Supported()
+	if !ok {
+		installStatus.Status = StatusUnsupported
+	}
+
+	if err != nil {
+		installStatus.Reason = err.Error()
+		return installStatus, nil
+	}
+
+	completionDir := u.GetCompletionDir(ctx)
+	completionFile := filepath.Join(completionDir, u.currentShell.FileName())
+	installStatus.CompletionPath = completionFile
+
+	if _, err := os.Stat(completionFile); err != nil {
+		installStatus.Reason = ErrCompletionNotInstalled.Error()
+		return installStatus, nil
+	}
+
+	completionContent, err := os.ReadFile(completionFile)
+	if err != nil {
+		return installStatus, fmt.Errorf("could not open existing completion file: %s", err.Error())
+	}
+
+	completionGenerated, err := u.GetCompletionScript(ctx)
+	if err != nil {
+		return installStatus, fmt.Errorf("could not generate cli completions: %s", err)
+	}
+
+	if !strings.EqualFold(string(completionContent), string(completionGenerated)) {
+		installStatus.Status = StatusOutdated
+		installStatus.Reason = ErrCompletionOutdated.Error()
+		return installStatus, nil
+	}
+
+	if u.currentShell == zsh && !u.hasOhMyZsh {
+		hasFpath, err := hasCompletionInFpath(u.zshrc, completionDir)
+		if err != nil || !hasFpath {
+			installStatus.Reason = ErrZshFpathNotFound.Error()
+			return installStatus, nil
+		}
+		f, err := os.Stat(u.zshrc)
+		if err != nil {
+			installStatus.Reason = ErrZshrcCouldNotWrite.Error()
+			return installStatus, nil
+		}
+		if f.Mode().Perm() < 0o600 {
+			installStatus.Reason = ErrZshrcCouldNotWrite.Error()
+			return installStatus, nil
+		}
+	}
+
+	installStatus.Status = StatusInstalled
+	installStatus.Reason = fmt.Sprintf("Shell completion already installed for %s.", u.currentShell)
+
+	return installStatus, nil
 }
