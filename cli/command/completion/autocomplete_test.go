@@ -1,11 +1,13 @@
+//go:build unix
+
 package completion
 
 import (
 	"context"
 	"embed"
 	"fmt"
+	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,46 +16,8 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-type testFuncs string
-
-const (
-	testDockerCompletions testFuncs = "TestDockerCompletions"
-)
-
 //go:embed testdata
 var fixtures embed.FS
-
-// fakeExecCommand is a helper function that hooks
-// the current test binary into an os/exec cmd.Run() call
-// allowing us to mock out third party dependencies called through os/exec.
-//
-// testBinary is the current test binary that is running, can be accessed through os.Args[0]
-// funcName is the name of the function you want to run as a sub-process of the current test binary
-//
-// The call path is as follows:
-// - Register the function you want to run through TestMain
-// - Call the cmd.Run() function from the returned exec.Cmd
-// - TestMain will execute the function as a sub-process of the current test binary
-func fakeExecCommand(t *testing.T, testBinary string, funcName testFuncs) func(ctx context.Context, command string, args ...string) *exec.Cmd {
-	t.Helper()
-	return func(ctx context.Context, command string, args ...string) *exec.Cmd {
-		cmd := exec.Command(testBinary, append([]string{command}, args...)...)
-		cmd.Env = append(os.Environ(), "TEST_MAIN_FUNC="+string(funcName))
-		return cmd
-	}
-}
-
-// TestMain is setup here to act as a dispatcher
-// for functions hooked into the test binary through
-// fakeExecCommand.
-func TestMain(m *testing.M) {
-	switch testFuncs(os.Getenv("TEST_MAIN_FUNC")) {
-	case testDockerCompletions:
-		FakeDockerCompletionsProcess()
-	default:
-		os.Exit(m.Run())
-	}
-}
 
 // this is a test function that will only be run when
 // fakeExecCommand is hooked into a cmd.Run()/cmd.Output call
@@ -79,15 +43,51 @@ func FakeDockerCompletionsProcess() {
 	os.Exit(0)
 }
 
+type fakeGenerate struct{}
+
+var _ generateCompletions = (*fakeGenerate)(nil)
+
+func (f *fakeGenerate) GenBashCompletionV2(w io.Writer, includeDesc bool) error {
+	completions, err := fixtures.ReadFile("testdata/docker.bash")
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(completions)
+	return err
+}
+
+func (f *fakeGenerate) GenZshCompletion(w io.Writer) error {
+	completions, err := fixtures.ReadFile("testdata/docker.zsh")
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(completions)
+	return err
+}
+
+func (f *fakeGenerate) GenFishCompletion(w io.Writer, includeDesc bool) error {
+	completions, err := fixtures.ReadFile("testdata/docker.fish")
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(completions)
+	return err
+}
+
+func newFakeGenerate() generateCompletions {
+	return &fakeGenerate{}
+}
+
 func TestDockerCompletion(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	ds := NewUnixShellSetup("", "docker").(*unixShellSetup)
-	ds.command = fakeExecCommand(t, os.Args[0], testDockerCompletions)
-
 	t.Run("zsh completion", func(t *testing.T) {
-		completions, err := ds.DockerCompletion(ctx, zsh)
+		t.Setenv("SHELL", "/bin/zsh")
+		ds, err := NewShellCompletionSetup("", newFakeGenerate())
+		assert.NilError(t, err)
+
+		completions, err := ds.GetCompletionScript(ctx)
 		assert.NilError(t, err, "expected docker completions to not error, got %s", err)
 		assert.Check(t, len(completions) > 0, "expected docker completions to not be empty")
 
@@ -98,7 +98,11 @@ func TestDockerCompletion(t *testing.T) {
 	})
 
 	t.Run("bash completion", func(t *testing.T) {
-		completions, err := ds.DockerCompletion(ctx, bash)
+		t.Setenv("SHELL", "/bin/bash")
+		ds, err := NewShellCompletionSetup("", newFakeGenerate())
+		assert.NilError(t, err)
+
+		completions, err := ds.GetCompletionScript(ctx)
 		assert.NilError(t, err)
 		assert.Check(t, len(completions) > 0, "expected docker completions to not be empty")
 
@@ -109,7 +113,11 @@ func TestDockerCompletion(t *testing.T) {
 	})
 
 	t.Run("fish completion", func(t *testing.T) {
-		completions, err := ds.DockerCompletion(ctx, fish)
+		t.Setenv("SHELL", "/bin/fish")
+		ds, err := NewShellCompletionSetup("", newFakeGenerate())
+		assert.NilError(t, err)
+
+		completions, err := ds.GetCompletionScript(ctx)
 		assert.NilError(t, err)
 		assert.Check(t, len(completions) > 0, "expected docker completions to not be empty")
 
@@ -179,17 +187,18 @@ func TestUnixDefaultShell(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Setenv("SHELL", tc.path)
 
-			s, err := unixDefaultShell()
+			s, shellRaw, err := shellFromEnv()
 			if tc.expectedErr != "" {
 				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+			} else {
+				assert.Equal(t, tc.expected, s)
+				assert.Equal(t, string(tc.expected), shellRaw)
 			}
-			assert.Equal(t, tc.expected, s)
 		})
 	}
 }
 
 func TestInstallCompletions(t *testing.T) {
-
 	zshSetup := func(t *testing.T, ds *unixShellSetup) *os.File {
 		t.Helper()
 		zshrcFile, err := os.OpenFile(ds.zshrc, os.O_RDWR|os.O_CREATE, filePerm)
@@ -226,9 +235,9 @@ func TestInstallCompletions(t *testing.T) {
 		t.Helper()
 
 		tmphome := t.TempDir()
-		ds := NewUnixShellSetup(tmphome, "docker").(*unixShellSetup)
-		ds.command = fakeExecCommand(t, os.Args[0], testDockerCompletions)
-		return ds
+		ds, err := NewShellCompletionSetup(tmphome, newFakeGenerate())
+		assert.NilError(t, err)
+		return ds.(*unixShellSetup)
 	}
 
 	testcases := []struct {
@@ -333,8 +342,8 @@ func TestInstallCompletions(t *testing.T) {
 				assert.NilError(t, os.MkdirAll(ohmyzsh, filePerm))
 				t.Setenv("ZSH", ohmyzsh)
 
-				ds := NewUnixShellSetup(tmphome, "docker").(*unixShellSetup)
-				ds.command = fakeExecCommand(t, os.Args[0], testDockerCompletions)
+				ds, err := newUnixShellSetup(tmphome, newFakeGenerate())
+				assert.NilError(t, err)
 
 				zshSetup(t, ds)
 				return ds
@@ -361,8 +370,8 @@ func TestInstallCompletions(t *testing.T) {
 				tmphome := t.TempDir()
 				t.Setenv("ZSH", filepath.Join(tmphome, ".oh-my-zsh"))
 
-				ds := NewUnixShellSetup(tmphome, "docker").(*unixShellSetup)
-				ds.command = fakeExecCommand(t, os.Args[0], testDockerCompletions)
+				ds, err := newUnixShellSetup(tmphome, newFakeGenerate())
+				assert.NilError(t, err)
 
 				zshSetup(t, ds)
 				return ds
@@ -380,32 +389,47 @@ func TestInstallCompletions(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			t.Cleanup(cancel)
 
+			t.Setenv("SHELL", string(tc.shell))
 			ds := tc.setupFunc(t)
-			assert.NilError(t, ds.InstallCompletions(ctx, tc.shell))
+			assert.NilError(t, ds.InstallCompletions(ctx))
 			tc.assertFunc(t, ds)
 		})
 	}
 }
 
 func TestGetCompletionDir(t *testing.T) {
-
 	t.Run("standard shells", func(t *testing.T) {
-		tmphome := t.TempDir()
-		ds := NewUnixShellSetup(tmphome, "docker")
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
 
-		assert.Equal(t, filepath.Join(tmphome, zshCompletionDir), ds.GetCompletionDir(zsh))
-		assert.Equal(t, filepath.Join(tmphome, fishCompletionDir), ds.GetCompletionDir(fish))
-		assert.Equal(t, filepath.Join(tmphome, bashCompletionDir), ds.GetCompletionDir(bash))
-		assert.Equal(t, "", ds.GetCompletionDir(supportedCompletionShell("unsupported")))
+		tmphome := t.TempDir()
+
+		for _, tc := range []struct {
+			shell    string
+			expected string
+		}{
+			{"/bin/bash", filepath.Join(tmphome, bashCompletionDir)},
+			{"/bin/zsh", filepath.Join(tmphome, zshCompletionDir)},
+			{"/bin/fish", filepath.Join(tmphome, fishCompletionDir)},
+		} {
+			t.Setenv("SHELL", tc.shell)
+			ds, err := NewShellCompletionSetup(tmphome, newFakeGenerate())
+			assert.NilError(t, err)
+			assert.Equal(t, tc.expected, ds.GetCompletionDir(ctx))
+		}
 	})
 
 	t.Run("oh-my-zsh", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
+
 		tmphome := t.TempDir()
 		ohMyZshTmpDir := filepath.Join(tmphome, ".oh-my-zsh")
 		assert.NilError(t, os.MkdirAll(ohMyZshTmpDir, filePerm))
+		t.Setenv("SHELL", "/bin/zsh")
 		t.Setenv("ZSH", ohMyZshTmpDir)
-		ds := NewUnixShellSetup(tmphome, "docker")
-		assert.Equal(t, filepath.Join(ohMyZshTmpDir, "completions"), ds.GetCompletionDir(zsh))
+		ds, err := NewShellCompletionSetup(tmphome, newFakeGenerate())
+		assert.NilError(t, err)
+		assert.Equal(t, filepath.Join(ohMyZshTmpDir, "completions"), ds.GetCompletionDir(ctx))
 	})
-
 }
