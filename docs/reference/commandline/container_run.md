@@ -971,7 +971,7 @@ This starts an `ubuntu` container with access to the specified CDI device,
 - A valid CDI specification (JSON or YAML file) for the requested device is
   available on the system running the daemon, in one of the configured CDI
   specification directories.
-- The CDI feature has been enabled in the daemon; see [Enable CDI
+- The CDI feature has been enabled in the daemon. See [Enable CDI
   devices](https://docs.docker.com/reference/cli/dockerd/#enable-cdi-devices).
 
 ### <a name="attach"></a> Attach to STDIN/STDOUT/STDERR (-a, --attach)
