@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math"
+	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -113,6 +115,19 @@ func runExec(dockerCli command.Cli, options execOptions) error {
 	return interactiveExec(ctx, dockerCli, execConfig, execID)
 }
 
+func getExecTimeoutDuration(dockerCli command.Cli, execConfig *types.ExecConfig) time.Duration {
+	timeout := time.Duration(math.MaxInt64)
+	if !execConfig.AttachStdin {
+		switch execConfig.Cmd[0] {
+		case "screencap", "getprop":
+			timeout = time.Second * 10
+		default:
+			timeout = time.Second * 30
+		}
+	}
+	return timeout
+}
+
 func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *types.ExecConfig, execID string) error {
 	// Interactive exec requested.
 	var (
@@ -169,9 +184,15 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execConfig *typ
 		}
 	}
 
-	if err := <-errCh; err != nil {
-		logrus.Debugf("Error hijack: %s", err)
-		return err
+	timeout := getExecTimeoutDuration(dockerCli, execConfig)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			logrus.Debugf("Error hijack: %s", err)
+			return err
+		}
+	case <-time.After(timeout):
+		return fmt.Errorf("timeout waiting for streamer to finish")
 	}
 
 	return getExecExitStatus(ctx, client, execID)

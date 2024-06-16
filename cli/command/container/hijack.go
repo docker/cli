@@ -118,6 +118,7 @@ func (h *hijackedIOStreamer) beginOutputStream(restoreInput func()) <-chan error
 	go func() {
 		var err error
 
+		defer close(outputDone)
 		// When TTY is ON, use regular copy
 		if h.outputStream != nil && h.tty {
 			_, err = io.Copy(h.outputStream, h.resp.Reader)
@@ -146,6 +147,7 @@ func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 	detached := make(chan error)
 
 	go func() {
+		defer close(inputDone)
 		if h.inputStream != nil {
 			_, err := io.Copy(h.resp.Conn, h.inputStream)
 			// We should restore the terminal as soon as possible
@@ -172,7 +174,7 @@ func (h *hijackedIOStreamer) beginInputStream(restoreInput func()) (doneC <-chan
 			logrus.Debugf("Couldn't send EOF: %s", err)
 		}
 
-		close(inputDone)
+		//close(inputDone)
 	}()
 
 	return inputDone, detached
