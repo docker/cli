@@ -177,8 +177,8 @@ github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3N
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
 github.com/moby/patternmatcher v0.6.0 h1:GmP9lR19aU5GqSSFko+5pRqHi+Ohk1O69aFiKkVGiPk=
 github.com/moby/patternmatcher v0.6.0/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
-github.com/moby/swarmkit/v2 v2.0.0-20240415162501-c1c857e2dca1 h1:F3L5Rx1jDTbUn/2U9Kb6tsNAl4MhQ+cdTiidA/qAiEA=
-github.com/moby/swarmkit/v2 v2.0.0-20240415162501-c1c857e2dca1/go.mod h1:kNy225f/gWAnF8wPftteMc5nbAHhrH+HUfvyjmhFjeQ=
+github.com/moby/swarmkit/v2 v2.0.0-20240611172349-ea1a7cec35cb h1:1UTTg2EgO3nuyV03wREDzldqqePzQ4+0a5G1C1y1bIo=
+github.com/moby/swarmkit/v2 v2.0.0-20240611172349-ea1a7cec35cb/go.mod h1:kNy225f/gWAnF8wPftteMc5nbAHhrH+HUfvyjmhFjeQ=
 github.com/moby/sys/sequential v0.5.0 h1:OPvI35Lzn9K04PBbCLW0g4LcFAJgHsvXsRyewg5lXtc=
 github.com/moby/sys/sequential v0.5.0/go.mod h1:tH2cOOs5V9MlPiXcQzRC+eEyab644PWKGRYaaV5ZZlo=
 github.com/moby/sys/signal v0.7.0 h1:25RW3d5TnQEoKvRbEKUGay6DCQ46IxAVTT9CUMgmsSI=
