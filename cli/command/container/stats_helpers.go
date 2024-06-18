@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -50,7 +50,7 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 	return -1, false
 }
 
-func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bool, waitFirst *sync.WaitGroup) {
+func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, streamStats bool, waitFirst *sync.WaitGroup) {
 	logrus.Debugf("collecting stats for %s", s.Container)
 	var (
 		getFirst       bool
@@ -78,7 +78,7 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 	go func() {
 		for {
 			var (
-				v                      *types.StatsJSON
+				v                      *container.StatsResponse
 				memPercent, cpuPercent float64
 				blkRead, blkWrite      uint64 // Only used on Linux
 				mem, memLimit          float64
@@ -163,7 +163,7 @@ func collect(ctx context.Context, s *Stats, cli client.APIClient, streamStats bo
 	}
 }
 
-func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *types.StatsJSON) float64 {
+func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *container.StatsResponse) float64 {
 	var (
 		cpuPercent = 0.0
 		// calculate the change for the cpu usage of the container in between readings
@@ -182,7 +182,7 @@ func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *types.StatsJ
 	return cpuPercent
 }
 
-func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
+func calculateCPUPercentWindows(v *container.StatsResponse) float64 {
 	// Max number of 100ns intervals between the previous time read and now
 	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds()) // Start with number of ns intervals
 	possIntervals /= 100                                         // Convert to number of 100ns intervals
@@ -198,7 +198,7 @@ func calculateCPUPercentWindows(v *types.StatsJSON) float64 {
 	return 0.00
 }
 
-func calculateBlockIO(blkio types.BlkioStats) (uint64, uint64) {
+func calculateBlockIO(blkio container.BlkioStats) (uint64, uint64) {
 	var blkRead, blkWrite uint64
 	for _, bioEntry := range blkio.IoServiceBytesRecursive {
 		if len(bioEntry.Op) == 0 {
@@ -214,7 +214,7 @@ func calculateBlockIO(blkio types.BlkioStats) (uint64, uint64) {
 	return blkRead, blkWrite
 }
 
-func calculateNetwork(network map[string]types.NetworkStats) (float64, float64) {
+func calculateNetwork(network map[string]container.NetworkStats) (float64, float64) {
 	var rx, tx float64
 
 	for _, v := range network {
@@ -236,7 +236,7 @@ func calculateNetwork(network map[string]types.NetworkStats) (float64, float64) 
 //
 // On Docker 19.03 and older, the result was `mem.Usage - mem.Stats["cache"]`.
 // See https://github.com/moby/moby/issues/40727 for the background.
-func calculateMemUsageUnixNoCache(mem types.MemoryStats) float64 {
+func calculateMemUsageUnixNoCache(mem container.MemoryStats) float64 {
 	// cgroup v1
 	if v, isCgroup1 := mem.Stats["total_inactive_file"]; isCgroup1 && v < mem.Usage {
 		return float64(mem.Usage - v)
