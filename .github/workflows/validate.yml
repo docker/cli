@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
       -
         name: Run
-        uses: docker/bake-action@v4
+        uses: docker/bake-action@v5
         with:
           targets: ${{ matrix.target }}
 
