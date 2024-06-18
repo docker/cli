@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/debug"
-	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -29,7 +29,7 @@ func TestClientDebugEnabled(t *testing.T) {
 	err = cmd.PersistentPreRunE(cmd, []string{})
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("1", os.Getenv("DEBUG")))
-	assert.Check(t, is.Equal(logrus.DebugLevel, logrus.GetLevel()))
+	assert.Check(t, is.Equal(log.DebugLevel, log.GetLevel()))
 }
 
 var discard = io.NopCloser(bytes.NewBuffer(nil))

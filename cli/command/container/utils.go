@@ -5,12 +5,12 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/containerd/log"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/sirupsen/logrus"
 )
 
 func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containerID string, waitRemove bool) <-chan int {
@@ -41,7 +41,7 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 			return
 		case result := <-resultC:
 			if result.Error != nil {
-				logrus.Errorf("Error waiting for container: %v", result.Error.Message)
+				log.G(ctx).Errorf("Error waiting for container: %v", result.Error.Message)
 				statusC <- 125
 			} else {
 				statusC <- int(result.StatusCode)
@@ -50,7 +50,7 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 			if errors.Is(err, context.Canceled) {
 				return
 			}
-			logrus.Errorf("error waiting for container: %v", err)
+			log.G(ctx).Errorf("error waiting for container: %v", err)
 			statusC <- 125
 		}
 	}()
@@ -80,7 +80,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 			if v, ok := e.Actor.Attributes["exitCode"]; ok {
 				code, cerr := strconv.Atoi(v)
 				if cerr != nil {
-					logrus.Errorf("failed to convert exitcode '%q' to int: %v", v, cerr)
+					log.G(ctx).Errorf("failed to convert exitcode '%q' to int: %v", v, cerr)
 				} else {
 					exitCode = code
 				}
@@ -93,7 +93,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 				go func() {
 					removeErr = apiClient.ContainerRemove(ctx, containerID, container.RemoveOptions{RemoveVolumes: true})
 					if removeErr != nil {
-						logrus.Errorf("error removing container: %v", removeErr)
+						log.G(ctx).Errorf("error removing container: %v", removeErr)
 						cancel() // cancel the event Q
 					}
 				}()
@@ -124,7 +124,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 					return
 				}
 			case err := <-errq:
-				logrus.Errorf("error getting events from daemon: %v", err)
+				log.G(eventCtx).Errorf("error getting events from daemon: %v", err)
 				return
 			}
 		}

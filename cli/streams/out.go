@@ -1,11 +1,12 @@
 package streams
 
 import (
+	"context"
 	"io"
 	"os"
 
+	"github.com/containerd/log"
 	"github.com/moby/term"
-	"github.com/sirupsen/logrus"
 )
 
 // Out is an output stream to write normal program output. It implements
@@ -42,7 +43,7 @@ func (o *Out) GetTtySize() (height uint, width uint) {
 	}
 	ws, err := term.GetWinsize(o.fd)
 	if err != nil {
-		logrus.WithError(err).Debug("Error getting TTY size")
+		log.G(context.TODO()).WithError(err).Debug("Error getting TTY size")
 		if ws == nil {
 			return 0, 0
 		}

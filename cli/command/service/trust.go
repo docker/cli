@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"encoding/hex"
 
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
@@ -10,7 +12,6 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
@@ -43,7 +44,7 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 			return errors.Wrap(err, "failed to resolve image digest using content trust")
 		}
 		resolvedFamiliar := reference.FamiliarString(resolvedImage)
-		logrus.Debugf("resolved image tag to %s using content trust", resolvedFamiliar)
+		log.G(context.TODO()).Debugf("resolved image tag to %s using content trust", resolvedFamiliar)
 		service.TaskTemplate.ContainerSpec.Image = resolvedFamiliar
 	}
 
@@ -73,7 +74,7 @@ func trustedResolveDigest(cli command.Cli, ref reference.NamedTagged) (reference
 		return nil, trust.NotaryError(repoInfo.Name.Name(), errors.Errorf("No trust data for %s", reference.FamiliarString(ref)))
 	}
 
-	logrus.Debugf("retrieving target for %s role\n", t.Role)
+	log.G(context.TODO()).Debugf("retrieving target for %s role\n", t.Role)
 	h, ok := t.Hashes["sha256"]
 	if !ok {
 		return nil, errors.New("no valid hash, expecting sha256")

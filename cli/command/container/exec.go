@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -198,7 +198,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *co
 	}
 
 	if err := <-errCh; err != nil {
-		logrus.Debugf("Error hijack: %s", err)
+		log.G(ctx).Debugf("Error hijack: %s", err)
 		return err
 	}
 

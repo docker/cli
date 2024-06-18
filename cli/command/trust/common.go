@@ -7,11 +7,11 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/fvbommel/sortorder"
-	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -70,7 +70,7 @@ func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]tru
 	// Retrieve all released signatures, match them, and pretty print them
 	allSignedTargets, err := notaryRepo.GetAllTargetMetadataByName(tag)
 	if err != nil {
-		logrus.Debug(trust.NotaryError(remote, err))
+		log.G(ctx).Debug(trust.NotaryError(remote, err))
 		// print an empty table if we don't have signed targets, but have an initialized notary repo
 		if _, ok := err.(client.ErrNoSuchTarget); !ok {
 			return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("no signatures or cannot access %s", remote)
@@ -87,7 +87,7 @@ func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]tru
 	// get delegation roles with the canonical key IDs
 	delegationRoles, err := notaryRepo.GetDelegationRoles()
 	if err != nil {
-		logrus.Debugf("no delegation roles found, or error fetching them for %s: %v", remote, err)
+		log.G(ctx).Debugf("no delegation roles found, or error fetching them for %s: %v", remote, err)
 	}
 
 	return signatureRows, adminRolesWithSigs, delegationRoles, nil

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -16,7 +17,6 @@ import (
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -228,7 +228,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 				return nil
 			}
 
-			logrus.Debugf("Error hijack: %s", err)
+			log.G(ctx).Debugf("Error hijack: %s", err)
 			return err
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -337,7 +337,7 @@ func (eh *eventHandler) watch(c <-chan events.Message) {
 		if !exists {
 			continue
 		}
-		logrus.Debugf("event handler: received event: %v", e)
+		log.G(context.TODO()).Debugf("event handler: received event: %v", e)
 		go h(e)
 	}
 }
