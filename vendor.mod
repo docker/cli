@@ -12,7 +12,7 @@ require (
 	github.com/creack/pty v1.1.21
 	github.com/distribution/reference v0.6.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v27.0.0-rc.1.0.20240614193652-ba69bd9c1e48+incompatible
+	github.com/docker/docker v27.0.0-rc.2+incompatible
 	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -23,7 +23,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/moby/patternmatcher v0.6.0
-	github.com/moby/swarmkit/v2 v2.0.0-20240415162501-c1c857e2dca1
+	github.com/moby/swarmkit/v2 v2.0.0-20240611172349-ea1a7cec35cb
 	github.com/moby/sys/sequential v0.5.0
 	github.com/moby/sys/signal v0.7.0
 	github.com/moby/term v0.5.0
