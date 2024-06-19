@@ -184,9 +184,18 @@ func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 	if _, ok := aliasMap["builder"]; ok {
 		return true, nil
 	}
-	// otherwise, assume BuildKit is enabled but
-	// not if wcow reported from server side
-	return cli.ServerInfo().OSType != "windows", nil
+
+	si := cli.ServerInfo()
+	if si.BuildkitVersion == types.BuilderBuildKit {
+		// The daemon advertised BuildKit as the preferred builder; this may
+		// be either a Linux daemon or a Windows daemon with experimental
+		// BuildKit support enabled.
+		return true, nil
+	}
+
+	// otherwise, assume BuildKit is enabled for Linux, but disabled for
+	// Windows / WCOW, which does not yet support BuildKit by default.
+	return si.OSType != "windows", nil
 }
 
 // HooksEnabled returns whether plugin hooks are enabled.
