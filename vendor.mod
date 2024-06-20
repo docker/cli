@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.21.0
 
+replace github.com/docker/docker => github.com/vvoland/moby v20.10.16-0.20240620184307-e4bc5d4f1b55+incompatible
+
 require (
 	dario.cat/mergo v1.0.0
 	github.com/containerd/platforms v0.2.1
@@ -16,6 +18,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
+	github.com/fatih/color v1.17.0
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/go-viper/mapstructure/v2 v2.0.0
 	github.com/gogo/protobuf v1.3.2
@@ -72,6 +75,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
