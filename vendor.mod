@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.21.0
 
+replace github.com/docker/docker => github.com/vvoland/moby v20.10.16-0.20240620184307-e4bc5d4f1b55+incompatible
+
 require (
 	dario.cat/mergo v1.0.0
 	github.com/containerd/platforms v0.2.1
