@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -46,12 +47,21 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts *removeOptions) 
 
 	var errs []string
 
+
+
 	for _, name := range opts.volumes {
+
+		deleteRemote := command.PromptForConfirmation(os.Stdin, dockerCli.Out(), fmt.Sprintf("\nPlease confirm you would like to remove volume %s ?", name))
+		if !deleteRemote {
+			fmt.Fprintf(dockerCli.Out(), "Volume %s wasn't deleted.\n", name)
+			continue
+		}
+
 		if err := client.VolumeRemove(ctx, name, opts.force); err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", name)
+		fmt.Fprintf(dockerCli.Out(), "Successfully deleted volume %s\n", name)
 	}
 
 	if len(errs) > 0 {
