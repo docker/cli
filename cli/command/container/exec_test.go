@@ -162,7 +162,7 @@ func TestRunExec(t *testing.T) {
 	testcases := []struct {
 		doc           string
 		options       ExecOptions
-		client        fakeClient
+		client        *fakeClient
 		expectedError string
 		expectedOut   string
 		expectedErr   string
@@ -172,12 +172,12 @@ func TestRunExec(t *testing.T) {
 			options: withDefaultOpts(ExecOptions{
 				Detach: true,
 			}),
-			client: fakeClient{execCreateFunc: execCreateWithID},
+			client: &fakeClient{execCreateFunc: execCreateWithID},
 		},
 		{
 			doc:     "inspect error",
 			options: NewExecOptions(),
-			client: fakeClient{
+			client: &fakeClient{
 				inspectFunc: func(string) (types.ContainerJSON, error) {
 					return types.ContainerJSON{}, errors.New("failed inspect")
 				},
@@ -188,12 +188,13 @@ func TestRunExec(t *testing.T) {
 			doc:           "missing exec ID",
 			options:       NewExecOptions(),
 			expectedError: "exec ID empty",
+			client:        &fakeClient{},
 		},
 	}
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			fakeCLI := test.NewFakeCli(&testcase.client)
+			fakeCLI := test.NewFakeCli(testcase.client)
 
 			err := RunExec(context.TODO(), fakeCLI, "thecontainer", testcase.options)
 			if testcase.expectedError != "" {
