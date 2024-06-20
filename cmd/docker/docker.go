@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -325,6 +326,25 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 	return nil
 }
 
+// forceExitAfter3TerminationSignals waits for the first termination signal
+// to be caught and the context to be marked as done, then registers a new
+// signal handler for subsequent signals. It forces the process to exit
+// after 3 SIGTERM/SIGINT signals.
+func forceExitAfter3TerminationSignals(ctx context.Context, w io.Writer) {
+	// wait for the first signal to be caught and the context to be marked as done
+	<-ctx.Done()
+	// register a new signal handler for subsequent signals
+	sig := make(chan os.Signal, 2)
+	signal.Notify(sig, platformsignals.TerminationSignals...)
+
+	// once we have received a total of 3 signals we force exit the cli
+	for i := 0; i < 2; i++ {
+		<-sig
+	}
+	_, _ = fmt.Fprint(w, "\ngot 3 SIGTERM/SIGINTs, forcefully exiting\n")
+	os.Exit(1)
+}
+
 //nolint:gocyclo
 func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
@@ -383,6 +403,10 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			}
 		}
 	}
+
+	// This is a fallback for the case where the command does not exit
+	// based on context cancellation.
+	go forceExitAfter3TerminationSignals(ctx, dockerCli.Err())
 
 	// We've parsed global args already, so reset args to those
 	// which remain.
