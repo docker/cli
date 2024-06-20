@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 )
 
@@ -693,24 +692,24 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 	return &swarmCredSpec, nil
 }
 
-func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units.Ulimit {
-	newUlimits := make(map[string]*units.Ulimit)
+func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*container.Ulimit {
+	newUlimits := make(map[string]*container.Ulimit)
 	for name, u := range origUlimits {
 		if u.Single != 0 {
-			newUlimits[name] = &units.Ulimit{
+			newUlimits[name] = &container.Ulimit{
 				Name: name,
 				Soft: int64(u.Single),
 				Hard: int64(u.Single),
 			}
 		} else {
-			newUlimits[name] = &units.Ulimit{
+			newUlimits[name] = &container.Ulimit{
 				Name: name,
 				Soft: int64(u.Soft),
 				Hard: int64(u.Hard),
 			}
 		}
 	}
-	ulimits := make([]*units.Ulimit, 0, len(newUlimits))
+	ulimits := make([]*container.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		ulimits = append(ulimits, ulimit)
 	}

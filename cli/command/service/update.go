@@ -17,7 +17,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	units "github.com/docker/go-units"
 	"github.com/moby/swarmkit/v2/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -710,8 +709,8 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 	}
 }
 
-func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimit {
-	newUlimits := make(map[string]*units.Ulimit)
+func updateUlimits(flags *pflag.FlagSet, ulimits []*container.Ulimit) []*container.Ulimit {
+	newUlimits := make(map[string]*container.Ulimit)
 
 	for _, ulimit := range ulimits {
 		newUlimits[ulimit.Name] = ulimit
@@ -731,7 +730,7 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimi
 	if len(newUlimits) == 0 {
 		return nil
 	}
-	limits := make([]*units.Ulimit, 0, len(newUlimits))
+	limits := make([]*container.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		limits = append(limits, ulimit)
 	}

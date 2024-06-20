@@ -13,7 +13,6 @@ import (
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/go-units"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -1600,66 +1599,66 @@ func TestUpdateUlimits(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		spec     []*units.Ulimit
+		spec     []*container.Ulimit
 		rm       []string
 		add      []string
-		expected []*units.Ulimit
+		expected []*container.Ulimit
 	}{
 		{
 			name: "from scratch",
 			add:  []string{"nofile=512:1024", "core=1024:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "append new",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			add: []string{"core=1024:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "remove and append new should append",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			rm:  []string{"nofile=512:1024"},
 			add: []string{"nofile=512:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "update existing",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "nofile", Hard: 2048, Soft: 1024},
 			},
 			add: []string{"nofile=512:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "update existing twice",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "nofile", Hard: 2048, Soft: 1024},
 			},
 			add: []string{"nofile=256:512", "nofile=512:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "remove all",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
@@ -1668,23 +1667,23 @@ func TestUpdateUlimits(t *testing.T) {
 		},
 		{
 			name: "remove by key",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			rm: []string{"core"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "remove by key and different value",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			rm: []string{"core=1234:5678"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},

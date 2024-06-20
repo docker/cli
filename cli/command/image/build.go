@@ -29,7 +29,6 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
-	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -81,7 +80,7 @@ func (o buildOptions) contextFromStdin() bool {
 }
 
 func newBuildOptions() buildOptions {
-	ulimits := make(map[string]*units.Ulimit)
+	ulimits := make(map[string]*container.Ulimit)
 	return buildOptions{
 		tags:       opts.NewListOpts(validateTag),
 		buildArgs:  opts.NewListOpts(opts.ValidateEnv),
