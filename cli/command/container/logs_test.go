@@ -30,7 +30,7 @@ func TestRunLogs(t *testing.T) {
 	testcases := []struct {
 		doc           string
 		options       *logsOptions
-		client        fakeClient
+		client        *fakeClient
 		expectedError string
 		expectedOut   string
 		expectedErr   string
@@ -39,13 +39,13 @@ func TestRunLogs(t *testing.T) {
 			doc:         "successful logs",
 			expectedOut: "foo",
 			options:     &logsOptions{},
-			client:      fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
+			client:      &fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
 		},
 	}
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			cli := test.NewFakeCli(&testcase.client)
+			cli := test.NewFakeCli(testcase.client)
 
 			err := runLogs(context.TODO(), cli, testcase.options)
 			if testcase.expectedError != "" {
