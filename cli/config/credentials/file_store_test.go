@@ -134,3 +134,45 @@ func TestFileStoreErase(t *testing.T) {
 		t.Fatalf("expected empty email, got %s", a.Email)
 	}
 }
+
+func TestConvertToHostname(t *testing.T) {
+	tests := []struct{ input, expected string }{
+		{
+			input:    "example.com",
+			expected: "example.com",
+		},
+		{
+			input:    "http://example.com",
+			expected: "example.com",
+		},
+		{
+			input:    "https://example.com",
+			expected: "example.com",
+		},
+		{
+			input:    "https://example.com/",
+			expected: "example.com",
+		},
+		{
+			input:    "https://example.com/v2/",
+			expected: "example.com",
+		},
+		{
+			// FIXME(thaJeztah): should ConvertToHostname correctly handle this / fail on this?
+			input:    "unix:///var/run/docker.sock",
+			expected: "unix:",
+		},
+		{
+			// FIXME(thaJeztah): should ConvertToHostname correctly handle this?
+			input:    "ftp://example.com",
+			expected: "example.com",
+		},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			actual := ConvertToHostname(tc.input)
+			assert.Equal(t, actual, tc.expected)
+		})
+	}
+}
