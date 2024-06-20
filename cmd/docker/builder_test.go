@@ -125,7 +125,7 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 }
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 }
 
 func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {

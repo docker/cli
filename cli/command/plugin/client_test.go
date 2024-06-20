@@ -11,7 +11,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	pluginCreateFunc  func(createContext io.Reader, createOptions types.PluginCreateOptions) error
 	pluginDisableFunc func(name string, disableOptions types.PluginDisableOptions) error
 	pluginEnableFunc  func(name string, options types.PluginEnableOptions) error

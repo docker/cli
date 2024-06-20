@@ -12,7 +12,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 
 	version            string
 	serverVersion      func(ctx context.Context) (types.Version, error)

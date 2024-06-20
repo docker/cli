@@ -14,7 +14,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	imageTagFunc     func(string, string) error
 	imageSaveFunc    func(images []string) (io.ReadCloser, error)
 	imageRemoveFunc  func(image string, options image.RemoveOptions) ([]image.DeleteResponse, error)

@@ -9,7 +9,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	networkCreateFunc     func(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error)
 	networkConnectFunc    func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error

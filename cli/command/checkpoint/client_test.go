@@ -8,7 +8,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	checkpointCreateFunc func(container string, options checkpoint.CreateOptions) error
 	checkpointDeleteFunc func(container string, options checkpoint.DeleteOptions) error
 	checkpointListFunc   func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error)

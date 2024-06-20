@@ -100,7 +100,7 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 }
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	pingFunc   func() (types.Ping, error)
 	version    string
 	negotiated bool

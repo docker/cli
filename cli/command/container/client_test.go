@@ -15,7 +15,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	inspectFunc         func(string) (types.ContainerJSON, error)
 	execInspectFunc     func(execID string) (container.ExecInspect, error)
 	execCreateFunc      func(containerID string, options container.ExecOptions) (types.IDResponse, error)

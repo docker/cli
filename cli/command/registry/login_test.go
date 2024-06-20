@@ -26,7 +26,7 @@ const (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 }
 
 func (c fakeClient) Info(context.Context) (system.Info, error) {
