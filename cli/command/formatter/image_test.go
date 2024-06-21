@@ -41,6 +41,11 @@ func TestImageContext(t *testing.T) {
 			call:     ctx.Size,
 		},
 		{
+			imageCtx: imageContext{i: types.ImageSummary{Size: 999900000}, trunc: true},
+			expValue: "999.9MB",
+			call:     ctx.Size,
+		},
+		{
 			imageCtx: imageContext{i: image.Summary{Created: unix}, trunc: true},
 			expValue: time.Unix(unix, 0).String(), call: ctx.CreatedAt,
 		},
