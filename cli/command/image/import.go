@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	dockeropts "github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/spf13/cobra"
@@ -53,17 +52,17 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runImport(ctx context.Context, dockerCli command.Cli, options importOptions) error {
-	var source types.ImageImportSource
+	var source image.ImportSource
 	switch {
 	case options.source == "-":
 		// import from STDIN
-		source = types.ImageImportSource{
+		source = image.ImportSource{
 			Source:     dockerCli.In(),
 			SourceName: options.source,
 		}
 	case strings.HasPrefix(options.source, "https://"), strings.HasPrefix(options.source, "http://"):
 		// import from a remote source (handled by the daemon)
-		source = types.ImageImportSource{
+		source = image.ImportSource{
 			SourceName: options.source,
 		}
 	default:
@@ -73,7 +72,7 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 			return err
 		}
 		defer file.Close()
-		source = types.ImageImportSource{
+		source = image.ImportSource{
 			Source:     file,
 			SourceName: "-",
 		}

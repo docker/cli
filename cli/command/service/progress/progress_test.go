@@ -874,7 +874,7 @@ func TestGlobalJobProgressUpdaterLarge(t *testing.T) {
 	tasks := []swarm.Task{}
 	for nodeID := range activeNodes {
 		tasks = append(tasks, swarm.Task{
-			ID:           fmt.Sprintf("task%s", nodeID),
+			ID:           "task" + nodeID,
 			NodeID:       nodeID,
 			DesiredState: swarm.TaskStateComplete,
 			Status: swarm.TaskStatus{

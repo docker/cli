@@ -74,7 +74,7 @@ Are you sure you want to continue?`
 func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) error {
 	// TODO version this once "until" filter is supported for volumes
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
-		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
+		return errors.New(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
 	if !options.force {
 		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options))
@@ -105,11 +105,11 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 		spaceReclaimed += spc
 		if output != "" {
-			fmt.Fprintln(dockerCli.Out(), output)
+			_, _ = fmt.Fprintln(dockerCli.Out(), output)
 		}
 	}
 
-	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
+	_, _ = fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 
 	return nil
 }

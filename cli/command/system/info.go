@@ -1,10 +1,11 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.21
 
 package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -187,7 +188,7 @@ func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 	}
 
 	if len(info.ServerErrors) > 0 || len(info.ClientErrors) > 0 {
-		return fmt.Errorf("errors pretty printing info")
+		return errors.New("errors pretty printing info")
 	}
 	return nil
 }

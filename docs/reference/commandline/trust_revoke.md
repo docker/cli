@@ -91,7 +91,7 @@ When `alice`, one of the signers, runs `docker trust revoke`:
 
 ```console
 $ docker trust revoke example/trust-demo
-Please confirm you would like to delete all signature data for example/trust-demo? [y/N] y
+Confirm you would like to delete all signature data for example/trust-demo? [y/N] y
 Enter passphrase for delegation key with ID 27d42a8:
 Successfully deleted signature for example/trust-demo
 ```

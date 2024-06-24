@@ -1,7 +1,7 @@
 package container
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"testing"
 
@@ -147,7 +147,7 @@ func TestContainerListErrors(t *testing.T) {
 		},
 		{
 			containerListFunc: func(_ container.ListOptions) ([]types.Container, error) {
-				return nil, fmt.Errorf("error listing containers")
+				return nil, errors.New("error listing containers")
 			},
 			expectedError: "error listing containers",
 		},

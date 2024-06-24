@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -28,12 +29,20 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	statusCode := dockerMain()
+	if statusCode != 0 {
+		os.Exit(statusCode)
+	}
+}
+
+func dockerMain() int {
+	ctx, cancelNotify := signal.NotifyContext(context.Background(), platformsignals.TerminationSignals...)
+	defer cancelNotify()
 
 	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return 1
 	}
 	logrus.SetOutput(dockerCli.Err())
 	otel.SetErrorHandler(debug.OTELErrorHandler)
@@ -46,16 +55,17 @@ func main() {
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
 			if sterr.StatusCode == 0 {
-				os.Exit(1)
+				return 1
 			}
-			os.Exit(sterr.StatusCode)
+			return sterr.StatusCode
 		}
 		if errdefs.IsCancelled(err) {
-			os.Exit(0)
+			return 0
 		}
 		fmt.Fprintln(dockerCli.Err(), err)
-		os.Exit(1)
+		return 1
 	}
+	return 0
 }
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
@@ -224,7 +234,7 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
+func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
 	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
 	if err != nil {
 		return err
@@ -236,46 +246,67 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	if err == nil {
 		plugincmd.Env = append(plugincmd.Env, socket.EnvKey+"="+srv.Addr().String())
 	}
+	defer func() {
+		// Close the server when plugin execution is over, so that in case
+		// it's still open, any sockets on the filesystem are cleaned up.
+		_ = srv.Close()
+	}()
 
 	// Set additional environment variables specified by the caller.
 	plugincmd.Env = append(plugincmd.Env, envs...)
 
 	// Background signal handling logic: block on the signals channel, and
 	// notify the plugin via the PluginServer (or signal) as appropriate.
-	const exitLimit = 3
-	signals := make(chan os.Signal, exitLimit)
-	signal.Notify(signals, platformsignals.TerminationSignals...)
+	const exitLimit = 2
+
+	tryTerminatePlugin := func(force bool) {
+		// If stdin is a TTY, the kernel will forward
+		// signals to the subprocess because the shared
+		// pgid makes the TTY a controlling terminal.
+		//
+		// The plugin should have it's own copy of this
+		// termination logic, and exit after 3 retries
+		// on it's own.
+		if dockerCli.Out().IsTerminal() {
+			return
+		}
+
+		// Terminate the plugin server, which will
+		// close all connections with plugin
+		// subprocesses, and signal them to exit.
+		//
+		// Repeated invocations will result in EINVAL,
+		// or EBADF; but that is fine for our purposes.
+		_ = srv.Close()
+
+		// force the process to terminate if it hasn't already
+		if force {
+			_ = plugincmd.Process.Kill()
+			_, _ = fmt.Fprint(dockerCli.Err(), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
+			os.Exit(1)
+		}
+	}
+
 	go func() {
 		retries := 0
+		force := false
+		// catch the first signal through context cancellation
+		<-ctx.Done()
+		tryTerminatePlugin(force)
+
+		// register subsequent signals
+		signals := make(chan os.Signal, exitLimit)
+		signal.Notify(signals, platformsignals.TerminationSignals...)
+
 		for range signals {
-			// If stdin is a TTY, the kernel will forward
-			// signals to the subprocess because the shared
-			// pgid makes the TTY a controlling terminal.
-			//
-			// The plugin should have it's own copy of this
-			// termination logic, and exit after 3 retries
-			// on it's own.
-			if dockerCli.Out().IsTerminal() {
-				continue
-			}
-
-			// Terminate the plugin server, which will
-			// close all connections with plugin
-			// subprocesses, and signal them to exit.
-			//
-			// Repeated invocations will result in EINVAL,
-			// or EBADF; but that is fine for our purposes.
-			_ = srv.Close()
-
+			retries++
 			// If we're still running after 3 interruptions
 			// (SIGINT/SIGTERM), send a SIGKILL to the plugin as a
 			// final attempt to terminate, and exit.
-			retries++
 			if retries >= exitLimit {
-				_, _ = fmt.Fprintf(dockerCli.Err(), "got %d SIGTERM/SIGINTs, forcefully exiting\n", retries)
-				_ = plugincmd.Process.Kill()
-				os.Exit(1)
+				force = true
 			}
+			tryTerminatePlugin(force)
 		}
 	}()
 
@@ -295,6 +326,25 @@ func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, 
 	return nil
 }
 
+// forceExitAfter3TerminationSignals waits for the first termination signal
+// to be caught and the context to be marked as done, then registers a new
+// signal handler for subsequent signals. It forces the process to exit
+// after 3 SIGTERM/SIGINT signals.
+func forceExitAfter3TerminationSignals(ctx context.Context, w io.Writer) {
+	// wait for the first signal to be caught and the context to be marked as done
+	<-ctx.Done()
+	// register a new signal handler for subsequent signals
+	sig := make(chan os.Signal, 2)
+	signal.Notify(sig, platformsignals.TerminationSignals...)
+
+	// once we have received a total of 3 signals we force exit the cli
+	for i := 0; i < 2; i++ {
+		<-sig
+	}
+	_, _ = fmt.Fprint(w, "\ngot 3 SIGTERM/SIGINTs, forcefully exiting\n")
+	os.Exit(1)
+}
+
 //nolint:gocyclo
 func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
@@ -304,7 +354,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	if err := tcmd.Initialize(); err != nil {
+	if err := tcmd.Initialize(command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider()); err != nil {
 		return err
 	}
 
@@ -338,7 +388,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		ccmd, _, err := cmd.Find(args)
 		subCommand = ccmd
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
-			err := tryPluginRun(dockerCli, cmd, args[0], envs)
+			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
 			if err == nil {
 				if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && ccmd != nil {
 					pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args)
@@ -353,6 +403,10 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			}
 		}
 	}
+
+	// This is a fallback for the case where the command does not exit
+	// based on context cancellation.
+	go forceExitAfter3TerminationSignals(ctx, dockerCli.Err())
 
 	// We've parsed global args already, so reset args to those
 	// which remain.

@@ -1,7 +1,6 @@
 package command_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -29,13 +28,11 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 	testCases := []struct {
 		checkCredStore     bool
 		inputServerAddress string
-		expectedErr        string
 		expectedAuthConfig registry.AuthConfig
 	}{
 		{
 			checkCredStore:     false,
 			inputServerAddress: "",
-			expectedErr:        "",
 			expectedAuthConfig: registry.AuthConfig{
 				ServerAddress: "",
 				Username:      "",
@@ -45,19 +42,16 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		{
 			checkCredStore:     true,
 			inputServerAddress: testAuthConfigs[0].ServerAddress,
-			expectedErr:        "",
 			expectedAuthConfig: testAuthConfigs[0],
 		},
 		{
 			checkCredStore:     true,
 			inputServerAddress: testAuthConfigs[1].ServerAddress,
-			expectedErr:        "",
 			expectedAuthConfig: testAuthConfigs[1],
 		},
 		{
 			checkCredStore:     true,
-			inputServerAddress: fmt.Sprintf("https://%s", testAuthConfigs[1].ServerAddress),
-			expectedErr:        "",
+			inputServerAddress: "https://" + testAuthConfigs[1].ServerAddress,
 			expectedAuthConfig: testAuthConfigs[1],
 		},
 	}
@@ -68,13 +62,8 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 	for _, tc := range testCases {
 		serverAddress := tc.inputServerAddress
 		authconfig, err := command.GetDefaultAuthConfig(cfg, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
-		if tc.expectedErr != "" {
-			assert.Check(t, err != nil)
-			assert.Check(t, is.Equal(tc.expectedErr, err.Error()))
-		} else {
-			assert.NilError(t, err)
-			assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, authconfig))
-		}
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, authconfig))
 	}
 }
 

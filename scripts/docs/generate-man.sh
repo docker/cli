@@ -2,7 +2,7 @@
 
 set -eu
 
-: "${MD2MAN_VERSION=v2.0.3}"
+: "${MD2MAN_VERSION=v2.0.4}"
 
 export GO111MODULE=auto
 

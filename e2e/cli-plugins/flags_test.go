@@ -93,7 +93,7 @@ func TestGlobalArgsOnlyParsedOnce(t *testing.T) {
 			args:             []string{"-H", dh, "-H", dh, "version", "-f", "{{.Client.Version}}"},
 			expectedExitCode: 1,
 			expectedOut:      icmd.None,
-			expectedErr:      "Please specify only one -H",
+			expectedErr:      "Specify only one -H",
 		},
 		{
 			name:             "builtin",

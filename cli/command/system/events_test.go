@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -59,7 +58,7 @@ func TestEventsFormat(t *testing.T) {
 			// Set to UTC timezone as timestamps in output are
 			// printed in the current timezone
 			t.Setenv("TZ", "UTC")
-			cli := test.NewFakeCli(&fakeClient{eventsFn: func(context.Context, types.EventsOptions) (<-chan events.Message, <-chan error) {
+			cli := test.NewFakeCli(&fakeClient{eventsFn: func(context.Context, events.ListOptions) (<-chan events.Message, <-chan error) {
 				messages := make(chan events.Message)
 				errs := make(chan error, 1)
 				go func() {

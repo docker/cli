@@ -29,7 +29,7 @@ func TestIPNets(t *testing.T) {
 	f := setUpIPNetFlagSet(&ips)
 
 	vals := []string{"192.168.1.1/24", "10.0.0.1/16", "fd00:0:0:0:0:0:0:2/64"}
-	arg := fmt.Sprintf("--cidrs=%s", strings.Join(vals, ","))
+	arg := "--cidrs=" + strings.Join(vals, ",")
 	err := f.Parse([]string{arg})
 	if err != nil {
 		t.Fatal("expected no error; got", err)
@@ -134,7 +134,7 @@ func TestIPNetBadQuoting(t *testing.T) {
 		var cidrs []net.IPNet
 		f := setUpIPNetFlagSet(&cidrs)
 
-		if err := f.Parse([]string{fmt.Sprintf("--cidrs=%s", strings.Join(test.FlagArg, ","))}); err != nil {
+		if err := f.Parse([]string{"--cidrs=" + strings.Join(test.FlagArg, ",")}); err != nil {
 			t.Fatalf("flag parsing failed with error: %s\nparsing:\t%#v\nwant:\t\t%s",
 				err, test.FlagArg, test.Want[i])
 		}

@@ -2,7 +2,7 @@ package system
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"testing"
 
@@ -16,7 +16,7 @@ import (
 func TestVersionWithoutServer(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		serverVersion: func(ctx context.Context) (types.Version, error) {
-			return types.Version{}, fmt.Errorf("no server")
+			return types.Version{}, errors.New("no server")
 		},
 	})
 	cmd := NewVersionCommand(cli)

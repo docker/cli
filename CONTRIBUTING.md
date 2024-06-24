@@ -16,9 +16,9 @@ start participating.
 ## Reporting security issues
 
 The Docker maintainers take security seriously. If you discover a security
-issue, please bring it to their attention right away!
+issue, bring it to their attention right away!
 
-Please **DO NOT** file a public issue, instead send your report privately to
+**DO NOT** file a public issue, instead send your report privately to
 [security@docker.com](mailto:security@docker.com).
 
 Security reports are greatly appreciated and we will publicly thank you for it.
@@ -39,7 +39,7 @@ If you find a match, you can use the "subscribe" button to get notified on
 updates. Do *not* leave random "+1" or "I have this too" comments, as they
 only clutter the discussion, and don't help resolving it. However, if you
 have ways to reproduce the issue or have additional information that may help
-resolving the issue, please leave a comment.
+resolving the issue, leave a comment.
 
 When reporting issues, always include:
 
@@ -166,10 +166,10 @@ Include an issue reference like `Closes #XXXX` or `Fixes #XXXX` in the pull requ
 description that close an issue. Including references automatically closes the issue
 on a merge.
 
-Please do not add yourself to the `AUTHORS` file, as it is regenerated regularly
+Do not add yourself to the `AUTHORS` file, as it is regenerated regularly
 from the Git history.
 
-Please see the [Coding Style](#coding-style) for further guidelines.
+See the [Coding Style](#coding-style) for further guidelines.
 
 ### Merge approval
 
@@ -269,8 +269,8 @@ guidelines for the community as a whole:
 
 * Stay on topic: Make sure that you are posting to the correct channel and
   avoid off-topic discussions. Remember when you update an issue or respond
-  to an email you are potentially sending to a large number of people. Please
-  consider this before you update. Also remember that nobody likes spam.
+  to an email you are potentially sending to a large number of people. Consider
+  this before you update. Also remember that nobody likes spam.
 
 * Don't send email to the maintainers: There's no need to send email to the
   maintainers to ask them to investigate an issue or to take a look at a

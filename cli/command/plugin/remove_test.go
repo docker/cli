@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"testing"
 
@@ -24,9 +24,9 @@ func TestRemoveErrors(t *testing.T) {
 		{
 			args: []string{"plugin-foo"},
 			pluginRemoveFunc: func(name string, options types.PluginRemoveOptions) error {
-				return fmt.Errorf("Error removing plugin")
+				return errors.New("error removing plugin")
 			},
-			expectedError: "Error removing plugin",
+			expectedError: "error removing plugin",
 		},
 	}
 

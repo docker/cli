@@ -70,7 +70,7 @@ func TestTrustRevokeCommand(t *testing.T) {
 			doc:              "OfflineErrors_Confirm",
 			notaryRepository: notary.GetOfflineNotaryRepository,
 			args:             []string{"reg-name.io/image"},
-			expectedMessage:  "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] ",
+			expectedMessage:  "Confirm you would like to delete all signature data for reg-name.io/image? [y/N] ",
 			expectedErr:      revokeCancelledError,
 		},
 		{
@@ -89,7 +89,7 @@ func TestTrustRevokeCommand(t *testing.T) {
 			doc:              "UninitializedErrors_Confirm",
 			notaryRepository: notary.GetUninitializedNotaryRepository,
 			args:             []string{"reg-name.io/image"},
-			expectedMessage:  "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] ",
+			expectedMessage:  "Confirm you would like to delete all signature data for reg-name.io/image? [y/N] ",
 			expectedErr:      revokeCancelledError,
 		},
 		{
@@ -108,7 +108,7 @@ func TestTrustRevokeCommand(t *testing.T) {
 			doc:              "EmptyNotaryRepo_Confirm",
 			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
 			args:             []string{"reg-name.io/image"},
-			expectedMessage:  "Please confirm you would like to delete all signature data for reg-name.io/image? [y/N] ",
+			expectedMessage:  "Confirm you would like to delete all signature data for reg-name.io/image? [y/N] ",
 			expectedErr:      revokeCancelledError,
 		},
 		{
@@ -127,7 +127,7 @@ func TestTrustRevokeCommand(t *testing.T) {
 			doc:              "AllSigConfirmation",
 			notaryRepository: notary.GetEmptyTargetsNotaryRepository,
 			args:             []string{"alpine"},
-			expectedMessage:  "Please confirm you would like to delete all signature data for alpine? [y/N] ",
+			expectedMessage:  "Confirm you would like to delete all signature data for alpine? [y/N] ",
 			expectedErr:      revokeCancelledError,
 		},
 	}

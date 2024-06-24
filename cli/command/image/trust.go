@@ -100,7 +100,7 @@ func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.Reposito
 	}
 
 	if target == nil {
-		return errors.Errorf("no targets found, please provide a specific tag in order to sign it")
+		return errors.Errorf("no targets found, provide a specific tag in order to sign it")
 	}
 
 	fmt.Fprintln(ioStreams.Out(), "Signing and pushing trust metadata")

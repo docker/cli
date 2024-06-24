@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.21
 
 package loader
 
@@ -76,7 +76,7 @@ func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 	var details composetypes.ConfigDetails
 
 	if len(composefiles) == 0 {
-		return details, errors.New("Please specify a Compose file (with --compose-file)")
+		return details, errors.New("Specify a Compose file (with --compose-file)")
 	}
 
 	if composefiles[0] == "-" && len(composefiles) == 1 {

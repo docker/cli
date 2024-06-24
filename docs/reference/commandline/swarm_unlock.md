@@ -24,7 +24,7 @@ enabled, and is also available from the `docker swarm unlock-key` command.
 
 ```console
 $ docker swarm unlock
-Please enter unlock key:
+Enter unlock key:
 ```
 
 ## Related commands

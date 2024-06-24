@@ -9,11 +9,12 @@ Upload an image to a registry
 
 ### Options
 
-| Name                      | Type   | Default | Description                                 |
-|:--------------------------|:-------|:--------|:--------------------------------------------|
-| `-a`, `--all-tags`        |        |         | Push all tags of an image to the repository |
-| `--disable-content-trust` | `bool` | `true`  | Skip image signing                          |
-| `-q`, `--quiet`           |        |         | Suppress verbose output                     |
+| Name                      | Type     | Default | Description                                                                                                                                 |
+|:--------------------------|:---------|:--------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| `-a`, `--all-tags`        |          |         | Push all tags of an image to the repository                                                                                                 |
+| `--disable-content-trust` | `bool`   | `true`  | Skip image signing                                                                                                                          |
+| `--platform`              | `string` |         | Push a platform-specific manifest as a single-platform image to the registry.<br>'os[/arch[/variant]]': Explicit platform (eg. linux/amd64) |
+| `-q`, `--quiet`           |          |         | Suppress verbose output                                                                                                                     |
 
 
 <!---MARKER_GEN_END-->

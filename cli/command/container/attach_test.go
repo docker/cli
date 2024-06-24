@@ -1,7 +1,6 @@
 package container
 
 import (
-	"fmt"
 	"io"
 	"testing"
 
@@ -79,7 +78,7 @@ func TestNewAttachCommandErrors(t *testing.T) {
 
 func TestGetExitStatus(t *testing.T) {
 	var (
-		expectedErr = fmt.Errorf("unexpected error")
+		expectedErr = errors.New("unexpected error")
 		errC        = make(chan error, 1)
 		resultC     = make(chan container.WaitResponse, 1)
 	)

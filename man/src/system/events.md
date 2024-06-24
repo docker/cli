@@ -24,7 +24,7 @@ timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
 relative to the client machine's time. If you do not provide the `--since` option,
 the command returns only new and/or live events.  Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp.  When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
@@ -85,7 +85,7 @@ details of the format.
     Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299c126a87812311951e26
 
 If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to https://jsonlines.org .
+Lines. For information about JSON Lines, refer to https://jsonlines.org .
 
     # docker events --format '{{json .}}'
     {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..

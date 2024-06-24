@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.21
 
 package schema
 
@@ -102,7 +102,7 @@ func getDescription(err validationError) string {
 	switch err.parent.Type() {
 	case "invalid_type":
 		if expectedType, ok := err.parent.Details()["expected"].(string); ok {
-			return fmt.Sprintf("must be a %s", humanReadableType(expectedType))
+			return "must be a " + humanReadableType(expectedType)
 		}
 	case jsonschemaOneOf, jsonschemaAnyOf:
 		if err.child == nil {

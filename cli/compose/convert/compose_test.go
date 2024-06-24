@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -77,7 +76,7 @@ func TestNetworks(t *testing.T) {
 			Name: "othername",
 		},
 	}
-	expected := map[string]types.NetworkCreate{
+	expected := map[string]network.CreateOptions{
 		"foo_default": {
 			Labels: map[string]string{
 				LabelNamespace: "foo",

@@ -9,6 +9,7 @@ import (
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -74,14 +75,23 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		return args, osargs, nil, nil
 	}
 
-	// wcow build command must use the legacy builder
-	// if not opt-in through a builder component
-	if !useBuilder && dockerCli.ServerInfo().OSType == "windows" {
-		return args, osargs, nil, nil
+	if !useBuilder {
+		// Builder is not explicitly configured as an alias for buildx.
+		// Detect whether we should use BuildKit, or fallback to the
+		// legacy builder.
+		if si := dockerCli.ServerInfo(); si.BuildkitVersion != types.BuilderBuildKit && si.OSType == "windows" {
+			// The daemon didn't advertise BuildKit as the preferred builder,
+			// so use the legacy builder, which is still the default for
+			// Windows / WCOW.
+			return args, osargs, nil, nil
+		}
 	}
 
 	if buildKitDisabled {
-		// display warning if not wcow and continue
+		// When using a Linux daemon, print a warning that the legacy builder
+		// is deprecated. For Windows / WCOW, BuildKit is still experimental,
+		// so we don't print this warning, even if the daemon advertised that
+		// it supports BuildKit.
 		if dockerCli.ServerInfo().OSType != "windows" {
 			_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n\n", buildkitDisabledWarning)
 		}

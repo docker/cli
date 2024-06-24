@@ -2,7 +2,6 @@ package container
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
@@ -105,7 +104,12 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 
 	if opts.Proxy && !c.Config.Tty {
 		sigc := notifyAllSignals()
-		go ForwardAllSignals(ctx, apiClient, containerID, sigc)
+		// since we're explicitly setting up signal handling here, and the daemon will
+		// get notified independently of the clients ctx cancellation, we use this context
+		// but without cancellation to avoid ForwardAllSignals from returning
+		// before all signals are forwarded.
+		bgCtx := context.WithoutCancel(ctx)
+		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
 
@@ -153,7 +157,7 @@ func getExitStatus(errC <-chan error, resultC <-chan container.WaitResponse) err
 	select {
 	case result := <-resultC:
 		if result.Error != nil {
-			return fmt.Errorf(result.Error.Message)
+			return errors.New(result.Error.Message)
 		}
 		if result.StatusCode != 0 {
 			return cli.StatusError{StatusCode: int(result.StatusCode)}

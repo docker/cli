@@ -2,7 +2,7 @@ package manager
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -13,7 +13,7 @@ func TestPluginError(t *testing.T) {
 	err := NewPluginError("new error")
 	assert.Check(t, is.Error(err, "new error"))
 
-	inner := fmt.Errorf("testing")
+	inner := errors.New("testing")
 	err = wrapAsPluginError(inner, "wrapping")
 	assert.Check(t, is.Error(err, "wrapping: testing"))
 	assert.Check(t, is.ErrorIs(err, inner))

@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"testing"
 
@@ -32,7 +32,7 @@ func TestListErrors(t *testing.T) {
 			args:          []string{},
 			expectedError: "error listing plugins",
 			listFunc: func(filter filters.Args) (types.PluginsListResponse, error) {
-				return types.PluginsListResponse{}, fmt.Errorf("error listing plugins")
+				return types.PluginsListResponse{}, errors.New("error listing plugins")
 			},
 		},
 		{

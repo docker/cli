@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -38,9 +38,9 @@ func TestInstallErrors(t *testing.T) {
 		{
 			description:   "installation error",
 			args:          []string{"foo"},
-			expectedError: "Error installing plugin",
+			expectedError: "error installing plugin",
 			installFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, fmt.Errorf("Error installing plugin")
+				return nil, errors.New("error installing plugin")
 			},
 		},
 		{
@@ -48,7 +48,7 @@ func TestInstallErrors(t *testing.T) {
 			args:          []string{"foo"},
 			expectedError: "docker image pull",
 			installFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, fmt.Errorf("(image) when fetching")
+				return nil, errors.New("(image) when fetching")
 			},
 		},
 	}
@@ -92,7 +92,7 @@ func TestInstallContentTrustErrors(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{
 			pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, fmt.Errorf("should not try to install plugin")
+				return nil, errors.New("should not try to install plugin")
 			},
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)

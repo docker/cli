@@ -3,10 +3,12 @@ package registry
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/system"
@@ -27,13 +29,13 @@ type fakeClient struct {
 	client.Client
 }
 
-func (c fakeClient) Info(context.Context) (system.Info, error) {
+func (c *fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func (c *fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	if auth.Password == expiredPassword {
-		return registrytypes.AuthenticateOKBody{}, fmt.Errorf("Invalid Username or Password")
+		return registrytypes.AuthenticateOKBody{}, errors.New("Invalid Username or Password")
 	}
 	if auth.Password == useToken {
 		return registrytypes.AuthenticateOKBody{
@@ -41,7 +43,7 @@ func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConf
 		}, nil
 	}
 	if auth.Username == unknownUser {
-		return registrytypes.AuthenticateOKBody{}, fmt.Errorf(errUnknownUser)
+		return registrytypes.AuthenticateOKBody{}, errors.New(errUnknownUser)
 	}
 	return registrytypes.AuthenticateOKBody{}, nil
 }
@@ -68,7 +70,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
 		errBuf := new(bytes.Buffer)
-		cli.SetErr(errBuf)
+		cli.SetErr(streams.NewOut(errBuf))
 		loginWithCredStoreCreds(ctx, cli, &tc.inputAuthConfig)
 		outputString := cli.OutBuffer().String()
 		assert.Check(t, is.Equal(tc.expectedMsg, outputString))

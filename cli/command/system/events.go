@@ -16,7 +16,6 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/spf13/cobra"
 )
@@ -63,7 +62,7 @@ func runEvents(ctx context.Context, dockerCli command.Cli, options *eventsOption
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	evts, errs := dockerCli.Client().Events(ctx, types.EventsOptions{
+	evts, errs := dockerCli.Client().Events(ctx, events.ListOptions{
 		Since:   options.since,
 		Until:   options.until,
 		Filters: options.filter.Value(),

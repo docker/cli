@@ -11,6 +11,7 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/config/credentials"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/hints"
 	"github.com/docker/cli/cli/streams"
@@ -29,7 +30,7 @@ const patSuggest = "You can log in with your password or a Personal Access " +
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
 	return func(ctx context.Context) (string, error) {
-		fmt.Fprintf(cli.Out(), "\nPlease login prior to %s:\n", cmdName)
+		fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
 		isDefaultRegistry := indexServer == registry.IndexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
@@ -71,7 +72,7 @@ func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInf
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
 func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
 	if !isDefaultRegistry {
-		serverAddress = registry.ConvertToHostname(serverAddress)
+		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
 	authconfig := configtypes.AuthConfig{}
 	var err error

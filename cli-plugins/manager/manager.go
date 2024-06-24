@@ -49,6 +49,16 @@ func IsNotFound(err error) bool {
 	return ok
 }
 
+// getPluginDirs returns the platform-specific locations to search for plugins
+// in order of preference.
+//
+// Plugin-discovery is performed in the following order of preference:
+//
+// 1. The "cli-plugins" directory inside the CLIs [config.Path] (usually "~/.docker/cli-plugins").
+// 2. Additional plugin directories as configured through [ConfigFile.CLIPluginsExtraDirs].
+// 3. Platform-specific defaultSystemPluginDirs.
+//
+// [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
 func getPluginDirs(cfg *configfile.ConfigFile) ([]string, error) {
 	var pluginDirs []string
 

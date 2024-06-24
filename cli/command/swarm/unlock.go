@@ -54,7 +54,7 @@ func runUnlock(ctx context.Context, dockerCli command.Cli) error {
 		return errors.New("Error: swarm is not locked")
 	}
 
-	key, err := readKey(dockerCli.In(), "Please enter unlock key: ")
+	key, err := readKey(dockerCli.In(), "Enter unlock key: ")
 	if err != nil {
 		return err
 	}

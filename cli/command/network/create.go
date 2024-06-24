@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -104,7 +103,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			Network: options.configFrom,
 		}
 	}
-	resp, err := client.NetworkCreate(ctx, options.name, types.NetworkCreate{
+	resp, err := client.NetworkCreate(ctx, options.name, network.CreateOptions{
 		Driver:  options.driver,
 		Options: options.driverOpts.GetAll(),
 		IPAM: &network.IPAM{

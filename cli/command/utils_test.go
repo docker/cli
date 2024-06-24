@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -135,6 +136,9 @@ func TestPromptForConfirmation(t *testing.T) {
 		}, promptResult{false, nil}},
 	} {
 		t.Run("case="+tc.desc, func(t *testing.T) {
+			notifyCtx, notifyCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+			t.Cleanup(notifyCancel)
+
 			buf.Reset()
 			promptReader, promptWriter = io.Pipe()
 
@@ -145,7 +149,7 @@ func TestPromptForConfirmation(t *testing.T) {
 
 			result := make(chan promptResult, 1)
 			go func() {
-				r, err := command.PromptForConfirmation(ctx, promptReader, promptOut, "")
+				r, err := command.PromptForConfirmation(notifyCtx, promptReader, promptOut, "")
 				result <- promptResult{r, err}
 			}()
 

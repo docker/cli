@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
-	"github.com/docker/docker/pkg/homedir"
 	"github.com/pkg/errors"
 )
 
@@ -42,12 +43,38 @@ func resetConfigDir() {
 	initConfigDir = new(sync.Once)
 }
 
+// getHomeDir returns the home directory of the current user with the help of
+// environment variables depending on the target operating system.
+// Returned path should be used with "path/filepath" to form new paths.
+//
+// On non-Windows platforms, it falls back to nss lookups, if the home
+// directory cannot be obtained from environment-variables.
+//
+// If linking statically with cgo enabled against glibc, ensure the
+// osusergo build tag is used.
+//
+// If needing to do nss lookups, do not disable cgo or set osusergo.
+//
+// getHomeDir is a copy of [pkg/homedir.Get] to prevent adding docker/docker
+// as dependency for consumers that only need to read the config-file.
+//
+// [pkg/homedir.Get]: https://pkg.go.dev/github.com/docker/docker@v26.1.4+incompatible/pkg/homedir#Get
+func getHomeDir() string {
+	home, _ := os.UserHomeDir()
+	if home == "" && runtime.GOOS != "windows" {
+		if u, err := user.Current(); err == nil {
+			return u.HomeDir
+		}
+	}
+	return home
+}
+
 // Dir returns the directory the configuration file is stored in
 func Dir() string {
 	initConfigDir.Do(func() {
 		configDir = os.Getenv(EnvOverrideConfigDir)
 		if configDir == "" {
-			configDir = filepath.Join(homedir.Get(), configFileDir)
+			configDir = filepath.Join(getHomeDir(), configFileDir)
 		}
 	})
 	return configDir

@@ -2,7 +2,7 @@ package container
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"sort"
 	"sync"
@@ -37,7 +37,7 @@ func TestRemoveForce(t *testing.T) {
 					mutex.Unlock()
 
 					if container == "nosuchcontainer" {
-						return errdefs.NotFound(fmt.Errorf("Error: no such container: " + container))
+						return errdefs.NotFound(errors.New("Error: no such container: " + container))
 					}
 					return nil
 				},
