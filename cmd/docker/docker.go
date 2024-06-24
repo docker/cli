@@ -354,7 +354,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	if err := tcmd.Initialize(); err != nil {
+	if err := tcmd.Initialize(command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider()); err != nil {
 		return err
 	}
 

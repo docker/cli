@@ -92,6 +92,8 @@ type DockerCli struct {
 	// this may be replaced by explicitly passing a context to functions that
 	// need it.
 	baseCtx context.Context
+
+	enableGlobalMeter, enableGlobalTracer bool
 }
 
 // DefaultVersion returns api.defaultVersion.
@@ -284,8 +286,12 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	}
 
 	// TODO(krissetto): pass ctx to the funcs instead of using this
-	cli.createGlobalMeterProvider(cli.baseCtx)
-	cli.createGlobalTracerProvider(cli.baseCtx)
+	if cli.enableGlobalMeter {
+		cli.createGlobalMeterProvider(cli.baseCtx)
+	}
+	if cli.enableGlobalTracer {
+		cli.createGlobalTracerProvider(cli.baseCtx)
+	}
 
 	return nil
 }
