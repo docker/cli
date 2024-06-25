@@ -108,7 +108,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
 	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
 	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
-	flags.Var(&options.oomScoreAdj, flagOomScoreAdj, "oom score adjustment (-1000 to 1000)")
+	flags.Int64Var(&options.oomScoreAdj, flagOomScoreAdj, 0, "oom score adjustment (-1000 to 1000)")
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")

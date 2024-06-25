@@ -45,6 +45,7 @@ Create a new service
 | `--name`                                            | `string`          |              | Service name                                                                                        |
 | [`--network`](#network)                             | `network`         |              | Network attachments                                                                                 |
 | `--no-healthcheck`                                  |                   |              | Disable any container-specified HEALTHCHECK                                                         |
+| `--oom-score-adj`                                   | `int64`           | `0`          | oom score adjustment (-1000 to 1000)                                                                |
 | `--no-resolve-image`                                |                   |              | Do not query the registry to resolve image digest and supported platforms                           |
 | [`--placement-pref`](#placement-pref)               | `pref`            |              | Add a placement preference                                                                          |
 | [`-p`](#publish), [`--publish`](#publish)           | `port`            |              | Publish a port as a node port                                                                       |

@@ -528,9 +528,8 @@ func (o *OomScoreAdj) String() string {
 }
 
 func (o *OomScoreAdj) Set(value string) error {
-
 	var conv int64
-	conv, _ = strconv.ParseInt(value, 10, 64)
+	conv, err := strconv.ParseInt(value, 10, 64)
 	*o = OomScoreAdj(conv)
-	return nil
+	return err
 }

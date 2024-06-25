@@ -529,7 +529,7 @@ type serviceOptions struct {
 	capAdd          opts.ListOpts
 	capDrop         opts.ListOpts
 	ulimits         opts.UlimitOpt
-	oomScoreAdj     opts.OomScoreAdj
+	oomScoreAdj     int64
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -576,7 +576,7 @@ func newServiceOptions() *serviceOptions {
 		capAdd:          opts.NewListOpts(nil),
 		capDrop:         opts.NewListOpts(nil),
 		ulimits:         *opts.NewUlimitOpt(nil),
-		oomScoreAdj:     opts.OomScoreAdj(0),
+		oomScoreAdj:     int64(opts.OomScoreAdj(0)),
 	}
 }
 
@@ -749,7 +749,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         options.ulimits.GetList(),
-				OomScoreAdj:     options.oomScoreAdj.Value(),
+				OomScoreAdj:     options.oomScoreAdj,
 			},
 			Networks:      networks,
 			Resources:     resources,
