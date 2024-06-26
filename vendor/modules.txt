@@ -53,7 +53,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v27.0.1-rc.1.0.20240621131212-ff1e2c0de72a+incompatible
+# github.com/docker/docker v27.0.2-0.20240626183043-e953d76450b6+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
