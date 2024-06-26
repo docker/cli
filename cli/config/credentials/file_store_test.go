@@ -138,6 +138,19 @@ func TestFileStoreErase(t *testing.T) {
 func TestConvertToHostname(t *testing.T) {
 	tests := []struct{ input, expected string }{
 		{
+			input:    "127.0.0.1",
+			expected: "127.0.0.1",
+		},
+		{
+			input:    "::1",
+			expected: "::1",
+		},
+		{
+			// FIXME(thaJeztah): this should be normalized to "::1" if there's no port (or vice-versa, as long as we're consistent)
+			input:    "[::1]",
+			expected: "[::1]",
+		},
+		{
 			input:    "example.com",
 			expected: "example.com",
 		},
@@ -169,8 +182,33 @@ func TestConvertToHostname(t *testing.T) {
 		},
 		// should support non-standard port in registry url
 		{
+			input:    "127.0.0.1:6556",
+			expected: "127.0.0.1:6556",
+		},
+		{
+			// FIXME(thaJeztah): this should be normalized to "[::1]:6556"
+			input:    "::1:6556",
+			expected: "::1:6556",
+		},
+		{
+			input:    "[::1]:6556",
+			expected: "[::1]:6556",
+		},
+		{
 			input:    "example.com:6555",
 			expected: "example.com:6555",
+		},
+		{
+			input:    "https://127.0.0.1:6555/v2/",
+			expected: "127.0.0.1:6555",
+		},
+		{
+			input:    "https://::1:6555/v2/",
+			expected: "[::1]:6555",
+		},
+		{
+			input:    "https://[::1]:6555/v2/",
+			expected: "[::1]:6555",
 		},
 		{
 			input:    "http://example.com:6555",
