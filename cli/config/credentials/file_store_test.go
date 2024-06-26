@@ -167,6 +167,23 @@ func TestConvertToHostname(t *testing.T) {
 			input:    "ftp://example.com",
 			expected: "example.com",
 		},
+		// should support non-standard port in registry url
+		{
+			input:    "example.com:6555",
+			expected: "example.com:6555",
+		},
+		{
+			input:    "http://example.com:6555",
+			expected: "example.com:6555",
+		},
+		{
+			input:    "https://example.com:6555",
+			expected: "example.com:6555",
+		},
+		{
+			input:    "https://example.com:6555/v2/",
+			expected: "example.com:6555",
+		},
 	}
 	for _, tc := range tests {
 		tc := tc
