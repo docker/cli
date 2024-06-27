@@ -615,7 +615,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 }
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	secretListFunc func(types.SecretListOptions) ([]swarm.Secret, error)
 	configListFunc func(types.ConfigListOptions) ([]swarm.Config, error)
 }

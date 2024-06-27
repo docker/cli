@@ -12,7 +12,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	serviceInspectWithRawFunc func(ctx context.Context, serviceID string, options types.ServiceInspectOptions) (swarm.Service, []byte, error)
 	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
 	serviceListFunc           func(context.Context, types.ServiceListOptions) ([]swarm.Service, error)

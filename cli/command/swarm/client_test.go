@@ -10,7 +10,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	infoFunc              func() (system.Info, error)
 	swarmInitFunc         func() (string, error)
 	swarmInspectFunc      func() (swarm.Swarm, error)

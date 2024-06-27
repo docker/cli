@@ -9,7 +9,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	secretCreateFunc  func(context.Context, swarm.SecretSpec) (types.SecretCreateResponse, error)
 	secretInspectFunc func(context.Context, string) (swarm.Secret, []byte, error)
 	secretListFunc    func(context.Context, types.SecretListOptions) ([]swarm.Secret, error)
