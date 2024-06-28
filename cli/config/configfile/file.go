@@ -351,3 +351,26 @@ func (configFile *ConfigFile) SetPluginConfig(pluginname, option, value string) 
 		delete(configFile.Plugins, pluginname)
 	}
 }
+
+// GetFeature retrieves the given key from the config features map.
+func (configFile *ConfigFile) GetFeature(key string) (string, bool) {
+	if configFile.Features == nil {
+		return "", false
+	}
+	v, ok := configFile.Features[key]
+	return v, ok
+}
+
+// SetFeature sets the key to the given value in the config features map.
+// If the features field is nil, it initializes a new map.
+// Passing a value of "" will remove the key-value pair from the map.
+func (configFile *ConfigFile) SetFeature(key, value string) {
+	if configFile.Features == nil {
+		configFile.Features = make(map[string]string)
+	}
+	if value != "" {
+		configFile.Features[key] = value
+	} else {
+		delete(configFile.Features, key)
+	}
+}
