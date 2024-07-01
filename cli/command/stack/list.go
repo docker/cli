@@ -56,8 +56,7 @@ func format(out io.Writer, opts options.List, stacks []*formatter.Stack) error {
 		Format: fmt,
 	}
 	sort.Slice(stacks, func(i, j int) bool {
-		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name) ||
-			!sortorder.NaturalLess(stacks[j].Name, stacks[i].Name)
+		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name)
 	})
 	return formatter.StackWrite(stackCtx, stacks)
 }
