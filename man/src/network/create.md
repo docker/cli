@@ -51,10 +51,10 @@ for more information about different endpoint modes.
 ## Connect containers
 
 When you start a container, use the `--network` flag to connect it to a network.
-This example adds the `busybox` container to the `mynet` network:
+This example adds the `nginx` container to the `mynet` network:
 
 ```console
-$ docker run -itd --network=mynet busybox
+$ docker run -d --network=mynet nginx
 ```
 
 If you want to add a container to a network after the container is already

@@ -9,7 +9,7 @@ $ docker network connect multi-host-network container1
 You can also use the `docker run --network=<network-name>` option to start a container and immediately connect it to a network.
 
 ```console
-$ docker run -itd --network=multi-host-network --ip 172.20.88.22 --ip6 2001:db8::8822 busybox
+$ docker run --network=multi-host-network --ip 172.20.88.22 --ip6 2001:db8::8822 nginx
 ```
 
 You can pause, restart, and stop containers that are connected to a network.

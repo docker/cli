@@ -37,7 +37,7 @@ You can also use the `docker run --network=<network-name>` option to start a
 container and immediately connect it to a network.
 
 ```console
-$ docker run -itd --network=multi-host-network busybox
+$ docker run --network=multi-host-network nginx
 ```
 
 ### <a name="ip"></a> Specify the IP address a container will use on a given network (--ip)
