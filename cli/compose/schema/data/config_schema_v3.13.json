@@ -287,6 +287,7 @@
             }
           }
         },
+        "oom_score_adj": {"type": "integer"},
         "user": {"type": "string"},
         "userns_mode": {"type": "string"},
         "volumes": {

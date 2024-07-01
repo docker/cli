@@ -6,6 +6,7 @@ import (
 	"net"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/docker/docker/api/types/filters"
@@ -514,4 +515,21 @@ func (m *MemSwapBytes) String() string {
 func (m *MemSwapBytes) UnmarshalJSON(s []byte) error {
 	b := MemBytes(*m)
 	return b.UnmarshalJSON(s)
+}
+
+type OomScoreAdj int64
+
+func (o *OomScoreAdj) Type() string { return "int64" }
+
+func (o *OomScoreAdj) Value() int64 { return int64(*o) }
+
+func (o *OomScoreAdj) String() string {
+	return strconv.FormatInt(int64(*o), 10)
+}
+
+func (o *OomScoreAdj) Set(value string) error {
+	var conv int64
+	conv, err := strconv.ParseInt(value, 10, 64)
+	*o = OomScoreAdj(conv)
+	return err
 }

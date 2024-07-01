@@ -28,6 +28,7 @@ var interpolateTypeCastMapping = map[interp.Path]interp.Cast{
 	servicePath("ulimits", interp.PathMatchAll):                      toInt,
 	servicePath("ulimits", interp.PathMatchAll, "hard"):              toInt,
 	servicePath("ulimits", interp.PathMatchAll, "soft"):              toInt,
+	servicePath("oom_score_adj"):                                     toInt,
 	servicePath("privileged"):                                        toBoolean,
 	servicePath("read_only"):                                         toBoolean,
 	servicePath("stdin_open"):                                        toBoolean,

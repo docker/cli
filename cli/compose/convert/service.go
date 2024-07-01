@@ -148,6 +148,7 @@ func Service(
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         convertUlimits(service.Ulimits),
+				OomScoreAdj:     service.OomScoreAdj,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,

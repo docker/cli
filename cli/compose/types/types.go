@@ -207,6 +207,7 @@ type ServiceConfig struct {
 	Tty             bool                             `mapstructure:"tty" yaml:"tty,omitempty" json:"tty,omitempty"`
 	Ulimits         map[string]*UlimitsConfig        `yaml:",omitempty" json:"ulimits,omitempty"`
 	User            string                           `yaml:",omitempty" json:"user,omitempty"`
+	OomScoreAdj     int64                            `yaml:",omitempty" json:"oom_score_adj,omitempty"`
 	UserNSMode      string                           `mapstructure:"userns_mode" yaml:"userns_mode,omitempty" json:"userns_mode,omitempty"`
 	Volumes         []ServiceVolumeConfig            `yaml:",omitempty" json:"volumes,omitempty"`
 	WorkingDir      string                           `mapstructure:"working_dir" yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
