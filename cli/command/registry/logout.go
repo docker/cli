@@ -61,6 +61,8 @@ func runLogout(_ context.Context, dockerCli command.Cli, serverAddress string) e
 		}
 	}
 
+	_ = dockerCli.OAuthManager().Logout()
+
 	// if at least one removal succeeded, report success. Otherwise report errors
 	if len(errs) == len(regsToLogout) {
 		fmt.Fprintln(dockerCli.Err(), "WARNING: could not erase credentials:")

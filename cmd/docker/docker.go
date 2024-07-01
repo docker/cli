@@ -15,12 +15,14 @@ import (
 	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
+	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
+	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -345,6 +347,25 @@ func forceExitAfter3TerminationSignals(ctx context.Context, w io.Writer) {
 	os.Exit(1)
 }
 
+// refreshAndStoreToken calls the OAuthManager to get a fresh access token (regardless
+// of whether the stored token is expired or not) and stores it in the credentials store.
+// If there are no credentials for the official registry, nothing is done.
+// This should be called before running any command, on every CLI or plugin execution, to
+// ensure that any subsequent command that requires a token will have a fresh one.
+func refreshAndStoreToken(dockerCli *command.DockerCli) {
+	tokenRes, err := dockerCli.OAuthManager().RefreshToken()
+	if err != nil {
+		return
+	}
+	if err = dockerCli.ConfigFile().GetCredentialsStore(registry.IndexServer).Store(types.AuthConfig{
+		ServerAddress: registry.IndexServer,
+		Username:      tokenRes.Claims.Domain.Username,
+		Password:      tokenRes.AccessToken,
+	}); err != nil {
+		logrus.Warn(err)
+	}
+}
+
 //nolint:gocyclo
 func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
@@ -383,6 +404,9 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		}
 	}
 
+	// should refactor this to run asynchronously + lock the creds store until it's done
+	// instead of blocking command execution
+	refreshAndStoreToken(dockerCli)
 	var subCommand *cobra.Command
 	if len(args) > 0 {
 		ccmd, _, err := cmd.Find(args)

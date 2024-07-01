@@ -21,7 +21,9 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/cli/internal/oauth/manager"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
+	"github.com/docker/cli/cli/oauth"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
@@ -32,6 +34,7 @@ import (
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	dregistry "github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -66,6 +69,7 @@ type Cli interface {
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
+	OAuthManager() oauth.Manager
 }
 
 // DockerCli is an instance the docker command line client.
@@ -94,6 +98,8 @@ type DockerCli struct {
 	baseCtx context.Context
 
 	enableGlobalMeter, enableGlobalTracer bool
+
+	oauthManager *manager.OAuthManager
 }
 
 // DefaultVersion returns api.defaultVersion.
@@ -254,6 +260,10 @@ func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClien
 	}
 }
 
+func (cli *DockerCli) OAuthManager() oauth.Manager {
+	return cli.oauthManager
+}
+
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption) error {
@@ -292,6 +302,12 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	if cli.enableGlobalTracer {
 		cli.createGlobalTracerProvider(cli.baseCtx)
 	}
+
+	oauthManager, err := manager.NewManager(cli.ConfigFile().GetCredentialsStore(dregistry.IndexServer))
+	if err != nil {
+		return err
+	}
+	cli.oauthManager = oauthManager
 
 	return nil
 }

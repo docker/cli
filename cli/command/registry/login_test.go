@@ -213,7 +213,9 @@ func TestLoginTermination(t *testing.T) {
 
 	runErr := make(chan error)
 	go func() {
-		runErr <- runLogin(ctx, cli, loginOptions{})
+		runErr <- runLogin(ctx, cli, loginOptions{
+			user: "test-user",
+		})
 	}()
 
 	// Let the prompt get canceled by the context

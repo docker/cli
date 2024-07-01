@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
+	"github.com/docker/cli/cli/oauth"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
@@ -39,6 +41,7 @@ type FakeCli struct {
 	contextStore     store.Store
 	currentContext   string
 	dockerEndpoint   docker.Endpoint
+	oauthManager     *fakeOauthManager
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -210,4 +213,23 @@ func EnableContentTrust(c *FakeCli) {
 // BuildKitEnabled on the fake cli
 func (c *FakeCli) BuildKitEnabled() (bool, error) {
 	return true, nil
+}
+
+// OAuthManager on the fake cli
+func (c *FakeCli) OAuthManager() oauth.Manager {
+	return c.oauthManager
+}
+
+type fakeOauthManager struct{}
+
+func (f *fakeOauthManager) LoginDevice(ctx context.Context, w io.Writer) (res oauth.TokenResult, err error) {
+	return res, nil
+}
+
+func (f *fakeOauthManager) Logout() error {
+	return nil
+}
+
+func (f *fakeOauthManager) RefreshToken() (res oauth.TokenResult, err error) {
+	return res, nil
 }
