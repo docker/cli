@@ -5,10 +5,10 @@ Manage the unlock key
 
 ### Options
 
-| Name            | Type | Default | Description        |
-|:----------------|:-----|:--------|:-------------------|
-| `-q`, `--quiet` |      |         | Only display token |
-| `--rotate`      |      |         | Rotate unlock key  |
+| Name            | Type   | Default | Description        |
+|:----------------|:-------|:--------|:-------------------|
+| `-q`, `--quiet` | `bool` |         | Only display token |
+| `--rotate`      | `bool` |         | Rotate unlock key  |
 
 
 <!---MARKER_GEN_END-->

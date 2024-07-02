@@ -21,7 +21,7 @@ trap clean EXIT
   ./scripts/vendor init
   # install cli-docs-tool and copy docs/tools.go in root folder
   # to be able to fetch the required depedencies
-  go mod edit -modfile=vendor.mod -require=github.com/docker/cli-docs-tool@${CLI_DOCS_TOOL_VERSION}
+  go mod edit -modfile=vendor.mod -require=github.com/docker/cli-docs-tool@${CLI_DOCS_TOOL_VERSION} -replace=github.com/docker/cli-docs-tool=github.com/dvdksn/cli-docs-tool@7d56538a0d9811156bd874e83054b1503d8b4b59
   cp docs/generate/tools.go .
   # update vendor
   ./scripts/vendor update

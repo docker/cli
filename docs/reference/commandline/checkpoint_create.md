@@ -8,7 +8,7 @@ Create a checkpoint from a running container
 | Name               | Type     | Default | Description                                  |
 |:-------------------|:---------|:--------|:---------------------------------------------|
 | `--checkpoint-dir` | `string` |         | Use a custom checkpoint storage directory    |
-| `--leave-running`  |          |         | Leave the container running after checkpoint |
+| `--leave-running`  | `bool`   |         | Leave the container running after checkpoint |
 
 
 <!---MARKER_GEN_END-->

@@ -10,7 +10,7 @@ Search Docker Hub for images
 | [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
 | [`--format`](#format)                  | `string` |         | Pretty-print search using a Go template    |
 | [`--limit`](#limit)                    | `int`    | `0`     | Max number of search results               |
-| [`--no-trunc`](#no-trunc)              |          |         | Don't truncate output                      |
+| [`--no-trunc`](#no-trunc)              | `bool`   |         | Don't truncate output                      |
 
 
 <!---MARKER_GEN_END-->

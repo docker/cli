@@ -9,9 +9,9 @@ Remove one or more contexts
 
 ### Options
 
-| Name            | Type | Default | Description                           |
-|:----------------|:-----|:--------|:--------------------------------------|
-| `-f`, `--force` |      |         | Force the removal of a context in use |
+| Name            | Type   | Default | Description                           |
+|:----------------|:-------|:--------|:--------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the removal of a context in use |
 
 
 <!---MARKER_GEN_END-->

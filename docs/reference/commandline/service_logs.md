@@ -7,15 +7,15 @@ Fetch the logs of a service or task
 
 | Name                 | Type     | Default | Description                                                                                     |
 |:---------------------|:---------|:--------|:------------------------------------------------------------------------------------------------|
-| `--details`          |          |         | Show extra details provided to logs                                                             |
-| `-f`, `--follow`     |          |         | Follow log output                                                                               |
-| `--no-resolve`       |          |         | Do not map IDs to Names in output                                                               |
-| `--no-task-ids`      |          |         | Do not include task IDs in output                                                               |
-| `--no-trunc`         |          |         | Do not truncate output                                                                          |
-| `--raw`              |          |         | Do not neatly format logs                                                                       |
+| `--details`          | `bool`   |         | Show extra details provided to logs                                                             |
+| `-f`, `--follow`     | `bool`   |         | Follow log output                                                                               |
+| `--no-resolve`       | `bool`   |         | Do not map IDs to Names in output                                                               |
+| `--no-task-ids`      | `bool`   |         | Do not include task IDs in output                                                               |
+| `--no-trunc`         | `bool`   |         | Do not truncate output                                                                          |
+| `--raw`              | `bool`   |         | Do not neatly format logs                                                                       |
 | `--since`            | `string` |         | Show logs since timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes) |
 | `-n`, `--tail`       | `string` | `all`   | Number of lines to show from the end of the logs                                                |
-| `-t`, `--timestamps` |          |         | Show timestamps                                                                                 |
+| `-t`, `--timestamps` | `bool`   |         | Show timestamps                                                                                 |
 
 
 <!---MARKER_GEN_END-->

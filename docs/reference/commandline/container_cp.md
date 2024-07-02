@@ -14,11 +14,11 @@ container source to stdout.
 
 ### Options
 
-| Name                  | Type | Default | Description                                                                                                  |
-|:----------------------|:-----|:--------|:-------------------------------------------------------------------------------------------------------------|
-| `-a`, `--archive`     |      |         | Archive mode (copy all uid/gid information)                                                                  |
-| `-L`, `--follow-link` |      |         | Always follow symbol link in SRC_PATH                                                                        |
-| `-q`, `--quiet`       |      |         | Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached |
+| Name                  | Type   | Default | Description                                                                                                  |
+|:----------------------|:-------|:--------|:-------------------------------------------------------------------------------------------------------------|
+| `-a`, `--archive`     | `bool` |         | Archive mode (copy all uid/gid information)                                                                  |
+| `-L`, `--follow-link` | `bool` |         | Always follow symbol link in SRC_PATH                                                                        |
+| `-q`, `--quiet`       | `bool` |         | Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached |
 
 
 <!---MARKER_GEN_END-->
