@@ -9,10 +9,10 @@ Remove one or more images
 
 ### Options
 
-| Name            | Type | Default | Description                    |
-|:----------------|:-----|:--------|:-------------------------------|
-| `-f`, `--force` |      |         | Force removal of the image     |
-| `--no-prune`    |      |         | Do not delete untagged parents |
+| Name            | Type   | Default | Description                    |
+|:----------------|:-------|:--------|:-------------------------------|
+| `-f`, `--force` | `bool` |         | Force removal of the image     |
+| `--no-prune`    | `bool` |         | Do not delete untagged parents |
 
 
 <!---MARKER_GEN_END-->

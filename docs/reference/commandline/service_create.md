@@ -13,7 +13,7 @@ Create a new service
 | [`--constraint`](#constraint)                       | `list`            |              | Placement constraints                                                                               |
 | `--container-label`                                 | `list`            |              | Container labels                                                                                    |
 | `--credential-spec`                                 | `credential-spec` |              | Credential spec for managed service account (Windows only)                                          |
-| `-d`, `--detach`                                    |                   |              | Exit immediately instead of waiting for the service to converge                                     |
+| `-d`, `--detach`                                    | `bool`            |              | Exit immediately instead of waiting for the service to converge                                     |
 | `--dns`                                             | `list`            |              | Set custom DNS servers                                                                              |
 | `--dns-option`                                      | `list`            |              | Set DNS options                                                                                     |
 | `--dns-search`                                      | `list`            |              | Set custom DNS search domains                                                                       |
@@ -31,7 +31,7 @@ Create a new service
 | `--health-timeout`                                  | `duration`        |              | Maximum time to allow one check to run (ms\|s\|m\|h)                                                |
 | `--host`                                            | `list`            |              | Set one or more custom host-to-IP mappings (host:ip)                                                |
 | [`--hostname`](#hostname)                           | `string`          |              | Container hostname                                                                                  |
-| `--init`                                            |                   |              | Use an init inside each service container to forward signals and reap processes                     |
+| `--init`                                            | `bool`            |              | Use an init inside each service container to forward signals and reap processes                     |
 | [`--isolation`](#isolation)                         | `string`          |              | Service container isolation mode                                                                    |
 | [`-l`](#label), [`--label`](#label)                 | `list`            |              | Service labels                                                                                      |
 | `--limit-cpu`                                       | `decimal`         |              | Limit CPUs                                                                                          |
@@ -44,12 +44,12 @@ Create a new service
 | [`--mount`](#mount)                                 | `mount`           |              | Attach a filesystem mount to the service                                                            |
 | `--name`                                            | `string`          |              | Service name                                                                                        |
 | [`--network`](#network)                             | `network`         |              | Network attachments                                                                                 |
-| `--no-healthcheck`                                  |                   |              | Disable any container-specified HEALTHCHECK                                                         |
-| `--no-resolve-image`                                |                   |              | Do not query the registry to resolve image digest and supported platforms                           |
+| `--no-healthcheck`                                  | `bool`            |              | Disable any container-specified HEALTHCHECK                                                         |
+| `--no-resolve-image`                                | `bool`            |              | Do not query the registry to resolve image digest and supported platforms                           |
 | [`--placement-pref`](#placement-pref)               | `pref`            |              | Add a placement preference                                                                          |
 | [`-p`](#publish), [`--publish`](#publish)           | `port`            |              | Publish a port as a node port                                                                       |
-| `-q`, `--quiet`                                     |                   |              | Suppress progress output                                                                            |
-| `--read-only`                                       |                   |              | Mount the container's root filesystem as read only                                                  |
+| `-q`, `--quiet`                                     | `bool`            |              | Suppress progress output                                                                            |
+| `--read-only`                                       | `bool`            |              | Mount the container's root filesystem as read only                                                  |
 | [`--replicas`](#replicas)                           | `uint`            |              | Number of tasks                                                                                     |
 | [`--replicas-max-per-node`](#replicas-max-per-node) | `uint64`          | `0`          | Maximum number of tasks per node (default 0 = unlimited)                                            |
 | `--reserve-cpu`                                     | `decimal`         |              | Reserve CPUs                                                                                        |
@@ -68,7 +68,7 @@ Create a new service
 | `--stop-grace-period`                               | `duration`        |              | Time to wait before force killing a container (ns\|us\|ms\|s\|m\|h) (default 10s)                   |
 | `--stop-signal`                                     | `string`          |              | Signal to stop the container                                                                        |
 | `--sysctl`                                          | `list`            |              | Sysctl options                                                                                      |
-| `-t`, `--tty`                                       |                   |              | Allocate a pseudo-TTY                                                                               |
+| `-t`, `--tty`                                       | `bool`            |              | Allocate a pseudo-TTY                                                                               |
 | `--ulimit`                                          | `ulimit`          |              | Ulimit options                                                                                      |
 | [`--update-delay`](#update-delay)                   | `duration`        | `0s`         | Delay between updates (ns\|us\|ms\|s\|m\|h) (default 0s)                                            |
 | `--update-failure-action`                           | `string`          |              | Action on update failure (`pause`, `continue`, `rollback`) (default `pause`)                        |
@@ -77,7 +77,7 @@ Create a new service
 | `--update-order`                                    | `string`          |              | Update order (`start-first`, `stop-first`) (default `stop-first`)                                   |
 | `--update-parallelism`                              | `uint64`          | `1`          | Maximum number of tasks updated simultaneously (0 to update all at once)                            |
 | `-u`, `--user`                                      | `string`          |              | Username or UID (format: <name\|uid>[:<group\|gid>])                                                |
-| [`--with-registry-auth`](#with-registry-auth)       |                   |              | Send registry authentication details to swarm agents                                                |
+| [`--with-registry-auth`](#with-registry-auth)       | `bool`            |              | Send registry authentication details to swarm agents                                                |
 | `-w`, `--workdir`                                   | `string`          |              | Working directory inside the container                                                              |
 
 

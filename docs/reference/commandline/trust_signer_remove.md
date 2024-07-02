@@ -5,9 +5,9 @@ Remove a signer
 
 ### Options
 
-| Name            | Type | Default | Description                                                           |
-|:----------------|:-----|:--------|:----------------------------------------------------------------------|
-| `-f`, `--force` |      |         | Do not prompt for confirmation before removing the most recent signer |
+| Name            | Type   | Default | Description                                                           |
+|:----------------|:-------|:--------|:----------------------------------------------------------------------|
+| `-f`, `--force` | `bool` |         | Do not prompt for confirmation before removing the most recent signer |
 
 
 <!---MARKER_GEN_END-->

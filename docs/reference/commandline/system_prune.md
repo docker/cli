@@ -7,10 +7,10 @@ Remove unused data
 
 | Name                  | Type     | Default | Description                                        |
 |:----------------------|:---------|:--------|:---------------------------------------------------|
-| `-a`, `--all`         |          |         | Remove all unused images not just dangling ones    |
+| `-a`, `--all`         | `bool`   |         | Remove all unused images not just dangling ones    |
 | [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<key>=<value>`) |
-| `-f`, `--force`       |          |         | Do not prompt for confirmation                     |
-| `--volumes`           |          |         | Prune anonymous volumes                            |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                     |
+| `--volumes`           | `bool`   |         | Prune anonymous volumes                            |
 
 
 <!---MARKER_GEN_END-->

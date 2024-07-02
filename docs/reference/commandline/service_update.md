@@ -17,7 +17,7 @@ Update a service
 | `--container-label-add`                       | `list`            |         | Add or update a container label                                                                     |
 | `--container-label-rm`                        | `list`            |         | Remove a container label by its key                                                                 |
 | `--credential-spec`                           | `credential-spec` |         | Credential spec for managed service account (Windows only)                                          |
-| `-d`, `--detach`                              |                   |         | Exit immediately instead of waiting for the service to converge                                     |
+| `-d`, `--detach`                              | `bool`            |         | Exit immediately instead of waiting for the service to converge                                     |
 | `--dns-add`                                   | `list`            |         | Add or update a custom DNS server                                                                   |
 | `--dns-option-add`                            | `list`            |         | Add or update a DNS option                                                                          |
 | `--dns-option-rm`                             | `list`            |         | Remove a DNS option                                                                                 |
@@ -28,7 +28,7 @@ Update a service
 | `--entrypoint`                                | `command`         |         | Overwrite the default ENTRYPOINT of the image                                                       |
 | `--env-add`                                   | `list`            |         | Add or update an environment variable                                                               |
 | `--env-rm`                                    | `list`            |         | Remove an environment variable                                                                      |
-| `--force`                                     |                   |         | Force update even if no changes require it                                                          |
+| `--force`                                     | `bool`            |         | Force update even if no changes require it                                                          |
 | `--generic-resource-add`                      | `list`            |         | Add a Generic resource                                                                              |
 | `--generic-resource-rm`                       | `list`            |         | Remove a Generic resource                                                                           |
 | `--group-add`                                 | `list`            |         | Add an additional supplementary user group to the container                                         |
@@ -43,7 +43,7 @@ Update a service
 | `--host-rm`                                   | `list`            |         | Remove a custom host-to-IP mapping (`host:ip`)                                                      |
 | `--hostname`                                  | `string`          |         | Container hostname                                                                                  |
 | `--image`                                     | `string`          |         | Service image tag                                                                                   |
-| `--init`                                      |                   |         | Use an init inside each service container to forward signals and reap processes                     |
+| `--init`                                      | `bool`            |         | Use an init inside each service container to forward signals and reap processes                     |
 | [`--isolation`](#isolation)                   | `string`          |         | Service container isolation mode                                                                    |
 | `--label-add`                                 | `list`            |         | Add or update a service label                                                                       |
 | `--label-rm`                                  | `list`            |         | Remove a label by its key                                                                           |
@@ -57,14 +57,14 @@ Update a service
 | `--mount-rm`                                  | `list`            |         | Remove a mount by its target path                                                                   |
 | [`--network-add`](#network-add)               | `network`         |         | Add a network                                                                                       |
 | `--network-rm`                                | `list`            |         | Remove a network                                                                                    |
-| `--no-healthcheck`                            |                   |         | Disable any container-specified HEALTHCHECK                                                         |
-| `--no-resolve-image`                          |                   |         | Do not query the registry to resolve image digest and supported platforms                           |
+| `--no-healthcheck`                            | `bool`            |         | Disable any container-specified HEALTHCHECK                                                         |
+| `--no-resolve-image`                          | `bool`            |         | Do not query the registry to resolve image digest and supported platforms                           |
 | `--placement-pref-add`                        | `pref`            |         | Add a placement preference                                                                          |
 | `--placement-pref-rm`                         | `pref`            |         | Remove a placement preference                                                                       |
 | [`--publish-add`](#publish-add)               | `port`            |         | Add or update a published port                                                                      |
 | `--publish-rm`                                | `port`            |         | Remove a published port by its target port                                                          |
-| `-q`, `--quiet`                               |                   |         | Suppress progress output                                                                            |
-| `--read-only`                                 |                   |         | Mount the container's root filesystem as read only                                                  |
+| `-q`, `--quiet`                               | `bool`            |         | Suppress progress output                                                                            |
+| `--read-only`                                 | `bool`            |         | Mount the container's root filesystem as read only                                                  |
 | `--replicas`                                  | `uint`            |         | Number of tasks                                                                                     |
 | `--replicas-max-per-node`                     | `uint64`          | `0`     | Maximum number of tasks per node (default 0 = unlimited)                                            |
 | `--reserve-cpu`                               | `decimal`         |         | Reserve CPUs                                                                                        |
@@ -73,7 +73,7 @@ Update a service
 | `--restart-delay`                             | `duration`        |         | Delay between restart attempts (ns\|us\|ms\|s\|m\|h)                                                |
 | `--restart-max-attempts`                      | `uint`            |         | Maximum number of restarts before giving up                                                         |
 | `--restart-window`                            | `duration`        |         | Window used to evaluate the restart policy (ns\|us\|ms\|s\|m\|h)                                    |
-| [`--rollback`](#rollback)                     |                   |         | Rollback to previous specification                                                                  |
+| [`--rollback`](#rollback)                     | `bool`            |         | Rollback to previous specification                                                                  |
 | `--rollback-delay`                            | `duration`        | `0s`    | Delay between task rollbacks (ns\|us\|ms\|s\|m\|h)                                                  |
 | `--rollback-failure-action`                   | `string`          |         | Action on rollback failure (`pause`, `continue`)                                                    |
 | `--rollback-max-failure-ratio`                | `float`           | `0`     | Failure rate to tolerate during a rollback                                                          |
@@ -86,7 +86,7 @@ Update a service
 | `--stop-signal`                               | `string`          |         | Signal to stop the container                                                                        |
 | `--sysctl-add`                                | `list`            |         | Add or update a Sysctl option                                                                       |
 | `--sysctl-rm`                                 | `list`            |         | Remove a Sysctl option                                                                              |
-| `-t`, `--tty`                                 |                   |         | Allocate a pseudo-TTY                                                                               |
+| `-t`, `--tty`                                 | `bool`            |         | Allocate a pseudo-TTY                                                                               |
 | `--ulimit-add`                                | `ulimit`          |         | Add or update a ulimit option                                                                       |
 | `--ulimit-rm`                                 | `list`            |         | Remove a ulimit option                                                                              |
 | `--update-delay`                              | `duration`        | `0s`    | Delay between updates (ns\|us\|ms\|s\|m\|h)                                                         |
@@ -96,7 +96,7 @@ Update a service
 | `--update-order`                              | `string`          |         | Update order (`start-first`, `stop-first`)                                                          |
 | [`--update-parallelism`](#update-parallelism) | `uint64`          | `0`     | Maximum number of tasks updated simultaneously (0 to update all at once)                            |
 | `-u`, `--user`                                | `string`          |         | Username or UID (format: <name\|uid>[:<group\|gid>])                                                |
-| `--with-registry-auth`                        |                   |         | Send registry authentication details to swarm agents                                                |
+| `--with-registry-auth`                        | `bool`            |         | Send registry authentication details to swarm agents                                                |
 | `-w`, `--workdir`                             | `string`          |         | Working directory inside the container                                                              |
 
 

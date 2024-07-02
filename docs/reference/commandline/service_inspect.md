@@ -8,7 +8,7 @@ Display detailed information on one or more services
 | Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
-| [`--pretty`](#pretty)                  |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+| [`--pretty`](#pretty)                  | `bool`   |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
 
 
 <!---MARKER_GEN_END-->
