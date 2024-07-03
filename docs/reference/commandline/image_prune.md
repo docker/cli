@@ -7,9 +7,9 @@ Remove unused images
 
 | Name                  | Type     | Default | Description                                      |
 |:----------------------|:---------|:--------|:-------------------------------------------------|
-| `-a`, `--all`         |          |         | Remove all unused images, not just dangling ones |
+| `-a`, `--all`         | `bool`   |         | Remove all unused images, not just dangling ones |
 | [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
-| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                   |
 
 
 <!---MARKER_GEN_END-->

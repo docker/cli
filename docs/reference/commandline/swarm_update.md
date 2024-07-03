@@ -7,7 +7,7 @@ Update the swarm
 
 | Name                     | Type          | Default     | Description                                                 |
 |:-------------------------|:--------------|:------------|:------------------------------------------------------------|
-| `--autolock`             |               |             | Change manager autolocking setting (true\|false)            |
+| `--autolock`             | `bool`        |             | Change manager autolocking setting (true\|false)            |
 | `--cert-expiry`          | `duration`    | `2160h0m0s` | Validity period for node certificates (ns\|us\|ms\|s\|m\|h) |
 | `--dispatcher-heartbeat` | `duration`    | `5s`        | Dispatcher heartbeat period (ns\|us\|ms\|s\|m\|h)           |
 | `--external-ca`          | `external-ca` |             | Specifications of one or more certificate signing endpoints |

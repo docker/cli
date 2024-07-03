@@ -9,9 +9,9 @@ Remove one or more networks
 
 ### Options
 
-| Name            | Type | Default | Description                                |
-|:----------------|:-----|:--------|:-------------------------------------------|
-| `-f`, `--force` |      |         | Do not error if the network does not exist |
+| Name            | Type   | Default | Description                                |
+|:----------------|:-------|:--------|:-------------------------------------------|
+| `-f`, `--force` | `bool` |         | Do not error if the network does not exist |
 
 
 <!---MARKER_GEN_END-->

@@ -8,9 +8,9 @@ Install a plugin
 | Name                      | Type     | Default | Description                                       |
 |:--------------------------|:---------|:--------|:--------------------------------------------------|
 | `--alias`                 | `string` |         | Local name for plugin                             |
-| `--disable`               |          |         | Do not enable the plugin on install               |
+| `--disable`               | `bool`   |         | Do not enable the plugin on install               |
 | `--disable-content-trust` | `bool`   | `true`  | Skip image verification                           |
-| `--grant-all-permissions` |          |         | Grant all permissions necessary to run the plugin |
+| `--grant-all-permissions` | `bool`   |         | Grant all permissions necessary to run the plugin |
 
 
 <!---MARKER_GEN_END-->
