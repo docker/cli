@@ -31,7 +31,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 				return err
 			}
 			if output != "" {
-				fmt.Fprintln(dockerCli.Out(), output)
+				_, _ = fmt.Fprintln(dockerCli.Out(), output)
 			}
 			return nil
 		},
