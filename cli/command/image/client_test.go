@@ -69,7 +69,7 @@ func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
 
 func (cli *fakeClient) ImagePull(_ context.Context, ref string, options image.PullOptions) (io.ReadCloser, error) {
 	if cli.imagePullFunc != nil {
-		cli.imagePullFunc(ref, options)
+		return cli.imagePullFunc(ref, options)
 	}
 	return io.NopCloser(strings.NewReader("")), nil
 }
