@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -78,6 +79,66 @@ func TestValidateOutputPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPromptForInput(t *testing.T) {
+	t.Run("case=cancelling the context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
+		reader, _ := io.Pipe()
+
+		buf := new(bytes.Buffer)
+		bufioWriter := bufio.NewWriter(buf)
+
+		wroteHook := make(chan struct{}, 1)
+		promptOut := test.NewWriterWithHook(bufioWriter, func(p []byte) {
+			wroteHook <- struct{}{}
+		})
+
+		promptErr := make(chan error, 1)
+		go func() {
+			_, err := command.PromptForInput(ctx, streams.NewIn(reader), streams.NewOut(promptOut), "Enter something")
+			promptErr <- err
+		}()
+
+		select {
+		case <-time.After(1 * time.Second):
+			t.Fatal("timeout waiting for prompt to write to buffer")
+		case <-wroteHook:
+			cancel()
+		}
+
+		select {
+		case <-time.After(1 * time.Second):
+			t.Fatal("timeout waiting for prompt to be canceled")
+		case err := <-promptErr:
+			assert.ErrorIs(t, err, command.ErrPromptTerminated)
+		}
+	})
+
+	t.Run("case=user input should be properly trimmed", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		t.Cleanup(cancel)
+
+		reader, writer := io.Pipe()
+
+		buf := new(bytes.Buffer)
+		bufioWriter := bufio.NewWriter(buf)
+
+		wroteHook := make(chan struct{}, 1)
+		promptOut := test.NewWriterWithHook(bufioWriter, func(p []byte) {
+			wroteHook <- struct{}{}
+		})
+
+		go func() {
+			<-wroteHook
+			writer.Write([]byte("  foo  \n"))
+		}()
+
+		answer, err := command.PromptForInput(ctx, streams.NewIn(reader), streams.NewOut(promptOut), "Enter something")
+		assert.NilError(t, err)
+		assert.Equal(t, answer, "foo")
+	})
 }
 
 func TestPromptForConfirmation(t *testing.T) {

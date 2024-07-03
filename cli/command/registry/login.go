@@ -121,7 +121,7 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 		response, err = loginWithCredStoreCreds(ctx, dockerCli, &authConfig)
 	}
 	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
-		err = command.ConfigureAuth(dockerCli, opts.user, opts.password, &authConfig, isDefaultRegistry)
+		err = command.ConfigureAuth(ctx, dockerCli, opts.user, opts.password, &authConfig, isDefaultRegistry)
 		if err != nil {
 			return err
 		}
