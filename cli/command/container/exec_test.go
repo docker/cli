@@ -178,8 +178,8 @@ func TestRunExec(t *testing.T) {
 			doc:     "inspect error",
 			options: NewExecOptions(),
 			client: &fakeClient{
-				inspectFunc: func(string) (types.ContainerJSON, error) {
-					return types.ContainerJSON{}, errors.New("failed inspect")
+				inspectFunc: func(string) (container.InspectResponse, error) {
+					return container.InspectResponse{}, errors.New("failed inspect")
 				},
 			},
 			expectedError: "failed inspect",
@@ -252,14 +252,14 @@ func TestNewExecCommandErrors(t *testing.T) {
 		name                 string
 		args                 []string
 		expectedError        string
-		containerInspectFunc func(img string) (types.ContainerJSON, error)
+		containerInspectFunc func(img string) (container.InspectResponse, error)
 	}{
 		{
 			name:          "client-error",
 			args:          []string{"5cb5bb5e4a3b", "-t", "-i", "bash"},
 			expectedError: "something went wrong",
-			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				return types.ContainerJSON{}, errors.Errorf("something went wrong")
+			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
+				return container.InspectResponse{}, errors.Errorf("something went wrong")
 			},
 		},
 	}

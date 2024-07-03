@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -46,8 +46,8 @@ func TestNewPortCommandOutput(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				inspectFunc: func(string) (types.ContainerJSON, error) {
-					ci := types.ContainerJSON{NetworkSettings: &types.NetworkSettings{}}
+				inspectFunc: func(string) (container.InspectResponse, error) {
+					ci := container.InspectResponse{NetworkSettings: &container.NetworkSettings{}}
 					ci.NetworkSettings.Ports = nat.PortMap{
 						"80/tcp":  make([]nat.PortBinding, len(tc.ips)),
 						"443/tcp": make([]nat.PortBinding, len(tc.ips)),

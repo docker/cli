@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
@@ -54,7 +53,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 			options.Command = args[1:]
 			return RunExec(cmd.Context(), dockerCli, containerIDorName, options)
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr types.Container) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
 			return ctr.State != "paused"
 		}),
 		Annotations: map[string]string{

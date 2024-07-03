@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 )
@@ -66,7 +66,7 @@ ports: {{- pad .Ports 1 0}}
 }
 
 // ContainerWrite renders the context for a list of containers
-func ContainerWrite(ctx Context, containers []types.Container) error {
+func ContainerWrite(ctx Context, containers []container.Summary) error {
 	render := func(format func(subContext SubContext) error) error {
 		for _, ctr := range containers {
 			err := format(&ContainerContext{trunc: ctx.Trunc, c: ctr})
@@ -83,7 +83,7 @@ func ContainerWrite(ctx Context, containers []types.Container) error {
 type ContainerContext struct {
 	HeaderContext
 	trunc bool
-	c     types.Container
+	c     container.Summary
 
 	// FieldsUsed is used in the pre-processing step to detect which fields are
 	// used in the template. It's currently only used to detect use of the .Size
@@ -313,7 +313,7 @@ func (c *ContainerContext) Networks() string {
 // DisplayablePorts returns formatted string representing open ports of container
 // e.g. "0.0.0.0:80->9090/tcp, 9988/tcp"
 // it's used by command 'docker ps'
-func DisplayablePorts(ports []types.Port) string {
+func DisplayablePorts(ports []container.Port) string {
 	type portGroup struct {
 		first uint16
 		last  uint16
@@ -378,7 +378,7 @@ func formGroup(key string, start, last uint16) string {
 	return group + "/" + groupType
 }
 
-func comparePorts(i, j types.Port) bool {
+func comparePorts(i, j container.Port) bool {
 	if i.PrivatePort != j.PrivatePort {
 		return i.PrivatePort < j.PrivatePort
 	}

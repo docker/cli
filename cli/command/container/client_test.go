@@ -16,7 +16,7 @@ import (
 
 type fakeClient struct {
 	client.Client
-	inspectFunc         func(string) (types.ContainerJSON, error)
+	inspectFunc         func(string) (container.InspectResponse, error)
 	execInspectFunc     func(execID string) (container.ExecInspect, error)
 	execCreateFunc      func(containerID string, options container.ExecOptions) (types.IDResponse, error)
 	createContainerFunc func(config *container.Config,
@@ -31,7 +31,7 @@ type fakeClient struct {
 	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, container.PathStat, error)
 	logFunc                 func(string, container.LogsOptions) (io.ReadCloser, error)
 	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
-	containerListFunc       func(container.ListOptions) ([]types.Container, error)
+	containerListFunc       func(container.ListOptions) ([]container.Summary, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
 	containerExecResizeFunc func(id string, options container.ResizeOptions) error
 	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
@@ -41,18 +41,18 @@ type fakeClient struct {
 	Version                 string
 }
 
-func (f *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]types.Container, error) {
+func (f *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]container.Summary, error) {
 	if f.containerListFunc != nil {
 		return f.containerListFunc(options)
 	}
-	return []types.Container{}, nil
+	return []container.Summary{}, nil
 }
 
-func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (types.ContainerJSON, error) {
+func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (container.InspectResponse, error) {
 	if f.inspectFunc != nil {
 		return f.inspectFunc(containerID)
 	}
-	return types.ContainerJSON{}, nil
+	return container.InspectResponse{}, nil
 }
 
 func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config container.ExecOptions) (types.IDResponse, error) {

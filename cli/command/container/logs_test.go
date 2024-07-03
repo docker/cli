@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -20,10 +19,10 @@ var logFn = func(expectedOut string) func(string, container.LogsOptions) (io.Rea
 }
 
 func TestRunLogs(t *testing.T) {
-	inspectFn := func(containerID string) (types.ContainerJSON, error) {
-		return types.ContainerJSON{
+	inspectFn := func(containerID string) (container.InspectResponse, error) {
+		return container.InspectResponse{
 			Config:            &container.Config{Tty: true},
-			ContainerJSONBase: &types.ContainerJSONBase{State: &types.ContainerState{Running: false}},
+			ContainerJSONBase: &container.ContainerJSONBase{State: &container.State{Running: false}},
 		}, nil
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +32,7 @@ func NewUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container unpause, docker unpause",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr types.Container) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
 			return ctr.State == "paused"
 		}),
 	}
