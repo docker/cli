@@ -8,7 +8,7 @@ Initialize a swarm
 | Name                                        | Type          | Default        | Description                                                                                                                  |
 |:--------------------------------------------|:--------------|:---------------|:-----------------------------------------------------------------------------------------------------------------------------|
 | [`--advertise-addr`](#advertise-addr)       | `string`      |                | Advertised address (format: `<ip\|interface>[:port]`)                                                                        |
-| [`--autolock`](#autolock)                   |               |                | Enable manager autolocking (requiring an unlock key to start a stopped manager)                                              |
+| [`--autolock`](#autolock)                   | `bool`        |                | Enable manager autolocking (requiring an unlock key to start a stopped manager)                                              |
 | [`--availability`](#availability)           | `string`      | `active`       | Availability of the node (`active`, `pause`, `drain`)                                                                        |
 | `--cert-expiry`                             | `duration`    | `2160h0m0s`    | Validity period for node certificates (ns\|us\|ms\|s\|m\|h)                                                                  |
 | [`--data-path-addr`](#data-path-addr)       | `string`      |                | Address or interface to use for data path traffic (format: `<ip\|interface>`)                                                |
@@ -17,7 +17,7 @@ Initialize a swarm
 | `--default-addr-pool-mask-length`           | `uint32`      | `24`           | default address pool subnet mask length                                                                                      |
 | `--dispatcher-heartbeat`                    | `duration`    | `5s`           | Dispatcher heartbeat period (ns\|us\|ms\|s\|m\|h)                                                                            |
 | [`--external-ca`](#external-ca)             | `external-ca` |                | Specifications of one or more certificate signing endpoints                                                                  |
-| [`--force-new-cluster`](#force-new-cluster) |               |                | Force create a new cluster from current state                                                                                |
+| [`--force-new-cluster`](#force-new-cluster) | `bool`        |                | Force create a new cluster from current state                                                                                |
 | [`--listen-addr`](#listen-addr)             | `node-addr`   | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                                                                            |
 | [`--max-snapshots`](#max-snapshots)         | `uint64`      | `0`            | Number of additional Raft snapshots to retain                                                                                |
 | [`--snapshot-interval`](#snapshot-interval) | `uint64`      | `10000`        | Number of log entries between Raft snapshots                                                                                 |

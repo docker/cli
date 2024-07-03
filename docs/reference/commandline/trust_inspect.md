@@ -5,9 +5,9 @@ Return low-level information about keys and signatures
 
 ### Options
 
-| Name       | Type | Default | Description                                      |
-|:-----------|:-----|:--------|:-------------------------------------------------|
-| `--pretty` |      |         | Print the information in a human friendly format |
+| Name       | Type   | Default | Description                                      |
+|:-----------|:-------|:--------|:-------------------------------------------------|
+| `--pretty` | `bool` |         | Print the information in a human friendly format |
 
 
 <!---MARKER_GEN_END-->

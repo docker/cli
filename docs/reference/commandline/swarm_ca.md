@@ -10,10 +10,10 @@ Display and rotate the root CA
 | `--ca-cert`                            | `pem-file`    |             | Path to the PEM-formatted root CA certificate to use for the new cluster                |
 | `--ca-key`                             | `pem-file`    |             | Path to the PEM-formatted root CA key to use for the new cluster                        |
 | `--cert-expiry`                        | `duration`    | `2160h0m0s` | Validity period for node certificates (ns\|us\|ms\|s\|m\|h)                             |
-| [`-d`](#detach), [`--detach`](#detach) |               |             | Exit immediately instead of waiting for the root rotation to converge                   |
+| [`-d`](#detach), [`--detach`](#detach) | `bool`        |             | Exit immediately instead of waiting for the root rotation to converge                   |
 | `--external-ca`                        | `external-ca` |             | Specifications of one or more certificate signing endpoints                             |
-| `-q`, `--quiet`                        |               |             | Suppress progress output                                                                |
-| [`--rotate`](#rotate)                  |               |             | Rotate the swarm CA - if no certificate or key are provided, new ones will be generated |
+| `-q`, `--quiet`                        | `bool`        |             | Suppress progress output                                                                |
+| [`--rotate`](#rotate)                  | `bool`        |             | Rotate the swarm CA - if no certificate or key are provided, new ones will be generated |
 
 
 <!---MARKER_GEN_END-->

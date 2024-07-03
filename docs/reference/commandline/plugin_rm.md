@@ -9,9 +9,9 @@ Remove one or more plugins
 
 ### Options
 
-| Name            | Type | Default | Description                           |
-|:----------------|:-----|:--------|:--------------------------------------|
-| `-f`, `--force` |      |         | Force the removal of an active plugin |
+| Name            | Type   | Default | Description                           |
+|:----------------|:-------|:--------|:--------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the removal of an active plugin |
 
 
 <!---MARKER_GEN_END-->

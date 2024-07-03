@@ -72,14 +72,14 @@ The base command for the Docker CLI.
 |:---------------------------------|:---------|:-------------------------|:--------------------------------------------------------------------------------------------------------------------------------------|
 | `--config`                       | `string` | `/root/.docker`          | Location of client config files                                                                                                       |
 | `-c`, `--context`                | `string` |                          | Name of the context to use to connect to the daemon (overrides DOCKER_HOST env var and default context set with `docker context use`) |
-| `-D`, `--debug`                  |          |                          | Enable debug mode                                                                                                                     |
+| `-D`, `--debug`                  | `bool`   |                          | Enable debug mode                                                                                                                     |
 | [`-H`](#host), [`--host`](#host) | `list`   |                          | Daemon socket to connect to                                                                                                           |
 | `-l`, `--log-level`              | `string` | `info`                   | Set the logging level (`debug`, `info`, `warn`, `error`, `fatal`)                                                                     |
-| `--tls`                          |          |                          | Use TLS; implied by --tlsverify                                                                                                       |
+| `--tls`                          | `bool`   |                          | Use TLS; implied by --tlsverify                                                                                                       |
 | `--tlscacert`                    | `string` | `/root/.docker/ca.pem`   | Trust certs signed only by this CA                                                                                                    |
 | `--tlscert`                      | `string` | `/root/.docker/cert.pem` | Path to TLS certificate file                                                                                                          |
 | `--tlskey`                       | `string` | `/root/.docker/key.pem`  | Path to TLS key file                                                                                                                  |
-| `--tlsverify`                    |          |                          | Use TLS and verify the remote                                                                                                         |
+| `--tlsverify`                    | `bool`   |                          | Use TLS and verify the remote                                                                                                         |
 
 
 <!---MARKER_GEN_END-->
