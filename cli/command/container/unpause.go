@@ -32,8 +32,8 @@ func NewUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container unpause, docker unpause",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(container types.Container) bool {
-			return container.State == "paused"
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr types.Container) bool {
+			return ctr.State == "paused"
 		}),
 	}
 	return cmd
@@ -42,12 +42,12 @@ func NewUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 func runUnpause(ctx context.Context, dockerCli command.Cli, opts *unpauseOptions) error {
 	var errs []string
 	errChan := parallelOperation(ctx, opts.containers, dockerCli.Client().ContainerUnpause)
-	for _, container := range opts.containers {
+	for _, ctr := range opts.containers {
 		if err := <-errChan; err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), container)
+		_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))

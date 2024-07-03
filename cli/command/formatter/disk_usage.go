@@ -336,8 +336,8 @@ func (c *diskUsageContainersContext) isActive(container types.Container) bool {
 
 func (c *diskUsageContainersContext) Active() string {
 	used := 0
-	for _, container := range c.containers {
-		if c.isActive(*container) {
+	for _, ctr := range c.containers {
+		if c.isActive(*ctr) {
 			used++
 		}
 	}
@@ -348,22 +348,21 @@ func (c *diskUsageContainersContext) Active() string {
 func (c *diskUsageContainersContext) Size() string {
 	var size int64
 
-	for _, container := range c.containers {
-		size += container.SizeRw
+	for _, ctr := range c.containers {
+		size += ctr.SizeRw
 	}
 
 	return units.HumanSize(float64(size))
 }
 
 func (c *diskUsageContainersContext) Reclaimable() string {
-	var reclaimable int64
-	var totalSize int64
+	var reclaimable, totalSize int64
 
-	for _, container := range c.containers {
-		if !c.isActive(*container) {
-			reclaimable += container.SizeRw
+	for _, ctr := range c.containers {
+		if !c.isActive(*ctr) {
+			reclaimable += ctr.SizeRw
 		}
-		totalSize += container.SizeRw
+		totalSize += ctr.SizeRw
 	}
 
 	if totalSize > 0 {

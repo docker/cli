@@ -39,12 +39,12 @@ func NewWaitCommand(dockerCli command.Cli) *cobra.Command {
 
 func runWait(ctx context.Context, dockerCli command.Cli, opts *waitOptions) error {
 	var errs []string
-	for _, container := range opts.containers {
-		resultC, errC := dockerCli.Client().ContainerWait(ctx, container, "")
+	for _, ctr := range opts.containers {
+		resultC, errC := dockerCli.Client().ContainerWait(ctx, ctr, "")
 
 		select {
 		case result := <-resultC:
-			fmt.Fprintf(dockerCli.Out(), "%d\n", result.StatusCode)
+			_, _ = fmt.Fprintf(dockerCli.Out(), "%d\n", result.StatusCode)
 		case err := <-errC:
 			errs = append(errs, err.Error())
 		}

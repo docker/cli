@@ -50,18 +50,18 @@ func runDisconnect(ctx context.Context, dockerCli command.Cli, opts disconnectOp
 }
 
 func isConnected(network string) func(types.Container) bool {
-	return func(container types.Container) bool {
-		if container.NetworkSettings == nil {
+	return func(ctr types.Container) bool {
+		if ctr.NetworkSettings == nil {
 			return false
 		}
-		_, ok := container.NetworkSettings.Networks[network]
+		_, ok := ctr.NetworkSettings.Networks[network]
 		return ok
 	}
 }
 
 func not(fn func(types.Container) bool) func(types.Container) bool {
-	return func(container types.Container) bool {
-		ok := fn(container)
+	return func(ctr types.Container) bool {
+		ok := fn(ctr)
 		return !ok
 	}
 }

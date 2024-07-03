@@ -8,10 +8,10 @@ import (
 
 // Container creates a container with default values.
 // Any number of container function builder can be passed to augment it.
-func Container(name string, builders ...func(container *types.Container)) *types.Container {
+func Container(name string, builders ...func(c *types.Container)) *types.Container {
 	// now := time.Now()
 	// onehourago := now.Add(-120 * time.Minute)
-	container := &types.Container{
+	ctr := &types.Container{
 		ID:      "container_id",
 		Names:   []string{"/" + name},
 		Command: "top",
@@ -21,10 +21,10 @@ func Container(name string, builders ...func(container *types.Container)) *types
 	}
 
 	for _, builder := range builders {
-		builder(container)
+		builder(ctr)
 	}
 
-	return container
+	return ctr
 }
 
 // WithLabel adds a label to the container
@@ -45,14 +45,14 @@ func WithName(name string) func(*types.Container) {
 }
 
 // WithPort adds a port mapping to the container
-func WithPort(privateport, publicport uint16, builders ...func(*types.Port)) func(*types.Container) {
+func WithPort(privatePort, publicPort uint16, builders ...func(*types.Port)) func(*types.Container) {
 	return func(c *types.Container) {
 		if c.Ports == nil {
 			c.Ports = []types.Port{}
 		}
 		port := &types.Port{
-			PrivatePort: privateport,
-			PublicPort:  publicport,
+			PrivatePort: privatePort,
+			PublicPort:  publicPort,
 		}
 		for _, builder := range builders {
 			builder(port)
