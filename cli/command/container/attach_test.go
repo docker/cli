@@ -32,10 +32,13 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "You cannot attach to a stopped container",
 			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				c := types.ContainerJSON{}
-				c.ContainerJSONBase = &types.ContainerJSONBase{}
-				c.ContainerJSONBase.State = &types.ContainerState{Running: false}
-				return c, nil
+				return types.ContainerJSON{
+					ContainerJSONBase: &types.ContainerJSONBase{
+						State: &types.ContainerState{
+							Running: false,
+						},
+					},
+				}, nil
 			},
 		},
 		{
@@ -43,13 +46,14 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "You cannot attach to a paused container",
 			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				c := types.ContainerJSON{}
-				c.ContainerJSONBase = &types.ContainerJSONBase{}
-				c.ContainerJSONBase.State = &types.ContainerState{
-					Running: true,
-					Paused:  true,
-				}
-				return c, nil
+				return types.ContainerJSON{
+					ContainerJSONBase: &types.ContainerJSONBase{
+						State: &types.ContainerState{
+							Running: true,
+							Paused:  true,
+						},
+					},
+				}, nil
 			},
 		},
 		{
@@ -57,14 +61,15 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "You cannot attach to a restarting container",
 			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				c := types.ContainerJSON{}
-				c.ContainerJSONBase = &types.ContainerJSONBase{}
-				c.ContainerJSONBase.State = &types.ContainerState{
-					Running:    true,
-					Paused:     false,
-					Restarting: true,
-				}
-				return c, nil
+				return types.ContainerJSON{
+					ContainerJSONBase: &types.ContainerJSONBase{
+						State: &types.ContainerState{
+							Running:    true,
+							Paused:     false,
+							Restarting: true,
+						},
+					},
+				}, nil
 			},
 		},
 	}
