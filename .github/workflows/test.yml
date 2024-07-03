@@ -50,12 +50,6 @@ jobs:
 #          - windows-2022 # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
     steps:
       -
-        name: Prepare git
-        if: matrix.os == 'windows-latest'
-        run: |
-          git config --system core.autocrlf false
-          git config --system core.eol lf
-      -
         name: Checkout
         uses: actions/checkout@v4
         with:
