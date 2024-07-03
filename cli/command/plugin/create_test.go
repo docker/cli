@@ -41,6 +41,7 @@ func TestCreateErrors(t *testing.T) {
 		cmd := newCreateCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -53,6 +54,7 @@ func TestCreateErrorOnFileAsContextDir(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpFile.Path()})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "context must be a directory")
 }
 
@@ -64,6 +66,7 @@ func TestCreateErrorOnContextDirWithoutConfig(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 
 	expectedErr := "config.json: no such file or directory"
 	if runtime.GOOS == "windows" {
@@ -82,6 +85,7 @@ func TestCreateErrorOnInvalidConfig(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "invalid")
 }
 
@@ -98,6 +102,7 @@ func TestCreateErrorFromDaemon(t *testing.T) {
 	}))
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "error creating plugin")
 }
 

@@ -43,14 +43,18 @@ func TestConfigCreateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newConfigCreateCommand(
-			test.NewFakeCli(&fakeClient{
-				configCreateFunc: tc.configCreateFunc,
-			}),
-		)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cmd := newConfigCreateCommand(
+				test.NewFakeCli(&fakeClient{
+					configCreateFunc: tc.configCreateFunc,
+				}),
+			)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 

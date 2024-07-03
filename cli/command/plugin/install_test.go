@@ -54,11 +54,15 @@ func TestInstallErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
-		cmd := newInstallCommand(cli)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
+			cmd := newInstallCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -90,16 +94,20 @@ func TestInstallContentTrustErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, errors.New("should not try to install plugin")
-			},
-		}, test.EnableContentTrust)
-		cli.SetNotaryClient(tc.notaryFunc)
-		cmd := newInstallCommand(cli)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
+					return nil, errors.New("should not try to install plugin")
+				},
+			}, test.EnableContentTrust)
+			cli.SetNotaryClient(tc.notaryFunc)
+			cmd := newInstallCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -130,10 +138,13 @@ func TestInstall(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
-		cmd := newInstallCommand(cli)
-		cmd.SetArgs(tc.args)
-		assert.NilError(t, cmd.Execute())
-		assert.Check(t, strings.Contains(cli.OutBuffer().String(), tc.expectedOutput))
+		tc := tc
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
+			cmd := newInstallCommand(cli)
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, strings.Contains(cli.OutBuffer().String(), tc.expectedOutput))
+		})
 	}
 }

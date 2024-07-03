@@ -51,6 +51,7 @@ func TestPluginEnableErrors(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

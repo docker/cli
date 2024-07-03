@@ -39,12 +39,16 @@ func TestNewPruneCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewPruneCommand(test.NewFakeCli(&fakeClient{
-			imagesPruneFunc: tc.imagesPruneFunc,
-		}))
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := NewPruneCommand(test.NewFakeCli(&fakeClient{
+				imagesPruneFunc: tc.imagesPruneFunc,
+			}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -94,6 +98,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
 			// when prompted, answer "Y" to confirm the prune.
@@ -119,5 +124,8 @@ func TestPrunePromptTermination(t *testing.T) {
 		},
 	})
 	cmd := NewPruneCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 }

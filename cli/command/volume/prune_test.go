@@ -166,15 +166,20 @@ func TestVolumePrunePromptNo(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows", "TODO: fix test on windows")
 
 	for _, input := range []string{"n", "N", "no", "anything", "really"} {
-		cli := test.NewFakeCli(&fakeClient{
-			volumePruneFunc: simplePruneFunc,
-		})
+		input := input
+		t.Run(input, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				volumePruneFunc: simplePruneFunc,
+			})
 
-		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
-		cmd := NewPruneCommand(cli)
-		cmd.SetArgs([]string{})
-		assert.ErrorContains(t, cmd.Execute(), "volume prune has been cancelled")
-		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
+			cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
+			cmd := NewPruneCommand(cli)
+			cmd.SetArgs([]string{})
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), "volume prune has been cancelled")
+			golden.Assert(t, cli.OutBuffer().String(), "volume-prune-no.golden")
+		})
 	}
 }
 
@@ -199,6 +204,8 @@ func TestVolumePrunePromptTerminate(t *testing.T) {
 
 	cmd := NewPruneCommand(cli)
 	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 	golden.Assert(t, cli.OutBuffer().String(), "volume-prune-terminate.golden")
 }

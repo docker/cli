@@ -127,6 +127,7 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, "unable to prepare context")
 	assert.ErrorContains(t, err, "docker-build-git")

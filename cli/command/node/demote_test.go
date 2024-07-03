@@ -44,6 +44,7 @@ func TestNodeDemoteErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

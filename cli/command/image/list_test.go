@@ -35,10 +35,14 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -79,14 +83,18 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
-		cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
-		cmd := NewImagesCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("list-command-success.%s.golden", tc.name))
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
+			cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
+			cmd := NewImagesCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("list-command-success.%s.golden", tc.name))
+		})
 	}
 }
 

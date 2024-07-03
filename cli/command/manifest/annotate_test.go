@@ -35,6 +35,7 @@ func TestManifestAnnotateError(t *testing.T) {
 		cmd := newAnnotateCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -52,6 +53,7 @@ func TestManifestAnnotate(t *testing.T) {
 	cmd := newAnnotateCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/fake:0.0"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	expectedError := "manifest for image example.com/fake:0.0 does not exist"
 	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
@@ -71,6 +73,7 @@ func TestManifestAnnotate(t *testing.T) {
 	err = cmd.Flags().Set("verbose", "true")
 	assert.NilError(t, err)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()
 	expected := golden.Get(t, "inspect-annotate.golden")

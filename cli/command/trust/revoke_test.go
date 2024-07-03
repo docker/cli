@@ -52,6 +52,7 @@ func TestTrustRevokeCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -139,6 +140,7 @@ func TestTrustRevokeCommand(t *testing.T) {
 			cmd := newRevokeCommand(cli)
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			if tc.expectedErr != "" {
 				assert.ErrorContains(t, cmd.Execute(), tc.expectedErr)
 			} else {
@@ -164,6 +166,8 @@ func TestRevokeTrustPromptTermination(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newRevokeCommand(cli)
 	cmd.SetArgs([]string{"example/trust-demo"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 	golden.Assert(t, cli.OutBuffer().String(), "trust-revoke-prompt-termination.golden")
 }

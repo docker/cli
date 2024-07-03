@@ -65,18 +65,22 @@ func TestSwarmUpdateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newUpdateCommand(
-			test.NewFakeCli(&fakeClient{
-				swarmInspectFunc:      tc.swarmInspectFunc,
-				swarmUpdateFunc:       tc.swarmUpdateFunc,
-				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-			}))
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			assert.Check(t, cmd.Flags().Set(key, value))
-		}
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newUpdateCommand(
+				test.NewFakeCli(&fakeClient{
+					swarmInspectFunc:      tc.swarmInspectFunc,
+					swarmUpdateFunc:       tc.swarmUpdateFunc,
+					swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+				}))
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -165,18 +169,25 @@ func TestSwarmUpdate(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			swarmInspectFunc:      tc.swarmInspectFunc,
-			swarmUpdateFunc:       tc.swarmUpdateFunc,
-			swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInspectFunc:      tc.swarmInspectFunc,
+				swarmUpdateFunc:       tc.swarmUpdateFunc,
+				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+			})
+			cmd := newUpdateCommand(cli)
+			if tc.args == nil {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
+			}
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			cmd.SetOut(cli.OutBuffer())
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 		})
-		cmd := newUpdateCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			assert.Check(t, cmd.Flags().Set(key, value))
-		}
-		cmd.SetOut(cli.OutBuffer())
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 	}
 }
