@@ -52,12 +52,16 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
-		cli.Out().SetIsTerminal(tc.isTerminal)
-		cmd := NewSaveCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
+			cli.Out().SetIsTerminal(tc.isTerminal)
+			cmd := NewSaveCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -77,7 +81,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				return io.NopCloser(strings.NewReader("")), nil
 			},
 			deferredFunc: func() {
-				os.Remove("save_tmp_file")
+				_ = os.Remove("save_tmp_file")
 			},
 		},
 		{
@@ -92,16 +96,20 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), nil
-			},
-		}))
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.NilError(t, cmd.Execute())
-		if tc.deferredFunc != nil {
-			tc.deferredFunc()
-		}
+		tc := tc
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
+				imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+					return io.NopCloser(strings.NewReader("")), nil
+				},
+			}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			if tc.deferredFunc != nil {
+				tc.deferredFunc()
+			}
+		})
 	}
 }

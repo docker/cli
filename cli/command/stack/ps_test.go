@@ -40,12 +40,16 @@ func TestStackPsErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newPsCommand(test.NewFakeCli(&fakeClient{
-			taskListFunc: tc.taskListFunc,
-		}))
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cmd := newPsCommand(test.NewFakeCli(&fakeClient{
+				taskListFunc: tc.taskListFunc,
+			}))
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -156,6 +160,7 @@ func TestStackPs(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				taskListFunc:       tc.taskListFunc,
@@ -169,6 +174,7 @@ func TestStackPs(t *testing.T) {
 				assert.Check(t, cmd.Flags().Set(key, value))
 			}
 			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, cmd.Execute(), tc.expectedErr)

@@ -63,18 +63,22 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newInitCommand(
-			test.NewFakeCli(&fakeClient{
-				swarmInitFunc:         tc.swarmInitFunc,
-				swarmInspectFunc:      tc.swarmInspectFunc,
-				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-				nodeInspectFunc:       tc.nodeInspectFunc,
-			}))
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		cmd.SetOut(io.Discard)
-		assert.Error(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newInitCommand(
+				test.NewFakeCli(&fakeClient{
+					swarmInitFunc:         tc.swarmInitFunc,
+					swarmInspectFunc:      tc.swarmInspectFunc,
+					swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+					nodeInspectFunc:       tc.nodeInspectFunc,
+				}))
+			for key, value := range tc.flags {
+				cmd.Flags().Set(key, value)
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.Error(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 

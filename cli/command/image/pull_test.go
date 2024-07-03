@@ -38,11 +38,15 @@ func TestNewPullCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{})
-		cmd := NewPullCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{})
+			cmd := NewPullCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -69,18 +73,22 @@ func TestNewPullCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
-				assert.Check(t, is.Equal(tc.expectedTag, ref), tc.name)
-				return io.NopCloser(strings.NewReader("")), nil
-			},
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
+					assert.Check(t, is.Equal(tc.expectedTag, ref), tc.name)
+					return io.NopCloser(strings.NewReader("")), nil
+				},
+			})
+			cmd := NewPullCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("pull-command-success.%s.golden", tc.name))
 		})
-		cmd := NewPullCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("pull-command-success.%s.golden", tc.name))
 	}
 }
 
@@ -111,16 +119,20 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
-			},
-		}, test.EnableContentTrust)
-		cli.SetNotaryClient(tc.notaryFunc)
-		cmd := NewPullCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.ErrorContains(t, err, tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
+					return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
+				},
+			}, test.EnableContentTrust)
+			cli.SetNotaryClient(tc.notaryFunc)
+			cmd := NewPullCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.ErrorContains(t, err, tc.expectedError)
+		})
 	}
 }

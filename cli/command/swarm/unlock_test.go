@@ -64,14 +64,18 @@ func TestSwarmUnlockErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newUnlockCommand(
-			test.NewFakeCli(&fakeClient{
-				infoFunc:        tc.infoFunc,
-				swarmUnlockFunc: tc.swarmUnlockFunc,
-			}))
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newUnlockCommand(
+				test.NewFakeCli(&fakeClient{
+					infoFunc:        tc.infoFunc,
+					swarmUnlockFunc: tc.swarmUnlockFunc,
+				}))
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 

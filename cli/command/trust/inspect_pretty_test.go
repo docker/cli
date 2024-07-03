@@ -67,6 +67,7 @@ func TestTrustInspectPrettyCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		cmd.Flags().Set("pretty", "true")
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
@@ -79,6 +80,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access nonexistent-reg-name.io/image")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -87,6 +89,7 @@ func TestTrustInspectPrettyCommandOfflineErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"nonexistent-reg-name.io/image:tag"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access nonexistent-reg-name.io/image")
 }
 
@@ -97,6 +100,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access reg/unsigned-img")
 
 	cli = test.NewFakeCli(&fakeClient{})
@@ -105,6 +109,7 @@ func TestTrustInspectPrettyCommandUninitializedErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/unsigned-img:tag"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no signatures or cannot access reg/unsigned-img:tag")
 }
 
@@ -115,6 +120,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
@@ -125,6 +131,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))

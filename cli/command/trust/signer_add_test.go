@@ -60,6 +60,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		cmd := newSignerAddCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -78,6 +79,7 @@ func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	cmd.SetArgs([]string{"--key", tmpfile.Name(), "alice", "alpine", "linuxkit/alpine"})
 
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Error(t, cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
 }
 
@@ -90,6 +92,7 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	cmd.SetArgs([]string{"--key", "/path/to/key.pem", "alice", "alpine"})
 
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	expectedError := "unable to read public key from file: open /path/to/key.pem: no such file or directory"
 	if runtime.GOOS == "windows" {
 		expectedError = "unable to read public key from file: open /path/to/key.pem: The system cannot find the path specified."
@@ -111,6 +114,7 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	cmd.SetArgs([]string{"--key", pubKeyFilepath, "alice", imageName})
 
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Error(t, cmd.Execute(), "failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd")
 	expectedErr := fmt.Sprintf("invalid repository name (%s), cannot specify 64-byte hexadecimal strings\n\n", imageName)
 

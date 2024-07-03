@@ -236,6 +236,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		fakeCLI.SetNotaryClient(tc.notaryFunc)
 		cmd := NewCreateCommand(fakeCLI)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, tc.expectedError)

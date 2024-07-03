@@ -87,19 +87,23 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			swarmInspectFunc: tc.swarmInspectFunc,
-			swarmUpdateFunc:  tc.swarmUpdateFunc,
-			infoFunc:         tc.infoFunc,
-			nodeInspectFunc:  tc.nodeInspectFunc,
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInspectFunc: tc.swarmInspectFunc,
+				swarmUpdateFunc:  tc.swarmUpdateFunc,
+				infoFunc:         tc.infoFunc,
+				nodeInspectFunc:  tc.nodeInspectFunc,
+			})
+			cmd := newJoinTokenCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
-		cmd := newJoinTokenCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			assert.Check(t, cmd.Flags().Set(key, value))
-		}
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -194,17 +198,20 @@ func TestSwarmJoinToken(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			swarmInspectFunc: tc.swarmInspectFunc,
-			infoFunc:         tc.infoFunc,
-			nodeInspectFunc:  tc.nodeInspectFunc,
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInspectFunc: tc.swarmInspectFunc,
+				infoFunc:         tc.infoFunc,
+				nodeInspectFunc:  tc.nodeInspectFunc,
+			})
+			cmd := newJoinTokenCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("jointoken-%s.golden", tc.name))
 		})
-		cmd := newJoinTokenCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			assert.Check(t, cmd.Flags().Set(key, value))
-		}
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("jointoken-%s.golden", tc.name))
 	}
 }
