@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +38,7 @@ type createOptions struct {
 	ipamOpt     opts.MapOpts
 }
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	var ipv6 bool
 	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
@@ -56,7 +58,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 				options.ipv6 = &ipv6
 			}
 
-			return runCreate(cmd.Context(), dockerCli, options)
+			return runCreate(cmd.Context(), dockerCLI.Client(), dockerCLI.Out(), options)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -89,9 +91,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
-	client := dockerCli.Client()
-
+func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io.Writer, options createOptions) error {
 	ipamCfg, err := consolidateIpam(options.ipamSubnet, options.ipamIPRange, options.ipamGateway, options.ipamAux.GetAll())
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			Network: options.configFrom,
 		}
 	}
-	resp, err := client.NetworkCreate(ctx, options.name, network.CreateOptions{
+	resp, err := apiClient.NetworkCreate(ctx, options.name, network.CreateOptions{
 		Driver:  options.driver,
 		Options: options.driverOpts.GetAll(),
 		IPAM: &network.IPAM{
@@ -123,7 +123,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(dockerCli.Out(), "%s\n", resp.ID)
+	_, _ = fmt.Fprintf(output, "%s\n", resp.ID)
 	return nil
 }
 

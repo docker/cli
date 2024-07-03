@@ -60,11 +60,11 @@ func runRemove(ctx context.Context, dockerCli command.Cli, networks []string, op
 			if opts.force && errdefs.IsNotFound(err) {
 				continue
 			}
-			fmt.Fprintf(dockerCli.Err(), "%s\n", err)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n", err)
 			status = 1
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", name)
+		_, _ = fmt.Fprintf(dockerCli.Out(), "%s\n", name)
 	}
 
 	if status != 0 {
