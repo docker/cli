@@ -43,8 +43,8 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container start, docker start",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(container types.Container) bool {
-			return container.State == "exited" || container.State == "created"
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(ctr types.Container) bool {
+			return ctr.State == "exited" || ctr.State == "created"
 		}),
 	}
 

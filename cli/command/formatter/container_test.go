@@ -30,66 +30,155 @@ func TestContainerPsContext(t *testing.T) {
 		expValue  string
 		call      func() string
 	}{
-		{types.Container{ID: containerID}, true, stringid.TruncateID(containerID), ctx.ID},
-		{types.Container{ID: containerID}, false, containerID, ctx.ID},
-		{types.Container{Names: []string{"/foobar_baz"}}, true, "foobar_baz", ctx.Names},
-		{types.Container{Image: "ubuntu"}, true, "ubuntu", ctx.Image},
-		{types.Container{Image: "verylongimagename"}, true, "verylongimagename", ctx.Image},
-		{types.Container{Image: "verylongimagename"}, false, "verylongimagename", ctx.Image},
 		{
-			types.Container{
+			container: types.Container{ID: containerID},
+			trunc:     true,
+			expValue:  stringid.TruncateID(containerID),
+			call:      ctx.ID,
+		},
+		{
+			container: types.Container{ID: containerID},
+			expValue:  containerID,
+			call:      ctx.ID,
+		},
+		{
+			container: types.Container{Names: []string{"/foobar_baz"}},
+			trunc:     true,
+			expValue:  "foobar_baz",
+			call:      ctx.Names,
+		},
+		{
+			container: types.Container{Image: "ubuntu"},
+			trunc:     true,
+			expValue:  "ubuntu",
+			call:      ctx.Image,
+		},
+		{
+			container: types.Container{Image: "verylongimagename"},
+			trunc:     true,
+			expValue:  "verylongimagename",
+			call:      ctx.Image,
+		},
+		{
+			container: types.Container{Image: "verylongimagename"},
+			expValue:  "verylongimagename",
+			call:      ctx.Image,
+		},
+		{
+			container: types.Container{
 				Image:   "a5a665ff33eced1e0803148700880edab4",
 				ImageID: "a5a665ff33eced1e0803148700880edab4269067ed77e27737a708d0d293fbf5",
 			},
-			true,
-			"a5a665ff33ec",
-			ctx.Image,
+			trunc:    true,
+			expValue: "a5a665ff33ec",
+			call:     ctx.Image,
 		},
 		{
-			types.Container{
+			container: types.Container{
 				Image:   "a5a665ff33eced1e0803148700880edab4",
 				ImageID: "a5a665ff33eced1e0803148700880edab4269067ed77e27737a708d0d293fbf5",
 			},
-			false,
-			"a5a665ff33eced1e0803148700880edab4",
-			ctx.Image,
+			expValue: "a5a665ff33eced1e0803148700880edab4",
+			call:     ctx.Image,
 		},
-		{types.Container{Image: ""}, true, "<no image>", ctx.Image},
-		{types.Container{Command: "sh -c 'ls -la'"}, true, `"sh -c 'ls -la'"`, ctx.Command},
-		{types.Container{Created: unix}, true, time.Unix(unix, 0).String(), ctx.CreatedAt},
-		{types.Container{Ports: []types.Port{{PrivatePort: 8080, PublicPort: 8080, Type: "tcp"}}}, true, "8080/tcp", ctx.Ports},
-		{types.Container{Status: "RUNNING"}, true, "RUNNING", ctx.Status},
-		{types.Container{SizeRw: 10}, true, "10B", ctx.Size},
-		{types.Container{SizeRw: 10, SizeRootFs: 20}, true, "10B (virtual 20B)", ctx.Size},
-		{types.Container{}, true, "", ctx.Labels},
-		{types.Container{Labels: map[string]string{"cpu": "6", "storage": "ssd"}}, true, "cpu=6,storage=ssd", ctx.Labels},
-		{types.Container{Created: unix}, true, "About a minute ago", ctx.RunningFor},
-		{types.Container{
-			Mounts: []types.MountPoint{
-				{
-					Name:   "this-is-a-long-volume-name-and-will-be-truncated-if-trunc-is-set",
-					Driver: "local",
-					Source: "/a/path",
+		{
+			container: types.Container{Image: ""},
+			trunc:     true,
+			expValue:  "<no image>",
+			call:      ctx.Image,
+		},
+		{
+			container: types.Container{Command: "sh -c 'ls -la'"},
+			trunc:     true,
+			expValue:  `"sh -c 'ls -la'"`,
+			call:      ctx.Command,
+		},
+		{
+			container: types.Container{Created: unix},
+			trunc:     true,
+			expValue:  time.Unix(unix, 0).String(),
+			call:      ctx.CreatedAt,
+		},
+		{
+			container: types.Container{Ports: []types.Port{{PrivatePort: 8080, PublicPort: 8080, Type: "tcp"}}},
+			trunc:     true,
+			expValue:  "8080/tcp",
+			call:      ctx.Ports,
+		},
+		{
+			container: types.Container{Status: "RUNNING"},
+			trunc:     true,
+			expValue:  "RUNNING",
+			call:      ctx.Status,
+		},
+		{
+			container: types.Container{SizeRw: 10},
+			trunc:     true,
+			expValue:  "10B",
+			call:      ctx.Size,
+		},
+		{
+			container: types.Container{SizeRw: 10, SizeRootFs: 20},
+			trunc:     true,
+			expValue:  "10B (virtual 20B)",
+			call:      ctx.Size,
+		},
+		{
+			container: types.Container{},
+			trunc:     true,
+			call:      ctx.Labels,
+		},
+		{
+			container: types.Container{Labels: map[string]string{"cpu": "6", "storage": "ssd"}},
+			trunc:     true,
+			expValue:  "cpu=6,storage=ssd",
+			call:      ctx.Labels,
+		},
+		{
+			container: types.Container{Created: unix},
+			trunc:     true,
+			expValue:  "About a minute ago",
+			call:      ctx.RunningFor,
+		},
+		{
+			container: types.Container{
+				Mounts: []types.MountPoint{
+					{
+						Name:   "this-is-a-long-volume-name-and-will-be-truncated-if-trunc-is-set",
+						Driver: "local",
+						Source: "/a/path",
+					},
 				},
 			},
-		}, true, "this-is-a-long…", ctx.Mounts},
-		{types.Container{
-			Mounts: []types.MountPoint{
-				{
-					Driver: "local",
-					Source: "/a/path",
+			trunc:    true,
+			expValue: "this-is-a-long…",
+			call:     ctx.Mounts,
+		},
+		{
+			container: types.Container{
+				Mounts: []types.MountPoint{
+					{
+						Driver: "local",
+						Source: "/a/path",
+					},
 				},
 			},
-		}, false, "/a/path", ctx.Mounts},
-		{types.Container{
-			Mounts: []types.MountPoint{
-				{
-					Name:   "733908409c91817de8e92b0096373245f329f19a88e2c849f02460e9b3d1c203",
-					Driver: "local",
-					Source: "/a/path",
+			expValue: "/a/path",
+			call:     ctx.Mounts,
+		},
+		{
+			container: types.Container{
+				Mounts: []types.MountPoint{
+					{
+						Name:   "733908409c91817de8e92b0096373245f329f19a88e2c849f02460e9b3d1c203",
+						Driver: "local",
+						Source: "/a/path",
+					},
 				},
 			},
-		}, false, "733908409c91817de8e92b0096373245f329f19a88e2c849f02460e9b3d1c203", ctx.Mounts},
+			expValue: "733908409c91817de8e92b0096373245f329f19a88e2c849f02460e9b3d1c203",
+			call:     ctx.Mounts,
+		},
 	}
 
 	for _, c := range cases {
@@ -134,52 +223,52 @@ func TestContainerContextWrite(t *testing.T) {
 	}{
 		// Errors
 		{
-			Context{Format: "{{InvalidFunction}}"},
-			`template parsing error: template: :1: function "InvalidFunction" not defined`,
+			context:  Context{Format: "{{InvalidFunction}}"},
+			expected: `template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
-			Context{Format: "{{nil}}"},
-			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
+			context:  Context{Format: "{{nil}}"},
+			expected: `template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table Format
 		{
-			Context{Format: NewContainerFormat("table", false, true)},
-			`CONTAINER ID   IMAGE     COMMAND   CREATED        STATUS    PORTS     NAMES        SIZE
+			context: Context{Format: NewContainerFormat("table", false, true)},
+			expected: `CONTAINER ID   IMAGE     COMMAND   CREATED        STATUS    PORTS     NAMES        SIZE
 containerID1   ubuntu    ""        24 hours ago                       foobar_baz   0B
 containerID2   ubuntu    ""        24 hours ago                       foobar_bar   0B
 `,
 		},
 		{
-			Context{Format: NewContainerFormat("table", false, false)},
-			`CONTAINER ID   IMAGE     COMMAND   CREATED        STATUS    PORTS     NAMES
+			context: Context{Format: NewContainerFormat("table", false, false)},
+			expected: `CONTAINER ID   IMAGE     COMMAND   CREATED        STATUS    PORTS     NAMES
 containerID1   ubuntu    ""        24 hours ago                       foobar_baz
 containerID2   ubuntu    ""        24 hours ago                       foobar_bar
 `,
 		},
 		{
-			Context{Format: NewContainerFormat("table {{.Image}}", false, false)},
-			"IMAGE\nubuntu\nubuntu\n",
+			context:  Context{Format: NewContainerFormat("table {{.Image}}", false, false)},
+			expected: "IMAGE\nubuntu\nubuntu\n",
 		},
 		{
-			Context{Format: NewContainerFormat("table {{.Image}}", false, true)},
-			"IMAGE\nubuntu\nubuntu\n",
+			context:  Context{Format: NewContainerFormat("table {{.Image}}", false, true)},
+			expected: "IMAGE\nubuntu\nubuntu\n",
 		},
 		{
-			Context{Format: NewContainerFormat("table {{.Image}}", true, false)},
-			"containerID1\ncontainerID2\n",
+			context:  Context{Format: NewContainerFormat("table {{.Image}}", true, false)},
+			expected: "containerID1\ncontainerID2\n",
 		},
 		{
-			Context{Format: NewContainerFormat("table", true, false)},
-			"containerID1\ncontainerID2\n",
+			context:  Context{Format: NewContainerFormat("table", true, false)},
+			expected: "containerID1\ncontainerID2\n",
 		},
 		{
-			Context{Format: NewContainerFormat("table {{.State}}", false, true)},
-			"STATE\nrunning\nrunning\n",
+			context:  Context{Format: NewContainerFormat("table {{.State}}", false, true)},
+			expected: "STATE\nrunning\nrunning\n",
 		},
 		// Raw Format
 		{
-			Context{Format: NewContainerFormat("raw", false, false)},
-			fmt.Sprintf(`container_id: containerID1
+			context: Context{Format: NewContainerFormat("raw", false, false)},
+			expected: fmt.Sprintf(`container_id: containerID1
 image: ubuntu
 command: ""
 created_at: %s
@@ -202,8 +291,8 @@ ports:
 `, expectedTime, expectedTime),
 		},
 		{
-			Context{Format: NewContainerFormat("raw", false, true)},
-			fmt.Sprintf(`container_id: containerID1
+			context: Context{Format: NewContainerFormat("raw", false, true)},
+			expected: fmt.Sprintf(`container_id: containerID1
 image: ubuntu
 command: ""
 created_at: %s
@@ -228,26 +317,26 @@ size: 0B
 `, expectedTime, expectedTime),
 		},
 		{
-			Context{Format: NewContainerFormat("raw", true, false)},
-			"container_id: containerID1\ncontainer_id: containerID2\n",
+			context:  Context{Format: NewContainerFormat("raw", true, false)},
+			expected: "container_id: containerID1\ncontainer_id: containerID2\n",
 		},
 		// Custom Format
 		{
-			Context{Format: "{{.Image}}"},
-			"ubuntu\nubuntu\n",
+			context:  Context{Format: "{{.Image}}"},
+			expected: "ubuntu\nubuntu\n",
 		},
 		{
-			Context{Format: NewContainerFormat("{{.Image}}", false, true)},
-			"ubuntu\nubuntu\n",
+			context:  Context{Format: NewContainerFormat("{{.Image}}", false, true)},
+			expected: "ubuntu\nubuntu\n",
 		},
 		// Special headers for customized table format
 		{
-			Context{Format: NewContainerFormat(`table {{truncate .ID 5}}\t{{json .Image}} {{.RunningFor}}/{{title .Status}}/{{pad .Ports 2 2}}.{{upper .Names}} {{lower .Status}}`, false, true)},
-			string(golden.Get(t, "container-context-write-special-headers.golden")),
+			context:  Context{Format: NewContainerFormat(`table {{truncate .ID 5}}\t{{json .Image}} {{.RunningFor}}/{{title .Status}}/{{pad .Ports 2 2}}.{{upper .Names}} {{lower .Status}}`, false, true)},
+			expected: string(golden.Get(t, "container-context-write-special-headers.golden")),
 		},
 		{
-			Context{Format: NewContainerFormat(`table {{split .Image ":"}}`, false, false)},
-			"IMAGE\n[ubuntu]\n[ubuntu]\n",
+			context:  Context{Format: NewContainerFormat(`table {{split .Image ":"}}`, false, false)},
+			expected: "IMAGE\n[ubuntu]\n[ubuntu]\n",
 		},
 	}
 
@@ -280,46 +369,44 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 		expected string
 	}{
 		{
-			Context{
+			context: Context{
 				Format: "{{.Image}}",
 				Output: out,
 			},
-			"",
 		},
 		{
-			Context{
+			context: Context{
 				Format: "table {{.Image}}",
 				Output: out,
 			},
-			"IMAGE\n",
+			expected: "IMAGE\n",
 		},
 		{
-			Context{
+			context: Context{
 				Format: NewContainerFormat("{{.Image}}", false, true),
 				Output: out,
 			},
-			"",
 		},
 		{
-			Context{
+			context: Context{
 				Format: NewContainerFormat("table {{.Image}}", false, true),
 				Output: out,
 			},
-			"IMAGE\n",
+			expected: "IMAGE\n",
 		},
 		{
-			Context{
+			context: Context{
 				Format: "table {{.Image}}\t{{.Size}}",
 				Output: out,
 			},
-			"IMAGE     SIZE\n",
+			expected: "IMAGE     SIZE\n",
 		},
 		{
-			Context{
+			context: Context{
 				Format: NewContainerFormat("table {{.Image}}\t{{.Size}}", false, true),
 				Output: out,
 			},
-			"IMAGE     SIZE\n",
+			expected: "IMAGE     SIZE\n",
 		},
 	}
 
@@ -444,45 +531,45 @@ type ports struct {
 func TestDisplayablePorts(t *testing.T) {
 	cases := []ports{
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 9988,
 					Type:        "tcp",
 				},
 			},
-			"9988/tcp",
+			expected: "9988/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 9988,
 					Type:        "udp",
 				},
 			},
-			"9988/udp",
+			expected: "9988/udp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "0.0.0.0",
 					PrivatePort: 9988,
 					Type:        "tcp",
 				},
 			},
-			"0.0.0.0:0->9988/tcp",
+			expected: "0.0.0.0:0->9988/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 9988,
 					PublicPort:  8899,
 					Type:        "tcp",
 				},
 			},
-			"9988/tcp",
+			expected: "9988/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "4.3.2.1",
 					PrivatePort: 9988,
@@ -490,10 +577,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "tcp",
 				},
 			},
-			"4.3.2.1:8899->9988/tcp",
+			expected: "4.3.2.1:8899->9988/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "4.3.2.1",
 					PrivatePort: 9988,
@@ -501,10 +588,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "tcp",
 				},
 			},
-			"4.3.2.1:9988->9988/tcp",
+			expected: "4.3.2.1:9988->9988/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 9988,
 					Type:        "udp",
@@ -513,10 +600,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "udp",
 				},
 			},
-			"9988/udp, 9988/udp",
+			expected: "9988/udp, 9988/udp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "1.2.3.4",
 					PublicPort:  9998,
@@ -529,10 +616,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "udp",
 				},
 			},
-			"1.2.3.4:9998-9999->9998-9999/udp",
+			expected: "1.2.3.4:9998-9999->9998-9999/udp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "1.2.3.4",
 					PublicPort:  8887,
@@ -545,10 +632,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "udp",
 				},
 			},
-			"1.2.3.4:8887->9998/udp, 1.2.3.4:8888->9999/udp",
+			expected: "1.2.3.4:8887->9998/udp, 1.2.3.4:8888->9999/udp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 9998,
 					Type:        "udp",
@@ -557,10 +644,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "udp",
 				},
 			},
-			"9998-9999/udp",
+			expected: "9998-9999/udp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "1.2.3.4",
 					PrivatePort: 6677,
@@ -572,10 +659,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "udp",
 				},
 			},
-			"9988/udp, 1.2.3.4:7766->6677/tcp",
+			expected: "9988/udp, 1.2.3.4:7766->6677/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					IP:          "1.2.3.4",
 					PrivatePort: 9988,
@@ -593,10 +680,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "tcp",
 				},
 			},
-			"4.3.2.1:3322->2233/tcp, 1.2.3.4:8899->9988/tcp, 1.2.3.4:8899->9988/udp",
+			expected: "4.3.2.1:3322->2233/tcp, 1.2.3.4:8899->9988/tcp, 1.2.3.4:8899->9988/udp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 9988,
 					PublicPort:  8899,
@@ -613,10 +700,10 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "tcp",
 				},
 			},
-			"9988/udp, 4.3.2.1:3322->2233/tcp, 1.2.3.4:7766->6677/tcp",
+			expected: "9988/udp, 4.3.2.1:3322->2233/tcp, 1.2.3.4:7766->6677/tcp",
 		},
 		{
-			[]types.Port{
+			ports: []types.Port{
 				{
 					PrivatePort: 80,
 					Type:        "tcp",
@@ -674,7 +761,7 @@ func TestDisplayablePorts(t *testing.T) {
 					Type:        "sctp",
 				},
 			},
-			"80/tcp, 80/udp, 1024/tcp, 1024/udp, 12345/sctp, 1.1.1.1:1024->80/tcp, 1.1.1.1:1024->80/udp, 2.1.1.1:1024->80/tcp, 2.1.1.1:1024->80/udp, 1.1.1.1:80->1024/tcp, 1.1.1.1:80->1024/udp, 2.1.1.1:80->1024/tcp, 2.1.1.1:80->1024/udp",
+			expected: "80/tcp, 80/udp, 1024/tcp, 1024/udp, 12345/sctp, 1.1.1.1:1024->80/tcp, 1.1.1.1:1024->80/udp, 2.1.1.1:1024->80/tcp, 2.1.1.1:1024->80/udp, 1.1.1.1:80->1024/tcp, 1.1.1.1:80->1024/udp, 2.1.1.1:80->1024/tcp, 2.1.1.1:80->1024/udp",
 		},
 	}
 

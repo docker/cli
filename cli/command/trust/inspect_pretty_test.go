@@ -187,7 +187,7 @@ func TestNotaryRoleToSigner(t *testing.T) {
 		}
 		assert.Check(t, is.Equal(role.String(), notaryRoleToSigner(role)))
 	}
-	assert.Check(t, is.Equal("notarole", notaryRoleToSigner(data.RoleName("notarole"))))
+	assert.Check(t, is.Equal("notarole", notaryRoleToSigner("notarole")))
 }
 
 // check if a role name is "released": either targets/releases or targets TUF roles
@@ -196,9 +196,9 @@ func TestIsReleasedTarget(t *testing.T) {
 	for _, role := range data.BaseRoles {
 		assert.Check(t, is.Equal(role == data.CanonicalTargetsRole, isReleasedTarget(role)))
 	}
-	assert.Check(t, !isReleasedTarget(data.RoleName("targets/not-releases")))
-	assert.Check(t, !isReleasedTarget(data.RoleName("random")))
-	assert.Check(t, !isReleasedTarget(data.RoleName("targets/releases/subrole")))
+	assert.Check(t, !isReleasedTarget("targets/not-releases"))
+	assert.Check(t, !isReleasedTarget("random"))
+	assert.Check(t, !isReleasedTarget("targets/releases/subrole"))
 }
 
 // creates a mock delegation with a given name and no keys

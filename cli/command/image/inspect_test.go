@@ -38,15 +38,15 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		name             string
 		args             []string
 		imageCount       int
-		imageInspectFunc func(image string) (types.ImageInspect, []byte, error)
+		imageInspectFunc func(img string) (types.ImageInspect, []byte, error)
 	}{
 		{
 			name:       "simple",
 			args:       []string{"image"},
 			imageCount: 1,
-			imageInspectFunc: func(image string) (types.ImageInspect, []byte, error) {
+			imageInspectFunc: func(img string) (types.ImageInspect, []byte, error) {
 				imageInspectInvocationCount++
-				assert.Check(t, is.Equal("image", image))
+				assert.Check(t, is.Equal("image", img))
 				return types.ImageInspect{}, nil, nil
 			},
 		},
@@ -54,21 +54,21 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 			name:       "format",
 			imageCount: 1,
 			args:       []string{"--format='{{.ID}}'", "image"},
-			imageInspectFunc: func(image string) (types.ImageInspect, []byte, error) {
+			imageInspectFunc: func(img string) (types.ImageInspect, []byte, error) {
 				imageInspectInvocationCount++
-				return types.ImageInspect{ID: image}, nil, nil
+				return types.ImageInspect{ID: img}, nil, nil
 			},
 		},
 		{
 			name:       "simple-many",
 			args:       []string{"image1", "image2"},
 			imageCount: 2,
-			imageInspectFunc: func(image string) (types.ImageInspect, []byte, error) {
+			imageInspectFunc: func(img string) (types.ImageInspect, []byte, error) {
 				imageInspectInvocationCount++
 				if imageInspectInvocationCount == 1 {
-					assert.Check(t, is.Equal("image1", image))
+					assert.Check(t, is.Equal("image1", img))
 				} else {
-					assert.Check(t, is.Equal("image2", image))
+					assert.Check(t, is.Equal("image2", img))
 				}
 				return types.ImageInspect{}, nil, nil
 			},

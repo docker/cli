@@ -24,9 +24,9 @@ type fakeClient struct {
 	imagesPruneFunc  func(pruneFilter filters.Args) (image.PruneReport, error)
 	imageLoadFunc    func(input io.Reader, quiet bool) (image.LoadResponse, error)
 	imageListFunc    func(options image.ListOptions) ([]image.Summary, error)
-	imageInspectFunc func(image string) (types.ImageInspect, []byte, error)
+	imageInspectFunc func(img string) (types.ImageInspect, []byte, error)
 	imageImportFunc  func(source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
-	imageHistoryFunc func(image string) ([]image.HistoryResponseItem, error)
+	imageHistoryFunc func(img string) ([]image.HistoryResponseItem, error)
 	imageBuildFunc   func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
 }
 
@@ -69,7 +69,7 @@ func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
 
 func (cli *fakeClient) ImagePull(_ context.Context, ref string, options image.PullOptions) (io.ReadCloser, error) {
 	if cli.imagePullFunc != nil {
-		cli.imagePullFunc(ref, options)
+		return cli.imagePullFunc(ref, options)
 	}
 	return io.NopCloser(strings.NewReader("")), nil
 }
