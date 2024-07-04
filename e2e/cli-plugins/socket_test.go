@@ -203,7 +203,7 @@ func TestPluginSocketCommunication(t *testing.T) {
 
 			// the plugin does not get signalled, but it does get its
 			// context canceled by the CLI through the socket
-			const expected = "test-socket: exiting after context was done"
+			const expected = "test-socket: exiting after context was done\nexit status 2"
 			actual := strings.TrimSpace(string(out))
 			assert.Check(t, is.Equal(actual, expected))
 		})

@@ -48,16 +48,15 @@ func dockerMain() int {
 	otel.SetErrorHandler(debug.OTELErrorHandler)
 
 	if err := runDocker(ctx, dockerCli); err != nil {
-		if sterr, ok := err.(cli.StatusError); ok {
-			if sterr.Status != "" {
-				fmt.Fprintln(dockerCli.Err(), sterr.Status)
-			}
+		var stErr cli.StatusError
+		if errors.As(err, &stErr) {
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
-			if sterr.StatusCode == 0 {
-				return 1
+			if stErr.StatusCode == 0 { // FIXME(thaJeztah): StatusCode should never be used with a zero status-code. Check if we do this anywhere.
+				stErr.StatusCode = 1
 			}
-			return sterr.StatusCode
+			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
+			return stErr.StatusCode
 		}
 		if errdefs.IsCancelled(err) {
 			return 0
