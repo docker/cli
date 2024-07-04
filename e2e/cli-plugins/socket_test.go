@@ -1,7 +1,6 @@
 package cliplugins
 
 import (
-	"bytes"
 	"io"
 	"os/exec"
 	"strings"
@@ -178,9 +177,6 @@ func TestPluginSocketCommunication(t *testing.T) {
 		t.Run("the plugin does not get signalled", func(t *testing.T) {
 			cmd := run("presocket", "test-socket")
 			command := exec.Command(cmd.Command[0], cmd.Command[1:]...)
-			outB := bytes.Buffer{}
-			command.Stdout = &outB
-			command.Stderr = &outB
 			command.SysProcAttr = &syscall.SysProcAttr{
 				Setpgid: true,
 			}
@@ -191,14 +187,13 @@ func TestPluginSocketCommunication(t *testing.T) {
 				err := syscall.Kill(command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal CLI process")
 			}()
-			err := command.Run()
-			t.Log(outB.String())
+			out, err := command.CombinedOutput()
 			assert.ErrorContains(t, err, "exit status 2")
 
 			// the plugin does not get signalled, but it does get its
 			// context canceled by the CLI through the socket
 			const expected = "test-socket: exiting after context was done"
-			actual := strings.TrimSpace(outB.String())
+			actual := strings.TrimSpace(string(out))
 			assert.Check(t, is.Equal(actual, expected))
 		})
 
