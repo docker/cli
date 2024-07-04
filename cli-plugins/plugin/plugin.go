@@ -35,7 +35,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 
 	var persistentPreRunOnce sync.Once
 	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
-		var err error
+		var retErr error
 		persistentPreRunOnce.Do(func() {
 			ctx, cancel := context.WithCancel(cmd.Context())
 			cmd.SetContext(ctx)
@@ -47,7 +47,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
 			opts = append(opts, command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider())
-			err = tcmd.Initialize(opts...)
+			retErr = tcmd.Initialize(opts...)
 			ogRunE := cmd.RunE
 			if ogRunE == nil {
 				ogRun := cmd.Run
@@ -67,7 +67,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 				return err
 			}
 		})
-		return err
+		return retErr
 	}
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
