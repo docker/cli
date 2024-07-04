@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
@@ -29,6 +30,7 @@ func NewRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(cmd.Context(), dockerCli, opts, args)
 		},
+		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
 			"aliases": "docker image rm, docker image remove, docker rmi",
 		},
