@@ -86,6 +86,16 @@ mod-outdated: ## check outdated dependencies
 authors: ## generate AUTHORS file from git history
 	scripts/docs/generate-authors.sh
 
+.PHONY: completion
+completion: binary
+completion: /etc/bash_completion.d/docker
+completion: ## generate and install the completion scripts
+
+.PHONY: /etc/bash_completion.d/docker
+/etc/bash_completion.d/docker: ## generate and install the bash-completion script
+	mkdir -p /etc/bash_completion.d
+	docker completion bash > /etc/bash_completion.d/docker
+
 .PHONY: manpages
 manpages: ## generate man pages from go source and markdown
 	scripts/docs/generate-man.sh
