@@ -1,6 +1,7 @@
 package cliplugins
 
 import (
+	"errors"
 	"io"
 	"os/exec"
 	"strings"
@@ -131,7 +132,12 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 				assert.NilError(t, err, "failed to signal process group")
 			}()
 			out, err := command.CombinedOutput()
-			assert.ErrorContains(t, err, "exit status 1")
+
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 1))
+			assert.Check(t, is.ErrorContains(err, "exit status 1"))
 
 			// the plugin process does not receive a SIGINT and does
 			// the CLI cannot cancel it over the socket, so it kills
@@ -188,7 +194,12 @@ func TestPluginSocketCommunication(t *testing.T) {
 				assert.NilError(t, err, "failed to signal CLI process")
 			}()
 			out, err := command.CombinedOutput()
-			assert.ErrorContains(t, err, "exit status 2")
+
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 2))
+			assert.Check(t, is.ErrorContains(err, "exit status 2"))
 
 			// the plugin does not get signalled, but it does get its
 			// context canceled by the CLI through the socket
@@ -222,7 +233,12 @@ func TestPluginSocketCommunication(t *testing.T) {
 				assert.NilError(t, err, "failed to signal CLI process§")
 			}()
 			out, err := command.CombinedOutput()
-			assert.ErrorContains(t, err, "exit status 1")
+
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 1))
+			assert.Check(t, is.ErrorContains(err, "exit status 1"))
 
 			// the plugin process does not receive a SIGINT and does
 			// not exit after having it's context canceled, so the CLI
