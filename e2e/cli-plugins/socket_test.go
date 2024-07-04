@@ -11,6 +11,7 @@ import (
 
 	"github.com/creack/pty"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 // TestPluginSocketBackwardsCompatible executes a plugin binary
@@ -194,9 +195,11 @@ func TestPluginSocketCommunication(t *testing.T) {
 			t.Log(outB.String())
 			assert.ErrorContains(t, err, "exit status 2")
 
-			// the plugin does not get signalled, but it does get it's
-			// context cancelled by the CLI through the socket
-			assert.Equal(t, outB.String(), "context cancelled\n")
+			// the plugin does not get signalled, but it does get its
+			// context canceled by the CLI through the socket
+			const expected = "test-socket: exiting after context was done"
+			actual := strings.TrimSpace(outB.String())
+			assert.Check(t, is.Equal(actual, expected))
 		})
 
 		t.Run("the main CLI exits after 3 signals", func(t *testing.T) {
@@ -223,13 +226,13 @@ func TestPluginSocketCommunication(t *testing.T) {
 				err = syscall.Kill(command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal CLI process§")
 			}()
-			bytes, err := command.CombinedOutput()
+			out, err := command.CombinedOutput()
 			assert.ErrorContains(t, err, "exit status 1")
 
 			// the plugin process does not receive a SIGINT and does
-			// not exit after having it's context cancelled, so the CLI
+			// not exit after having it's context canceled, so the CLI
 			// kills the plugin process and forcefully exits
-			assert.Equal(t, string(bytes), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
+			assert.Equal(t, string(out), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
 		})
 	})
 }

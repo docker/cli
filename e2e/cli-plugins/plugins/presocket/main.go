@@ -39,7 +39,7 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			go func() {
 				<-cmd.Context().Done()
-				_, _ = fmt.Fprintln(dockerCli.Out(), "context cancelled")
+				_, _ = fmt.Fprintln(dockerCli.Out(), "test-no-socket: exiting after context was done")
 				os.Exit(2)
 			}()
 			signalCh := make(chan os.Signal, 10)
@@ -64,7 +64,7 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			go func() {
 				<-cmd.Context().Done()
-				_, _ = fmt.Fprintln(dockerCli.Out(), "context cancelled")
+				_, _ = fmt.Fprintln(dockerCli.Out(), "test-socket: exiting after context was done")
 				os.Exit(2)
 			}()
 			signalCh := make(chan os.Signal, 10)
