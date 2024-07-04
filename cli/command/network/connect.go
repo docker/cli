@@ -25,7 +25,7 @@ type connectOptions struct {
 	driverOpts   []string
 }
 
-func newConnectCommand(dockerCli command.Cli) *cobra.Command {
+func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 	options := connectOptions{
 		links: opts.NewListOpts(opts.ValidateLink),
 	}
@@ -37,14 +37,14 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.network = args[0]
 			options.container = args[1]
-			return runConnect(cmd.Context(), dockerCli.Client(), options)
+			return runConnect(cmd.Context(), dockerCLI.Client(), options)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				return completion.NetworkNames(dockerCli)(cmd, args, toComplete)
+				return completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
 			}
 			nw := args[0]
-			return completion.ContainerNames(dockerCli, true, not(isConnected(nw)))(cmd, args, toComplete)
+			return completion.ContainerNames(dockerCLI, true, not(isConnected(nw)))(cmd, args, toComplete)
 		},
 	}
 
