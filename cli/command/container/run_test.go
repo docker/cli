@@ -145,8 +145,10 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			err := cmd.Execute()
-			assert.Assert(t, err != nil)
-			assert.Assert(t, is.Contains(fakeCLI.ErrBuffer().String(), tc.expectedError))
+			statusErr := cli.StatusError{}
+			assert.Check(t, errors.As(err, &statusErr))
+			assert.Check(t, is.Equal(statusErr.StatusCode, 125))
+			assert.Check(t, is.ErrorContains(err, tc.expectedError))
 		})
 	}
 }
@@ -179,8 +181,8 @@ func TestRunContainerImagePullPolicyInvalid(t *testing.T) {
 
 			statusErr := cli.StatusError{}
 			assert.Check(t, errors.As(err, &statusErr))
-			assert.Equal(t, statusErr.StatusCode, 125)
-			assert.Check(t, is.Contains(dockerCli.ErrBuffer().String(), tc.ExpectedErrMsg))
+			assert.Check(t, is.Equal(statusErr.StatusCode, 125))
+			assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))
 		})
 	}
 }
