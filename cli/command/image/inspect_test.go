@@ -25,10 +25,14 @@ func TestNewInspectCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 

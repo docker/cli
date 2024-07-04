@@ -40,12 +40,16 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
-		cli.In().SetIsTerminal(tc.isTerminalIn)
-		cmd := NewLoadCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
+			cli.In().SetIsTerminal(tc.isTerminalIn)
+			cmd := NewLoadCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -53,6 +57,7 @@ func TestNewLoadCommandInvalidInput(t *testing.T) {
 	expectedError := "open *"
 	cmd := NewLoadCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"--input", "*"})
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, expectedError)
@@ -89,12 +94,15 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
-		cmd := NewLoadCommand(cli)
-		cmd.SetOut(io.Discard)
-		cmd.SetArgs(tc.args)
-		err := cmd.Execute()
-		assert.NilError(t, err)
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("load-command-success.%s.golden", tc.name))
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
+			cmd := NewLoadCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			assert.NilError(t, err)
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("load-command-success.%s.golden", tc.name))
+		})
 	}
 }

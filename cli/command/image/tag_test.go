@@ -20,6 +20,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), expectedError)
 	}
 }

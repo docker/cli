@@ -114,5 +114,7 @@ func TestNetworkRemovePromptTermination(t *testing.T) {
 	})
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"existing-network"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 }

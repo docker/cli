@@ -12,6 +12,7 @@ func TestDeployWithEmptyName(t *testing.T) {
 	cmd := newDeployCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"'   '"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }

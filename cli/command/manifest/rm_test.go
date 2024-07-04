@@ -56,6 +56,7 @@ func TestRmManifestNotCreated(t *testing.T) {
 	cmd := newRmManifestListCommand(cli)
 	cmd.SetArgs([]string{"example.com/first:1", "example.com/second:2"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err = cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/first:1")
 

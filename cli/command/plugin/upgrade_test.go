@@ -32,6 +32,8 @@ func TestUpgradePromptTermination(t *testing.T) {
 	// need to set a remote address that does not match the plugin
 	// reference sent by the `pluginInspectFunc`
 	cmd.SetArgs([]string{"foo/bar", "localhost:5000/foo/bar:v1.0.0"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 	golden.Assert(t, cli.OutBuffer().String(), "plugin-upgrade-terminate.golden")
 }

@@ -144,5 +144,6 @@ func newDummyCommand(validationFunc cobra.PositionalArgs) *cobra.Command {
 		},
 	}
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	return cmd
 }

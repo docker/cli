@@ -45,6 +45,7 @@ func TestRemoveWithEmptyName(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"good", "'   '", "alsogood"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }
@@ -157,6 +158,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	}
 	cmd := newRemoveCommand(test.NewFakeCli(cli))
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.Error(t, cmd.Execute(), "Failed to remove some resources from stack: foo")

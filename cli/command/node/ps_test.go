@@ -61,6 +61,7 @@ func TestNodePsErrors(t *testing.T) {
 			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.Error(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -133,19 +134,22 @@ func TestNodePs(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			infoFunc:           tc.infoFunc,
-			nodeInspectFunc:    tc.nodeInspectFunc,
-			taskInspectFunc:    tc.taskInspectFunc,
-			taskListFunc:       tc.taskListFunc,
-			serviceInspectFunc: tc.serviceInspectFunc,
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				infoFunc:           tc.infoFunc,
+				nodeInspectFunc:    tc.nodeInspectFunc,
+				taskInspectFunc:    tc.taskInspectFunc,
+				taskListFunc:       tc.taskListFunc,
+				serviceInspectFunc: tc.serviceInspectFunc,
+			})
+			cmd := newPsCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-ps.%s.golden", tc.name))
 		})
-		cmd := newPsCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			assert.Check(t, cmd.Flags().Set(key, value))
-		}
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-ps.%s.golden", tc.name))
 	}
 }

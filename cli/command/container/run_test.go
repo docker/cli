@@ -127,23 +127,27 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		fakeCLI := test.NewFakeCli(&fakeClient{
-			createContainerFunc: func(config *container.Config,
-				hostConfig *container.HostConfig,
-				networkingConfig *network.NetworkingConfig,
-				platform *specs.Platform,
-				containerName string,
-			) (container.CreateResponse, error) {
-				return container.CreateResponse{}, errors.New("shouldn't try to pull image")
-			},
-		}, test.EnableContentTrust)
-		fakeCLI.SetNotaryClient(tc.notaryFunc)
-		cmd := NewRunCommand(fakeCLI)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		err := cmd.Execute()
-		assert.Assert(t, err != nil)
-		assert.Assert(t, is.Contains(fakeCLI.ErrBuffer().String(), tc.expectedError))
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			fakeCLI := test.NewFakeCli(&fakeClient{
+				createContainerFunc: func(config *container.Config,
+					hostConfig *container.HostConfig,
+					networkingConfig *network.NetworkingConfig,
+					platform *specs.Platform,
+					containerName string,
+				) (container.CreateResponse, error) {
+					return container.CreateResponse{}, errors.New("shouldn't try to pull image")
+				},
+			}, test.EnableContentTrust)
+			fakeCLI.SetNotaryClient(tc.notaryFunc)
+			cmd := NewRunCommand(fakeCLI)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			err := cmd.Execute()
+			assert.Assert(t, err != nil)
+			assert.Assert(t, is.Contains(fakeCLI.ErrBuffer().String(), tc.expectedError))
+		})
 	}
 }
 
