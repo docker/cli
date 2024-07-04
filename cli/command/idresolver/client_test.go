@@ -9,7 +9,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	nodeInspectFunc    func(string) (swarm.Node, []byte, error)
 	serviceInspectFunc func(string) (swarm.Service, []byte, error)
 }

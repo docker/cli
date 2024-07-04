@@ -9,7 +9,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	volumeCreateFunc  func(volume.CreateOptions) (volume.Volume, error)
 	volumeInspectFunc func(volumeID string) (volume.Volume, error)
 	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)

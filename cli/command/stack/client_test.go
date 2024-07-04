@@ -14,7 +14,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 
 	version string
 

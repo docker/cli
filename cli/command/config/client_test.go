@@ -9,7 +9,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	configCreateFunc  func(context.Context, swarm.ConfigSpec) (types.ConfigCreateResponse, error)
 	configInspectFunc func(context.Context, string) (swarm.Config, []byte, error)
 	configListFunc    func(context.Context, types.ConfigListOptions) ([]swarm.Config, error)

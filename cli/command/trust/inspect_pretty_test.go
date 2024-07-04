@@ -26,7 +26,7 @@ import (
 // TODO(n4ss): remove common tests with the regular inspect command
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 }
 
 func (c *fakeClient) Info(context.Context) (system.Info, error) {

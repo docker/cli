@@ -8,7 +8,7 @@ import (
 )
 
 type fakeClient struct {
-	client.Client
+	client.APIClient
 	builderPruneFunc func(ctx context.Context, opts types.BuildCachePruneOptions) (*types.BuildCachePruneReport, error)
 }
 
