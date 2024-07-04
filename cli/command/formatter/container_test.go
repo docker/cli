@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -25,47 +25,47 @@ func TestContainerPsContext(t *testing.T) {
 
 	var ctx ContainerContext
 	cases := []struct {
-		container types.Container
+		container container.Summary
 		trunc     bool
 		expValue  string
 		call      func() string
 	}{
 		{
-			container: types.Container{ID: containerID},
+			container: container.Summary{ID: containerID},
 			trunc:     true,
 			expValue:  stringid.TruncateID(containerID),
 			call:      ctx.ID,
 		},
 		{
-			container: types.Container{ID: containerID},
+			container: container.Summary{ID: containerID},
 			expValue:  containerID,
 			call:      ctx.ID,
 		},
 		{
-			container: types.Container{Names: []string{"/foobar_baz"}},
+			container: container.Summary{Names: []string{"/foobar_baz"}},
 			trunc:     true,
 			expValue:  "foobar_baz",
 			call:      ctx.Names,
 		},
 		{
-			container: types.Container{Image: "ubuntu"},
+			container: container.Summary{Image: "ubuntu"},
 			trunc:     true,
 			expValue:  "ubuntu",
 			call:      ctx.Image,
 		},
 		{
-			container: types.Container{Image: "verylongimagename"},
+			container: container.Summary{Image: "verylongimagename"},
 			trunc:     true,
 			expValue:  "verylongimagename",
 			call:      ctx.Image,
 		},
 		{
-			container: types.Container{Image: "verylongimagename"},
+			container: container.Summary{Image: "verylongimagename"},
 			expValue:  "verylongimagename",
 			call:      ctx.Image,
 		},
 		{
-			container: types.Container{
+			container: container.Summary{
 				Image:   "a5a665ff33eced1e0803148700880edab4",
 				ImageID: "a5a665ff33eced1e0803148700880edab4269067ed77e27737a708d0d293fbf5",
 			},
@@ -74,7 +74,7 @@ func TestContainerPsContext(t *testing.T) {
 			call:     ctx.Image,
 		},
 		{
-			container: types.Container{
+			container: container.Summary{
 				Image:   "a5a665ff33eced1e0803148700880edab4",
 				ImageID: "a5a665ff33eced1e0803148700880edab4269067ed77e27737a708d0d293fbf5",
 			},
@@ -82,67 +82,67 @@ func TestContainerPsContext(t *testing.T) {
 			call:     ctx.Image,
 		},
 		{
-			container: types.Container{Image: ""},
+			container: container.Summary{Image: ""},
 			trunc:     true,
 			expValue:  "<no image>",
 			call:      ctx.Image,
 		},
 		{
-			container: types.Container{Command: "sh -c 'ls -la'"},
+			container: container.Summary{Command: "sh -c 'ls -la'"},
 			trunc:     true,
 			expValue:  `"sh -c 'ls -la'"`,
 			call:      ctx.Command,
 		},
 		{
-			container: types.Container{Created: unix},
+			container: container.Summary{Created: unix},
 			trunc:     true,
 			expValue:  time.Unix(unix, 0).String(),
 			call:      ctx.CreatedAt,
 		},
 		{
-			container: types.Container{Ports: []types.Port{{PrivatePort: 8080, PublicPort: 8080, Type: "tcp"}}},
+			container: container.Summary{Ports: []container.Port{{PrivatePort: 8080, PublicPort: 8080, Type: "tcp"}}},
 			trunc:     true,
 			expValue:  "8080/tcp",
 			call:      ctx.Ports,
 		},
 		{
-			container: types.Container{Status: "RUNNING"},
+			container: container.Summary{Status: "RUNNING"},
 			trunc:     true,
 			expValue:  "RUNNING",
 			call:      ctx.Status,
 		},
 		{
-			container: types.Container{SizeRw: 10},
+			container: container.Summary{SizeRw: 10},
 			trunc:     true,
 			expValue:  "10B",
 			call:      ctx.Size,
 		},
 		{
-			container: types.Container{SizeRw: 10, SizeRootFs: 20},
+			container: container.Summary{SizeRw: 10, SizeRootFs: 20},
 			trunc:     true,
 			expValue:  "10B (virtual 20B)",
 			call:      ctx.Size,
 		},
 		{
-			container: types.Container{},
+			container: container.Summary{},
 			trunc:     true,
 			call:      ctx.Labels,
 		},
 		{
-			container: types.Container{Labels: map[string]string{"cpu": "6", "storage": "ssd"}},
+			container: container.Summary{Labels: map[string]string{"cpu": "6", "storage": "ssd"}},
 			trunc:     true,
 			expValue:  "cpu=6,storage=ssd",
 			call:      ctx.Labels,
 		},
 		{
-			container: types.Container{Created: unix},
+			container: container.Summary{Created: unix},
 			trunc:     true,
 			expValue:  "About a minute ago",
 			call:      ctx.RunningFor,
 		},
 		{
-			container: types.Container{
-				Mounts: []types.MountPoint{
+			container: container.Summary{
+				Mounts: []container.MountPoint{
 					{
 						Name:   "this-is-a-long-volume-name-and-will-be-truncated-if-trunc-is-set",
 						Driver: "local",
@@ -155,8 +155,8 @@ func TestContainerPsContext(t *testing.T) {
 			call:     ctx.Mounts,
 		},
 		{
-			container: types.Container{
-				Mounts: []types.MountPoint{
+			container: container.Summary{
+				Mounts: []container.MountPoint{
 					{
 						Driver: "local",
 						Source: "/a/path",
@@ -167,8 +167,8 @@ func TestContainerPsContext(t *testing.T) {
 			call:     ctx.Mounts,
 		},
 		{
-			container: types.Container{
-				Mounts: []types.MountPoint{
+			container: container.Summary{
+				Mounts: []container.MountPoint{
 					{
 						Name:   "733908409c91817de8e92b0096373245f329f19a88e2c849f02460e9b3d1c203",
 						Driver: "local",
@@ -191,7 +191,7 @@ func TestContainerPsContext(t *testing.T) {
 		}
 	}
 
-	c1 := types.Container{Labels: map[string]string{"com.docker.swarm.swarm-id": "33", "com.docker.swarm.node_name": "ubuntu"}}
+	c1 := container.Summary{Labels: map[string]string{"com.docker.swarm.swarm-id": "33", "com.docker.swarm.node_name": "ubuntu"}}
 	ctx = ContainerContext{c: c1, trunc: true}
 
 	sid := ctx.Label("com.docker.swarm.swarm-id")
@@ -204,7 +204,7 @@ func TestContainerPsContext(t *testing.T) {
 		t.Fatalf("Expected ubuntu, was %s\n", node)
 	}
 
-	c2 := types.Container{}
+	c2 := container.Summary{}
 	ctx = ContainerContext{c: c2, trunc: true}
 
 	label := ctx.Label("anything.really")
@@ -340,7 +340,7 @@ size: 0B
 		},
 	}
 
-	containers := []types.Container{
+	containers := []container.Summary{
 		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: "running"},
 		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: "running"},
 	}
@@ -362,7 +362,7 @@ size: 0B
 
 func TestContainerContextWriteWithNoContainers(t *testing.T) {
 	out := bytes.NewBufferString("")
-	containers := []types.Container{}
+	containers := []container.Summary{}
 
 	cases := []struct {
 		context  Context
@@ -424,7 +424,7 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 
 func TestContainerContextWriteJSON(t *testing.T) {
 	unix := time.Now().Add(-65 * time.Second).Unix()
-	containers := []types.Container{
+	containers := []container.Summary{
 		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: "running"},
 		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: "running"},
 	}
@@ -478,7 +478,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 }
 
 func TestContainerContextWriteJSONField(t *testing.T) {
-	containers := []types.Container{
+	containers := []container.Summary{
 		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu"},
 		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu"},
 	}
@@ -497,7 +497,7 @@ func TestContainerContextWriteJSONField(t *testing.T) {
 }
 
 func TestContainerBackCompat(t *testing.T) {
-	containers := []types.Container{{ID: "brewhaha"}}
+	containers := []container.Summary{{ID: "brewhaha"}}
 	cases := []string{
 		"ID",
 		"Names",
@@ -523,7 +523,7 @@ func TestContainerBackCompat(t *testing.T) {
 }
 
 type ports struct {
-	ports    []types.Port
+	ports    []container.Port
 	expected string
 }
 
@@ -531,7 +531,7 @@ type ports struct {
 func TestDisplayablePorts(t *testing.T) {
 	cases := []ports{
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 9988,
 					Type:        "tcp",
@@ -540,7 +540,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9988/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 9988,
 					Type:        "udp",
@@ -549,7 +549,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9988/udp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "0.0.0.0",
 					PrivatePort: 9988,
@@ -559,7 +559,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "0.0.0.0:0->9988/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 9988,
 					PublicPort:  8899,
@@ -569,7 +569,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9988/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "4.3.2.1",
 					PrivatePort: 9988,
@@ -580,7 +580,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "4.3.2.1:8899->9988/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "4.3.2.1",
 					PrivatePort: 9988,
@@ -591,7 +591,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "4.3.2.1:9988->9988/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 9988,
 					Type:        "udp",
@@ -603,7 +603,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9988/udp, 9988/udp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "1.2.3.4",
 					PublicPort:  9998,
@@ -619,7 +619,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "1.2.3.4:9998-9999->9998-9999/udp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "1.2.3.4",
 					PublicPort:  8887,
@@ -635,7 +635,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "1.2.3.4:8887->9998/udp, 1.2.3.4:8888->9999/udp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 9998,
 					Type:        "udp",
@@ -647,7 +647,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9998-9999/udp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "1.2.3.4",
 					PrivatePort: 6677,
@@ -662,7 +662,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9988/udp, 1.2.3.4:7766->6677/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					IP:          "1.2.3.4",
 					PrivatePort: 9988,
@@ -683,7 +683,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "4.3.2.1:3322->2233/tcp, 1.2.3.4:8899->9988/tcp, 1.2.3.4:8899->9988/udp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 9988,
 					PublicPort:  8899,
@@ -703,7 +703,7 @@ func TestDisplayablePorts(t *testing.T) {
 			expected: "9988/udp, 4.3.2.1:3322->2233/tcp, 1.2.3.4:7766->6677/tcp",
 		},
 		{
-			ports: []types.Port{
+			ports: []container.Port{
 				{
 					PrivatePort: 80,
 					Type:        "tcp",

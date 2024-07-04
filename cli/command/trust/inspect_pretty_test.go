@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
@@ -33,8 +32,8 @@ func (c *fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (c *fakeClient) ImageInspectWithRaw(context.Context, string) (types.ImageInspect, []byte, error) {
-	return types.ImageInspect{}, []byte{}, nil
+func (c *fakeClient) ImageInspectWithRaw(context.Context, string) (image.InspectResponse, []byte, error) {
+	return image.InspectResponse{}, []byte{}, nil
 }
 
 func (c *fakeClient) ImagePush(context.Context, string, image.PushOptions) (io.ReadCloser, error) {

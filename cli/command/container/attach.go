@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
@@ -23,7 +22,7 @@ type AttachOptions struct {
 	DetachKeys string
 }
 
-func inspectContainerAndCheckState(ctx context.Context, apiClient client.APIClient, args string) (*types.ContainerJSON, error) {
+func inspectContainerAndCheckState(ctx context.Context, apiClient client.APIClient, args string) (*container.InspectResponse, error) {
 	c, err := apiClient.ContainerInspect(ctx, args)
 	if err != nil {
 		return nil, err
@@ -56,7 +55,7 @@ func NewAttachCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container attach, docker attach",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, false, func(ctr types.Container) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false, func(ctr container.Summary) bool {
 			return ctr.State != "paused"
 		}),
 	}

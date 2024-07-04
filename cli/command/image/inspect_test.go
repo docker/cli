@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -42,39 +42,39 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		name             string
 		args             []string
 		imageCount       int
-		imageInspectFunc func(img string) (types.ImageInspect, []byte, error)
+		imageInspectFunc func(img string) (image.InspectResponse, []byte, error)
 	}{
 		{
 			name:       "simple",
 			args:       []string{"image"},
 			imageCount: 1,
-			imageInspectFunc: func(img string) (types.ImageInspect, []byte, error) {
+			imageInspectFunc: func(img string) (image.InspectResponse, []byte, error) {
 				imageInspectInvocationCount++
 				assert.Check(t, is.Equal("image", img))
-				return types.ImageInspect{}, nil, nil
+				return image.InspectResponse{}, nil, nil
 			},
 		},
 		{
 			name:       "format",
 			imageCount: 1,
 			args:       []string{"--format='{{.ID}}'", "image"},
-			imageInspectFunc: func(img string) (types.ImageInspect, []byte, error) {
+			imageInspectFunc: func(img string) (image.InspectResponse, []byte, error) {
 				imageInspectInvocationCount++
-				return types.ImageInspect{ID: img}, nil, nil
+				return image.InspectResponse{ID: img}, nil, nil
 			},
 		},
 		{
 			name:       "simple-many",
 			args:       []string{"image1", "image2"},
 			imageCount: 2,
-			imageInspectFunc: func(img string) (types.ImageInspect, []byte, error) {
+			imageInspectFunc: func(img string) (image.InspectResponse, []byte, error) {
 				imageInspectInvocationCount++
 				if imageInspectInvocationCount == 1 {
 					assert.Check(t, is.Equal("image1", img))
 				} else {
 					assert.Check(t, is.Equal("image2", img))
 				}
-				return types.ImageInspect{}, nil, nil
+				return image.InspectResponse{}, nil, nil
 			},
 		},
 	}

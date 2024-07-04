@@ -9,6 +9,7 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/volume"
 	units "github.com/docker/go-units"
@@ -36,7 +37,7 @@ type DiskUsageContext struct {
 	Verbose     bool
 	LayersSize  int64
 	Images      []*image.Summary
-	Containers  []*types.Container
+	Containers  []*container.Summary
 	Volumes     []*volume.Volume
 	BuildCache  []*types.BuildCache
 	BuilderSize int64
@@ -124,7 +125,7 @@ func (ctx *DiskUsageContext) Write() (err error) {
 		return err
 	}
 
-	diskUsageContainersCtx := diskUsageContainersContext{containers: []*types.Container{}}
+	diskUsageContainersCtx := diskUsageContainersContext{containers: []*container.Summary{}}
 	diskUsageContainersCtx.Header = SubHeaderContext{
 		"Type":        typeHeader,
 		"TotalCount":  totalHeader,
@@ -313,7 +314,7 @@ func (c *diskUsageImagesContext) Reclaimable() string {
 
 type diskUsageContainersContext struct {
 	HeaderContext
-	containers []*types.Container
+	containers []*container.Summary
 }
 
 func (c *diskUsageContainersContext) MarshalJSON() ([]byte, error) {
@@ -328,10 +329,10 @@ func (c *diskUsageContainersContext) TotalCount() string {
 	return strconv.Itoa(len(c.containers))
 }
 
-func (c *diskUsageContainersContext) isActive(container types.Container) bool {
-	return strings.Contains(container.State, "running") ||
-		strings.Contains(container.State, "paused") ||
-		strings.Contains(container.State, "restarting")
+func (c *diskUsageContainersContext) isActive(ctr container.Summary) bool {
+	return strings.Contains(ctr.State, "running") ||
+		strings.Contains(ctr.State, "paused") ||
+		strings.Contains(ctr.State, "restarting")
 }
 
 func (c *diskUsageContainersContext) Active() string {

@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
@@ -48,8 +48,8 @@ func runDisconnect(ctx context.Context, apiClient client.NetworkAPIClient, opts 
 	return apiClient.NetworkDisconnect(ctx, opts.network, opts.container, opts.force)
 }
 
-func isConnected(network string) func(types.Container) bool {
-	return func(ctr types.Container) bool {
+func isConnected(network string) func(container.Summary) bool {
+	return func(ctr container.Summary) bool {
 		if ctr.NetworkSettings == nil {
 			return false
 		}
@@ -58,8 +58,8 @@ func isConnected(network string) func(types.Container) bool {
 	}
 }
 
-func not(fn func(types.Container) bool) func(types.Container) bool {
-	return func(ctr types.Container) bool {
+func not(fn func(container.Summary) bool) func(container.Summary) bool {
+	return func(ctr container.Summary) bool {
 		ok := fn(ctr)
 		return !ok
 	}
