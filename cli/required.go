@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -14,7 +12,13 @@ func NoArgs(cmd *cobra.Command, args []string) error {
 	}
 
 	if cmd.HasSubCommands() {
-		return errors.Errorf("\n" + strings.TrimRight(cmd.UsageString(), "\n"))
+		return errors.Errorf(
+			"%[1]s: unknown command: %[2]s %[3]s\n\nUsage:  %[4]s\n\nRun '%[2]s --help' for more information",
+			binName(cmd),
+			cmd.CommandPath(),
+			args[0],
+			cmd.UseLine(),
+		)
 	}
 
 	return errors.Errorf(
@@ -97,6 +101,11 @@ func ExactArgs(number int) cobra.PositionalArgs {
 			cmd.Short,
 		)
 	}
+}
+
+// binName returns the name of the binary / root command (usually 'docker').
+func binName(cmd *cobra.Command) string {
+	return cmd.Root().Name()
 }
 
 //nolint:unparam

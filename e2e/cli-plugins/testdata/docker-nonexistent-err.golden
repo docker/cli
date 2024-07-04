@@ -1,2 +1,3 @@
-docker: 'nonexistent' is not a docker command.
-See 'docker --help'
+docker: unknown command: docker nonexistent
+
+Run 'docker --help' for more information
