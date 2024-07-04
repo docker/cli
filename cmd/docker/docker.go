@@ -29,42 +29,41 @@ import (
 )
 
 func main() {
-	statusCode := dockerMain()
-	if statusCode != 0 {
-		os.Exit(statusCode)
+	err := dockerMain(context.Background())
+	if err != nil && !errdefs.IsCancelled(err) {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(getExitCode(err))
 	}
 }
 
-func dockerMain() int {
-	ctx, cancelNotify := signal.NotifyContext(context.Background(), platformsignals.TerminationSignals...)
+func dockerMain(ctx context.Context) error {
+	ctx, cancelNotify := signal.NotifyContext(ctx, platformsignals.TerminationSignals...)
 	defer cancelNotify()
 
 	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return err
 	}
 	logrus.SetOutput(dockerCli.Err())
 	otel.SetErrorHandler(debug.OTELErrorHandler)
 
-	if err := runDocker(ctx, dockerCli); err != nil {
-		var stErr cli.StatusError
-		if errors.As(err, &stErr) {
-			// StatusError should only be used for errors, and all errors should
-			// have a non-zero exit status, so never exit with 0
-			if stErr.StatusCode == 0 { // FIXME(thaJeztah): StatusCode should never be used with a zero status-code. Check if we do this anywhere.
-				stErr.StatusCode = 1
-			}
-			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
-			return stErr.StatusCode
-		}
-		if errdefs.IsCancelled(err) {
-			return 0
-		}
-		fmt.Fprintln(dockerCli.Err(), err)
-		return 1
+	return runDocker(ctx, dockerCli)
+}
+
+// getExitCode returns the exit-code to use for the given error.
+// If err is a [cli.StatusError] and has a StatusCode set, it uses the
+// status-code from it, otherwise it returns "1" for any error.
+func getExitCode(err error) int {
+	if err == nil {
+		return 0
 	}
-	return 0
+	var stErr cli.StatusError
+	if errors.As(err, &stErr) && stErr.StatusCode != 0 { // FIXME(thaJeztah): StatusCode should never be used with a zero status-code. Check if we do this anywhere.
+		return stErr.StatusCode
+	}
+
+	// No status-code provided; all errors should have a non-zero exit code.
+	return 1
 }
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
