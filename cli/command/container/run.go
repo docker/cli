@@ -73,9 +73,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	_ = cmd.RegisterFlagCompletionFunc("env", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
 		return os.Environ(), cobra.ShellCompDirectiveNoFileComp
 	})
-	_ = cmd.RegisterFlagCompletionFunc("env-file", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
-		return nil, cobra.ShellCompDirectiveDefault
-	})
+	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCli))
 	return cmd
 }

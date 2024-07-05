@@ -82,9 +82,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 	_ = cmd.RegisterFlagCompletionFunc("env", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
 		return os.Environ(), cobra.ShellCompDirectiveNoFileComp
 	})
-	_ = cmd.RegisterFlagCompletionFunc("env-file", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
-		return nil, cobra.ShellCompDirectiveDefault // _filedir
-	})
+	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 
 	return cmd
 }
