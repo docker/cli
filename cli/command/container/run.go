@@ -75,6 +75,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCli))
 	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
+	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
 	return cmd
 }
 

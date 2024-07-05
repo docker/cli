@@ -2,6 +2,7 @@ package container
 
 import (
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/container"
 	"github.com/spf13/cobra"
 )
 
@@ -64,6 +65,20 @@ var allLinuxCapabilities = []string{
 	"CAP_CHECKPOINT_RESTORE",
 }
 
+// restartPolicies is a list of all valid restart-policies..
+//
+// TODO(thaJeztah): add descriptions, and enable descriptions for our completion scripts (cobra.CompletionOptions.DisableDescriptions is currently set to "true")
+var restartPolicies = []string{
+	string(container.RestartPolicyDisabled),
+	string(container.RestartPolicyAlways),
+	string(container.RestartPolicyOnFailure),
+	string(container.RestartPolicyUnlessStopped),
+}
+
 func completeLinuxCapabilityNames(cmd *cobra.Command, args []string, toComplete string) (names []string, _ cobra.ShellCompDirective) {
 	return completion.FromList(allLinuxCapabilities...)(cmd, args, toComplete)
+}
+
+func completeRestartPolicies(cmd *cobra.Command, args []string, toComplete string) (names []string, _ cobra.ShellCompDirective) {
+	return completion.FromList(restartPolicies...)(cmd, args, toComplete)
 }
