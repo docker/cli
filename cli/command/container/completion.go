@@ -3,6 +3,7 @@ package container
 import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
+	"github.com/moby/sys/signal"
 	"github.com/spf13/cobra"
 )
 
@@ -81,4 +82,13 @@ func completeLinuxCapabilityNames(cmd *cobra.Command, args []string, toComplete 
 
 func completeRestartPolicies(cmd *cobra.Command, args []string, toComplete string) (names []string, _ cobra.ShellCompDirective) {
 	return completion.FromList(restartPolicies...)(cmd, args, toComplete)
+}
+
+func completeSignals(cmd *cobra.Command, args []string, toComplete string) (names []string, _ cobra.ShellCompDirective) {
+	// TODO(thaJeztah): do we want to provide the full list here, or a subset?
+	signalNames := make([]string, 0, len(signal.SignalMap))
+	for k := range signal.SignalMap {
+		signalNames = append(signalNames, k)
+	}
+	return completion.FromList(signalNames...)(cmd, args, toComplete)
 }
