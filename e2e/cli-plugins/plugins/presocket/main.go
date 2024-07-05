@@ -39,18 +39,18 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			go func() {
 				<-cmd.Context().Done()
-				fmt.Fprintln(dockerCli.Out(), "context cancelled")
+				_, _ = fmt.Fprintln(dockerCli.Out(), "context cancelled")
 				os.Exit(2)
 			}()
 			signalCh := make(chan os.Signal, 10)
 			signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 			go func() {
 				for range signalCh {
-					fmt.Fprintln(dockerCli.Out(), "received SIGINT")
+					_, _ = fmt.Fprintln(dockerCli.Out(), "received SIGINT")
 				}
 			}()
 			<-time.After(3 * time.Second)
-			fmt.Fprintln(dockerCli.Err(), "exit after 3 seconds")
+			_, _ = fmt.Fprintln(dockerCli.Err(), "exit after 3 seconds")
 			return nil
 		},
 	})
@@ -64,18 +64,18 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			go func() {
 				<-cmd.Context().Done()
-				fmt.Fprintln(dockerCli.Out(), "context cancelled")
+				_, _ = fmt.Fprintln(dockerCli.Out(), "context cancelled")
 				os.Exit(2)
 			}()
 			signalCh := make(chan os.Signal, 10)
 			signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 			go func() {
 				for range signalCh {
-					fmt.Fprintln(dockerCli.Out(), "received SIGINT")
+					_, _ = fmt.Fprintln(dockerCli.Out(), "received SIGINT")
 				}
 			}()
 			<-time.After(3 * time.Second)
-			fmt.Fprintln(dockerCli.Err(), "exit after 3 seconds")
+			_, _ = fmt.Fprintln(dockerCli.Err(), "exit after 3 seconds")
 			return nil
 		},
 	})
@@ -91,11 +91,11 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 			signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 			go func() {
 				for range signalCh {
-					fmt.Fprintln(dockerCli.Out(), "received SIGINT")
+					_, _ = fmt.Fprintln(dockerCli.Out(), "received SIGINT")
 				}
 			}()
 			<-time.After(3 * time.Second)
-			fmt.Fprintln(dockerCli.Err(), "exit after 3 seconds")
+			_, _ = fmt.Fprintln(dockerCli.Err(), "exit after 3 seconds")
 			return nil
 		},
 	})
@@ -113,7 +113,7 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 			select {
 			case <-done:
 			case <-time.After(2 * time.Second):
-				fmt.Fprint(dockerCli.Err(), "timeout after 2 seconds")
+				_, _ = fmt.Fprint(dockerCli.Err(), "timeout after 2 seconds")
 			}
 			return nil
 		},
