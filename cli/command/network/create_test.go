@@ -21,7 +21,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 		expectedError     string
 	}{
 		{
-			expectedError: "exactly 1 argument",
+			expectedError: "1 argument",
 		},
 		{
 			args: []string{"toto"},

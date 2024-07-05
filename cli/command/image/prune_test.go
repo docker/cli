@@ -27,7 +27,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 		{
 			name:          "wrong-args",
 			args:          []string{"something"},
-			expectedError: "accepts no arguments.",
+			expectedError: "accepts no arguments",
 		},
 		{
 			name:          "prune-error",

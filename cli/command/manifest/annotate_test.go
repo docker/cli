@@ -18,7 +18,7 @@ func TestManifestAnnotateError(t *testing.T) {
 	}{
 		{
 			args:          []string{"too-few-arguments"},
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires 2 arguments",
 		},
 		{
 			args:          []string{"th!si'sa/fa!ke/li$t/name", "example.com/alpine:3.0"},
