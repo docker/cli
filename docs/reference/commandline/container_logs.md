@@ -11,11 +11,11 @@ Fetch the logs of a container
 
 | Name                 | Type     | Default | Description                                                                                        |
 |:---------------------|:---------|:--------|:---------------------------------------------------------------------------------------------------|
-| `--details`          |          |         | Show extra details provided to logs                                                                |
-| `-f`, `--follow`     |          |         | Follow log output                                                                                  |
+| `--details`          | `bool`   |         | Show extra details provided to logs                                                                |
+| `-f`, `--follow`     | `bool`   |         | Follow log output                                                                                  |
 | `--since`            | `string` |         | Show logs since timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes)    |
 | `-n`, `--tail`       | `string` | `all`   | Number of lines to show from the end of the logs                                                   |
-| `-t`, `--timestamps` |          |         | Show timestamps                                                                                    |
+| `-t`, `--timestamps` | `bool`   |         | Show timestamps                                                                                    |
 | [`--until`](#until)  | `string` |         | Show logs before a timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes) |
 
 

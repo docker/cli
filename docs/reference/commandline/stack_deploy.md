@@ -13,10 +13,10 @@ Deploy a new stack or update an existing stack
 |:---------------------------------------------------------|:--------------|:---------|:--------------------------------------------------------------------------------------------------|
 | [`-c`](#compose-file), [`--compose-file`](#compose-file) | `stringSlice` |          | Path to a Compose file, or `-` to read from stdin                                                 |
 | `-d`, `--detach`                                         | `bool`        | `true`   | Exit immediately instead of waiting for the stack services to converge                            |
-| `--prune`                                                |               |          | Prune services that are no longer referenced                                                      |
-| `-q`, `--quiet`                                          |               |          | Suppress progress output                                                                          |
+| `--prune`                                                | `bool`        |          | Prune services that are no longer referenced                                                      |
+| `-q`, `--quiet`                                          | `bool`        |          | Suppress progress output                                                                          |
 | `--resolve-image`                                        | `string`      | `always` | Query the registry to resolve image digest and supported platforms (`always`, `changed`, `never`) |
-| `--with-registry-auth`                                   |               |          | Send registry authentication details to Swarm agents                                              |
+| `--with-registry-auth`                                   | `bool`        |          | Send registry authentication details to Swarm agents                                              |
 
 
 <!---MARKER_GEN_END-->

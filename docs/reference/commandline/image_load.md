@@ -12,7 +12,7 @@ Load an image from a tar archive or STDIN
 | Name                                | Type     | Default | Description                                  |
 |:------------------------------------|:---------|:--------|:---------------------------------------------|
 | [`-i`](#input), [`--input`](#input) | `string` |         | Read from tar archive file, instead of STDIN |
-| `-q`, `--quiet`                     |          |         | Suppress the load output                     |
+| `-q`, `--quiet`                     | `bool`   |         | Suppress the load output                     |
 
 
 <!---MARKER_GEN_END-->

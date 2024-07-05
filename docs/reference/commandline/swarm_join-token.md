@@ -5,10 +5,10 @@ Manage join tokens
 
 ### Options
 
-| Name            | Type | Default | Description        |
-|:----------------|:-----|:--------|:-------------------|
-| `-q`, `--quiet` |      |         | Only display token |
-| `--rotate`      |      |         | Rotate join token  |
+| Name            | Type   | Default | Description        |
+|:----------------|:-------|:--------|:-------------------|
+| `-q`, `--quiet` | `bool` |         | Only display token |
+| `--rotate`      | `bool` |         | Rotate join token  |
 
 
 <!---MARKER_GEN_END-->

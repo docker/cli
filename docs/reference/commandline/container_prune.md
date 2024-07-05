@@ -8,7 +8,7 @@ Remove all stopped containers
 | Name                  | Type     | Default | Description                                      |
 |:----------------------|:---------|:--------|:-------------------------------------------------|
 | [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
-| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                   |
 
 
 <!---MARKER_GEN_END-->

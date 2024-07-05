@@ -7,18 +7,18 @@ Create a network
 
 | Name                      | Type          | Default   | Description                                             |
 |:--------------------------|:--------------|:----------|:--------------------------------------------------------|
-| `--attachable`            |               |           | Enable manual container attachment                      |
+| `--attachable`            | `bool`        |           | Enable manual container attachment                      |
 | `--aux-address`           | `map`         | `map[]`   | Auxiliary IPv4 or IPv6 addresses used by Network driver |
 | `--config-from`           | `string`      |           | The network from which to copy the configuration        |
-| `--config-only`           |               |           | Create a configuration only network                     |
+| `--config-only`           | `bool`        |           | Create a configuration only network                     |
 | `-d`, `--driver`          | `string`      | `bridge`  | Driver to manage the Network                            |
 | `--gateway`               | `stringSlice` |           | IPv4 or IPv6 Gateway for the master subnet              |
-| [`--ingress`](#ingress)   |               |           | Create swarm routing-mesh network                       |
-| [`--internal`](#internal) |               |           | Restrict external access to the network                 |
+| [`--ingress`](#ingress)   | `bool`        |           | Create swarm routing-mesh network                       |
+| [`--internal`](#internal) | `bool`        |           | Restrict external access to the network                 |
 | `--ip-range`              | `stringSlice` |           | Allocate container ip from a sub-range                  |
 | `--ipam-driver`           | `string`      | `default` | IP Address Management Driver                            |
 | `--ipam-opt`              | `map`         | `map[]`   | Set IPAM driver specific options                        |
-| `--ipv6`                  |               |           | Enable or disable IPv6 networking                       |
+| `--ipv6`                  | `bool`        |           | Enable or disable IPv6 networking                       |
 | `--label`                 | `list`        |           | Set metadata on a network                               |
 | `-o`, `--opt`             | `map`         | `map[]`   | Set driver specific options                             |
 | `--scope`                 | `string`      |           | Control the network's scope                             |
