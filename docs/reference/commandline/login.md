@@ -9,7 +9,7 @@ If no server is specified, the default is defined by the daemon.
 | Name                                  | Type     | Default | Description                  |
 |:--------------------------------------|:---------|:--------|:-----------------------------|
 | `-p`, `--password`                    | `string` |         | Password                     |
-| [`--password-stdin`](#password-stdin) |          |         | Take the password from stdin |
+| [`--password-stdin`](#password-stdin) | `bool`   |         | Take the password from stdin |
 | `-u`, `--username`                    | `string` |         | Username                     |
 
 

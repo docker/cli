@@ -5,9 +5,9 @@ Disconnect a container from a network
 
 ### Options
 
-| Name            | Type | Default | Description                                      |
-|:----------------|:-----|:--------|:-------------------------------------------------|
-| `-f`, `--force` |      |         | Force the container to disconnect from a network |
+| Name            | Type   | Default | Description                                      |
+|:----------------|:-------|:--------|:-------------------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the container to disconnect from a network |
 
 
 <!---MARKER_GEN_END-->

@@ -5,9 +5,9 @@ Remove trust for an image
 
 ### Options
 
-| Name          | Type | Default | Description                    |
-|:--------------|:-----|:--------|:-------------------------------|
-| `-y`, `--yes` |      |         | Do not prompt for confirmation |
+| Name          | Type   | Default | Description                    |
+|:--------------|:-------|:--------|:-------------------------------|
+| `-y`, `--yes` | `bool` |         | Do not prompt for confirmation |
 
 
 <!---MARKER_GEN_END-->

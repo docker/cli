@@ -11,9 +11,9 @@ Remove one or more volumes. You cannot remove a volume that is in use by a conta
 
 ### Options
 
-| Name            | Type | Default | Description                              |
-|:----------------|:-----|:--------|:-----------------------------------------|
-| `-f`, `--force` |      |         | Force the removal of one or more volumes |
+| Name            | Type   | Default | Description                              |
+|:----------------|:-------|:--------|:-----------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the removal of one or more volumes |
 
 
 <!---MARKER_GEN_END-->

@@ -8,8 +8,8 @@ Upgrade an existing plugin
 | Name                      | Type   | Default | Description                                                           |
 |:--------------------------|:-------|:--------|:----------------------------------------------------------------------|
 | `--disable-content-trust` | `bool` | `true`  | Skip image verification                                               |
-| `--grant-all-permissions` |        |         | Grant all permissions necessary to run the plugin                     |
-| `--skip-remote-check`     |        |         | Do not check if specified remote plugin matches existing plugin image |
+| `--grant-all-permissions` | `bool` |         | Grant all permissions necessary to run the plugin                     |
+| `--skip-remote-check`     | `bool` |         | Do not check if specified remote plugin matches existing plugin image |
 
 
 <!---MARKER_GEN_END-->

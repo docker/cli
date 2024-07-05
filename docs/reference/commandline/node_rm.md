@@ -9,9 +9,9 @@ Remove one or more nodes from the swarm
 
 ### Options
 
-| Name                                | Type | Default | Description                        |
-|:------------------------------------|:-----|:--------|:-----------------------------------|
-| [`-f`](#force), [`--force`](#force) |      |         | Force remove a node from the swarm |
+| Name                                | Type   | Default | Description                        |
+|:------------------------------------|:-------|:--------|:-----------------------------------|
+| [`-f`](#force), [`--force`](#force) | `bool` |         | Force remove a node from the swarm |
 
 
 <!---MARKER_GEN_END-->
