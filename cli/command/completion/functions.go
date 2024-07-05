@@ -130,6 +130,11 @@ func EnvVarNames(_ *cobra.Command, _ []string, _ string) (names []string, _ cobr
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
+// FromList offers completion for the given list of options.
+func FromList(options ...string) ValidArgsFn {
+	return cobra.FixedCompletions(options, cobra.ShellCompDirectiveNoFileComp)
+}
+
 // FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
 // which indicates to let the shell perform its default behavior after
 // completions have been provided.
