@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -34,7 +35,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 
 	var persistentPreRunOnce sync.Once
 	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
-		var err error
+		var retErr error
 		persistentPreRunOnce.Do(func() {
 			ctx, cancel := context.WithCancel(cmd.Context())
 			cmd.SetContext(ctx)
@@ -46,7 +47,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
 			opts = append(opts, command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider())
-			err = tcmd.Initialize(opts...)
+			retErr = tcmd.Initialize(opts...)
 			ogRunE := cmd.RunE
 			if ogRunE == nil {
 				ogRun := cmd.Run
@@ -66,7 +67,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 				return err
 			}
 		})
-		return err
+		return retErr
 	}
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
@@ -92,18 +93,17 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 	plugin := makeCmd(dockerCli)
 
 	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
-		if sterr, ok := err.(cli.StatusError); ok {
-			if sterr.Status != "" {
-				fmt.Fprintln(dockerCli.Err(), sterr.Status)
-			}
+		var stErr cli.StatusError
+		if errors.As(err, &stErr) {
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
-			if sterr.StatusCode == 0 {
-				os.Exit(1)
+			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.
+				stErr.StatusCode = 1
 			}
-			os.Exit(sterr.StatusCode)
+			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
+			os.Exit(stErr.StatusCode)
 		}
-		fmt.Fprintln(dockerCli.Err(), err)
+		_, _ = fmt.Fprintln(dockerCli.Err(), err)
 		os.Exit(1)
 	}
 }

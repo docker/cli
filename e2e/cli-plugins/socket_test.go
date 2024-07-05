@@ -1,7 +1,7 @@
 package cliplugins
 
 import (
-	"bytes"
+	"errors"
 	"io"
 	"os/exec"
 	"strings"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/creack/pty"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 // TestPluginSocketBackwardsCompatible executes a plugin binary
@@ -37,7 +38,7 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 				err := syscall.Kill(-command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal process group")
 			}()
-			bytes, err := io.ReadAll(ptmx)
+			out, err := io.ReadAll(ptmx)
 			if err != nil && !strings.Contains(err.Error(), "input/output error") {
 				t.Fatal("failed to get command output")
 			}
@@ -45,7 +46,7 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 			// the plugin is attached to the TTY, so the parent process
 			// ignores the received signal, and the plugin receives a SIGINT
 			// as well
-			assert.Equal(t, string(bytes), "received SIGINT\r\nexit after 3 seconds\r\n")
+			assert.Equal(t, string(out), "received SIGINT\r\nexit after 3 seconds\r\n")
 		})
 
 		// ensure that we don't break plugins that attempt to read from the TTY
@@ -95,13 +96,13 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 				err := syscall.Kill(command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal process group")
 			}()
-			bytes, err := command.CombinedOutput()
-			t.Log("command output: " + string(bytes))
+			out, err := command.CombinedOutput()
+			t.Log("command output: " + string(out))
 			assert.NilError(t, err, "failed to run command")
 
 			// the plugin process does not receive a SIGINT
 			// so it exits after 3 seconds and prints this message
-			assert.Equal(t, string(bytes), "exit after 3 seconds\n")
+			assert.Equal(t, string(out), "exit after 3 seconds\n")
 		})
 
 		t.Run("the main CLI exits after 3 signals", func(t *testing.T) {
@@ -130,13 +131,18 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 				err = syscall.Kill(command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal process group")
 			}()
-			bytes, err := command.CombinedOutput()
-			assert.ErrorContains(t, err, "exit status 1")
+			out, err := command.CombinedOutput()
+
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 1))
+			assert.Check(t, is.ErrorContains(err, "exit status 1"))
 
 			// the plugin process does not receive a SIGINT and does
 			// the CLI cannot cancel it over the socket, so it kills
 			// the plugin process and forcefully exits
-			assert.Equal(t, string(bytes), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
+			assert.Equal(t, string(out), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
 		})
 	})
 }
@@ -161,7 +167,7 @@ func TestPluginSocketCommunication(t *testing.T) {
 				err := syscall.Kill(-command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal process group")
 			}()
-			bytes, err := io.ReadAll(ptmx)
+			out, err := io.ReadAll(ptmx)
 			if err != nil && !strings.Contains(err.Error(), "input/output error") {
 				t.Fatal("failed to get command output")
 			}
@@ -169,7 +175,7 @@ func TestPluginSocketCommunication(t *testing.T) {
 			// the plugin is attached to the TTY, so the parent process
 			// ignores the received signal, and the plugin receives a SIGINT
 			// as well
-			assert.Equal(t, string(bytes), "received SIGINT\r\nexit after 3 seconds\r\n")
+			assert.Equal(t, string(out), "received SIGINT\r\nexit after 3 seconds\r\n")
 		})
 	})
 
@@ -177,9 +183,6 @@ func TestPluginSocketCommunication(t *testing.T) {
 		t.Run("the plugin does not get signalled", func(t *testing.T) {
 			cmd := run("presocket", "test-socket")
 			command := exec.Command(cmd.Command[0], cmd.Command[1:]...)
-			outB := bytes.Buffer{}
-			command.Stdout = &outB
-			command.Stderr = &outB
 			command.SysProcAttr = &syscall.SysProcAttr{
 				Setpgid: true,
 			}
@@ -190,13 +193,19 @@ func TestPluginSocketCommunication(t *testing.T) {
 				err := syscall.Kill(command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal CLI process")
 			}()
-			err := command.Run()
-			t.Log(outB.String())
-			assert.ErrorContains(t, err, "exit status 2")
+			out, err := command.CombinedOutput()
 
-			// the plugin does not get signalled, but it does get it's
-			// context cancelled by the CLI through the socket
-			assert.Equal(t, outB.String(), "context cancelled\n")
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 2))
+			assert.Check(t, is.ErrorContains(err, "exit status 2"))
+
+			// the plugin does not get signalled, but it does get its
+			// context canceled by the CLI through the socket
+			const expected = "test-socket: exiting after context was done\nexit status 2"
+			actual := strings.TrimSpace(string(out))
+			assert.Check(t, is.Equal(actual, expected))
 		})
 
 		t.Run("the main CLI exits after 3 signals", func(t *testing.T) {
@@ -223,13 +232,18 @@ func TestPluginSocketCommunication(t *testing.T) {
 				err = syscall.Kill(command.Process.Pid, syscall.SIGINT)
 				assert.NilError(t, err, "failed to signal CLI process§")
 			}()
-			bytes, err := command.CombinedOutput()
-			assert.ErrorContains(t, err, "exit status 1")
+			out, err := command.CombinedOutput()
+
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 1))
+			assert.Check(t, is.ErrorContains(err, "exit status 1"))
 
 			// the plugin process does not receive a SIGINT and does
-			// not exit after having it's context cancelled, so the CLI
+			// not exit after having it's context canceled, so the CLI
 			// kills the plugin process and forcefully exits
-			assert.Equal(t, string(bytes), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
+			assert.Equal(t, string(out), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
 		})
 	})
 }
