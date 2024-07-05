@@ -38,6 +38,9 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
+
+	_ = cmd.RegisterFlagCompletionFunc("signal", completeSignals)
+
 	return cmd
 }
 
@@ -50,7 +53,7 @@ func runKill(ctx context.Context, dockerCli command.Cli, opts *killOptions) erro
 		if err := <-errChan; err != nil {
 			errs = append(errs, err.Error())
 		} else {
-			fmt.Fprintln(dockerCli.Out(), name)
+			_, _ = fmt.Fprintln(dockerCli.Out(), name)
 		}
 	}
 	if len(errs) > 0 {
