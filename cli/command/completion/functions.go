@@ -105,6 +105,13 @@ func NetworkNames(dockerCLI APIClientProvider) ValidArgsFn {
 	}
 }
 
+// FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
+// which indicates to let the shell perform its default behavior after
+// completions have been provided.
+func FileNames(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	return nil, cobra.ShellCompDirectiveDefault
+}
+
 // NoComplete is used for commands where there's no relevant completion
 func NoComplete(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 	return nil, cobra.ShellCompDirectiveNoFileComp
