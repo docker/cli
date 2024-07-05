@@ -21,7 +21,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type runOptions struct {
+// RunOptions defines run options
+type RunOptions struct {
 	createOptions
 	detach     bool
 	sigProxy   bool
@@ -30,8 +31,8 @@ type runOptions struct {
 
 // NewRunCommand create a new `docker run` command
 func NewRunCommand(dockerCli command.Cli) *cobra.Command {
-	var options runOptions
-	var copts *containerOptions
+	var options *RunOptions
+	var copts *ContainerOptions
 
 	cmd := &cobra.Command{
 		Use:   "run [OPTIONS] IMAGE [COMMAND] [ARG...]",
@@ -42,7 +43,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
+			return RunRun(cmd.Context(), dockerCli, cmd.Flags(), options, copts)
 		},
 		ValidArgsFunction: completion.ImageNames(dockerCli),
 		Annotations: map[string]string{
@@ -54,21 +55,8 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	// These are flags not stored in Config/HostConfig
-	flags.BoolVarP(&options.detach, "detach", "d", false, "Run container in background and print container ID")
-	flags.BoolVar(&options.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
-	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
-	flags.StringVar(&options.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
-	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`", "`+PullImageMissing+`", "`+PullImageNever+`")`)
-	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
-
-	// Add an explicit help that doesn't have a `-h` to prevent the conflict
-	// with hostname
-	flags.Bool("help", false, "Print usage")
-
-	command.AddPlatformFlag(flags, &options.platform)
-	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
-	copts = addFlags(flags)
+	options = AddRunFlags(flags, dockerCli.ContentTrustEnabled())
+	copts = AddFlags(flags)
 
 	cmd.RegisterFlagCompletionFunc(
 		"env",
@@ -86,10 +74,33 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 		"network",
 		completion.NetworkNames(dockerCli),
 	)
+
 	return cmd
 }
 
-func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+// AddRunFlags adds run flags to the FlagSet
+func AddRunFlags(flags *pflag.FlagSet, trust bool) *RunOptions {
+	var options RunOptions
+
+	// These are flags not stored in Config/HostConfig
+	flags.BoolVarP(&options.detach, "detach", "d", false, "Run container in background and print container ID")
+	flags.BoolVar(&options.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
+	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
+	flags.StringVar(&options.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
+	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`", "`+PullImageMissing+`", "`+PullImageNever+`")`)
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
+
+	// Add an explicit help that doesn't have a `-h` to prevent the conflict
+	// with hostname
+	flags.Bool("help", false, "Print usage")
+
+	command.AddPlatformFlag(flags, &options.platform)
+	command.AddTrustVerificationFlags(flags, &options.untrusted, trust)
+
+	return &options
+}
+
+func RunRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *RunOptions, copts *ContainerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
 		reportError(dockerCli.Err(), "run", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}
@@ -118,9 +129,7 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 }
 
 //nolint:gocyclo
-func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
-	ctx = context.WithoutCancel(ctx)
-
+func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *RunOptions, copts *ContainerOptions, containerCfg *containerConfig) error {
 	config := containerCfg.Config
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	apiClient := dockerCli.Client()

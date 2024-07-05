@@ -22,14 +22,24 @@ import (
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
-type copyOptions struct {
+// CopyOptions defines copy options
+type CopyOptions struct {
 	source      string
 	destination string
 	followLink  bool
 	copyUIDGID  bool
 	quiet       bool
+}
+
+func (o *CopyOptions) SetSource(s string) {
+	o.source = s
+}
+
+func (o *CopyOptions) SetDestination(d string) {
+	o.destination = d
 }
 
 type copyDirection int
@@ -124,7 +134,7 @@ func copyProgress(ctx context.Context, dst io.Writer, header string, total *int6
 
 // NewCopyCommand creates a new `docker cp` command
 func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
-	var opts copyOptions
+	var opts *CopyOptions
 
 	cmd := &cobra.Command{
 		Use: `cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
@@ -151,7 +161,7 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 				// User did not specify "quiet" flag; suppress output if no terminal is attached
 				opts.quiet = !dockerCli.Out().IsTerminal()
 			}
-			return runCopy(cmd.Context(), dockerCli, opts)
+			return RunCopy(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container cp, docker cp",
@@ -159,17 +169,27 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	opts = AddCopyFlags(flags)
+
+	return cmd
+}
+
+// AddCopyFlags adds copy flags to the FlagSet
+func AddCopyFlags(flags *pflag.FlagSet) *CopyOptions {
+	var opts CopyOptions
+
 	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symbol link in SRC_PATH")
 	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (copy all uid/gid information)")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached")
-	return cmd
+
+	return &opts
 }
 
 func progressHumanSize(n int64) string {
 	return units.HumanSizeWithPrecision(float64(n), 3)
 }
 
-func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error {
+func RunCopy(ctx context.Context, dockerCli command.Cli, opts *CopyOptions) error {
 	srcContainer, srcPath := splitCpArg(opts.source)
 	destContainer, destPath := splitCpArg(opts.destination)
 

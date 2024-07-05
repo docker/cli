@@ -32,9 +32,11 @@ import (
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
-type buildOptions struct {
+// BuildOptions defines the options for the build command
+type BuildOptions struct {
 	context        string
 	dockerfileName string
 	tags           opts.ListOpts
@@ -70,19 +72,27 @@ type buildOptions struct {
 
 // dockerfileFromStdin returns true when the user specified that the Dockerfile
 // should be read from stdin instead of a file
-func (o buildOptions) dockerfileFromStdin() bool {
+func (o BuildOptions) dockerfileFromStdin() bool {
 	return o.dockerfileName == "-"
 }
 
 // contextFromStdin returns true when the user specified that the build context
 // should be read from stdin
-func (o buildOptions) contextFromStdin() bool {
+func (o BuildOptions) contextFromStdin() bool {
 	return o.context == "-"
 }
 
-func newBuildOptions() buildOptions {
+func (o *BuildOptions) SetContext(ctx string) {
+	o.context = ctx
+}
+
+func (o *BuildOptions) SetImageIDFile(imageIDFile string) {
+	o.imageIDFile = imageIDFile
+}
+
+func newBuildOptions() BuildOptions {
 	ulimits := make(map[string]*container.Ulimit)
-	return buildOptions{
+	return BuildOptions{
 		tags:       opts.NewListOpts(validateTag),
 		buildArgs:  opts.NewListOpts(opts.ValidateEnv),
 		ulimits:    opts.NewUlimitOpt(&ulimits),
@@ -93,7 +103,7 @@ func newBuildOptions() buildOptions {
 
 // NewBuildCommand creates a new `docker build` command
 func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
-	options := newBuildOptions()
+	var options *BuildOptions
 
 	cmd := &cobra.Command{
 		Use:   "build [OPTIONS] PATH | URL | -",
@@ -101,7 +111,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.context = args[0]
-			return runBuild(cmd.Context(), dockerCli, options)
+			return RunBuild(cmd.Context(), dockerCli, options)
 		},
 		Annotations: map[string]string{
 			"category-top": "4",
@@ -113,6 +123,14 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	options = AddBuildFlags(flags, dockerCli.ContentTrustEnabled())
+
+	return cmd
+}
+
+// AddBuildFlags adds build flags to the given FlagSet
+func AddBuildFlags(flags *pflag.FlagSet, trust bool) *BuildOptions {
+	options := newBuildOptions()
 
 	flags.VarP(&options.tags, "tag", "t", `Name and optionally a tag in the "name:tag" format`)
 	flags.SetAnnotation("tag", annotation.ExternalURL, []string{"https://docs.docker.com/reference/cli/docker/buildx/build/#tag"})
@@ -150,7 +168,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("target", annotation.ExternalURL, []string{"https://docs.docker.com/reference/cli/docker/buildx/build/#target"})
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
-	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
+	command.AddTrustVerificationFlags(flags, &options.untrusted, trust)
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
 	flags.SetAnnotation("platform", "version", []string{"1.38"})
@@ -159,7 +177,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("squash", "experimental", nil)
 	flags.SetAnnotation("squash", "version", []string{"1.25"})
 
-	return cmd
+	return &options
 }
 
 // lastProgressOutput is the same as progress.Output except
@@ -179,7 +197,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 }
 
 //nolint:gocyclo
-func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) error {
+func RunBuild(ctx context.Context, dockerCli command.Cli, options *BuildOptions) error {
 	var (
 		err           error
 		buildCtx      io.ReadCloser
@@ -536,7 +554,7 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 	return pipeReader
 }
 
-func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageBuildOptions {
+func imageBuildOptions(dockerCli command.Cli, options *BuildOptions) types.ImageBuildOptions {
 	configFile := dockerCli.ConfigFile()
 	return types.ImageBuildOptions{
 		Memory:         options.memory.Value(),

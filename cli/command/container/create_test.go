@@ -184,7 +184,7 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 				dockerCli,
 				&pflag.FlagSet{},
 				&createOptions{pull: tc.PullPolicy},
-				&containerOptions{},
+				&ContainerOptions{},
 			)
 
 			statusErr := cli.StatusError{}

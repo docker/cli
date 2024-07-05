@@ -19,12 +19,12 @@ import (
 func TestRunCopyWithInvalidArguments(t *testing.T) {
 	testcases := []struct {
 		doc         string
-		options     copyOptions
+		options     CopyOptions
 		expectedErr string
 	}{
 		{
 			doc: "copy between container",
-			options: copyOptions{
+			options: CopyOptions{
 				source:      "first:/path",
 				destination: "second:/path",
 			},
@@ -32,7 +32,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 		},
 		{
 			doc: "copy without a container",
-			options: copyOptions{
+			options: CopyOptions{
 				source:      "./source",
 				destination: "./dest",
 			},
@@ -41,7 +41,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 	}
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			err := runCopy(context.TODO(), test.NewFakeCli(nil), testcase.options)
+			err := RunCopy(context.TODO(), test.NewFakeCli(nil), &testcase.options)
 			assert.Error(t, err, testcase.expectedErr)
 		})
 	}
@@ -56,7 +56,7 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 			return io.NopCloser(strings.NewReader(tarContent)), container.PathStat{}, nil
 		},
 	})
-	err := runCopy(context.TODO(), cli, copyOptions{
+	err := RunCopy(context.TODO(), cli, &CopyOptions{
 		source:      "container:/path",
 		destination: "-",
 	})
@@ -77,7 +77,7 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 			return readCloser, container.PathStat{}, err
 		},
 	})
-	err := runCopy(context.TODO(), cli, copyOptions{
+	err := RunCopy(context.TODO(), cli, &CopyOptions{
 		source:      "container:/path",
 		destination: destDir.Path(),
 		quiet:       true,
@@ -103,7 +103,7 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 			return readCloser, container.PathStat{}, err
 		},
 	})
-	err := runCopy(context.TODO(), cli, copyOptions{
+	err := RunCopy(context.TODO(), cli, &CopyOptions{
 		source:      "container:/path",
 		destination: destDir.Join("missing", "foo"),
 	})
@@ -115,7 +115,7 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 	defer srcFile.Remove()
 
 	cli := test.NewFakeCli(&fakeClient{})
-	err := runCopy(context.TODO(), cli, copyOptions{
+	err := RunCopy(context.TODO(), cli, &CopyOptions{
 		source:      srcFile.Path() + string(os.PathSeparator),
 		destination: "container:/path",
 	})
@@ -129,7 +129,7 @@ func TestRunCopyToContainerFromFileWithTrailingSlash(t *testing.T) {
 
 func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	err := runCopy(context.TODO(), cli, copyOptions{
+	err := RunCopy(context.TODO(), cli, &CopyOptions{
 		source:      "/does/not/exist",
 		destination: "container:/path",
 	})
@@ -196,7 +196,7 @@ func TestSplitCpArg(t *testing.T) {
 
 func TestRunCopyFromContainerToFilesystemIrregularDestination(t *testing.T) {
 	cli := test.NewFakeCli(nil)
-	err := runCopy(context.TODO(), cli, copyOptions{
+	err := RunCopy(context.TODO(), cli, &CopyOptions{
 		source:      "container:/dev/null",
 		destination: "/dev/random",
 	})

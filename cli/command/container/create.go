@@ -44,7 +44,7 @@ type createOptions struct {
 // NewCreateCommand creates a new cobra.Command for `docker create`
 func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	var options createOptions
-	var copts *containerOptions
+	var copts *ContainerOptions
 
 	cmd := &cobra.Command{
 		Use:   "create [OPTIONS] IMAGE [COMMAND] [ARG...]",
@@ -76,11 +76,11 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 
 	command.AddPlatformFlag(flags, &options.platform)
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
-	copts = addFlags(flags)
+	copts = AddFlags(flags)
 	return cmd
 }
 
-func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *ContainerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
 		reportError(dockerCli.Err(), "create", err.Error(), true)
 		return cli.StatusError{StatusCode: 125}

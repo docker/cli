@@ -44,8 +44,8 @@ const (
 
 var deviceCgroupRuleRegexp = regexp.MustCompile(`^[acb] ([0-9]+|\*):([0-9]+|\*) [rwm]{1,3}$`)
 
-// containerOptions is a data object with all the options for creating a container
-type containerOptions struct {
+// ContainerOptions is a data object with all the options for creating a container
+type ContainerOptions struct {
 	attach              opts.ListOpts
 	volumes             opts.ListOpts
 	tmpfs               opts.ListOpts
@@ -145,9 +145,13 @@ type containerOptions struct {
 	Args  []string
 }
 
-// addFlags adds all command line flags that will be used by parse to the FlagSet
-func addFlags(flags *pflag.FlagSet) *containerOptions {
-	copts := &containerOptions{
+func (o *ContainerOptions) SetContainerIDFile(cidfile string) {
+	o.containerIDFile = cidfile
+}
+
+// AddFlags adds all command line flags that will be used by parse to the FlagSet
+func AddFlags(flags *pflag.FlagSet) *ContainerOptions {
+	copts := &ContainerOptions{
 		aliases:           opts.NewListOpts(nil),
 		attach:            opts.NewListOpts(validateAttach),
 		blkioWeightDevice: opts.NewWeightdeviceOpt(opts.ValidateWeightDevice),
@@ -335,7 +339,7 @@ type containerConfig struct {
 // If the specified args are not valid, it will return an error.
 //
 //nolint:gocyclo
-func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*containerConfig, error) {
+func parse(flags *pflag.FlagSet, copts *ContainerOptions, serverOS string) (*containerConfig, error) {
 	var (
 		attachStdin  = copts.attach.Get("stdin")
 		attachStdout = copts.attach.Get("stdout")
@@ -746,7 +750,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 // this function may return _multiple_ endpoints, which is not currently supported
 // by the daemon, but may be in future; it's up to the daemon to produce an error
 // in case that is not supported.
-func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.EndpointSettings, error) {
+func parseNetworkOpts(copts *ContainerOptions) (map[string]*networktypes.EndpointSettings, error) {
 	var (
 		endpoints                         = make(map[string]*networktypes.EndpointSettings, len(copts.netMode.Value()))
 		hasUserDefined, hasNonUserDefined bool
@@ -807,7 +811,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 	return endpoints, nil
 }
 
-func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOptions) error { //nolint:gocyclo
+func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *ContainerOptions) error { //nolint:gocyclo
 	// TODO should we error if _any_ advanced option is used? (i.e. forbid to combine advanced notation with the "old" flags (`--network-alias`, `--link`, `--ip`, `--ip6`)?
 	if len(n.Aliases) > 0 && copts.aliases.Len() > 0 {
 		return errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --network-alias and per-network alias"))

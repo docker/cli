@@ -56,11 +56,11 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 	return containerCfg.Config, containerCfg.HostConfig, containerCfg.NetworkingConfig, err
 }
 
-func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
+func setupRunFlags() (*pflag.FlagSet, *ContainerOptions) {
 	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.Usage = nil
-	copts := addFlags(flags)
+	copts := AddFlags(flags)
 	return flags, copts
 }
 
