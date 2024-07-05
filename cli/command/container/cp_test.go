@@ -14,7 +14,6 @@ import (
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
-	"gotest.tools/v3/skip"
 )
 
 func TestRunCopyWithInvalidArguments(t *testing.T) {
@@ -151,7 +150,7 @@ func TestSplitCpArg(t *testing.T) {
 	}{
 		{
 			doc:          "absolute path with colon",
-			os:           "linux",
+			os:           "unix",
 			path:         "/abs/path:withcolon",
 			expectedPath: "/abs/path:withcolon",
 		},
@@ -181,7 +180,12 @@ func TestSplitCpArg(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
-			skip.If(t, tc.os == "windows" && runtime.GOOS != "windows" || tc.os == "linux" && runtime.GOOS == "windows")
+			if tc.os == "windows" && runtime.GOOS != "windows" {
+				t.Skip("skipping windows test on non-windows platform")
+			}
+			if tc.os == "unix" && runtime.GOOS == "windows" {
+				t.Skip("skipping unix test on windows")
+			}
 
 			ctr, path := splitCpArg(tc.path)
 			assert.Check(t, is.Equal(tc.expectedContainer, ctr))
