@@ -142,7 +142,7 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 	}
 
 	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
-
+	// todo(laurazard): this will no longer trigger even when the store is a file store
 	store, isDefault := creds.(isFileStore)
 	// Display a warning if we're storing the users password (not a token)
 	if isDefault && authConfig.Password != "" {
