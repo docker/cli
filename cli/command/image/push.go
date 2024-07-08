@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -58,7 +57,11 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
-	flags.StringVar(&opts.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"),
+
+	// Don't default to DOCKER_DEFAULT_PLATFORM env variable, always default to
+	// pushing the image as-is. This also avoids forcing the platform selection
+	// on older APIs which don't support it.
+	flags.StringVar(&opts.platform, "platform", "",
 		`Push a platform-specific manifest as a single-platform image to the registry.
 'os[/arch[/variant]]': Explicit platform (eg. linux/amd64)`)
 	flags.SetAnnotation("platform", "version", []string{"1.46"})
