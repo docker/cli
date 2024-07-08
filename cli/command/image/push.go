@@ -84,7 +84,7 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 
 		printNote(dockerCli, `Selecting a single platform will only push one matching image manifest from a multi-platform image index.
 This means that any other components attached to the multi-platform image index (like Buildkit attestations) won't be pushed.
-If you want to only push a single platform image while preserving the attestations, please use 'docker convert\n'
+If you want to push a whole multi-platform image, make sure all image content is present and remove the --platform flag.
 `)
 	}
 
