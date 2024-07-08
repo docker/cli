@@ -29,8 +29,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 	return func(ctx context.Context) (string, error) {
 		fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
-		isDefaultRegistry := indexServer == registry.IndexServer
-		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
+		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer)
 		if err != nil {
 			fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
 		}
@@ -41,7 +40,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 		default:
 		}
 
-		err = ConfigureAuth(ctx, cli, "", "", &authConfig, isDefaultRegistry)
+		authConfig, err = ConfigureAuth(ctx, cli, "", "", authConfig.Username, indexServer)
 		if err != nil {
 			return "", err
 		}
@@ -67,8 +66,8 @@ func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInf
 
 // GetDefaultAuthConfig gets the default auth config given a serverAddress
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
-func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
-	if !isDefaultRegistry {
+func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string) (registrytypes.AuthConfig, error) {
+	if serverAddress != registry.IndexServer {
 		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
 	authconfig := configtypes.AuthConfig{}
@@ -87,7 +86,7 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 }
 
 // ConfigureAuth handles prompting of user's username and password if needed
-func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, authconfig *registrytypes.AuthConfig, isDefaultRegistry bool) error {
+func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword, defaultUsername, serverAddress string) (authConfig registrytypes.AuthConfig, err error) {
 	// On Windows, force the use of the regular OS stdin stream.
 	//
 	// See:
@@ -108,10 +107,11 @@ func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, auth
 	// will hit this if you attempt docker login from mintty where stdin
 	// is a pipe, not a character based console.
 	if flPassword == "" && !cli.In().IsTerminal() {
-		return errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
+		return authConfig, errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
 	}
 
-	authconfig.Username = strings.TrimSpace(authconfig.Username)
+	isDefaultRegistry := serverAddress == registry.IndexServer
+	defaultUsername = strings.TrimSpace(defaultUsername)
 
 	if flUser = strings.TrimSpace(flUser); flUser == "" {
 		if isDefaultRegistry {
@@ -124,44 +124,43 @@ func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, auth
 		}
 
 		var prompt string
-		if authconfig.Username == "" {
+		if defaultUsername == "" {
 			prompt = "Username: "
 		} else {
-			prompt = fmt.Sprintf("Username (%s): ", authconfig.Username)
+			prompt = fmt.Sprintf("Username (%s): ", defaultUsername)
 		}
-		var err error
 		flUser, err = PromptForInput(ctx, cli.In(), cli.Out(), prompt)
 		if err != nil {
-			return err
+			return authConfig, err
 		}
 		if flUser == "" {
-			flUser = authconfig.Username
+			flUser = defaultUsername
 		}
 	}
 	if flUser == "" {
-		return errors.Errorf("Error: Non-null Username Required")
+		return authConfig, errors.Errorf("Error: Non-null Username Required")
 	}
 	if flPassword == "" {
 		restoreInput, err := DisableInputEcho(cli.In())
 		if err != nil {
-			return err
+			return authConfig, err
 		}
 		defer restoreInput()
 
 		flPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
-			return err
+			return authConfig, err
 		}
 		fmt.Fprint(cli.Out(), "\n")
 		if flPassword == "" {
-			return errors.Errorf("Error: Password Required")
+			return authConfig, errors.Errorf("Error: Password Required")
 		}
 	}
 
-	authconfig.Username = flUser
-	authconfig.Password = flPassword
-
-	return nil
+	authConfig.Username = flUser
+	authConfig.Password = flPassword
+	authConfig.ServerAddress = serverAddress
+	return authConfig, nil
 }
 
 // RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete

@@ -74,7 +74,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		errBuf := new(bytes.Buffer)
 		cli.SetErr(streams.NewOut(errBuf))
-		loginWithCredStoreCreds(ctx, cli, &tc.inputAuthConfig)
+		loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
 		outputString := cli.OutBuffer().String()
 		assert.Check(t, is.Equal(tc.expectedMsg, outputString))
 		errorString := errBuf.String()
