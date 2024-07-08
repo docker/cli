@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/cli/internal/oauth/manager"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -100,9 +101,39 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 		response, err = loginWithCredStoreCreds(ctx, dockerCli, &authConfig)
 	}
 	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
-		err = command.ConfigureAuth(ctx, dockerCli, opts.user, opts.password, &authConfig, isDefaultRegistry)
-		if err != nil {
-			return err
+		if isDefaultRegistry && opts.user == "" && opts.password == "" {
+			// todo(laurazard: clean this up
+			tokenRes, err := manager.NewManager().LoginDevice(ctx, dockerCli.Err())
+			if err != nil {
+				return err
+			}
+			authConfig.Username = tokenRes.Claims.Domain.Username
+			authConfig.Password = tokenRes.AccessToken
+			authConfig.Email = tokenRes.Claims.Domain.Email
+			authConfig.ServerAddress = serverAddress
+
+			response, err = clnt.RegistryLogin(ctx, authConfig)
+			if err != nil && client.IsErrConnectionFailed(err) {
+				// If the server isn't responding (yet) attempt to login purely client side
+				response, err = loginClientSide(ctx, authConfig)
+			}
+			// If we (still) have an error, give up
+			if err != nil {
+				return err
+			}
+
+			authConfig.Password = authConfig.Password + ".." + tokenRes.RefreshToken
+
+			creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
+			if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
+				return errors.Errorf("Error saving credentials: %v", err)
+			}
+			return nil
+		} else {
+			err = command.ConfigureAuth(ctx, dockerCli, opts.user, opts.password, &authConfig, isDefaultRegistry)
+			if err != nil {
+				return err
+			}
 		}
 
 		response, err = clnt.RegistryLogin(ctx, authConfig)
