@@ -178,7 +178,10 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			detachKeys = runOpts.detachKeys
 		}
 
-		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, container.AttachOptions{
+		// ctx should not be cancellable here, as this would kill the stream to the container
+		// and we want to keep the stream open until the process in the container exits or until
+		// the user forcefully terminates the CLI.
+		closeFn, err := attachContainer(context.WithoutCancel(ctx), dockerCli, containerID, &errCh, config, container.AttachOptions{
 			Stream:     true,
 			Stdin:      config.AttachStdin,
 			Stdout:     config.AttachStdout,
