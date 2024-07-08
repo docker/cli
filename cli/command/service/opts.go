@@ -529,6 +529,7 @@ type serviceOptions struct {
 	capAdd          opts.ListOpts
 	capDrop         opts.ListOpts
 	ulimits         opts.UlimitOpt
+	oomScoreAdj     int64
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -747,6 +748,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         options.ulimits.GetList(),
+				OomScoreAdj:     options.oomScoreAdj,
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -1043,6 +1045,7 @@ const (
 	flagUlimit                  = "ulimit"
 	flagUlimitAdd               = "ulimit-add"
 	flagUlimitRemove            = "ulimit-rm"
+	flagOomScoreAdj             = "oom-score-adj"
 )
 
 func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {

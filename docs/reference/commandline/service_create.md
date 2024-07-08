@@ -46,6 +46,7 @@ Create a new service
 | [`--network`](#network)                             | `network`         |              | Network attachments                                                                                 |
 | `--no-healthcheck`                                  | `bool`            |              | Disable any container-specified HEALTHCHECK                                                         |
 | `--no-resolve-image`                                | `bool`            |              | Do not query the registry to resolve image digest and supported platforms                           |
+| `--oom-score-adj`                                   | `int64`           | `0`          | Tune host's OOM preferences (-1000 to 1000)                                                         |
 | [`--placement-pref`](#placement-pref)               | `pref`            |              | Add a placement preference                                                                          |
 | [`-p`](#publish), [`--publish`](#publish)           | `port`            |              | Publish a port as a node port                                                                       |
 | `-q`, `--quiet`                                     | `bool`            |              | Suppress progress output                                                                            |
