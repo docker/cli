@@ -34,10 +34,10 @@ func TestLaunchOne(t *testing.T) {
 		fs.WithDir(buildCtx,
 			fs.WithFile("Dockerfile", fmt.Sprintf(`
 			FROM %s
-			ARG HOSTOS HOSTARCH
+			ARG %s
 			COPY cool /egress/%s
 			CMD ["echo", "'cool' app successfully built!"]
-			`, fixtures.AlpineImage, coolApp)),
+			`, fixtures.AlpineImage, defaultArgs, coolApp)),
 			fs.WithFile("cool", coolScript, fs.WithMode(0o755)),
 		),
 	)
@@ -87,10 +87,10 @@ func TestLaunchMulti(t *testing.T) {
 		fs.WithDir(buildCtx,
 			fs.WithFile("Dockerfile", fmt.Sprintf(`
 			FROM %s
-			ARG HOSTOS HOSTARCH
+			ARG %s
 			COPY . /egress
 			CMD ["echo", "'multi' app successfully built!"]
-			`, fixtures.AlpineImage)),
+			`, fixtures.AlpineImage, defaultArgs)),
 			fs.WithFile(".dockerignore", `
 			Dockerfile
 			.dockerignore

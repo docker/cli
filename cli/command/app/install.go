@@ -2,16 +2,20 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/docker/errdefs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -58,6 +62,8 @@ func addInstallFlags(flags *pflag.FlagSet, dest string, trust bool) *AppOptions 
 	flags.StringVar(&options.destination, "destination", dest, "Set local host path for app")
 	flags.BoolVar(&options.launch, "launch", false, "Start app after installation")
 	flags.BoolVarP(&options.detach, "detach", "d", false, "Do not wait for app to finish")
+	flags.BoolVar(&options.force, "force", false, "Force install even if the app exists")
+	flags.StringVar(&options.name, "name", "", "App name")
 
 	// build/run flags
 	flags.StringVar(&options.imageIDFile, "iidfile", imageIDFile, "Write the image ID to the file")
@@ -109,18 +115,45 @@ func addInstallFlags(flags *pflag.FlagSet, dest string, trust bool) *AppOptions 
 	// `docker cp` flags
 	include(flags, eflags, []string{"archive", "follow-link"})
 
-	// install specific build args
-	addBuildArgs(flags)
-
 	return options
 }
 
-func addBuildArgs(flags *pflag.FlagSet) {
-	flag := flags.Lookup("build-arg")
-	if flag != nil {
-		flag.Value.Set("HOSTOS=" + runtime.GOOS)
-		flag.Value.Set("HOSTARCH=" + runtime.GOARCH)
+func setBuildArgs(options *AppOptions) error {
+	bopts := options.buildOpts
+	if bopts == nil {
+		return errors.New("build options not set")
 	}
+
+	set := func(n, v string) {
+		bopts.SetBuildArg(n + "=" + v)
+	}
+
+	set("DOCKER_APP_BASE", options._appBase)
+	appPath, err := options.appPath()
+	if err != nil {
+		return err
+	}
+	set("DOCKER_APP_PATH", appPath)
+
+	set("HOSTOS", runtime.GOOS)
+	set("HOSTARCH", runtime.GOARCH)
+
+	version := options.buildVersion()
+	if version != "" {
+		set("VERSION", version)
+	}
+
+	// user info
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+	set("USERNAME", u.Username)
+	set("USERHOME", u.HomeDir)
+	set("USERID", u.Uid)
+	set("USERGID", u.Gid)
+
+	return nil
 }
 
 func installApp(ctx context.Context, adapter cliAdapter, flags *pflag.FlagSet, options *AppOptions) error {
@@ -133,7 +166,7 @@ func installApp(ctx context.Context, adapter cliAdapter, flags *pflag.FlagSet, o
 		return err
 	}
 
-	bin, err := runPostInstall(adapter, dir, options)
+	bin, err := runPostInstall(ctx, adapter, dir, options)
 	if err != nil {
 		return err
 	}
@@ -146,8 +179,25 @@ func installApp(ctx context.Context, adapter cliAdapter, flags *pflag.FlagSet, o
 	return nil
 }
 
+func setDefaultEnv() {
+	if os.Getenv("DOCKER_BUILDKIT") == "" {
+		os.Setenv("DOCKER_BUILDKIT", "1")
+	}
+
+	platform := fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+	if os.Getenv("DOCKER_DEFAULT_PLATFORM") == "" {
+		os.Setenv("DOCKER_DEFAULT_PLATFORM", platform)
+	}
+}
+
 // runInstall calls the build, run, and cp commands
 func runInstall(ctx context.Context, dockerCli cliAdapter, flags *pflag.FlagSet, options *AppOptions) (string, error) {
+	setDefaultEnv()
+
+	if err := setBuildArgs(options); err != nil {
+		return "", err
+	}
+
 	iid, err := buildImage(ctx, dockerCli, options)
 	if err != nil {
 		return "", err
@@ -218,22 +268,51 @@ func copyFiles(ctx context.Context, dockerCli cliAdapter, cid string, options *A
 	return filepath.Join(dir, filepath.Base(options.egress)), nil
 }
 
-func runPostInstall(dockerCli cliAdapter, dir string, options *AppOptions) (string, error) {
+const appExistWarn = `WARNING! This will replace the existing app.
+Are you sure you want to continue?`
+
+func runPostInstall(ctx context.Context, dockerCli cliAdapter, dir string, options *AppOptions) (string, error) {
 	if !options.isDockerAppBase() {
 		return "", installCustom(dir, options.destination, options)
 	}
 
-	// for the default destination
+	binPath := options.binPath()
+	if err := os.MkdirAll(binPath, 0o755); err != nil {
+		return "", err
+	}
 
+	appPath, err := options.appPath()
+	if err != nil {
+		return "", err
+	}
+
+	if fileExist(appPath) {
+		if !options.force {
+			r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), appExistWarn)
+			if err != nil {
+				return "", err
+			}
+			if !r {
+				return "", errdefs.Cancelled(errors.New("app install has been canceled"))
+			}
+		}
+		if err := removeApp(dockerCli, binPath, appPath, options); err != nil {
+			return "", err
+		}
+	}
+
+	// for the default destination
 	// if there is only one file, create symlink for the file
 	if fp, err := oneChild(dir); err == nil && fp != "" {
-		binPath := options.binPath()
-		appPath, err := options.appPath()
-		if err != nil {
+		appName := options.name
+		if appName == "" {
+			appName = makeAppName(fp)
+		}
+		if err := validateName(appName); err != nil {
 			return "", err
 		}
 
-		link, err := installOne(dir, fp, binPath, appPath)
+		link, err := installOne(appName, dir, fp, binPath, appPath)
 		if err != nil {
 			return "", err
 		}
@@ -243,13 +322,15 @@ func runPostInstall(dockerCli cliAdapter, dir string, options *AppOptions) (stri
 
 	// if there is a run file, create symlink for the run file.
 	if fp, err := locateFile(dir, runnerName); err == nil && fp != "" {
-		binPath := options.binPath()
-		appPath, err := options.appPath()
-		if err != nil {
+		appName := options.name
+		if appName == "" {
+			appName = makeAppName(appPath)
+		}
+		if err := validateName(appName); err != nil {
 			return "", err
 		}
 
-		link, err := installRunFile(dir, fp, binPath, appPath)
+		link, err := installRunFile(appName, dir, fp, binPath, appPath)
 		if err != nil {
 			return "", err
 		}
@@ -258,10 +339,6 @@ func runPostInstall(dockerCli cliAdapter, dir string, options *AppOptions) (stri
 	}
 
 	// custom install
-	appPath, err := options.appPath()
-	if err != nil {
-		return "", err
-	}
 	if err := installCustom(dir, appPath, options); err != nil {
 		return "", err
 	}
@@ -270,38 +347,39 @@ func runPostInstall(dockerCli cliAdapter, dir string, options *AppOptions) (stri
 	return "", nil
 }
 
-// installOne creates a symlink to the only file in appPath
-func installOne(egress, runPath, binPath, appPath string) (string, error) {
-	appName := filepath.Base(runPath)
-	if err := validateName(appName); err != nil {
-		return "", err
+// removeApp removes the existing app
+func removeApp(dockerCli cliAdapter, binPath, appPath string, options *AppOptions) error {
+	envs, _ := options.makeEnvs()
+	runUninstaller(dockerCli, appPath, envs)
+
+	if err := os.RemoveAll(appPath); err != nil {
+		return err
 	}
+	targets, err := findSymlinks(binPath)
+	if err != nil {
+		return err
+	}
+	cleanupSymlink(dockerCli, appPath, targets)
+	return nil
+}
+
+// installOne creates a symlink to the only file in appPath
+func installOne(appName, egress, runPath, binPath, appPath string) (string, error) {
 	link := filepath.Join(binPath, appName)
 	target := filepath.Join(appPath, appName)
-	return install(link, target, egress, binPath, appPath)
+	return install(link, target, egress, appPath)
 }
 
 // installRunFile creates a symlink to the run file in appPath
-// use the base name as the app name
-func installRunFile(egress, runPath, binPath, appPath string) (string, error) {
-	appName := filepath.Base(appPath)
-	if err := validateName(appName); err != nil {
-		return "", err
-	}
+func installRunFile(appName, egress, runPath, binPath, appPath string) (string, error) {
 	link := filepath.Join(binPath, appName)
 	target := filepath.Join(appPath, filepath.Base(runPath))
-	return install(link, target, egress, binPath, appPath)
+	return install(link, target, egress, appPath)
 }
 
 // instal creates a symlink to the target file
-func install(link, target, egress, binPath, appPath string) (string, error) {
-	if _, err := os.Stat(appPath); err == nil {
-		return "", fmt.Errorf("app package exists: %s! Try again after removing it", appPath)
-	} else if !os.IsNotExist(err) {
-		return "", fmt.Errorf("installation failed: %w", err)
-	}
-
-	if ok, err := isSymlinkToOK(link, target); err != nil {
+func install(link, target, egress, appPath string) (string, error) {
+	if ok, err := isSymlinkOK(link, target); err != nil {
 		return "", err
 	} else {
 		if !ok {
@@ -312,10 +390,6 @@ func install(link, target, egress, binPath, appPath string) (string, error) {
 				return "", err
 			}
 		}
-	}
-
-	if err := os.MkdirAll(binPath, 0o755); err != nil {
-		return "", err
 	}
 
 	if err := os.MkdirAll(filepath.Dir(appPath), 0o755); err != nil {
@@ -337,18 +411,6 @@ func install(link, target, egress, binPath, appPath string) (string, error) {
 }
 
 func installCustom(dir string, appPath string, options *AppOptions) error {
-	exist := func(p string) bool {
-		_, err := os.Stat(p)
-		if os.IsNotExist(err) {
-			return false
-		}
-		return err == nil
-	}
-
-	if exist(appPath) {
-		return fmt.Errorf("destination exists: %s", appPath)
-	}
-
 	if err := os.MkdirAll(filepath.Dir(appPath), 0o755); err != nil {
 		return err
 	}
@@ -358,7 +420,7 @@ func installCustom(dir string, appPath string, options *AppOptions) error {
 
 	// optionally run the installer if it exists
 	installer := filepath.Join(appPath, installerName)
-	if !exist(installer) {
+	if !fileExist(installer) {
 		return nil
 	}
 	if err := os.Chmod(installer, 0o755); err != nil {
@@ -366,4 +428,18 @@ func installCustom(dir string, appPath string, options *AppOptions) error {
 	}
 
 	return launch(installer, options)
+}
+
+func fileExist(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// makeAppName derives the app name from the base name of the path
+// after removing the version and extension
+func makeAppName(path string) string {
+	n := filepath.Base(path)
+	n = strings.SplitN(n, "@", 2)[0]
+	n = strings.SplitN(n, ".", 2)[0]
+	return n
 }

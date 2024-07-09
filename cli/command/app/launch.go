@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/docker/cli/cli"
@@ -64,7 +63,11 @@ func runLaunch(dir string, options *AppOptions) error {
 		if fp, err := oneChild(dir); err == nil && fp != "" {
 			return fp, nil
 		}
-		if fp, err := locateFile(dir, runnerName); err == nil && fp != "" {
+		appName := options.name
+		if appName == "" {
+			appName = runnerName
+		}
+		if fp, err := locateFile(dir, appName); err == nil && fp != "" {
 			return fp, nil
 		}
 		return "", errors.New("no app file found")
@@ -80,15 +83,9 @@ func runLaunch(dir string, options *AppOptions) error {
 
 // launch copies the current environment and set DOCKER_APP_BASE before spawning the app
 func launch(app string, options *AppOptions) error {
-	envs := make(map[string]string)
-
-	// copy the current environment
-	for _, v := range os.Environ() {
-		kv := strings.SplitN(v, "=", 2)
-		envs[kv[0]] = kv[1]
+	envs, err := options.makeEnvs()
+	if err != nil {
+		return err
 	}
-
-	envs["DOCKER_APP_BASE"] = options._appBase
-
 	return spawn(app, options.launchArgs(), envs, options.detach)
 }

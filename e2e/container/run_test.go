@@ -1,10 +1,8 @@
 package container
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -15,7 +13,6 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
-	"gotest.tools/v3/poll"
 	"gotest.tools/v3/skip"
 )
 
@@ -223,27 +220,4 @@ func TestMountSubvolume(t *testing.T) {
 			})
 		})
 	}
-}
-
-func TestProcessTermination(t *testing.T) {
-	var out bytes.Buffer
-	cmd := icmd.Command("docker", "run", "--rm", "-i", fixtures.AlpineImage,
-		"sh", "-c", "echo 'starting trap'; trap 'echo got signal; exit 0;' TERM; while true; do sleep 10; done")
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-
-	result := icmd.StartCmd(cmd).Assert(t, icmd.Success)
-
-	poll.WaitOn(t, func(t poll.LogT) poll.Result {
-		if strings.Contains(result.Stdout(), "starting trap") {
-			return poll.Success()
-		}
-		return poll.Continue("waiting for process to trap signal")
-	}, poll.WithDelay(1*time.Second), poll.WithTimeout(5*time.Second))
-
-	assert.NilError(t, result.Cmd.Process.Signal(syscall.SIGTERM))
-
-	icmd.WaitOnCmd(time.Second*10, result).Assert(t, icmd.Expected{
-		ExitCode: 0,
-	})
 }

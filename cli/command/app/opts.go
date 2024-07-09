@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +16,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 )
 
-// runnerName is the executable name for starting the app
+// runnerName is the default executable app name for starting the app
 const runnerName = "run"
 
 // installerName is the executable name for custom installation
@@ -23,7 +25,7 @@ const installerName = "install"
 // uninstallerName is the executable name for custom installation
 const uninstallerName = "uninstall"
 
-// namePattern is for validating egress and app name
+// namePattern is for validating app name
 const namePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.+-]+$"
 
 var nameRegexp = regexp.MustCompile(namePattern)
@@ -35,12 +37,43 @@ func validateName(s string) error {
 	return nil
 }
 
+// semverPattern is for splitting semver from a context path/URL
+const semverPattern = `@v?\d+(\.\d+)?(\.\d+)?$`
+
+var semverRegexp = regexp.MustCompile(semverPattern)
+
+func splitSemver(s string) (string, string) {
+	if semverRegexp.MatchString(s) {
+		idx := strings.LastIndex(s, "@")
+		// unlikely otherwise ignore
+		if idx == -1 {
+			return s, ""
+		}
+		v := s[idx+1:]
+		if v[0] == 'v' {
+			v = v[1:]
+		}
+		return s[:idx], v
+	}
+	return s, ""
+}
+
 // defaultAppBase is docker app's base location specified by
-// DOCKER_APP_BASE environment variable defaulted to ~/.docker-app/
+// DOCKER_APP_BASE environment variable defaulted to ~/.docker/app/
 func defaultAppBase() string {
 	if base := os.Getenv("DOCKER_APP_BASE"); base != "" {
 		return filepath.Clean(base)
 	}
+
+	// locate .docker/app starting from the current working directory
+	// for supporting apps on a per project basis
+	wd, err := os.Getwd()
+	if err == nil {
+		if dir, err := locateDir(wd, ".docker"); err == nil {
+			return filepath.Join(dir, "app")
+		}
+	}
+
 	// default ~/.docker/app
 	// ignore error and use the current working directory
 	// if home directory is not available
@@ -48,8 +81,108 @@ func defaultAppBase() string {
 	return filepath.Join(home, ".docker", "app")
 }
 
+type commonOptions struct {
+	// command line args
+	_args []string
+
+	// docker app base location, fixed once set
+	_appBase string
+}
+
+func (o *commonOptions) setArgs(args []string) {
+	o._args = args
+}
+
+// buildContext returns the build context for building image
+func (o *commonOptions) buildContext() string {
+	if len(o._args) == 0 {
+		return "."
+	}
+	c, _ := splitSemver(o._args[0])
+	return c
+}
+
+func (o *commonOptions) buildVersion() string {
+	if len(o._args) == 0 {
+		return ""
+	}
+	_, v := splitSemver(o._args[0])
+	return v
+}
+
+// appPath returns the app directory under the default app base
+func (o *commonOptions) appPath() (string, error) {
+	if len(o._args) == 0 {
+		return "", errors.New("missing args")
+	}
+	return o.makeAppPath(o._args[0])
+}
+
+// binPath returns the bin directory under the default app base
+func (o *commonOptions) binPath() string {
+	return filepath.Join(o._appBase, "bin")
+}
+
+// pkgPath returns the pkg directory under the default app base
+func (o *commonOptions) pkgPath() string {
+	return filepath.Join(o._appBase, "pkg")
+}
+
+// makeAppPath builds the default app path
+// in the format: appBase/pkg/scheme/host/path
+func (o *commonOptions) makeAppPath(s string) (string, error) {
+	u, err := parseURL(s)
+	if err != nil {
+		return "", err
+	}
+	if u.Path == "" {
+		return "", fmt.Errorf("missing path: %v", u)
+	}
+	p := filepath.Join(o._appBase, "pkg", u.Scheme, u.Host, shortenPath(u.Path))
+	if u.Fragment == "" {
+		return p, nil
+	}
+	return fmt.Sprintf("%s#%s", p, u.Fragment), nil
+}
+
+func (o *commonOptions) makeEnvs() (map[string]string, error) {
+	envs := make(map[string]string)
+
+	// copy the current environment
+	for _, v := range os.Environ() {
+		kv := strings.SplitN(v, "=", 2)
+		envs[kv[0]] = kv[1]
+	}
+
+	envs["DOCKER_APP_BASE"] = o._appBase
+	appPath, err := o.appPath()
+	if err != nil {
+		return nil, err
+	}
+	envs["DOCKER_APP_PATH"] = appPath
+
+	envs["VERSION"] = o.buildVersion()
+
+	envs["HOSTOS"] = runtime.GOOS
+	envs["HOSTARCH"] = runtime.GOARCH
+
+	// user info
+	u, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+	envs["USERNAME"] = u.Username
+	envs["USERHOME"] = u.HomeDir
+	envs["USERID"] = u.Uid
+	envs["USERGID"] = u.Gid
+
+	return envs, nil
+}
+
 // AppOptions holds the options for the `app` subcommands
 type AppOptions struct {
+	commonOptions
+
 	// flags for install
 
 	// path on local host
@@ -63,6 +196,12 @@ type AppOptions struct {
 
 	// start exported app
 	launch bool
+
+	// overwrite existing app
+	force bool
+
+	// app name
+	name string
 
 	// the following are existing flags
 
@@ -82,25 +221,6 @@ type AppOptions struct {
 	runOpts       *container.RunOptions
 	containerOpts *container.ContainerOptions
 	copyOpts      *container.CopyOptions
-
-	// runtime
-	// command line args
-	_args []string
-
-	// docker app base location, fixed once set
-	_appBase string
-}
-
-func (o *AppOptions) setArgs(args []string) {
-	o._args = args
-}
-
-// buildContext returns the build context for building image
-func (o *AppOptions) buildContext() string {
-	if len(o._args) == 0 {
-		return "."
-	}
-	return o._args[0]
 }
 
 // runArgs returns the command line args for running the container
@@ -126,19 +246,6 @@ func (o *AppOptions) launchArgs() []string {
 func (o *AppOptions) isDockerAppBase() bool {
 	s := filepath.Clean(o.destination)
 	return strings.HasPrefix(s, o._appBase)
-}
-
-// binPath returns the bin directory under the default app base
-func (o *AppOptions) binPath() string {
-	return filepath.Join(o._appBase, "bin")
-}
-
-// appPath returns the app directory under the default app base
-func (o *AppOptions) appPath() (string, error) {
-	if len(o._args) == 0 {
-		return "", errors.New("missing args")
-	}
-	return makeAppPath(o._appBase, o._args[0])
 }
 
 // cacheDir returns a temp cache directory under the default app base
@@ -170,7 +277,9 @@ func (o *AppOptions) containerID() (string, error) {
 
 func newAppOptions() *AppOptions {
 	return &AppOptions{
-		_appBase: defaultAppBase(),
+		commonOptions: commonOptions{
+			_appBase: defaultAppBase(),
+		},
 	}
 }
 
@@ -182,53 +291,17 @@ func validateAppOptions(options *AppOptions) error {
 		return errors.New("egress is required")
 	}
 
-	name := filepath.Base(options.egress)
-	if err := validateName(name); err != nil {
-		return fmt.Errorf("invalid egress path: %s %v", options.egress, err)
-	}
 	return nil
 }
 
 type removeOptions struct {
-	_appBase string
-}
-
-// makeAppPath returns the app directory under the default app base
-// appBase/pkg/scheme/host/path
-func (o *removeOptions) makeAppPath(s string) (string, error) {
-	return makeAppPath(o._appBase, s)
-}
-
-// binPath returns the bin directory under the default app base
-func (o *removeOptions) binPath() string {
-	return filepath.Join(o._appBase, "bin")
-}
-
-// pkgPath returns the pkg directory under the default app base
-func (o *removeOptions) pkgPath() string {
-	return filepath.Join(o._appBase, "pkg")
+	commonOptions
 }
 
 func newRemoveOptions() *removeOptions {
 	return &removeOptions{
-		_appBase: defaultAppBase(),
+		commonOptions: commonOptions{
+			_appBase: defaultAppBase(),
+		},
 	}
-}
-
-// makeAppPath builds the default app path
-// in the format: appBase/pkg/scheme/host/path
-func makeAppPath(appBase, s string) (string, error) {
-	u, err := parseURL(s)
-	if err != nil {
-		return "", err
-	}
-	if u.Path == "" {
-		return "", fmt.Errorf("missing path: %v", u)
-	}
-
-	name := filepath.Base(u.Path)
-	if err := validateName(name); err != nil {
-		return "", fmt.Errorf("invalid path: %s %v", u.Path, err)
-	}
-	return filepath.Join(appBase, "pkg", u.Scheme, u.Host, u.Path), nil
 }

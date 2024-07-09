@@ -41,8 +41,10 @@ func TestRunRemove(t *testing.T) {
 
 	createApp := func(name string, args []string) ([]string, error) {
 		o := &AppOptions{
-			_appBase: appBase,
-			_args:    args,
+			commonOptions: commonOptions{
+				_appBase: appBase,
+				_args:    args,
+			},
 		}
 		appPath, err := o.appPath()
 		if err != nil {
@@ -77,7 +79,7 @@ func TestRunRemove(t *testing.T) {
 			expectErr: "",
 		},
 		{
-			name: "a few apps", args: []string{"example.com/org/one", "example.com/org/two", "example.com/org/three"},
+			name: "a few apps", args: []string{"example.com/org/one", "example.com/org/two", "example.com/org/three@v1.2.3"},
 			fakeInstall: func(args []string) []string {
 				var files []string
 				for _, a := range args {

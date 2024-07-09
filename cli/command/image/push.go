@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
+	"os"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -58,13 +58,8 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
-
-	// Don't default to DOCKER_DEFAULT_PLATFORM env variable, always default to
-	// pushing the image as-is. This also avoids forcing the platform selection
-	// on older APIs which don't support it.
-	flags.StringVar(&opts.platform, "platform", "",
+	flags.StringVar(&opts.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"),
 		`Push a platform-specific manifest as a single-platform image to the registry.
-Image index won't be pushed, meaning that other manifests, including attestations won't be preserved.
 'os[/arch[/variant]]': Explicit platform (eg. linux/amd64)`)
 	flags.SetAnnotation("platform", "version", []string{"1.46"})
 
@@ -84,9 +79,9 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		}
 		platform = &p
 
-		printNote(dockerCli, `Using --platform pushes only the specified platform manifest of a multi-platform image index.
-Other components, like attestations, will not be included.
-To push the complete multi-platform image, remove the --platform flag.
+		printNote(dockerCli, `Selecting a single platform will only push one matching image manifest from a multi-platform image index.
+This means that any other components attached to the multi-platform image index (like Buildkit attestations) won't be pushed.
+If you want to only push a single platform image while preserving the attestations, please use 'docker convert\n'
 `)
 	}
 
@@ -184,22 +179,9 @@ func handleAux(dockerCli command.Cli) func(jm jsonmessage.JSONMessage) {
 
 func printNote(dockerCli command.Cli, format string, args ...any) {
 	if dockerCli.Err().IsTerminal() {
-		format = strings.ReplaceAll(format, "--platform", aec.Bold.Apply("--platform"))
+		_, _ = fmt.Fprint(dockerCli.Err(), aec.WhiteF.Apply(aec.CyanB.Apply("[ NOTE ]"))+" ")
+	} else {
+		_, _ = fmt.Fprint(dockerCli.Err(), "[ NOTE ] ")
 	}
-
-	header := " Info -> "
-	padding := len(header)
-	if dockerCli.Err().IsTerminal() {
-		padding = len("i Info > ")
-		header = aec.Bold.Apply(aec.LightCyanB.Apply(aec.BlackF.Apply("i")) + " " + aec.LightCyanF.Apply("Info → "))
-	}
-
-	_, _ = fmt.Fprint(dockerCli.Err(), header)
-	s := fmt.Sprintf(format, args...)
-	for idx, line := range strings.Split(s, "\n") {
-		if idx > 0 {
-			_, _ = fmt.Fprint(dockerCli.Err(), strings.Repeat(" ", padding))
-		}
-		_, _ = fmt.Fprintln(dockerCli.Err(), aec.Italic.Apply(line))
-	}
+	_, _ = fmt.Fprintf(dockerCli.Err(), aec.Bold.Apply(format)+"\n", args...)
 }

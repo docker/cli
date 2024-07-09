@@ -14,6 +14,8 @@ import (
 	"gotest.tools/v3/icmd"
 )
 
+const defaultArgs = "DOCKER_APP_BASE DOCKER_APP_PATH VERSION HOSTARCH HOSTOS USERGID USERHOME USERID USERNAME"
+
 func TestInstallOne(t *testing.T) {
 	const buildCtx = "one"
 	const coolApp = "cool"
@@ -25,10 +27,10 @@ func TestInstallOne(t *testing.T) {
 		fs.WithDir(buildCtx,
 			fs.WithFile("Dockerfile", fmt.Sprintf(`
 			FROM %s
-			ARG HOSTOS HOSTARCH
+			ARG %s
 			COPY cool /egress/%s
 			CMD ["echo", "'cool' app successfully built!"]
-			`, fixtures.AlpineImage, coolApp)),
+			`, fixtures.AlpineImage, defaultArgs, coolApp)),
 			fs.WithFile("cool", coolScript, fs.WithMode(0o755)),
 		),
 	)
@@ -74,10 +76,10 @@ func TestInstallMulti(t *testing.T) {
 		fs.WithDir(buildCtx,
 			fs.WithFile("Dockerfile", fmt.Sprintf(`
 			FROM %s
-			ARG HOSTOS HOSTARCH
+			ARG %s
 			COPY . /egress
 			CMD ["echo", "'multi' app successfully built!"]
-			`, fixtures.AlpineImage)),
+			`, fixtures.AlpineImage, defaultArgs)),
 			fs.WithFile(".dockerignore", `
 			Dockerfile
 			.dockerignore
@@ -147,10 +149,10 @@ func TestInstallCustom(t *testing.T) {
 		fs.WithDir(buildCtx,
 			fs.WithFile("Dockerfile", fmt.Sprintf(`
 			FROM %s
-			ARG HOSTOS HOSTARCH
+			ARG %s
 			COPY . /egress
 			CMD ["echo", "'custom' app successfully built!"]
-			`, fixtures.AlpineImage)),
+			`, fixtures.AlpineImage, defaultArgs)),
 			fs.WithFile(".dockerignore", `
 			Dockerfile
 			.dockerignore
@@ -208,10 +210,10 @@ func TestInstallCustomDestination(t *testing.T) {
 		fs.WithDir(buildCtx,
 			fs.WithFile("Dockerfile", fmt.Sprintf(`
 			FROM %s
-			ARG HOSTOS HOSTARCH
+			ARG %s
 			COPY . %s
 			CMD ["echo", "'service' successfully built!"]
-			`, fixtures.AlpineImage, egress)),
+			`, fixtures.AlpineImage, defaultArgs, egress)),
 			fs.WithFile("config", "", fs.WithMode(0o644)),
 			fs.WithFile("install", deployScript, fs.WithMode(0o755)),
 		),

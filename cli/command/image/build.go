@@ -90,6 +90,10 @@ func (o *BuildOptions) SetImageIDFile(imageIDFile string) {
 	o.imageIDFile = imageIDFile
 }
 
+func (o *BuildOptions) SetBuildArg(value string) {
+	o.buildArgs.Set(value)
+}
+
 func newBuildOptions() BuildOptions {
 	ulimits := make(map[string]*container.Ulimit)
 	return BuildOptions{

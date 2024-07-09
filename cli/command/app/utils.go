@@ -11,8 +11,7 @@ import (
 	"syscall"
 )
 
-// spawn runs the specified command and returns the PID
-// of the spawned process
+// spawn runs the specified command
 func spawn(bin string, args []string, envMap map[string]string, detach bool) error {
 	toEnv := func() []string {
 		var env []string
@@ -138,10 +137,12 @@ func parseURL(s string) (*url.URL, error) {
 	}
 }
 
-// isSymlinkToOK checks if it is ok to create a symlink to the target
+// isSymlinkOK checks if it is ok to create a symlink to the target
 // it is ok if the path does not exist
-// or if the path is a symlink that points to this same target
-func isSymlinkToOK(path, target string) (bool, error) {
+// or if the path is a symlink that points to the same target.
+// it is considered the same target if the symlink is identical up to
+// the first @ or # sign, i.e. they are the same app but different versions.
+func isSymlinkOK(path, target string) (bool, error) {
 	fi, err := os.Lstat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -158,7 +159,14 @@ func isSymlinkToOK(path, target string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return link == target, nil
+
+	pkg := func(s string) string {
+		s = filepath.Dir(s)
+		s = strings.Split(s, "#")[0]
+		return strings.Split(s, "@")[0]
+	}
+
+	return pkg(link) == pkg(target), nil
 }
 
 // splitAtDashDash splits a string array into two parts
@@ -218,4 +226,48 @@ func removeEmptyPath(root, dir string) error {
 	}
 
 	return rm(filepath.Dir(dir))
+}
+
+// shortenPath removes home directory from path to make it shorter
+func shortenPath(path string) string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	return strings.ReplaceAll(path, home+"/", "_")
+}
+
+// locateDir walks back the path and looks for directory with the given name.
+// If found, it returns the directory; otherwise an empty string.
+func locateDir(path, name string) (string, error) {
+	check := func(dir string) (bool, string) {
+		if filepath.Base(dir) == name {
+			return true, dir
+		}
+		child := filepath.Join(dir, name)
+		info, err := os.Stat(child)
+		if err != nil {
+			return false, ""
+		}
+		return info.IsDir(), child
+	}
+
+	dir, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		if found, d := check(dir); found {
+			return d, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == "/" || parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return "", fmt.Errorf("not found: %s", name)
 }
