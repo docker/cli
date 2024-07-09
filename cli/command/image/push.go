@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -63,6 +64,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	// on older APIs which don't support it.
 	flags.StringVar(&opts.platform, "platform", "",
 		`Push a platform-specific manifest as a single-platform image to the registry.
+Image index won't be pushed, meaning that other manifests, including attestations won't be preserved.
 'os[/arch[/variant]]': Explicit platform (eg. linux/amd64)`)
 	flags.SetAnnotation("platform", "version", []string{"1.46"})
 
@@ -82,9 +84,9 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		}
 		platform = &p
 
-		printNote(dockerCli, `Selecting a single platform will only push one matching image manifest from a multi-platform image index.
-This means that any other components attached to the multi-platform image index (like Buildkit attestations) won't be pushed.
-If you want to push a whole multi-platform image, make sure all image content is present and remove the --platform flag.
+		printNote(dockerCli, `Using --platform pushes only the specified platform manifest of a multi-platform image index.
+Other components, like attestations, will not be included.
+To push the complete multi-platform image, remove the --platform flag.
 `)
 	}
 
@@ -182,9 +184,22 @@ func handleAux(dockerCli command.Cli) func(jm jsonmessage.JSONMessage) {
 
 func printNote(dockerCli command.Cli, format string, args ...any) {
 	if dockerCli.Err().IsTerminal() {
-		_, _ = fmt.Fprint(dockerCli.Err(), aec.WhiteF.Apply(aec.CyanB.Apply("[ NOTE ]"))+" ")
-	} else {
-		_, _ = fmt.Fprint(dockerCli.Err(), "[ NOTE ] ")
+		format = strings.ReplaceAll(format, "--platform", aec.Bold.Apply("--platform"))
 	}
-	_, _ = fmt.Fprintf(dockerCli.Err(), aec.Bold.Apply(format)+"\n", args...)
+
+	header := " Info -> "
+	padding := len(header)
+	if dockerCli.Err().IsTerminal() {
+		padding = len("i Info > ")
+		header = aec.Bold.Apply(aec.LightCyanB.Apply(aec.BlackF.Apply("i")) + " " + aec.LightCyanF.Apply("Info → "))
+	}
+
+	_, _ = fmt.Fprint(dockerCli.Err(), header)
+	s := fmt.Sprintf(format, args...)
+	for idx, line := range strings.Split(s, "\n") {
+		if idx > 0 {
+			_, _ = fmt.Fprint(dockerCli.Err(), strings.Repeat(" ", padding))
+		}
+		_, _ = fmt.Fprintln(dockerCli.Err(), aec.Italic.Apply(line))
+	}
 }
