@@ -6,6 +6,10 @@ module github.com/docker/cli
 
 go 1.21.0
 
+replace github.com/docker/docker => github.com/vvoland/moby v20.10.16-0.20240710151950-3113f9691bec+incompatible
+
+//replace github.com/docker/docker => github.com/vvoland/moby c8d-multiplatform-list-and-convert
+
 require (
 	dario.cat/mergo v1.0.0
 	github.com/containerd/platforms v0.2.1
@@ -57,10 +61,12 @@ require (
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/Microsoft/hcsshim v0.11.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/containerd/containerd v1.7.18 // indirect
+	github.com/containerd/errdefs v0.1.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
