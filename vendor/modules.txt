@@ -12,6 +12,9 @@ github.com/Microsoft/go-winio/internal/fs
 github.com/Microsoft/go-winio/internal/socket
 github.com/Microsoft/go-winio/internal/stringbuffer
 github.com/Microsoft/go-winio/pkg/guid
+# github.com/Microsoft/hcsshim v0.11.5
+## explicit; go 1.21
+github.com/Microsoft/hcsshim/osversion
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
@@ -24,6 +27,10 @@ github.com/cespare/xxhash/v2
 # github.com/containerd/containerd v1.7.18
 ## explicit; go 1.21
 github.com/containerd/containerd/pkg/userns
+github.com/containerd/containerd/platforms
+# github.com/containerd/errdefs v0.1.0
+## explicit; go 1.20
+github.com/containerd/errdefs
 # github.com/containerd/log v0.1.0
 ## explicit; go 1.20
 github.com/containerd/log
@@ -56,7 +63,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v27.0.2-0.20240703234935-508cc7c61226+incompatible
+# github.com/docker/docker v27.0.2-0.20240703234935-508cc7c61226+incompatible => github.com/vvoland/moby v20.10.16-0.20240710151950-3113f9691bec+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -519,3 +526,4 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.7.2
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/docker => github.com/vvoland/moby v20.10.16-0.20240710151950-3113f9691bec+incompatible

@@ -1,7 +1,9 @@
 package client // import "github.com/docker/docker/client"
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,6 +12,7 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/registry"
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // ImageCreate creates a new image based on the parent options.
@@ -37,4 +40,29 @@ func (cli *Client) tryImageCreate(ctx context.Context, query url.Values, registr
 	return cli.post(ctx, "/images/create", query, nil, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})
+}
+
+func (cli *Client) ImageCreateFromOCIIndex(ctx context.Context, ref reference.NamedTagged, index v1.Index) (v1.Descriptor, error) {
+	query := url.Values{}
+	query.Set("fromJSON", "1")
+	query.Set("repo", ref.Name())
+	query.Set("tag", ref.Tag())
+
+	buf := bytes.Buffer{}
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(index)
+	if err != nil {
+		return v1.Descriptor{}, err
+	}
+
+	resp, err := cli.post(ctx, "/images/create", query, buf, nil)
+	if err != nil {
+		return v1.Descriptor{}, err
+	}
+
+	var desc v1.Descriptor
+	if err := json.NewDecoder(resp.body).Decode(&desc); err != nil {
+		return v1.Descriptor{}, err
+	}
+	return desc, nil
 }

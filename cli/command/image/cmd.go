@@ -27,6 +27,7 @@ func NewImageCommand(dockerCli command.Cli) *cobra.Command {
 		newRemoveCommand(dockerCli),
 		newInspectCommand(dockerCli),
 		NewPruneCommand(dockerCli),
+		NewConvertCommand(dockerCli),
 	)
 	return cmd
 }
