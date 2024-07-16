@@ -180,14 +180,14 @@ func TestCliPluginsVersion(t *testing.T) {
 			args:    []string{"version", "foo"},
 			expCode: 1,
 			expOut:  icmd.None,
-			expErr:  `"docker version" accepts no arguments.`,
+			expErr:  `docker: 'docker version' accepts no arguments`,
 		},
 		{
 			name:    "global-with-plugin-arg",
 			args:    []string{"version", "helloworld"},
 			expCode: 1,
 			expOut:  icmd.None,
-			expErr:  `"docker version" accepts no arguments.`,
+			expErr:  `docker: 'docker version' accepts no arguments`,
 		},
 		{
 			name:    "global-version-flag-with-unknown-arg",

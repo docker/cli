@@ -82,7 +82,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 			if len(args) == 0 {
 				return command.ShowHelp(dockerCli.Err())(cmd, args)
 			}
-			return fmt.Errorf("docker: '%s' is not a docker command.\nSee 'docker --help'", args[0])
+			return fmt.Errorf("docker: unknown command: docker %s\n\nRun 'docker --help' for more information", args[0])
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return isSupported(cmd, dockerCli)

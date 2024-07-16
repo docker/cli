@@ -66,7 +66,7 @@ func TestExitStatusForInvalidSubcommandWithHelpFlag(t *testing.T) {
 
 func TestExitStatusForInvalidSubcommand(t *testing.T) {
 	err := runCliCommand(t, nil, nil, "invalid")
-	assert.Check(t, is.ErrorContains(err, "docker: 'invalid' is not a docker command."))
+	assert.Check(t, is.ErrorContains(err, "docker: unknown command: docker invalid"))
 }
 
 func TestVersion(t *testing.T) {

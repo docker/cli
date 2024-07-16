@@ -18,7 +18,7 @@ func TestRequiresNoArgs(t *testing.T) {
 		{
 			args:          []string{"foo"},
 			validateFunc:  NoArgs,
-			expectedError: "accepts no arguments.",
+			expectedError: "accepts no arguments",
 		},
 	}
 	for _, tc := range testCases {
@@ -36,12 +36,12 @@ func TestRequiresMinArgs(t *testing.T) {
 		},
 		{
 			validateFunc:  RequiresMinArgs(1),
-			expectedError: "at least 1 argument.",
+			expectedError: "at least 1 argument",
 		},
 		{
 			args:          []string{"foo"},
 			validateFunc:  RequiresMinArgs(2),
-			expectedError: "at least 2 arguments.",
+			expectedError: "at least 2 arguments",
 		},
 	}
 	for _, tc := range testCases {
@@ -60,12 +60,12 @@ func TestRequiresMaxArgs(t *testing.T) {
 		{
 			args:          []string{"foo", "bar"},
 			validateFunc:  RequiresMaxArgs(1),
-			expectedError: "at most 1 argument.",
+			expectedError: "at most 1 argument",
 		},
 		{
 			args:          []string{"foo", "bar", "baz"},
 			validateFunc:  RequiresMaxArgs(2),
-			expectedError: "at most 2 arguments.",
+			expectedError: "at most 2 arguments",
 		},
 	}
 	for _, tc := range testCases {
@@ -88,12 +88,12 @@ func TestRequiresRangeArgs(t *testing.T) {
 		{
 			args:          []string{"foo", "bar"},
 			validateFunc:  RequiresRangeArgs(0, 1),
-			expectedError: "at most 1 argument.",
+			expectedError: "at most 1 argument",
 		},
 		{
 			args:          []string{"foo", "bar", "baz"},
 			validateFunc:  RequiresRangeArgs(0, 2),
-			expectedError: "at most 2 arguments.",
+			expectedError: "at most 2 arguments",
 		},
 		{
 			validateFunc:  RequiresRangeArgs(1, 2),
@@ -115,11 +115,11 @@ func TestExactArgs(t *testing.T) {
 		},
 		{
 			validateFunc:  ExactArgs(1),
-			expectedError: "exactly 1 argument.",
+			expectedError: "1 argument",
 		},
 		{
 			validateFunc:  ExactArgs(2),
-			expectedError: "exactly 2 arguments.",
+			expectedError: "2 arguments",
 		},
 	}
 	for _, tc := range testCases {

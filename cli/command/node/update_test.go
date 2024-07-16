@@ -20,11 +20,11 @@ func TestNodeUpdateErrors(t *testing.T) {
 		expectedError   string
 	}{
 		{
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"node1", "node2"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args: []string{"nodeID"},

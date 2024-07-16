@@ -31,7 +31,7 @@ func TestManifestPushErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{"one-arg", "extra-arg"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"th!si'sa/fa!ke/li$t/-name"},

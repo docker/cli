@@ -17,7 +17,7 @@ func TestNetworkDisconnectErrors(t *testing.T) {
 		expectedError         string
 	}{
 		{
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires 2 arguments",
 		},
 		{
 			args: []string{"toto", "titi"},

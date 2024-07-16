@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -14,15 +12,20 @@ func NoArgs(cmd *cobra.Command, args []string) error {
 	}
 
 	if cmd.HasSubCommands() {
-		return errors.Errorf("\n" + strings.TrimRight(cmd.UsageString(), "\n"))
+		return errors.Errorf(
+			"%[1]s: unknown command: %[2]s %[3]s\n\nUsage:  %[4]s\n\nRun '%[2]s --help' for more information",
+			binName(cmd),
+			cmd.CommandPath(),
+			args[0],
+			cmd.UseLine(),
+		)
 	}
 
 	return errors.Errorf(
-		"%q accepts no arguments.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
-		cmd.CommandPath(),
+		"%[1]s: '%[2]s' accepts no arguments\n\nUsage:  %[3]s\n\nRun '%[2]s --help' for more information",
+		binName(cmd),
 		cmd.CommandPath(),
 		cmd.UseLine(),
-		cmd.Short,
 	)
 }
 
@@ -33,13 +36,12 @@ func RequiresMinArgs(min int) cobra.PositionalArgs {
 			return nil
 		}
 		return errors.Errorf(
-			"%q requires at least %d %s.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
+			"%[1]s: '%[2]s' requires at least %[3]d %[4]s\n\nUsage:  %[5]s\n\nSee '%[2]s --help' for more information",
+			binName(cmd),
 			cmd.CommandPath(),
 			min,
 			pluralize("argument", min),
-			cmd.CommandPath(),
 			cmd.UseLine(),
-			cmd.Short,
 		)
 	}
 }
@@ -51,13 +53,12 @@ func RequiresMaxArgs(max int) cobra.PositionalArgs {
 			return nil
 		}
 		return errors.Errorf(
-			"%q requires at most %d %s.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
+			"%[1]s: '%[2]s' requires at most %[3]d %[4]s\n\nUsage:  %[5]s\n\nSRun '%[2]s --help' for more information",
+			binName(cmd),
 			cmd.CommandPath(),
 			max,
 			pluralize("argument", max),
-			cmd.CommandPath(),
 			cmd.UseLine(),
-			cmd.Short,
 		)
 	}
 }
@@ -69,14 +70,13 @@ func RequiresRangeArgs(min int, max int) cobra.PositionalArgs {
 			return nil
 		}
 		return errors.Errorf(
-			"%q requires at least %d and at most %d %s.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
+			"%[1]s: '%[2]s' requires at least %[3]d and at most %[4]d %[5]s\n\nUsage:  %[6]s\n\nRun '%[2]s --help' for more information",
+			binName(cmd),
 			cmd.CommandPath(),
 			min,
 			max,
 			pluralize("argument", max),
-			cmd.CommandPath(),
 			cmd.UseLine(),
-			cmd.Short,
 		)
 	}
 }
@@ -88,15 +88,19 @@ func ExactArgs(number int) cobra.PositionalArgs {
 			return nil
 		}
 		return errors.Errorf(
-			"%q requires exactly %d %s.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
+			"%[1]s: '%[2]s' requires %[3]d %[4]s\n\nUsage:  %[5]s\n\nRun '%[2]s --help' for more information",
+			binName(cmd),
 			cmd.CommandPath(),
 			number,
 			pluralize("argument", number),
-			cmd.CommandPath(),
 			cmd.UseLine(),
-			cmd.Short,
 		)
 	}
+}
+
+// binName returns the name of the binary / root command (usually 'docker').
+func binName(cmd *cobra.Command) string {
+	return cmd.Root().Name()
 }
 
 //nolint:unparam

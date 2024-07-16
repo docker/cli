@@ -21,7 +21,7 @@ func TestNewInspectCommandErrors(t *testing.T) {
 		{
 			name:          "wrong-args",
 			args:          []string{},
-			expectedError: "requires at least 1 argument.",
+			expectedError: "requires at least 1 argument",
 		},
 	}
 	for _, tc := range testCases {

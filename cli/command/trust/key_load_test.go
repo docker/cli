@@ -34,13 +34,14 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 	}{
 		{
 			name:           "not-enough-args",
-			expectedError:  "exactly 1 argument",
+			expectedError:  "1 argument",
+			args:           []string{},
 			expectedOutput: "",
 		},
 		{
 			name:           "too-many-args",
 			args:           []string{"iamnotakey", "alsonotakey"},
-			expectedError:  "exactly 1 argument",
+			expectedError:  "1 argument",
 			expectedOutput: "",
 		},
 		{

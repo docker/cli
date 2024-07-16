@@ -19,7 +19,7 @@ func TestConfigRemoveErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{},
-			expectedError: "requires at least 1 argument.",
+			expectedError: "requires at least 1 argument",
 		},
 		{
 			args: []string{"foo"},

@@ -39,7 +39,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 	}{
 		{
 			name:          "wrong args",
-			expectedError: "requires at least 1 argument.",
+			expectedError: "requires at least 1 argument",
 		},
 		{
 			name:          "ImageRemove fail with force option",
