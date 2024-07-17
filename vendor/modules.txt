@@ -36,7 +36,7 @@ github.com/creack/pty
 # github.com/distribution/reference v0.6.0
 ## explicit; go 1.20
 github.com/distribution/reference
-# github.com/docker/cli-docs-tool v0.7.0
+# github.com/docker/cli-docs-tool v0.8.0
 ## explicit; go 1.18
 github.com/docker/cli-docs-tool/annotation
 # github.com/docker/distribution v2.8.3+incompatible
