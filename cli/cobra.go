@@ -92,12 +92,8 @@ func FlagErrorFunc(cmd *cobra.Command, err error) error {
 		return nil
 	}
 
-	usage := ""
-	if cmd.HasSubCommands() {
-		usage = "\n\n" + cmd.UsageString()
-	}
 	return StatusError{
-		Status:     fmt.Sprintf("%s\nSee '%s --help'.%s", err, cmd.CommandPath(), usage),
+		Status:     fmt.Sprintf("%s\n\nUsage:  %s\n\nRun '%s --help' for more information", err, cmd.UseLine(), cmd.CommandPath()),
 		StatusCode: 125,
 	}
 }
