@@ -2,6 +2,7 @@ package completion
 
 import (
 	"os"
+	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/container"
@@ -103,6 +104,41 @@ func NetworkNames(dockerCLI APIClientProvider) ValidArgsFn {
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
+}
+
+// EnvVarNames offers completion for environment-variable names. This
+// completion can be used for "--env" and "--build-arg" flags, which
+// allow obtaining the value of the given environment-variable if present
+// in the local environment, so we only should complete the names of the
+// environment variables, and not their value. This also prevents the
+// completion script from printing values of environment variables
+// containing sensitive values.
+//
+// For example;
+//
+//	export MY_VAR=hello
+//	docker run --rm --env MY_VAR alpine printenv MY_VAR
+//	hello
+func EnvVarNames(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
+	envs := os.Environ()
+	names = make([]string, 0, len(envs))
+	for _, env := range envs {
+		name, _, _ := strings.Cut(env, "=")
+		names = append(names, name)
+	}
+	return names, cobra.ShellCompDirectiveNoFileComp
+}
+
+// FromList offers completion for the given list of options.
+func FromList(options ...string) ValidArgsFn {
+	return cobra.FixedCompletions(options, cobra.ShellCompDirectiveNoFileComp)
+}
+
+// FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
+// which indicates to let the shell perform its default behavior after
+// completions have been provided.
+func FileNames(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	return nil, cobra.ShellCompDirectiveDefault
 }
 
 // NoComplete is used for commands where there's no relevant completion
