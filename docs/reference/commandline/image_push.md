@@ -9,12 +9,12 @@ Upload an image to a registry
 
 ### Options
 
-| Name                                         | Type     | Default | Description                                                                                                                                                                                                                                          |
-|:---------------------------------------------|:---------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`-a`](#all-tags), [`--all-tags`](#all-tags) | `bool`   |         | Push all tags of an image to the repository                                                                                                                                                                                                          |
-| `--disable-content-trust`                    | `bool`   | `true`  | Skip image signing                                                                                                                                                                                                                                   |
-| `--platform`                                 | `string` |         | Push a platform-specific manifest as a single-platform image to the registry.<br>Image index won't be pushed, meaning that other manifests, including attestations won't be preserved.<br>'os[/arch[/variant]]': Explicit platform (eg. linux/amd64) |
-| `-q`, `--quiet`                              | `bool`   |         | Suppress verbose output                                                                                                                                                                                                                              |
+| Name                                         | Type     | Default | Description                                                                                                                                 |
+|:---------------------------------------------|:---------|:--------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-a`](#all-tags), [`--all-tags`](#all-tags) | `bool`   |         | Push all tags of an image to the repository                                                                                                 |
+| `--disable-content-trust`                    | `bool`   | `true`  | Skip image signing                                                                                                                          |
+| `--platform`                                 | `string` |         | Push a platform-specific manifest as a single-platform image to the registry.<br>'os[/arch[/variant]]': Explicit platform (eg. linux/amd64) |
+| `-q`, `--quiet`                              | `bool`   |         | Suppress verbose output                                                                                                                     |
 
 
 <!---MARKER_GEN_END-->
