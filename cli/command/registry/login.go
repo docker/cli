@@ -18,9 +18,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const unencryptedWarning = `WARNING! Your password will be stored unencrypted in %s.
+// unencryptedWarning warns the user when using an insecure credential storage.
+// After a deprecation period, user will get prompted if stdin and stderr are a terminal.
+// Otherwise, we'll assume they want it (sadly), because people may have been scripting
+// insecure logins and we don't want to break them. Maybe they'll see the warning in their
+// logs and fix things.
+const unencryptedWarning = `
+WARNING! Your credentials are stored unencrypted in '%s'.
 Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credential-stores
+https://docs.docker.com/go/credential-store/
 `
 
 type loginOptions struct {
@@ -58,17 +64,6 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
-}
-
-// displayUnencryptedWarning warns the user when using an insecure credential storage.
-// After a deprecation period, user will get prompted if stdin and stderr are a terminal.
-// Otherwise, we'll assume they want it (sadly), because people may have been scripting
-// insecure logins and we don't want to break them. Maybe they'll see the warning in their
-// logs and fix things.
-func displayUnencryptedWarning(dockerCli command.Streams, filename string) error {
-	_, err := fmt.Fprintln(dockerCli.Err(), fmt.Sprintf(unencryptedWarning, filename))
-
-	return err
 }
 
 type isFileStore interface {
@@ -143,17 +138,13 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 
 	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
 
-	store, isDefault := creds.(isFileStore)
-	// Display a warning if we're storing the users password (not a token)
-	if isDefault && authConfig.Password != "" {
-		err = displayUnencryptedWarning(dockerCli, store.GetFilename())
-		if err != nil {
-			return err
-		}
-	}
-
 	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
+	}
+
+	if store, isDefault := creds.(isFileStore); isDefault && authConfig.Password != "" {
+		// Display a warning if we're storing the users password (not a token)
+		_, _ = fmt.Fprintln(dockerCli.Err(), fmt.Sprintf(unencryptedWarning, store.GetFilename()))
 	}
 
 	if response.Status != "" {
