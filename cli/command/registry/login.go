@@ -23,9 +23,10 @@ import (
 // Otherwise, we'll assume they want it (sadly), because people may have been scripting
 // insecure logins and we don't want to break them. Maybe they'll see the warning in their
 // logs and fix things.
-const unencryptedWarning = `WARNING! Your password will be stored unencrypted in %s.
+const unencryptedWarning = `
+WARNING! Your credentials are stored unencrypted in '%s'.
 Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credential-stores
+https://docs.docker.com/go/credential-store/
 `
 
 type loginOptions struct {
