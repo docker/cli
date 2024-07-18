@@ -159,7 +159,7 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symbol link in SRC_PATH")
+	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symbolic link in SRC_PATH")
 	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (copy all uid/gid information)")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached")
 	return cmd
@@ -227,7 +227,7 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	}
 
 	client := dockerCli.Client()
-	// if client requests to follow symbol link, then must decide target file to be copied
+	// if client requests to follow symbolic link, then must decide target file to be copied
 	var rebaseName string
 	if copyConfig.followLink {
 		srcStat, err := client.ContainerStatPath(ctx, copyConfig.container, srcPath)
