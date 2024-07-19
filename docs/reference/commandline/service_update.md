@@ -59,6 +59,7 @@ Update a service
 | `--network-rm`                                | `list`            |         | Remove a network                                                                                    |
 | `--no-healthcheck`                            | `bool`            |         | Disable any container-specified HEALTHCHECK                                                         |
 | `--no-resolve-image`                          | `bool`            |         | Do not query the registry to resolve image digest and supported platforms                           |
+| `--oom-score-adj`                             | `int64`           | `0`     | Tune host's OOM preferences (-1000 to 1000)                                                         |
 | `--placement-pref-add`                        | `pref`            |         | Add a placement preference                                                                          |
 | `--placement-pref-rm`                         | `pref`            |         | Remove a placement preference                                                                       |
 | [`--publish-add`](#publish-add)               | `port`            |         | Add or update a published port                                                                      |
