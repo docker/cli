@@ -295,7 +295,10 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 // reportError is a utility method that prints a user-friendly message
 // containing the error that occurred during parsing and a suggestion to get help
 func reportError(stderr io.Writer, name string, str string, withHelp bool) {
-	str = strings.TrimSuffix(str, ".") + "."
+	puncRegexp := regexp.MustCompile(`[\n\r\!\.\?]$`)
+	if !puncRegexp.MatchString(str) {
+		str += "."
+	}
 	if withHelp {
 		str += "\nSee 'docker " + name + " --help'."
 	}
