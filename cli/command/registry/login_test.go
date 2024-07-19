@@ -6,7 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/creack/pty"
+	"github.com/docker/cli/cli/command"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
@@ -183,5 +186,43 @@ func TestRunLogin(t *testing.T) {
 			assert.Check(t, credStoreErr)
 			assert.DeepEqual(t, tc.expectedSavedCred, savedCred)
 		})
+	}
+}
+
+func TestLoginTermination(t *testing.T) {
+	p, tty, err := pty.Open()
+	assert.NilError(t, err)
+
+	t.Cleanup(func() {
+		_ = tty.Close()
+		_ = p.Close()
+	})
+
+	cli := test.NewFakeCli(&fakeClient{}, func(fc *test.FakeCli) {
+		fc.SetOut(streams.NewOut(tty))
+		fc.SetIn(streams.NewIn(tty))
+	})
+	tmpFile := fs.NewFile(t, "test-login-termination")
+	defer tmpFile.Remove()
+
+	configFile := cli.ConfigFile()
+	configFile.Filename = tmpFile.Path()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	runErr := make(chan error)
+	go func() {
+		runErr <- runLogin(ctx, cli, loginOptions{})
+	}()
+
+	// Let the prompt get canceled by the context
+	cancel()
+
+	select {
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out after 1 second. `runLogin` did not return")
+	case err := <-runErr:
+		assert.ErrorIs(t, err, command.ErrPromptTerminated)
 	}
 }
