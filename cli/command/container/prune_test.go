@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -20,5 +21,7 @@ func TestContainerPrunePromptTermination(t *testing.T) {
 		},
 	})
 	cmd := NewPruneCommand(cli)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 }

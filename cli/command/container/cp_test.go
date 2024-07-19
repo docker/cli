@@ -178,13 +178,14 @@ func TestSplitCpArg(t *testing.T) {
 			expectedContainer: "container",
 		},
 	}
-	for _, testcase := range testcases {
-		t.Run(testcase.doc, func(t *testing.T) {
-			skip.If(t, testcase.os != "" && testcase.os != runtime.GOOS)
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			skip.If(t, tc.os == "windows" && runtime.GOOS != "windows" || tc.os == "linux" && runtime.GOOS == "windows")
 
-			ctr, path := splitCpArg(testcase.path)
-			assert.Check(t, is.Equal(testcase.expectedContainer, ctr))
-			assert.Check(t, is.Equal(testcase.expectedPath, path))
+			ctr, path := splitCpArg(tc.path)
+			assert.Check(t, is.Equal(tc.expectedContainer, ctr))
+			assert.Check(t, is.Equal(tc.expectedPath, path))
 		})
 	}
 }

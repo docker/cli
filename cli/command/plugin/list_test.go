@@ -46,14 +46,18 @@ func TestListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
-		cmd := newListCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
+			cmd := newListCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				cmd.Flags().Set(key, value)
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -162,13 +166,16 @@ func TestList(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
-		cmd := newListCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), tc.golden)
+		tc := tc
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
+			cmd := newListCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				cmd.Flags().Set(key, value)
+			}
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
+		})
 	}
 }

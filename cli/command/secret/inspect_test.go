@@ -61,6 +61,7 @@ func TestSecretInspectErrors(t *testing.T) {
 			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -92,13 +93,16 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			secretInspectFunc: tc.secretInspectFunc,
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				secretInspectFunc: tc.secretInspectFunc,
+			})
+			cmd := newSecretInspectCommand(cli)
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-without-format.%s.golden", tc.name))
 		})
-		cmd := newSecretInspectCommand(cli)
-		cmd.SetArgs(tc.args)
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-without-format.%s.golden", tc.name))
 	}
 }
 
@@ -128,14 +132,17 @@ func TestSecretInspectWithFormat(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			secretInspectFunc: tc.secretInspectFunc,
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				secretInspectFunc: tc.secretInspectFunc,
+			})
+			cmd := newSecretInspectCommand(cli)
+			cmd.SetArgs(tc.args)
+			assert.Check(t, cmd.Flags().Set("format", tc.format))
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-with-format.%s.golden", tc.name))
 		})
-		cmd := newSecretInspectCommand(cli)
-		cmd.SetArgs(tc.args)
-		assert.Check(t, cmd.Flags().Set("format", tc.format))
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("secret-inspect-with-format.%s.golden", tc.name))
 	}
 }
 

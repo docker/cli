@@ -39,6 +39,7 @@ func TestContainerExportOutputToIrregularFile(t *testing.T) {
 	})
 	cmd := NewExportCommand(cli)
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"-o", "/dev/random", "container"})
 
 	err := cmd.Execute()

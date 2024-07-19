@@ -45,6 +45,7 @@ func TestRemoveForce(t *testing.T) {
 			})
 			cmd := NewRmCommand(cli)
 			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
 
 			err := cmd.Execute()

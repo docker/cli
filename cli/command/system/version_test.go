@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -20,7 +21,9 @@ func TestVersionWithoutServer(t *testing.T) {
 		},
 	})
 	cmd := NewVersionCommand(cli)
+	cmd.SetArgs([]string{})
 	cmd.SetOut(cli.Err())
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no server")
 	out := cli.OutBuffer().String()
 	// TODO: use an assertion like e2e/image/build_test.go:assertBuildOutput()

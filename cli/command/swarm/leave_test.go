@@ -32,13 +32,17 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newLeaveCommand(
-			test.NewFakeCli(&fakeClient{
-				swarmLeaveFunc: tc.swarmLeaveFunc,
-			}))
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newLeaveCommand(
+				test.NewFakeCli(&fakeClient{
+					swarmLeaveFunc: tc.swarmLeaveFunc,
+				}))
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 

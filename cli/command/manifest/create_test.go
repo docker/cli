@@ -31,11 +31,15 @@ func TestManifestCreateErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(nil)
-		cmd := newCreateListCommand(cli)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		tc := tc
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cli := test.NewFakeCli(nil)
+			cmd := newCreateListCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -87,6 +91,7 @@ func TestManifestCreateRefuseAmend(t *testing.T) {
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err = cmd.Execute()
 	assert.Error(t, err, "refusing to amend an existing manifest list with no --amend flag")
 }
@@ -109,6 +114,7 @@ func TestManifestCreateNoManifest(t *testing.T) {
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err := cmd.Execute()
 	assert.Error(t, err, "No such image: example.com/alpine:3.0")
 }

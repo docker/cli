@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -20,5 +21,8 @@ func TestNetworkPrunePromptTermination(t *testing.T) {
 		},
 	})
 	cmd := NewPruneCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 }

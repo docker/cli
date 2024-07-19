@@ -63,6 +63,7 @@ func TestTrustKeyLoadErrors(t *testing.T) {
 		cmd := newKeyLoadCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		assert.Check(t, is.Contains(cli.OutBuffer().String(), tc.expectedOutput))
 	}
