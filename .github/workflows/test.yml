@@ -46,7 +46,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-12
+          - macos-13  # macOS 13 on Intel
+          - macos-14  # macOS 14 on arm64 (Apple Silicon M1)
 #          - windows-2022 # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
     steps:
       -
