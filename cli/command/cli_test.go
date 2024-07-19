@@ -87,6 +87,41 @@ func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
 	assert.DeepEqual(t, received, expectedHeaders)
 }
 
+func TestNewAPIClientFromFlagsWithCustomHeadersFromEnv(t *testing.T) {
+	var received http.Header
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		received = r.Header.Clone()
+		_, _ = w.Write([]byte("OK"))
+	}))
+	defer ts.Close()
+	host := strings.Replace(ts.URL, "http://", "tcp://", 1)
+	opts := &flags.ClientOptions{Hosts: []string{host}}
+	configFile := &configfile.ConfigFile{
+		HTTPHeaders: map[string]string{
+			"My-Header": "Custom-Value from config-file",
+		},
+	}
+
+	// envOverrideHTTPHeaders should override the HTTPHeaders from the config-file,
+	// so "My-Header" should not be present.
+	t.Setenv(envOverrideHTTPHeaders, `one=one-value,"two=two,value",three=,four=four-value,four=four-value-override`)
+	apiClient, err := NewAPIClientFromFlags(opts, configFile)
+	assert.NilError(t, err)
+	assert.Equal(t, apiClient.DaemonHost(), host)
+	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+
+	expectedHeaders := http.Header{
+		"One":        []string{"one-value"},
+		"Two":        []string{"two,value"},
+		"Three":      []string{""},
+		"Four":       []string{"four-value-override"},
+		"User-Agent": []string{UserAgent()},
+	}
+	_, err = apiClient.Ping(context.Background())
+	assert.NilError(t, err)
+	assert.DeepEqual(t, received, expectedHeaders)
+}
+
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	customVersion := "v3.3.3"
 	t.Setenv("DOCKER_API_VERSION", customVersion)
