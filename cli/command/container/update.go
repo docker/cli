@@ -83,6 +83,8 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Var(&options.cpus, "cpus", "Number of CPUs")
 	flags.SetAnnotation("cpus", "version", []string{"1.29"})
 
+	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
+
 	return cmd
 }
 

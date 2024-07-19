@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"syscall"
 
@@ -70,22 +69,15 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
 
-	cmd.RegisterFlagCompletionFunc(
-		"env",
-		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return os.Environ(), cobra.ShellCompDirectiveNoFileComp
-		},
-	)
-	cmd.RegisterFlagCompletionFunc(
-		"env-file",
-		func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return nil, cobra.ShellCompDirectiveDefault
-		},
-	)
-	cmd.RegisterFlagCompletionFunc(
-		"network",
-		completion.NetworkNames(dockerCli),
-	)
+	_ = cmd.RegisterFlagCompletionFunc("cap-add", completeLinuxCapabilityNames)
+	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
+	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
+	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
+	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCli))
+	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
+	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
+	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
+	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCli, true))
 	return cmd
 }
 

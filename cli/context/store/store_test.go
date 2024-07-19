@@ -260,3 +260,9 @@ func TestCorruptMetadata(t *testing.T) {
 	_, err = s.GetMetadata("source")
 	assert.ErrorContains(t, err, fmt.Sprintf("parsing %s: unexpected end of JSON input", contextFile))
 }
+
+func TestNames(t *testing.T) {
+	names, err := Names(nil)
+	assert.Check(t, is.Error(err, "nil lister"))
+	assert.Check(t, is.Len(names, 0))
+}

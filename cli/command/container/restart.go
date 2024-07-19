@@ -43,6 +43,9 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
 	flags.IntVarP(&opts.timeout, "time", "t", 0, "Seconds to wait before killing the container")
+
+	_ = cmd.RegisterFlagCompletionFunc("signal", completeSignals)
+
 	return cmd
 }
 
