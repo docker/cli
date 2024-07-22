@@ -18,17 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// unencryptedWarning warns the user when using an insecure credential storage.
-// After a deprecation period, user will get prompted if stdin and stderr are a terminal.
-// Otherwise, we'll assume they want it (sadly), because people may have been scripting
-// insecure logins and we don't want to break them. Maybe they'll see the warning in their
-// logs and fix things.
-const unencryptedWarning = `
-WARNING! Your credentials are stored unencrypted in '%s'.
-Configure a credential helper to remove this warning. See
-https://docs.docker.com/go/credential-store/
-`
-
 type loginOptions struct {
 	serverAddress string
 	user          string
@@ -64,11 +53,6 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
 
 	return cmd
-}
-
-type isFileStore interface {
-	IsFileStore() bool
-	GetFilename() string
 }
 
 func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
@@ -137,14 +121,8 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 	}
 
 	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
-
 	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
-	}
-
-	if store, isDefault := creds.(isFileStore); isDefault && authConfig.Password != "" {
-		// Display a warning if we're storing the users password (not a token)
-		_, _ = fmt.Fprintln(dockerCli.Err(), fmt.Sprintf(unencryptedWarning, store.GetFilename()))
 	}
 
 	if response.Status != "" {
