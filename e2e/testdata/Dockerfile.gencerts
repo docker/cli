@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.21.9
+ARG GO_VERSION=1.21.12
 
 FROM golang:${GO_VERSION}-alpine AS generated
 ENV GOTOOLCHAIN=local
