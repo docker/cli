@@ -83,8 +83,10 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 
 func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
-		reportError(dockerCli.Err(), "run", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "run").Error(),
+			StatusCode: 125,
+		}
 	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
@@ -99,12 +101,16 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	// just in case the parse does not exit
 	if err != nil {
-		reportError(dockerCli.Err(), "run", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "run").Error(),
+			StatusCode: 125,
+		}
 	}
 	if err = validateAPIVersion(containerCfg, dockerCli.CurrentVersion()); err != nil {
-		reportError(dockerCli.Err(), "run", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "run").Error(),
+			StatusCode: 125,
+		}
 	}
 	return runContainer(ctx, dockerCli, ropts, copts, containerCfg)
 }
@@ -139,8 +145,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 
 	containerID, err := createContainer(ctx, dockerCli, containerCfg, &runOpts.createOptions)
 	if err != nil {
-		reportError(stderr, "run", err.Error(), true)
-		return runStartContainerErr(err)
+		return toStatusError(err)
 	}
 	if runOpts.sigProxy {
 		sigc := notifyAllSignals()
@@ -204,12 +209,11 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			<-errCh
 		}
 
-		reportError(stderr, "run", err.Error(), false)
 		if copts.autoRemove {
 			// wait container to be removed
 			<-statusChan
 		}
-		return runStartContainerErr(err)
+		return toStatusError(err)
 	}
 
 	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
@@ -292,30 +296,40 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 	return resp.Close, nil
 }
 
-// reportError is a utility method that prints a user-friendly message
-// containing the error that occurred during parsing and a suggestion to get help
-func reportError(stderr io.Writer, name string, str string, withHelp bool) {
-	str = strings.TrimSuffix(str, ".") + "."
-	if withHelp {
-		str += "\nSee 'docker " + name + " --help'."
-	}
-	_, _ = fmt.Fprintln(stderr, "docker:", str)
+// withHelp decorates the error with a suggestion to use "--help".
+func withHelp(err error, commandName string) error {
+	return fmt.Errorf("docker: %w\n\nRun 'docker %s --help' for more information", err, commandName)
 }
 
-// if container start fails with 'not found'/'no such' error, return 127
-// if container start fails with 'permission denied' error, return 126
-// return 125 for generic docker daemon failures
-func runStartContainerErr(err error) error {
-	trimmedErr := strings.TrimPrefix(err.Error(), "Error response from daemon: ")
-	statusError := cli.StatusError{StatusCode: 125}
-	if strings.Contains(trimmedErr, "executable file not found") ||
-		strings.Contains(trimmedErr, "no such file or directory") ||
-		strings.Contains(trimmedErr, "system cannot find the file specified") {
-		statusError = cli.StatusError{StatusCode: 127}
-	} else if strings.Contains(trimmedErr, syscall.EACCES.Error()) ||
-		strings.Contains(trimmedErr, syscall.EISDIR.Error()) {
-		statusError = cli.StatusError{StatusCode: 126}
+// toStatusError attempts to detect specific error-conditions to assign
+// an appropriate exit-code for situations where the problem originates
+// from the container. It returns [cli.StatusError] with the original
+// error message and the Status field set as follows:
+//
+// - 125: for generic failures sent back from the daemon
+// - 126: if container start fails with 'permission denied' error
+// - 127: if container start fails with 'not found'/'no such' error
+func toStatusError(err error) error {
+	// TODO(thaJeztah): some of these errors originate from the container: should we actually suggest "--help" for those?
+
+	errMsg := err.Error()
+
+	if strings.Contains(errMsg, "executable file not found") || strings.Contains(errMsg, "no such file or directory") || strings.Contains(errMsg, "system cannot find the file specified") {
+		return cli.StatusError{
+			Status:     withHelp(err, "run").Error(),
+			StatusCode: 127,
+		}
 	}
 
-	return statusError
+	if strings.Contains(errMsg, syscall.EACCES.Error()) || strings.Contains(errMsg, syscall.EISDIR.Error()) {
+		return cli.StatusError{
+			Status:     withHelp(err, "run").Error(),
+			StatusCode: 126,
+		}
+	}
+
+	return cli.StatusError{
+		Status:     withHelp(err, "run").Error(),
+		StatusCode: 125,
+	}
 }

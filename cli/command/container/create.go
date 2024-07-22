@@ -92,8 +92,10 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 
 func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
@@ -107,12 +109,16 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
 	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
 	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
 	id, err := createContainer(ctx, dockerCli, containerCfg, options)
 	if err != nil {
