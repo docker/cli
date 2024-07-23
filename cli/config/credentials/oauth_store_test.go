@@ -23,173 +23,186 @@ const (
 
 func TestOAuthStoreGet(t *testing.T) {
 	t.Run("official registry", func(t *testing.T) {
-		t.Run("valid credentials - no refresh", func(t *testing.T) {
-			auths := map[string]types.AuthConfig{
-				defaultRegistry: {
+		t.Run("oauth creds", func(t *testing.T) {
+			t.Run("valid credentials - no refresh", func(t *testing.T) {
+				auths := map[string]types.AuthConfig{
+					accessTokenServerAddress: {
+						Username:      "bork!",
+						Password:      validNotExpiredToken,
+						ServerAddress: accessTokenServerAddress,
+					},
+					refreshTokenServerAddress: {
+						Username:      "bork!",
+						Password:      "refresh-token",
+						ServerAddress: refreshTokenServerAddress,
+					},
+				}
+				s := &oauthStore{
+					backingStore: NewFileStore(newStore(auths)),
+				}
+
+				auth, err := s.Get(defaultRegistry)
+				assert.NilError(t, err)
+
+				assert.DeepEqual(t, auth, types.AuthConfig{
 					Username:      "bork!",
-					Email:         "bork@docker.com",
-					Password:      validNotExpiredToken + "..refresh-token",
+					Password:      validNotExpiredToken,
 					ServerAddress: defaultRegistry,
-				},
-			}
-			s := &oauthStore{
-				backingStore: NewFileStore(newStore(auths)),
-			}
-
-			auth, err := s.Get(defaultRegistry)
-			assert.NilError(t, err)
-
-			assert.DeepEqual(t, auth, types.AuthConfig{
-				Username:      "bork!",
-				Password:      validNotExpiredToken,
-				Email:         "bork@docker.com",
-				ServerAddress: defaultRegistry,
+				})
 			})
-		})
 
-		t.Run("no credentials - return", func(t *testing.T) {
-			auths := map[string]types.AuthConfig{}
-			f := newStore(auths)
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-			}
-
-			auth, err := s.Get(defaultRegistry)
-			assert.NilError(t, err)
-
-			assert.DeepEqual(t, auth, types.AuthConfig{})
-			assert.Equal(t, len(auths), 0)
-		})
-
-		t.Run("expired credentials - refresh", func(t *testing.T) {
-			f := newStore(map[string]types.AuthConfig{
-				defaultRegistry: {
-					Username:      "bork!",
-					Email:         "bork@docker.com",
-					Password:      validExpiredToken + "..refresh-token",
-					ServerAddress: defaultRegistry,
-				},
-			})
-			var receivedRefreshToken string
-			manager := &testManager{
-				refresh: func(token string) (*oauth.TokenResult, error) {
-					receivedRefreshToken = token
-					return &oauth.TokenResult{
-						AccessToken:  "abcd1234",
-						RefreshToken: "efgh5678",
-						Claims: oauth.Claims{
-							Claims: jwt.Claims{
-								Expiry: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+			t.Run("expired credentials - refresh", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					accessTokenServerAddress: {
+						Username:      "bork!",
+						Password:      validExpiredToken,
+						ServerAddress: accessTokenServerAddress,
+					},
+					refreshTokenServerAddress: {
+						Username:      "bork!",
+						Password:      "refresh-token",
+						ServerAddress: refreshTokenServerAddress,
+					},
+				})
+				var receivedRefreshToken string
+				manager := &testManager{
+					refresh: func(token string) (*oauth.TokenResult, error) {
+						receivedRefreshToken = token
+						return &oauth.TokenResult{
+							AccessToken:  "abcd1234",
+							RefreshToken: "efgh5678",
+							Claims: oauth.Claims{
+								Claims: jwt.Claims{
+									Expiry: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+								},
+								Domain: oauth.DomainClaims{Username: "bork!", Email: "bork@docker.com"},
 							},
-							Domain: oauth.DomainClaims{Username: "bork!", Email: "bork@docker.com"},
-						},
-					}, nil
-				},
-			}
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-				manager:      manager,
-			}
+						}, nil
+					},
+				}
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+					manager:      manager,
+				}
 
-			auth, err := s.Get(defaultRegistry)
-			assert.NilError(t, err)
+				auth, err := s.Get(defaultRegistry)
+				assert.NilError(t, err)
 
-			assert.DeepEqual(t, auth, types.AuthConfig{
-				Username:      "bork!",
-				Password:      "abcd1234",
-				Email:         "bork@docker.com",
-				ServerAddress: defaultRegistry,
-			})
-			assert.Equal(t, receivedRefreshToken, "refresh-token")
-			assert.DeepEqual(t, f.GetAuthConfigs()[defaultRegistry], types.AuthConfig{
-				Username:      "bork!",
-				Password:      "abcd1234..efgh5678",
-				Email:         "bork@docker.com",
-				ServerAddress: defaultRegistry,
-			})
-		})
-
-		t.Run("expired credentials - refresh fails - return error", func(t *testing.T) {
-			f := newStore(map[string]types.AuthConfig{
-				defaultRegistry: {
+				assert.DeepEqual(t, auth, types.AuthConfig{
 					Username:      "bork!",
-					Email:         "bork@docker.com",
-					Password:      validExpiredToken + "..refresh-token",
+					Password:      "abcd1234",
 					ServerAddress: defaultRegistry,
-				},
+				})
+				assert.Equal(t, receivedRefreshToken, "refresh-token")
+				assert.DeepEqual(t, f.GetAuthConfigs()[accessTokenServerAddress], types.AuthConfig{
+					Username:      "bork!",
+					Password:      "abcd1234",
+					ServerAddress: accessTokenServerAddress,
+				})
+				assert.DeepEqual(t, f.GetAuthConfigs()[refreshTokenServerAddress], types.AuthConfig{
+					Username:      "bork!",
+					Password:      "efgh5678",
+					ServerAddress: refreshTokenServerAddress,
+				})
 			})
-			var refreshCalled bool
-			manager := &testManager{
-				refresh: func(_ string) (*oauth.TokenResult, error) {
-					refreshCalled = true
-					return &oauth.TokenResult{}, errors.New("refresh failed")
-				},
-			}
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-				manager:      manager,
-			}
 
-			_, err := s.Get(defaultRegistry)
-			assert.ErrorContains(t, err, "refresh failed")
+			t.Run("expired credentials - refresh fails - return error", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					accessTokenServerAddress: {
+						Username:      "bork!",
+						Password:      validExpiredToken,
+						ServerAddress: accessTokenServerAddress,
+					},
+					refreshTokenServerAddress: {
+						Username:      "bork!",
+						Password:      "refresh-token",
+						ServerAddress: refreshTokenServerAddress,
+					},
+				})
+				var refreshCalled bool
+				manager := &testManager{
+					refresh: func(_ string) (*oauth.TokenResult, error) {
+						refreshCalled = true
+						return &oauth.TokenResult{}, errors.New("refresh failed")
+					},
+				}
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+					manager:      manager,
+				}
 
-			assert.Check(t, refreshCalled)
+				_, err := s.Get(defaultRegistry)
+				assert.ErrorContains(t, err, "refresh failed")
+
+				assert.Check(t, refreshCalled)
+			})
 		})
 
-		t.Run("old non-access token credentials", func(t *testing.T) {
-			f := newStore(map[string]types.AuthConfig{
-				defaultRegistry: {
+		t.Run("non-oauth creds", func(t *testing.T) {
+			t.Run("old non-access token credentials", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					defaultRegistry: {
+						Username:      "bork!",
+						Password:      "a-password",
+						ServerAddress: defaultRegistry,
+					},
+				})
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
+
+				auth, err := s.Get(defaultRegistry)
+				assert.NilError(t, err)
+
+				assert.DeepEqual(t, auth, types.AuthConfig{
 					Username:      "bork!",
-					Email:         "bork@docker.com",
 					Password:      "a-password",
 					ServerAddress: defaultRegistry,
-				},
+				})
 			})
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-			}
 
-			auth, err := s.Get(defaultRegistry)
-			assert.NilError(t, err)
+			t.Run("old non-access token credentials w/ ..", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					defaultRegistry: {
+						Username:      "bork!",
+						Password:      "a-password..with-dots",
+						ServerAddress: defaultRegistry,
+					},
+				})
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
 
-			assert.DeepEqual(t, auth, types.AuthConfig{
-				Username:      "bork!",
-				Email:         "bork@docker.com",
-				Password:      "a-password",
-				ServerAddress: defaultRegistry,
-			})
-		})
+				auth, err := s.Get(defaultRegistry)
+				assert.NilError(t, err)
 
-		t.Run("old non-access token credentials w/ ..", func(t *testing.T) {
-			f := newStore(map[string]types.AuthConfig{
-				defaultRegistry: {
+				assert.DeepEqual(t, auth, types.AuthConfig{
 					Username:      "bork!",
-					Email:         "bork@docker.com",
 					Password:      "a-password..with-dots",
 					ServerAddress: defaultRegistry,
-				},
-			})
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-			}
-
-			auth, err := s.Get(defaultRegistry)
-			assert.NilError(t, err)
-
-			assert.DeepEqual(t, auth, types.AuthConfig{
-				Username:      "bork!",
-				Email:         "bork@docker.com",
-				Password:      "a-password..with-dots",
-				ServerAddress: defaultRegistry,
+				})
 			})
 		})
+	})
+
+	t.Run("no credentials - return", func(t *testing.T) {
+		auths := map[string]types.AuthConfig{}
+		f := newStore(auths)
+		s := &oauthStore{
+			backingStore: NewFileStore(f),
+		}
+
+		auth, err := s.Get(defaultRegistry)
+		assert.NilError(t, err)
+
+		assert.DeepEqual(t, auth, types.AuthConfig{})
+		assert.Equal(t, len(auths), 0)
 	})
 
 	t.Run("defers when different registry", func(t *testing.T) {
 		auth := types.AuthConfig{
 			Username:      "foo",
 			Password:      "bar",
-			Email:         "foo@example.com",
 			ServerAddress: validServerAddress,
 		}
 		f := newStore(map[string]types.AuthConfig{
@@ -217,12 +230,40 @@ func TestGetAll(t *testing.T) {
 
 		assert.Check(t, is.Len(as, 0))
 	})
-	t.Run("1 - official registry", func(t *testing.T) {
+
+	t.Run("official registry - oauth creds", func(t *testing.T) {
+		f := newStore(map[string]types.AuthConfig{
+			accessTokenServerAddress: {
+				Username:      "bork!",
+				Password:      validNotExpiredToken,
+				ServerAddress: accessTokenServerAddress,
+			},
+			refreshTokenServerAddress: {
+				Username:      "bork!",
+				Password:      "refresh-token",
+				ServerAddress: refreshTokenServerAddress,
+			},
+		})
+		s := &oauthStore{
+			backingStore: NewFileStore(f),
+		}
+
+		as, err := s.GetAll()
+		assert.NilError(t, err)
+
+		assert.Equal(t, len(as), 1)
+		assert.DeepEqual(t, as[defaultRegistry], types.AuthConfig{
+			Username:      "bork!",
+			Password:      validNotExpiredToken,
+			ServerAddress: defaultRegistry,
+		})
+	})
+
+	t.Run("official registry - regular creds", func(t *testing.T) {
 		f := newStore(map[string]types.AuthConfig{
 			defaultRegistry: {
 				Username:      "bork!",
-				Password:      validNotExpiredToken + "..refresh-token",
-				Email:         "bork@docker.com",
+				Password:      "meow",
 				ServerAddress: defaultRegistry,
 			},
 		})
@@ -234,14 +275,18 @@ func TestGetAll(t *testing.T) {
 		assert.NilError(t, err)
 
 		assert.Equal(t, len(as), 1)
+		assert.DeepEqual(t, as[defaultRegistry], types.AuthConfig{
+			Username:      "bork!",
+			Password:      "meow",
+			ServerAddress: defaultRegistry,
+		})
 	})
 
 	t.Run("1 - other registry", func(t *testing.T) {
 		f := newStore(map[string]types.AuthConfig{
-			defaultRegistry: {
+			validServerAddress2: {
 				Username:      "bork!",
 				Password:      "password",
-				Email:         "bork@docker.com",
 				ServerAddress: validServerAddress2,
 			},
 		})
@@ -253,20 +298,28 @@ func TestGetAll(t *testing.T) {
 		assert.NilError(t, err)
 
 		assert.Equal(t, len(as), 1)
+		assert.DeepEqual(t, as[validServerAddress2], types.AuthConfig{
+			Username:      "bork!",
+			Password:      "password",
+			ServerAddress: validServerAddress2,
+		})
 	})
 
 	t.Run("multiple - official and other registry", func(t *testing.T) {
 		f := newStore(map[string]types.AuthConfig{
-			defaultRegistry: {
+			accessTokenServerAddress: {
 				Username:      "bork!",
-				Password:      validNotExpiredToken + "..refresh-token",
-				Email:         "bork@docker.com",
-				ServerAddress: defaultRegistry,
+				Password:      validNotExpiredToken,
+				ServerAddress: accessTokenServerAddress,
+			},
+			refreshTokenServerAddress: {
+				Username:      "bork!",
+				Password:      "..refresh-token",
+				ServerAddress: refreshTokenServerAddress,
 			},
 			validServerAddress2: {
 				Username:      "foo",
 				Password:      "bar",
-				Email:         "bork@dockr.com",
 				ServerAddress: validServerAddress2,
 			},
 		})
@@ -278,39 +331,118 @@ func TestGetAll(t *testing.T) {
 		assert.NilError(t, err)
 
 		assert.Equal(t, len(as), 2)
+		assert.DeepEqual(t, as[defaultRegistry], types.AuthConfig{
+			Username:      "bork!",
+			Password:      validNotExpiredToken,
+			ServerAddress: defaultRegistry,
+		})
+		assert.DeepEqual(t, as[validServerAddress2], types.AuthConfig{
+			Username:      "foo",
+			Password:      "bar",
+			ServerAddress: validServerAddress2,
+		})
 	})
 }
 
 func TestErase(t *testing.T) {
 	t.Run("official registry", func(t *testing.T) {
-		f := newStore(map[string]types.AuthConfig{
-			defaultRegistry: {
-				Email:    "foo@example.com",
-				Password: validNotExpiredToken + "..refresh-token",
-			},
-		})
-		var revokedToken string
-		manager := &testManager{
-			logout: func(token string) error {
-				revokedToken = token
-				return nil
-			},
-		}
-		s := &oauthStore{
-			backingStore: NewFileStore(f),
-			manager:      manager,
-		}
-		err := s.Erase(defaultRegistry)
-		assert.NilError(t, err)
+		t.Run("oauth creds", func(t *testing.T) {
+			f := newStore(map[string]types.AuthConfig{
+				accessTokenServerAddress: {
+					Username:      "bork!",
+					Password:      validNotExpiredToken,
+					ServerAddress: accessTokenServerAddress,
+				},
+				refreshTokenServerAddress: {
+					Username:      "bork!",
+					Password:      "refresh-token",
+					ServerAddress: refreshTokenServerAddress,
+				},
+			})
+			var revokedToken string
+			manager := &testManager{
+				logout: func(token string) error {
+					revokedToken = token
+					return nil
+				},
+			}
+			s := &oauthStore{
+				backingStore: NewFileStore(f),
+				manager:      manager,
+			}
+			err := s.Erase(defaultRegistry)
+			assert.NilError(t, err)
 
-		assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
-		assert.Equal(t, revokedToken, "refresh-token")
+			assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
+			assert.Equal(t, revokedToken, "refresh-token")
+		})
+
+		t.Run("partial oauth creds", func(t *testing.T) {
+			t.Run("missing refresh token", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					accessTokenServerAddress: {
+						Username:      "bork!",
+						Password:      validNotExpiredToken,
+						ServerAddress: accessTokenServerAddress,
+					},
+				})
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
+				err := s.Erase(defaultRegistry)
+				assert.NilError(t, err)
+
+				assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
+			})
+			t.Run("missing access token", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					refreshTokenServerAddress: {
+						Username:      "bork!",
+						Password:      "refresh-token",
+						ServerAddress: accessTokenServerAddress,
+					},
+				})
+				var revokedToken string
+				m := testManager{
+					logout: func(token string) error {
+						revokedToken = token
+						return nil
+					},
+				}
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+					manager:      &m,
+				}
+				err := s.Erase(defaultRegistry)
+				assert.NilError(t, err)
+
+				assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
+				assert.Equal(t, revokedToken, "refresh-token")
+			})
+		})
+
+		t.Run("non-oauth creds", func(t *testing.T) {
+			f := newStore(map[string]types.AuthConfig{
+				defaultRegistry: {
+					Username:      "bork!",
+					Password:      "meow",
+					ServerAddress: defaultRegistry,
+				},
+			})
+			s := &oauthStore{
+				backingStore: NewFileStore(f),
+			}
+			err := s.Erase(defaultRegistry)
+			assert.NilError(t, err)
+
+			assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
+		})
 	})
 
 	t.Run("different registry", func(t *testing.T) {
 		f := newStore(map[string]types.AuthConfig{
 			validServerAddress2: {
-				Email: "foo@example.com",
+				Username: "bork!",
 			},
 		})
 		s := &oauthStore{
@@ -324,43 +456,114 @@ func TestErase(t *testing.T) {
 
 func TestStore(t *testing.T) {
 	t.Run("official registry", func(t *testing.T) {
-		t.Run("regular credentials", func(t *testing.T) {
-			f := newStore(make(map[string]types.AuthConfig))
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-			}
-			auth := types.AuthConfig{
-				Username:      "foo",
-				Password:      "bar",
-				Email:         "foo@example.com",
-				ServerAddress: defaultRegistry,
-			}
-			err := s.Store(auth)
-			assert.NilError(t, err)
+		t.Run("no prior credentials", func(t *testing.T) {
+			t.Run("regular credentials", func(t *testing.T) {
+				f := newStore(make(map[string]types.AuthConfig))
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
+				auth := types.AuthConfig{
+					Username:      "foo",
+					Password:      "bar",
+					ServerAddress: defaultRegistry,
+				}
+				err := s.Store(auth)
+				assert.NilError(t, err)
 
-			assert.Check(t, is.Len(f.GetAuthConfigs(), 1))
+				assert.Check(t, is.Len(f.GetAuthConfigs(), 1))
+				assert.Check(t, is.DeepEqual(f.GetAuthConfigs()[defaultRegistry], auth))
+			})
+
+			t.Run("access token", func(t *testing.T) {
+				f := newStore(make(map[string]types.AuthConfig))
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
+				auth := types.AuthConfig{
+					Username:      "foo",
+					Password:      validNotExpiredToken + "..refresh-token",
+					ServerAddress: defaultRegistry,
+				}
+				err := s.Store(auth)
+				assert.NilError(t, err)
+
+				assert.Check(t, is.Len(f.GetAuthConfigs(), 2))
+				assert.DeepEqual(t, f.GetAuthConfigs()[accessTokenServerAddress], types.AuthConfig{
+					Username:      "foo",
+					Password:      validNotExpiredToken,
+					ServerAddress: accessTokenServerAddress,
+				})
+				assert.DeepEqual(t, f.GetAuthConfigs()[refreshTokenServerAddress], types.AuthConfig{
+					Username:      "foo",
+					Password:      "refresh-token",
+					ServerAddress: refreshTokenServerAddress,
+				})
+			})
 		})
 
-		t.Run("access token", func(t *testing.T) {
-			f := newStore(make(map[string]types.AuthConfig))
-			s := &oauthStore{
-				backingStore: NewFileStore(f),
-			}
-			auth := types.AuthConfig{
-				Username:      "foo",
-				Password:      validNotExpiredToken + "..refresh-token",
-				Email:         "foo@example.com",
-				ServerAddress: defaultRegistry,
-			}
-			err := s.Store(auth)
-			assert.NilError(t, err)
+		t.Run("prior credentials", func(t *testing.T) {
+			t.Run("basic auth -> oauth", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					defaultRegistry: {
+						Username:      "foo",
+						Password:      "bar",
+						ServerAddress: defaultRegistry,
+					},
+				})
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
+				auth := types.AuthConfig{
+					Username:      "foo",
+					Password:      validNotExpiredToken + "..refresh-token",
+					ServerAddress: defaultRegistry,
+				}
+				err := s.Store(auth)
+				assert.NilError(t, err)
 
-			assert.Check(t, is.Len(f.GetAuthConfigs(), 1))
-			assert.DeepEqual(t, f.GetAuthConfigs()[defaultRegistry], types.AuthConfig{
-				Username:      "foo",
-				Password:      validNotExpiredToken + "..refresh-token",
-				Email:         "foo@example.com",
-				ServerAddress: defaultRegistry,
+				assert.Check(t, is.Len(f.GetAuthConfigs(), 2))
+				assert.DeepEqual(t, f.GetAuthConfigs()[accessTokenServerAddress], types.AuthConfig{
+					Username:      "foo",
+					Password:      validNotExpiredToken,
+					ServerAddress: accessTokenServerAddress,
+				})
+				assert.DeepEqual(t, f.GetAuthConfigs()[refreshTokenServerAddress], types.AuthConfig{
+					Username:      "foo",
+					Password:      "refresh-token",
+					ServerAddress: refreshTokenServerAddress,
+				})
+			})
+
+			t.Run("oauth -> basic auth", func(t *testing.T) {
+				f := newStore(map[string]types.AuthConfig{
+					accessTokenServerAddress: {
+						Username:      "foo",
+						Password:      validNotExpiredToken,
+						ServerAddress: accessTokenServerAddress,
+					},
+					refreshTokenServerAddress: {
+						Username:      "foo",
+						Password:      "refresh-token",
+						ServerAddress: refreshTokenServerAddress,
+					},
+				})
+				s := &oauthStore{
+					backingStore: NewFileStore(f),
+				}
+				auth := types.AuthConfig{
+					Username:      "foo",
+					Password:      "bar",
+					ServerAddress: defaultRegistry,
+				}
+				err := s.Store(auth)
+				assert.NilError(t, err)
+
+				assert.Check(t, is.Len(f.GetAuthConfigs(), 1))
+				assert.DeepEqual(t, f.GetAuthConfigs()[defaultRegistry], types.AuthConfig{
+					Username:      "foo",
+					Password:      "bar",
+					ServerAddress: defaultRegistry,
+				})
 			})
 		})
 	})
@@ -373,7 +576,6 @@ func TestStore(t *testing.T) {
 		auth := types.AuthConfig{
 			Username:      "foo",
 			Password:      "bar",
-			Email:         "foo@example.com",
 			ServerAddress: validServerAddress2,
 		}
 		err := s.Store(auth)

@@ -41,22 +41,10 @@ func (o *oauthStore) Get(serverAddress string) (types.AuthConfig, error) {
 		return o.backingStore.Get(serverAddress)
 	}
 
-	auth, err := o.backingStore.Get(serverAddress)
-	if err != nil {
-		// If an error happens here, it's not due to the backing store not
-		// containing credentials, but rather an actual issue with the backing
-		// store itself. This should be propagated up.
-		return types.AuthConfig{}, err
+	tokenRes := o.fetchFromBackingStore()
+	if tokenRes == nil {
+		return o.backingStore.Get(serverAddress)
 	}
-
-	tokenRes, err := o.parseToken(auth.Password)
-	// if the password is not a token, return the auth config as is
-	if err != nil {
-		//nolint:nilerr
-		return auth, nil
-	}
-
-	println(tokenRes.Claims.Expiry.Time().Local().String())
 
 	// if the access token is valid for less than minimumTokenLifetime, refresh it
 	if tokenRes.RefreshToken != "" &&
@@ -68,10 +56,10 @@ func (o *oauthStore) Get(serverAddress string) (types.AuthConfig, error) {
 		if err != nil || refreshRes == nil {
 			return types.AuthConfig{}, fmt.Errorf("failed to refresh token: %w", err)
 		}
-		tokenRes = *refreshRes
+		tokenRes = refreshRes
 	}
 
-	err = o.storeInBackingStore(tokenRes)
+	err := o.storeInBackingStore(*tokenRes)
 	if err != nil {
 		return types.AuthConfig{}, err
 	}
@@ -79,7 +67,6 @@ func (o *oauthStore) Get(serverAddress string) (types.AuthConfig, error) {
 	return types.AuthConfig{
 		Username:      tokenRes.Claims.Domain.Username,
 		Password:      tokenRes.AccessToken,
-		Email:         tokenRes.Claims.Domain.Email,
 		ServerAddress: defaultRegistry,
 	}, nil
 }
@@ -88,67 +75,127 @@ func (o *oauthStore) Get(serverAddress string) (types.AuthConfig, error) {
 // store contains credentials for the official registry, these are refreshed/processed
 // according to the same rules as Get.
 func (o *oauthStore) GetAll() (map[string]types.AuthConfig, error) {
+	// fetch all authconfigs from backing store
 	allAuths, err := o.backingStore.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	if _, ok := allAuths[defaultRegistry]; !ok {
+	// if there are no oauth-type credentials for the default registry,
+	// we can return as-is
+	tokenRes := o.fetchFromBackingStore()
+	if tokenRes == nil {
 		return allAuths, nil
 	}
 
+	// if there is an oauth-type entry, then we need to parse it/refresh it
 	auth, err := o.Get(defaultRegistry)
 	if err != nil {
 		return nil, err
 	}
 	allAuths[defaultRegistry] = auth
+
+	// delete access/refresh-token specific entries since the caller
+	// doesn't care about those
+	delete(allAuths, accessTokenServerAddress)
+	delete(allAuths, refreshTokenServerAddress)
+
 	return allAuths, err
 }
 
-// Erase removes the credentials from the backing store, logging out of the
-// tenant if running
+// Erase removes the credentials from the backing store.
+// If the address pertains to the default registry, and there are oauth-type
+// credentials stored, it also revokes the refresh token with the tenant.
 func (o *oauthStore) Erase(serverAddress string) error {
-	if serverAddress == defaultRegistry {
-		auth, err := o.backingStore.Get(defaultRegistry)
-		if err != nil {
-			return err
-		}
-		if tokenRes, err := o.parseToken(auth.Password); err == nil {
-			// todo(laurazard): should use a context with a timeout here?
-			_ = o.manager.Logout(context.TODO(), tokenRes.RefreshToken)
-		}
+	if serverAddress != defaultRegistry {
+		return o.backingStore.Erase(serverAddress)
 	}
-	return o.backingStore.Erase(serverAddress)
+
+	refreshTokenAuth, err := o.backingStore.Get(refreshTokenServerAddress)
+	if err == nil && refreshTokenAuth.Password != "" {
+		_ = o.manager.Logout(context.TODO(), refreshTokenAuth.Password)
+	}
+
+	_ = o.backingStore.Erase(defaultRegistry)
+	_ = o.backingStore.Erase(accessTokenServerAddress)
+	_ = o.backingStore.Erase(refreshTokenServerAddress)
+	return nil
 }
 
-// Store stores the provided credentials in the backing store, without any
-// additional processing.
+// Store stores the provided credentials in the backing store.
+// If the provided credentials represent oauth-type credentials for the default
+// registry, then those are stored as separate entries in the backing store.
+// If there are basic auths and we're storing an oauth login, the basic auth
+// entry is removed from the backing store, and vice versa.
 func (o *oauthStore) Store(auth types.AuthConfig) error {
-	return o.backingStore.Store(auth)
+	if auth.ServerAddress != defaultRegistry {
+		return o.backingStore.Store(auth)
+	}
+
+	accessToken, refreshToken, err := oauth.SplitTokens(auth.Password)
+	if err != nil {
+		// not storing an oauth-type login, so just store the auth as-is
+		return errors.Join(
+			// first, remove oauth logins if we had any
+			o.backingStore.Erase(accessTokenServerAddress),
+			o.backingStore.Erase(refreshTokenServerAddress),
+			o.backingStore.Store(auth),
+		)
+	}
+
+	// erase basic auths before storing our oauth-type login
+	_ = o.backingStore.Erase(defaultRegistry)
+	return errors.Join(
+		o.backingStore.Store(types.AuthConfig{
+			Username:      auth.Username,
+			Password:      accessToken,
+			ServerAddress: accessTokenServerAddress,
+		}),
+		o.backingStore.Store(types.AuthConfig{
+			Username:      auth.Username,
+			Password:      refreshToken,
+			ServerAddress: refreshTokenServerAddress,
+		}),
+	)
 }
 
-func (o *oauthStore) parseToken(password string) (oauth.TokenResult, error) {
-	accessToken, refreshToken, err := oauth.SplitTokens(password)
-	if err != nil {
-		return oauth.TokenResult{}, errors.New("failed to parse token")
-	}
-	claims, err := oauth.GetClaims(accessToken)
-	if err != nil {
-		return oauth.TokenResult{}, err
-	}
-	return oauth.TokenResult{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		Claims:       claims,
-	}, nil
-}
+const (
+	defaultRegistryHostname   = "index.docker.io/v1"
+	accessTokenServerAddress  = "https://access-token." + defaultRegistryHostname
+	refreshTokenServerAddress = "https://refresh-token." + defaultRegistryHostname
+)
 
 func (o *oauthStore) storeInBackingStore(tokenRes oauth.TokenResult) error {
-	auth := types.AuthConfig{
-		Username:      tokenRes.Claims.Domain.Username,
-		Password:      oauth.ConcatTokens(tokenRes.AccessToken, tokenRes.RefreshToken),
-		Email:         tokenRes.Claims.Domain.Email,
-		ServerAddress: defaultRegistry,
+	return errors.Join(
+		o.backingStore.Store(types.AuthConfig{
+			Username:      tokenRes.Claims.Domain.Username,
+			Password:      tokenRes.AccessToken,
+			ServerAddress: accessTokenServerAddress,
+		}),
+		o.backingStore.Store(types.AuthConfig{
+			Username:      tokenRes.Claims.Domain.Username,
+			Password:      tokenRes.RefreshToken,
+			ServerAddress: refreshTokenServerAddress,
+		}),
+	)
+}
+
+func (o *oauthStore) fetchFromBackingStore() *oauth.TokenResult {
+	accessTokenAuth, err := o.backingStore.Get(accessTokenServerAddress)
+	if err != nil {
+		return nil
 	}
-	return o.backingStore.Store(auth)
+	refreshTokenAuth, err := o.backingStore.Get(refreshTokenServerAddress)
+	if err != nil {
+		return nil
+	}
+	claims, err := oauth.GetClaims(accessTokenAuth.Password)
+	if err != nil {
+		return nil
+	}
+	return &oauth.TokenResult{
+		AccessToken:  accessTokenAuth.Password,
+		RefreshToken: refreshTokenAuth.Password,
+		Claims:       claims,
+	}
 }
