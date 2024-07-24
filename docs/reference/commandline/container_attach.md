@@ -97,7 +97,7 @@ CONTAINER ID   IMAGE     COMMAND    CREATED          STATUS                     
 Repeating the example above, but this time with the `-i` and `-t` options set;
 
 ```console
-$ docker run -dit --name topdemo2 ubuntu:22.04 /usr/bin/top -b
+$ docker run -dit --name topdemo2 alpine /usr/bin/top -b
 ```
 
 Now, when attaching to the container, and pressing the `CTRL-p CTRL-q` ("read

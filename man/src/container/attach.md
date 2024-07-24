@@ -21,16 +21,13 @@ In this example the top command is run inside a container from an ubuntu image,
 in detached mode, then attaches to it, and then terminates the container
 with `CTRL-c`:
 
-    $ docker run -d --name topdemo ubuntu:20.04 /usr/bin/top -b
+    $ docker run -d --name topdemo alpine top -b
     $ docker attach topdemo
-    top - 00:07:01 up  4:54,  0 users,  load average: 0.83, 0.91, 0.82
-    Tasks:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
-    %Cpu(s):  2.3 us,  1.6 sy,  0.0 ni, 95.9 id,  0.0 wa,  0.1 hi,  0.1 si,  0.0 st
-    MiB Mem :  15846.2 total,   5729.2 free,   2592.5 used,   7524.4 buff/cache
-    MiB Swap:  16384.0 total,  16384.0 free,      0.0 used.  12097.3 avail Mem 
-    
-        PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
-          1 root      20   0    5976   3256   2828 R   0.0   0.0   0:00.04 top
+    Mem: 2395856K used, 5638884K free, 2328K shrd, 61904K buff, 1524264K cached
+    CPU:   0% usr   0% sys   0% nic  99% idle   0% io   0% irq   0% sirq
+    Load average: 0.15 0.06 0.01 1/567 6
+    PID  PPID USER     STAT   VSZ %VSZ CPU %CPU COMMAND
+    1     0 root     R     1700   0%   3   0% top -b
     ^C
 
 ## Override the detach sequence

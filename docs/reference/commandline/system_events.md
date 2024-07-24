@@ -339,10 +339,10 @@ $ docker events --filter 'type=network'
 
 $ docker events --filter 'container=container_1' --filter 'container=container_2'
 
-2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:22.04)
-2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:22.04)
-2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (imager=redis:2.8)
-2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:24.04)
+2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
+2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (imager=redis:7.2)
+2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
 $ docker events --filter 'type=volume'
 
