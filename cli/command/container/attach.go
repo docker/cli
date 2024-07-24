@@ -146,7 +146,8 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		detachKeys:   options.DetachKeys,
 	}
 
-	if err := streamer.stream(ctx); err != nil {
+	// if the context was canceled, this was likely intentional and we shouldn't return an error
+	if err := streamer.stream(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}
 
@@ -163,6 +164,9 @@ func getExitStatus(errC <-chan error, resultC <-chan container.WaitResponse) err
 			return cli.StatusError{StatusCode: int(result.StatusCode)}
 		}
 	case err := <-errC:
+		if errors.Is(err, context.Canceled) {
+			return nil
+		}
 		return err
 	}
 
