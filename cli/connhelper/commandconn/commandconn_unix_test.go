@@ -48,7 +48,7 @@ func TestCloseRunningCommand(t *testing.T) {
 	defer close(done)
 
 	go func() {
-		c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
+		c, err := New(ctx, "sh", "-c", "while true; do sleep 1; done")
 		assert.NilError(t, err)
 		cmdConn := c.(*commandConn)
 		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
