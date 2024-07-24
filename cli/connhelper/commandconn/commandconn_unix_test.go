@@ -155,7 +155,7 @@ func (mockStdoutEOF) Close() error {
 
 func TestCloseWhileWriting(t *testing.T) {
 	cmd := "sh"
-	args := []string{"-c", "while true; sleep 1; done"}
+	args := []string{"-c", "while true; do sleep 1; done"}
 
 	c, err := New(context.TODO(), cmd, args...)
 	assert.NilError(t, err)
@@ -185,7 +185,7 @@ func TestCloseWhileWriting(t *testing.T) {
 
 func TestCloseWhileReading(t *testing.T) {
 	cmd := "sh"
-	args := []string{"-c", "while true; sleep 1; done"}
+	args := []string{"-c", "while true; do sleep 1; done"}
 
 	c, err := New(context.TODO(), cmd, args...)
 	assert.NilError(t, err)
