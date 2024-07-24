@@ -699,7 +699,7 @@ follows:
 | `node.platform.os`   | Node operating system          | `node.platform.os==windows`                   |
 | `node.platform.arch` | Node architecture              | `node.platform.arch==x86_64`                  |
 | `node.labels`        | User-defined node labels       | `node.labels.security==high`                  |
-| `engine.labels`      | Docker Engine's labels         | `engine.labels.operatingsystem==ubuntu-22.04` |
+| `engine.labels`      | Docker Engine's labels         | `engine.labels.operatingsystem==ubuntu-24.04` |
 
 `engine.labels` apply to Docker Engine labels like operating system, drivers,
 etc. Swarm administrators add `node.labels` for operational purposes by using
