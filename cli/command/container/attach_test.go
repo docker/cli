@@ -1,6 +1,7 @@
 package container
 
 import (
+	"context"
 	"io"
 	"testing"
 
@@ -116,6 +117,10 @@ func TestGetExitStatus(t *testing.T) {
 				StatusCode: 15,
 			},
 			expectedError: cli.StatusError{StatusCode: 15},
+		},
+		{
+			err:           context.Canceled,
+			expectedError: nil,
 		},
 	}
 
