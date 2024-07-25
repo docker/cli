@@ -82,11 +82,7 @@ func TestNewAttachCommandErrors(t *testing.T) {
 }
 
 func TestGetExitStatus(t *testing.T) {
-	var (
-		expectedErr = errors.New("unexpected error")
-		errC        = make(chan error, 1)
-		resultC     = make(chan container.WaitResponse, 1)
-	)
+	expectedErr := errors.New("unexpected error")
 
 	testcases := []struct {
 		result        *container.WaitResponse
@@ -121,13 +117,17 @@ func TestGetExitStatus(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
+		errC := make(chan error, 1)
+		resultC := make(chan container.WaitResponse, 1)
 		if testcase.err != nil {
 			errC <- testcase.err
 		}
 		if testcase.result != nil {
 			resultC <- *testcase.result
 		}
+
 		err := getExitStatus(errC, resultC)
+
 		if testcase.expectedError == nil {
 			assert.NilError(t, err)
 		} else {
