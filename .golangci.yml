@@ -16,7 +16,6 @@ linters:
     - govet
     - ineffassign
     - lll
-    - megacheck
     - misspell      # Detects commonly misspelled English words in comments.
     - nakedret
     - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
@@ -36,7 +35,7 @@ linters:
     - unparam
     - unused
     - usestdlibvars
-    - vet
+    - govet
     - wastedassign
 
   disable:
