@@ -73,7 +73,8 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 	apiClient := dockerCLI.Client()
 
 	// request channel to wait for client
-	resultC, errC := apiClient.ContainerWait(ctx, containerID, "")
+	waitCtx := context.WithoutCancel(ctx)
+	resultC, errC := apiClient.ContainerWait(waitCtx, containerID, "")
 
 	c, err := inspectContainerAndCheckState(ctx, apiClient, containerID)
 	if err != nil {
