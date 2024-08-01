@@ -47,7 +47,7 @@ func TestUse(t *testing.T) {
 func TestUseNoExist(t *testing.T) {
 	cli := makeFakeCli(t)
 	err := newUseCommand(cli).RunE(nil, []string{"test"})
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, errdefs.IsNotFound(err))
 }
 
 // TestUseDefaultWithoutConfigFile verifies that the CLI does not create

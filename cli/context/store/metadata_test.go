@@ -26,7 +26,7 @@ func testMetadata(name string) Metadata {
 func TestMetadataGetNotExisting(t *testing.T) {
 	testee := metadataStore{root: t.TempDir(), config: testCfg}
 	_, err := testee.get("noexist")
-	assert.ErrorType(t, err, errdefs.IsNotFound)
+	assert.Check(t, errdefs.IsNotFound(err))
 }
 
 func TestMetadataCreateGetRemove(t *testing.T) {
@@ -60,7 +60,7 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 	assert.NilError(t, testee.remove("test-context"))
 	assert.NilError(t, testee.remove("test-context")) // support duplicate remove
 	_, err = testee.get("test-context")
-	assert.ErrorType(t, err, errdefs.IsNotFound)
+	assert.Check(t, errdefs.IsNotFound(err))
 }
 
 func TestMetadataRespectJsonAnnotation(t *testing.T) {
