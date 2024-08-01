@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/docker/cli/cli/config/types"
@@ -113,7 +114,13 @@ func (o *oauthStore) Erase(serverAddress string) error {
 
 	refreshTokenAuth, err := o.backingStore.Get(refreshTokenServerAddress)
 	if err == nil && refreshTokenAuth.Password != "" {
-		_ = o.manager.Logout(context.TODO(), refreshTokenAuth.Password)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err = o.manager.Logout(ctx, refreshTokenAuth.Password)
+		if err != nil {
+			// todo(laurazard): actual message here
+			fmt.Fprint(os.Stderr, "Failed to revoke refresh token with tenant.. Credentials will still be erased.")
+		}
 	}
 
 	_ = o.backingStore.Erase(defaultRegistry)
