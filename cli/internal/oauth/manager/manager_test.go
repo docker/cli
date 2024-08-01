@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/docker/cli/cli/internal/oauth/api"
 	"github.com/docker/cli/cli/oauth"
@@ -122,6 +123,8 @@ func TestLoginDevice(t *testing.T) {
 			}, nil
 		}
 		waitForDeviceToken := func(state api.State) (api.TokenResponse, error) {
+			// make sure that the context is cancelled before this returns
+			time.Sleep(500 * time.Millisecond)
 			return api.TokenResponse{
 				AccessToken:  validToken,
 				RefreshToken: "refresh-token",
