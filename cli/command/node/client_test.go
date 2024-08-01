@@ -11,20 +11,26 @@ import (
 
 type fakeClient struct {
 	client.Client
-	infoFunc           func() (system.Info, error)
-	nodeInspectFunc    func() (swarm.Node, []byte, error)
-	nodeListFunc       func() ([]swarm.Node, error)
-	nodeRemoveFunc     func() error
-	nodeUpdateFunc     func(nodeID string, version swarm.Version, node swarm.NodeSpec) error
-	taskInspectFunc    func(taskID string) (swarm.Task, []byte, error)
-	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
-	serviceInspectFunc func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error)
+	infoFunc                func() (system.Info, error)
+	nodeInspectFunc         func() (swarm.Node, []byte, error)
+	nodeInspectFuncWithArgs func(string) (swarm.Node, []byte, error)
+	nodeListFunc            func() ([]swarm.Node, error)
+	nodeRemoveFunc          func() error
+	nodeUpdateFunc          func(nodeID string, version swarm.Version, node swarm.NodeSpec) error
+	taskInspectFunc         func(taskID string) (swarm.Task, []byte, error)
+	taskListFunc            func(options types.TaskListOptions) ([]swarm.Task, error)
+	serviceInspectFunc      func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error)
 }
 
-func (cli *fakeClient) NodeInspectWithRaw(context.Context, string) (swarm.Node, []byte, error) {
+func (cli *fakeClient) NodeInspectWithRaw(ctx context.Context, nodeRef string) (swarm.Node, []byte, error) {
 	if cli.nodeInspectFunc != nil {
 		return cli.nodeInspectFunc()
 	}
+
+	if cli.nodeInspectFuncWithArgs != nil {
+		return cli.nodeInspectFuncWithArgs(nodeRef)
+	}
+
 	return swarm.Node{}, []byte{}, nil
 }
 

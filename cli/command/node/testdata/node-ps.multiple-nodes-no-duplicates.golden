@@ -1,0 +1,5 @@
+ID        NAME         IMAGE           NODE              DESIRED STATE   CURRENT STATE         ERROR     PORTS
+taskID1   service1.1   myimage:mytag   defaultNodeName   Ready           Running 2 hours ago             
+taskID2   service2.1   myimage:mytag   defaultNodeName   Ready           Running 3 hours ago             
+taskID3   service3.1   myimage:mytag   defaultNodeName   Ready           Running 2 hours ago             
+taskID4   service4.1   myimage:mytag   defaultNodeName   Ready           Running 3 hours ago             
