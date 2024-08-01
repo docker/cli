@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -74,9 +75,9 @@ func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 			continue
 		}
 
-		filter := options.filter.Value()
+		filter := options.filter.Value().Clone()
 		filter.Add("node", node.ID)
-
+		fmt.Println("filter", filter)
 		nodeTasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
 		if err != nil {
 			errs = append(errs, err.Error())
