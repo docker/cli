@@ -43,8 +43,7 @@ func (p *PortOpt) Set(value string) error {
 
 		pConfig := swarm.PortConfig{}
 		for _, field := range fields {
-			// TODO(thaJeztah): these options should not be case-insensitive.
-			key, val, ok := strings.Cut(strings.ToLower(field), "=")
+			key, val, ok := strings.Cut(field, "=")
 			if !ok || key == "" {
 				return fmt.Errorf("invalid field %s", field)
 			}
