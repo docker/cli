@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	"github.com/docker/cli/cli/config/types"
 )
@@ -65,6 +66,10 @@ Configure a credential helper to remove this warning. See
 https://docs.docker.com/go/credential-store/
 `
 
+// alreadyPrinted ensures that we only print the unencryptedWarning once per
+// CLI invocation (no need to warn the user multiple times per command).
+var alreadyPrinted atomic.Bool
+
 // Store saves the given credentials in the file store.
 func (c *fileStore) Store(authConfig types.AuthConfig) error {
 	authConfigs := c.file.GetAuthConfigs()
@@ -73,11 +78,12 @@ func (c *fileStore) Store(authConfig types.AuthConfig) error {
 		return err
 	}
 
-	if authConfig.Password != "" {
+	if !alreadyPrinted.Load() && authConfig.Password != "" {
 		// Display a warning if we're storing the users password (not a token).
 		//
 		// FIXME(thaJeztah): make output configurable instead of hardcoding to os.Stderr
 		_, _ = fmt.Fprintln(os.Stderr, fmt.Sprintf(unencryptedWarning, c.file.GetFilename()))
+		alreadyPrinted.Store(true)
 	}
 
 	return nil
