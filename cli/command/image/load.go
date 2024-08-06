@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -15,8 +16,9 @@ import (
 )
 
 type loadOptions struct {
-	input string
-	quiet bool
+	input    string
+	quiet    bool
+	platform string
 }
 
 // NewLoadCommand creates a new `docker load` command
@@ -40,7 +42,10 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVarP(&opts.input, "input", "i", "", "Read from tar archive file, instead of STDIN")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress the load output")
+	flags.StringVar(&opts.platform, "platform", "", `Load only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
+	_ = flags.SetAnnotation("platform", "version", []string{"1.48"})
 
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 	return cmd
 }
 
@@ -63,12 +68,20 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		return errors.Errorf("requested load from stdin, but stdin is empty")
 	}
 
-	var loadOpts image.LoadOptions
+	var options image.LoadOptions
 	if opts.quiet || !dockerCli.Out().IsTerminal() {
-		loadOpts.Quiet = true
+		options.Quiet = true
 	}
 
-	response, err := dockerCli.Client().ImageLoad(ctx, input, loadOpts)
+	if opts.platform != "" {
+		p, err := platforms.Parse(opts.platform)
+		if err != nil {
+			return errors.Wrap(err, "invalid platform")
+		}
+		options.Platform = &p
+	}
+
+	response, err := dockerCli.Client().ImageLoad(ctx, input, options)
 	if err != nil {
 		return err
 	}
