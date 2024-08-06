@@ -2,8 +2,10 @@ package image
 
 import (
 	"context"
+	"fmt"
 	"io"
 
+	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -13,8 +15,9 @@ import (
 )
 
 type saveOptions struct {
-	images []string
-	output string
+	images   []string
+	output   string
+	platform string
 }
 
 // NewSaveCommand creates a new `docker save` command
@@ -38,6 +41,13 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.StringVarP(&opts.output, "output", "o", "", "Write to a file, instead of STDOUT")
+	flags.StringVar(&opts.platform, "platform", "",
+		`Pick a single-platform to be saved if the image is multi-platform.
+Full multi-platform image will be saved if not specified.
+
+Format: os[/arch[/variant]]
+Example: "linux/amd64"`)
+	flags.SetAnnotation("platform", "version", []string{"1.47"})
 
 	return cmd
 }
@@ -52,7 +62,17 @@ func RunSave(ctx context.Context, dockerCli command.Cli, opts saveOptions) error
 		return errors.Wrap(err, "failed to save image")
 	}
 
-	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images, image.SaveOptions{})
+	var saveOptions image.SaveOptions
+	if opts.platform != "" {
+		p, err := platforms.Parse(opts.platform)
+		if err != nil {
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Invalid platform %s", opts.platform)
+			return err
+		}
+		saveOptions.Platform = &p
+	}
+
+	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images, saveOptions)
 	if err != nil {
 		return err
 	}
