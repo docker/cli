@@ -52,6 +52,7 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 					args = append(args, "--host", "unix://"+sp.Path)
 				}
 				sshFlags = addSSHTimeout(sshFlags)
+				sshFlags = disablePseudoTerminalAllocation(sshFlags)
 				args = append(args, "system", "dial-stdio")
 				return commandconn.New(ctx, "ssh", append(sshFlags, sp.Args(args...)...)...)
 			},
@@ -76,6 +77,14 @@ func GetCommandConnectionHelper(cmd string, flags ...string) (*ConnectionHelper,
 func addSSHTimeout(sshFlags []string) []string {
 	if !strings.Contains(strings.Join(sshFlags, ""), "ConnectTimeout") {
 		sshFlags = append(sshFlags, "-o ConnectTimeout=30")
+	}
+	return sshFlags
+}
+
+// Disable pseudo-terminal allocation.  This will prevent SSH from executing as a login shell
+func disablePseudoTerminalAllocation(sshFlags []string) []string {
+	if !strings.Contains(strings.Join(sshFlags, ""), "-T") {
+		sshFlags = append(sshFlags, "-T")
 	}
 	return sshFlags
 }
