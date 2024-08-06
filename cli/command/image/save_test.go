@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -51,6 +52,11 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			args:          []string{"-o", "/dev/null", "arg1"},
 			expectedError: "failed to save image: invalid output path: \"/dev/null\" must be a directory or a regular file",
 		},
+		{
+			name:          "invalid platform",
+			args:          []string{"--platform", "<invalid>", "arg1"},
+			expectedError: `invalid platform`,
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
@@ -92,6 +98,16 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				assert.Assert(t, is.Len(images, 2))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, is.Equal("arg2", images[1]))
+				return io.NopCloser(strings.NewReader("")), nil
+			},
+		},
+		{
+			args:       []string{"--platform", "linux/amd64", "arg1"},
+			isTerminal: false,
+			imageSaveFunc: func(images []string, options image.SaveOptions) (io.ReadCloser, error) {
+				assert.Assert(t, is.Len(images, 1))
+				assert.Check(t, is.Equal("arg1", images[0]))
+				assert.Check(t, is.DeepEqual(ocispec.Platform{OS: "linux", Architecture: "amd64"}, *options.Platform))
 				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
