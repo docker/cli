@@ -117,6 +117,18 @@ func TestPluginServer(t *testing.T) {
 		assert.NilError(t, err, "failed to dial returned server")
 		checkDirNoNewPluginServer(t)
 	})
+
+	t.Run("does not panic on Close if server is nil", func(t *testing.T) {
+		var srv *PluginServer
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("panicked on Close")
+			}
+		}()
+
+		err := srv.Close()
+		assert.NilError(t, err)
+	})
 }
 
 func checkDirNoNewPluginServer(t *testing.T) {

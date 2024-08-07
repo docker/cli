@@ -95,6 +95,9 @@ func (pl *PluginServer) Addr() net.Addr {
 //
 // The error value is that of the underlying [net.Listner.Close] call.
 func (pl *PluginServer) Close() error {
+	if pl == nil {
+		return nil
+	}
 	logrus.Trace("Closing plugin server")
 	// Close connections first to ensure the connections get io.EOF instead
 	// of a connection reset.
