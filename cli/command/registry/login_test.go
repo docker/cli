@@ -74,7 +74,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{})
 		errBuf := new(bytes.Buffer)
 		cli.SetErr(streams.NewOut(errBuf))
-		loginWithCredStoreCreds(ctx, cli, &tc.inputAuthConfig)
+		loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
 		outputString := cli.OutBuffer().String()
 		assert.Check(t, is.Equal(tc.expectedMsg, outputString))
 		errorString := errBuf.String()
@@ -213,7 +213,9 @@ func TestLoginTermination(t *testing.T) {
 
 	runErr := make(chan error)
 	go func() {
-		runErr <- runLogin(ctx, cli, loginOptions{})
+		runErr <- runLogin(ctx, cli, loginOptions{
+			user: "test-user",
+		})
 	}()
 
 	// Let the prompt get canceled by the context

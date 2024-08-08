@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/cli/internal/oauth/manager"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -254,10 +255,13 @@ func decodeAuth(authStr string) (string, string, error) {
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
 func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
+	var credsStore credentials.Store
 	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
-		return newNativeStore(configFile, helper)
+		credsStore = newNativeStore(configFile, helper)
+	} else {
+		credsStore = credentials.NewFileStore(configFile)
 	}
-	return credentials.NewFileStore(configFile)
+	return credentials.NewOAuthStore(credsStore, manager.NewManager())
 }
 
 // var for unit testing.

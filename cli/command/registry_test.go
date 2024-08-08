@@ -61,7 +61,7 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		serverAddress := tc.inputServerAddress
-		authconfig, err := command.GetDefaultAuthConfig(cfg, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
+		authconfig, err := command.GetDefaultAuthConfig(cfg, tc.checkCredStore, serverAddress)
 		assert.NilError(t, err)
 		assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, authconfig))
 	}
@@ -75,8 +75,7 @@ func TestGetDefaultAuthConfig_HelperError(t *testing.T) {
 	expectedAuthConfig := registry.AuthConfig{
 		ServerAddress: serverAddress,
 	}
-	const isDefaultRegistry = false // registry is not "https://index.docker.io/v1/"
-	authconfig, err := command.GetDefaultAuthConfig(cfg, true, serverAddress, isDefaultRegistry)
+	authconfig, err := command.GetDefaultAuthConfig(cfg, true, serverAddress)
 	assert.Check(t, is.DeepEqual(expectedAuthConfig, authconfig))
 	assert.Check(t, is.ErrorContains(err, "docker-credential-fake-does-not-exist"))
 }

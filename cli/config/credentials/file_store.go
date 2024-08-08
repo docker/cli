@@ -65,6 +65,8 @@ Configure a credential helper to remove this warning. See
 https://docs.docker.com/go/credential-store/
 `
 
+var alreadyPrinted bool
+
 // Store saves the given credentials in the file store.
 func (c *fileStore) Store(authConfig types.AuthConfig) error {
 	authConfigs := c.file.GetAuthConfigs()
@@ -73,11 +75,12 @@ func (c *fileStore) Store(authConfig types.AuthConfig) error {
 		return err
 	}
 
-	if authConfig.Password != "" {
+	if !alreadyPrinted && authConfig.Password != "" {
 		// Display a warning if we're storing the users password (not a token).
 		//
 		// FIXME(thaJeztah): make output configurable instead of hardcoding to os.Stderr
 		_, _ = fmt.Fprintln(os.Stderr, fmt.Sprintf(unencryptedWarning, c.file.GetFilename()))
+		alreadyPrinted = true
 	}
 
 	return nil
