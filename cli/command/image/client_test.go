@@ -16,7 +16,7 @@ import (
 type fakeClient struct {
 	client.Client
 	imageTagFunc     func(string, string) error
-	imageSaveFunc    func(images []string) (io.ReadCloser, error)
+	imageSaveFunc    func(images []string, _ ...image.SaveOptions) (io.ReadCloser, error)
 	imageRemoveFunc  func(image string, options image.RemoveOptions) ([]image.DeleteResponse, error)
 	imagePushFunc    func(ref string, options image.PushOptions) (io.ReadCloser, error)
 	infoFunc         func() (system.Info, error)
@@ -26,7 +26,7 @@ type fakeClient struct {
 	imageListFunc    func(options image.ListOptions) ([]image.Summary, error)
 	imageInspectFunc func(img string) (image.InspectResponse, []byte, error)
 	imageImportFunc  func(source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
-	imageHistoryFunc func(img string) ([]image.HistoryResponseItem, error)
+	imageHistoryFunc func(img string, options ...image.HistoryOptions) ([]image.HistoryResponseItem, error)
 	imageBuildFunc   func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
 }
 

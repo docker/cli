@@ -2,17 +2,20 @@ package image
 
 import (
 	"context"
-
+	"fmt"
+	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/api/types/image"
 	"github.com/spf13/cobra"
 )
 
 type historyOptions struct {
-	image string
+	image    string
+	platform string
 
 	human   bool
 	quiet   bool
@@ -44,12 +47,28 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Only show image IDs")
 	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.StringVar(&opts.format, "format", "", flagsHelper.FormatHelp)
+	flags.StringVar(&opts.platform, "platform", "",
+		`Specify a platform from a multi-platform image to show the history for.
+If the platform is not specified, the host platform is preferred if it's available, otherwise any available platform is used.
+
+Format: os[/arch[/variant]]
+Example: "linux/amd64"`)
 
 	return cmd
 }
 
 func runHistory(ctx context.Context, dockerCli command.Cli, opts historyOptions) error {
-	history, err := dockerCli.Client().ImageHistory(ctx, opts.image)
+	var options image.HistoryOptions
+	if opts.platform != "" {
+		p, err := platforms.Parse(opts.platform)
+		if err != nil {
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Invalid platform %s", opts.platform)
+			return err
+		}
+		options.Platform = &p
+	}
+
+	history, err := dockerCli.Client().ImageHistory(ctx, opts.image, options)
 	if err != nil {
 		return err
 	}
