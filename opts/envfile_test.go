@@ -87,6 +87,25 @@ func TestParseEnvFileNonExistentFile(t *testing.T) {
 	}
 }
 
+// Test TestParseEnvFile for a badly formatted header
+func TestParseEnvFileFormattedWithSpace(t *testing.T) {
+	content := `
+	[config 1]
+	foo=bar
+    f=quux
+`
+	tmpFile := tmpFileWithContent(t, content)
+
+	_, err := ParseEnvFile(tmpFile)
+	if _, ok := err.(ErrBadKey); !ok {
+		t.Fatalf("Expected an ErrBadKey, got [%v]", err)
+	}
+	expectedMessage := "poorly formatted environment: variable '[config 1]' contains whitespaces"
+	if err.Error() != expectedMessage {
+		t.Fatalf("Expected [%v], got [%v]", expectedMessage, err.Error())
+	}
+}
+
 // Test ParseEnvFile for a badly formatted file
 func TestParseEnvFileBadlyFormattedFile(t *testing.T) {
 	content := `foo=bar
