@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/api/types/image"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +50,7 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runHistory(ctx context.Context, dockerCli command.Cli, opts historyOptions) error {
-	history, err := dockerCli.Client().ImageHistory(ctx, opts.image)
+	history, err := dockerCli.Client().ImageHistory(ctx, opts.image, image.HistoryOptions{})
 	if err != nil {
 		return err
 	}
