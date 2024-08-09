@@ -62,10 +62,10 @@ The following example outputs all events that were generated in the last 3 minut
 relative to the current time on the client machine:
 
     # docker events --since '3m'
-    2015-05-12T11:51:30.999999999Z07:00  4386fb97867d: (from ubuntu:22.04) die
-    2015-05-12T15:52:12.999999999Z07:00  4386fb97867d: (from ubuntu:22.04) stop
-    2015-05-12T15:53:45.999999999Z07:00  7805c1d35632: (from redis:2.8) die
-    2015-05-12T15:54:03.999999999Z07:00  7805c1d35632: (from redis:2.8) stop
+    2015-05-12T11:51:30.999999999Z07:00  4386fb97867d: (from ubuntu:24.04) die
+    2015-05-12T15:52:12.999999999Z07:00  4386fb97867d: (from ubuntu:24.04) stop
+    2015-05-12T15:53:45.999999999Z07:00  7805c1d35632: (from redis:7.2) die
+    2015-05-12T15:54:03.999999999Z07:00  7805c1d35632: (from redis:7.2) stop
 
 If you do not provide the --since option, the command returns only new and/or
 live events.
@@ -97,26 +97,26 @@ Lines. For information about JSON Lines, refer to https://jsonlines.org .
 ## Filters
 
     $ docker events --filter 'event=stop'
-    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:22.04)
-    2014-09-03T17:42:14.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
+    2014-09-03T17:42:14.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
-    $ docker events --filter 'image=ubuntu:22.04'
-    2014-05-10T17:42:14.999999999Z07:00 container start 4386fb97867d (image=ubuntu:22.04)
-    2014-05-10T17:42:14.999999999Z07:00 container die 4386fb97867d (image=ubuntu:22.04)
-    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:22.04)
+    $ docker events --filter 'image=ubuntu:24.04'
+    2014-05-10T17:42:14.999999999Z07:00 container start 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container die 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
 
     $ docker events --filter 'container=7805c1d35632'
-    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:2.8)
-    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image= redis:2.8)
+    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:7.2)
+    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image= redis:7.2)
 
     $ docker events --filter 'container=7805c1d35632' --filter 'container=4386fb97867d'
-    2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:22.04)
-    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:22.04)
-    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:2.8)
-    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+    2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:7.2)
+    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
     $ docker events --filter 'container=7805c1d35632' --filter 'event=stop'
-    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
     $ docker events --filter 'type=volume'
     2015-12-23T21:05:28.136212689Z volume create test-event-volume-local (driver=local)

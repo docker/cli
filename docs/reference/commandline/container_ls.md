@@ -33,7 +33,7 @@ Running `docker ps --no-trunc` showing 2 linked containers.
 $ docker ps --no-trunc
 
 CONTAINER ID                                                     IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
-ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00 ubuntu:22.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
+ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00 ubuntu:24.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
 9ca9747b233100676a48cc7806131586213fa5dab86dd1972d6a8732e3a84a4d crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
 ```
 
@@ -240,13 +240,13 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 919e1179bdb8        ubuntu-c1           "top"               About a minute ago   Up About a minute                       admiring_lovelace
 ```
 
-Match containers based on the `ubuntu` version `22.04` image:
+Match containers based on the `ubuntu` version `24.04` image:
 
 ```console
-$ docker ps --filter ancestor=ubuntu:22.04
+$ docker ps --filter ancestor=ubuntu:24.04
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-82a598284012        ubuntu:22.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+82a598284012        ubuntu:24.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
 ```
 
 The following matches containers based on the layer `d0e008c6cf02` or an image
@@ -256,7 +256,7 @@ that have this layer in its layer stack.
 $ docker ps --filter ancestor=d0e008c6cf02
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-82a598284012        ubuntu:22.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+82a598284012        ubuntu:24.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
 ```
 
 #### Create time
