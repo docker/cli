@@ -26,7 +26,7 @@ Fetch the logs of a container
 The `docker logs` command batch-retrieves logs present at the time of execution.
 
 For more information about selecting and configuring logging drivers, refer to
-[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
+[Configure logging drivers](https://docs.docker.com/engine/logging/configure/).
 
 The `docker logs --follow` command will continue streaming the new output from
 the container's `STDOUT` and `STDERR`.
