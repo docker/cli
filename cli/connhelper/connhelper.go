@@ -45,14 +45,14 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 		if err != nil {
 			return nil, errors.Wrap(err, "ssh host connection is not valid")
 		}
+		sshFlags = addSSHTimeout(sshFlags)
+		sshFlags = disablePseudoTerminalAllocation(sshFlags)
 		return &ConnectionHelper{
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				args := []string{"docker"}
 				if sp.Path != "" {
 					args = append(args, "--host", "unix://"+sp.Path)
 				}
-				sshFlags = addSSHTimeout(sshFlags)
-				sshFlags = disablePseudoTerminalAllocation(sshFlags)
 				args = append(args, "system", "dial-stdio")
 				return commandconn.New(ctx, "ssh", append(sshFlags, sp.Args(args...)...)...)
 			},
