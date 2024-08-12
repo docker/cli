@@ -42,7 +42,7 @@ display logs from that particular task.
 > the `json-file` or `journald` logging driver.
 
 For more information about selecting and configuring logging drivers, refer to
-[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
+[Configure logging drivers](https://docs.docker.com/engine/logging/configure/).
 
 The `docker service logs --follow` command will continue streaming the new output from
 the service's `STDOUT` and `STDERR`.

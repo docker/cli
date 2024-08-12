@@ -363,7 +363,7 @@ Docker.
 > for example by adding individual kernel capabilities with `--cap-add`.
 >
 > For more information, see
-> [Runtime privilege and Linux capabilities](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities)
+> [Runtime privilege and Linux capabilities](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities)
 { .warning }
 
 The following example doesn't work, because by default, Docker drops most
@@ -1322,7 +1322,7 @@ the `--log-driver=<DRIVER>` with the `docker run` command to configure the
 container's logging driver.
 
 To learn about the supported logging drivers and how to use them, refer to
-[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
+[Configure logging drivers](https://docs.docker.com/engine/logging/configure/).
 
 To disable logging for a container, set the `--log-driver` flag to `none`:
 
