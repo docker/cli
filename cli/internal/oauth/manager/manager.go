@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/internal/oauth/api"
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
+	"github.com/sirupsen/logrus"
 
 	"github.com/pkg/browser"
 )
@@ -70,6 +71,8 @@ func New(options OAuthManagerOptions) *OAuthManager {
 	}
 }
 
+var ErrDeviceLoginStartFail = errors.New("failed to start device code flow login")
+
 // LoginDevice launches the device authentication flow with the tenant,
 // printing instructions to the provided writer and attempting to open the
 // browser for the user to authenticate.
@@ -80,11 +83,13 @@ func New(options OAuthManagerOptions) *OAuthManager {
 func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.AuthConfig, error) {
 	state, err := m.api.GetDeviceCode(ctx, m.audience)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get device code: %w", err)
+		logrus.Debugf("failed to start device code login: %v", err)
+		return nil, ErrDeviceLoginStartFail
 	}
 
 	if state.UserCode == "" {
-		return nil, errors.New("no user code returned")
+		logrus.Debugf("failed to start device code login: missing user code")
+		return nil, ErrDeviceLoginStartFail
 	}
 
 	_, _ = fmt.Fprintln(w, aec.Bold.Apply("\nUSING WEB BASED LOGIN"))

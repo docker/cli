@@ -144,10 +144,16 @@ func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, auth
 func loginUser(ctx context.Context, dockerCli command.Cli, opts loginOptions, defaultUsername, serverAddress string) (*registrytypes.AuthenticateOKBody, error) {
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
 	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" {
-		return loginWithDeviceCodeFlow(ctx, dockerCli)
-	} else {
-		return loginWithUsernameAndPassword(ctx, dockerCli, opts, defaultUsername, serverAddress)
+		response, err := loginWithDeviceCodeFlow(ctx, dockerCli)
+		// if the error represents a failure to initiate the device-code flow,
+		// then we fallback to regular cli credentials login
+		if !errors.Is(err, manager.ErrDeviceLoginStartFail) {
+			return response, err
+		}
+		fmt.Fprint(dockerCli.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
 	}
+
+	return loginWithUsernameAndPassword(ctx, dockerCli, opts, defaultUsername, serverAddress)
 }
 
 func loginWithUsernameAndPassword(ctx context.Context, dockerCli command.Cli, opts loginOptions, defaultUsername, serverAddress string) (*registrytypes.AuthenticateOKBody, error) {
