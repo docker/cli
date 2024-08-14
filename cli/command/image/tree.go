@@ -39,25 +39,30 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 			Used:      img.Containers > 0,
 		}
 
+		var totalContent int64
 		children := make([]subImage, 0, len(img.Manifests))
 		for _, im := range img.Manifests {
 			if im.Kind != imagetypes.ManifestKindImage {
 				continue
 			}
 
+			im := im
 			sub := subImage{
 				Platform:  platforms.Format(im.ImageData.Platform),
 				Available: im.Available,
 				Details: imageDetails{
-					ID:        im.ID,
-					DiskUsage: units.HumanSizeWithPrecision(float64(im.Size.Total), 3),
-					Used:      len(im.ImageData.Containers) > 0,
+					ID:          im.ID,
+					DiskUsage:   units.HumanSizeWithPrecision(float64(im.Size.Total), 3),
+					Used:        len(im.ImageData.Containers) > 0,
+					ContentSize: units.HumanSizeWithPrecision(float64(im.Size.Content), 3),
 				},
 			}
 
+			totalContent += im.Size.Content
 			children = append(children, sub)
 		}
 
+		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
 		view = append(view, topImage{
 			Names:    img.RepoTags,
 			Details:  details,
@@ -69,9 +74,10 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 }
 
 type imageDetails struct {
-	ID        string
-	DiskUsage string
-	Used      bool
+	ID          string
+	DiskUsage   string
+	Used        bool
+	ContentSize string
 }
 
 type topImage struct {
@@ -123,6 +129,13 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 			Width: 10,
 			DetailsValue: func(d *imageDetails) string {
 				return d.DiskUsage
+			},
+		},
+		{
+			Title: "Content size",
+			Width: 12,
+			DetailsValue: func(d *imageDetails) string {
+				return d.ContentSize
 			},
 		},
 		{
