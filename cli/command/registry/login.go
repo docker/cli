@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/cli/internal/oauth/manager"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -79,70 +80,145 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	return nil
 }
 
-func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) error { //nolint:gocyclo
-	clnt := dockerCli.Client()
+func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) error {
 	if err := verifyloginOptions(dockerCli, &opts); err != nil {
 		return err
 	}
 	var (
 		serverAddress string
-		response      registrytypes.AuthenticateOKBody
+		response      *registrytypes.AuthenticateOKBody
 	)
-	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
+	if opts.serverAddress != "" &&
+		opts.serverAddress != registry.DefaultNamespace &&
+		opts.serverAddress != registry.DefaultRegistryHost {
 		serverAddress = opts.serverAddress
 	} else {
 		serverAddress = registry.IndexServer
 	}
-
 	isDefaultRegistry := serverAddress == registry.IndexServer
+
+	// attempt login with current (stored) credentials
 	authConfig, err := command.GetDefaultAuthConfig(dockerCli.ConfigFile(), opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
 	if err == nil && authConfig.Username != "" && authConfig.Password != "" {
-		response, err = loginWithCredStoreCreds(ctx, dockerCli, &authConfig)
+		response, err = loginWithStoredCredentials(ctx, dockerCli, authConfig)
 	}
-	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
-		err = command.ConfigureAuth(ctx, dockerCli, opts.user, opts.password, &authConfig, isDefaultRegistry)
-		if err != nil {
-			return err
-		}
 
-		response, err = clnt.RegistryLogin(ctx, authConfig)
-		if err != nil && client.IsErrConnectionFailed(err) {
-			// If the server isn't responding (yet) attempt to login purely client side
-			response, err = loginClientSide(ctx, authConfig)
-		}
-		// If we (still) have an error, give up
+	// if we failed to authenticate with stored credentials (or didn't have stored credentials),
+	// prompt the user for new credentials
+	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
+		response, err = loginUser(ctx, dockerCli, opts, authConfig.Username, serverAddress)
 		if err != nil {
 			return err
 		}
 	}
+
+	if response != nil && response.Status != "" {
+		_, _ = fmt.Fprintln(dockerCli.Out(), response.Status)
+	}
+	return nil
+}
+
+func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
+	_, _ = fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
+	response, err := dockerCli.Client().RegistryLogin(ctx, authConfig)
+	if err != nil {
+		if errdefs.IsUnauthorized(err) {
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Stored credentials invalid or expired\n")
+		} else {
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Login did not succeed, error: %s\n", err)
+		}
+	}
+
 	if response.IdentityToken != "" {
 		authConfig.Password = ""
 		authConfig.IdentityToken = response.IdentityToken
 	}
 
-	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
+	if err := storeCredentials(dockerCli, authConfig); err != nil {
+		return nil, err
+	}
+
+	return &response, err
+}
+
+func loginUser(ctx context.Context, dockerCli command.Cli, opts loginOptions, defaultUsername, serverAddress string) (*registrytypes.AuthenticateOKBody, error) {
+	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
+	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" {
+		response, err := loginWithDeviceCodeFlow(ctx, dockerCli)
+		// if the error represents a failure to initiate the device-code flow,
+		// then we fallback to regular cli credentials login
+		if !errors.Is(err, manager.ErrDeviceLoginStartFail) {
+			return response, err
+		}
+		fmt.Fprint(dockerCli.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
+	}
+
+	return loginWithUsernameAndPassword(ctx, dockerCli, opts, defaultUsername, serverAddress)
+}
+
+func loginWithUsernameAndPassword(ctx context.Context, dockerCli command.Cli, opts loginOptions, defaultUsername, serverAddress string) (*registrytypes.AuthenticateOKBody, error) {
+	// Prompt user for credentials
+	authConfig, err := command.PromptUserForCredentials(ctx, dockerCli, opts.user, opts.password, defaultUsername, serverAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := loginWithRegistry(ctx, dockerCli, authConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.IdentityToken != "" {
+		authConfig.Password = ""
+		authConfig.IdentityToken = response.IdentityToken
+	}
+	if err = storeCredentials(dockerCli, authConfig); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func loginWithDeviceCodeFlow(ctx context.Context, dockerCli command.Cli) (*registrytypes.AuthenticateOKBody, error) {
+	store := dockerCli.ConfigFile().GetCredentialsStore(registry.IndexServer)
+	authConfig, err := manager.NewManager(store).LoginDevice(ctx, dockerCli.Err())
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := loginWithRegistry(ctx, dockerCli, registrytypes.AuthConfig(*authConfig))
+	if err != nil {
+		return nil, err
+	}
+
+	if err = storeCredentials(dockerCli, registrytypes.AuthConfig(*authConfig)); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func storeCredentials(dockerCli command.Cli, authConfig registrytypes.AuthConfig) error {
+	creds := dockerCli.ConfigFile().GetCredentialsStore(authConfig.ServerAddress)
 	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
 	}
 
-	if response.Status != "" {
-		fmt.Fprintln(dockerCli.Out(), response.Status)
-	}
 	return nil
 }
 
-func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authConfig *registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
-	fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
-	cliClient := dockerCli.Client()
-	response, err := cliClient.RegistryLogin(ctx, *authConfig)
-	if err != nil {
-		if errdefs.IsUnauthorized(err) {
-			fmt.Fprintf(dockerCli.Err(), "Stored credentials invalid or expired\n")
-		} else {
-			fmt.Fprintf(dockerCli.Err(), "Login did not succeed, error: %s\n", err)
-		}
+func loginWithRegistry(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+	response, err := dockerCli.Client().RegistryLogin(ctx, authConfig)
+	if err != nil && client.IsErrConnectionFailed(err) {
+		// If the server isn't responding (yet) attempt to login purely client side
+		response, err = loginClientSide(ctx, authConfig)
 	}
-	return response, err
+	// If we (still) have an error, give up
+	if err != nil {
+		return registrytypes.AuthenticateOKBody{}, err
+	}
+
+	return response, nil
 }
 
 func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {

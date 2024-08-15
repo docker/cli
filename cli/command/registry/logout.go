@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/internal/oauth/manager"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +35,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogout(_ context.Context, dockerCli command.Cli, serverAddress string) error {
+func runLogout(ctx context.Context, dockerCli command.Cli, serverAddress string) error {
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
@@ -51,6 +52,13 @@ func runLogout(_ context.Context, dockerCli command.Cli, serverAddress string) e
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
 		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
+	}
+
+	if isDefaultRegistry {
+		store := dockerCli.ConfigFile().GetCredentialsStore(registry.IndexServer)
+		if err := manager.NewManager(store).Logout(ctx); err != nil {
+			fmt.Fprintf(dockerCli.Err(), "WARNING: %v\n", err)
+		}
 	}
 
 	fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
