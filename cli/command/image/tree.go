@@ -338,8 +338,8 @@ func (h imgColumn) PrintR(clr aec.ANSI, s string) string {
 
 type noColor struct{}
 
-func (a noColor) With(ansi ...aec.ANSI) aec.ANSI {
-	return aec.NewBuilder(ansi...).ANSI
+func (a noColor) With(_ ...aec.ANSI) aec.ANSI {
+	return a
 }
 
 func (a noColor) Apply(s string) string {
