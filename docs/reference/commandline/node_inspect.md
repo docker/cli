@@ -21,8 +21,7 @@ given template for each result. Go's
 [text/template](https://pkg.go.dev/text/template) package describes all the
 details of the format.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

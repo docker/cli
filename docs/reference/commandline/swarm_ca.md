@@ -22,8 +22,7 @@ Display and rotate the root CA
 
 View or rotate the current swarm CA certificate.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -81,8 +80,7 @@ gyg5u9Iliel99l7SuMhNeLkrU7fXs+Of1nTyyM73ig==
 
 ### <a name="rotate"></a> Root CA rotation (--rotate)
 
-> **Note**
->
+> [!NOTE]
 > Mirantis Kubernetes Engine (MKE), formerly known as Docker UCP, provides an external
 > certificate manager service for the swarm. If you run swarm on MKE, you shouldn't
 > rotate the CA certificates manually. Instead, contact Mirantis support if you need

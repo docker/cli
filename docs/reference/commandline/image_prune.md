@@ -82,6 +82,7 @@ which removes images with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
 images without the specified labels.
 
+> [!NOTE]
 > **Predicting what will be removed**
 >
 > If you are using positive filtering (testing for the existence of a label or
@@ -186,8 +187,7 @@ This example removes images which have a maintainer label not set to `john`:
 $ docker image prune --filter="label!=maintainer=john"
 ```
 
-> **Note**
->
+> [!NOTE]
 > You are prompted for confirmation before the `prune` removes
 > anything, but you are not shown a list of what will potentially be removed.
 > In addition, `docker image ls` doesn't support negative filtering, so it
