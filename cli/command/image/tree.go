@@ -22,6 +22,13 @@ type treeOptions struct {
 	filters filters.Args
 }
 
+type treeView struct {
+	images []topImage
+
+	// imageSpacing indicates whether there should be extra spacing between images.
+	imageSpacing bool
+}
+
 func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error {
 	images, err := dockerCLI.Client().ImageList(ctx, imagetypes.ListOptions{
 		All:       opts.all,
@@ -32,7 +39,9 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		return err
 	}
 
-	view := make([]topImage, 0, len(images))
+	view := treeView{
+		images: make([]topImage, 0, len(images)),
+	}
 	for _, img := range images {
 		details := imageDetails{
 			ID:        img.ID,
@@ -66,11 +75,14 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 
 			totalContent += im.Size.Content
 			children = append(children, sub)
+
+			// Add extra spacing between images if there's at least one entry with children.
+			view.imageSpacing = true
 		}
 
 		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
 
-		view = append(view, topImage{
+		view.images = append(view.images, topImage{
 			Names:    img.RepoTags,
 			Details:  details,
 			Children: children,
@@ -78,8 +90,8 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		})
 	}
 
-	sort.Slice(view, func(i, j int) bool {
-		return view[i].created > view[j].created
+	sort.Slice(view.images, func(i, j int) bool {
+		return view.images[i].created > view.images[j].created
 	})
 
 	return printImageTree(dockerCLI, view)
@@ -108,7 +120,7 @@ type subImage struct {
 
 const columnSpacing = 3
 
-func printImageTree(dockerCLI command.Cli, images []topImage) error {
+func printImageTree(dockerCLI command.Cli, view treeView) error {
 	out := dockerCLI.Out()
 	_, width := out.GetTtySize()
 	if width == 0 {
@@ -197,6 +209,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 		nameWidth -= d
 	}
 
+	images := view.images
 	// Try to make the first column as narrow as possible
 	widest := widestFirstColumnValue(columns, images)
 	if nameWidth > widest {
@@ -217,10 +230,14 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 
 	// Print images
 	for _, img := range images {
-		_, _ = fmt.Fprintln(out, "")
 		printNames(out, columns, img, topNameColor, untaggedColor)
 		printDetails(out, columns, normalColor, img.Details)
+
+		if len(img.Children) > 0 || view.imageSpacing {
+			_, _ = fmt.Fprintln(out)
+		}
 		printChildren(out, columns, img, normalColor)
+		_, _ = fmt.Fprintln(out)
 	}
 
 	return nil
@@ -240,7 +257,6 @@ func printDetails(out *streams.Out, headers []imgColumn, defaultColor aec.ANSI, 
 		val := h.DetailsValue(&details)
 		_, _ = fmt.Fprint(out, h.Print(clr, val))
 	}
-	fmt.Printf("\n")
 }
 
 func printChildren(out *streams.Out, headers []imgColumn, img topImage, normalColor aec.ANSI) {
@@ -257,6 +273,7 @@ func printChildren(out *streams.Out, headers []imgColumn, img topImage, normalCo
 		}
 
 		printDetails(out, headers, clr, sub.Details)
+		_, _ = fmt.Fprintln(out, "")
 	}
 }
 
