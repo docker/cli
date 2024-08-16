@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -68,12 +69,18 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		}
 
 		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
+
 		view = append(view, topImage{
 			Names:    img.RepoTags,
 			Details:  details,
 			Children: children,
+			created:  img.Created,
 		})
 	}
+
+	sort.Slice(view, func(i, j int) bool {
+		return view[i].created > view[j].created
+	})
 
 	return printImageTree(dockerCLI, view)
 }
@@ -89,6 +96,8 @@ type topImage struct {
 	Names    []string
 	Details  imageDetails
 	Children []subImage
+
+	created int64
 }
 
 type subImage struct {
