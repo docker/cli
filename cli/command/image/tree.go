@@ -118,6 +118,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 		width = 20
 	}
 
+	warningColor := aec.LightYellowF
 	headerColor := aec.NewBuilder(aec.DefaultF, aec.Bold).ANSI
 	topNameColor := aec.NewBuilder(aec.BlueF, aec.Underline, aec.Bold).ANSI
 	normalColor := aec.NewBuilder(aec.DefaultF).ANSI
@@ -127,7 +128,10 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 		topNameColor = noColor{}
 		normalColor = noColor{}
 		greenColor = noColor{}
+		warningColor = noColor{}
 	}
+
+	_, _ = fmt.Fprintln(out, warningColor.Apply("WARNING: This is an experimental feature. The output may change and shouldn't be depended on."))
 
 	columns := []imgColumn{
 		{
