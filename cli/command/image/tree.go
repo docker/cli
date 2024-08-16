@@ -123,12 +123,14 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 	topNameColor := aec.NewBuilder(aec.BlueF, aec.Underline, aec.Bold).ANSI
 	normalColor := aec.NewBuilder(aec.DefaultF).ANSI
 	greenColor := aec.NewBuilder(aec.GreenF).ANSI
+	untaggedColor := aec.NewBuilder(aec.Faint).ANSI
 	if !out.IsTerminal() {
 		headerColor = noColor{}
 		topNameColor = noColor{}
 		normalColor = noColor{}
 		greenColor = noColor{}
 		warningColor = noColor{}
+		untaggedColor = noColor{}
 	}
 
 	_, _ = fmt.Fprintln(out, warningColor.Apply("WARNING: This is an experimental feature. The output may change and shouldn't be depended on."))
@@ -216,7 +218,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 	// Print images
 	for _, img := range images {
 		_, _ = fmt.Fprintln(out, "")
-		printNames(out, columns, img, topNameColor)
+		printNames(out, columns, img, topNameColor, untaggedColor)
 		printDetails(out, columns, normalColor, img.Details)
 		printChildren(out, columns, img, normalColor)
 	}
@@ -258,7 +260,11 @@ func printChildren(out *streams.Out, headers []imgColumn, img topImage, normalCo
 	}
 }
 
-func printNames(out *streams.Out, headers []imgColumn, img topImage, color aec.ANSI) {
+func printNames(out *streams.Out, headers []imgColumn, img topImage, color, untaggedColor aec.ANSI) {
+	if len(img.Names) == 0 {
+		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, "<untagged>"))
+	}
+
 	for nameIdx, name := range img.Names {
 		if nameIdx != 0 {
 			_, _ = fmt.Fprintln(out, "")
@@ -338,8 +344,8 @@ func (h imgColumn) PrintR(clr aec.ANSI, s string) string {
 
 type noColor struct{}
 
-func (a noColor) With(ansi ...aec.ANSI) aec.ANSI {
-	return aec.NewBuilder(ansi...).ANSI
+func (a noColor) With(_ ...aec.ANSI) aec.ANSI {
+	return a
 }
 
 func (a noColor) Apply(s string) string {
