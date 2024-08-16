@@ -132,6 +132,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 	}
 
 	_, _ = fmt.Fprintln(out, warningColor.Apply("WARNING: This is an experimental feature. The output may change and shouldn't be depended on."))
+	_, _ = fmt.Fprintln(out, "")
 
 	columns := []imgColumn{
 		{
@@ -213,11 +214,8 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 	_, _ = fmt.Fprintln(out)
 
 	// Print images
-	for idx, img := range images {
-		if idx != 0 {
-			_, _ = fmt.Fprintln(out, "")
-		}
-
+	for _, img := range images {
+		_, _ = fmt.Fprintln(out, "")
 		printNames(out, columns, img, topNameColor)
 		printDetails(out, columns, normalColor, img.Details)
 		printChildren(out, columns, img, normalColor)
