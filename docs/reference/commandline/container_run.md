@@ -291,8 +291,7 @@ running processes in that namespace. By default, all containers, including
 those with `--network=host`, have their own UTS namespace. Setting `--uts` to
 `host` results in the container using the same UTS namespace as the host.
 
-> **Note**
->
+> [!NOTE]
 > Docker disallows combining the `--hostname` and `--domainname` flags with
 > `--uts=host`. This is to prevent containers running in the host's UTS
 > namespace from attempting to change the hosts' configuration.
@@ -350,8 +349,7 @@ In other words, the container can then do almost everything that the host can
 do. This flag exists to allow special use-cases, like running Docker within
 Docker.
 
-> **Warning**
->
+> [!WARNING]
 > Use the `--privileged` flag with caution.
 > A container with `--privileged` is not a securely sandboxed process.
 > Containers in this mode can get a root shell on the host
@@ -533,8 +531,7 @@ host. You can also specify `udp` and `sctp` ports. The [Networking overview
 page](https://docs.docker.com/network/) explains in detail how to publish ports
 with Docker.
 
-> **Note**
->
+> [!NOTE]
 > If you don't specify an IP address (i.e., `-p 80:80` instead of `-p
 > 127.0.0.1:80:80`) when publishing a container's ports, Docker publishes the
 > port on all interfaces (address `0.0.0.0`) by default. These ports are
@@ -715,8 +712,7 @@ or name. For `overlay` networks or custom plugins that support multi-host
 connectivity, containers connected to the same multi-host network but launched
 from different Engines can also communicate in this way.
 
-> **Note**
->
+> [!NOTE]
 > The default bridge network only allows containers to communicate with each other using
 > internal IP addresses. User-created bridge networks provide DNS resolution between
 > containers using container names.
@@ -784,8 +780,7 @@ $ docker network create --subnet 192.0.2.0/24 my-net
 $ docker run -itd --network=name=my-net,\"driver-opt=com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\",ip=192.0.2.42 busybox
 ```
 
-> **Note**
->
+> [!NOTE]
 > Network drivers may restrict the sysctl settings that can be modified and, to protect
 > the operation of the network, new restrictions may be added in the future.
 
@@ -912,8 +907,7 @@ $ docker run --device=/dev/sda:/dev/xvdc:m --rm -it ubuntu fdisk  /dev/xvdc
 fdisk: unable to open /dev/xvdc: Operation not permitted
 ```
 
-> **Note**
->
+> [!NOTE]
 > The `--device` option cannot be safely used with ephemeral devices. You shouldn't 
 > add block devices that may be removed to untrusted containers with `--device`.
 
@@ -935,15 +929,13 @@ ports on the host visible in the container.
 PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.microsoft.com/windows/servercore:ltsc2019
 ```
 
-> **Note**
->
+> [!NOTE]
 > The `--device` option is only supported on process-isolated Windows containers,
 > and produces an error if the container isolation is `hyperv`.
 
 #### CDI devices
 
-> **Note**
->
+> [!NOTE]
 > The CDI feature is experimental, and potentially subject to change.
 > CDI is currently only supported for Linux containers.
 
@@ -1010,8 +1002,7 @@ ID once the container has finished running.
 $ cat somefile | docker run -i -a stdin mybuilder dobuild
 ```
 
-> **Note**
->
+> [!NOTE]
 > A process running as PID 1 inside a container is treated specially by
 > Linux: it ignores any signal with the default action. So, the process
 > doesn't terminate on `SIGINT` or `SIGTERM` unless it's coded to do so.
@@ -1124,7 +1115,8 @@ $ docker run -d --device-cgroup-rule='c 42:* rmw' --name my-container my-image
 Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`
 the required device when it is added.
 
-> **Note**: You still need to explicitly add initially present devices to the
+> [!NOTE]
+> You still need to explicitly add initially present devices to the
 > `docker run` / `docker create` command.
 
 ### <a name="gpus"></a> Access an NVIDIA GPU
@@ -1132,8 +1124,7 @@ the required device when it is added.
 The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install the [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
 
-> **Note**
->
+> [!NOTE]
 > You can also specify a GPU as a CDI device with the `--device` flag, see
 > [CDI devices](#cdi-devices).
 
@@ -1246,8 +1237,7 @@ the container and remove the file system when the container exits, use the
 --rm=false: Automatically remove the container when it exits
 ```
 
-> **Note**
->
+> [!NOTE]
 > If you set the `--rm` flag, Docker also removes the anonymous volumes
 > associated with the container when the container is removed. This is similar
 > to running `docker rm -v my-container`. Only volumes that are specified
@@ -1345,14 +1335,12 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 1024
 ```
 
-> **Note**
->
+> [!NOTE]
 > If you don't provide a hard limit value, Docker uses the soft limit value
 > for both values. If you don't provide any values, they are inherited from
 > the default `ulimits` set on the daemon.
 
-> **Note**
->
+> [!NOTE]
 > The `as` option is deprecated.
 > In other words, the following script is not supported:
 >
@@ -1417,8 +1405,7 @@ the same content between containers.
 $ docker run --security-opt label=level:s0:c100,c200 -it fedora bash
 ```
 
-> **Note**
->
+> [!NOTE]
 > Automatic translation of MLS labels isn't supported.
 
 To disable the security labeling for a container entirely, you can use
@@ -1436,8 +1423,7 @@ that's only allowed to listen on Apache ports:
 $ docker run --security-opt label=type:svirt_apache_t -it ubuntu bash
 ```
 
-> **Note**
->
+> [!NOTE]
 > You would have to write policy defining a `svirt_apache_t` type.
 
 To prevent your container processes from gaining additional privileges, you can
@@ -1558,8 +1544,7 @@ network namespace, run this command:
 $ docker run --sysctl net.ipv4.ip_forward=1 someimage
 ```
 
-> **Note**
->
+> [!NOTE]
 > Not all sysctls are namespaced. Docker does not support changing sysctls
 > inside of a container that also modify the host system. As the kernel
 > evolves we expect to see more sysctls become namespaced.
