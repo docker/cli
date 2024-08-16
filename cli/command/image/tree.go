@@ -207,7 +207,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 			_, _ = fmt.Fprint(out, strings.Repeat(" ", columnSpacing))
 		}
 
-		_, _ = fmt.Fprint(out, h.Print(headerColor, h.Title))
+		_, _ = fmt.Fprint(out, h.Print(headerColor, strings.ToUpper(h.Title)))
 	}
 
 	_, _ = fmt.Fprintln(out)
