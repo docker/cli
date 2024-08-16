@@ -13,7 +13,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.8.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v27.1.2-0.20240810135946-f9522e5e96c3+incompatible // 27.x branch (v27.1.2-dev)
+	github.com/docker/docker v27.1.3-0.20240816164736-9942d656bade+incompatible // 27.x branch (v27.2.0-dev)
 	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
