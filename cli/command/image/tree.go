@@ -58,6 +58,11 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				},
 			}
 
+			if sub.Details.Used {
+				// Mark top-level parent image as used if any of its subimages are used.
+				details.Used = true
+			}
+
 			totalContent += im.Size.Content
 			children = append(children, sub)
 		}
@@ -116,9 +121,14 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 	}
 
 	columns := []imgColumn{
-		{Title: "Image", Width: 0, Left: true},
+		{
+			Title: "Image",
+			Align: alignLeft,
+			Width: 0,
+		},
 		{
 			Title: "ID",
+			Align: alignLeft,
 			Width: 12,
 			DetailsValue: func(d *imageDetails) string {
 				return stringid.TruncateID(d.ID)
@@ -126,6 +136,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 		},
 		{
 			Title: "Disk usage",
+			Align: alignRight,
 			Width: 10,
 			DetailsValue: func(d *imageDetails) string {
 				return d.DiskUsage
@@ -133,6 +144,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 		},
 		{
 			Title: "Content size",
+			Align: alignRight,
 			Width: 12,
 			DetailsValue: func(d *imageDetails) string {
 				return d.ContentSize
@@ -140,6 +152,7 @@ func printImageTree(dockerCLI command.Cli, images []topImage) error {
 		},
 		{
 			Title: "Used",
+			Align: alignCenter,
 			Width: 4,
 			Color: &greenColor,
 			DetailsValue: func(d *imageDetails) string {
@@ -243,10 +256,18 @@ func printNames(out *streams.Out, headers []imgColumn, img topImage, color aec.A
 	}
 }
 
+type alignment int
+
+const (
+	alignLeft alignment = iota
+	alignCenter
+	alignRight
+)
+
 type imgColumn struct {
 	Title string
 	Width int
-	Left  bool
+	Align alignment
 
 	DetailsValue func(*imageDetails) string
 	Color        *aec.ANSI
@@ -260,14 +281,18 @@ func truncateRunes(s string, length int) string {
 	return s
 }
 
-func (h imgColumn) Print(clr aec.ANSI, s string) (out string) {
-	if h.Left {
-		return h.PrintL(clr, s)
+func (h imgColumn) Print(clr aec.ANSI, s string) string {
+	switch h.Align {
+	case alignCenter:
+		return h.PrintC(clr, s)
+	case alignRight:
+		return h.PrintR(clr, s)
+	case alignLeft:
 	}
-	return h.PrintC(clr, s)
+	return h.PrintL(clr, s)
 }
 
-func (h imgColumn) PrintC(clr aec.ANSI, s string) (out string) {
+func (h imgColumn) PrintC(clr aec.ANSI, s string) string {
 	ln := utf8.RuneCountInString(s)
 
 	if ln > h.Width {
@@ -289,6 +314,15 @@ func (h imgColumn) PrintL(clr aec.ANSI, s string) string {
 	}
 
 	return clr.Apply(s) + strings.Repeat(" ", h.Width-ln)
+}
+
+func (h imgColumn) PrintR(clr aec.ANSI, s string) string {
+	ln := utf8.RuneCountInString(s)
+	if ln > h.Width {
+		return clr.Apply(truncateRunes(s, h.Width))
+	}
+
+	return strings.Repeat(" ", h.Width-ln) + clr.Apply(s)
 }
 
 type noColor struct{}
