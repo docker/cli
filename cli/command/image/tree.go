@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -24,6 +25,9 @@ type treeOptions struct {
 
 type treeView struct {
 	images []topImage
+
+	// showUsed indicates whether the "Used" column should be shown.
+	showUsed bool
 
 	// imageSpacing indicates whether there should be extra spacing between images.
 	imageSpacing bool
@@ -71,6 +75,9 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 			if sub.Details.Used {
 				// Mark top-level parent image as used if any of its subimages are used.
 				details.Used = true
+
+				// Show the Used column only if there will be at least one non-zero value.
+				view.showUsed = true
 			}
 
 			totalContent += im.Size.Content
@@ -190,6 +197,12 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 				return " "
 			},
 		},
+	}
+
+	if !view.showUsed {
+		columns = slices.DeleteFunc(columns, func(c imgColumn) bool {
+			return c.Title == "Used"
+		})
 	}
 
 	nameWidth := int(width)
