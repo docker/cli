@@ -93,7 +93,7 @@ in the context.
 
 When using the legacy builder, it's therefore extra important that you
 carefully consider what files you include in the context you specify. Use a
-[`.dockerignore`](https://docs.docker.com/build/building/context/#dockerignore-files)
+[`.dockerignore`](https://docs.docker.com/build/concepts/context/#dockerignore-files)
 file to exclude files and directories that you don't require in your build from
 being sent as part of the build context.
 
