@@ -50,6 +50,7 @@ $ cat ~/my_password.txt | docker login --username foo --password-stdin
 
 - Connecting to a remote daemon, such as a `docker-machine` provisioned `docker engine`.
 - The user is added to the `docker` group. This will impact the security of your system; the `docker` group is `root` equivalent.  See [Docker Daemon Attack Surface](https://docs.docker.com/engine/security/#docker-daemon-attack-surface) for details.
+- The Docker daemon is running as a non-root user, i.e. [rootless mode](https://docs.docker.com/engine/security/rootless/).
 
 You can log in to any public or private repository for which you have
 credentials.  When you log in, the command stores credentials in
