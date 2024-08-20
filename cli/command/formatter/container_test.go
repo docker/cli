@@ -561,6 +561,16 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.Port{
 				{
+					IP:          "::",
+					PrivatePort: 9988,
+					Type:        "tcp",
+				},
+			},
+			expected: "[::]:0->9988/tcp",
+		},
+		{
+			ports: []container.Port{
+				{
 					PrivatePort: 9988,
 					PublicPort:  8899,
 					Type:        "tcp",
