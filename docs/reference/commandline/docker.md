@@ -186,8 +186,7 @@ Sometimes, multiple options can call for a more complex value string as for
 $ docker run -v /host:/container example/mysql
 ```
 
-> **Note**
->
+> [!NOTE]
 > Do not use the `-t` and `-a stderr` options together due to
 > limitations in the `pty` implementation. All `stderr` in `pty` mode
 > simply goes to `stdout`.
@@ -247,8 +246,7 @@ By default, configuration file is stored in `~/.docker/config.json`. Refer to th
 [change the `.docker` directory](#change-the-docker-directory) section to use a
 different location.
 
-> **Warning**
->
+> [!WARNING]
 > The configuration file and other files inside the `~/.docker` configuration
 > directory may contain sensitive information, such as authentication information
 > for proxies or, depending on your credential store, credentials for your image
@@ -324,8 +322,7 @@ used as proxy settings for the `docker` CLI or the `dockerd` daemon. Refer to th
 [environment variables](#environment-variables) and [HTTP/HTTPS proxy](https://docs.docker.com/engine/daemon/proxy/#httphttps-proxy)
 sections for configuring proxy settings for the CLI and daemon.
 
-> **Warning**
->
+> [!WARNING]
 > Proxy settings may contain sensitive information (for example, if the proxy
 > requires authentication). Environment variables are stored as plain text in
 > the container's configuration, and as such can be inspected through the remote
@@ -464,8 +461,7 @@ daemon with IP address `174.17.0.1`, listening on port `2376`:
 $ docker -H tcp://174.17.0.1:2376 ps
 ```
 
-> **Note**
->
+> [!NOTE]
 > By convention, the Docker daemon uses port `2376` for secure TLS connections,
 > and port `2375` for insecure, non-TLS connections.
 
