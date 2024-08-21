@@ -80,8 +80,7 @@ sets `net.ipv4.conf.eth3.log_martians=1` and `net.ipv4.conf.eth3.forwarding=0`.
 $ docker network connect --driver-opt=\"com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\" multi-host-network container2
 ```
 
-> **Note**
->
+> [!NOTE]
 > Network drivers may restrict the sysctl settings that can be modified and, to protect
 > the operation of the network, new restrictions may be added in the future.
 

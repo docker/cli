@@ -69,8 +69,7 @@ to start an interactive shell in the container (if the image you select has an
 $ docker run -it IMAGE sh
 ```
 
-> **Note**
->
+> [!NOTE]
 > Depending on your Docker system configuration, you may be
 > required to preface the `docker run` command with `sudo`. To avoid
 > having to use `sudo` with the `docker` command, your system
@@ -696,8 +695,7 @@ By default, all containers get the same proportion of block IO bandwidth
 container's blkio weight relative to the weighting of all other running
 containers using the `--blkio-weight` flag.
 
-> **Note:**
->
+> [!NOTE]
 > The blkio weight setting is only available for direct IO. Buffered IO is not
 > currently supported.
 
@@ -1039,8 +1037,7 @@ You can reset a containers entrypoint by passing an empty string, for example:
 $ docker run -it --entrypoint="" mysql bash
 ```
 
-> **Note**
->
+> [!NOTE]
 > Passing `--entrypoint` clears out any default command set on the image. That
 > is, any `CMD` instruction in the Dockerfile used to build it.
 
@@ -1223,8 +1220,7 @@ The followings examples are all valid:
 --user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
 ```
 
-> **Note**
->
+> [!NOTE]
 > If you pass a numeric user ID, it must be in the range of 0-2147483647. If
 > you pass a username, the user must exist in the container.
 

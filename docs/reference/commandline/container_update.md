@@ -42,8 +42,7 @@ options on a running or a stopped container. On kernel version older than
 4.6, you can only update `--kernel-memory` on a stopped container or on
 a running container with kernel memory initialized.
 
-> **Warning**
->
+> [!WARNING]
 > The `docker update` and `docker container update` commands are not supported
 > for Windows containers.
 { .warning }
@@ -78,8 +77,7 @@ running container only if the container was started with `--kernel-memory`.
 If the container was started without `--kernel-memory` you need to stop
 the container before updating kernel memory.
 
-> **Note**
->
+> [!NOTE]
 > The `--kernel-memory` option has been deprecated since Docker 20.10.
 
 For example, if you started a container with this command:

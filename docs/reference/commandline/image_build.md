@@ -47,8 +47,7 @@ Build an image from a Dockerfile
 
 ## Description
 
-> **Note**
->
+> [!NOTE]
 > This page refers to the **legacy implementation** of `docker build`,
 > using the legacy (pre-BuildKit) build backend.
 > This configuration is only relevant if you're building Windows containers.
@@ -146,7 +145,7 @@ the `credentialspec` option. The `credentialspec` must be in the format
 
 #### Overview
 
-> **Note**
+> [!NOTE]
 > The `--squash` option is an experimental feature, and should not be considered
 > stable.
 

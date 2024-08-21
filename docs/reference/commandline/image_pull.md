@@ -158,8 +158,7 @@ FROM ubuntu@sha256:2e863c44b718727c860746568e1d54afd13b2fa71b160f5cd9058fc436217
 LABEL org.opencontainers.image.authors="some maintainer <maintainer@example.com>"
 ```
 
-> **Note**
->
+> [!NOTE]
 > Using this feature "pins" an image to a specific version in time.
 > Docker does therefore not pull updated versions of an image, which may include
 > security updates. If you want to pull an updated image, you need to change the

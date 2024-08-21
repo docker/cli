@@ -62,8 +62,7 @@ my-named-vol                                                       0            
 * `UNIQUE SIZE` is the amount of space that's only used by a given image
 * `SIZE` is the virtual size of the image, it's the sum of `SHARED SIZE` and `UNIQUE SIZE`
 
-> **Note**
->
+> [!NOTE]
 > Network information isn't shown, because it doesn't consume disk space.
 
 ## Performance

@@ -24,8 +24,7 @@ Lists all the nodes that the Docker Swarm manager knows about. You can filter
 using the `-f` or `--filter` flag. Refer to the [filtering](#filter) section
 for more information about available filter options.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -42,8 +41,7 @@ ID                           HOSTNAME        STATUS  AVAILABILITY  MANAGER STATU
 e216jshn25ckzbvmwlnh5jr3g *  swarm-manager1  Ready   Active        Leader
 ```
 
-> **Note**
->
+> [!NOTE]
 > In the above example output, there is a hidden column of `.Self` that indicates
 > if the node is the same node as the current docker daemon. A `*` (e.g.,
 > `e216jshn25ckzbvmwlnh5jr3g *`) means this node is the current docker daemon.
