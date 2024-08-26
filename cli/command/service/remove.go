@@ -39,10 +39,10 @@ func runRemove(ctx context.Context, dockerCli command.Cli, sids []string) error 
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", sid)
+		_, _ = fmt.Fprintf(dockerCli.Out(), "%s\n", sid)
 	}
 	if len(errs) > 0 {
-		return errors.Errorf(strings.Join(errs, "\n"))
+		return errors.New(strings.Join(errs, "\n"))
 	}
 	return nil
 }
