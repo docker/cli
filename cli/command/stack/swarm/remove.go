@@ -48,7 +48,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 		}
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
-			fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", namespace)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", namespace)
 			continue
 		}
 
@@ -71,7 +71,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 	}
 
 	if len(errs) > 0 {
-		return errors.Errorf(strings.Join(errs, "\n"))
+		return errors.New(strings.Join(errs, "\n"))
 	}
 	return nil
 }
