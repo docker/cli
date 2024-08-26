@@ -214,7 +214,7 @@ func TestPromptExitCode(t *testing.T) {
 				default:
 
 					if err := bufioWriter.Flush(); err != nil {
-						return poll.Continue(err.Error())
+						return poll.Continue("%v", err)
 					}
 					if strings.Contains(buf.String(), "[y/N]") {
 						return poll.Success()
