@@ -30,52 +30,52 @@ func NoArgs(cmd *cobra.Command, args []string) error {
 }
 
 // RequiresMinArgs returns an error if there is not at least min args
-func RequiresMinArgs(min int) cobra.PositionalArgs {
+func RequiresMinArgs(minArgs int) cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		if len(args) >= min {
+		if len(args) >= minArgs {
 			return nil
 		}
 		return errors.Errorf(
 			"%[1]s: '%[2]s' requires at least %[3]d %[4]s\n\nUsage:  %[5]s\n\nSee '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
-			min,
-			pluralize("argument", min),
+			minArgs,
+			pluralize("argument", minArgs),
 			cmd.UseLine(),
 		)
 	}
 }
 
 // RequiresMaxArgs returns an error if there is not at most max args
-func RequiresMaxArgs(max int) cobra.PositionalArgs {
+func RequiresMaxArgs(maxArgs int) cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		if len(args) <= max {
+		if len(args) <= maxArgs {
 			return nil
 		}
 		return errors.Errorf(
 			"%[1]s: '%[2]s' requires at most %[3]d %[4]s\n\nUsage:  %[5]s\n\nSRun '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
-			max,
-			pluralize("argument", max),
+			maxArgs,
+			pluralize("argument", maxArgs),
 			cmd.UseLine(),
 		)
 	}
 }
 
 // RequiresRangeArgs returns an error if there is not at least min args and at most max args
-func RequiresRangeArgs(min int, max int) cobra.PositionalArgs {
+func RequiresRangeArgs(minArgs int, maxArgs int) cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
-		if len(args) >= min && len(args) <= max {
+		if len(args) >= minArgs && len(args) <= maxArgs {
 			return nil
 		}
 		return errors.Errorf(
 			"%[1]s: '%[2]s' requires at least %[3]d and at most %[4]d %[5]s\n\nUsage:  %[6]s\n\nRun '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
-			min,
-			max,
-			pluralize("argument", max),
+			minArgs,
+			maxArgs,
+			pluralize("argument", maxArgs),
 			cmd.UseLine(),
 		)
 	}
