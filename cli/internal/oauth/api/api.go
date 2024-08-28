@@ -96,18 +96,32 @@ func tryDecodeOAuthError(resp *http.Response) error {
 // authenticated or we have reached the time limit for authenticating (based on
 // the response from GetDeviceCode).
 func (a API) WaitForDeviceToken(ctx context.Context, state State) (TokenResponse, error) {
-	ticker := time.NewTicker(state.IntervalDuration())
+	// Ticker for polling tenant for login – based on the interval
+	// specified by the tenant response.
+	ticker := time.NewTimer(state.IntervalDuration())
 	defer ticker.Stop()
-	timeout := time.After(state.ExpiryDuration())
+	// The tenant tells us for as long as we can poll it for credentials
+	// while the user logs in through their browser. Timeout if we don't get
+	// credentials within this period.
+	timeout := time.NewTimer(state.ExpiryDuration())
+	defer timeout.Stop()
 
 	for {
+		resetTimer(ticker, state.IntervalDuration())
 		select {
 		case <-ctx.Done():
+			// user canceled login
 			return TokenResponse{}, ctx.Err()
 		case <-ticker.C:
+			// tick, check for user login
 			res, err := a.getDeviceToken(ctx, state)
 			if err != nil {
-				return res, err
+				if errors.Is(err, context.Canceled) {
+					// if the caller canceled the context, continue
+					// and let the select hit the ctx.Done() branch
+					continue
+				}
+				return TokenResponse{}, err
 			}
 
 			if res.Error != nil {
@@ -119,14 +133,33 @@ func (a API) WaitForDeviceToken(ctx context.Context, state State) (TokenResponse
 			}
 
 			return res, nil
-		case <-timeout:
+		case <-timeout.C:
+			// login timed out
 			return TokenResponse{}, ErrTimeout
 		}
 	}
 }
 
+// resetTimer is a helper function thatstops, drains and resets the timer.
+// This is necessary in go versions <1.23, since the timer isn't stopped +
+// the timer's channel isn't drained on timer.Reset.
+// See: https://go-review.googlesource.com/c/go/+/568341
+// FIXME: remove/simplify this after we update to go1.23
+func resetTimer(t *time.Timer, d time.Duration) {
+	if !t.Stop() {
+		select {
+		case <-t.C:
+		default:
+		}
+	}
+	t.Reset(d)
+}
+
 // getToken calls the token endpoint of Auth0 and returns the response.
 func (a API) getDeviceToken(ctx context.Context, state State) (TokenResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer cancel()
+
 	data := url.Values{
 		"client_id":   {a.ClientID},
 		"grant_type":  {"urn:ietf:params:oauth:grant-type:device_code"},
