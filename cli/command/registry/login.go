@@ -90,9 +90,7 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 		serverAddress string
 		response      *registrytypes.AuthenticateOKBody
 	)
-	if opts.serverAddress != "" &&
-		opts.serverAddress != registry.DefaultNamespace &&
-		opts.serverAddress != registry.DefaultRegistryHost {
+	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
 		serverAddress = opts.serverAddress
 	} else {
 		serverAddress = registry.IndexServer
