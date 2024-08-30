@@ -106,7 +106,7 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 	// if we failed to authenticate with stored credentials (or didn't have stored credentials),
 	// prompt the user for new credentials
 	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
-		response, err = loginUser(ctx, dockerCli, opts, authConfig.Username, serverAddress)
+		response, err = loginUser(ctx, dockerCli, opts, authConfig.Username, authConfig.ServerAddress)
 		if err != nil {
 			return err
 		}
