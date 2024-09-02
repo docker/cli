@@ -43,7 +43,7 @@ WORKDIR /go/src/github.com/docker/cli
 FROM build-base-alpine AS build-alpine
 ARG TARGETPLATFORM
 # gcc is installed for libgcc only
-RUN xx-apk add --no-cache musl-dev libgcc
+RUN xx-apk add --no-cache musl-dev gcc
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_DEBIAN_DISTRO} AS build-base-debian
 ENV GOTOOLCHAIN=local
