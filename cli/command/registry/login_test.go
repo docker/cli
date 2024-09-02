@@ -16,6 +16,7 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -83,88 +84,207 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 }
 
 func TestRunLogin(t *testing.T) {
-	const (
-		storedServerAddress = "reg1"
-		validUsername       = "u1"
-		validPassword       = "p1"
-		validPassword2      = "p2"
-	)
-
-	validAuthConfig := configtypes.AuthConfig{
-		ServerAddress: storedServerAddress,
-		Username:      validUsername,
-		Password:      validPassword,
-	}
-	expiredAuthConfig := configtypes.AuthConfig{
-		ServerAddress: storedServerAddress,
-		Username:      validUsername,
-		Password:      expiredPassword,
-	}
-	validIdentityToken := configtypes.AuthConfig{
-		ServerAddress: storedServerAddress,
-		Username:      validUsername,
-		IdentityToken: useToken,
-	}
 	testCases := []struct {
-		doc               string
-		inputLoginOption  loginOptions
-		inputStoredCred   *configtypes.AuthConfig
-		expectedErr       string
-		expectedSavedCred configtypes.AuthConfig
+		doc                 string
+		priorCredentials    map[string]configtypes.AuthConfig
+		input               loginOptions
+		expectedCredentials map[string]configtypes.AuthConfig
+		expectedErr         string
 	}{
 		{
 			doc: "valid auth from store",
-			inputLoginOption: loginOptions{
-				serverAddress: storedServerAddress,
+			priorCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "a-password",
+					ServerAddress: "reg1",
+				},
 			},
-			inputStoredCred:   &validAuthConfig,
-			expectedSavedCred: validAuthConfig,
-		},
-		{
-			doc: "expired auth",
-			inputLoginOption: loginOptions{
-				serverAddress: storedServerAddress,
+			input: loginOptions{
+				serverAddress: "reg1",
 			},
-			inputStoredCred: &expiredAuthConfig,
-			expectedErr:     "Error: Cannot perform an interactive login from a non TTY device",
-		},
-		{
-			doc: "valid username and password",
-			inputLoginOption: loginOptions{
-				serverAddress: storedServerAddress,
-				user:          validUsername,
-				password:      validPassword2,
-			},
-			inputStoredCred: &validAuthConfig,
-			expectedSavedCred: configtypes.AuthConfig{
-				ServerAddress: storedServerAddress,
-				Username:      validUsername,
-				Password:      validPassword2,
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "a-password",
+					ServerAddress: "reg1",
+				},
 			},
 		},
 		{
-			doc: "unknown user",
-			inputLoginOption: loginOptions{
-				serverAddress: storedServerAddress,
+			doc: "expired auth from store",
+			priorCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      expiredPassword,
+					ServerAddress: "reg1",
+				},
+			},
+			input: loginOptions{
+				serverAddress: "reg1",
+			},
+			expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+		},
+		{
+			doc:              "store valid username and password",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				password:      "p2",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "p2",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc: "unknown user w/ prior credentials",
+			priorCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "a-password",
+					ServerAddress: "reg1",
+				},
+			},
+			input: loginOptions{
+				serverAddress: "reg1",
 				user:          unknownUser,
-				password:      validPassword,
+				password:      "a-password",
 			},
-			inputStoredCred: &validAuthConfig,
-			expectedErr:     errUnknownUser,
+			expectedErr: errUnknownUser,
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "a-password",
+					Password:      "a-password",
+					ServerAddress: "reg1",
+				},
+			},
 		},
 		{
-			doc: "valid token",
-			inputLoginOption: loginOptions{
-				serverAddress: storedServerAddress,
-				user:          validUsername,
+			doc:              "unknown user w/o prior credentials",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          unknownUser,
+				password:      "a-password",
+			},
+			expectedErr:         errUnknownUser,
+			expectedCredentials: map[string]configtypes.AuthConfig{},
+		},
+		{
+			doc:              "store valid token",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
 				password:      useToken,
 			},
-			inputStoredCred:   &validIdentityToken,
-			expectedSavedCred: validIdentityToken,
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					IdentityToken: useToken,
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc: "valid token from store",
+			priorCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      useToken,
+					ServerAddress: "reg1",
+				},
+			},
+			input: loginOptions{
+				serverAddress: "reg1",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					IdentityToken: useToken,
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "no registry specified defaults to index server",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				user:     "my-username",
+				password: "my-password",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				registry.IndexServer: {
+					Username:      "my-username",
+					Password:      "my-password",
+					ServerAddress: registry.IndexServer,
+				},
+			},
+		},
+		{
+			doc:              "registry-1.docker.io",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "registry-1.docker.io",
+				user:          "my-username",
+				password:      "my-password",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"registry-1.docker.io": {
+					Username:      "my-username",
+					Password:      "my-password",
+					ServerAddress: "registry-1.docker.io",
+				},
+			},
+		},
+		// Regression test for https://github.com/docker/cli/issues/5382
+		{
+			doc:              "sanitizes server address to remove repo",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "registry-1.docker.io/bork/test",
+				user:          "my-username",
+				password:      "a-password",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"registry-1.docker.io": {
+					Username:      "my-username",
+					Password:      "a-password",
+					ServerAddress: "registry-1.docker.io",
+				},
+			},
+		},
+		// Regression test for https://github.com/docker/cli/issues/5382
+		{
+			doc: "updates credential if server address includes repo",
+			priorCredentials: map[string]configtypes.AuthConfig{
+				"registry-1.docker.io": {
+					Username:      "my-username",
+					Password:      "a-password",
+					ServerAddress: "registry-1.docker.io",
+				},
+			},
+			input: loginOptions{
+				serverAddress: "registry-1.docker.io/bork/test",
+				user:          "my-username",
+				password:      "new-password",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"registry-1.docker.io": {
+					Username:      "my-username",
+					Password:      "new-password",
+					ServerAddress: "registry-1.docker.io",
+				},
+			},
 		},
 	}
+
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			tmpFile := fs.NewFile(t, "test-run-login")
 			defer tmpFile.Remove()
@@ -172,19 +292,23 @@ func TestRunLogin(t *testing.T) {
 			configfile := cli.ConfigFile()
 			configfile.Filename = tmpFile.Path()
 
-			if tc.inputStoredCred != nil {
-				cred := *tc.inputStoredCred
-				assert.NilError(t, configfile.GetCredentialsStore(cred.ServerAddress).Store(cred))
+			for _, priorCred := range tc.priorCredentials {
+				assert.NilError(t, configfile.GetCredentialsStore(priorCred.ServerAddress).Store(priorCred))
 			}
-			loginErr := runLogin(context.Background(), cli, tc.inputLoginOption)
+			storedCreds, err := configfile.GetAllCredentials()
+			assert.NilError(t, err)
+			assert.DeepEqual(t, storedCreds, tc.priorCredentials)
+
+			loginErr := runLogin(context.Background(), cli, tc.input)
 			if tc.expectedErr != "" {
 				assert.Error(t, loginErr, tc.expectedErr)
 				return
 			}
 			assert.NilError(t, loginErr)
-			savedCred, credStoreErr := configfile.GetCredentialsStore(tc.inputStoredCred.ServerAddress).Get(tc.inputStoredCred.ServerAddress)
-			assert.Check(t, credStoreErr)
-			assert.DeepEqual(t, tc.expectedSavedCred, savedCred)
+
+			outputCreds, err := configfile.GetAllCredentials()
+			assert.Check(t, err)
+			assert.DeepEqual(t, outputCreds, tc.expectedCredentials)
 		})
 	}
 }
