@@ -155,6 +155,17 @@ func isOauthLoginDisabled() bool {
 }
 
 func loginUser(ctx context.Context, dockerCli command.Cli, opts loginOptions, defaultUsername, serverAddress string) (*registrytypes.AuthenticateOKBody, error) {
+	// Some links documenting this:
+	// - https://code.google.com/archive/p/mintty/issues/56
+	// - https://github.com/docker/docker/issues/15272
+	// - https://mintty.github.io/ (compatibility)
+	// Linux will hit this if you attempt `cat | docker login`, and Windows
+	// will hit this if you attempt docker login from mintty where stdin
+	// is a pipe, not a character based console.
+	if (opts.user == "" || opts.password == "") && !dockerCli.In().IsTerminal() {
+		return nil, errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
+	}
+
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
 	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" && !isOauthLoginDisabled() {
 		response, err := loginWithDeviceCodeFlow(ctx, dockerCli)
