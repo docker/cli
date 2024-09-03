@@ -313,6 +313,145 @@ func TestRunLogin(t *testing.T) {
 	}
 }
 
+func TestLoginNonInteractive(t *testing.T) {
+	t.Run("no prior credentials", func(t *testing.T) {
+		testCases := []struct {
+			doc         string
+			username    bool
+			password    bool
+			expectedErr string
+		}{
+			{
+				doc:      "success - w/ user w/ password",
+				username: true,
+				password: true,
+			},
+			{
+				doc:         "error - w/o user w/o pass ",
+				username:    false,
+				password:    false,
+				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+			},
+			{
+				doc:         "error - w/ user w/o pass",
+				username:    true,
+				password:    false,
+				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+			},
+			{
+				doc:         "error - w/o user w/ pass",
+				username:    false,
+				password:    true,
+				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+			},
+		}
+
+		// "" meaning default registry
+		registries := []string{"", "my-registry.com"}
+
+		for _, registry := range registries {
+			for _, tc := range testCases {
+				t.Run(tc.doc, func(t *testing.T) {
+					tmpFile := fs.NewFile(t, "test-run-login")
+					defer tmpFile.Remove()
+					cli := test.NewFakeCli(&fakeClient{})
+					configfile := cli.ConfigFile()
+					configfile.Filename = tmpFile.Path()
+					options := loginOptions{
+						serverAddress: registry,
+					}
+					if tc.username {
+						options.user = "my-username"
+					}
+					if tc.password {
+						options.password = "my-password"
+					}
+
+					loginErr := runLogin(context.Background(), cli, options)
+					if tc.expectedErr != "" {
+						assert.Error(t, loginErr, tc.expectedErr)
+						return
+					}
+					assert.NilError(t, loginErr)
+				})
+			}
+		}
+	})
+
+	t.Run("w/ prior credentials", func(t *testing.T) {
+		testCases := []struct {
+			doc         string
+			username    bool
+			password    bool
+			expectedErr string
+		}{
+			{
+				doc:      "success - w/ user w/ password",
+				username: true,
+				password: true,
+			},
+			{
+				doc:      "success - w/o user w/o pass ",
+				username: false,
+				password: false,
+			},
+			{
+				doc:         "error - w/ user w/o pass",
+				username:    true,
+				password:    false,
+				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+			},
+			{
+				doc:         "error - w/o user w/ pass",
+				username:    false,
+				password:    true,
+				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+			},
+		}
+
+		// "" meaning default registry
+		registries := []string{"", "my-registry.com"}
+
+		for _, registry := range registries {
+			for _, tc := range testCases {
+				t.Run(tc.doc, func(t *testing.T) {
+					tmpFile := fs.NewFile(t, "test-run-login")
+					defer tmpFile.Remove()
+					cli := test.NewFakeCli(&fakeClient{})
+					configfile := cli.ConfigFile()
+					configfile.Filename = tmpFile.Path()
+					serverAddress := registry
+					if serverAddress == "" {
+						serverAddress = "https://index.docker.io/v1/"
+					}
+					assert.NilError(t, configfile.GetCredentialsStore(serverAddress).Store(configtypes.AuthConfig{
+						Username:      "my-username",
+						Password:      "my-password",
+						ServerAddress: serverAddress,
+					}))
+
+					options := loginOptions{
+						serverAddress: registry,
+					}
+					if tc.username {
+						options.user = "my-username"
+					}
+					if tc.password {
+						options.password = "my-password"
+					}
+
+					loginErr := runLogin(context.Background(), cli, options)
+					if tc.expectedErr != "" {
+						assert.Error(t, loginErr, tc.expectedErr)
+						return
+					}
+					assert.NilError(t, loginErr)
+				})
+			}
+		}
+	})
+}
+
 func TestLoginTermination(t *testing.T) {
 	p, tty, err := pty.Open()
 	assert.NilError(t, err)
