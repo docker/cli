@@ -29,7 +29,7 @@ The base command for the Docker CLI.
 | [`inspect`](inspect.md)       | Return low-level information on Docker objects                                |
 | [`kill`](kill.md)             | Kill one or more running containers                                           |
 | [`load`](load.md)             | Load an image from a tar archive or STDIN                                     |
-| [`login`](login.md)           | Log in to a registry                                                          |
+| [`login`](login.md)           | Authenticate to a registry                                                    |
 | [`logout`](logout.md)         | Log out from a registry                                                       |
 | [`logs`](logs.md)             | Fetch the logs of a container                                                 |
 | [`manifest`](manifest.md)     | Manage Docker image manifests and manifest lists                              |

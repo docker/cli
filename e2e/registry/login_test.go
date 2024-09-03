@@ -30,7 +30,7 @@ func TestOauthLogin(t *testing.T) {
 	assert.NilError(t, err)
 
 	output, _ := io.ReadAll(p)
-	assert.Check(t, strings.Contains(string(output), "USING WEB BASED LOGIN"), string(output))
+	assert.Check(t, strings.Contains(string(output), "USING WEB-BASED LOGIN"), string(output))
 }
 
 func TestLoginWithEscapeHatch(t *testing.T) {
