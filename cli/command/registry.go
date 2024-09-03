@@ -124,17 +124,6 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		cli.SetIn(streams.NewIn(os.Stdin))
 	}
 
-	// Some links documenting this:
-	// - https://code.google.com/archive/p/mintty/issues/56
-	// - https://github.com/docker/docker/issues/15272
-	// - https://mintty.github.io/ (compatibility)
-	// Linux will hit this if you attempt `cat | docker login`, and Windows
-	// will hit this if you attempt docker login from mintty where stdin
-	// is a pipe, not a character based console.
-	if argPassword == "" && !cli.In().IsTerminal() {
-		return authConfig, errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
-	}
-
 	isDefaultRegistry := serverAddress == registry.IndexServer
 	defaultUsername = strings.TrimSpace(defaultUsername)
 
