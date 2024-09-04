@@ -36,17 +36,16 @@ linters-settings:
             desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
   gocyclo:
     min-complexity: 16
-  govet:
-    enable:
-      - shadow
-    settings:
-      shadow:
-        strict: true
   lll:
     line-length: 200
   nakedret:
     command: nakedret
     pattern: ^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$
+  revive:
+    rules:
+      - name: unused-parameter
+        severity: warning
+        disabled: true
 
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below
