@@ -126,7 +126,6 @@ func TestGetContextFromReaderString(t *testing.T) {
 	tarReader := tar.NewReader(tarArchive)
 
 	_, err = tarReader.Next()
-
 	if err != nil {
 		t.Fatalf("Error when reading tar archive: %s", err)
 	}
