@@ -77,3 +77,4 @@ jobs:
         with:
           file: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+          version: v0.7.3 # Work around https://github.com/codecov/uploader/issues/1687 -- uploader v0.8.0 for mac is built for arm64, not x86_64
