@@ -26,27 +26,26 @@ linters:
 
 run:
   timeout: 5m
-  skip-files:
-    - cli/compose/schema/bindata.go
-    - .*generated.*
 
 linters-settings:
   depguard:
-    list-type: blacklist
-    include-go-root: true
-    packages:
-      # The io/ioutil package has been deprecated.
-      # https://go.dev/doc/go1.16#ioutil
-      - io/ioutil
+    rules:
+      main:
+        deny:
+          - pkg: io/ioutil
+            desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
   gocyclo:
     min-complexity: 16
-  govet:
-    check-shadowing: false
   lll:
     line-length: 200
   nakedret:
     command: nakedret
     pattern: ^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$
+  revive:
+    rules:
+      - name: unused-parameter
+        severity: warning
+        disabled: true
 
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below
@@ -54,6 +53,10 @@ issues:
 
   exclude:
     - parameter .* always receives
+
+  exclude-files:
+    - cli/compose/schema/bindata.go
+    - .*generated.*
 
   exclude-rules:
     # We prefer to use an "exclude-list" so that new "default" exclusions are not

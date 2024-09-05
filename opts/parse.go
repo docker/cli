@@ -1,7 +1,7 @@
 package opts
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"strconv"
 	"strings"
@@ -81,7 +81,7 @@ func ParseRestartPolicy(policy string) (container.RestartPolicy, error) {
 	if v != "" {
 		count, err := strconv.Atoi(v)
 		if err != nil {
-			return p, fmt.Errorf("invalid restart policy format: maximum retry count must be an integer")
+			return p, errors.New("invalid restart policy format: maximum retry count must be an integer")
 		}
 		p.MaximumRetryCount = count
 	}

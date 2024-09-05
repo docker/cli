@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -45,7 +45,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 			expectedError: "cannot rotate because autolock is not turned on",
 		},
@@ -55,7 +55,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(Autolock()), nil
+				return *builders.Swarm(builders.Autolock()), nil
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
 				return errors.Errorf("error updating the swarm")
@@ -88,7 +88,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -129,7 +129,7 @@ func TestSwarmUnlockKey(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(Autolock()), nil
+				return *builders.Swarm(builders.Autolock()), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
 				return types.SwarmUnlockKeyResponse{
@@ -144,7 +144,7 @@ func TestSwarmUnlockKey(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(Autolock()), nil
+				return *builders.Swarm(builders.Autolock()), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
 				return types.SwarmUnlockKeyResponse{
@@ -162,7 +162,7 @@ func TestSwarmUnlockKey(t *testing.T) {
 		cmd := newUnlockKeyCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("unlockkeys-%s.golden", tc.name))

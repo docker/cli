@@ -2,6 +2,7 @@ package opts
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -144,11 +145,11 @@ func (m *MountOpt) Set(value string) error {
 	}
 
 	if mount.Type == "" {
-		return fmt.Errorf("type is required")
+		return errors.New("type is required")
 	}
 
 	if mount.Target == "" {
-		return fmt.Errorf("target is required")
+		return errors.New("target is required")
 	}
 
 	if mount.VolumeOptions != nil && mount.Type != mounttypes.TypeVolume {

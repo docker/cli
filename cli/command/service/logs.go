@@ -214,9 +214,9 @@ func (f *taskFormatter) format(ctx context.Context, logCtx logContext) (string, 
 	taskName := fmt.Sprintf("%s.%d", serviceName, task.Slot)
 	if !f.opts.noTaskIDs {
 		if f.opts.noTrunc {
-			taskName += fmt.Sprintf(".%s", task.ID)
+			taskName += "." + task.ID
 		} else {
-			taskName += fmt.Sprintf(".%s", stringid.TruncateID(task.ID))
+			taskName += "." + stringid.TruncateID(task.ID)
 		}
 	}
 

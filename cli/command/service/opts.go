@@ -1001,7 +1001,7 @@ const (
 	flagTTY                     = "tty"
 	flagUpdateDelay             = "update-delay"
 	flagUpdateFailureAction     = "update-failure-action"
-	flagUpdateMaxFailureRatio   = "update-max-failure-ratio"
+	flagUpdateMaxFailureRatio   = "update-max-failure-ratio" // #nosec G101 -- ignoring: Potential hardcoded credentials (gosec)
 	flagUpdateMonitor           = "update-monitor"
 	flagUpdateOrder             = "update-order"
 	flagUpdateParallelism       = "update-parallelism"

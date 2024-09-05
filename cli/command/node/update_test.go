@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
@@ -43,7 +43,7 @@ func TestNodeUpdateErrors(t *testing.T) {
 		{
 			args: []string{"nodeID"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(NodeLabels(map[string]string{
+				return *builders.Node(builders.NodeLabels(map[string]string{
 					"key": "value",
 				})), []byte{}, nil
 			},
@@ -61,7 +61,7 @@ func TestNodeUpdateErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -81,7 +81,7 @@ func TestNodeUpdate(t *testing.T) {
 				"role": "manager",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if node.Role != swarm.NodeRoleManager {
@@ -96,7 +96,7 @@ func TestNodeUpdate(t *testing.T) {
 				"availability": "drain",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if node.Availability != swarm.NodeAvailabilityDrain {
@@ -111,7 +111,7 @@ func TestNodeUpdate(t *testing.T) {
 				"label-add": "lbl",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if _, present := node.Annotations.Labels["lbl"]; !present {
@@ -126,7 +126,7 @@ func TestNodeUpdate(t *testing.T) {
 				"label-add": "key=value",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if value, present := node.Annotations.Labels["key"]; !present || value != "value" {
@@ -141,7 +141,7 @@ func TestNodeUpdate(t *testing.T) {
 				"label-rm": "key",
 			},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(NodeLabels(map[string]string{
+				return *builders.Node(builders.NodeLabels(map[string]string{
 					"key": "value",
 				})), []byte{}, nil
 			},
@@ -161,7 +161,7 @@ func TestNodeUpdate(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		assert.NilError(t, cmd.Execute())
 	}

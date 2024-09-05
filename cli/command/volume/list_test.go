@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/pkg/errors"
@@ -40,7 +40,7 @@ func TestVolumeListErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
@@ -53,9 +53,9 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
 				Volumes: []*volume.Volume{
-					Volume(),
-					Volume(VolumeName("foo"), VolumeDriver("bar")),
-					Volume(VolumeName("baz"), VolumeLabels(map[string]string{
+					builders.Volume(),
+					builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
+					builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
 						"foo": "bar",
 					})),
 				},
@@ -72,9 +72,9 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
 				Volumes: []*volume.Volume{
-					Volume(),
-					Volume(VolumeName("foo"), VolumeDriver("bar")),
-					Volume(VolumeName("baz"), VolumeLabels(map[string]string{
+					builders.Volume(),
+					builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
+					builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
 						"foo": "bar",
 					})),
 				},
@@ -94,9 +94,9 @@ func TestVolumeListWithFormat(t *testing.T) {
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
 				Volumes: []*volume.Volume{
-					Volume(),
-					Volume(VolumeName("foo"), VolumeDriver("bar")),
-					Volume(VolumeName("baz"), VolumeLabels(map[string]string{
+					builders.Volume(),
+					builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
+					builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
 						"foo": "bar",
 					})),
 				},
@@ -104,7 +104,7 @@ func TestVolumeListWithFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", "{{ .Name }} {{ .Driver }} {{ .Labels }}")
+	assert.Check(t, cmd.Flags().Set("format", "{{ .Name }} {{ .Driver }} {{ .Labels }}"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-with-format.golden")
 }
@@ -114,15 +114,15 @@ func TestVolumeListSortOrder(t *testing.T) {
 		volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
 			return volume.ListResponse{
 				Volumes: []*volume.Volume{
-					Volume(VolumeName("volume-2-foo")),
-					Volume(VolumeName("volume-10-foo")),
-					Volume(VolumeName("volume-1-foo")),
+					builders.Volume(builders.VolumeName("volume-2-foo")),
+					builders.Volume(builders.VolumeName("volume-10-foo")),
+					builders.Volume(builders.VolumeName("volume-1-foo")),
 				},
 			}, nil
 		},
 	})
 	cmd := newListCommand(cli)
-	cmd.Flags().Set("format", "{{ .Name }}")
+	assert.Check(t, cmd.Flags().Set("format", "{{ .Name }}"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-list-sort.golden")
 }
@@ -223,14 +223,14 @@ func TestClusterVolumeList(t *testing.T) {
 							},
 						},
 					},
-					Volume(VolumeName("volume-local-1")),
+					builders.Volume(builders.VolumeName("volume-local-1")),
 				},
 			}, nil
 		},
 	})
 
 	cmd := newListCommand(cli)
-	cmd.Flags().Set("cluster", "true")
+	assert.Check(t, cmd.Flags().Set("cluster", "true"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "volume-cluster-volume-list.golden")
 }

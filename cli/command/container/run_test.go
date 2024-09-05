@@ -2,7 +2,6 @@ package container
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"testing"
 
@@ -65,7 +64,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 				platform *specs.Platform,
 				containerName string,
 			) (container.CreateResponse, error) {
-				return container.CreateResponse{}, fmt.Errorf("shouldn't try to pull image")
+				return container.CreateResponse{}, errors.New("shouldn't try to pull image")
 			},
 		}, test.EnableContentTrust)
 		cli.SetNotaryClient(tc.notaryFunc)

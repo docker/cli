@@ -329,10 +329,10 @@ func createImage(t *testing.T, repo string, tags ...string) string {
 func withNotaryPassphrase(pwd string) func(*icmd.Cmd) {
 	return func(c *icmd.Cmd) {
 		c.Env = append(c.Env, []string{
-			fmt.Sprintf("NOTARY_ROOT_PASSPHRASE=%s", pwd),
-			fmt.Sprintf("NOTARY_TARGETS_PASSPHRASE=%s", pwd),
-			fmt.Sprintf("NOTARY_SNAPSHOT_PASSPHRASE=%s", pwd),
-			fmt.Sprintf("NOTARY_DELEGATION_PASSPHRASE=%s", pwd),
+			"NOTARY_ROOT_PASSPHRASE=" + pwd,
+			"NOTARY_TARGETS_PASSPHRASE=" + pwd,
+			"NOTARY_SNAPSHOT_PASSPHRASE=" + pwd,
+			"NOTARY_DELEGATION_PASSPHRASE=" + pwd,
 		}...)
 	}
 }

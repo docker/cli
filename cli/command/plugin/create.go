@@ -114,7 +114,6 @@ func runCreate(dockerCli command.Cli, options pluginCreateOptions) error {
 	createCtx, err = archive.TarWithOptions(absContextDir, &archive.TarOptions{
 		Compression: compression,
 	})
-
 	if err != nil {
 		return err
 	}

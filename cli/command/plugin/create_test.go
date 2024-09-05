@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"runtime"
 	"testing"
@@ -91,16 +91,14 @@ func TestCreateErrorFromDaemon(t *testing.T) {
 		fs.WithFile("config.json", `{ "Name": "plugin-foo" }`))
 	defer tmpDir.Remove()
 
-	cli := test.NewFakeCli(&fakeClient{
+	cmd := newCreateCommand(test.NewFakeCli(&fakeClient{
 		pluginCreateFunc: func(createContext io.Reader, createOptions types.PluginCreateOptions) error {
-			return fmt.Errorf("Error creating plugin")
+			return errors.New("error creating plugin")
 		},
-	})
-
-	cmd := newCreateCommand(cli)
+	}))
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOut(io.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "Error creating plugin")
+	assert.ErrorContains(t, cmd.Execute(), "error creating plugin")
 }
 
 func TestCreatePlugin(t *testing.T) {

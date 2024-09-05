@@ -2,7 +2,7 @@ package test
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"io"
 	"strings"
 
@@ -172,7 +172,7 @@ func (c *FakeCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []st
 	if c.notaryClientFunc != nil {
 		return c.notaryClientFunc(imgRefAndAuth, actions)
 	}
-	return nil, fmt.Errorf("no notary client available unless defined")
+	return nil, errors.New("no notary client available unless defined")
 }
 
 // ManifestStore returns a fake store used for testing

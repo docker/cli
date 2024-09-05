@@ -42,7 +42,7 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	}
 	tag := imgRefAndAuth.Tag()
 	if imgRefAndAuth.Tag() == "" && imgRefAndAuth.Digest() != "" {
-		return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
+		return errors.New("cannot use a digest reference for IMAGE:TAG")
 	}
 	if imgRefAndAuth.Tag() == "" && !options.forceYes {
 		deleteRemote := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
@@ -64,7 +64,7 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	if err := revokeSignature(notaryRepo, tag); err != nil {
 		return errors.Wrapf(err, "could not remove signature for %s", remote)
 	}
-	fmt.Fprintf(cli.Out(), "Successfully deleted signature for %s\n", remote)
+	_, _ = fmt.Fprintf(cli.Out(), "Successfully deleted signature for %s\n", remote)
 	return nil
 }
 
@@ -101,7 +101,7 @@ func revokeAllSigs(notaryRepo client.Repository) error {
 	}
 
 	if len(releasedTargetWithRoleList) == 0 {
-		return fmt.Errorf("no signed tags to remove")
+		return errors.New("no signed tags to remove")
 	}
 
 	// we need all the roles that signed each released target so we can remove from all roles.

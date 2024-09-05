@@ -18,7 +18,7 @@ type notFound struct {
 }
 
 func (n notFound) Error() string {
-	return fmt.Sprintf("Error: No such image: %s", n.imageID)
+	return "Error: No such image: " + n.imageID
 }
 
 func (n notFound) NotFound() bool {

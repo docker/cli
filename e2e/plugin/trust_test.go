@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,7 +22,7 @@ const registryPrefix = "registry:5000"
 func TestInstallWithContentTrust(t *testing.T) {
 	skip.If(t, environment.SkipPluginTests())
 
-	pluginName := fmt.Sprintf("%s/plugin-content-trust", registryPrefix)
+	const pluginName = registryPrefix + "/plugin-content-trust"
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -50,7 +49,7 @@ func TestInstallWithContentTrust(t *testing.T) {
 		fixtures.WithNotary,
 	)
 	result.Assert(t, icmd.Expected{
-		Out: fmt.Sprintf("Status: Downloaded newer image for %s@sha", pluginName),
+		Out: "Status: Downloaded newer image for " + pluginName + "@sha",
 	})
 }
 
