@@ -193,9 +193,14 @@ func (c *ContainerContext) Command() string {
 	return strconv.Quote(command)
 }
 
-// CreatedAt returns the "Created" date/time of the container as a unix timestamp.
+// CreatedAt returns the "Created" date/time of the container as a stringified unix timestamp.
 func (c *ContainerContext) CreatedAt() string {
 	return time.Unix(c.c.Created, 0).String()
+}
+
+// CreatedAtTimestamp returns the "Created" date/time of the container as a unix timestamp.
+func (c *ContainerContext) CreatedAtTimestamp() time.Time {
+	return time.Unix(c.c.Created, 0)
 }
 
 // RunningFor returns a human-readable representation of the duration for which
