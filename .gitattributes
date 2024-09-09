@@ -1,5 +1,14 @@
-* text=auto eol=lf
+* text=auto
+
 Dockerfile* linguist-language=Dockerfile
 vendor.mod linguist-language=Go-Module
 vendor.sum linguist-language=Go-Checksums
-*.bat text eol=crlf
+
+*.go -text diff=golang
+
+# scripts directory contains shell scripts
+# without extensions, so we need to force
+scripts/** text=auto eol=lf
+
+# shell scripts should always have LF
+*.sh text eol=lf
