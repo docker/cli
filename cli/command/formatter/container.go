@@ -193,7 +193,9 @@ func (c *ContainerContext) Command() string {
 	return strconv.Quote(command)
 }
 
-// CreatedAt returns the "Created" date/time of the container as a unix timestamp.
+// CreatedAt returns the formatted string representing the container's creation date/time.
+// The format may include nanoseconds if present.
+// e.g. "2006-01-02 15:04:05.999999999 -0700 MST" or "2006-01-02 15:04:05 -0700 MST"
 func (c *ContainerContext) CreatedAt() string {
 	return time.Unix(c.c.Created, 0).String()
 }
