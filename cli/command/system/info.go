@@ -273,21 +273,9 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 
 	if info.OSType == "linux" {
 		fprintln(output, " Init Binary:", info.InitBinary)
-
-		for _, ci := range []struct {
-			Name   string
-			Commit system.Commit
-		}{
-			{"containerd", info.ContainerdCommit},
-			{"runc", info.RuncCommit},
-			{"init", info.InitCommit},
-		} {
-			fprintf(output, " %s version: %s", ci.Name, ci.Commit.ID)
-			if ci.Commit.ID != ci.Commit.Expected {
-				fprintf(output, " (expected: %s)", ci.Commit.Expected)
-			}
-			fprintln(output)
-		}
+		fprintln(output, " containerd version:", info.ContainerdCommit.ID)
+		fprintln(output, " runc version:", info.RuncCommit.ID)
+		fprintln(output, " init version:", info.InitCommit.ID)
 		if len(info.SecurityOptions) != 0 {
 			if kvs, err := system.DecodeSecurityOptions(info.SecurityOptions); err != nil {
 				errs = append(errs, err)
