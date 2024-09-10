@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -32,8 +34,8 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "login [OPTIONS] [SERVER]",
-		Short: "Log in to a registry",
-		Long:  "Log in to a registry.\nIf no server is specified, the default is defined by the daemon.",
+		Short: "Authenticate to a registry",
+		Long:  "Authenticate to a registry.\nDefaults to Docker Hub if no server is specified.",
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
@@ -88,9 +90,7 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 		serverAddress string
 		response      *registrytypes.AuthenticateOKBody
 	)
-	if opts.serverAddress != "" &&
-		opts.serverAddress != registry.DefaultNamespace &&
-		opts.serverAddress != registry.DefaultRegistryHost {
+	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
 		serverAddress = opts.serverAddress
 	} else {
 		serverAddress = registry.IndexServer
@@ -106,7 +106,7 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 	// if we failed to authenticate with stored credentials (or didn't have stored credentials),
 	// prompt the user for new credentials
 	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
-		response, err = loginUser(ctx, dockerCli, opts, authConfig.Username, serverAddress)
+		response, err = loginUser(ctx, dockerCli, opts, authConfig.Username, authConfig.ServerAddress)
 		if err != nil {
 			return err
 		}
@@ -141,9 +141,33 @@ func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, auth
 	return &response, err
 }
 
+const OauthLoginEscapeHatchEnvVar = "DOCKER_CLI_DISABLE_OAUTH_LOGIN"
+
+func isOauthLoginDisabled() bool {
+	if v := os.Getenv(OauthLoginEscapeHatchEnvVar); v != "" {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return enabled
+	}
+	return false
+}
+
 func loginUser(ctx context.Context, dockerCli command.Cli, opts loginOptions, defaultUsername, serverAddress string) (*registrytypes.AuthenticateOKBody, error) {
+	// Some links documenting this:
+	// - https://code.google.com/archive/p/mintty/issues/56
+	// - https://github.com/docker/docker/issues/15272
+	// - https://mintty.github.io/ (compatibility)
+	// Linux will hit this if you attempt `cat | docker login`, and Windows
+	// will hit this if you attempt docker login from mintty where stdin
+	// is a pipe, not a character based console.
+	if (opts.user == "" || opts.password == "") && !dockerCli.In().IsTerminal() {
+		return nil, errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
+	}
+
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
-	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" {
+	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" && !isOauthLoginDisabled() {
 		response, err := loginWithDeviceCodeFlow(ctx, dockerCli)
 		// if the error represents a failure to initiate the device-code flow,
 		// then we fallback to regular cli credentials login

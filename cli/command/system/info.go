@@ -372,7 +372,7 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 		fprintln(output, " Product License:", info.ProductLicense)
 	}
 
-	if info.DefaultAddressPools != nil && len(info.DefaultAddressPools) > 0 {
+	if len(info.DefaultAddressPools) > 0 {
 		fprintln(output, " Default Address Pools:")
 		for _, pool := range info.DefaultAddressPools {
 			fprintf(output, "   Base: %s, Size: %d\n", pool.Base, pool.Size)

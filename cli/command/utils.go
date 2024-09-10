@@ -222,7 +222,7 @@ func ValidateOutputPath(path string) error {
 		}
 
 		if err := ValidateOutputPathFileMode(fileInfo.Mode()); err != nil {
-			return errors.Wrapf(err, fmt.Sprintf("invalid output path: %q must be a directory or a regular file", path))
+			return errors.Wrapf(err, "invalid output path: %q must be a directory or a regular file", path)
 		}
 	}
 	return nil

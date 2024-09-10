@@ -10,8 +10,7 @@ Block until one or more containers stop, then print their exit codes
 
 <!---MARKER_GEN_END-->
 
-> **Note**
->
+> [!NOTE]
 > `docker wait` returns `0` when run against a container which had already
 > exited before the `docker wait` command was run.
 

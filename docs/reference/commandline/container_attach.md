@@ -25,8 +25,7 @@ Use `docker attach` to attach your terminal's standard input, output, and error
 ID or name. This lets you view its output or control it interactively, as
 though the commands were running directly in your terminal.
 
-> **Note**
->
+> [!NOTE]
 > The `attach` command displays the output of the container's `ENTRYPOINT` and
 > `CMD` process. This can appear as if the attach command is hung when in fact
 > the process may simply not be writing any output at that time.
@@ -39,8 +38,7 @@ container. If `--sig-proxy` is true (the default),`CTRL-c` sends a `SIGINT` to
 the container. If the container was run with `-i` and `-t`, you can detach from
 a container and leave it running using the `CTRL-p CTRL-q` key sequence.
 
-> **Note**
->
+> [!NOTE]
 > A process running as PID 1 inside a container is treated specially by
 > Linux: it ignores any signal with the default action. So, the process
 > doesn't terminate on `SIGINT` or `SIGTERM` unless it's coded to do so.

@@ -115,8 +115,7 @@ service requires recreating the tasks for it to take effect. For example, only c
 setting. However, the `--force` flag will cause the tasks to be recreated anyway. This can be used to perform a
 rolling restart without any changes to the service parameters.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

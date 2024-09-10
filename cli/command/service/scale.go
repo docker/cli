@@ -90,7 +90,7 @@ func runScale(ctx context.Context, dockerCli command.Cli, options *scaleOptions,
 	if len(errs) == 0 {
 		return nil
 	}
-	return errors.Errorf(strings.Join(errs, "\n"))
+	return errors.New(strings.Join(errs, "\n"))
 }
 
 func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID string, scale uint64) error {

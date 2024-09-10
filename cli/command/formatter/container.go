@@ -5,6 +5,7 @@ package formatter
 
 import (
 	"fmt"
+	"net"
 	"sort"
 	"strconv"
 	"strings"
@@ -192,7 +193,9 @@ func (c *ContainerContext) Command() string {
 	return strconv.Quote(command)
 }
 
-// CreatedAt returns the "Created" date/time of the container as a unix timestamp.
+// CreatedAt returns the formatted string representing the container's creation date/time.
+// The format may include nanoseconds if present.
+// e.g. "2006-01-02 15:04:05.999999999 -0700 MST" or "2006-01-02 15:04:05 -0700 MST"
 func (c *ContainerContext) CreatedAt() string {
 	return time.Unix(c.c.Created, 0).String()
 }
@@ -331,7 +334,8 @@ func DisplayablePorts(ports []container.Port) string {
 		portKey := port.Type
 		if port.IP != "" {
 			if port.PublicPort != current {
-				hostMappings = append(hostMappings, fmt.Sprintf("%s:%d->%d/%s", port.IP, port.PublicPort, port.PrivatePort, port.Type))
+				hAddrPort := net.JoinHostPort(port.IP, strconv.Itoa(int(port.PublicPort)))
+				hostMappings = append(hostMappings, fmt.Sprintf("%s->%d/%s", hAddrPort, port.PrivatePort, port.Type))
 				continue
 			}
 			portKey = port.IP + "/" + port.Type

@@ -198,7 +198,7 @@ func TestWaitForDeviceToken(t *testing.T) {
 		state := State{
 			DeviceCode: "aDeviceCode",
 			UserCode:   "aUserCode",
-			Interval:   1,
+			Interval:   5,
 			ExpiresIn:  1,
 		}
 

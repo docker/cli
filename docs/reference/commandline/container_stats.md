@@ -29,8 +29,7 @@ containers do not return any data.
 If you need more detailed information about a container's resource usage, use
 the `/containers/(id)/stats` API endpoint.
 
-> **Note**
->
+> [!NOTE]
 > On Linux, the Docker CLI reports memory usage by subtracting cache usage from
 > the total memory usage. The API does not perform such a calculation but rather
 > provides the total memory usage and the amount from the cache so that clients
@@ -41,8 +40,7 @@ the `/containers/(id)/stats` API endpoint.
 > field. On cgroup v2 hosts, the cache usage is defined as the value of
 > `inactive_file` field.
 
-> **Note**
->
+> [!NOTE]
 > The `PIDS` column contains the number of processes and kernel threads created
 > by that container. Threads is the term used by Linux kernel. Other equivalent
 > terms are "lightweight process" or "kernel task", etc. A large number in the
