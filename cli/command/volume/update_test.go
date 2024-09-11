@@ -18,5 +18,5 @@ func TestUpdateCmd(t *testing.T) {
 
 	err := cmd.Execute()
 
-	assert.ErrorContains(t, err, "requires 1 argument")
+	assert.ErrorContains(t, err, "requires exactly 1 argument")
 }
