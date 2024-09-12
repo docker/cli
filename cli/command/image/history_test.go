@@ -18,7 +18,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 		name             string
 		args             []string
 		expectedError    string
-		imageHistoryFunc func(img string) ([]image.HistoryResponseItem, error)
+		imageHistoryFunc func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -29,7 +29,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 			name:          "client-error",
 			args:          []string{"image:tag"},
 			expectedError: "something went wrong",
-			imageHistoryFunc: func(img string) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{}}, errors.Errorf("something went wrong")
 			},
 		},
@@ -50,12 +50,12 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name             string
 		args             []string
-		imageHistoryFunc func(img string) ([]image.HistoryResponseItem, error)
+		imageHistoryFunc func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error)
 	}{
 		{
 			name: "simple",
 			args: []string{"image:tag"},
-			imageHistoryFunc: func(img string) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),
@@ -70,7 +70,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		{
 			name: "non-human",
 			args: []string{"--human=false", "image:tag"},
-			imageHistoryFunc: func(img string) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{
 					ID:        "abcdef",
 					Created:   time.Date(2017, 1, 1, 12, 0, 3, 0, time.UTC).Unix(),
@@ -82,7 +82,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		{
 			name: "quiet-no-trunc",
 			args: []string{"--quiet", "--no-trunc", "image:tag"},
-			imageHistoryFunc: func(img string) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),
