@@ -1234,7 +1234,7 @@ the container and remove the file system when the container exits, use the
 `--rm` flag:
 
 ```text
---rm=false: Automatically remove the container when it exits
+--rm: Automatically remove the container when it exits
 ```
 
 > [!NOTE]
