@@ -48,6 +48,10 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 		if len(line) > 0 && !strings.HasPrefix(line, "#") {
 			variable, value, hasValue := strings.Cut(line, "=")
 
+			if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+				value = strings.Trim(value, "\"")
+			}
+
 			// trim the front of a variable, but nothing else
 			variable = strings.TrimLeft(variable, whiteSpaces)
 			if strings.ContainsAny(variable, whiteSpaces) {

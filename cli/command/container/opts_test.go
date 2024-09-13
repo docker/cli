@@ -209,7 +209,10 @@ func TestParseWithVolumes(t *testing.T) {
 	}
 
 	// Two bind mounts.
-	arr, tryit = setupPlatformVolume([]string{`/hostTmp:/containerTmp`, `/hostVar:/containerVar`}, []string{os.Getenv("ProgramData") + `:c:\ContainerPD`, os.Getenv("TEMP") + `:c:\containerTmp`})
+	arr, tryit = setupPlatformVolume(
+		[]string{`/hostTmp:/containerTmp`, `/hostVar:/containerVar`},
+		[]string{os.Getenv("ProgramData") + `:c:\ContainerPD`, os.Getenv("TEMP") + `:c:\containerTmp`},
+	)
 	if _, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 		t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 	}
@@ -218,7 +221,8 @@ func TestParseWithVolumes(t *testing.T) {
 	// TODO Windows: The Windows version uses read-write as that's the only mode it supports. Can change this post TP4
 	arr, tryit = setupPlatformVolume(
 		[]string{`/hostTmp:/containerTmp:ro`, `/hostVar:/containerVar:rw`},
-		[]string{os.Getenv("TEMP") + `:c:\containerTmp:rw`, os.Getenv("ProgramData") + `:c:\ContainerPD:rw`})
+		[]string{os.Getenv("TEMP") + `:c:\containerTmp:rw`, os.Getenv("ProgramData") + `:c:\ContainerPD:rw`},
+	)
 	if _, hostConfig, _ := mustParse(t, tryit); hostConfig.Binds == nil || compareRandomizedStrings(hostConfig.Binds[0], hostConfig.Binds[1], arr[0], arr[1]) != nil {
 		t.Fatalf("Error parsing volume flags, `%s and %s` did not mount-bind correctly. Received %v", arr[0], arr[1], hostConfig.Binds)
 	}
@@ -892,15 +896,18 @@ func TestParseEnvfileVariables(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(config.Env) != 1 || config.Env[0] != "ENV1=value1" {
-		t.Fatalf("Expected a config with [ENV1=value1], got %v", config.Env)
+
+	if len(config.Env) != 2 || config.Env[0] != "ENV1=value1" || config.Env[1] != "ENV2=value2" {
+		t.Fatalf("Expected a config with [ENV1=value1], got %+v", config.Env)
 	}
-	config, _, _, err = parseRun([]string{"--env-file=testdata/valid.env", "--env=ENV2=value2", "img", "cmd"})
+
+	config, _, _, err = parseRun([]string{"--env-file=testdata/valid.env", "--env=ENV3=value3", "--env=ENV4=\"value4\"", "img", "cmd"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(config.Env) != 2 || config.Env[0] != "ENV1=value1" || config.Env[1] != "ENV2=value2" {
-		t.Fatalf("Expected a config with [ENV1=value1 ENV2=value2], got %v", config.Env)
+
+	if len(config.Env) != 4 || config.Env[0] != "ENV1=value1" || config.Env[1] != "ENV2=value2" || config.Env[2] != "ENV3=value3" || config.Env[3] != "ENV4=value4" {
+		t.Fatalf("Expected a config with [ENV1=value1 ENV2=value2, ENV3=value3, ENV4=value4], got %v", config.Env)
 	}
 }
 

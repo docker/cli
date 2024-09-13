@@ -2,6 +2,7 @@ package opts
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -31,6 +32,19 @@ func readKVStrings(files []string, override []string, emptyFn func(string) (stri
 		}
 		variables = append(variables, parsedVars...)
 	}
+
+	for i, value := range override {
+		key, value, ok := strings.Cut(value, "=")
+		if !ok {
+			continue
+		}
+
+		if strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"") {
+			value = strings.Trim(value, "\"")
+			override[i] = fmt.Sprintf("%s=%s", key, value)
+		}
+	}
+
 	// parse the '-e' and '--env' after, to allow override
 	variables = append(variables, override...)
 
