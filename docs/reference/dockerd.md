@@ -57,6 +57,7 @@ Options:
       --exec-opt list                         Runtime execution options
       --exec-root string                      Root directory for execution state files (default "/var/run/docker")
       --experimental                          Enable experimental features
+      --feature map                           Enable feature in the daemon
       --fixed-cidr string                     IPv4 subnet for fixed IPs
       --fixed-cidr-v6 string                  IPv6 subnet for fixed IPs
   -G, --group string                          Group for the unix socket (default "docker")
@@ -79,6 +80,7 @@ Options:
       --label list                            Set key=value labels to the daemon
       --live-restore                          Enable live restore of docker when containers are still running
       --log-driver string                     Default driver for container logs (default "json-file")
+      --log-format string                     Set the logging format ("text"|"json") (default "text")
   -l, --log-level string                      Set the logging level ("debug"|"info"|"warn"|"error"|"fatal") (default "info")
       --log-opt map                           Default log driver options for containers (default map[])
       --max-concurrent-downloads int          Set the max concurrent downloads (default 3)
@@ -890,6 +892,33 @@ Alternatively, you can set custom locations for CDI specifications using the
 When CDI is enabled for a daemon, you can view the configured CDI specification
 directories using the `docker info` command.
 
+#### <a name="log-format"></a> Daemon logging format
+
+The `--log-format` option or "log-format" option in the [daemon configuration file](#daemon-configuration-file)
+lets you set the format for logs produced by the daemon. The logging format should
+only be configured either through the `--log-format` command line option or
+through the "log-format" field in the configuration file; using both
+the command-line option and the "log-format" field in the configuration
+file produces an error. If this option is not set, the default is "text".
+
+The following example configures the daemon through the `--log-format` command
+line option to use `json` formatted logs;
+
+```console
+$ dockerd --log-format=json
+# ...
+{"level":"info","msg":"API listen on /var/run/docker.sock","time":"2024-09-16T11:06:08.558145428Z"}
+```
+
+The following example shows a `daemon.json` configuration file with the
+"log-format" set;
+
+```json
+{
+  "log-format": "json"
+}
+```
+
 ### Miscellaneous options
 
 IP masquerading uses address translation to allow containers without a public
@@ -968,6 +997,36 @@ Example of usage:
     "NVIDIA-GPU=UUID1",
     "NVIDIA-GPU=UUID2"
   ]
+}
+```
+
+### <a name="feature"></a> Enable feature in the daemon (--feature)
+
+The `--feature` option lets you enable or disable a feature in the daemon.
+This option corresponds with the "features" field in the [daemon.json configuration file](#daemon-configuration-file).
+Features should only be configured either through the `--feature` command line
+option or through the "features" field in the configuration file; using both
+the command-line option and the "features" field in the configuration
+file produces an error. The feature option can be specified multiple times
+to configure multiple features. The `--feature` option accepts a name and
+optional boolean value. When omitting the value, the default is `true`.
+
+The following example runs the daemon with the `cdi` and `containerd-snapshotter`
+features enabled. The `cdi` option is provided with a value;
+
+```console
+$ dockerd --feature cdi=true --feature containerd-snapshotter
+```
+
+The following example is the equivalent using the `daemon.json` configuration
+file;
+
+```json
+{
+  "features": {
+    "cdi": true,
+    "containerd-snapshotter": true
+  }
 }
 ```
 
@@ -1065,7 +1124,10 @@ The following is a full example of the allowed configuration options on Linux:
   "exec-opts": [],
   "exec-root": "",
   "experimental": false,
-  "features": {},
+  "features": {
+    "cdi": true,
+    "containerd-snapshotter": true
+  },
   "fixed-cidr": "",
   "fixed-cidr-v6": "",
   "group": "",
@@ -1089,6 +1151,7 @@ The following is a full example of the allowed configuration options on Linux:
   "labels": [],
   "live-restore": true,
   "log-driver": "json-file",
+  "log-format": "text",
   "log-level": "",
   "log-opts": {
     "cache-disabled": "false",
@@ -1183,6 +1246,7 @@ The following is a full example of the allowed configuration options on Windows:
   "insecure-registries": [],
   "labels": [],
   "log-driver": "",
+  "log-format": "text",
   "log-level": "",
   "max-concurrent-downloads": 3,
   "max-concurrent-uploads": 5,

@@ -31,6 +31,7 @@ dockerd - Enable daemon mode
 [**--exec-opt**[=*[]*]]
 [**--exec-root**[=*/var/run/docker*]]
 [**--experimental**[=**false**]]
+[**--feature**[=*NAME*[=**true**|**false**]]
 [**--fixed-cidr**[=*FIXED-CIDR*]]
 [**--fixed-cidr-v6**[=*FIXED-CIDR-V6*]]
 [**-G**|**--group**[=*docker*]]
@@ -52,6 +53,7 @@ dockerd - Enable daemon mode
 [**--label**[=*[]*]]
 [**--live-restore**[=**false**]]
 [**--log-driver**[=*json-file*]]
+[**--log-format**="*text*|*json*"]
 [**--log-opt**[=*map[]*]]
 [**--mtu**[=*0*]]
 [**--max-concurrent-downloads**[=*3*]]
@@ -222,6 +224,14 @@ $ sudo dockerd --add-runtime runc=runc --add-runtime custom=/usr/local/bin/my-ru
 **--experimental**=""
   Enable the daemon experimental features.
 
+**--feature**=*NAME*[=**true**|**false**]
+  Enable or disable a feature in the daemon. This option corresponds
+  with the "features" field in the daemon.json configuration file. Using
+  both the command-line option and the "features" field in the configuration
+  file produces an error. The feature option can be specified multiple times
+  to configure multiple features.
+  Usage example: `--feature containerd-snapshotter` or `--feature containerd-snapshotter=true`.
+
 **--fixed-cidr**=""
   IPv4 subnet for fixed IPs (e.g., 10.20.0.0/16); this subnet must be nested in
   the bridge subnet (which is defined by \-b or \-\-bip).
@@ -323,6 +333,9 @@ unix://[/path/to/socket] to use.
 **--log-driver**="**json-file**|**syslog**|**journald**|**gelf**|**fluentd**|**awslogs**|**splunk**|**etwlogs**|**gcplogs**|**none**"
   Default driver for container logs. Default is **json-file**.
   **Warning**: **docker logs** command works only for **json-file** logging driver.
+
+**--log-format**="*text*|*json*"
+  Set the format for logs produced by the daemon. Default is "text".
 
 **--log-opt**=[]
   Logging driver specific options.
