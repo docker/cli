@@ -180,7 +180,7 @@ func toWslPath(s string) string {
 	if !ok {
 		return ""
 	}
-	return fmt.Sprintf("mnt/%s%s", drive, p)
+	return fmt.Sprintf("mnt/%s%s", strings.ToLower(drive), p)
 }
 
 func parseUNCPath(s string) (drive, p string, ok bool) {
