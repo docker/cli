@@ -358,7 +358,9 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 
 	mp := dockerCli.MeterProvider()
 	if mp, ok := mp.(command.MeterProvider); ok {
-		defer mp.Shutdown(ctx)
+		if err := mp.Shutdown(ctx); err != nil {
+			otel.Handle(err)
+		}
 	} else {
 		fmt.Fprint(dockerCli.Err(), "Warning: Unexpected OTEL error, metrics may not be flushed")
 	}
