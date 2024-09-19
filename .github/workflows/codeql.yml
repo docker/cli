@@ -11,14 +11,14 @@ permissions:
 
 on:
   push:
-    branches: 
-      - 'master' 
-      - '[0-9]+.[0-9]+' 
-    tags: 
-      - 'v*' 
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]+'
+    tags:
+      - 'v*'
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "master" ]
+    branches: ["master"]
   schedule:
     #        ┌───────────── minute (0 - 59)
     #        │ ┌───────────── hour (0 - 23)
@@ -33,26 +33,21 @@ on:
 
 jobs:
   codeql:
-    runs-on: 'ubuntu-latest'
-    timeout-minutes: 360
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     env:
       DISABLE_WARN_OUTSIDE_CONTAINER: '1'
     permissions:
       actions: read
       contents: read
       security-events: write
-    
+
     steps:
       -
         name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      -
-        name: Checkout HEAD on PR
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          git checkout HEAD^2
       # CodeQL 2.16.4's auto-build added support for multi-module repositories,
       # and is trying to be smart by searching for modules in every directory,
       # including vendor directories. If no module is found, it's creating one
