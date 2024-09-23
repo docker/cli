@@ -45,7 +45,7 @@ password. Docker Hub also supports a web-based sign-in flow, which signs you in
 to your Docker account without entering your password. For Docker Hub, the
 `docker login` command uses a device code flow by default, unless the
 `--username` flag is specified. The device code flow is a secure way to sign
-in. See [Authenticate to Docker Hub using device code](#authenticate-to-docker-hub-using-device-code).
+in. See [Authenticate to Docker Hub using device code](#authenticate-to-docker-hub-with-web-based-login).
 
 ### Credential stores
 
