@@ -592,6 +592,17 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.Port{
 				{
+					IP:          "::1",
+					PrivatePort: 9988,
+					PublicPort:  8899,
+					Type:        "tcp",
+				},
+			},
+			expected: "[::1]:8899->9988/tcp",
+		},
+		{
+			ports: []container.Port{
+				{
 					IP:          "4.3.2.1",
 					PrivatePort: 9988,
 					PublicPort:  9988,
@@ -599,6 +610,17 @@ func TestDisplayablePorts(t *testing.T) {
 				},
 			},
 			expected: "4.3.2.1:9988->9988/tcp",
+		},
+		{
+			ports: []container.Port{
+				{
+					IP:          "::1",
+					PrivatePort: 9988,
+					PublicPort:  9988,
+					Type:        "tcp",
+				},
+			},
+			expected: "[::1]:9988->9988/tcp",
 		},
 		{
 			ports: []container.Port{
@@ -631,6 +653,22 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.Port{
 				{
+					IP:          "::1",
+					PublicPort:  9998,
+					PrivatePort: 9998,
+					Type:        "udp",
+				}, {
+					IP:          "::1",
+					PublicPort:  9999,
+					PrivatePort: 9999,
+					Type:        "udp",
+				},
+			},
+			expected: "[::1]:9998-9999->9998-9999/udp",
+		},
+		{
+			ports: []container.Port{
+				{
 					IP:          "1.2.3.4",
 					PublicPort:  8887,
 					PrivatePort: 9998,
@@ -643,6 +681,22 @@ func TestDisplayablePorts(t *testing.T) {
 				},
 			},
 			expected: "1.2.3.4:8887->9998/udp, 1.2.3.4:8888->9999/udp",
+		},
+		{
+			ports: []container.Port{
+				{
+					IP:          "::1",
+					PublicPort:  8887,
+					PrivatePort: 9998,
+					Type:        "udp",
+				}, {
+					IP:          "::1",
+					PublicPort:  8888,
+					PrivatePort: 9999,
+					Type:        "udp",
+				},
+			},
+			expected: "[::1]:8887->9998/udp, [::1]:8888->9999/udp",
 		},
 		{
 			ports: []container.Port{
@@ -688,9 +742,14 @@ func TestDisplayablePorts(t *testing.T) {
 					PrivatePort: 2233,
 					PublicPort:  3322,
 					Type:        "tcp",
+				}, {
+					IP:          "::1",
+					PrivatePort: 2233,
+					PublicPort:  3322,
+					Type:        "tcp",
 				},
 			},
-			expected: "4.3.2.1:3322->2233/tcp, 1.2.3.4:8899->9988/tcp, 1.2.3.4:8899->9988/udp",
+			expected: "4.3.2.1:3322->2233/tcp, [::1]:3322->2233/tcp, 1.2.3.4:8899->9988/tcp, 1.2.3.4:8899->9988/udp",
 		},
 		{
 			ports: []container.Port{
