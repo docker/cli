@@ -47,7 +47,7 @@ Build an image from a Dockerfile
 
 ## Description
 
-> [!NOTE]
+> [!IMPORTANT]
 > This page refers to the **legacy implementation** of `docker build`,
 > using the legacy (pre-BuildKit) build backend.
 > This configuration is only relevant if you're building Windows containers.
