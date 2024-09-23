@@ -377,7 +377,7 @@ func formGroup(key string, start, last uint16) string {
 		group = fmt.Sprintf("%s-%d", group, last)
 	}
 	if ip != "" {
-		group = fmt.Sprintf("%s:%s->%s", ip, group, group)
+		group = fmt.Sprintf("%s->%s", net.JoinHostPort(ip, group), group)
 	}
 	return group + "/" + groupType
 }
