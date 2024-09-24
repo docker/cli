@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
@@ -62,10 +63,12 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		return errors.Errorf("requested load from stdin, but stdin is empty")
 	}
 
-	if !dockerCli.Out().IsTerminal() {
-		opts.quiet = true
+	var loadOpts image.LoadOptions
+	if opts.quiet || !dockerCli.Out().IsTerminal() {
+		loadOpts.Quiet = true
 	}
-	response, err := dockerCli.Client().ImageLoad(ctx, input, opts.quiet)
+
+	response, err := dockerCli.Client().ImageLoad(ctx, input, loadOpts)
 	if err != nil {
 		return err
 	}

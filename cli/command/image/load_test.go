@@ -19,7 +19,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		args          []string
 		isTerminalIn  bool
 		expectedError string
-		imageLoadFunc func(input io.Reader, quiet bool) (image.LoadResponse, error)
+		imageLoadFunc func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -34,7 +34,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		{
 			name:          "pull-error",
 			expectedError: "something went wrong",
-			imageLoadFunc: func(input io.Reader, quiet bool) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				return image.LoadResponse{}, errors.Errorf("something went wrong")
 			},
 		},
@@ -67,17 +67,17 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
-		imageLoadFunc func(input io.Reader, quiet bool) (image.LoadResponse, error)
+		imageLoadFunc func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error)
 	}{
 		{
 			name: "simple",
-			imageLoadFunc: func(input io.Reader, quiet bool) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
 			name: "json",
-			imageLoadFunc: func(input io.Reader, quiet bool) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				json := "{\"ID\": \"1\"}"
 				return image.LoadResponse{
 					Body: io.NopCloser(strings.NewReader(json)),
@@ -88,7 +88,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 		{
 			name: "input-file",
 			args: []string{"--input", "testdata/load-command-success.input.txt"},
-			imageLoadFunc: func(input io.Reader, quiet bool) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},

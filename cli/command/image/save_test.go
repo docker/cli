@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/docker/docker/api/types/image"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +19,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		args          []string
 		isTerminal    bool
 		expectedError string
-		imageSaveFunc func(images []string) (io.ReadCloser, error)
+		imageSaveFunc func(images []string, options image.SaveOptions) (io.ReadCloser, error)
 	}{
 		{
 			name:          "wrong args",
@@ -36,7 +37,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			args:          []string{"arg1"},
 			isTerminal:    false,
 			expectedError: "error saving image",
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, options image.SaveOptions) (io.ReadCloser, error) {
 				return io.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
 			},
 		},
@@ -99,7 +100,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		tc := tc
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
-				imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+				imageSaveFunc: func(images []string, options image.SaveOptions) (io.ReadCloser, error) {
 					return io.NopCloser(strings.NewReader("")), nil
 				},
 			}))

@@ -13,7 +13,6 @@ import (
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/hints"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
@@ -25,7 +24,7 @@ const patSuggest = "You can log in with your password or a Personal Access " +
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
-func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
+func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
 	return func(ctx context.Context) (string, error) {
 		fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
