@@ -35,6 +35,8 @@ type fakeClient struct {
 	containerExportFunc     func(string) (io.ReadCloser, error)
 	containerExecResizeFunc func(id string, options container.ResizeOptions) error
 	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
+	containerRestartFunc    func(ctx context.Context, containerID string, options container.StopOptions) error
+	containerStopFunc       func(ctx context.Context, containerID string, options container.StopOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
 	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
@@ -173,6 +175,20 @@ func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.A
 		return f.containerPruneFunc(ctx, pruneFilters)
 	}
 	return container.PruneReport{}, nil
+}
+
+func (f *fakeClient) ContainerRestart(ctx context.Context, containerID string, options container.StopOptions) error {
+	if f.containerRestartFunc != nil {
+		return f.containerRestartFunc(ctx, containerID, options)
+	}
+	return nil
+}
+
+func (f *fakeClient) ContainerStop(ctx context.Context, containerID string, options container.StopOptions) error {
+	if f.containerStopFunc != nil {
+		return f.containerStopFunc(ctx, containerID, options)
+	}
+	return nil
 }
 
 func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {

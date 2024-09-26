@@ -55,6 +55,8 @@ func runRestart(ctx context.Context, dockerCli command.Cli, opts *restartOptions
 	if opts.timeoutChanged {
 		timeout = &opts.timeout
 	}
+
+	// TODO(thaJeztah): consider using parallelOperation for restart, similar to "stop" and "remove"
 	for _, name := range opts.containers {
 		err := dockerCli.Client().ContainerRestart(ctx, name, container.StopOptions{
 			Signal:  opts.signal,
