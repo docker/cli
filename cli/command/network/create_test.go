@@ -124,6 +124,15 @@ func TestNetworkCreateErrors(t *testing.T) {
 			},
 			expectedError: "no matching subnet for aux-address",
 		},
+		{
+			args: []string{"toto"},
+			flags: map[string]string{
+				"ip-range": "192.168.83.1-192.168.83.254",
+				"gateway":  "192.168.80.1",
+				"subnet":   "192.168.80.0/20",
+			},
+			expectedError: "invalid CIDR address: 192.168.83.1-192.168.83.254",
+		},
 	}
 
 	for _, tc := range testCases {
