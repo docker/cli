@@ -163,6 +163,9 @@ func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
 	for _, r := range options.ipRanges {
 		match := false
 		for _, s := range options.subnets {
+			if _, _, err := net.ParseCIDR(r); err != nil {
+				return nil, err
+			}
 			ok, err := subnetMatches(s, r)
 			if err != nil {
 				return nil, err
