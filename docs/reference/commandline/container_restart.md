@@ -9,10 +9,10 @@ Restart one or more containers
 
 ### Options
 
-| Name                                   | Type     | Default | Description                                  |
-|:---------------------------------------|:---------|:--------|:---------------------------------------------|
-| [`-s`](#signal), [`--signal`](#signal) | `string` |         | Signal to send to the container              |
-| [`-t`](#time), [`--time`](#time)       | `int`    | `0`     | Seconds to wait before killing the container |
+| Name                                      | Type     | Default | Description                                  |
+|:------------------------------------------|:---------|:--------|:---------------------------------------------|
+| [`-s`](#signal), [`--signal`](#signal)    | `string` |         | Signal to send to the container              |
+| [`-t`](#timeout), [`--timeout`](#timeout) | `int`    | `0`     | Seconds to wait before killing the container |
 
 
 <!---MARKER_GEN_END-->
@@ -39,14 +39,14 @@ Dockerfile instruction when building the image, or configured using the
 option when creating the container. If no signal is configured for the
 container, `SIGTERM` is used as default.
 
-### <a name="time"></a> Stop container with timeout (-t, --timeout)
+### <a name="timeout"></a> Stop container with timeout (-t, --timeout)
 
-The `--time` flag sets the number of seconds to wait for the container
+The `--timeout` flag sets the number of seconds to wait for the container
 to stop after sending the pre-defined (see [`--signal`]{#signal)) system call signal.
 If the container does not exit after the timeout elapses, it's forcibly killed
 with a `SIGKILL` signal.
 
-If you set `--time` to `-1`, no timeout is applied, and the daemon
+If you set `--timeout` to `-1`, no timeout is applied, and the daemon
 waits indefinitely for the container to exit.
 
 The default timeout can be specified using the [`--stop-timeout`](https://docs.docker.com/reference/cli/docker/container/run/#stop-timeout)
