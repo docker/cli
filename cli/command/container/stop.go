@@ -30,6 +30,9 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Stop one or more running containers",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := cli.CheckContainerNames(args...); err != nil {
+				return err
+			}
 			opts.containers = args
 			opts.timeoutChanged = cmd.Flags().Changed("time")
 			return runStop(cmd.Context(), dockerCli, &opts)
