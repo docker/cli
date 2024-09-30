@@ -41,10 +41,21 @@ func TestStop(t *testing.T) {
 			stopped:      []string{"container-1"},
 		},
 		{
+			name:         "with --timeout",
+			args:         []string{"--timeout", "2", "container-1"},
+			expectedOpts: container.StopOptions{Timeout: func(to int) *int { return &to }(2)},
+			stopped:      []string{"container-1"},
+		},
+		{
 			name:         "with --time",
 			args:         []string{"--time", "2", "container-1"},
 			expectedOpts: container.StopOptions{Timeout: func(to int) *int { return &to }(2)},
 			stopped:      []string{"container-1"},
+		},
+		{
+			name:        "conflicting options",
+			args:        []string{"--timeout", "2", "--time", "2", "container-1"},
+			expectedErr: "conflicting options: cannot specify both --timeout and --time",
 		},
 	} {
 		tc := tc
