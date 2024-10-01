@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"unicode"
@@ -12,15 +13,22 @@ import (
 
 const whiteSpaces = " \t"
 
-func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]string, error) {
+func parseKeyValueFile(filename string, lookupFn func(string) (string, bool)) ([]string, error) {
 	fh, err := os.Open(filename)
 	if err != nil {
 		return []string{}, err
 	}
 	defer fh.Close()
+	return ParseKeyValueFile(fh, filename, lookupFn)
+}
 
+// ParseKeyValueFile parse a file containing key,value pairs separated by equal sign
+// Lines starting with `#` are ignored
+// If a key is declared without a value (no equal sign), lookupFn is requested to provide value for the given key
+// value is returned as-is, without any kind of parsing but removal of leading whitespace
+func ParseKeyValueFile(r io.Reader, filename string, lookupFn func(string) (string, bool)) ([]string, error) {
 	lines := []string{}
-	scanner := bufio.NewScanner(fh)
+	scanner := bufio.NewScanner(r)
 	currentLine := 0
 	utf8bom := []byte{0xEF, 0xBB, 0xBF}
 	for scanner.Scan() {
@@ -53,8 +61,8 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 				lines = append(lines, variable+"="+value)
 			} else {
 				var present bool
-				if emptyFn != nil {
-					value, present = emptyFn(line)
+				if lookupFn != nil {
+					value, present = lookupFn(line)
 				}
 				if present {
 					// if only a pass-through variable is given, clean it up.
