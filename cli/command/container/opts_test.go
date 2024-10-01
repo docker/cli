@@ -817,11 +817,9 @@ func TestParseRestartPolicy(t *testing.T) {
 }
 
 func TestParseRestartPolicyAutoRemove(t *testing.T) {
-	expected := "Conflicting options: --restart and --rm"
 	_, _, _, err := parseRun([]string{"--rm", "--restart=always", "img", "cmd"}) //nolint:dogsled
-	if err == nil || err.Error() != expected {
-		t.Fatalf("Expected error %v, but got none", expected)
-	}
+	const expected = "conflicting options: cannot specify both --restart and --rm"
+	assert.Check(t, is.Error(err, expected))
 }
 
 func TestParseHealth(t *testing.T) {
