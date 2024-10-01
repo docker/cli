@@ -131,7 +131,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		}
 	} else {
 		if copts.attach.Len() != 0 {
-			return errors.New("Conflicting options: -a and -d")
+			return errors.New("conflicting options: cannot specify both --attach and --detach")
 		}
 
 		config.AttachStdin = false

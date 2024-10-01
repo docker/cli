@@ -704,7 +704,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	}
 
 	if copts.autoRemove && !hostConfig.RestartPolicy.IsNone() {
-		return nil, errors.Errorf("Conflicting options: --restart and --rm")
+		return nil, errors.Errorf("conflicting options: cannot specify both --restart and --rm")
 	}
 
 	// only set this value if the user provided the flag, else it should default to nil

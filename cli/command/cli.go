@@ -272,7 +272,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 		debug.Enable()
 	}
 	if opts.Context != "" && len(opts.Hosts) > 0 {
-		return errors.New("conflicting options: either specify --host or --context, not both")
+		return errors.New("conflicting options: cannot specify both --host and --context")
 	}
 
 	cli.options = opts
@@ -299,7 +299,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 // NewAPIClientFromFlags creates a new APIClient from command line flags
 func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.ConfigFile) (client.APIClient, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
-		return nil, errors.New("conflicting options: either specify --host or --context, not both")
+		return nil, errors.New("conflicting options: cannot specify both --host and --context")
 	}
 
 	storeConfig := DefaultContextStoreConfig()

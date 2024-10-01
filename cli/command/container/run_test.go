@@ -23,6 +23,35 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
+func TestRunValidateFlags(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		args        []string
+		expectedErr string
+	}{
+		{
+			name:        "with conflicting --attach, --detach",
+			args:        []string{"--attach", "stdin", "--detach", "myimage"},
+			expectedErr: "conflicting options: cannot specify both --attach and --detach",
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := NewRunCommand(test.NewFakeCli(&fakeClient{}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+
+			err := cmd.Execute()
+			if tc.expectedErr != "" {
+				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+			} else {
+				assert.Check(t, is.Nil(err))
+			}
+		})
+	}
+}
+
 func TestRunLabel(t *testing.T) {
 	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {

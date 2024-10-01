@@ -52,7 +52,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
 				if options.name != "" {
-					return errors.Errorf("conflicting options: either specify --name or provide positional arg, not both")
+					return errors.Errorf("conflicting options: cannot specify a volume-name through both --name and as a positional arg")
 				}
 				options.name = args[0]
 			}

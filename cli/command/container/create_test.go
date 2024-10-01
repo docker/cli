@@ -195,6 +195,35 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 	}
 }
 
+func TestCreateContainerValidateFlags(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		args        []string
+		expectedErr string
+	}{
+		{
+			name:        "with invalid --attach value",
+			args:        []string{"--attach", "STDINFO", "myimage"},
+			expectedErr: `invalid argument "STDINFO" for "-a, --attach" flag: valid streams are STDIN, STDOUT and STDERR`,
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := NewCreateCommand(test.NewFakeCli(&fakeClient{}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+
+			err := cmd.Execute()
+			if tc.expectedErr != "" {
+				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+			} else {
+				assert.Check(t, is.Nil(err))
+			}
+		})
+	}
+}
+
 func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 	testCases := []struct {
 		name          string
