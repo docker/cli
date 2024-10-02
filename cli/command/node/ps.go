@@ -74,7 +74,7 @@ func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 			continue
 		}
 
-		filter := options.filter.Value()
+		filter := options.filter.Value().Clone()
 		filter.Add("node", node.ID)
 
 		nodeTasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
