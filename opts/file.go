@@ -12,15 +12,6 @@ import (
 
 const whiteSpaces = " \t"
 
-// ErrBadKey typed error for bad environment variable
-type ErrBadKey struct {
-	msg string
-}
-
-func (e ErrBadKey) Error() string {
-	return "poorly formatted environment: " + e.msg
-}
-
 func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]string, error) {
 	fh, err := os.Open(filename)
 	if err != nil {
@@ -51,10 +42,10 @@ func parseKeyValueFile(filename string, emptyFn func(string) (string, bool)) ([]
 			// trim the front of a variable, but nothing else
 			variable = strings.TrimLeft(variable, whiteSpaces)
 			if strings.ContainsAny(variable, whiteSpaces) {
-				return []string{}, ErrBadKey{fmt.Sprintf("variable '%s' contains whitespaces", variable)}
+				return []string{}, fmt.Errorf("variable '%s' contains whitespaces", variable)
 			}
 			if len(variable) == 0 {
-				return []string{}, ErrBadKey{fmt.Sprintf("no variable name on line '%s'", line)}
+				return []string{}, fmt.Errorf("no variable name on line '%s'", line)
 			}
 
 			if hasValue {
