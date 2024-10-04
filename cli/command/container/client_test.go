@@ -40,6 +40,8 @@ type fakeClient struct {
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
 	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
+	containerDiffFunc       func(ctx context.Context, containerID string) ([]container.FilesystemChange, error)
+	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
 	Version                 string
 }
 
@@ -196,4 +198,20 @@ func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, op
 		return f.containerAttachFunc(ctx, containerID, options)
 	}
 	return types.HijackedResponse{}, nil
+}
+
+func (f *fakeClient) ContainerDiff(ctx context.Context, containerID string) ([]container.FilesystemChange, error) {
+	if f.containerDiffFunc != nil {
+		return f.containerDiffFunc(ctx, containerID)
+	}
+
+	return []container.FilesystemChange{}, nil
+}
+
+func (f *fakeClient) ContainerRename(ctx context.Context, oldName, newName string) error {
+	if f.containerRenameFunc != nil {
+		return f.containerRenameFunc(ctx, oldName, newName)
+	}
+
+	return nil
 }
