@@ -3,27 +3,20 @@ package opts
 import (
 	"bufio"
 	"os"
-	"reflect"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func tmpFileWithContent(t *testing.T, content string) string {
 	t.Helper()
-	tmpFile, err := os.CreateTemp("", "envfile-test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer tmpFile.Close()
-
-	_, err = tmpFile.WriteString(content)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		_ = os.Remove(tmpFile.Name())
-	})
-	return tmpFile.Name()
+	fileName := filepath.Join(t.TempDir(), "envfile")
+	err := os.WriteFile(fileName, []byte(content), 0o644)
+	assert.NilError(t, err)
+	return fileName
 }
 
 // Test ParseEnvFile for a file with a few well formatted lines
@@ -45,9 +38,7 @@ and_underscore=working too
 	tmpFile := tmpFileWithContent(t, content)
 
 	lines, err := ParseEnvFile(tmpFile)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	expectedLines := []string{
 		"foo=bar",
@@ -57,9 +48,7 @@ and_underscore=working too
 		"and_underscore=working too",
 	}
 
-	if !reflect.DeepEqual(lines, expectedLines) {
-		t.Fatal("lines not equal to expectedLines")
-	}
+	assert.Check(t, is.DeepEqual(lines, expectedLines))
 }
 
 // Test ParseEnvFile for an empty file
@@ -67,24 +56,14 @@ func TestParseEnvFileEmptyFile(t *testing.T) {
 	tmpFile := tmpFileWithContent(t, "")
 
 	lines, err := ParseEnvFile(tmpFile)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(lines) != 0 {
-		t.Fatal("lines not empty; expected empty")
-	}
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(lines, 0))
 }
 
 // Test ParseEnvFile for a non existent file
 func TestParseEnvFileNonExistentFile(t *testing.T) {
-	_, err := ParseEnvFile("foo_bar_baz")
-	if err == nil {
-		t.Fatal("ParseEnvFile succeeded; expected failure")
-	}
-	if _, ok := err.(*os.PathError); !ok {
-		t.Fatalf("Expected a PathError, got [%v]", err)
-	}
+	_, err := ParseEnvFile("no_such_file")
+	assert.Check(t, is.ErrorType(err, os.IsNotExist))
 }
 
 // Test ParseEnvFile for a badly formatted file
@@ -95,16 +74,8 @@ func TestParseEnvFileBadlyFormattedFile(t *testing.T) {
 	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
-	if err == nil {
-		t.Fatalf("Expected an ErrBadKey, got nothing")
-	}
-	if _, ok := err.(ErrBadKey); !ok {
-		t.Fatalf("Expected an ErrBadKey, got [%v]", err)
-	}
-	expectedMessage := "poorly formatted environment: variable 'f   ' contains whitespaces"
-	if err.Error() != expectedMessage {
-		t.Fatalf("Expected [%v], got [%v]", expectedMessage, err.Error())
-	}
+	const expectedMessage = "variable 'f   ' contains whitespaces"
+	assert.Check(t, is.ErrorContains(err, expectedMessage))
 }
 
 // Test ParseEnvFile for a file with a line exceeding bufio.MaxScanTokenSize
@@ -113,9 +84,8 @@ func TestParseEnvFileLineTooLongFile(t *testing.T) {
 	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
-	if err == nil {
-		t.Fatal("ParseEnvFile succeeded; expected failure")
-	}
+	const expectedMessage = "bufio.Scanner: token too long"
+	assert.Check(t, is.ErrorContains(err, expectedMessage))
 }
 
 // ParseEnvFile with a random file, pass through
@@ -125,38 +95,24 @@ another invalid line`
 	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
-	if err == nil {
-		t.Fatalf("Expected an ErrBadKey, got nothing")
-	}
-	if _, ok := err.(ErrBadKey); !ok {
-		t.Fatalf("Expected an ErrBadKey, got [%v]", err)
-	}
-	expectedMessage := "poorly formatted environment: variable 'first line' contains whitespaces"
-	if err.Error() != expectedMessage {
-		t.Fatalf("Expected [%v], got [%v]", expectedMessage, err.Error())
-	}
+	const expectedMessage = "variable 'first line' contains whitespaces"
+	assert.Check(t, is.ErrorContains(err, expectedMessage))
 }
 
 // ParseEnvFile with environment variable import definitions
 func TestParseEnvVariableDefinitionsFile(t *testing.T) {
 	content := `# comment=
 UNDEFINED_VAR
-HOME
+DEFINED_VAR
 `
 	tmpFile := tmpFileWithContent(t, content)
 
+	t.Setenv("DEFINED_VAR", "defined-value")
 	variables, err := ParseEnvFile(tmpFile)
-	if nil != err {
-		t.Fatal("There must not be any error")
-	}
+	assert.NilError(t, err)
 
-	if "HOME="+os.Getenv("HOME") != variables[0] {
-		t.Fatal("the HOME variable is not properly imported as the first variable (but it is the only one to import)")
-	}
-
-	if len(variables) != 1 {
-		t.Fatal("exactly one variable is imported (as the other one is not set at all)")
-	}
+	expectedLines := []string{"DEFINED_VAR=defined-value"}
+	assert.Check(t, is.DeepEqual(variables, expectedLines))
 }
 
 // ParseEnvFile with empty variable name
@@ -167,7 +123,6 @@ func TestParseEnvVariableWithNoNameFile(t *testing.T) {
 	tmpFile := tmpFileWithContent(t, content)
 
 	_, err := ParseEnvFile(tmpFile)
-	if nil == err {
-		t.Fatal("if a variable has no name parsing an environment file must fail")
-	}
+	const expectedMessage = "no variable name on line '=blank variable names are an error case'"
+	assert.Check(t, is.ErrorContains(err, expectedMessage))
 }
