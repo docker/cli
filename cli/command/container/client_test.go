@@ -42,6 +42,8 @@ type fakeClient struct {
 	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
 	containerDiffFunc       func(ctx context.Context, containerID string) ([]container.FilesystemChange, error)
 	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
+	containerCommitFunc     func(ctx context.Context, container string, options container.CommitOptions) (types.IDResponse, error)
+	containerPauseFunc      func(ctx context.Context, container string) error
 	Version                 string
 }
 
@@ -211,6 +213,21 @@ func (f *fakeClient) ContainerDiff(ctx context.Context, containerID string) ([]c
 func (f *fakeClient) ContainerRename(ctx context.Context, oldName, newName string) error {
 	if f.containerRenameFunc != nil {
 		return f.containerRenameFunc(ctx, oldName, newName)
+	}
+
+	return nil
+}
+
+func (f *fakeClient) ContainerCommit(ctx context.Context, containerID string, options container.CommitOptions) (types.IDResponse, error) {
+	if f.containerCommitFunc != nil {
+		return f.containerCommitFunc(ctx, containerID, options)
+	}
+	return types.IDResponse{}, nil
+}
+
+func (f *fakeClient) ContainerPause(ctx context.Context, containerID string) error {
+	if f.containerPauseFunc != nil {
+		return f.containerPauseFunc(ctx, containerID)
 	}
 
 	return nil
