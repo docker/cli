@@ -11,7 +11,7 @@ then continue streaming new output from the container's stdout and stderr.
 logging drivers.
 
 The `--since` and `--until` options can be Unix timestamps, date formatted timestamps, 
-or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the client machine's
+or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed relative to the client machine's
 time. Supported formats for date formatted time stamps include RFC3339Nano,
 RFC3339, `2006-01-02T15:04:05`, `2006-01-02T15:04:05.999999999`,
 `2006-01-02T07:00`, and `2006-01-02`. The local timezone on the client will be
