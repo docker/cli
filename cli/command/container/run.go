@@ -43,7 +43,33 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			unique := map[string]struct{}{}
+			localImages, shellComp := completion.ImageNames(dockerCli)(cmd, args, toComplete)
+
+			var all []string
+			if shellComp != cobra.ShellCompDirectiveError {
+				all = make([]string, 0, len(localImages))
+				for _, img := range localImages {
+					unique[img] = struct{}{}
+					all = append(all, fmt.Sprintf("%s\tlocal", img))
+				}
+			}
+
+			remoteImages, shellCompRemote := completion.Images(cmd, args, toComplete)
+			if shellCompRemote != cobra.ShellCompDirectiveError {
+				if len(all) == 0 {
+					all = make([]string, 0, len(remoteImages))
+				}
+				for _, img := range remoteImages {
+					if _, ok := unique[img]; !ok {
+						all = append(all, fmt.Sprintf("%s\tremote", img))
+					}
+				}
+			}
+
+			return all, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp | cobra.ShellCompDirectiveDefault
+		},
 		Annotations: map[string]string{
 			"category-top": "1",
 			"aliases":      "docker container run, docker run",
