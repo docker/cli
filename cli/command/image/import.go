@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	dockeropts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -47,6 +48,7 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")
 	flags.StringVarP(&options.message, "message", "m", "", "Set commit message for imported image")
 	command.AddPlatformFlag(flags, &options.platform)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
 	return cmd
 }
