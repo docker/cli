@@ -132,7 +132,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 
 	warningColor := aec.LightYellowF
 	headerColor := aec.NewBuilder(aec.DefaultF, aec.Bold).ANSI
-	topNameColor := aec.NewBuilder(aec.BlueF, aec.Underline, aec.Bold).ANSI
+	topNameColor := aec.NewBuilder(aec.BlueF, aec.Bold).ANSI
 	normalColor := aec.NewBuilder(aec.DefaultF).ANSI
 	greenColor := aec.NewBuilder(aec.GreenF).ANSI
 	untaggedColor := aec.NewBuilder(aec.Faint).ANSI
