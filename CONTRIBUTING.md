@@ -66,7 +66,7 @@ anybody starts working on it.
 We are always thrilled to receive pull requests. We do our best to process them
 quickly. If your pull request is not accepted on the first try,
 don't get discouraged! Our contributor's guide explains [the review process we
-use for simple changes](https://docs.docker.com/opensource/workflow/make-a-contribution/).
+use for simple changes](https://github.com/docker/docker/blob/master/project/REVIEWING.md).
 
 ### Talking to other Docker users and contributors
 
@@ -124,8 +124,8 @@ submitting a pull request.
 Update the documentation when creating or modifying features. Test your
 documentation changes for clarity, concision, and correctness, as well as a
 clean documentation build. See our contributors guide for [our style
-guide](https://docs.docker.com/opensource/doc-style) and instructions on [building
-the documentation](https://docs.docker.com/opensource/project/test-and-docs/#build-and-test-the-documentation).
+guide](https://docs.docker.com/contribute/style/grammar/) and instructions on [building
+the documentation](https://docs.docker.com/contribute/).
 
 Write clean code. Universally formatted code promotes ease of writing, reading,
 and maintenance. Always run `gofmt -s -w file.go` on each changed file before
