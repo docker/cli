@@ -70,13 +70,13 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		args          []string
 		isTerminal    bool
-		imageSaveFunc func(images []string) (io.ReadCloser, error)
+		imageSaveFunc func(images []string, options image.SaveOptions) (io.ReadCloser, error)
 		deferredFunc  func()
 	}{
 		{
 			args:       []string{"-o", "save_tmp_file", "arg1"},
 			isTerminal: true,
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, _ image.SaveOptions) (io.ReadCloser, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				return io.NopCloser(strings.NewReader("")), nil
@@ -88,7 +88,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		{
 			args:       []string{"arg1", "arg2"},
 			isTerminal: false,
-			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, _ image.SaveOptions) (io.ReadCloser, error) {
 				assert.Assert(t, is.Len(images, 2))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, is.Equal("arg2", images[1]))
@@ -100,9 +100,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		tc := tc
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
-				imageSaveFunc: func(images []string, options image.SaveOptions) (io.ReadCloser, error) {
-					return io.NopCloser(strings.NewReader("")), nil
-				},
+				imageSaveFunc: tc.imageSaveFunc,
 			}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
