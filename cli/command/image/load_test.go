@@ -28,11 +28,13 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		},
 		{
 			name:          "input-to-terminal",
+			args:          []string{},
 			isTerminalIn:  true,
 			expectedError: "requested load from stdin, but stdin is empty",
 		},
 		{
 			name:          "pull-error",
+			args:          []string{},
 			expectedError: "something went wrong",
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				return image.LoadResponse{}, errors.Errorf("something went wrong")
@@ -71,12 +73,14 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 	}{
 		{
 			name: "simple",
+			args: []string{},
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
 			name: "json",
+			args: []string{},
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				json := "{\"ID\": \"1\"}"
 				return image.LoadResponse{
