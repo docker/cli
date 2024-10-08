@@ -68,6 +68,8 @@ Image index won't be pushed, meaning that other manifests, including attestation
 'os[/arch[/variant]]': Explicit platform (eg. linux/amd64)`)
 	flags.SetAnnotation("platform", "version", []string{"1.46"})
 
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+
 	return cmd
 }
 
