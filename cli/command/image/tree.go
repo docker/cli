@@ -46,7 +46,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		details := imageDetails{
 			ID:        img.ID,
 			DiskUsage: units.HumanSizeWithPrecision(float64(img.Size), 3),
-			Used:      img.Containers > 0,
+			InUse:     img.Containers > 0,
 		}
 
 		var totalContent int64
@@ -63,14 +63,14 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				Details: imageDetails{
 					ID:          im.ID,
 					DiskUsage:   units.HumanSizeWithPrecision(float64(im.Size.Total), 3),
-					Used:        len(im.ImageData.Containers) > 0,
+					InUse:       len(im.ImageData.Containers) > 0,
 					ContentSize: units.HumanSizeWithPrecision(float64(im.Size.Content), 3),
 				},
 			}
 
-			if sub.Details.Used {
+			if sub.Details.InUse {
 				// Mark top-level parent image as used if any of its subimages are used.
-				details.Used = true
+				details.InUse = true
 			}
 
 			totalContent += im.Size.Content
@@ -100,7 +100,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 type imageDetails struct {
 	ID          string
 	DiskUsage   string
-	Used        bool
+	InUse       bool
 	ContentSize string
 }
 
@@ -179,12 +179,12 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 			},
 		},
 		{
-			Title: "Used",
+			Title: "In Use",
 			Align: alignCenter,
-			Width: 4,
+			Width: 6,
 			Color: &greenColor,
 			DetailsValue: func(d *imageDetails) string {
-				if d.Used {
+				if d.InUse {
 					return "✔"
 				}
 				return " "
