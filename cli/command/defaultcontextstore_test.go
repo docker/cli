@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/tlsconfig"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -158,7 +157,7 @@ func TestErrCreateDefault(t *testing.T) {
 		Metadata: testContext{Bar: "baz"},
 		Name:     "default",
 	})
-	assert.Check(t, is.ErrorType(err, errdefs.IsInvalidParameter))
+	assert.Check(t, errdefs.IsInvalidParameter(err))
 	assert.Error(t, err, "default context cannot be created nor updated")
 }
 
@@ -166,7 +165,7 @@ func TestErrRemoveDefault(t *testing.T) {
 	meta := testDefaultMetadata()
 	s := testStore(t, meta, store.ContextTLSData{})
 	err := s.Remove("default")
-	assert.Check(t, is.ErrorType(err, errdefs.IsInvalidParameter))
+	assert.Check(t, errdefs.IsInvalidParameter(err))
 	assert.Error(t, err, "default context cannot be removed")
 }
 
@@ -174,5 +173,5 @@ func TestErrTLSDataError(t *testing.T) {
 	meta := testDefaultMetadata()
 	s := testStore(t, meta, store.ContextTLSData{})
 	_, err := s.GetTLSData("default", "noop", "noop")
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, errdefs.IsNotFound(err))
 }
