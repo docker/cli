@@ -223,6 +223,7 @@ type Image struct {
 	Creator     int       `json:"creator"`
 	Repository  int       `json:"repository"`
 }
+
 type ImageTags struct {
 	Count   int     `json:"count"`
 	Next    string  `json:"next"`
@@ -230,7 +231,7 @@ type ImageTags struct {
 	Results []Image `json:"results"`
 }
 
-func Images(cmd *cobra.Command, arg []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func RemoteImages(cmd *cobra.Command, arg []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	ctx := cmd.Context()
 	c := &http.Client{
 		Timeout: 2 * time.Second,
@@ -259,7 +260,6 @@ func Images(cmd *cobra.Command, arg []string, toComplete string) ([]string, cobr
 			logrus.Errorf("Error sending hub image tags request: %v", err)
 			return nil, cobra.ShellCompDirectiveError
 		}
-
 		defer resp.Body.Close()
 
 		var tags *ImageTags
@@ -278,7 +278,7 @@ func Images(cmd *cobra.Command, arg []string, toComplete string) ([]string, cobr
 	u, err := url.Parse("https://hub.docker.com/api/search/v3/catalog/search")
 	if err != nil {
 		logrus.Errorf("Error parsing hub image search URL: %v", err)
-		return nil, cobra.ShellCompDirectiveNoFileComp
+		return nil, cobra.ShellCompDirectiveError
 	}
 	q := u.Query()
 	q.Set("query", toComplete)
@@ -290,20 +290,20 @@ func Images(cmd *cobra.Command, arg []string, toComplete string) ([]string, cobr
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		logrus.Errorf("Error creating hub image search request: %v", err)
-		return nil, cobra.ShellCompDirectiveNoFileComp
+		return nil, cobra.ShellCompDirectiveError
 	}
 
 	resp, err := c.Do(req)
 	if err != nil {
 		logrus.Errorf("Error sending hub image search request: %v", err)
-		return nil, cobra.ShellCompDirectiveNoFileComp
+		return nil, cobra.ShellCompDirectiveError
 	}
 	defer resp.Body.Close()
 
 	var images *ImageSearch
 	if err := json.NewDecoder(resp.Body).Decode(&images); err != nil {
 		logrus.Errorf("Error decoding hub image search response: %v", err)
-		return nil, cobra.ShellCompDirectiveNoFileComp
+		return nil, cobra.ShellCompDirectiveError
 	}
 
 	names := make([]string, 0, len(images.Results))

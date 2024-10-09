@@ -43,7 +43,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				return nil, cobra.ShellCompDirectiveNoFileComp
 			}
-			return completion.Images(cmd, args, toComplete)
+			return completion.RemoteImages(cmd, args, toComplete)
 		},
 	}
 

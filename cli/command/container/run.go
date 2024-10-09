@@ -37,13 +37,18 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Create and run a new container from an image",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			copts.Image = args[0]
+			replacer := strings.NewReplacer("(local)", "", "(remote)", "")
+			copts.Image = replacer.Replace(args[0])
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
 			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			if len(args) > 0 {
+				return nil, cobra.ShellCompDirectiveNoFileComp
+			}
+
 			unique := map[string]struct{}{}
 			localImages, shellComp := completion.ImageNames(dockerCli)(cmd, args, toComplete)
 
@@ -52,23 +57,23 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 				all = make([]string, 0, len(localImages))
 				for _, img := range localImages {
 					unique[img] = struct{}{}
-					all = append(all, fmt.Sprintf("%s\tlocal", img))
+					all = append(all, img+"\tlocal")
 				}
 			}
 
-			remoteImages, shellCompRemote := completion.Images(cmd, args, toComplete)
+			remoteImages, shellCompRemote := completion.RemoteImages(cmd, args, toComplete)
 			if shellCompRemote != cobra.ShellCompDirectiveError {
 				if len(all) == 0 {
 					all = make([]string, 0, len(remoteImages))
 				}
 				for _, img := range remoteImages {
 					if _, ok := unique[img]; !ok {
-						all = append(all, fmt.Sprintf("%s\tremote", img))
+						all = append(all, img+"\tremote")
 					}
 				}
 			}
 
-			return all, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp | cobra.ShellCompDirectiveDefault
+			return all, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp
 		},
 		Annotations: map[string]string{
 			"category-top": "1",
