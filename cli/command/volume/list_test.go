@@ -1,6 +1,7 @@
 package volume
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -27,7 +28,7 @@ func TestVolumeListErrors(t *testing.T) {
 		},
 		{
 			volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
-				return volume.ListResponse{}, errors.Errorf("error listing volumes")
+				return volume.ListResponse{}, fmt.Errorf("error listing volumes")
 			},
 			expectedError: "error listing volumes",
 		},

@@ -1,13 +1,14 @@
 package loader
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/mount"
-	"github.com/pkg/errors"
 )
 
 const endOfSpec = rune(0)
@@ -33,7 +34,7 @@ func ParseVolume(spec string) (types.ServiceVolumeConfig, error) {
 		case char == ':' || char == endOfSpec:
 			if err := populateFieldFromBuffer(char, buffer, &volume); err != nil {
 				populateType(&volume)
-				return volume, errors.Wrapf(err, "invalid spec: %s", spec)
+				return volume, fmt.Errorf("invalid spec: %s: %w", spec, err)
 			}
 			buffer = []rune{}
 		default:

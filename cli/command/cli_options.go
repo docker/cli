@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
 )
 
 // CLIOption is a functional argument to apply options to a [DockerCli]. These
@@ -177,7 +177,7 @@ func withCustomHeadersFromEnv() client.Opt {
 		csvReader := csv.NewReader(strings.NewReader(value))
 		fields, err := csvReader.Read()
 		if err != nil {
-			return errdefs.InvalidParameter(errors.Errorf("failed to parse custom headers from %s environment variable: value must be formatted as comma-separated key=value pairs", envOverrideHTTPHeaders))
+			return errdefs.InvalidParameter(fmt.Errorf("failed to parse custom headers from %s environment variable: value must be formatted as comma-separated key=value pairs", envOverrideHTTPHeaders))
 		}
 		if len(fields) == 0 {
 			return nil
@@ -191,7 +191,7 @@ func withCustomHeadersFromEnv() client.Opt {
 			k = strings.TrimSpace(k)
 
 			if k == "" {
-				return errdefs.InvalidParameter(errors.Errorf(`failed to set custom headers from %s environment variable: value contains a key=value pair with an empty key: '%s'`, envOverrideHTTPHeaders, kv))
+				return errdefs.InvalidParameter(fmt.Errorf(`failed to set custom headers from %s environment variable: value contains a key=value pair with an empty key: '%s'`, envOverrideHTTPHeaders, kv))
 			}
 
 			// We don't currently allow empty key=value pairs, and produce an error.
@@ -199,7 +199,7 @@ func withCustomHeadersFromEnv() client.Opt {
 			// from an environment variable with the same name). In the meantime,
 			// produce an error to prevent users from depending on this.
 			if !hasValue {
-				return errdefs.InvalidParameter(errors.Errorf(`failed to set custom headers from %s environment variable: missing "=" in key=value pair: '%s'`, envOverrideHTTPHeaders, kv))
+				return errdefs.InvalidParameter(fmt.Errorf(`failed to set custom headers from %s environment variable: missing "=" in key=value pair: '%s'`, envOverrideHTTPHeaders, kv))
 			}
 
 			env[http.CanonicalHeaderKey(k)] = v

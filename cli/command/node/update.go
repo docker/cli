@@ -2,13 +2,14 @@ package node
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -100,7 +101,7 @@ func mergeNodeUpdate(flags *pflag.FlagSet) func(*swarm.Node) error {
 			for _, k := range keys {
 				// if a key doesn't exist, fail the command explicitly
 				if _, exists := spec.Annotations.Labels[k]; !exists {
-					return errors.Errorf("key %s doesn't exist in node's labels", k)
+					return fmt.Errorf("key %s doesn't exist in node's labels", k)
 				}
 				delete(spec.Annotations.Labels, k)
 			}

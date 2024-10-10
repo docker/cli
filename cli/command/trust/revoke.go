@@ -2,6 +2,7 @@ package trust
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -9,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -63,7 +64,7 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 	}
 	defer clearChangeList(notaryRepo)
 	if err := revokeSignature(notaryRepo, tag); err != nil {
-		return errors.Wrapf(err, "could not remove signature for %s", remote)
+		return fmt.Errorf("could not remove signature for %s: %w", remote, err)
 	}
 	_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully deleted signature for %s\n", remote)
 	return nil

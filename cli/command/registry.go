@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
 )
 
 const patSuggest = "You can log in with your password or a Personal Access " +
@@ -151,7 +150,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 	}
 	if argUser == "" {
-		return authConfig, errors.Errorf("Error: Non-null Username Required")
+		return authConfig, fmt.Errorf("Error: Non-null Username Required")
 	}
 	if argPassword == "" {
 		restoreInput, err := DisableInputEcho(cli.In())
@@ -166,7 +165,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 		fmt.Fprint(cli.Out(), "\n")
 		if argPassword == "" {
-			return authConfig, errors.Errorf("Error: Password Required")
+			return authConfig, fmt.Errorf("Error: Password Required")
 		}
 	}
 

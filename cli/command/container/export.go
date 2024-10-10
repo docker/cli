@@ -2,12 +2,14 @@ package container
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +49,7 @@ func runExport(ctx context.Context, dockerCli command.Cli, opts exportOptions) e
 	}
 
 	if err := command.ValidateOutputPath(opts.output); err != nil {
-		return errors.Wrap(err, "failed to export container")
+		return fmt.Errorf("failed to export container: %w", err)
 	}
 
 	clnt := dockerCli.Client()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,7 +11,7 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -50,7 +51,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	if v := os.Getenv("DOCKER_BUILDKIT"); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
-			return args, osargs, nil, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+			return args, osargs, nil, fmt.Errorf("DOCKER_BUILDKIT environment variable expects boolean value: %w", err)
 		}
 		if !enabled {
 			buildKitDisabled = true

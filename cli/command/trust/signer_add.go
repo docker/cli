@@ -2,6 +2,7 @@ package trust
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,7 +15,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -106,7 +107,7 @@ func addSignerToRepo(ctx context.Context, dockerCLI command.Cli, signerName stri
 	newSignerRoleName := data.RoleName(path.Join(data.CanonicalTargetsRole.String(), signerName))
 
 	if err := addStagedSigner(notaryRepo, newSignerRoleName, signerPubKeys); err != nil {
-		return errors.Wrapf(err, "could not add signer to repo: %s", strings.TrimPrefix(newSignerRoleName.String(), "targets/"))
+		return fmt.Errorf("could not add signer to repo: %s: %w", strings.TrimPrefix(newSignerRoleName.String(), "targets/"), err)
 	}
 
 	return notaryRepo.Publish()
@@ -118,20 +119,20 @@ func ingestPublicKeys(pubKeyPaths []string) ([]data.PublicKey, error) {
 		// Read public key bytes from PEM file, limit to 1 KiB
 		pubKeyFile, err := os.OpenFile(pubKeyPath, os.O_RDONLY, 0o666)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to read public key from file")
+			return nil, fmt.Errorf("unable to read public key from file: %w", err)
 		}
 		defer pubKeyFile.Close()
 		// limit to
 		l := io.LimitReader(pubKeyFile, 1<<20)
 		pubKeyBytes, err := io.ReadAll(l)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to read public key from file")
+			return nil, fmt.Errorf("unable to read public key from file: %w", err)
 		}
 
 		// Parse PEM bytes into type PublicKey
 		pubKey, err := tufutils.ParsePEMPublicKey(pubKeyBytes)
 		if err != nil {
-			return nil, errors.Wrapf(err, "could not parse public key from file: %s", pubKeyPath)
+			return nil, fmt.Errorf("could not parse public key from file: %s: %w", pubKeyPath, err)
 		}
 		pubKeys = append(pubKeys, pubKey)
 	}

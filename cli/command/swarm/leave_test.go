@@ -1,12 +1,13 @@
 package swarm
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -26,7 +27,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		{
 			name: "leave-failed",
 			swarmLeaveFunc: func() error {
-				return errors.Errorf("error leaving the swarm")
+				return fmt.Errorf("error leaving the swarm")
 			},
 			expectedError: "error leaving the swarm",
 		},

@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 	"testing"
@@ -12,7 +13,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

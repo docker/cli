@@ -3,13 +3,14 @@ package manager
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -44,14 +45,14 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 	// which would fail here, so there are all real errors.
 	fullname := filepath.Base(path)
 	if fullname == "." {
-		return Plugin{}, errors.Errorf("unable to determine basename of plugin candidate %q", path)
+		return Plugin{}, fmt.Errorf("unable to determine basename of plugin candidate %q", path)
 	}
 	var err error
 	if fullname, err = trimExeSuffix(fullname); err != nil {
-		return Plugin{}, errors.Wrapf(err, "plugin candidate %q", path)
+		return Plugin{}, fmt.Errorf("plugin candidate %q: %w", path, err)
 	}
 	if !strings.HasPrefix(fullname, NamePrefix) {
-		return Plugin{}, errors.Errorf("plugin candidate %q: does not have %q prefix", path, NamePrefix)
+		return Plugin{}, fmt.Errorf("plugin candidate %q: does not have %q prefix", path, NamePrefix)
 	}
 
 	p := Plugin{
@@ -85,12 +86,12 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 	// We are supposed to check for relevant execute permissions here. Instead we rely on an attempt to execute.
 	meta, err := c.Metadata()
 	if err != nil {
-		p.Err = wrapAsPluginError(err, "failed to fetch metadata")
+		p.Err = NewPluginError("failed to fetch metadata: %w", err)
 		return p, nil
 	}
 
 	if err := json.Unmarshal(meta, &p.Metadata); err != nil {
-		p.Err = wrapAsPluginError(err, "invalid metadata")
+		p.Err = NewPluginError("invalid metadata: %w", err)
 		return p, nil
 	}
 	if p.Metadata.SchemaVersion != "0.1.0" {
@@ -109,7 +110,7 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, error) {
 	hDataBytes, err := json.Marshal(hookData)
 	if err != nil {
-		return nil, wrapAsPluginError(err, "failed to marshall hook data")
+		return nil, NewPluginError("failed to marshall hook data: %w", err)
 	}
 
 	pCmd := exec.CommandContext(ctx, p.Path, p.Name, HookSubcommandName, string(hDataBytes))
@@ -117,7 +118,7 @@ func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, 
 	pCmd.Env = append(pCmd.Env, ReexecEnvvar+"="+os.Args[0])
 	hookCmdOutput, err := pCmd.Output()
 	if err != nil {
-		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand")
+		return nil, NewPluginError("failed to execute plugin hook subcommand: %w", err)
 	}
 
 	return hookCmdOutput, nil

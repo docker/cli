@@ -2,13 +2,14 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 

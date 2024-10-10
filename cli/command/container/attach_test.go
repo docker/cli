@@ -1,13 +1,15 @@
 package container
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 )
 
@@ -23,7 +25,7 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "something went wrong",
 			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
-				return container.InspectResponse{}, errors.Errorf("something went wrong")
+				return container.InspectResponse{}, fmt.Errorf("something went wrong")
 			},
 		},
 		{

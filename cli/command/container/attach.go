@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/docker/cli/cli"
@@ -10,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
-	"github.com/pkg/errors"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

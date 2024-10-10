@@ -1,12 +1,13 @@
 package checkpoint
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/checkpoint"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -28,7 +29,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 		{
 			args: []string{"foo", "bar"},
 			checkpointDeleteFunc: func(container string, options checkpoint.DeleteOptions) error {
-				return errors.Errorf("error deleting checkpoint")
+				return fmt.Errorf("error deleting checkpoint")
 			},
 			expectedError: "error deleting checkpoint",
 		},

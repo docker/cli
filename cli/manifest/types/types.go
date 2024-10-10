@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/distribution/reference"
 	"github.com/docker/distribution"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 )
 
 // ImageManifest contains info to output for a manifest object.
@@ -82,7 +82,7 @@ func (i ImageManifest) Payload() (string, []byte, error) {
 	case i.OCIManifest != nil:
 		return i.OCIManifest.Payload()
 	default:
-		return "", nil, errors.Errorf("%s has no payload", i.Ref)
+		return "", nil, fmt.Errorf("%s has no payload", i.Ref)
 	}
 }
 
@@ -141,7 +141,7 @@ type SerializableNamed struct {
 func (s *SerializableNamed) UnmarshalJSON(b []byte) error {
 	var raw string
 	if err := json.Unmarshal(b, &raw); err != nil {
-		return errors.Wrapf(err, "invalid named reference bytes: %s", b)
+		return fmt.Errorf("invalid named reference bytes: %s: %w", b, err)
 	}
 	var err error
 	s.Named, err = reference.ParseNamed(raw)

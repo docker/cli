@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -52,7 +52,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
 				if options.name != "" {
-					return errors.Errorf("conflicting options: cannot specify a volume-name through both --name and as a positional arg")
+					return fmt.Errorf("conflicting options: cannot specify a volume-name through both --name and as a positional arg")
 				}
 				options.name = args[0]
 			}

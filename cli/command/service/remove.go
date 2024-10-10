@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 

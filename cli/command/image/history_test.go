@@ -8,7 +8,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -30,7 +30,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 			args:          []string{"image:tag"},
 			expectedError: "something went wrong",
 			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
-				return []image.HistoryResponseItem{{}}, errors.Errorf("something went wrong")
+				return []image.HistoryResponseItem{{}}, fmt.Errorf("something went wrong")
 			},
 		},
 	}

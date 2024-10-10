@@ -1,10 +1,9 @@
 package output
 
 import (
+	"fmt"
 	"strings"
 	"testing"
-
-	"github.com/pkg/errors"
 )
 
 // Assert checks output lines at specified locations
@@ -30,7 +29,7 @@ func Prefix(expected string) func(string) error {
 		if strings.HasPrefix(actual, expected) {
 			return nil
 		}
-		return errors.Errorf("expected %q to start with %q", actual, expected)
+		return fmt.Errorf("expected %q to start with %q", actual, expected)
 	}
 }
 
@@ -40,7 +39,7 @@ func Suffix(expected string) func(string) error {
 		if strings.HasSuffix(actual, expected) {
 			return nil
 		}
-		return errors.Errorf("expected %q to end with %q", actual, expected)
+		return fmt.Errorf("expected %q to end with %q", actual, expected)
 	}
 }
 
@@ -50,7 +49,7 @@ func Contains(expected string) func(string) error {
 		if strings.Contains(actual, expected) {
 			return nil
 		}
-		return errors.Errorf("expected %q to contain %q", actual, expected)
+		return fmt.Errorf("expected %q to contain %q", actual, expected)
 	}
 }
 
@@ -60,6 +59,6 @@ func Equals(expected string) func(string) error {
 		if expected == actual {
 			return nil
 		}
-		return errors.Errorf("got %q, expected %q", actual, expected)
+		return fmt.Errorf("got %q, expected %q", actual, expected)
 	}
 }

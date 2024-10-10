@@ -14,7 +14,7 @@ func TestPluginError(t *testing.T) {
 	assert.Check(t, is.Error(err, "new error"))
 
 	inner := errors.New("testing")
-	err = wrapAsPluginError(inner, "wrapping")
+	err = NewPluginError("wrapping: %w", inner)
 	assert.Check(t, is.Error(err, "wrapping: testing"))
 	assert.Check(t, is.ErrorIs(err, inner))
 

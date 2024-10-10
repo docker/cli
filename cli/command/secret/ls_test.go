@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -11,7 +12,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -29,7 +30,7 @@ func TestSecretListErrors(t *testing.T) {
 		},
 		{
 			secretListFunc: func(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
-				return []swarm.Secret{}, errors.Errorf("error listing secrets")
+				return []swarm.Secret{}, fmt.Errorf("error listing secrets")
 			},
 			expectedError: "error listing secrets",
 		},

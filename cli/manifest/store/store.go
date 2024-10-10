@@ -2,6 +2,7 @@ package store
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/distribution/manifest/manifestlist"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 )
 
 // Store manages local storage of image distribution manifests
@@ -72,7 +72,7 @@ func (s *fsStore) getFromFilename(ref reference.Reference, filename string) (typ
 			return types.ImageManifest{}, err
 		}
 		if dgst := digest.FromBytes(raw); dgst != manifestInfo.Digest {
-			return types.ImageManifest{}, errors.Errorf("invalid manifest file %v: image manifest digest mismatch (%v != %v)", filename, manifestInfo.Digest, dgst)
+			return types.ImageManifest{}, fmt.Errorf("invalid manifest file %v: image manifest digest mismatch (%v != %v)", filename, manifestInfo.Digest, dgst)
 		}
 		manifestInfo.ImageManifest.Descriptor = ocispec.Descriptor{
 			Digest:    manifestInfo.Digest,

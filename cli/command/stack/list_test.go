@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -34,7 +35,7 @@ func TestListErrors(t *testing.T) {
 		{
 			args: []string{},
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{}, errors.Errorf("error getting services")
+				return []swarm.Service{}, fmt.Errorf("error getting services")
 			},
 			expectedError: "error getting services",
 		},

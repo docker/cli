@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -21,7 +22,7 @@ import (
 	"github.com/google/shlex"
 	"github.com/moby/swarmkit/v2/api"
 	"github.com/moby/swarmkit/v2/api/defaults"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/pflag"
 )
 
@@ -101,7 +102,7 @@ func (o *placementPrefOpts) Set(value string) error {
 		return errors.New(`placement preference must be of the format "<strategy>=<arg>"`)
 	}
 	if strategy != "spread" {
-		return errors.Errorf("unsupported placement preference %s (only spread is supported)", strategy)
+		return fmt.Errorf("unsupported placement preference %s (only spread is supported)", strategy)
 	}
 
 	o.prefs = append(o.prefs, swarm.PlacementPreference{
@@ -446,7 +447,7 @@ func (o *healthCheckOptions) toHealthConfig() (*container.HealthConfig, error) {
 		o.retries != 0
 	if o.noHealthcheck {
 		if haveHealthSettings {
-			return nil, errors.Errorf("--%s conflicts with --health-* options", flagNoHealthcheck)
+			return nil, fmt.Errorf("--%s conflicts with --health-* options", flagNoHealthcheck)
 		}
 		healthConfig = &container.HealthConfig{Test: []string{"NONE"}}
 	} else if haveHealthSettings {
@@ -584,7 +585,7 @@ func (options *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
 	switch options.mode {
 	case "global":
 		if options.replicas.Value() != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+			return serviceMode, fmt.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 
 		if options.maxReplicas > 0 {
@@ -620,11 +621,11 @@ func (options *serviceOptions) ToServiceMode() (swarm.ServiceMode, error) {
 			return serviceMode, errors.New("max-concurrent can only be used with replicated-job mode")
 		}
 		if options.replicas.Value() != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+			return serviceMode, fmt.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 		serviceMode.GlobalJob = &swarm.GlobalJob{}
 	default:
-		return serviceMode, errors.Errorf("Unknown mode: %s, only replicated and global supported", options.mode)
+		return serviceMode, fmt.Errorf("Unknown mode: %s, only replicated and global supported", options.mode)
 	}
 	return serviceMode, nil
 }
@@ -692,7 +693,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	// flags are not set, then the values will be nil. If they are non-nil,
 	// then return an error.
 	if (serviceMode.ReplicatedJob != nil || serviceMode.GlobalJob != nil) && (updateConfig != nil || rollbackConfig != nil) {
-		return service, errors.Errorf("update and rollback configuration is not supported for jobs")
+		return service, fmt.Errorf("update and rollback configuration is not supported for jobs")
 	}
 
 	networks := convertNetworks(options.networks)

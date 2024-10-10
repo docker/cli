@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -28,24 +28,24 @@ func TestNodeInspectErrors(t *testing.T) {
 		{
 			args: []string{"self"},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
 		{
 			args: []string{"nodeID"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
+				return swarm.Node{}, []byte{}, fmt.Errorf("error inspecting the node")
 			},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error inspecting the node",
 		},
 		{
 			args: []string{"self"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
+				return swarm.Node{}, []byte{}, fmt.Errorf("error inspecting the node")
 			},
 			infoFunc: func() (system.Info, error) {
 				return system.Info{Swarm: swarm.Info{NodeID: "abc"}}, nil
@@ -58,7 +58,7 @@ func TestNodeInspectErrors(t *testing.T) {
 				"pretty": "true",
 			},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

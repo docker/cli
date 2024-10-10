@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -23,7 +24,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	}{
 		{
 			nodeListFunc: func() ([]swarm.Node, error) {
-				return []swarm.Node{}, errors.Errorf("error listing nodes")
+				return []swarm.Node{}, fmt.Errorf("error listing nodes")
 			},
 			expectedError: "error listing nodes",
 		},
@@ -36,7 +37,7 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 				}, nil
 			},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

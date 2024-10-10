@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
@@ -10,7 +11,7 @@ import (
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +45,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		return err
 	}
 	if _, ok := named.(reference.Canonical); ok {
-		return errors.Errorf("invalid name: %s", opts.name)
+		return fmt.Errorf("invalid name: %s", opts.name)
 	}
 
 	named = reference.TagNameOnly(named)

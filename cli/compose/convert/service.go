@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sort"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -34,16 +34,16 @@ func Services(
 	for _, service := range config.Services {
 		secrets, err := convertServiceSecrets(ctx, apiClient, namespace, service.Secrets, config.Secrets)
 		if err != nil {
-			return nil, errors.Wrapf(err, "service %s", service.Name)
+			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 		configs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, config.Configs)
 		if err != nil {
-			return nil, errors.Wrapf(err, "service %s", service.Name)
+			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 
 		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
-			return nil, errors.Wrapf(err, "service %s", service.Name)
+			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 		result[service.Name] = serviceSpec
 	}
@@ -212,7 +212,7 @@ func convertServiceNetworks(
 	for networkName, network := range networks {
 		networkConfig, ok := networkConfigs[networkName]
 		if !ok && networkName != defaultNetwork {
-			return nil, errors.Errorf("undefined network %q", networkName)
+			return nil, fmt.Errorf("undefined network %q", networkName)
 		}
 		var aliases []string
 		var driverOpts map[string]string
@@ -256,7 +256,7 @@ func convertServiceSecrets(
 	lookup := func(key string) (composetypes.FileObjectConfig, error) {
 		secretSpec, exists := secretSpecs[key]
 		if !exists {
-			return composetypes.FileObjectConfig{}, errors.Errorf("undefined secret %q", key)
+			return composetypes.FileObjectConfig{}, fmt.Errorf("undefined secret %q", key)
 		}
 		return composetypes.FileObjectConfig(secretSpec), nil
 	}
@@ -301,7 +301,7 @@ func convertServiceConfigObjs(
 	lookup := func(key string) (composetypes.FileObjectConfig, error) {
 		configSpec, exists := configSpecs[key]
 		if !exists {
-			return composetypes.FileObjectConfig{}, errors.Errorf("undefined config %q", key)
+			return composetypes.FileObjectConfig{}, fmt.Errorf("undefined config %q", key)
 		}
 		return composetypes.FileObjectConfig(configSpec), nil
 	}
@@ -442,7 +442,7 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 	)
 	if healthcheck.Disable {
 		if len(healthcheck.Test) != 0 {
-			return nil, errors.Errorf("test and disable can't be set at the same time")
+			return nil, fmt.Errorf("test and disable can't be set at the same time")
 		}
 		return &container.HealthConfig{
 			Test: []string{"NONE"},
@@ -494,7 +494,7 @@ func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*
 				MaxAttempts: &attempts,
 			}, nil
 		default:
-			return nil, errors.Errorf("unknown restart policy: %s", restart)
+			return nil, fmt.Errorf("unknown restart policy: %s", restart)
 		}
 	}
 
@@ -618,12 +618,12 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	switch mode {
 	case "global-job":
 		if replicas != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+			return serviceMode, fmt.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 		serviceMode.GlobalJob = &swarm.GlobalJob{}
 	case "global":
 		if replicas != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+			return serviceMode, fmt.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 		serviceMode.Global = &swarm.GlobalService{}
 	case "replicated-job":
@@ -634,7 +634,7 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	case "replicated", "":
 		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: replicas}
 	default:
-		return serviceMode, errors.Errorf("Unknown mode: %s", mode)
+		return serviceMode, fmt.Errorf("Unknown mode: %s", mode)
 	}
 	return serviceMode, nil
 }
@@ -667,9 +667,9 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 	case l == 0:
 		return nil, nil
 	case l == 2:
-		return nil, errors.Errorf("invalid credential spec: cannot specify both %s and %s", o[0], o[1])
+		return nil, fmt.Errorf("invalid credential spec: cannot specify both %s and %s", o[0], o[1])
 	case l > 2:
-		return nil, errors.Errorf("invalid credential spec: cannot specify both %s, and %s", strings.Join(o[:l-1], ", "), o[l-1])
+		return nil, fmt.Errorf("invalid credential spec: cannot specify both %s, and %s", strings.Join(o[:l-1], ", "), o[l-1])
 	}
 	swarmCredSpec := swarm.CredentialSpec(spec)
 	// if we're using a swarm Config for the credential spec, over-write it
@@ -688,7 +688,7 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 				return &swarmCredSpec, nil
 			}
 		}
-		return nil, errors.Errorf("invalid credential spec: spec specifies config %v, but no such config can be found", swarmCredSpec.Config)
+		return nil, fmt.Errorf("invalid credential spec: spec specifies config %v, but no such config can be found", swarmCredSpec.Config)
 	}
 	return &swarmCredSpec, nil
 }

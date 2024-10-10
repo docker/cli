@@ -17,7 +17,6 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
-	"github.com/pkg/errors"
 )
 
 const serviceInspectPrettyTemplate formatter.Format = `
@@ -231,7 +230,7 @@ func InspectFormatWrite(ctx formatter.Context, refs []string, getRef, getNetwork
 			}
 			service, ok := serviceI.(swarm.Service)
 			if !ok {
-				return errors.Errorf("got wrong object to inspect")
+				return fmt.Errorf("got wrong object to inspect")
 			}
 			if err := format(&serviceInspectContext{Service: service, networkNames: resolveNetworks(service, getNetwork)}); err != nil {
 				return err
