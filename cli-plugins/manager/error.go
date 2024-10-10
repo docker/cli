@@ -23,12 +23,13 @@ func (e *pluginError) Error() string {
 	return e.cause.Error()
 }
 
-// Cause satisfies the errors.causer interface for pluginError.
+// Cause satisfies the github.com/pkg/errors.causer interface for pluginError.
+// TODO: remove this once all users switch away from github.com/pkg/errors.
 func (e *pluginError) Cause() error {
 	return e.cause
 }
 
-// Unwrap provides compatibility for Go 1.13 error chains.
+// Unwrap provides compatibility for Go 1.13+ error chains.
 func (e *pluginError) Unwrap() error {
 	return e.cause
 }
@@ -38,17 +39,8 @@ func (e *pluginError) MarshalText() (text []byte, err error) {
 	return []byte(e.cause.Error()), nil
 }
 
-// wrapAsPluginError wraps an error in a pluginError with an
-// additional message, analogous to errors.Wrapf.
-func wrapAsPluginError(err error, msg string) error {
-	if err == nil {
-		return nil
-	}
-	return &pluginError{cause: fmt.Errorf(msg+": %w", err)}
-}
-
 // NewPluginError creates a new pluginError, analogous to
-// errors.Errorf.
+// [fmt.Errorf].
 func NewPluginError(msg string, args ...any) error {
 	return &pluginError{cause: fmt.Errorf(msg, args...)}
 }

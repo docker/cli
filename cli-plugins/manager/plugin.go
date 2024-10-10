@@ -86,12 +86,12 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 	// We are supposed to check for relevant execute permissions here. Instead we rely on an attempt to execute.
 	meta, err := c.Metadata()
 	if err != nil {
-		p.Err = wrapAsPluginError(err, "failed to fetch metadata")
+		p.Err = NewPluginError("failed to fetch metadata: %w", err)
 		return p, nil
 	}
 
 	if err := json.Unmarshal(meta, &p.Metadata); err != nil {
-		p.Err = wrapAsPluginError(err, "invalid metadata")
+		p.Err = NewPluginError("invalid metadata: %w", err)
 		return p, nil
 	}
 	if p.Metadata.SchemaVersion != "0.1.0" {
@@ -110,7 +110,7 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, error) {
 	hDataBytes, err := json.Marshal(hookData)
 	if err != nil {
-		return nil, wrapAsPluginError(err, "failed to marshall hook data")
+		return nil, NewPluginError("failed to marshall hook data: %w", err)
 	}
 
 	pCmd := exec.CommandContext(ctx, p.Path, p.Name, HookSubcommandName, string(hDataBytes))
@@ -118,7 +118,7 @@ func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, 
 	pCmd.Env = append(pCmd.Env, ReexecEnvvar+"="+os.Args[0])
 	hookCmdOutput, err := pCmd.Output()
 	if err != nil {
-		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand")
+		return nil, NewPluginError("failed to execute plugin hook subcommand: %w", err)
 	}
 
 	return hookCmdOutput, nil
