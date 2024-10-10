@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -203,7 +204,7 @@ func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cl
 	}
 
 	if len(failedContainers) > 0 {
-		return errors.Errorf("Error: failed to start containers: %s", strings.Join(failedContainers, ", "))
+		return fmt.Errorf("Error: failed to start containers: %s", strings.Join(failedContainers, ", "))
 	}
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +48,7 @@ func runSecretRemove(ctx context.Context, dockerCli command.Cli, opts removeOpti
 	}
 
 	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
+		return fmt.Errorf("%s", strings.Join(errs, "\n"))
 	}
 
 	return nil

@@ -21,7 +21,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/jsonmessage"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -168,7 +168,7 @@ func (cid *cidFile) Close() error {
 		return nil
 	}
 	if err := os.Remove(cid.path); err != nil {
-		return errors.Wrapf(err, "failed to remove the CID file '%s'", cid.path)
+		return fmt.Errorf("failed to remove the CID file '%s': %w", cid.path, err)
 	}
 
 	return nil
@@ -179,7 +179,7 @@ func (cid *cidFile) Write(id string) error {
 		return nil
 	}
 	if _, err := cid.file.Write([]byte(id)); err != nil {
-		return errors.Wrap(err, "failed to write the container ID to the file")
+		return fmt.Errorf("failed to write the container ID to the file: %w", err)
 	}
 	cid.written = true
 	return nil
@@ -190,12 +190,12 @@ func newCIDFile(path string) (*cidFile, error) {
 		return &cidFile{}, nil
 	}
 	if _, err := os.Stat(path); err == nil {
-		return nil, errors.Errorf("container ID file found, make sure the other container isn't running or delete %s", path)
+		return nil, fmt.Errorf("container ID file found, make sure the other container isn't running or delete %s", path)
 	}
 
 	f, err := os.Create(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create the container ID file")
+		return nil, fmt.Errorf("failed to create the container ID file: %w", err)
 	}
 
 	return &cidFile{path: path, file: f}, nil
@@ -256,7 +256,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
 		p, err := platforms.Parse(options.platform)
 		if err != nil {
-			return "", errors.Wrap(errdefs.InvalidParameter(err), "error parsing specified platform")
+			return "", fmt.Errorf("error parsing specified platform: %w", errdefs.InvalidParameter(err))
 		}
 		platform = &p
 	}

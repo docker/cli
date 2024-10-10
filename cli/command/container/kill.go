@@ -2,13 +2,14 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 

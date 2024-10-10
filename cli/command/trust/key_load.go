@@ -3,6 +3,7 @@ package trust
 import (
 	"bytes"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/storage"
@@ -60,10 +61,10 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 	passRet := trust.GetPassphraseRetriever(streams.In(), streams.Out())
 	keyBytes, err := getPrivKeyBytesFromPath(keyPath)
 	if err != nil {
-		return errors.Wrapf(err, "refusing to load key from %s", keyPath)
+		return fmt.Errorf("refusing to load key from %s: %w", keyPath, err)
 	}
 	if err := loadPrivKeyBytesToStore(keyBytes, privKeyImporters, keyPath, options.keyName, passRet); err != nil {
-		return errors.Wrapf(err, "error importing key from %s", keyPath)
+		return fmt.Errorf("error importing key from %s: %w", keyPath, err)
 	}
 	fmt.Fprintf(streams.Out(), "Successfully imported key from %s\n", keyPath)
 	return nil
@@ -95,7 +96,7 @@ func loadPrivKeyBytesToStore(privKeyBytes []byte, privKeyImporters []trustmanage
 		return fmt.Errorf("provided file %s is not a supported private key - to add a signer's public key use docker trust signer add", keyPath)
 	}
 	if privKeyBytes, err = decodePrivKeyIfNecessary(privKeyBytes, passRet); err != nil {
-		return errors.Wrapf(err, "cannot load key from provided file %s", keyPath)
+		return fmt.Errorf("cannot load key from provided file %s: %w", keyPath, err)
 	}
 	// Make a reader, rewind the file pointer
 	return trustmanager.ImportKeys(bytes.NewReader(privKeyBytes), privKeyImporters, keyName, "", passRet)

@@ -4,7 +4,7 @@
 package manager
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // pluginError is set as Plugin.Err by NewPlugin if the plugin
@@ -44,11 +44,11 @@ func wrapAsPluginError(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
-	return &pluginError{cause: errors.Wrap(err, msg)}
+	return &pluginError{cause: fmt.Errorf(msg+": %w", err)}
 }
 
 // NewPluginError creates a new pluginError, analogous to
 // errors.Errorf.
 func NewPluginError(msg string, args ...any) error {
-	return &pluginError{cause: errors.Errorf(msg, args...)}
+	return &pluginError{cause: fmt.Errorf(msg, args...)}
 }

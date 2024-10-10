@@ -1,13 +1,14 @@
 package image
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -29,7 +30,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 			args:          []string{"testdata/import-command-success.input.txt"},
 			expectedError: "something went wrong",
 			imageImportFunc: func(source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error) {
-				return nil, errors.Errorf("something went wrong")
+				return nil, fmt.Errorf("something went wrong")
 			},
 		},
 	}

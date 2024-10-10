@@ -6,6 +6,7 @@ package image
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -23,7 +24,7 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 

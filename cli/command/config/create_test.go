@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -37,7 +38,7 @@ func TestConfigCreateErrors(t *testing.T) {
 		{
 			args: []string{"name", filepath.Join("testdata", configDataFile)},
 			configCreateFunc: func(_ context.Context, configSpec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
-				return types.ConfigCreateResponse{}, errors.Errorf("error creating config")
+				return types.ConfigCreateResponse{}, fmt.Errorf("error creating config")
 			},
 			expectedError: "error creating config",
 		},
@@ -64,7 +65,7 @@ func TestConfigCreateWithName(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(_ context.Context, spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
-				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
+				return types.ConfigCreateResponse{}, fmt.Errorf("expected name %q, got %q", name, spec.Name)
 			}
 
 			actual = spec.Data
@@ -103,7 +104,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(_ context.Context, spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if !reflect.DeepEqual(spec, expected) {
-				return types.ConfigCreateResponse{}, errors.Errorf("expected %+v, got %+v", expected, spec)
+				return types.ConfigCreateResponse{}, fmt.Errorf("expected %+v, got %+v", expected, spec)
 			}
 
 			return types.ConfigCreateResponse{
@@ -129,11 +130,11 @@ func TestConfigCreateWithTemplatingDriver(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(_ context.Context, spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 			if spec.Name != name {
-				return types.ConfigCreateResponse{}, errors.Errorf("expected name %q, got %q", name, spec.Name)
+				return types.ConfigCreateResponse{}, fmt.Errorf("expected name %q, got %q", name, spec.Name)
 			}
 
 			if spec.Templating.Name != expectedDriver.Name {
-				return types.ConfigCreateResponse{}, errors.Errorf("expected driver %v, got %v", expectedDriver, spec.Labels)
+				return types.ConfigCreateResponse{}, fmt.Errorf("expected driver %v, got %v", expectedDriver, spec.Labels)
 			}
 
 			return types.ConfigCreateResponse{

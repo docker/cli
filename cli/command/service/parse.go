@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 )
 
 // ParseSecrets retrieves the secrets with the requested names and fills
@@ -21,7 +21,7 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 
 	for _, secret := range requestedSecrets {
 		if _, exists := secretRefs[secret.File.Name]; exists {
-			return nil, errors.Errorf("duplicate secret target for %s not allowed", secret.SecretName)
+			return nil, fmt.Errorf("duplicate secret target for %s not allowed", secret.SecretName)
 		}
 		secretRef := new(swarmtypes.SecretReference)
 		*secretRef = *secret
@@ -50,7 +50,7 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 	for _, ref := range secretRefs {
 		id, ok := foundSecrets[ref.SecretName]
 		if !ok {
-			return nil, errors.Errorf("secret not found: %s", ref.SecretName)
+			return nil, fmt.Errorf("secret not found: %s", ref.SecretName)
 		}
 
 		// set the id for the ref to properly assign in swarm
@@ -99,7 +99,7 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 		}
 
 		if _, exists := configRefs[config.File.Name]; exists {
-			return nil, errors.Errorf("duplicate config target for %s not allowed", config.ConfigName)
+			return nil, fmt.Errorf("duplicate config target for %s not allowed", config.ConfigName)
 		}
 
 		configRefs[config.File.Name] = configRef
@@ -130,7 +130,7 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 	for _, ref := range configRefs {
 		id, ok := foundConfigs[ref.ConfigName]
 		if !ok {
-			return nil, errors.Errorf("config not found: %s", ref.ConfigName)
+			return nil, fmt.Errorf("config not found: %s", ref.ConfigName)
 		}
 
 		// set the id for the ref to properly assign in swarm
@@ -145,7 +145,7 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 	for _, ref := range runtimeRefs {
 		id, ok := foundConfigs[ref.ConfigName]
 		if !ok {
-			return nil, errors.Errorf("config not found: %s", ref.ConfigName)
+			return nil, fmt.Errorf("config not found: %s", ref.ConfigName)
 		}
 
 		ref.ConfigID = id

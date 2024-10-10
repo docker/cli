@@ -1,13 +1,14 @@
 package checkpoint
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/checkpoint"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -29,7 +30,7 @@ func TestCheckpointCreateErrors(t *testing.T) {
 		{
 			args: []string{"foo", "bar"},
 			checkpointCreateFunc: func(container string, options checkpoint.CreateOptions) error {
-				return errors.Errorf("error creating checkpoint for container foo")
+				return fmt.Errorf("error creating checkpoint for container foo")
 			},
 			expectedError: "error creating checkpoint for container foo",
 		},

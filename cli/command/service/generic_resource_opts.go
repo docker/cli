@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/docker/docker/api/types/swarm"
 	swarmapi "github.com/moby/swarmkit/v2/api"
 	"github.com/moby/swarmkit/v2/api/genericresource"
@@ -37,7 +35,7 @@ func ParseGenericResources(value []string) ([]swarm.GenericResource, error) {
 
 	resources, err := genericresource.Parse(value)
 	if err != nil {
-		return nil, errors.Wrapf(err, "invalid generic resource specification")
+		return nil, fmt.Errorf("invalid generic resource specification: %w", err)
 	}
 
 	swarmResources := genericResourcesFromGRPC(resources)

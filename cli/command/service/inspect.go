@@ -5,6 +5,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -14,7 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +36,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.refs = args
 
 			if opts.pretty && len(opts.format) > 0 {
-				return errors.Errorf("--format is incompatible with human friendly format")
+				return fmt.Errorf("--format is incompatible with human friendly format")
 			}
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
@@ -63,7 +64,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 		if err == nil || !errdefs.IsNotFound(err) {
 			return service, nil, err
 		}
-		return nil, nil, errors.Errorf("Error: no such service: %s", ref)
+		return nil, nil, fmt.Errorf("Error: no such service: %s", ref)
 	}
 
 	getNetwork := func(ref string) (any, []byte, error) {
@@ -71,7 +72,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 		if err == nil || !errdefs.IsNotFound(err) {
 			return nw, nil, err
 		}
-		return nil, nil, errors.Errorf("Error: no such network: %s", ref)
+		return nil, nil, fmt.Errorf("Error: no such network: %s", ref)
 	}
 
 	f := opts.format
@@ -85,7 +86,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	// check if the user is trying to apply a template to the pretty format, which
 	// is not supported
 	if strings.HasPrefix(f, "pretty") && f != "pretty" {
-		return errors.Errorf("Cannot supply extra formatting options to the pretty template")
+		return fmt.Errorf("Cannot supply extra formatting options to the pretty template")
 	}
 
 	serviceCtx := formatter.Context{

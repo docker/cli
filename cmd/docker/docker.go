@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -21,7 +22,7 @@ import (
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -149,7 +150,7 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 				return helpcmd.Run()
 			}
 			if !pluginmanager.IsNotFound(err) {
-				return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
+				return fmt.Errorf("unknown help topic: %v", strings.Join(args, " "))
 			}
 		}
 		if origRunE != nil {

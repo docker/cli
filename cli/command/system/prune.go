@@ -3,6 +3,7 @@ package system
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"text/template"
@@ -20,7 +21,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 

@@ -15,7 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +54,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	case "", "container", "image", "node", "network", "service", "volume", "task", "plugin", "secret":
 		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.inspectType)
 	default:
-		return errors.Errorf("%q is not a valid value for --type", opts.inspectType)
+		return fmt.Errorf("%q is not a valid value for --type", opts.inspectType)
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.ids, opts.format, elementSearcher)
 }
@@ -212,7 +212,7 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 			}
 			return v, raw, err
 		}
-		return nil, nil, errors.Errorf("Error: No such object: %s", ref)
+		return nil, nil, fmt.Errorf("Error: No such object: %s", ref)
 	}
 }
 

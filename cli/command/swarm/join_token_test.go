@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -43,7 +43,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 			name: "swarm-inspect-failed",
 			args: []string{"worker"},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.Errorf("error inspecting the swarm")
+				return swarm.Swarm{}, fmt.Errorf("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
@@ -54,7 +54,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.Errorf("error inspecting the swarm")
+				return swarm.Swarm{}, fmt.Errorf("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
@@ -65,7 +65,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 				flagRotate: "true",
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
-				return errors.Errorf("error updating the swarm")
+				return fmt.Errorf("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
 		},
@@ -73,7 +73,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 			name: "node-inspect-failed",
 			args: []string{"worker"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting node")
+				return swarm.Node{}, []byte{}, fmt.Errorf("error inspecting node")
 			},
 			expectedError: "error inspecting node",
 		},
@@ -81,7 +81,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 			name: "info-failed",
 			args: []string{"worker"},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, fmt.Errorf("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

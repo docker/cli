@@ -6,6 +6,7 @@ package command
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -20,7 +21,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/moby/sys/sequential"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/pflag"
 )
 
@@ -207,7 +208,7 @@ func ValidateOutputPath(path string) error {
 	dir := filepath.Dir(filepath.Clean(path))
 	if dir != "" && dir != "." {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			return errors.Errorf("invalid output path: directory %q does not exist", dir)
+			return fmt.Errorf("invalid output path: directory %q does not exist", dir)
 		}
 	}
 	// check whether `path` points to a regular file
@@ -222,7 +223,7 @@ func ValidateOutputPath(path string) error {
 		}
 
 		if err := ValidateOutputPathFileMode(fileInfo.Mode()); err != nil {
-			return errors.Wrapf(err, "invalid output path: %q must be a directory or a regular file", path)
+			return fmt.Errorf("invalid output path: %q must be a directory or a regular file: %w", path, err)
 		}
 	}
 	return nil
@@ -275,11 +276,11 @@ func StringSliceReplaceAt(s, find, replace []string, requireIndex int) ([]string
 func ValidateMountWithAPIVersion(m mounttypes.Mount, serverAPIVersion string) error {
 	if m.BindOptions != nil {
 		if m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
-			return errors.Errorf("bind-recursive=disabled requires API v1.40 or later")
+			return fmt.Errorf("bind-recursive=disabled requires API v1.40 or later")
 		}
 		// ReadOnlyNonRecursive can be safely ignored when API < 1.44
 		if m.BindOptions.ReadOnlyForceRecursive && versions.LessThan(serverAPIVersion, "1.44") {
-			return errors.Errorf("bind-recursive=readonly requires API v1.44 or later")
+			return fmt.Errorf("bind-recursive=readonly requires API v1.44 or later")
 		}
 	}
 	return nil

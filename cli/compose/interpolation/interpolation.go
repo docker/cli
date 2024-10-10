@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/compose/template"
-	"github.com/pkg/errors"
 )
 
 // Options supported by Interpolate
@@ -105,11 +104,11 @@ func newPathError(path Path, err error) error {
 	case nil:
 		return nil
 	case *template.InvalidTemplateError:
-		return errors.Errorf(
+		return fmt.Errorf(
 			"invalid interpolation format for %s: %#v; you may need to escape any $ with another $",
 			path, err.Template)
 	default:
-		return errors.Wrapf(err, "error while interpolating %s", path)
+		return fmt.Errorf("error while interpolating %s: %w", path, err)
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +48,7 @@ func runRemove(ctx context.Context, dockerCli command.Cli, args []string, opts r
 	}
 
 	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
+		return fmt.Errorf("%s", strings.Join(errs, "\n"))
 	}
 
 	return nil

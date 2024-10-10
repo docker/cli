@@ -2,11 +2,12 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/docker/cli/internal/test/network"
 	networktypes "github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
+
 	"gotest.tools/v3/assert"
 )
 

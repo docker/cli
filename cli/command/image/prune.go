@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/errdefs"
 	units "github.com/docker/go-units"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 )
 

@@ -2,13 +2,13 @@ package network
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 )
 
 func TestNetworkPrunePromptTermination(t *testing.T) {
