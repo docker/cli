@@ -121,7 +121,10 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 	}
 
 	dgst, err := manifestService.Put(ctx, manifest, opts...)
-	return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
+	if err != nil {
+		return "", fmt.Errorf("failed to put manifest %s: %w", ref, err)
+	}
+	return dgst, nil
 }
 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
@@ -157,7 +160,10 @@ func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoi
 		c.userAgent,
 		repoEndpoint.actions,
 	)
-	return httpTransport, errors.Wrap(err, "failed to configure transport")
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure transport: %w", err)
+	}
+	return httpTransport, nil
 }
 
 // GetManifest returns an ImageManifest for the reference

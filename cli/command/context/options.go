@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -68,7 +69,10 @@ func parseBool(config map[string]string, name string) (bool, error) {
 		return false, nil
 	}
 	res, err := strconv.ParseBool(strVal)
-	return res, errors.Wrap(err, name)
+	if err != nil {
+		return res, fmt.Errorf("%s: %w", name, err)
+	}
+	return res, nil
 }
 
 func validateConfig(config map[string]string, allowedKeys map[string]struct{}) error {

@@ -10,6 +10,7 @@ import (
 	"bytes"
 	_ "crypto/sha256" // ensure ids can be computed
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -344,13 +345,13 @@ func Import(name string, s Writer, reader io.Reader) error {
 
 func isValidFilePath(p string) error {
 	if p != metaFile && !strings.HasPrefix(p, "tls/") {
-		return errors.New("unexpected context file")
+		return fmt.Errorf("%s: unexpected context file", p)
 	}
 	if path.Clean(p) != p {
-		return errors.New("unexpected path format")
+		return fmt.Errorf("%s: unexpected path format", p)
 	}
 	if strings.Contains(p, `\`) {
-		return errors.New(`unexpected '\' in path`)
+		return fmt.Errorf(`%s: unexpected '\' in path`, p)
 	}
 	return nil
 }
@@ -374,7 +375,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 		if err := isValidFilePath(hdr.Name); err != nil {
-			return errors.Wrap(err, hdr.Name)
+			return err
 		}
 		if hdr.Name == metaFile {
 			data, err := io.ReadAll(tr)
@@ -426,7 +427,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			continue
 		}
 		if err := isValidFilePath(zf.Name); err != nil {
-			return errors.Wrap(err, zf.Name)
+			return err
 		}
 		if zf.Name == metaFile {
 			f, err := zf.Open()
