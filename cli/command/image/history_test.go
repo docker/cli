@@ -8,8 +8,10 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -32,6 +34,11 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{}}, errors.Errorf("something went wrong")
 			},
+		},
+		{
+			name:          "invalid platform",
+			args:          []string{"--platform", "<invalid>", "arg1"},
+			expectedError: `invalid platform`,
 		},
 	}
 	for _, tc := range testCases {
@@ -83,6 +90,17 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 			name: "quiet-no-trunc",
 			args: []string{"--quiet", "--no-trunc", "image:tag"},
 			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
+				return []image.HistoryResponseItem{{
+					ID:      "1234567890123456789",
+					Created: time.Now().Unix(),
+				}}, nil
+			},
+		},
+		{
+			name: "platform",
+			args: []string{"--platform", "linux/amd64", "image:tag"},
+			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
+				assert.Check(t, is.DeepEqual(ocispec.Platform{OS: "linux", Architecture: "amd64"}, *options.Platform))
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),

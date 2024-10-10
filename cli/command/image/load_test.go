@@ -8,8 +8,10 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -38,6 +40,14 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			expectedError: "something went wrong",
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
 				return image.LoadResponse{}, errors.Errorf("something went wrong")
+			},
+		},
+		{
+			name:          "invalid platform",
+			args:          []string{"--platform", "<invalid>"},
+			expectedError: `invalid platform`,
+			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
+				return image.LoadResponse{}, nil
 			},
 		},
 	}
@@ -93,6 +103,14 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			name: "input-file",
 			args: []string{"--input", "testdata/load-command-success.input.txt"},
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
+				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+			},
+		},
+		{
+			name: "with platform",
+			args: []string{"--platform", "linux/amd64"},
+			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
+				assert.Check(t, is.DeepEqual(ocispec.Platform{OS: "linux", Architecture: "amd64"}, *options.Platform))
 				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
