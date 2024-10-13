@@ -59,7 +59,7 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(conta
 		for _, ctr := range list {
 			skip := false
 			for _, fn := range filters {
-				if !fn(ctr) {
+				if fn != nil && !fn(ctr) {
 					skip = true
 					break
 				}
