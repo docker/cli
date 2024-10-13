@@ -29,6 +29,14 @@ func TestCompleteFileNames(t *testing.T) {
 	assert.Check(t, is.Len(values, 0))
 }
 
+func TestCompleteFromList(t *testing.T) {
+	expected := []string{"one", "two", "three"}
+
+	values, directives := FromList(expected...)(nil, nil, "")
+	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
+	assert.Check(t, is.DeepEqual(values, expected))
+}
+
 func TestCompletePlatforms(t *testing.T) {
 	values, directives := Platforms(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
