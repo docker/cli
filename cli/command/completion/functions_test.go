@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
@@ -28,6 +29,7 @@ func (c fakeCLI) Client() client.APIClient {
 type fakeClient struct {
 	client.Client
 	containerListFunc func(options container.ListOptions) ([]container.Summary, error)
+	imageListFunc     func(options image.ListOptions) ([]image.Summary, error)
 }
 
 func (c *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]container.Summary, error) {
@@ -35,6 +37,13 @@ func (c *fakeClient) ContainerList(_ context.Context, options container.ListOpti
 		return c.containerListFunc(options)
 	}
 	return []container.Summary{}, nil
+}
+
+func (c *fakeClient) ImageList(_ context.Context, options image.ListOptions) ([]image.Summary, error) {
+	if c.imageListFunc != nil {
+		return c.imageListFunc(options)
+	}
+	return []image.Summary{}, nil
 }
 
 func TestCompleteContainerNames(t *testing.T) {
@@ -170,6 +179,52 @@ func TestCompleteFromList(t *testing.T) {
 	values, directives := FromList(expected...)(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 	assert.Check(t, is.DeepEqual(values, expected))
+}
+
+func TestCompleteImageNames(t *testing.T) {
+	tests := []struct {
+		doc          string
+		images       []image.Summary
+		expOut       []string
+		expDirective cobra.ShellCompDirective
+	}{
+		{
+			doc:          "no results",
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc: "with results",
+			images: []image.Summary{
+				{RepoTags: []string{"image-c:latest", "image-c:other"}},
+				{RepoTags: []string{"image-b:latest", "image-b:other"}},
+				{RepoTags: []string{"image-a:latest", "image-a:other"}},
+			},
+			expOut:       []string{"image-c:latest", "image-c:other", "image-b:latest", "image-b:other", "image-a:latest", "image-a:other"},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:          "with error",
+			expDirective: cobra.ShellCompDirectiveError,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			comp := ImageNames(fakeCLI{&fakeClient{
+				imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
+					if tc.expDirective == cobra.ShellCompDirectiveError {
+						return nil, errors.New("some error occurred")
+					}
+					return tc.images, nil
+				},
+			}})
+
+			volumes, directives := comp(&cobra.Command{}, nil, "")
+			assert.Check(t, is.Equal(directives&tc.expDirective, tc.expDirective))
+			assert.Check(t, is.DeepEqual(volumes, tc.expOut))
+		})
+	}
 }
 
 func TestCompleteNoComplete(t *testing.T) {
