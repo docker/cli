@@ -1,14 +1,149 @@
 package completion
 
 import (
+	"context"
+	"errors"
 	"sort"
 	"testing"
 
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/env"
 )
+
+type fakeCLI struct {
+	*fakeClient
+}
+
+// Client implements [APIClientProvider].
+func (c fakeCLI) Client() client.APIClient {
+	return c.fakeClient
+}
+
+type fakeClient struct {
+	client.Client
+	containerListFunc func(options container.ListOptions) ([]container.Summary, error)
+}
+
+func (c *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]container.Summary, error) {
+	if c.containerListFunc != nil {
+		return c.containerListFunc(options)
+	}
+	return []container.Summary{}, nil
+}
+
+func TestCompleteContainerNames(t *testing.T) {
+	tests := []struct {
+		doc              string
+		showAll, showIDs bool
+		filters          []func(container.Summary) bool
+		containers       []container.Summary
+		expOut           []string
+		expOpts          container.ListOptions
+		expDirective     cobra.ShellCompDirective
+	}{
+		{
+			doc:          "no results",
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:     "all containers",
+			showAll: true,
+			containers: []container.Summary{
+				{ID: "id-c", State: "running", Names: []string{"/container-c", "/container-c/link-b"}},
+				{ID: "id-b", State: "created", Names: []string{"/container-b"}},
+				{ID: "id-a", State: "exited", Names: []string{"/container-a"}},
+			},
+			expOut:       []string{"container-c", "container-c/link-b", "container-b", "container-a"},
+			expOpts:      container.ListOptions{All: true},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:     "all containers with ids",
+			showAll: true,
+			showIDs: true,
+			containers: []container.Summary{
+				{ID: "id-c", State: "running", Names: []string{"/container-c", "/container-c/link-b"}},
+				{ID: "id-b", State: "created", Names: []string{"/container-b"}},
+				{ID: "id-a", State: "exited", Names: []string{"/container-a"}},
+			},
+			expOut:       []string{"id-c", "container-c", "container-c/link-b", "id-b", "container-b", "id-a", "container-a"},
+			expOpts:      container.ListOptions{All: true},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:     "only running containers",
+			showAll: false,
+			containers: []container.Summary{
+				{ID: "id-c", State: "running", Names: []string{"/container-c", "/container-c/link-b"}},
+			},
+			expOut:       []string{"container-c", "container-c/link-b"},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:     "with filter",
+			showAll: true,
+			filters: []func(container.Summary) bool{
+				func(container container.Summary) bool { return container.State == "created" },
+			},
+			containers: []container.Summary{
+				{ID: "id-c", State: "running", Names: []string{"/container-c", "/container-c/link-b"}},
+				{ID: "id-b", State: "created", Names: []string{"/container-b"}},
+				{ID: "id-a", State: "exited", Names: []string{"/container-a"}},
+			},
+			expOut:       []string{"container-b"},
+			expOpts:      container.ListOptions{All: true},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:     "multiple filters",
+			showAll: true,
+			filters: []func(container.Summary) bool{
+				func(container container.Summary) bool { return container.ID == "id-a" },
+				func(container container.Summary) bool { return container.State == "created" },
+			},
+			containers: []container.Summary{
+				{ID: "id-c", State: "running", Names: []string{"/container-c", "/container-c/link-b"}},
+				{ID: "id-b", State: "created", Names: []string{"/container-b"}},
+				{ID: "id-a", State: "created", Names: []string{"/container-a"}},
+			},
+			expOut:       []string{"container-a"},
+			expOpts:      container.ListOptions{All: true},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:          "with error",
+			expDirective: cobra.ShellCompDirectiveError,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			if tc.showIDs {
+				t.Setenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS", "yes")
+			}
+			comp := ContainerNames(fakeCLI{&fakeClient{
+				containerListFunc: func(opts container.ListOptions) ([]container.Summary, error) {
+					assert.Check(t, is.DeepEqual(opts, tc.expOpts, cmpopts.IgnoreUnexported(container.ListOptions{}, filters.Args{})))
+					if tc.expDirective == cobra.ShellCompDirectiveError {
+						return nil, errors.New("some error occurred")
+					}
+					return tc.containers, nil
+				},
+			}}, tc.showAll, tc.filters...)
+
+			containers, directives := comp(&cobra.Command{}, nil, "")
+			assert.Check(t, is.Equal(directives&tc.expDirective, tc.expDirective))
+			assert.Check(t, is.DeepEqual(containers, tc.expOut))
+		})
+	}
+}
 
 func TestCompleteEnvVarNames(t *testing.T) {
 	env.PatchAll(t, map[string]string{
