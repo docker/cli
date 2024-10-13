@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
@@ -31,6 +32,7 @@ type fakeClient struct {
 	client.Client
 	containerListFunc func(options container.ListOptions) ([]types.Container, error)
 	imageListFunc     func(options image.ListOptions) ([]image.Summary, error)
+	networkListFunc   func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
 }
 
 func (c *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]types.Container, error) {
@@ -45,6 +47,13 @@ func (c *fakeClient) ImageList(_ context.Context, options image.ListOptions) ([]
 		return c.imageListFunc(options)
 	}
 	return []image.Summary{}, nil
+}
+
+func (c *fakeClient) NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+	if c.networkListFunc != nil {
+		return c.networkListFunc(ctx, options)
+	}
+	return []network.Inspect{}, nil
 }
 
 func TestCompleteContainerNames(t *testing.T) {
@@ -218,6 +227,52 @@ func TestCompleteImageNames(t *testing.T) {
 						return nil, errors.New("some error occurred")
 					}
 					return tc.images, nil
+				},
+			}})
+
+			volumes, directives := comp(&cobra.Command{}, nil, "")
+			assert.Check(t, is.Equal(directives&tc.expDirective, tc.expDirective))
+			assert.Check(t, is.DeepEqual(volumes, tc.expOut))
+		})
+	}
+}
+
+func TestCompleteNetworkNames(t *testing.T) {
+	tests := []struct {
+		doc          string
+		networks     []network.Summary
+		expOut       []string
+		expDirective cobra.ShellCompDirective
+	}{
+		{
+			doc:          "no results",
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc: "with results",
+			networks: []network.Summary{
+				{ID: "nw-c", Name: "network-c"},
+				{ID: "nw-b", Name: "network-b"},
+				{ID: "nw-a", Name: "network-a"},
+			},
+			expOut:       []string{"network-c", "network-b", "network-a"},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:          "with error",
+			expDirective: cobra.ShellCompDirectiveError,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			comp := NetworkNames(fakeCLI{&fakeClient{
+				networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+					if tc.expDirective == cobra.ShellCompDirectiveError {
+						return nil, errors.New("some error occurred")
+					}
+					return tc.networks, nil
 				},
 			}})
 
