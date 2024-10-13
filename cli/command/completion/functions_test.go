@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
@@ -33,6 +34,7 @@ type fakeClient struct {
 	containerListFunc func(options container.ListOptions) ([]types.Container, error)
 	imageListFunc     func(options image.ListOptions) ([]image.Summary, error)
 	networkListFunc   func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
+	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
 }
 
 func (c *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]types.Container, error) {
@@ -54,6 +56,13 @@ func (c *fakeClient) NetworkList(ctx context.Context, options network.ListOption
 		return c.networkListFunc(ctx, options)
 	}
 	return []network.Inspect{}, nil
+}
+
+func (c *fakeClient) VolumeList(_ context.Context, options volume.ListOptions) (volume.ListResponse, error) {
+	if c.volumeListFunc != nil {
+		return c.volumeListFunc(options.Filters)
+	}
+	return volume.ListResponse{}, nil
 }
 
 func TestCompleteContainerNames(t *testing.T) {
@@ -293,4 +302,50 @@ func TestCompletePlatforms(t *testing.T) {
 	values, directives := Platforms(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 	assert.Check(t, is.DeepEqual(values, commonPlatforms))
+}
+
+func TestCompleteVolumeNames(t *testing.T) {
+	tests := []struct {
+		doc          string
+		volumes      []*volume.Volume
+		expOut       []string
+		expDirective cobra.ShellCompDirective
+	}{
+		{
+			doc:          "no results",
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc: "with results",
+			volumes: []*volume.Volume{
+				{Name: "volume-c"},
+				{Name: "volume-b"},
+				{Name: "volume-a"},
+			},
+			expOut:       []string{"volume-c", "volume-b", "volume-a"},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:          "with error",
+			expDirective: cobra.ShellCompDirectiveError,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.doc, func(t *testing.T) {
+			comp := VolumeNames(fakeCLI{&fakeClient{
+				volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+					if tc.expDirective == cobra.ShellCompDirectiveError {
+						return volume.ListResponse{}, errors.New("some error occurred")
+					}
+					return volume.ListResponse{Volumes: tc.volumes}, nil
+				},
+			}})
+
+			volumes, directives := comp(&cobra.Command{}, nil, "")
+			assert.Check(t, is.Equal(directives&tc.expDirective, tc.expDirective))
+			assert.Check(t, is.DeepEqual(volumes, tc.expOut))
+		})
+	}
 }
