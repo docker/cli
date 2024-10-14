@@ -12,38 +12,50 @@ Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
 
 ## Description
 
-A full image name has the following format and components:
+A Docker image reference consists of several components that describe where the
+image is stored and its identity. These components are:
 
-`[HOST[:PORT_NUMBER]/]PATH`
+```text
+[HOST[:PORT]/]NAMESPACE/REPOSITORY[:TAG]
+```
 
-- `HOST`: The optional registry hostname specifies where the image is located.
-  The hostname must comply with standard DNS rules, but may not contain
-  underscores. If you don't specify a hostname, the command uses Docker's public
-  registry at `registry-1.docker.io` by default. Note that `docker.io` is the
-  canonical reference for Docker's public registry.
-- `PORT_NUMBER`: If a hostname is present, it may optionally be followed by a
-  registry port number in the format `:8080`.
-- `PATH`: The path consists of slash-separated components. Each
-  component may contain lowercase letters, digits and separators. A separator is
-  defined as a period, one or two underscores, or one or more hyphens. A component
-  may not start or end with a separator. While the
-  [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec)
-  supports more than two slash-separated components, most registries only support
-  two slash-separated components. For Docker's public registry, the path format is
-  as follows:
-  - `[NAMESPACE/]REPOSITORY`: The first, optional component is typically a
-  user's or an organization's namespace. The second, mandatory component is the
-  repository name. When the namespace is not present, Docker uses `library`
-  as the default namespace.
+`HOST`
+: Specifies the registry location where the image resides. If omitted, Docker
+  defaults to Docker Hub (`docker.io`).
 
-After the image name, the optional `TAG` is a custom, human-readable manifest
-identifier that's typically a specific version or variant of an image. The tag
-must be valid ASCII and can contain lowercase and uppercase letters, digits,
-underscores, periods, and hyphens. It can't start with a period or hyphen and
-must be no longer than 128 characters. If you don't specify a tag, the command uses `latest` by default.
+`PORT`
+: An optional port number for the registry, if necessary (for example, `:5000`).
 
-You can group your images together using names and tags, and then
-[push](image_push.md) them to a registry.
+`NAMESPACE/REPOSITORY`
+: The namespace (optional) usually represents a user or organization. The
+  repository is required and identifies the specific image. If the namespace is
+  omitted, Docker defaults to `library`, the namespace reserved for Docker
+  Official Images.
+
+`TAG`
+: An optional identifier used to specify a particular version or variant of the
+  image. If no tag is provided, Docker defaults to `latest`.
+
+### Example image references
+
+`example.com:5000/team/my-app:2.0`
+
+- Host: `example.com`
+- Port: `5000`
+- Namespace: `team`
+- Repository: `my-app`
+- Tag: `2.0`
+
+`alpine`
+
+- Host: `docker.io` (default)
+- Namespace: `library` (default)
+- Repository: `alpine`
+- Tag: `latest` (default)
+
+For more information on the structure and rules of image naming, refer to the
+[Distribution reference](https://pkg.go.dev/github.com/distribution/reference#pkg-overview)
+as the canonical definition of the format.
 
 ## Examples
 
