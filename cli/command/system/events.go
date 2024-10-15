@@ -50,6 +50,8 @@ func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 	flags.StringVar(&options.format, "format", "", flagsHelper.InspectFormatHelp) // using the same flag description as "inspect" commands for now.
 
+	_ = cmd.RegisterFlagCompletionFunc("filter", completeEventFilters(dockerCli))
+
 	return cmd
 }
 
