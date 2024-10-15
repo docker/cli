@@ -725,7 +725,7 @@ to the `my-net` network.
 
 ```console
 $ docker network create my-net
-$ docker run -itd --network=my-net busybox
+$ docker run --network=my-net nginx
 ```
 
 You can also choose the IP addresses for the container with `--ip` and `--ip6`
@@ -734,7 +734,7 @@ static IP to containers, you must specify subnet block for the network.
 
 ```console
 $ docker network create --subnet 192.0.2.0/24 my-net
-$ docker run -itd --network=my-net --ip=192.0.2.69 busybox
+$ docker run --network=my-net --ip=192.0.2.69 nginx
 ```
 
 To connect the container to more than one network, repeat the `--network` option.
@@ -742,7 +742,7 @@ To connect the container to more than one network, repeat the `--network` option
 ```console
 $ docker network create --subnet 192.0.2.0/24 my-net1
 $ docker network create --subnet 192.0.3.0/24 my-net2
-$ docker run -itd --network=my-net1 --network=my-net2 busybox
+$ docker run --network=my-net1 --network=my-net2 nginx
 ```
 
 To specify options when connecting to more than one network, use the extended syntax
@@ -762,7 +762,7 @@ for the `--network` flag. Comma-separated options that can be specified in the e
 ```console
 $ docker network create --subnet 192.0.2.0/24 my-net1
 $ docker network create --subnet 192.0.3.0/24 my-net2
-$ docker run -itd --network=name=my-net1,ip=192.0.2.42 --network=name=my-net2,ip=192.0.3.42 busybox
+$ docker run --network=name=my-net1,ip=192.0.2.42 --network=name=my-net2,ip=192.0.3.42 nginx
 ```
 
 `sysctl` settings that start with `net.ipv4.`, `net.ipv6.` or `net.mpls.` can be
@@ -777,7 +777,7 @@ assigns the IPv4 address `192.0.2.42`.
 
 ```console
 $ docker network create --subnet 192.0.2.0/24 my-net
-$ docker run -itd --network=name=my-net,\"driver-opt=com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\",ip=192.0.2.42 busybox
+$ docker run --network=name=my-net,\"driver-opt=com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\",ip=192.0.2.42 nginx
 ```
 
 > [!NOTE]
