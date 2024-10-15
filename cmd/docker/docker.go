@@ -19,8 +19,10 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
+	"github.com/docker/docker/pkg/reexec"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -29,6 +31,10 @@ import (
 )
 
 func main() {
+	if reexec.Init() {
+		return
+	}
+
 	err := dockerMain(context.Background())
 	if err != nil && !errdefs.IsCancelled(err) {
 		_, _ = fmt.Fprintln(os.Stderr, err)
