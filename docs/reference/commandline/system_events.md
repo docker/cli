@@ -26,7 +26,7 @@ per Docker object type. Different event types have different scopes. Local
 scoped events are only seen on the node they take place on, and Swarm scoped
 events are seen on all managers.
 
-Only the last 1000 log events are returned. You can use filters to further limit
+Only the last 256 log events are returned. You can use filters to further limit
 the number of events returned.
 
 ### Object types
@@ -156,7 +156,7 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
-Only the last 1000 log events are returned. You can use filters to further limit
+Only the last 256 log events are returned. You can use filters to further limit
 the number of events returned.
 
 #### <a name="filter"></a> Filtering (--filter)
