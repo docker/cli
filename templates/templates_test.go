@@ -89,3 +89,55 @@ func TestParseTruncateFunction(t *testing.T) {
 		})
 	}
 }
+
+func TestHeaderFunctions(t *testing.T) {
+	const source = "hello world"
+
+	tests := []struct {
+		doc      string
+		template string
+	}{
+		{
+			doc:      "json",
+			template: `{{ json .}}`,
+		},
+		{
+			doc:      "split",
+			template: `{{ split . ","}}`,
+		},
+		{
+			doc:      "join",
+			template: `{{ join . ","}}`,
+		},
+		{
+			doc:      "title",
+			template: `{{ title .}}`,
+		},
+		{
+			doc:      "lower",
+			template: `{{ lower .}}`,
+		},
+		{
+			doc:      "upper",
+			template: `{{ upper .}}`,
+		},
+		{
+			doc:      "truncate",
+			template: `{{ truncate . 2}}`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			tmpl, err := New("").Funcs(HeaderFunctions).Parse(tc.template)
+			assert.NilError(t, err)
+
+			var b bytes.Buffer
+			assert.NilError(t, tmpl.Execute(&b, source))
+
+			// All header-functions are currently stubs, and don't modify the input.
+			expected := source
+			assert.Equal(t, expected, b.String())
+		})
+	}
+}
