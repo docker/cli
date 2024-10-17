@@ -34,7 +34,7 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 			opts.names = args
 			return runInspect(cmd.Context(), dockerCLI.Client(), dockerCLI.Out(), opts)
 		},
-		ValidArgsFunction: completion.NetworkNames(dockerCLI),
+		ValidArgsFunction: completion.CompleteNetworkNames(dockerCLI),
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)

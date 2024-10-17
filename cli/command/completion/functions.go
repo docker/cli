@@ -91,19 +91,28 @@ func VolumeNames(dockerCLI APIClientProvider) ValidArgsFn {
 	}
 }
 
-// NetworkNames offers completion for networks
-func NetworkNames(dockerCLI APIClientProvider) ValidArgsFn {
+// CompleteNetworkNames offers completion for networks
+func CompleteNetworkNames(dockerCLI APIClientProvider) ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().NetworkList(cmd.Context(), network.ListOptions{})
+		names, err := NetworkNames(dockerCLI, cmd)
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
-		var names []string
-		for _, nw := range list {
-			names = append(names, nw.Name)
-		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
+}
+
+// NetworkNames returns a list of networks
+func NetworkNames(dockerCLI APIClientProvider, cmd *cobra.Command) ([]string, error) {
+	summaries, err := dockerCLI.Client().NetworkList(cmd.Context(), network.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, nws := range summaries {
+		names = append(names, nws.Name)
+	}
+	return names, nil
 }
 
 // EnvVarNames offers completion for environment-variable names. This
