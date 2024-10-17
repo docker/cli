@@ -92,7 +92,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd:   false,
 			HiddenDefaultCmd:    true,
-			DisableDescriptions: true,
+			DisableDescriptions: false,
 		},
 	}
 	cmd.SetIn(dockerCli.In())
