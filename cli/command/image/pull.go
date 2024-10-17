@@ -50,6 +50,8 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddPlatformFlag(flags, &opts.platform)
 	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
 
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+
 	return cmd
 }
 

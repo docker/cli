@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
@@ -38,7 +39,9 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container rm, docker container remove, docker rm",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(ctr types.Container) bool {
+			return opts.force || ctr.State == "exited" || ctr.State == "created"
+		}),
 	}
 
 	flags := cmd.Flags()

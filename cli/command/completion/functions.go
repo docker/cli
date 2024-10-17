@@ -60,7 +60,7 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(types
 		for _, ctr := range list {
 			skip := false
 			for _, fn := range filters {
-				if !fn(ctr) {
+				if fn != nil && !fn(ctr) {
 					skip = true
 					break
 				}
@@ -145,4 +145,48 @@ func FileNames(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCom
 // NoComplete is used for commands where there's no relevant completion
 func NoComplete(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 	return nil, cobra.ShellCompDirectiveNoFileComp
+}
+
+var commonPlatforms = []string{
+	"linux",
+	"linux/386",
+	"linux/amd64",
+	"linux/arm",
+	"linux/arm/v5",
+	"linux/arm/v6",
+	"linux/arm/v7",
+	"linux/arm64",
+	"linux/arm64/v8",
+
+	// IBM power and z platforms
+	"linux/ppc64le",
+	"linux/s390x",
+
+	// Not yet supported
+	"linux/riscv64",
+
+	"windows",
+	"windows/amd64",
+
+	"wasip1",
+	"wasip1/wasm",
+}
+
+// Platforms offers completion for platform-strings. It provides a non-exhaustive
+// list of platforms to be used for completion. Platform-strings are based on
+// [runtime.GOOS] and [runtime.GOARCH], but with (optional) variants added. A
+// list of recognised os/arch combinations from the Go runtime can be obtained
+// through "go tool dist list".
+//
+// Some noteworthy exclusions from this list:
+//
+//   - arm64 images ("windows/arm64", "windows/arm64/v8") do not yet exist for windows.
+//   - we don't (yet) include `os-variant` for completion (as can be used for Windows images)
+//   - we don't (yet) include platforms for which we don't build binaries, such as
+//     BSD platforms (freebsd, netbsd, openbsd), android, macOS (darwin).
+//   - we currently exclude architectures that may have unofficial builds,
+//     but don't have wide adoption (and no support), such as loong64, mipsXXX,
+//     ppc64 (non-le) to prevent confusion.
+func Platforms(_ *cobra.Command, _ []string, _ string) (platforms []string, _ cobra.ShellCompDirective) {
+	return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
 }
