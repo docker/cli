@@ -41,7 +41,7 @@ func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				return completion.CompleteNetworkNames(dockerCLI)(cmd, args, toComplete)
+				return completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
 			}
 			nw := args[0]
 			return completion.ContainerNames(dockerCLI, true, not(isConnected(nw)))(cmd, args, toComplete)

@@ -69,10 +69,8 @@ func completeFilters(dockerCLI completion.APIClientProvider) completion.ValidArg
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
 		if strings.HasPrefix(toComplete, "network=") {
-			names, err := completion.NetworkNames(dockerCLI, cmd)
-			if err != nil {
-				return nil, cobra.ShellCompDirectiveError
-			}
+			// the pure network name list should be pulled out from NetworkNames.
+			names, _ := completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
 			return prefixWith("network=", names), cobra.ShellCompDirectiveDefault
 		}
 		if strings.HasPrefix(toComplete, "type=") {

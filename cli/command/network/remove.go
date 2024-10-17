@@ -27,7 +27,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(cmd.Context(), dockerCli, args, &opts)
 		},
-		ValidArgsFunction: completion.CompleteNetworkNames(dockerCli),
+		ValidArgsFunction: completion.NetworkNames(dockerCli),
 	}
 
 	flags := cmd.Flags()

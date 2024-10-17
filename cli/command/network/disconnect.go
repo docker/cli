@@ -31,7 +31,7 @@ func newDisconnectCommand(dockerCli command.Cli) *cobra.Command {
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				return completion.CompleteNetworkNames(dockerCli)(cmd, args, toComplete)
+				return completion.NetworkNames(dockerCli)(cmd, args, toComplete)
 			}
 			network := args[0]
 			return completion.ContainerNames(dockerCli, true, isConnected(network))(cmd, args, toComplete)
