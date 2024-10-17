@@ -52,14 +52,16 @@ var (
 		"untag",
 		"update",
 	}
+	eventTypes = []string{"config", "container", "daemon", "image", "network", "node", "plugin", "secret", "service", "volume"}
 )
-var eventTypes = []string{"config", "container", "daemon", "image", "network", "node", "plugin", "secret", "service", "volume"}
 
 func completeFilters(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if strings.HasPrefix(toComplete, "container=") {
-			// the pure container name list should be pulled out from ContainerNames.
 			names, _ := completion.ContainerNames(dockerCLI, true)(cmd, args, toComplete)
+			if names == nil {
+				return nil, cobra.ShellCompDirectiveNoFileComp
+			}
 			return prefixWith("container=", names), cobra.ShellCompDirectiveDefault
 		}
 		if strings.HasPrefix(toComplete, "event=") {
@@ -69,8 +71,10 @@ func completeFilters(dockerCLI completion.APIClientProvider) completion.ValidArg
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
 		if strings.HasPrefix(toComplete, "network=") {
-			// the pure network name list should be pulled out from NetworkNames.
 			names, _ := completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
+			if names == nil {
+				return nil, cobra.ShellCompDirectiveNoFileComp
+			}
 			return prefixWith("network=", names), cobra.ShellCompDirectiveDefault
 		}
 		if strings.HasPrefix(toComplete, "type=") {
