@@ -1,12 +1,8 @@
 package completion
 
 import (
-	"encoding/json"
-	"net/http"
-	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/container"
@@ -14,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -193,123 +188,4 @@ var commonPlatforms = []string{
 //     ppc64 (non-le) to prevent confusion.
 func Platforms(_ *cobra.Command, _ []string, _ string) (platforms []string, _ cobra.ShellCompDirective) {
 	return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
-}
-
-type ImageSearchResult struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Slug      string    `json:"slug"`
-	Type      string    `json:"type"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	ShortDesc string    `json:"short_description"`
-	Source    string    `json:"source"`
-	StarCount int       `json:"star_count"`
-}
-
-type ImageSearch struct {
-	Totals  int                 `json:"totals"`
-	Results []ImageSearchResult `json:"results"`
-}
-
-type Image struct {
-	ID          int       `json:"id"`
-	Name        string    `json:"name"`
-	TagStatus   string    `json:"tag_status"`
-	V2          bool      `json:"v2"`
-	Digest      string    `json:"digest"`
-	LastUpdated time.Time `json:"last_updated"`
-	LastUpdater int       `json:"last_updater"`
-	Creator     int       `json:"creator"`
-	Repository  int       `json:"repository"`
-}
-
-type ImageTags struct {
-	Count   int     `json:"count"`
-	Next    string  `json:"next"`
-	Prev    string  `json:"prev"`
-	Results []Image `json:"results"`
-}
-
-func RemoteImages(cmd *cobra.Command, arg []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	ctx := cmd.Context()
-	c := &http.Client{
-		Timeout: 2 * time.Second,
-	}
-
-	if imageName, imageTag, ok := strings.Cut(toComplete, ":"); ok {
-		u, err := url.Parse("https://hub.docker.com/v2/repositories/library/" + imageName + "/tags/")
-		if err != nil {
-			logrus.Errorf("Error parsing hub image tags URL: %v", err)
-			return nil, cobra.ShellCompDirectiveError
-		}
-		q := u.Query()
-		q.Set("ordering", "last_updated")
-		q.Set("page_size", "25")
-		q.Set("name", imageTag)
-		u.RawQuery = q.Encode()
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-		if err != nil {
-			logrus.Errorf("Error creating hub image tags request: %v", err)
-			return nil, cobra.ShellCompDirectiveError
-		}
-
-		resp, err := c.Do(req)
-		if err != nil {
-			logrus.Errorf("Error sending hub image tags request: %v", err)
-			return nil, cobra.ShellCompDirectiveError
-		}
-		defer resp.Body.Close()
-
-		var tags *ImageTags
-		if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
-			logrus.Errorf("Error decoding hub image tags response: %v", err)
-			return nil, cobra.ShellCompDirectiveError
-		}
-
-		names := make([]string, 0, len(tags.Results))
-		for _, i := range tags.Results {
-			names = append(names, imageName+":"+i.Name)
-		}
-		return names, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	u, err := url.Parse("https://hub.docker.com/api/search/v3/catalog/search")
-	if err != nil {
-		logrus.Errorf("Error parsing hub image search URL: %v", err)
-		return nil, cobra.ShellCompDirectiveError
-	}
-	q := u.Query()
-	q.Set("query", toComplete)
-	q.Set("extension_reviewed", "")
-	q.Set("from", "0")
-	q.Set("size", "25")
-	u.RawQuery = q.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		logrus.Errorf("Error creating hub image search request: %v", err)
-		return nil, cobra.ShellCompDirectiveError
-	}
-
-	resp, err := c.Do(req)
-	if err != nil {
-		logrus.Errorf("Error sending hub image search request: %v", err)
-		return nil, cobra.ShellCompDirectiveError
-	}
-	defer resp.Body.Close()
-
-	var images *ImageSearch
-	if err := json.NewDecoder(resp.Body).Decode(&images); err != nil {
-		logrus.Errorf("Error decoding hub image search response: %v", err)
-		return nil, cobra.ShellCompDirectiveError
-	}
-
-	names := make([]string, 0, len(images.Results))
-	for _, i := range images.Results {
-		names = append(names, i.Name)
-	}
-
-	return names, cobra.ShellCompDirectiveNoFileComp
 }

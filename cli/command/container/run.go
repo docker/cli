@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/hub"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
@@ -61,14 +62,44 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 				}
 			}
 
-			remoteImages, shellCompRemote := completion.RemoteImages(cmd, args, toComplete)
-			if shellCompRemote != cobra.ShellCompDirectiveError {
-				if len(all) == 0 {
-					all = make([]string, 0, len(remoteImages))
+			if image, tag, found := strings.Cut(toComplete, ":"); found {
+				remoteTags, err := dockerCli.Client().ImageHubTags(cmd.Context(), image, hub.ImageOptions{
+					Name:     tag,
+					Ordering: "last_updated",
+					Page:     0,
+					PageSize: 25,
+				})
+				if err == nil {
+					if len(all) == 0 {
+						all = make([]string, 0, len(remoteTags.Results))
+					}
+					for _, tag := range remoteTags.Results {
+						fullName := image + ":" + tag.Name
+						if _, ok := unique[fullName]; !ok {
+							all = append(all, fullName+"\tremote")
+						}
+					}
 				}
-				for _, img := range remoteImages {
-					if _, ok := unique[img]; !ok {
-						all = append(all, img+"\tremote")
+				return all, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp
+			}
+
+			remoteImages, err := dockerCli.Client().ImageHubSearch(cmd.Context(), toComplete, hub.SearchOptions{
+				From:              0,
+				Size:              25,
+				Type:              hub.SearchTypeImage,
+				Order:             hub.SearchOrderDesc,
+				Official:          true,
+				Source:            hub.SearchSourceStore,
+				OpenSource:        true,
+				ExtensionReviewed: true,
+			})
+			if err == nil {
+				if len(all) == 0 {
+					all = make([]string, 0, len(remoteImages.Results))
+				}
+				for _, img := range remoteImages.Results {
+					if _, ok := unique[img.Name]; !ok {
+						all = append(all, img.Name+"\tremote")
 					}
 				}
 			}

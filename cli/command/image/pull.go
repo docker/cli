@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/api/types/hub"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +44,50 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				return nil, cobra.ShellCompDirectiveNoFileComp
 			}
-			return completion.RemoteImages(cmd, args, toComplete)
+
+			if image, tag, found := strings.Cut(toComplete, ":"); found {
+				remoteTags, err := dockerCli.Client().ImageHubTags(cmd.Context(), image, hub.ImageOptions{
+					Name:     tag,
+					Ordering: "last_updated",
+					Page:     0,
+					PageSize: 25,
+				})
+				if err != nil {
+					return nil, cobra.ShellCompDirectiveError
+				}
+
+				images := make([]string, 0, len(remoteTags.Results))
+				for _, tag := range remoteTags.Results {
+					fullName := image + ":" + tag.Name
+					images = append(images, fullName+"\t"+tag.LastUpdated.String())
+				}
+				return images, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp
+			}
+
+			remoteImages, err := dockerCli.Client().ImageHubSearch(cmd.Context(), toComplete, hub.SearchOptions{
+				From:              0,
+				Size:              25,
+				Type:              hub.SearchTypeImage,
+				Order:             hub.SearchOrderDesc,
+				Official:          true,
+				Source:            hub.SearchSourceStore,
+				OpenSource:        true,
+				ExtensionReviewed: true,
+			})
+			if err != nil {
+				return nil, cobra.ShellCompDirectiveError
+			}
+
+			images := make([]string, 0, len(remoteImages.Results))
+			for _, img := range remoteImages.Results {
+				categories := make([]string, 0, len(img.Categories))
+				for _, cat := range img.Categories {
+					categories = append(categories, cat.Name)
+				}
+				images = append(images, img.Name+"\t"+strings.Join(categories, ", "))
+			}
+
+			return images, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp
 		},
 	}
 
