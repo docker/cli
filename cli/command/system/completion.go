@@ -1,6 +1,7 @@
 package system
 
 import (
+	"github.com/docker/docker/api/types"
 	"strings"
 
 	"github.com/docker/docker/api/types/events"
@@ -81,6 +82,7 @@ var (
 	}
 )
 
+// completeFilters provides completion for the filters that can be used with `--filter`.
 func completeFilters(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if strings.HasPrefix(toComplete, "container=") {
@@ -90,8 +92,23 @@ func completeFilters(dockerCLI completion.APIClientProvider) completion.ValidArg
 			}
 			return prefixWith("container=", names), cobra.ShellCompDirectiveDefault
 		}
+		if strings.HasPrefix(toComplete, "daemon=") {
+			info, err := dockerCLI.Client().Info(cmd.Context())
+			if err != nil {
+				return nil, cobra.ShellCompDirectiveNoFileComp
+			}
+			completions := []string{info.ID, info.Name}
+			return prefixWith("daemon=", completions), cobra.ShellCompDirectiveNoFileComp
+		}
 		if strings.HasPrefix(toComplete, "event=") {
 			return prefixWith("event=", validEventNames()), cobra.ShellCompDirectiveDefault
+		}
+		if strings.HasPrefix(toComplete, "image=") {
+			names, _ := completion.ImageNames(dockerCLI)(cmd, args, toComplete)
+			if names == nil {
+				return nil, cobra.ShellCompDirectiveNoFileComp
+			}
+			return prefixWith("image=", names), cobra.ShellCompDirectiveDefault
 		}
 		if strings.HasPrefix(toComplete, "label=") {
 			return nil, cobra.ShellCompDirectiveNoFileComp
@@ -103,9 +120,23 @@ func completeFilters(dockerCLI completion.APIClientProvider) completion.ValidArg
 			}
 			return prefixWith("network=", names), cobra.ShellCompDirectiveDefault
 		}
+		if strings.HasPrefix(toComplete, "node=") {
+			return prefixWith("node=", nodeNames(dockerCLI, cmd)), cobra.ShellCompDirectiveNoFileComp
+		}
+		if strings.HasPrefix(toComplete, "scope=") {
+			return prefixWith("scope=", []string{"local", "swarm"}), cobra.ShellCompDirectiveNoFileComp
+		}
 		if strings.HasPrefix(toComplete, "type=") {
 			return prefixWith("type=", eventTypeNames()), cobra.ShellCompDirectiveDefault
 		}
+		if strings.HasPrefix(toComplete, "volume=") {
+			names, _ := completion.VolumeNames(dockerCLI)(cmd, args, toComplete)
+			if names == nil {
+				return nil, cobra.ShellCompDirectiveNoFileComp
+			}
+			return prefixWith("volume=", names), cobra.ShellCompDirectiveDefault
+		}
+
 		return postfixWith("=", eventFilters), cobra.ShellCompDirectiveNoSpace
 	}
 }
@@ -146,6 +177,20 @@ func validEventNames() []string {
 			continue
 		}
 		names = append(names, string(eventAction))
+	}
+	return names
+}
+
+// nodeNames contacts the API to get a list of nodes.
+// In case of an error, an empty list is returned.
+func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
+	nodes, err := dockerCLI.Client().NodeList(cmd.Context(), types.NodeListOptions{})
+	if err != nil {
+		return []string{}
+	}
+	names := []string{}
+	for _, node := range nodes {
+		names = append(names, node.Description.Hostname)
 	}
 	return names
 }
