@@ -6005,7 +6005,7 @@ definitions:
           accept un-encrypted (HTTP) and/or untrusted (HTTPS with certificates
           from unknown CAs) communication.
 
-          By default, local registries (`127.0.0.0/8`) are configured as
+          By default, local registries (`::1/128` and `127.0.0.0/8`) are configured as
           insecure. All other registries are secure. Communicating with an
           insecure registry is not possible if the daemon assumes that registry
           is secure.
@@ -6170,6 +6170,8 @@ definitions:
       Expected:
         description: |
           Commit ID of external tool expected by dockerd as set at build time.
+
+          **Deprecated**: This field is deprecated and will be omitted in a API v1.49.
         type: "string"
         example: "2d41c047c83e09a6d61d464906feb2a2f3c52aa4"
 
@@ -7881,10 +7883,12 @@ paths:
           type: "string"
         - name: "h"
           in: "query"
+          required: true
           description: "Height of the TTY session in characters"
           type: "integer"
         - name: "w"
           in: "query"
+          required: true
           description: "Width of the TTY session in characters"
           type: "integer"
       tags: ["Container"]
@@ -10236,10 +10240,12 @@ paths:
           type: "string"
         - name: "h"
           in: "query"
+          required: true
           description: "Height of the TTY session in characters"
           type: "integer"
         - name: "w"
           in: "query"
+          required: true
           description: "Width of the TTY session in characters"
           type: "integer"
       tags: ["Exec"]
