@@ -5,6 +5,7 @@ package loader
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"runtime"
 	"sort"
@@ -878,7 +879,8 @@ services:
       service: foo
 `)
 
-	assert.ErrorType(t, err, &ForbiddenPropertiesError{})
+	var expectedErr *ForbiddenPropertiesError
+	assert.Check(t, errors.As(err, &expectedErr))
 
 	props := err.(*ForbiddenPropertiesError).Properties
 	assert.Check(t, is.Len(props, 2))

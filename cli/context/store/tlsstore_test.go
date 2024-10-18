@@ -13,7 +13,7 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	const contextName = "test-ctx"
 
 	_, err := testee.getData(contextName, "test-ep", "test-data")
-	assert.ErrorType(t, err, errdefs.IsNotFound)
+	assert.Check(t, errdefs.IsNotFound(err))
 
 	err = testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data"))
 	assert.NilError(t, err)
@@ -29,7 +29,7 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	err = testee.removeEndpoint(contextName, "test-ep")
 	assert.NilError(t, err)
 	_, err = testee.getData(contextName, "test-ep", "test-data")
-	assert.ErrorType(t, err, errdefs.IsNotFound)
+	assert.Check(t, errdefs.IsNotFound(err))
 }
 
 func TestTlsListAndBatchRemove(t *testing.T) {
