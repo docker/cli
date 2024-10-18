@@ -100,7 +100,11 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetErr(dockerCli.Err())
 
 	opts, helpCmd = cli.SetupRootCommand(cmd)
-	_ = registerCompletionFuncForGlobalFlags(dockerCli, cmd)
+
+	// TODO(thaJeztah): move configuring completion for these flags to where the flags are added.
+	_ = cmd.RegisterFlagCompletionFunc("context", completeContextNames(dockerCli))
+	_ = cmd.RegisterFlagCompletionFunc("log-level", completeLogLevels)
+
 	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
 	setFlagErrorFunc(dockerCli, cmd)
 
