@@ -157,6 +157,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 	}
 
+	argPassword = strings.TrimSpace(argPassword)
 	if argPassword == "" {
 		restoreInput, err := DisableInputEcho(cli.In())
 		if err != nil {
