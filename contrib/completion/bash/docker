@@ -5081,7 +5081,7 @@ _docker_system_events() {
 			return
 			;;
 		daemon)
-			local name=$(__docker_q info | sed -n 's/^\(ID\|Name\): //p')
+			local name=$(__docker_q info --format '{{.Info.Name}} {{.Info.ID}}')
 			COMPREPLY=( $( compgen -W "$name" -- "${cur##*=}" ) )
 			return
 			;;
