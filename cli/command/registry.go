@@ -31,12 +31,12 @@ const (
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) types.RequestPrivilegeFunc {
 	return func(ctx context.Context) (string, error) {
-		fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
+		_, _ = fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
 		isDefaultRegistry := indexServer == registry.IndexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
-			fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
+			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
 		}
 
 		select {
@@ -137,8 +137,8 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 			// a token instead of a password.
 			_, _ = fmt.Fprintln(cli.Out(), registerSuggest)
 			if hints.Enabled() {
-				fmt.Fprintln(cli.Out(), patSuggest)
-				fmt.Fprintln(cli.Out())
+				_, _ = fmt.Fprintln(cli.Out(), patSuggest)
+				_, _ = fmt.Fprintln(cli.Out())
 			}
 		}
 
@@ -183,7 +183,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
-		fmt.Fprint(cli.Out(), "\n")
+		_, _ = fmt.Fprintln(cli.Out())
 		if argPassword == "" {
 			return registrytypes.AuthConfig{}, errors.Errorf("Error: Password Required")
 		}
