@@ -125,9 +125,8 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		cli.SetIn(streams.NewIn(os.Stdin))
 	}
 
-	defaultUsername = strings.TrimSpace(defaultUsername)
-
-	if argUser = strings.TrimSpace(argUser); argUser == "" {
+	argUser = strings.TrimSpace(argUser)
+	if argUser == "" {
 		if serverAddress == registry.IndexServer {
 			// if this is a default registry (docker hub), then display the following message.
 			fmt.Fprintln(cli.Out(), "Log in with your Docker ID or email address to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com/ to create one.")
@@ -138,6 +137,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 
 		var prompt string
+		defaultUsername = strings.TrimSpace(defaultUsername)
 		if defaultUsername == "" {
 			prompt = "Username: "
 		} else {
