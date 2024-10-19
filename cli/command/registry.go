@@ -163,7 +163,15 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
-		defer restoreInput()
+		defer func() {
+			if err := restoreInput(); err != nil {
+				// TODO(thaJeztah): we should consider printing instructions how
+				//  to restore this manually (other than restarting the shell).
+				//  e.g., 'run stty echo' when in a Linux or macOS shell, but
+				//  PowerShell and CMD.exe may need different instructions.
+				_, _ = fmt.Fprintln(cli.Err(), "Error: failed to restore terminal state to echo input:", err)
+			}
+		}()
 
 		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
