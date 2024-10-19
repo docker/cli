@@ -87,7 +87,8 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 }
 
 // ConfigureAuth handles prompting of user's username and password if needed.
-// Deprecated: use PromptUserForCredentials instead.
+//
+// Deprecated: use [PromptUserForCredentials] instead.
 func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, authConfig *registrytypes.AuthConfig, _ bool) error {
 	defaultUsername := authConfig.Username
 	serverAddress := authConfig.ServerAddress
