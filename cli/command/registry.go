@@ -150,10 +150,11 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		if argUser == "" {
 			argUser = defaultUsername
 		}
+		if argUser == "" {
+			return registrytypes.AuthConfig{}, errors.Errorf("Error: Non-null Username Required")
+		}
 	}
-	if argUser == "" {
-		return registrytypes.AuthConfig{}, errors.Errorf("Error: Non-null Username Required")
-	}
+
 	if argPassword == "" {
 		restoreInput, err := DisableInputEcho(cli.In())
 		if err != nil {
