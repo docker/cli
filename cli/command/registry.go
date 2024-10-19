@@ -110,7 +110,7 @@ func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, auth
 // If defaultUsername is not empty, the username prompt includes that username
 // and the user can hit enter without inputting a username  to use that default
 // username.
-func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (authConfig registrytypes.AuthConfig, err error) {
+func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
 	// On Windows, force the use of the regular OS stdin stream.
 	//
 	// See:
@@ -142,38 +142,41 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		} else {
 			prompt = fmt.Sprintf("Username (%s): ", defaultUsername)
 		}
+
+		var err error
 		argUser, err = PromptForInput(ctx, cli.In(), cli.Out(), prompt)
 		if err != nil {
-			return authConfig, err
+			return registrytypes.AuthConfig{}, err
 		}
 		if argUser == "" {
 			argUser = defaultUsername
 		}
 	}
 	if argUser == "" {
-		return authConfig, errors.Errorf("Error: Non-null Username Required")
+		return registrytypes.AuthConfig{}, errors.Errorf("Error: Non-null Username Required")
 	}
 	if argPassword == "" {
 		restoreInput, err := DisableInputEcho(cli.In())
 		if err != nil {
-			return authConfig, err
+			return registrytypes.AuthConfig{}, err
 		}
 		defer restoreInput()
 
 		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
-			return authConfig, err
+			return registrytypes.AuthConfig{}, err
 		}
 		fmt.Fprint(cli.Out(), "\n")
 		if argPassword == "" {
-			return authConfig, errors.Errorf("Error: Password Required")
+			return registrytypes.AuthConfig{}, errors.Errorf("Error: Password Required")
 		}
 	}
 
-	authConfig.Username = argUser
-	authConfig.Password = argPassword
-	authConfig.ServerAddress = serverAddress
-	return authConfig, nil
+	return registrytypes.AuthConfig{
+		Username:      argUser,
+		Password:      argPassword,
+		ServerAddress: serverAddress,
+	}, nil
 }
 
 // RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete
