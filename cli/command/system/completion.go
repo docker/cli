@@ -154,7 +154,7 @@ func eventTypeNames() []string {
 // The list is derived from eventActions.
 // Actions that are not suitable for usage in completions are removed.
 func validEventNames() []string {
-	var names []string
+	names := []string{}
 	for _, eventAction := range eventActions {
 		if strings.Contains(string(eventAction), " ") {
 			continue
@@ -191,7 +191,7 @@ func imageNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []st
 	if err != nil {
 		return []string{}
 	}
-	var names []string
+	names := []string{}
 	for _, img := range list {
 		names = append(names, img.RepoTags...)
 	}
@@ -205,7 +205,7 @@ func networkNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []
 	if err != nil {
 		return []string{}
 	}
-	var names []string
+	names := []string{}
 	for _, nw := range list {
 		names = append(names, nw.Name)
 	}
@@ -219,7 +219,7 @@ func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []str
 	if err != nil {
 		return []string{}
 	}
-	var names []string
+	names := []string{}
 	for _, node := range list {
 		names = append(names, node.Description.Hostname)
 	}
@@ -233,7 +233,7 @@ func volumeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []s
 	if err != nil {
 		return []string{}
 	}
-	var names []string
+	names := []string{}
 	for _, v := range list.Volumes {
 		names = append(names, v.Name)
 	}
