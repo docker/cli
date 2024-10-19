@@ -19,6 +19,7 @@ type fakeClient struct {
 	eventsFn           func(context.Context, events.ListOptions) (<-chan events.Message, <-chan error)
 	containerPruneFunc func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	networkPruneFunc   func(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
+	containerListFunc  func(context.Context, container.ListOptions) ([]container.Summary, error)
 }
 
 func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
@@ -45,4 +46,11 @@ func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Ar
 		return cli.networkPruneFunc(ctx, pruneFilter)
 	}
 	return network.PruneReport{}, nil
+}
+
+func (cli *fakeClient) ContainerList(ctx context.Context, options container.ListOptions) ([]container.Summary, error) {
+	if cli.containerListFunc != nil {
+		return cli.containerListFunc(ctx, options)
+	}
+	return []container.Summary{}, nil
 }
