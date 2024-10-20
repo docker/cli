@@ -14,6 +14,7 @@ import (
 	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
+	"github.com/fvbommel/sortorder"
 	"github.com/morikuni/aec"
 )
 
@@ -91,11 +92,6 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				created:  img.Created,
 			})
 		} else {
-			// Sort same images alphabetically to keep a consistent sort order.
-			// We can remove this if we decide to sort the list by name, instead
-			// of by "created" date.
-			sort.Strings(img.RepoTags)
-
 			// Present images tagged under multiple names as separate images.
 			for _, n := range img.RepoTags {
 				view.images = append(view.images, topImage{
@@ -108,8 +104,25 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		}
 	}
 
+	// Sort images alphabetically using natural-sort, with untagged images last.
 	sort.Slice(view.images, func(i, j int) bool {
-		return view.images[i].created > view.images[j].created
+		iUntagged, jUntagged := len(view.images[i].Names) == 0, len(view.images[j].Names) == 0
+		if iUntagged || jUntagged {
+			switch {
+			case iUntagged && jUntagged:
+				// Both untagged images; sort by created date (desc)
+				return view.images[i].created > view.images[j].created
+			case iUntagged:
+				// Sort untagged images last
+				return false
+			case jUntagged:
+				// Sort untagged images last
+				return true
+			}
+		}
+
+		// Sort alphabetically, ascending
+		return sortorder.NaturalLess(view.images[i].Names[0], view.images[j].Names[0])
 	})
 
 	return printImageTree(dockerCLI, view)
