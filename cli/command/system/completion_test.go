@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/docker/docker/api/types/system"
+
 	"github.com/docker/docker/api/types/network"
 
 	"github.com/docker/cli/internal/test"
@@ -41,6 +43,38 @@ func TestCompleteEventFilterContainerAPIError(t *testing.T) {
 	})
 
 	completions, directive := completeFilters(cli)(NewEventsCommand(cli), nil, "container=")
+
+	assert.DeepEqual(t, completions, []string{})
+	assert.Equal(t, directive, cobra.ShellCompDirectiveNoFileComp)
+}
+
+// Successful completion lists the name and id of the current Docker daemon, prefixed with "daemon=".
+// Filtering the completions by the current word is delegated to the completion script.
+func TestCompleteEventFilterDaemon(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		infoFunc: func(ctx context.Context) (system.Info, error) {
+			return system.Info{
+				ID:   "daemon-id",
+				Name: "daemon-name",
+			}, nil
+		},
+	})
+
+	completions, directive := completeFilters(cli)(NewEventsCommand(cli), nil, "daemon=")
+
+	assert.DeepEqual(t, completions, []string{"daemon=daemon-name", "daemon=daemon-id"})
+	assert.Equal(t, directive, cobra.ShellCompDirectiveNoFileComp)
+}
+
+// In case of API errors, no completions are returned.
+func TestCompleteEventFilterDaemonAPIError(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		infoFunc: func(ctx context.Context) (system.Info, error) {
+			return system.Info{}, errors.New("API error")
+		},
+	})
+
+	completions, directive := completeFilters(cli)(NewEventsCommand(cli), nil, "daemon=")
 
 	assert.DeepEqual(t, completions, []string{})
 	assert.Equal(t, directive, cobra.ShellCompDirectiveNoFileComp)
