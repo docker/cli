@@ -18,20 +18,24 @@ import (
 	"github.com/pkg/errors"
 )
 
-const patSuggest = "You can log in with your password or a Personal Access " +
-	"Token (PAT). Using a limited-scope PAT grants better security and is required " +
-	"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
+const (
+	registerSuggest = "Log in with your Docker ID or email address to push and pull images from Docker Hub. " +
+		"If you don't have a Docker ID, head over to https://hub.docker.com/ to create one."
+	patSuggest = "You can log in with your password or a Personal Access " +
+		"Token (PAT). Using a limited-scope PAT grants better security and is required " +
+		"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
+)
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
 	return func(ctx context.Context) (string, error) {
-		fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
+		_, _ = fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
 		indexServer := registry.GetAuthConfigKey(index)
 		isDefaultRegistry := indexServer == registry.IndexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
-			fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
+			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
 		}
 
 		select {
@@ -111,7 +115,7 @@ func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, auth
 // If defaultUsername is not empty, the username prompt includes that username
 // and the user can hit enter without inputting a username  to use that default
 // username.
-func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (authConfig registrytypes.AuthConfig, err error) {
+func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
 	// On Windows, force the use of the regular OS stdin stream.
 	//
 	// See:
@@ -124,57 +128,71 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		cli.SetIn(streams.NewIn(os.Stdin))
 	}
 
-	isDefaultRegistry := serverAddress == registry.IndexServer
-	defaultUsername = strings.TrimSpace(defaultUsername)
-
-	if argUser = strings.TrimSpace(argUser); argUser == "" {
-		if isDefaultRegistry {
-			// if this is a default registry (docker hub), then display the following message.
-			fmt.Fprintln(cli.Out(), "Log in with your Docker ID or email address to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com/ to create one.")
+	argUser = strings.TrimSpace(argUser)
+	if argUser == "" {
+		if serverAddress == registry.IndexServer {
+			// When signing in to the default (Docker Hub) registry, we display
+			// hints for creating an account, and (if hints are enabled), using
+			// a token instead of a password.
+			_, _ = fmt.Fprintln(cli.Out(), registerSuggest)
 			if hints.Enabled() {
-				fmt.Fprintln(cli.Out(), patSuggest)
-				fmt.Fprintln(cli.Out())
+				_, _ = fmt.Fprintln(cli.Out(), patSuggest)
+				_, _ = fmt.Fprintln(cli.Out())
 			}
 		}
 
 		var prompt string
+		defaultUsername = strings.TrimSpace(defaultUsername)
 		if defaultUsername == "" {
 			prompt = "Username: "
 		} else {
 			prompt = fmt.Sprintf("Username (%s): ", defaultUsername)
 		}
+
+		var err error
 		argUser, err = PromptForInput(ctx, cli.In(), cli.Out(), prompt)
 		if err != nil {
-			return authConfig, err
+			return registrytypes.AuthConfig{}, err
 		}
 		if argUser == "" {
 			argUser = defaultUsername
 		}
+		if argUser == "" {
+			return registrytypes.AuthConfig{}, errors.Errorf("Error: Non-null Username Required")
+		}
 	}
-	if argUser == "" {
-		return authConfig, errors.Errorf("Error: Non-null Username Required")
-	}
+
+	argPassword = strings.TrimSpace(argPassword)
 	if argPassword == "" {
 		restoreInput, err := DisableInputEcho(cli.In())
 		if err != nil {
-			return authConfig, err
+			return registrytypes.AuthConfig{}, err
 		}
-		defer restoreInput()
+		defer func() {
+			if err := restoreInput(); err != nil {
+				// TODO(thaJeztah): we should consider printing instructions how
+				//  to restore this manually (other than restarting the shell).
+				//  e.g., 'run stty echo' when in a Linux or macOS shell, but
+				//  PowerShell and CMD.exe may need different instructions.
+				_, _ = fmt.Fprintln(cli.Err(), "Error: failed to restore terminal state to echo input:", err)
+			}
+		}()
 
 		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
-			return authConfig, err
+			return registrytypes.AuthConfig{}, err
 		}
-		fmt.Fprint(cli.Out(), "\n")
+		_, _ = fmt.Fprintln(cli.Out())
 		if argPassword == "" {
-			return authConfig, errors.Errorf("Error: Password Required")
+			return registrytypes.AuthConfig{}, errors.Errorf("Error: Password Required")
 		}
 	}
 
-	authConfig.Username = argUser
-	authConfig.Password = argPassword
-	authConfig.ServerAddress = serverAddress
-	return authConfig, nil
+	return registrytypes.AuthConfig{
+		Username:      argUser,
+		Password:      argPassword,
+		ServerAddress: serverAddress,
+	}, nil
 }
 
 // RetrieveAuthTokenFromImage retrieves an encoded auth token given a complete
