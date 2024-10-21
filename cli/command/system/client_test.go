@@ -3,6 +3,8 @@ package system
 import (
 	"context"
 
+	"github.com/docker/docker/api/types/system"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
@@ -19,6 +21,9 @@ type fakeClient struct {
 	eventsFn           func(context.Context, events.ListOptions) (<-chan events.Message, <-chan error)
 	containerPruneFunc func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	networkPruneFunc   func(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
+	containerListFunc  func(context.Context, container.ListOptions) ([]container.Summary, error)
+	infoFunc           func(ctx context.Context) (system.Info, error)
+	networkListFunc    func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
 }
 
 func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
@@ -45,4 +50,25 @@ func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Ar
 		return cli.networkPruneFunc(ctx, pruneFilter)
 	}
 	return network.PruneReport{}, nil
+}
+
+func (cli *fakeClient) ContainerList(ctx context.Context, options container.ListOptions) ([]container.Summary, error) {
+	if cli.containerListFunc != nil {
+		return cli.containerListFunc(ctx, options)
+	}
+	return []container.Summary{}, nil
+}
+
+func (cli *fakeClient) Info(ctx context.Context) (system.Info, error) {
+	if cli.infoFunc != nil {
+		return cli.infoFunc(ctx)
+	}
+	return system.Info{}, nil
+}
+
+func (cli *fakeClient) NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+	if cli.networkListFunc != nil {
+		return cli.networkListFunc(ctx, options)
+	}
+	return []network.Summary{}, nil
 }
