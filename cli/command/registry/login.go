@@ -58,9 +58,9 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
+func verifyLoginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	if opts.password != "" {
-		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
+		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 		if opts.passwordStdin {
 			return errors.New("--password and --password-stdin are mutually exclusive")
 		}
@@ -83,7 +83,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 }
 
 func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) error {
-	if err := verifyloginOptions(dockerCli, &opts); err != nil {
+	if err := verifyLoginOptions(dockerCli, &opts); err != nil {
 		return err
 	}
 	var (
@@ -174,7 +174,7 @@ func loginUser(ctx context.Context, dockerCli command.Cli, opts loginOptions, de
 		if !errors.Is(err, manager.ErrDeviceLoginStartFail) {
 			return response, err
 		}
-		fmt.Fprint(dockerCli.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
+		_, _ = fmt.Fprint(dockerCli.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
 	}
 
 	return loginWithUsernameAndPassword(ctx, dockerCli, opts, defaultUsername, serverAddress)
