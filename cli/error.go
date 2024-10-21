@@ -8,6 +8,8 @@ import (
 // Errors is a list of errors.
 // Useful in a loop if you don't want to return the error right away and you want to display after the loop,
 // all the errors that happened during the loop.
+//
+// Deprecated: use [errors.Join] instead; will be removed in the next release.
 type Errors []error
 
 func (errList Errors) Error() string {
