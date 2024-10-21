@@ -30,6 +30,10 @@ func NewFileStore(file store) Store {
 
 // Erase removes the given credentials from the file store.
 func (c *fileStore) Erase(serverAddress string) error {
+	if _, exists := c.file.GetAuthConfigs()[serverAddress]; !exists {
+		// nothing to do; no credentials found for the given serverAddress
+		return nil
+	}
 	delete(c.file.GetAuthConfigs(), serverAddress)
 	return c.file.Save()
 }
@@ -70,9 +74,14 @@ https://docs.docker.com/go/credential-store/
 // CLI invocation (no need to warn the user multiple times per command).
 var alreadyPrinted atomic.Bool
 
-// Store saves the given credentials in the file store.
+// Store saves the given credentials in the file store. This function is
+// idempotent and does not update the file if credentials did not change.
 func (c *fileStore) Store(authConfig types.AuthConfig) error {
 	authConfigs := c.file.GetAuthConfigs()
+	if oldAuthConfig, ok := authConfigs[authConfig.ServerAddress]; ok && oldAuthConfig == authConfig {
+		// Credentials didn't change, so skip updating the configuration file.
+		return nil
+	}
 	authConfigs[authConfig.ServerAddress] = authConfig
 	if err := c.file.Save(); err != nil {
 		return err
