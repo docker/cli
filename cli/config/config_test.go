@@ -118,6 +118,17 @@ func TestEmptyJSON(t *testing.T) {
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
 }
 
+func TestMalformedJSON(t *testing.T) {
+	tmpHome := t.TempDir()
+
+	fn := filepath.Join(tmpHome, ConfigFileName)
+	err := os.WriteFile(fn, []byte("{"), 0o600)
+	assert.NilError(t, err)
+
+	_, err = Load(tmpHome)
+	assert.Check(t, is.ErrorContains(err, fmt.Sprintf(`parsing config file (%s):`, fn)))
+}
+
 func TestNewJSON(t *testing.T) {
 	tmpHome := t.TempDir()
 
