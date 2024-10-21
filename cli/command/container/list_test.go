@@ -128,7 +128,6 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 
 func TestContainerListErrors(t *testing.T) {
 	testCases := []struct {
-		args              []string
 		flags             map[string]string
 		containerListFunc func(container.ListOptions) ([]types.Container, error)
 		expectedError     string
@@ -158,10 +157,10 @@ func TestContainerListErrors(t *testing.T) {
 				containerListFunc: tc.containerListFunc,
 			}),
 		)
-		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			assert.Check(t, cmd.Flags().Set(key, value))
 		}
+		cmd.SetArgs([]string{})
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -181,6 +180,9 @@ func TestContainerListWithoutFormat(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-without-format.golden")
 }
@@ -195,6 +197,9 @@ func TestContainerListNoTrunc(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Check(t, cmd.Flags().Set("no-trunc", "true"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-without-format-no-trunc.golden")
@@ -211,6 +216,9 @@ func TestContainerListNamesMultipleTime(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Check(t, cmd.Flags().Set("format", "{{.Names}} {{.Names}}"))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-name-name.golden")
@@ -227,6 +235,9 @@ func TestContainerListFormatTemplateWithArg(t *testing.T) {
 		},
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Check(t, cmd.Flags().Set("format", `{{.Names}} {{.Label "some.label"}}`))
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-format-with-arg.golden")
@@ -276,6 +287,9 @@ func TestContainerListFormatSizeSetsOption(t *testing.T) {
 				},
 			})
 			cmd := newListCommand(cli)
+			cmd.SetArgs([]string{})
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.Check(t, cmd.Flags().Set("format", tc.format))
 			if tc.sizeFlag != "" {
 				assert.Check(t, cmd.Flags().Set("size", tc.sizeFlag))
@@ -298,6 +312,9 @@ func TestContainerListWithConfigFormat(t *testing.T) {
 		PsFormat: "{{ .Names }} {{ .Image }} {{ .Labels }} {{ .Size}}",
 	})
 	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "container-list-with-config-format.golden")
 }
@@ -315,6 +332,9 @@ func TestContainerListWithFormat(t *testing.T) {
 	t.Run("with format", func(t *testing.T) {
 		cli.OutBuffer().Reset()
 		cmd := newListCommand(cli)
+		cmd.SetArgs([]string{})
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.Check(t, cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}"))
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "container-list-with-format.golden")
@@ -323,6 +343,9 @@ func TestContainerListWithFormat(t *testing.T) {
 	t.Run("with format and quiet", func(t *testing.T) {
 		cli.OutBuffer().Reset()
 		cmd := newListCommand(cli)
+		cmd.SetArgs([]string{})
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.Check(t, cmd.Flags().Set("format", "{{ .Names }} {{ .Image }} {{ .Labels }}"))
 		assert.Check(t, cmd.Flags().Set("quiet", "true"))
 		assert.NilError(t, cmd.Execute())
