@@ -10,9 +10,15 @@ import (
 
 type fakeStore struct {
 	configs map[string]types.AuthConfig
+	saveFn  func(*fakeStore) error
 }
 
 func (f *fakeStore) Save() error {
+	if f.saveFn != nil {
+		// Pass a reference to the fakeStore itself in case saveFn
+		// wants to access it.
+		return f.saveFn(f)
+	}
 	return nil
 }
 
@@ -21,15 +27,82 @@ func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
 }
 
 func (f *fakeStore) GetFilename() string {
-	return "/tmp/docker-fakestore"
+	return "no-config.json"
 }
 
-func newStore(auths map[string]types.AuthConfig) store {
-	return &fakeStore{configs: auths}
+// TestFileStoreIdempotent verifies that the config-file isn't updated
+// if nothing changed.
+func TestFileStoreIdempotent(t *testing.T) {
+	var saveCount, expectedSaveCount int
+
+	s := NewFileStore(&fakeStore{
+		configs: map[string]types.AuthConfig{},
+		saveFn: func(*fakeStore) error {
+			saveCount++
+			return nil
+		},
+	})
+	authOne := types.AuthConfig{
+		Auth:          "super_secret_token",
+		Email:         "foo@example.com",
+		ServerAddress: "https://example.com",
+	}
+	authTwo := types.AuthConfig{
+		Auth:          "also_super_secret_token",
+		Email:         "bar@example.com",
+		ServerAddress: "https://other.example.com",
+	}
+
+	expectedSaveCount = 1
+	t.Run("store new credentials", func(t *testing.T) {
+		assert.NilError(t, s.Store(authOne))
+		retrievedAuth, err := s.Get(authOne.ServerAddress)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(retrievedAuth, authOne))
+		assert.Check(t, is.Equal(saveCount, expectedSaveCount))
+	})
+	t.Run("store same credentials is a no-op", func(t *testing.T) {
+		assert.NilError(t, s.Store(authOne))
+		retrievedAuth, err := s.Get(authOne.ServerAddress)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(retrievedAuth, authOne))
+		assert.Check(t, is.Equal(saveCount, expectedSaveCount), "should not have saved if nothing changed")
+	})
+	t.Run("store other credentials", func(t *testing.T) {
+		expectedSaveCount++
+		assert.NilError(t, s.Store(authTwo))
+		retrievedAuth, err := s.Get(authTwo.ServerAddress)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(retrievedAuth, authTwo))
+		assert.Check(t, is.Equal(saveCount, expectedSaveCount))
+	})
+	t.Run("erase credentials", func(t *testing.T) {
+		expectedSaveCount++
+		assert.NilError(t, s.Erase(authOne.ServerAddress))
+		retrievedAuth, err := s.Get(authOne.ServerAddress)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(retrievedAuth, types.AuthConfig{}))
+		assert.Check(t, is.Equal(saveCount, expectedSaveCount))
+	})
+	t.Run("erase non-existing credentials is a no-op", func(t *testing.T) {
+		assert.NilError(t, s.Erase(authOne.ServerAddress))
+		retrievedAuth, err := s.Get(authOne.ServerAddress)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(retrievedAuth, types.AuthConfig{}))
+		assert.Check(t, is.Equal(saveCount, expectedSaveCount), "should not have saved if nothing changed")
+	})
+	t.Run("erase other credentials", func(t *testing.T) {
+		expectedSaveCount++
+		assert.NilError(t, s.Erase(authTwo.ServerAddress))
+		retrievedAuth, err := s.Get(authTwo.ServerAddress)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(retrievedAuth, types.AuthConfig{}))
+		assert.Check(t, is.Equal(saveCount, expectedSaveCount))
+	})
 }
 
 func TestFileStoreAddCredentials(t *testing.T) {
-	f := newStore(make(map[string]types.AuthConfig))
+	f := &fakeStore{configs: map[string]types.AuthConfig{}}
 
 	s := NewFileStore(f)
 	auth := types.AuthConfig{
@@ -47,13 +120,13 @@ func TestFileStoreAddCredentials(t *testing.T) {
 }
 
 func TestFileStoreGet(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		"https://example.com": {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
-	})
+	}}
 
 	s := NewFileStore(f)
 	a, err := s.Get("https://example.com")
@@ -71,7 +144,7 @@ func TestFileStoreGet(t *testing.T) {
 func TestFileStoreGetAll(t *testing.T) {
 	s1 := "https://example.com"
 	s2 := "https://example2.example.com"
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		s1: {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
@@ -82,7 +155,7 @@ func TestFileStoreGetAll(t *testing.T) {
 			Email:         "foo@example2.com",
 			ServerAddress: "https://example2.example.com",
 		},
-	})
+	}}
 
 	s := NewFileStore(f)
 	as, err := s.GetAll()
@@ -107,13 +180,13 @@ func TestFileStoreGetAll(t *testing.T) {
 }
 
 func TestFileStoreErase(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		"https://example.com": {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
-	})
+	}}
 
 	s := NewFileStore(f)
 	err := s.Erase("https://example.com")

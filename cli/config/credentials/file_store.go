@@ -28,7 +28,8 @@ func NewFileStore(file store) Store {
 	return &fileStore{file: file}
 }
 
-// Erase removes the given credentials from the file store.
+// Erase removes the given credentials from the file store.This function is
+// idempotent and does not update the file if credentials did not change.
 func (c *fileStore) Erase(serverAddress string) error {
 	if _, exists := c.file.GetAuthConfigs()[serverAddress]; !exists {
 		// nothing to do; no credentials found for the given serverAddress
