@@ -82,12 +82,30 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 
 		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
 
-		view.images = append(view.images, topImage{
-			Names:    img.RepoTags,
-			Details:  details,
-			Children: children,
-			created:  img.Created,
-		})
+		if len(img.RepoTags) == 0 {
+			// Untagged image
+			view.images = append(view.images, topImage{
+				Names:    img.RepoTags,
+				Details:  details,
+				Children: children,
+				created:  img.Created,
+			})
+		} else {
+			// Sort same images alphabetically to keep a consistent sort order.
+			// We can remove this if we decide to sort the list by name, instead
+			// of by "created" date.
+			sort.Strings(img.RepoTags)
+
+			// Present images tagged under multiple names as separate images.
+			for _, n := range img.RepoTags {
+				view.images = append(view.images, topImage{
+					Names:    []string{n}, // Consider changing Names to be a single name for purpose of this presentation.
+					Details:  details,
+					Children: children,
+					created:  img.Created,
+				})
+			}
+		}
 	}
 
 	sort.Slice(view.images, func(i, j int) bool {
