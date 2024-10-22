@@ -91,7 +91,7 @@ func mockCommandFn(args ...string) client.Program {
 }
 
 func TestNativeStoreAddCredentials(t *testing.T) {
-	f := newStore(make(map[string]types.AuthConfig))
+	f := &fakeStore{configs: map[string]types.AuthConfig{}}
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
@@ -116,7 +116,7 @@ func TestNativeStoreAddCredentials(t *testing.T) {
 }
 
 func TestNativeStoreAddInvalidCredentials(t *testing.T) {
-	f := newStore(make(map[string]types.AuthConfig))
+	f := &fakeStore{configs: map[string]types.AuthConfig{}}
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
@@ -132,11 +132,11 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 }
 
 func TestNativeStoreGet(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
-	})
+	}}
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
@@ -154,11 +154,11 @@ func TestNativeStoreGet(t *testing.T) {
 }
 
 func TestNativeStoreGetIdentityToken(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress2: {
 			Email: "foo@example2.com",
 		},
-	})
+	}}
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
@@ -176,11 +176,11 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 }
 
 func TestNativeStoreGetAll(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
-	})
+	}}
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
@@ -217,11 +217,11 @@ func TestNativeStoreGetAll(t *testing.T) {
 }
 
 func TestNativeStoreGetMissingCredentials(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
-	})
+	}}
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
@@ -232,11 +232,11 @@ func TestNativeStoreGetMissingCredentials(t *testing.T) {
 }
 
 func TestNativeStoreGetInvalidAddress(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
-	})
+	}}
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
@@ -247,11 +247,11 @@ func TestNativeStoreGetInvalidAddress(t *testing.T) {
 }
 
 func TestNativeStoreErase(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
-	})
+	}}
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,
@@ -263,11 +263,11 @@ func TestNativeStoreErase(t *testing.T) {
 }
 
 func TestNativeStoreEraseInvalidAddress(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
 			Email: "foo@example.com",
 		},
-	})
+	}}
 
 	s := &nativeStore{
 		programFunc: mockCommandFn,

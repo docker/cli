@@ -24,12 +24,8 @@ func (f *fakeStore) GetFilename() string {
 	return "/tmp/docker-fakestore"
 }
 
-func newStore(auths map[string]types.AuthConfig) store {
-	return &fakeStore{configs: auths}
-}
-
 func TestFileStoreAddCredentials(t *testing.T) {
-	f := newStore(make(map[string]types.AuthConfig))
+	f := &fakeStore{configs: map[string]types.AuthConfig{}}
 
 	s := NewFileStore(f)
 	auth := types.AuthConfig{
@@ -47,13 +43,13 @@ func TestFileStoreAddCredentials(t *testing.T) {
 }
 
 func TestFileStoreGet(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		"https://example.com": {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
-	})
+	}}
 
 	s := NewFileStore(f)
 	a, err := s.Get("https://example.com")
@@ -71,7 +67,7 @@ func TestFileStoreGet(t *testing.T) {
 func TestFileStoreGetAll(t *testing.T) {
 	s1 := "https://example.com"
 	s2 := "https://example2.example.com"
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		s1: {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
@@ -82,7 +78,7 @@ func TestFileStoreGetAll(t *testing.T) {
 			Email:         "foo@example2.com",
 			ServerAddress: "https://example2.example.com",
 		},
-	})
+	}}
 
 	s := NewFileStore(f)
 	as, err := s.GetAll()
@@ -107,13 +103,13 @@ func TestFileStoreGetAll(t *testing.T) {
 }
 
 func TestFileStoreErase(t *testing.T) {
-	f := newStore(map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]types.AuthConfig{
 		"https://example.com": {
 			Auth:          "super_secret_token",
 			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
-	})
+	}}
 
 	s := NewFileStore(f)
 	err := s.Erase("https://example.com")
