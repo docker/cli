@@ -54,6 +54,20 @@ var restartPolicies = []string{
 	string(container.RestartPolicyUnlessStopped),
 }
 
+// addCompletions adds the completions that `run` and `create` have in common.
+func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) {
+	_ = cmd.RegisterFlagCompletionFunc("cap-add", completeLinuxCapabilityNames)
+	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
+	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
+	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
+	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
+	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
+	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
+	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
+}
+
 func completeLinuxCapabilityNames(cmd *cobra.Command, args []string, toComplete string) (names []string, _ cobra.ShellCompDirective) {
 	return completion.FromList(allLinuxCapabilities()...)(cmd, args, toComplete)
 }
