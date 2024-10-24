@@ -4,6 +4,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/builders"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -18,6 +22,48 @@ func TestCompleteLinuxCapabilityNames(t *testing.T) {
 	for _, name := range names[1:] {
 		assert.Check(t, strings.HasPrefix(name, "CAP_"))
 		assert.Check(t, is.Equal(name, strings.ToUpper(name)), "Should be formatted uppercase")
+	}
+}
+
+func TestCompletePid(t *testing.T) {
+	tests := []struct {
+		containerListFunc   func(container.ListOptions) ([]types.Container, error)
+		toComplete          string
+		expectedCompletions []string
+		expectedDirective   cobra.ShellCompDirective
+	}{
+		{
+			toComplete:          "",
+			expectedCompletions: []string{"container:", "host"},
+			expectedDirective:   cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			toComplete:          "c",
+			expectedCompletions: []string{"container:"},
+			expectedDirective:   cobra.ShellCompDirectiveNoSpace,
+		},
+		{
+			containerListFunc: func(container.ListOptions) ([]types.Container, error) {
+				return []types.Container{
+					*builders.Container("c1"),
+					*builders.Container("c2"),
+				}, nil
+			},
+			toComplete:          "container:",
+			expectedCompletions: []string{"container:c1", "container:c2"},
+			expectedDirective:   cobra.ShellCompDirectiveNoFileComp,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.toComplete, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				containerListFunc: tc.containerListFunc,
+			})
+			completions, directive := completePid(cli)(NewRunCommand(cli), nil, tc.toComplete)
+			assert.Check(t, is.DeepEqual(completions, tc.expectedCompletions))
+			assert.Check(t, is.Equal(directive, tc.expectedDirective))
+		})
 	}
 }
 
