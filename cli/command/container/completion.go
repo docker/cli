@@ -75,6 +75,11 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
 }
 
+// completeDetachKeys implements shell completion for the `--detach-keys` option of `run` and `create`.
+func completeDetachKeys(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	return []string{"ctrl-"}, cobra.ShellCompDirectiveNoSpace
+}
+
 // completeIpc implements shell completion for the `--ipc` option of `run` and `create`.
 // The completion is partly composite.
 func completeIpc(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
