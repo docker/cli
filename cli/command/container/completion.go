@@ -71,6 +71,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
 	_ = cmd.RegisterFlagCompletionFunc("storage-opt", completeStorageOpt)
 	_ = cmd.RegisterFlagCompletionFunc("ulimit", completeUlimit)
+	_ = cmd.RegisterFlagCompletionFunc("userns", completion.FromList("host"))
 	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
 }
 
