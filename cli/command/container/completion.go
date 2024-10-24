@@ -64,6 +64,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("ipc", completeIpc(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("link", completeLink(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc("pid", completePid(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
 	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
@@ -96,6 +97,20 @@ func completeIpc(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command
 func completeLink(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return postfixWith(":", containerNames(dockerCLI, cmd, args, toComplete)), cobra.ShellCompDirectiveNoSpace
+	}
+}
+
+// completePid implements shell completion for the `--pid` option  of `run` and `create`.
+func completePid(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(toComplete) > 0 && strings.HasPrefix("container", toComplete) { //nolint:gocritic // not swapped, matches partly typed "container"
+			return []string{"container:"}, cobra.ShellCompDirectiveNoSpace
+		}
+		if strings.HasPrefix(toComplete, "container:") {
+			names, _ := completion.ContainerNames(dockerCLI, true)(cmd, args, toComplete)
+			return prefixWith("container:", names), cobra.ShellCompDirectiveNoFileComp
+		}
+		return []string{"container:", "host"}, cobra.ShellCompDirectiveNoFileComp
 	}
 }
 
