@@ -70,6 +70,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
 	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
 	_ = cmd.RegisterFlagCompletionFunc("storage-opt", completeStorageOpt)
+	_ = cmd.RegisterFlagCompletionFunc("ulimit", completeUlimit)
 	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
 }
 
@@ -118,6 +119,32 @@ func completePid(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command
 // completeStorageOpt implements shell completion for the `--storage-opt` option  of `run` and `create`.
 func completeStorageOpt(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 	return []string{"size="}, cobra.ShellCompDirectiveNoSpace
+}
+
+// completeUlimit implements shell completion for the `--ulimit` option of `run` and `create`.
+func completeUlimit(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	limits := []string{
+		"as",
+		"chroot",
+		"core",
+		"cpu",
+		"data",
+		"fsize",
+		"locks",
+		"maxlogins",
+		"maxsyslogins",
+		"memlock",
+		"msgqueue",
+		"nice",
+		"nofile",
+		"nproc",
+		"priority",
+		"rss",
+		"rtprio",
+		"sigpending",
+		"stack",
+	}
+	return postfixWith("=", limits), cobra.ShellCompDirectiveNoSpace
 }
 
 // containerNames contacts the API to get names and optionally IDs of containers.
