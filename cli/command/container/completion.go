@@ -68,6 +68,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
 	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
+	_ = cmd.RegisterFlagCompletionFunc("security-opt", completeSecurityOpt)
 	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
 	_ = cmd.RegisterFlagCompletionFunc("storage-opt", completeStorageOpt)
 	_ = cmd.RegisterFlagCompletionFunc("ulimit", completeUlimit)
@@ -120,6 +121,32 @@ func completePid(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command
 		}
 		return []string{"container:", "host"}, cobra.ShellCompDirectiveNoFileComp
 	}
+}
+
+// completeSecurityOpt implements shell completion for the `--security-opt` option of `run` and `create`.
+// The completion is partly composite.
+func completeSecurityOpt(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(toComplete) > 0 && strings.HasPrefix("apparmor=", toComplete) { //nolint:gocritic // not swapped, matches partly typed "apparmor="
+		return []string{"apparmor="}, cobra.ShellCompDirectiveNoSpace
+	}
+	if len(toComplete) > 0 && strings.HasPrefix("label", toComplete) { //nolint:gocritic // not swapped, matches partly typed "label"
+		return []string{"label="}, cobra.ShellCompDirectiveNoSpace
+	}
+	if strings.HasPrefix(toComplete, "label=") {
+		if strings.HasPrefix(toComplete, "label=d") {
+			return []string{"label=disable"}, cobra.ShellCompDirectiveNoFileComp
+		}
+		labels := []string{"disable", "level:", "role:", "type:", "user:"}
+		return prefixWith("label=", labels), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
+	}
+	// length must be > 1 here so that completion of "s" falls through.
+	if len(toComplete) > 1 && strings.HasPrefix("seccomp", toComplete) { //nolint:gocritic // not swapped, matches partly typed "seccomp"
+		return []string{"seccomp="}, cobra.ShellCompDirectiveNoSpace
+	}
+	if strings.HasPrefix(toComplete, "seccomp=") {
+		return []string{"seccomp=unconfined"}, cobra.ShellCompDirectiveNoFileComp
+	}
+	return []string{"apparmor=", "label=", "no-new-privileges", "seccomp=", "systempaths=unconfined"}, cobra.ShellCompDirectiveNoFileComp
 }
 
 // completeStorageOpt implements shell completion for the `--storage-opt` option  of `run` and `create`.
