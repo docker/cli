@@ -9,7 +9,6 @@ import (
 
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
 	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
@@ -230,36 +229,44 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 
 	// Print images
 	for _, img := range images {
-		printNames(out, columns, img, topNameColor, untaggedColor)
-		printDetails(out, columns, normalColor, img.Details)
-
-		if len(img.Children) > 0 || view.imageSpacing {
-			_, _ = fmt.Fprintln(out)
-		}
-		printChildren(out, columns, img, normalColor)
+		_, _ = fmt.Fprint(out, formatImageTree(img, columns, view.imageSpacing, normalColor, topNameColor, untaggedColor))
 		_, _ = fmt.Fprintln(out)
 	}
 
 	return nil
 }
 
-func printDetails(out *streams.Out, headers []imgColumn, defaultColor aec.ANSI, details imageDetails) {
+func formatImageTree(img topImage, columns []imgColumn, imgSpacing bool, normalColor, topNameColor, untaggedColor aec.ANSI) (out string) {
+	out += printNames(columns, img, topNameColor, untaggedColor)
+	out += printDetails(columns, normalColor, img.Details)
+
+	if len(img.Children) > 0 || imgSpacing {
+		out += "\n"
+	}
+	out += printChildren(columns, img, normalColor)
+
+	return out
+}
+
+func printDetails(headers []imgColumn, defaultColor aec.ANSI, details imageDetails) (out string) {
 	for _, h := range headers {
 		if h.DetailsValue == nil {
 			continue
 		}
 
-		_, _ = fmt.Fprint(out, strings.Repeat(" ", columnSpacing))
+		out += strings.Repeat(" ", columnSpacing)
 		clr := defaultColor
 		if h.Color != nil {
 			clr = *h.Color
 		}
 		val := h.DetailsValue(&details)
-		_, _ = fmt.Fprint(out, h.Print(clr, val))
+		out += h.Print(clr, val)
 	}
+
+	return out
 }
 
-func printChildren(out *streams.Out, headers []imgColumn, img topImage, normalColor aec.ANSI) {
+func printChildren(headers []imgColumn, img topImage, normalColor aec.ANSI) (out string) {
 	for idx, sub := range img.Children {
 		clr := normalColor
 		if !sub.Available {
@@ -267,27 +274,31 @@ func printChildren(out *streams.Out, headers []imgColumn, img topImage, normalCo
 		}
 
 		if idx != len(img.Children)-1 {
-			_, _ = fmt.Fprint(out, headers[0].Print(clr, "├─ "+sub.Platform))
+			out += headers[0].Print(clr, "├─ "+sub.Platform)
 		} else {
-			_, _ = fmt.Fprint(out, headers[0].Print(clr, "└─ "+sub.Platform))
+			out += headers[0].Print(clr, "└─ "+sub.Platform)
 		}
 
-		printDetails(out, headers, clr, sub.Details)
-		_, _ = fmt.Fprintln(out, "")
+		out += printDetails(headers, clr, sub.Details)
+		out += "\n"
 	}
+
+	return out
 }
 
-func printNames(out *streams.Out, headers []imgColumn, img topImage, color, untaggedColor aec.ANSI) {
+func printNames(headers []imgColumn, img topImage, color, untaggedColor aec.ANSI) (out string) {
 	if len(img.Names) == 0 {
-		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, "<untagged>"))
+		out += headers[0].Print(untaggedColor, "<untagged>")
 	}
 
 	for nameIdx, name := range img.Names {
 		if nameIdx != 0 {
-			_, _ = fmt.Fprintln(out, "")
+			out += "\n"
 		}
-		_, _ = fmt.Fprint(out, headers[0].Print(color, name))
+		out += headers[0].Print(color, name)
 	}
+
+	return out
 }
 
 type alignment int
