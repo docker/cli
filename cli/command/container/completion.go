@@ -62,6 +62,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc("ipc", completeIpc(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc("link", completeLink(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
@@ -91,11 +92,37 @@ func completeIpc(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command
 	}
 }
 
+// completeLink implements shell completion for the `--link` option  of `run` and `create`.
+func completeLink(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return postfixWith(":", containerNames(dockerCLI, cmd, args, toComplete)), cobra.ShellCompDirectiveNoSpace
+	}
+}
+
+// containerNames contacts the API to get names and optionally IDs of containers.
+// In case of an error, an empty list is returned.
+func containerNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command, args []string, toComplete string) []string {
+	names, _ := completion.ContainerNames(dockerCLI, true)(cmd, args, toComplete)
+	if names == nil {
+		return []string{}
+	}
+	return names
+}
+
 // prefixWith prefixes every element in the slice with the given prefix.
 func prefixWith(prefix string, values []string) []string {
 	result := make([]string, len(values))
 	for i, v := range values {
 		result[i] = prefix + v
+	}
+	return result
+}
+
+// postfixWith appends postfix to every element in the slice.
+func postfixWith(postfix string, values []string) []string {
+	result := make([]string, len(values))
+	for i, v := range values {
+		result[i] = v + postfix
 	}
 	return result
 }
