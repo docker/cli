@@ -69,6 +69,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
 
+	_ = cmd.RegisterFlagCompletionFunc("detach-keys", completeDetachKeys)
 	addCompletions(cmd, dockerCli)
 
 	return cmd
