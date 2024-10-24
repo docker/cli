@@ -51,7 +51,7 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	var elementSearcher inspect.GetRefFunc
 	switch opts.inspectType {
-	case "", "container", "image", "node", "network", "service", "volume", "task", "plugin", "secret":
+	case "", "config", "container", "image", "network", "node", "plugin", "secret", "service", "task", "volume":
 		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.inspectType)
 	default:
 		return errors.Errorf("%q is not a valid value for --type", opts.inspectType)
@@ -114,6 +114,12 @@ func inspectSecret(ctx context.Context, dockerCli command.Cli) inspect.GetRefFun
 	}
 }
 
+func inspectConfig(ctx context.Context, dockerCLI command.Cli) inspect.GetRefFunc {
+	return func(ref string) (any, []byte, error) {
+		return dockerCLI.Client().ConfigInspectWithRaw(ctx, ref)
+	}
+}
+
 func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeConstraint string) inspect.GetRefFunc {
 	inspectAutodetect := []struct {
 		objectType      string
@@ -161,6 +167,11 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 			objectType:      "secret",
 			isSwarmObject:   true,
 			objectInspector: inspectSecret(ctx, dockerCli),
+		},
+		{
+			objectType:      "config",
+			isSwarmObject:   true,
+			objectInspector: inspectConfig(ctx, dockerCli),
 		},
 	}
 
