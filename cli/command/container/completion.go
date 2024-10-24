@@ -61,12 +61,43 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
 	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
+	_ = cmd.RegisterFlagCompletionFunc("ipc", completeIpc(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
 	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
 	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
 	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
+}
+
+// completeIpc implements shell completion for the `--ipc` option of `run` and `create`.
+// The completion is partly composite.
+func completeIpc(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(toComplete) > 0 && strings.HasPrefix("container", toComplete) { //nolint:gocritic // not swapped, matches partly typed "container"
+			return []string{"container:"}, cobra.ShellCompDirectiveNoSpace
+		}
+		if strings.HasPrefix(toComplete, "container:") {
+			names, _ := completion.ContainerNames(dockerCLI, true)(cmd, args, toComplete)
+			return prefixWith("container:", names), cobra.ShellCompDirectiveNoFileComp
+		}
+		return []string{
+			string(container.IPCModeContainer + ":"),
+			string(container.IPCModeHost),
+			string(container.IPCModeNone),
+			string(container.IPCModePrivate),
+			string(container.IPCModeShareable),
+		}, cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+// prefixWith prefixes every element in the slice with the given prefix.
+func prefixWith(prefix string, values []string) []string {
+	result := make([]string, len(values))
+	for i, v := range values {
+		result[i] = prefix + v
+	}
+	return result
 }
 
 func completeLinuxCapabilityNames(cmd *cobra.Command, args []string, toComplete string) (names []string, _ cobra.ShellCompDirective) {
