@@ -531,15 +531,6 @@ func newTarAppender(idMapping idtools.IdentityMapping, writer io.Writer, chownOp
 	}
 }
 
-// CanonicalTarNameForPath canonicalizes relativePath to a POSIX-style path using
-// forward slashes. It is an alias for [filepath.ToSlash], which is a no-op on
-// Linux and Unix.
-//
-// Deprecated: use [filepath.ToSlash]. This function will be removed in the next release.
-func CanonicalTarNameForPath(relativePath string) string {
-	return filepath.ToSlash(relativePath)
-}
-
 // canonicalTarName provides a platform-independent and consistent POSIX-style
 // path for files and directories to be archived regardless of the platform.
 func canonicalTarName(name string, isDir bool) string {
@@ -654,7 +645,7 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 
 		ta.Buffer.Reset(ta.TarWriter)
 		defer ta.Buffer.Reset(nil)
-		_, err = io.Copy(ta.Buffer, file)
+		_, err = pools.Copy(ta.Buffer, file)
 		file.Close()
 		if err != nil {
 			return err
@@ -705,7 +696,7 @@ func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, o
 		if err != nil {
 			return err
 		}
-		if _, err := io.Copy(file, reader); err != nil {
+		if _, err := pools.Copy(file, reader); err != nil {
 			file.Close()
 			return err
 		}
@@ -1375,7 +1366,7 @@ func (archiver *Archiver) CopyFileWithTar(src, dst string) (err error) {
 			if err := tw.WriteHeader(hdr); err != nil {
 				return err
 			}
-			if _, err := io.Copy(tw, srcF); err != nil {
+			if _, err := pools.Copy(tw, srcF); err != nil {
 				return err
 			}
 			return nil
@@ -1440,61 +1431,4 @@ func cmdStream(cmd *exec.Cmd, input io.Reader) (io.ReadCloser, error) {
 		<-done
 		return err
 	}), nil
-}
-
-// NewTempArchive reads the content of src into a temporary file, and returns the contents
-// of that file as an archive. The archive can only be read once - as soon as reading completes,
-// the file will be deleted.
-//
-// Deprecated: NewTempArchive is only used in tests and will be removed in the next release.
-func NewTempArchive(src io.Reader, dir string) (*TempArchive, error) {
-	f, err := os.CreateTemp(dir, "")
-	if err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(f, src); err != nil {
-		return nil, err
-	}
-	if _, err := f.Seek(0, 0); err != nil {
-		return nil, err
-	}
-	st, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-	size := st.Size()
-	return &TempArchive{File: f, Size: size}, nil
-}
-
-// TempArchive is a temporary archive. The archive can only be read once - as soon as reading completes,
-// the file will be deleted.
-//
-// Deprecated: TempArchive is only used in tests and will be removed in the next release.
-type TempArchive struct {
-	*os.File
-	Size   int64 // Pre-computed from Stat().Size() as a convenience
-	read   int64
-	closed bool
-}
-
-// Close closes the underlying file if it's still open, or does a no-op
-// to allow callers to try to close the TempArchive multiple times safely.
-func (archive *TempArchive) Close() error {
-	if archive.closed {
-		return nil
-	}
-
-	archive.closed = true
-
-	return archive.File.Close()
-}
-
-func (archive *TempArchive) Read(data []byte) (int, error) {
-	n, err := archive.File.Read(data)
-	archive.read += int64(n)
-	if err != nil || archive.read == archive.Size {
-		archive.Close()
-		os.Remove(archive.File.Name())
-	}
-	return n, err
 }

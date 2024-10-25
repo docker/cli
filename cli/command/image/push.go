@@ -4,6 +4,7 @@
 package image
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,8 +19,10 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
+	imagetypes "github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -144,28 +147,87 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	if opts.quiet {
-		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), handleAux(dockerCli))
+		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), handleAux(dockerCli.Out()))
 		if err == nil {
 			fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), handleAux(dockerCli))
+	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), handleAux(dockerCli.Out()))
 }
 
 var notes []string
 
-func handleAux(dockerCli command.Cli) func(jm jsonmessage.JSONMessage) {
+func handleAux(out *streams.Out) func(jm jsonmessage.JSONMessage) {
 	return func(jm jsonmessage.JSONMessage) {
 		b := []byte(*jm.Aux)
 
 		var stripped auxprogress.ManifestPushedInsteadOfIndex
 		err := json.Unmarshal(b, &stripped)
 		if err == nil && stripped.ManifestPushedInsteadOfIndex {
-			note := fmt.Sprintf("Not all multiplatform-content is present and only the available single-platform image was pushed\n%s -> %s",
-				aec.RedF.Apply(stripped.OriginalIndex.Digest.String()),
-				aec.GreenF.Apply(stripped.SelectedManifest.Digest.String()),
-			)
+			highlightColor := aec.NewBuilder(aec.GreenF, aec.Bold)
+
+			note := fmt.Sprintf("Not all multiplatform-content is present, pushing single-platform image.")
+			note += "\nNo platform selected, using host platform " + highlightColor.ANSI.Apply(stripped.SelectedManifest.Platform.OS+"/"+stripped.SelectedManifest.Platform.Architecture+"/"+stripped.SelectedManifest.Platform.Variant+"\n\n")
+			headerColor := aec.NewBuilder(aec.DefaultF, aec.Bold).ANSI
+			topNameColor := aec.NewBuilder(aec.BlueF, aec.Bold).ANSI
+			normalColor := aec.NewBuilder(aec.DefaultF).ANSI
+			untaggedColor := aec.NewBuilder(aec.Faint).ANSI
+			// Print images
+			columns := []imgColumn{
+				{
+					Title: "Image",
+					Align: alignLeft,
+					Width: 10,
+				},
+				{
+					Title: "ID",
+					Align: alignLeft,
+					Width: 12,
+					DetailsValue: func(d *rowDetails) string {
+						return stringid.TruncateID(d.ID)
+					},
+				},
+				{
+					Title: "Disk usage",
+					Align: alignRight,
+					Width: 10,
+					DetailsValue: func(d *rowDetails) string {
+						return d.DiskUsage
+					},
+				},
+				{
+					Title: "Content size",
+					Align: alignRight,
+					Width: 12,
+					DetailsValue: func(d *rowDetails) string {
+						return d.ContentSize
+					},
+				},
+			}
+
+			imageRows, spacing := buildTableRows([]imagetypes.Summary{*stripped.ImageSummary})
+			for i, child := range imageRows[0].Children {
+				if child.Platform == stripped.SelectedManifest.Platform.OS+"/"+stripped.SelectedManifest.Platform.Architecture+"/"+stripped.SelectedManifest.Platform.Variant {
+					imageRows[0].Children[i].Highlight = true
+				}
+			}
+
+			_, width := out.GetTtySize()
+			columns = formatColumnsForOutput(int(width), columns, imageRows)
+
+			table := imageTreeTable{
+				columns:        columns,
+				headerColor:    headerColor,
+				indexNameColor: topNameColor,
+				untaggedColor:  untaggedColor,
+				normalColor:    normalColor,
+				spacing:        spacing,
+			}
+
+			treeB := bytes.Buffer{}
+			table.printTable(&treeB, imageRows)
+			note += treeB.String()
 			notes = append(notes, note)
 		}
 
