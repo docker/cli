@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
@@ -24,6 +25,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	cdi "tags.cncf.io/container-device-interface/pkg/parser"
 )
@@ -145,8 +147,9 @@ type containerOptions struct {
 	Args  []string
 }
 
-// addFlags adds all command line flags that will be used by parse to the FlagSet
-func addFlags(flags *pflag.FlagSet) *containerOptions {
+// addContainerCreateFlags adds all command line flags that will be used by parse to the FlagSet
+func addContainerCreateFlags(cmd *cobra.Command, dockerCLI completion.APIClientProvider) *containerOptions {
+	flags := cmd.Flags()
 	copts := &containerOptions{
 		aliases:           opts.NewListOpts(nil),
 		attach:            opts.NewListOpts(validateAttach),
@@ -190,7 +193,9 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.gpus, "gpus", "GPU devices to add to the container ('all' to pass all GPUs)")
 	flags.SetAnnotation("gpus", "version", []string{"1.40"})
 	flags.VarP(&copts.env, "env", "e", "Set environment variables")
+	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
 	flags.Var(&copts.envFile, "env-file", "Read in a file of environment variables")
+	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	flags.StringVar(&copts.entrypoint, "entrypoint", "", "Overwrite the default ENTRYPOINT of the image")
 	flags.Var(&copts.groupAdd, "group-add", "Add additional groups to join")
 	flags.StringVarP(&copts.hostname, "hostname", "h", "", "Container host name")
@@ -200,7 +205,9 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.labelsFile, "label-file", "Read in a line delimited file of labels")
 	flags.BoolVar(&copts.readonlyRootfs, "read-only", false, "Mount the container's root filesystem as read only")
 	flags.StringVar(&copts.restartPolicy, "restart", string(container.RestartPolicyDisabled), "Restart policy to apply when a container exits")
+	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
 	flags.StringVar(&copts.stopSignal, "stop-signal", "", "Signal to stop the container")
+	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
 	flags.IntVar(&copts.stopTimeout, "stop-timeout", 0, "Timeout (in seconds) to stop a container")
 	flags.SetAnnotation("stop-timeout", "version", []string{"1.25"})
 	flags.Var(copts.sysctls, "sysctl", "Sysctl options")
@@ -212,7 +219,9 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 
 	// Security
 	flags.Var(&copts.capAdd, "cap-add", "Add Linux capabilities")
+	_ = cmd.RegisterFlagCompletionFunc("cap-add", completeLinuxCapabilityNames)
 	flags.Var(&copts.capDrop, "cap-drop", "Drop Linux capabilities")
+	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
 	flags.BoolVar(&copts.privileged, "privileged", false, "Give extended privileges to this container")
 	flags.Var(&copts.securityOpt, "security-opt", "Security Options")
 	flags.StringVar(&copts.usernsMode, "userns", "", "User namespace to use")
@@ -242,8 +251,9 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.BoolVarP(&copts.publishAll, "publish-all", "P", false, "Publish all exposed ports to random ports")
 	// We allow for both "--net" and "--network", although the latter is the recommended way.
 	flags.Var(&copts.netMode, "net", "Connect a container to a network")
+	_ = flags.MarkHidden("net")
 	flags.Var(&copts.netMode, "network", "Connect a container to a network")
-	flags.MarkHidden("net")
+	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCLI))
 	// We allow for both "--net-alias" and "--network-alias", although the latter is the recommended way.
 	flags.Var(&copts.aliases, "net-alias", "Add network-scoped alias for the container")
 	flags.Var(&copts.aliases, "network-alias", "Add network-scoped alias for the container")
@@ -256,6 +266,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.storageOpt, "storage-opt", "Storage driver options for the container")
 	flags.Var(&copts.tmpfs, "tmpfs", "Mount a tmpfs directory")
 	flags.Var(&copts.volumesFrom, "volumes-from", "Mount volumes from the specified container(s)")
+	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
 	flags.VarP(&copts.volumes, "volume", "v", "Bind mount a volume")
 	flags.Var(&copts.mounts, "mount", "Attach a filesystem mount to the container")
 

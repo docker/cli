@@ -59,6 +59,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`", "`+PullImageMissing+`", "`+PullImageNever+`")`)
+	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
@@ -66,19 +67,9 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Bool("help", false, "Print usage")
 
 	command.AddPlatformFlag(flags, &options.platform)
-	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
-	copts = addFlags(flags)
-
-	_ = cmd.RegisterFlagCompletionFunc("cap-add", completeLinuxCapabilityNames)
-	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
-	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
-	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
-	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCli))
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
-	_ = cmd.RegisterFlagCompletionFunc("pull", completion.FromList(PullImageAlways, PullImageMissing, PullImageNever))
-	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
-	_ = cmd.RegisterFlagCompletionFunc("stop-signal", completeSignals)
-	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCli, true))
+	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
+	copts = addContainerCreateFlags(cmd, dockerCli)
 	return cmd
 }
 
