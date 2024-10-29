@@ -9,10 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -57,10 +59,16 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 }
 
 func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
-	flags := pflag.NewFlagSet("run", pflag.ContinueOnError)
+	dummyCmd := &cobra.Command{Use: "dummy"}
+	// This will panic when called, but never called in tests
+	type dummyCLI struct {
+		completion.APIClientProvider
+	}
+
+	flags := dummyCmd.Flags()
 	flags.SetOutput(io.Discard)
 	flags.Usage = nil
-	copts := addFlags(flags)
+	copts := addContainerCreateFlags(dummyCmd, dummyCLI{})
 	return flags, copts
 }
 
