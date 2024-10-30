@@ -118,6 +118,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("attach", completion.FromList("stderr", "stdin", "stdout"))
 	_ = cmd.RegisterFlagCompletionFunc("cap-add", completeLinuxCapabilityNames)
 	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
+	_ = cmd.RegisterFlagCompletionFunc("cgroupns", completeCgroupns())
 	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc("ipc", completeIpc(dockerCLI))
@@ -136,6 +137,11 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("userns", completion.FromList("host"))
 	_ = cmd.RegisterFlagCompletionFunc("uts", completion.FromList("host"))
 	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
+}
+
+// completeCgroupns implements shell completion for the `--cgroupns` option of `run` and `create`.
+func completeCgroupns() completion.ValidArgsFn {
+	return completion.FromList(string(container.CgroupnsModeHost), string(container.CgroupnsModePrivate))
 }
 
 // completeDetachKeys implements shell completion for the `--detach-keys` option of `run` and `create`.
