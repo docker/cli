@@ -95,6 +95,10 @@ issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below
   exclude-use-default: false
 
+  # This option has been defined when Go modules was not existed and when the
+  # golangci-lint core was different, this is not something we still recommend.
+  exclude-dirs-use-default: false
+
   exclude:
     - parameter .* always receives
 
@@ -112,6 +116,9 @@ issues:
     #
     # These exclusion patterns are copied from the default excluses at:
     # https://github.com/golangci/golangci-lint/blob/v1.44.0/pkg/config/issues.go#L10-L104
+    #
+    # The default list of exclusions can be found at:
+    # https://golangci-lint.run/usage/false-positives/#default-exclusions
 
     # EXC0001
     - text: "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*print(f|ln)?|os\\.(Un)?Setenv). is not checked"
