@@ -1,12 +1,12 @@
 linters:
   enable:
     - bodyclose
+    - copyloopvar   # Detects places where loop variables are copied.
     - depguard
     - dogsled
     - dupword       # Detects duplicate words.
     - durationcheck
     - errchkjson
-    - exportloopref # Detects pointers to enclosing loop variables.
     - gocritic      # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
     - gofumpt       # Detects whether code was gofumpt-ed.
@@ -56,6 +56,7 @@ linters-settings:
     excludes:
       - G104 # G104: Errors unhandled; (TODO: reduce unhandled errors, or explicitly ignore)
       - G113 # G113: Potential uncontrolled memory consumption in Rat.SetString (CVE-2022-23772); (only affects go < 1.16.14. and go < 1.17.7)
+      - G115 # G115: integer overflow conversion; (TODO: verify these: https://github.com/docker/cli/issues/5584)
       - G306 # G306: Expect WriteFile permissions to be 0600 or less (too restrictive; also flags "0o644" permissions)
       - G307 # G307: Deferring unsafe method "*os.File" on type "Close" (also EXC0008); (TODO: evaluate these and fix where needed: G307: Deferring unsafe method "*os.File" on type "Close")
   govet:
