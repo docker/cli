@@ -23,7 +23,6 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	cdi "tags.cncf.io/container-device-interface/pkg/parser"
 )
@@ -364,10 +363,6 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, errors.Errorf("invalid value: %d. Valid memory swappiness range is 0-100", swappiness)
 	}
 
-	mounts := copts.mounts.Value()
-	if len(mounts) > 0 && copts.volumeDriver != "" {
-		logrus.Warn("`--volume-driver` is ignored for volumes specified via `--mount`. Use `--mount type=volume,volume-driver=...` instead.")
-	}
 	var binds []string
 	volumes := copts.volumes.GetMap()
 	// add any bind targets to the list of container volumes
@@ -697,7 +692,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Tmpfs:          tmpfs,
 		Sysctls:        copts.sysctls.GetAll(),
 		Runtime:        copts.runtime,
-		Mounts:         mounts,
+		Mounts:         copts.mounts.Value(),
 		MaskedPaths:    maskedPaths,
 		ReadonlyPaths:  readonlyPaths,
 		Annotations:    copts.annotations.GetAll(),
