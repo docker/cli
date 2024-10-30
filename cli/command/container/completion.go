@@ -136,6 +136,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("ulimit", completeUlimit)
 	_ = cmd.RegisterFlagCompletionFunc("userns", completion.FromList("host"))
 	_ = cmd.RegisterFlagCompletionFunc("uts", completion.FromList("host"))
+	_ = cmd.RegisterFlagCompletionFunc("volume-driver", completeVolumeDriver(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("volumes-from", completion.ContainerNames(dockerCLI, true))
 }
 
@@ -270,6 +271,19 @@ func completeUlimit(_ *cobra.Command, _ []string, _ string) ([]string, cobra.She
 		"stack",
 	}
 	return postfixWith("=", limits), cobra.ShellCompDirectiveNoSpace
+}
+
+// completeVolumeDriver contacts the API to get the built-in and installed volume drivers.
+func completeVolumeDriver(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+	return func(cmd *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+		info, err := dockerCLI.Client().Info(cmd.Context())
+		if err != nil {
+			// fallback: the built-in drivers
+			return []string{"local"}, cobra.ShellCompDirectiveNoFileComp
+		}
+		drivers := info.Plugins.Volume
+		return drivers, cobra.ShellCompDirectiveNoFileComp
+	}
 }
 
 // containerNames contacts the API to get names and optionally IDs of containers.
