@@ -146,11 +146,6 @@ issues:
     - text: "G104"
       linters:
         - gosec
-    # Looks like the match in "EXC0007" above doesn't catch this one
-    # TODO: consider upstreaming this to golangci-lint's default exclusion rules
-    - text: "G204: Subprocess launched with a potential tainted input or cmd arguments"
-      linters:
-        - gosec
     # Looks like the match in "EXC0009" above doesn't catch this one
     # TODO: consider upstreaming this to golangci-lint's default exclusion rules
     - text: "G306: Expect WriteFile permissions to be 0600 or less"
