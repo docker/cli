@@ -1,6 +1,7 @@
 package container
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -264,31 +265,40 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// so we unlikely hit this code in practice.
 		daemonOSType = dockerCLI.ServerInfo().OSType
 	}
+
+	// Buffer to store formatted stats text.
+	// Once formatted, it will be printed in one write to avoid screen flickering.
+	var statsTextBuffer bytes.Buffer
+
 	statsCtx := formatter.Context{
-		Output: dockerCLI.Out(),
+		Output: &statsTextBuffer,
 		Format: NewStatsFormat(format, daemonOSType),
-	}
-	cleanScreen := func() {
-		if !options.NoStream {
-			_, _ = fmt.Fprint(dockerCLI.Out(), "\033[2J")
-			_, _ = fmt.Fprint(dockerCLI.Out(), "\033[H")
-		}
 	}
 
 	var err error
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 	for range ticker.C {
-		cleanScreen()
 		var ccStats []StatsEntry
 		cStats.mu.RLock()
 		for _, c := range cStats.cs {
 			ccStats = append(ccStats, c.GetStatistics())
 		}
 		cStats.mu.RUnlock()
+
+		if !options.NoStream {
+			// Start by clearing the screen and moving the cursor to the top-left
+			_, _ = fmt.Fprint(&statsTextBuffer, "\033[2J\033[H")
+		}
+
 		if err = statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 			break
 		}
+
+		_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
+
+		statsTextBuffer.Reset()
+
 		if len(cStats.cs) == 0 && !showAll {
 			break
 		}
