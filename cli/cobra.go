@@ -337,8 +337,10 @@ func operationSubCommands(cmd *cobra.Command) []*cobra.Command {
 	return cmds
 }
 
+const defaultTermWidth = 80
+
 func wrappedFlagUsages(cmd *cobra.Command) string {
-	width := 80
+	width := defaultTermWidth
 	if ws, err := term.GetWinsize(0); err == nil {
 		width = int(ws.Width)
 	}
