@@ -273,8 +273,9 @@ func truncError(errMsg string) string {
 
 	// Limit the length to 75 characters, so that even on narrow terminals
 	// this will not overflow to the next line.
-	if len(errMsg) > 75 {
-		errMsg = errMsg[:74] + "…"
+	const maxWidth = 75
+	if len(errMsg) > maxWidth {
+		errMsg = errMsg[:maxWidth-1] + "…"
 	}
 	return errMsg
 }
