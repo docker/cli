@@ -52,7 +52,6 @@ func AddPluginCommandStubs(dockerCli command.Cli, rootCmd *cobra.Command) (err e
 			return
 		}
 		for _, p := range plugins {
-			p := p
 			vendor := p.Vendor
 			if vendor == "" {
 				vendor = "unknown"
