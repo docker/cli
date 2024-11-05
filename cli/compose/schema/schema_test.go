@@ -215,7 +215,6 @@ func TestValidateCredentialSpecs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.version, func(t *testing.T) {
 			config := dict{
 				"version": "99.99",
