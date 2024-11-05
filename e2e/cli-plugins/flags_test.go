@@ -131,7 +131,6 @@ func TestUnknownGlobal(t *testing.T) {
 		"separate-val": {"--unknown", "foo", "helloworld"},
 		"joined-val":   {"--unknown=foo", "helloworld"},
 	} {
-		args := args
 		t.Run(name, func(t *testing.T) {
 			res := icmd.RunCmd(run(args...))
 			res.Assert(t, icmd.Expected{

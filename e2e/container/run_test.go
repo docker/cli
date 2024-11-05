@@ -214,7 +214,6 @@ func TestMountSubvolume(t *testing.T) {
 		{name: "subdirectory mount", cmd: "ls", subpath: "subdir", expectedOut: "hello.txt"},
 		{name: "file mount", cmd: "cat", subpath: "bar.txt", expectedOut: "foo"},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			runMount(tc.cmd, "volume-subpath="+tc.subpath).Assert(t, icmd.Expected{
 				Err:      tc.expectedErr,
