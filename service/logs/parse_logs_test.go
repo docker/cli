@@ -47,7 +47,6 @@ func TestParseLogDetails(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.line, func(t *testing.T) {
 			actual, err := ParseLogDetails(tc.line)
 			if tc.expectedErr != "" {
