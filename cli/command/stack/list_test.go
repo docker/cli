@@ -48,7 +48,6 @@ func TestListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.expectedError, func(t *testing.T) {
 			cmd := newListCommand(test.NewFakeCli(&fakeClient{
 				serviceListFunc: tc.serviceListFunc,
@@ -104,7 +103,6 @@ func TestStackList(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			var services []swarm.Service
 			for _, name := range tc.serviceNames {

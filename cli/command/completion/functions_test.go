@@ -150,7 +150,6 @@ func TestCompleteContainerNames(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			if tc.showIDs {
 				t.Setenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS", "yes")
@@ -227,7 +226,6 @@ func TestCompleteImageNames(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := ImageNames(fakeCLI{&fakeClient{
 				imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
@@ -273,7 +271,6 @@ func TestCompleteNetworkNames(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := NetworkNames(fakeCLI{&fakeClient{
 				networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
@@ -331,7 +328,6 @@ func TestCompleteVolumeNames(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := VolumeNames(fakeCLI{&fakeClient{
 				volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {

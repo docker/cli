@@ -113,7 +113,6 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			pullCounter := 0
 
@@ -176,7 +175,6 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			dockerCli := test.NewFakeCli(&fakeClient{})
 			err := runCreate(
@@ -207,7 +205,6 @@ func TestCreateContainerValidateFlags(t *testing.T) {
 			expectedErr: `invalid argument "STDINFO" for "-a, --attach" flag: valid streams are STDIN, STDOUT and STDERR`,
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := NewCreateCommand(test.NewFakeCli(&fakeClient{}))
 			cmd.SetOut(io.Discard)
@@ -251,7 +248,6 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		fakeCLI := test.NewFakeCli(&fakeClient{
 			createContainerFunc: func(config *container.Config,
 				hostConfig *container.HostConfig,
@@ -312,7 +308,6 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			fakeCLI := test.NewFakeCli(&fakeClient{
 				createContainerFunc: func(config *container.Config,

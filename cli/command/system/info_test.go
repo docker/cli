@@ -374,7 +374,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 			expectedError:  "errors pretty printing info",
 		},
 	} {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			err := prettyPrintInfo(cli, tc.dockerInfo)
@@ -452,7 +451,6 @@ func TestFormatInfo(t *testing.T) {
 			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.dockerInfo`,
 		},
 	} {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			info := dockerInfo{
@@ -518,7 +516,6 @@ func TestNeedsServerInfo(t *testing.T) {
 
 	inf := dockerInfo{ClientInfo: &clientInfo{}}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			assert.Equal(t, needsServerInfo(tc.template, inf), tc.expected)
 		})

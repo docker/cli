@@ -91,7 +91,6 @@ func TestRollbackWithErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newRollbackCommand(
 				test.NewFakeCli(&fakeClient{

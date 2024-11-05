@@ -56,7 +56,6 @@ func TestGetFullCommandName(t *testing.T) {
 			expected: "root child grandchild",
 		},
 	} {
-		tc := tc
 		t.Run(tc.testName, func(t *testing.T) {
 			t.Parallel()
 			actual := getFullCommandName(tc.cmd)
@@ -91,7 +90,6 @@ func TestGetCommandName(t *testing.T) {
 			expected: "child grandchild",
 		},
 	} {
-		tc := tc
 		t.Run(tc.testName, func(t *testing.T) {
 			t.Parallel()
 			actual := getCommandName(tc.cmd)
@@ -130,7 +128,6 @@ func TestStdioAttributes(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
 		t.Run(tc.test, func(t *testing.T) {
 			t.Parallel()
 			cli := &DockerCli{
@@ -179,7 +176,6 @@ func TestAttributesFromError(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
 		t.Run(tc.testName, func(t *testing.T) {
 			t.Parallel()
 			actual := attributesFromError(tc.err)

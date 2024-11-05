@@ -46,7 +46,6 @@ func TestListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
 			cmd := newListCommand(cli)
@@ -166,7 +165,6 @@ func TestList(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
 			cmd := newListCommand(cli)

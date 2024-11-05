@@ -53,7 +53,6 @@ func TestEventsFormat(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// Set to UTC timezone as timestamps in output are
 			// printed in the current timezone

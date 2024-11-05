@@ -52,7 +52,6 @@ func TestVolumePruneErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := NewPruneCommand(
 				test.NewFakeCli(&fakeClient{
@@ -104,7 +103,6 @@ func TestVolumePruneSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{volumePruneFunc: tc.volumePruneFunc})
 			cmd := NewPruneCommand(cli)
@@ -166,7 +164,6 @@ func TestVolumePrunePromptNo(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows", "TODO: fix test on windows")
 
 	for _, input := range []string{"n", "N", "no", "anything", "really"} {
-		input := input
 		t.Run(input, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				volumePruneFunc: simplePruneFunc,

@@ -39,7 +39,6 @@ func TestNewPruneCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := NewPruneCommand(test.NewFakeCli(&fakeClient{
 				imagesPruneFunc: tc.imagesPruneFunc,
@@ -98,7 +97,6 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
 			// when prompted, answer "Y" to confirm the prune.

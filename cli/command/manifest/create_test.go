@@ -31,7 +31,6 @@ func TestManifestCreateErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.expectedError, func(t *testing.T) {
 			cli := test.NewFakeCli(nil)
 			cmd := newCreateListCommand(cli)

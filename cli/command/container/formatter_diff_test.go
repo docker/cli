@@ -47,7 +47,6 @@ D: /usr/app/old_app.js
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			out := bytes.NewBufferString("")
 			tc.context.Output = out

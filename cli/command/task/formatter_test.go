@@ -71,7 +71,6 @@ foobar_bar foo2
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out

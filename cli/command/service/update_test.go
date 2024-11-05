@@ -1690,7 +1690,6 @@ func TestUpdateUlimits(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			svc := swarm.ServiceSpec{
 				TaskTemplate: swarm.TaskSpec{

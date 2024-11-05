@@ -25,7 +25,6 @@ func TestNewInspectCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
 			cmd.SetOut(io.Discard)
@@ -79,7 +78,6 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			imageInspectInvocationCount = 0
 			cli := test.NewFakeCli(&fakeClient{imageInspectFunc: tc.imageInspectFunc})

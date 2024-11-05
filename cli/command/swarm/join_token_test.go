@@ -87,7 +87,6 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				swarmInspectFunc: tc.swarmInspectFunc,
@@ -198,7 +197,6 @@ func TestSwarmJoinToken(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				swarmInspectFunc: tc.swarmInspectFunc,

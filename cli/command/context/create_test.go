@@ -94,7 +94,6 @@ func TestCreate(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.options.Name, func(t *testing.T) {
 			err := RunCreate(cli, &tc.options)
 			if tc.expecterErr == "" {
@@ -164,25 +163,24 @@ func TestCreateFromContext(t *testing.T) {
 
 	cli.SetCurrentContext("dummy")
 
-	for _, c := range cases {
-		c := c
-		t.Run(c.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
 				From:        "original",
-				Name:        c.name,
-				Description: c.description,
-				Docker:      c.docker,
+				Name:        tc.name,
+				Description: tc.description,
+				Docker:      tc.docker,
 			})
 			assert.NilError(t, err)
-			assertContextCreateLogging(t, cli, c.name)
-			newContext, err := cli.ContextStore().GetMetadata(c.name)
+			assertContextCreateLogging(t, cli, tc.name)
+			newContext, err := cli.ContextStore().GetMetadata(tc.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
 			dockerEndpoint, err := docker.EndpointFromContext(newContext)
 			assert.NilError(t, err)
-			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
+			assert.Equal(t, newContextTyped.Description, tc.expectedDescription)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
 		})
 	}
@@ -219,23 +217,22 @@ func TestCreateFromCurrent(t *testing.T) {
 
 	cli.SetCurrentContext("original")
 
-	for _, c := range cases {
-		c := c
-		t.Run(c.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
-				Name:        c.name,
-				Description: c.description,
+				Name:        tc.name,
+				Description: tc.description,
 			})
 			assert.NilError(t, err)
-			assertContextCreateLogging(t, cli, c.name)
-			newContext, err := cli.ContextStore().GetMetadata(c.name)
+			assertContextCreateLogging(t, cli, tc.name)
+			newContext, err := cli.ContextStore().GetMetadata(tc.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
 			dockerEndpoint, err := docker.EndpointFromContext(newContext)
 			assert.NilError(t, err)
-			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
+			assert.Equal(t, newContextTyped.Description, tc.expectedDescription)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
 		})
 	}

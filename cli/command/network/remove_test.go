@@ -63,7 +63,6 @@ func TestNetworkRemoveForce(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			fakeCli := test.NewFakeCli(&fakeClient{
 				networkRemoveFunc: func(ctx context.Context, networkID string) error {

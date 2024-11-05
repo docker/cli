@@ -65,7 +65,6 @@ func TestSwarmUpdateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newUpdateCommand(
 				test.NewFakeCli(&fakeClient{
@@ -169,7 +168,6 @@ func TestSwarmUpdate(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				swarmInspectFunc:      tc.swarmInspectFunc,

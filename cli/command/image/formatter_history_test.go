@@ -255,7 +255,6 @@ imageID6   17 years ago   /bin/bash echo                                  183MB 
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := HistoryWrite(tc.context, true, histories)
 			assert.NilError(t, err)

@@ -35,7 +35,6 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
 			cmd.SetOut(io.Discard)
@@ -83,7 +82,6 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
 			cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})

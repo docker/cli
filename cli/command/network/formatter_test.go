@@ -161,7 +161,6 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
