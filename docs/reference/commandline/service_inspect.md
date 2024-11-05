@@ -40,7 +40,7 @@ For example, given the following service;
 ```console
 $ docker service ls
 ID            NAME   MODE        REPLICAS  IMAGE
-dmu1ept4cxcf  redis  replicated  3/3       redis:3.0.6
+dmu1ept4cxcf  redis  replicated  3/3       redis:7.4.1
 ```
 
 Both `docker service inspect redis`, and `docker service inspect dmu1ept4cxcf`
@@ -65,7 +65,7 @@ The output is in JSON format, for example:
       "Name": "redis",
       "TaskTemplate": {
         "ContainerSpec": {
-          "Image": "redis:3.0.6"
+          "Image": "redis:7.4.1"
         },
         "Resources": {
           "Limits": {},

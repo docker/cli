@@ -99,19 +99,19 @@ Creates a service as described by the specified parameters.
 ### Create a service
 
 ```console
-$ docker service create --name redis redis:3.0.6
+$ docker service create --name redis redis:7.4.1
 
 dmu1ept4cxcfe8k8lhtux3ro3
 
-$ docker service create --mode global --name redis2 redis:3.0.6
+$ docker service create --mode global --name redis2 redis:7.4.1
 
 a8q9dasaafudfs8q8w32udass
 
 $ docker service ls
 
 ID            NAME    MODE        REPLICAS  IMAGE
-dmu1ept4cxcf  redis   replicated  1/1       redis:3.0.6
-a8q9dasaafud  redis2  global      1/1       redis:3.0.6
+dmu1ept4cxcf  redis   replicated  1/1       redis:7.4.1
+a8q9dasaafud  redis2  global      1/1       redis:7.4.1
 ```
 
 #### <a name="with-registry-auth"></a> Create a service using an image on a private registry (--with-registry-auth)
@@ -140,7 +140,7 @@ Use the `--replicas` flag to set the number of replica tasks for a replicated
 service. The following command creates a `redis` service with `5` replica tasks:
 
 ```console
-$ docker service create --name redis --replicas=5 redis:3.0.6
+$ docker service create --name redis --replicas=5 redis:7.4.1
 
 4cdgfyky7ozwh3htjfw0d12qv
 ```
@@ -157,7 +157,7 @@ number of `RUNNING` tasks is `3`:
 $ docker service ls
 
 ID            NAME   MODE        REPLICAS  IMAGE
-4cdgfyky7ozw  redis  replicated  3/5       redis:3.0.7
+4cdgfyky7ozw  redis  replicated  3/5       redis:7.4.1
 ```
 
 Once all the tasks are created and `RUNNING`, the actual number of tasks is
@@ -167,7 +167,7 @@ equal to the desired number:
 $ docker service ls
 
 ID            NAME   MODE        REPLICAS  IMAGE
-4cdgfyky7ozw  redis  replicated  5/5       redis:3.0.7
+4cdgfyky7ozw  redis  replicated  5/5       redis:7.4.1
 ```
 
 ### <a name="secret"></a> Create a service with secrets (--secret)
@@ -178,7 +178,7 @@ Use the `--secret` flag to give a container access to a
 Create a service specifying a secret:
 
 ```console
-$ docker service create --name redis --secret secret.json redis:3.0.6
+$ docker service create --name redis --secret secret.json redis:7.4.1
 
 4cdgfyky7ozwh3htjfw0d12qv
 ```
@@ -189,7 +189,7 @@ Create a service specifying the secret, target, user/group ID, and mode:
 $ docker service create --name redis \
     --secret source=ssh-key,target=ssh \
     --secret source=app-key,target=app,uid=1000,gid=1001,mode=0400 \
-    redis:3.0.6
+    redis:7.4.1
 
 4cdgfyky7ozwh3htjfw0d12qv
 ```
@@ -215,14 +215,14 @@ pre-exist in the container. The `mode` is specified as a 4-number sequence such
 as `0755`.
 
 ```console
-$ docker service create --name=redis --config redis-conf redis:3.0.6
+$ docker service create --name=redis --config redis-conf redis:7.4.1
 ```
 
 Create a service with a config and specify the target location and file mode:
 
 ```console
 $ docker service create --name redis \
-  --config source=redis-conf,target=/etc/redis/redis.conf,mode=0400 redis:3.0.6
+  --config source=redis-conf,target=/etc/redis/redis.conf,mode=0400 redis:7.4.1
 ```
 
 To grant a service access to multiple configs, use multiple `--config` flags.
@@ -239,7 +239,7 @@ $ docker service create \
   --name redis \
   --update-delay 10s \
   --update-parallelism 2 \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 When you run a [service update](service_update.md), the scheduler updates a
@@ -256,7 +256,7 @@ $ docker service create \
   --name redis_2 \
   --replicas 5 \
   --env MYVAR=foo \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 To specify multiple environment variables, specify multiple `--env` flags, each
@@ -268,7 +268,7 @@ $ docker service create \
   --replicas 5 \
   --env MYVAR=foo \
   --env MYVAR2=bar \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 ### <a name="hostname"></a> Create a service with specific hostname (--hostname)
@@ -277,7 +277,7 @@ This option sets the docker service containers hostname to a specific string.
 For example:
 
 ```console
-$ docker service create --name redis --hostname myredis redis:3.0.6
+$ docker service create --name redis --hostname myredis redis:7.4.1
 ```
 
 ### <a name="label"></a> Set metadata on a service (-l, --label)
@@ -290,7 +290,7 @@ $ docker service create \
   --name redis_2 \
   --label com.example.foo="bar" \
   --label bar=baz \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 For more information about labels, refer to [apply custom
@@ -679,7 +679,7 @@ The following command creates a global service:
 $ docker service create \
  --name redis_2 \
  --mode global \
- redis:3.0.6
+ redis:7.4.1
 ```
 
 ### <a name="constraint"></a> Specify service constraints (--constraint)
@@ -712,7 +712,7 @@ $ docker service create \
   --name redis_2 \
   --constraint node.platform.os==linux \
   --constraint node.labels.type==queue \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 If the service constraints exclude all nodes in the cluster, a message is printed
@@ -760,7 +760,7 @@ $ docker service create \
   --replicas 9 \
   --name redis_2 \
   --placement-pref spread=node.labels.datacenter \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 This uses `--placement-pref` with a `spread` strategy (currently the only
@@ -812,7 +812,7 @@ $ docker service create \
   --name redis_2 \
   --placement-pref 'spread=node.labels.datacenter' \
   --placement-pref 'spread=node.labels.rack' \
-  redis:3.0.6
+  redis:7.4.1
 ```
 
 When updating a service with `docker service update`, `--placement-pref-add`
