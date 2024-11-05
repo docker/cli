@@ -69,7 +69,6 @@ func TestValidateIPAddress(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			actualOut, actualErr := ValidateIPAddress(tc.input)
 			assert.Check(t, is.Equal(tc.expectedOut, actualOut))
@@ -339,7 +338,6 @@ func TestValidateLabel(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			val, err := ValidateLabel(tc.value)
 			if tc.expectedErr != "" {

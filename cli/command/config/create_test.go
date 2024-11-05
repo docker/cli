@@ -43,7 +43,6 @@ func TestConfigCreateErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.expectedError, func(t *testing.T) {
 			cmd := newConfigCreateCommand(
 				test.NewFakeCli(&fakeClient{

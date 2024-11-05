@@ -126,7 +126,6 @@ func TestParseRunAttach(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			config, _, _ := mustParse(t, tc.input)
 			assert.Equal(t, config.AttachStdin, tc.expected.AttachStdin)
@@ -802,7 +801,6 @@ func TestParseRestartPolicy(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			_, hostConfig, _, err := parseRun([]string{"--restart=" + tc.input, "img", "cmd"})
 			if tc.expectedErr != "" {

@@ -52,7 +52,6 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 			cli.In().SetIsTerminal(tc.isTerminalIn)
@@ -116,7 +115,6 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageLoadFunc: tc.imageLoadFunc})
 			cmd := NewLoadCommand(cli)

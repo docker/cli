@@ -80,7 +80,6 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newUnlockKeyCommand(
 				test.NewFakeCli(&fakeClient{
@@ -158,7 +157,6 @@ func TestSwarmUnlockKey(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				swarmInspectFunc:      tc.swarmInspectFunc,

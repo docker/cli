@@ -66,7 +66,6 @@ func TestInspectErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginInspectFunc: tc.inspectFunc})
 			cmd := newInspectCommand(cli)
@@ -138,7 +137,6 @@ func TestInspect(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginInspectFunc: tc.inspectFunc})
 			cmd := newInspectCommand(cli)

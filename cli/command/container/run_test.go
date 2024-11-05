@@ -35,7 +35,6 @@ func TestRunValidateFlags(t *testing.T) {
 			expectedErr: "conflicting options: cannot specify both --attach and --detach",
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := NewRunCommand(test.NewFakeCli(&fakeClient{}))
 			cmd.SetOut(io.Discard)
@@ -245,7 +244,6 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			fakeCLI := test.NewFakeCli(&fakeClient{
 				createContainerFunc: func(config *container.Config,
@@ -286,7 +284,6 @@ func TestRunContainerImagePullPolicyInvalid(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			dockerCli := test.NewFakeCli(&fakeClient{})
 			err := runRun(

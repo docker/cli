@@ -1626,13 +1626,12 @@ services:
 			init: &booleanFalse,
 		},
 	}
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
-			config, err := loadYAML(testcase.yaml)
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
+			config, err := loadYAML(tc.yaml)
 			assert.NilError(t, err)
 			assert.Check(t, is.Len(config.Services, 1))
-			assert.Check(t, is.DeepEqual(testcase.init, config.Services[0].Init))
+			assert.Check(t, is.DeepEqual(tc.init, config.Services[0].Init))
 		})
 	}
 }

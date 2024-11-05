@@ -116,7 +116,6 @@ var testKeys = map[string][]byte{
 func TestLoadKeyFromPath(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
-		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-from-path", keyID), func(t *testing.T) {
 			privKeyFilepath := filepath.Join(t.TempDir(), "privkey.pem")
 			assert.NilError(t, os.WriteFile(privKeyFilepath, keyBytes, notary.PrivNoExecPerms))
@@ -163,7 +162,6 @@ func TestLoadKeyFromPath(t *testing.T) {
 func TestLoadKeyTooPermissive(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows")
 	for keyID, keyBytes := range testKeys {
-		keyID, keyBytes := keyID, keyBytes
 		t.Run(fmt.Sprintf("load-key-id-%s-too-permissive", keyID), func(t *testing.T) {
 			privKeyDir := t.TempDir()
 			privKeyFilepath := filepath.Join(privKeyDir, "privkey477.pem")

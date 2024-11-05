@@ -346,7 +346,6 @@ size: 0B
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -411,7 +410,6 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := ContainerWrite(tc.context, containers)
 			assert.NilError(t, err)

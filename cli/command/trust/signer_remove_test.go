@@ -30,7 +30,6 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newSignerRemoveCommand(
 				test.NewFakeCli(&fakeClient{}))
@@ -66,7 +65,6 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCasesWithOutput {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)

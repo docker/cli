@@ -178,7 +178,6 @@ func TestSplitCpArg(t *testing.T) {
 		},
 	}
 	for _, tc := range testcases {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			if tc.os == "windows" && runtime.GOOS != "windows" {
 				t.Skip("skipping windows test on non-windows platform")

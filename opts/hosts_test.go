@@ -281,7 +281,6 @@ func TestValidateExtraHosts(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		if tc.expectedOut == "" {
 			tc.expectedOut = tc.input
 		}

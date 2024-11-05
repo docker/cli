@@ -56,7 +56,6 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				continue
 			}
 
-			im := im
 			sub := subImage{
 				Platform:  platforms.Format(im.ImageData.Platform),
 				Available: im.Available,

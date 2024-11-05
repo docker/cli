@@ -114,7 +114,6 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.value, func(t *testing.T) {
 			var network NetworkOpt
 			assert.NilError(t, network.Set(tc.value))
@@ -142,7 +141,6 @@ func TestNetworkOptAdvancedSyntaxInvalid(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.value, func(t *testing.T) {
 			var network NetworkOpt
 			assert.ErrorContains(t, network.Set(tc.value), tc.expectedError)

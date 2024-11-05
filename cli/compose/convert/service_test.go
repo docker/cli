@@ -409,7 +409,6 @@ func TestConvertCredentialSpec(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			namespace := NewNamespace(tc.name)
 			swarmSpec, err := convertCredentialSpec(namespace, tc.in, tc.configs)
@@ -691,7 +690,6 @@ func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.title, func(t *testing.T) {
 			result, err := Service("1.41", Namespace{name: "foo"}, tc.in, nil, nil, nil, nil)
 			assert.NilError(t, err)

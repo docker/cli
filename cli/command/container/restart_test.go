@@ -58,7 +58,6 @@ func TestRestart(t *testing.T) {
 			expectedErr: "conflicting options: cannot specify both --timeout and --time",
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			var restarted []string
 			mutex := new(sync.Mutex)

@@ -54,7 +54,6 @@ func TestInstallErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
 			cmd := newInstallCommand(cli)
@@ -94,7 +93,6 @@ func TestInstallContentTrustErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
@@ -138,7 +136,6 @@ func TestInstall(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
 			cmd := newInstallCommand(cli)

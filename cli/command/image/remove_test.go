@@ -62,7 +62,6 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
 				imageRemoveFunc: tc.imageRemoveFunc,
@@ -121,7 +120,6 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
 			cmd := NewRemoveCommand(cli)

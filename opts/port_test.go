@@ -344,7 +344,6 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 	var b bytes.Buffer
 	logrus.SetOutput(&b)
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.value, func(t *testing.T) {
 			_, err := ConvertPortToPortConfig("80/tcp", map[nat.Port][]nat.PortBinding{
 				"80/tcp": {{HostIP: tc.value, HostPort: "2345"}},

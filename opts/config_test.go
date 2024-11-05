@@ -64,7 +64,6 @@ func TestConfigOptions(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			var opt ConfigOpt
 			assert.NilError(t, opt.Set(tc.input))

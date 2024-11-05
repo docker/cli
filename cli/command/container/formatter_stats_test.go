@@ -178,7 +178,6 @@ container2  --  --
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -223,7 +222,6 @@ func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := statsFormatWrite(tc.context, []StatsEntry{}, "linux", false)
 			assert.NilError(t, err)
@@ -265,7 +263,6 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := statsFormatWrite(tc.context, []StatsEntry{}, "windows", false)
 			assert.NilError(t, err)

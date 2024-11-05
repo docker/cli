@@ -187,19 +187,18 @@ func TestInitializeFromClient(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
 			apiclient := &fakeClient{
-				pingFunc: testcase.pingFunc,
+				pingFunc: tc.pingFunc,
 				version:  defaultVersion,
 			}
 
 			cli := &DockerCli{client: apiclient}
 			err := cli.Initialize(flags.NewClientOptions())
 			assert.NilError(t, err)
-			assert.DeepEqual(t, cli.ServerInfo(), testcase.expectedServer)
-			assert.Equal(t, apiclient.negotiated, testcase.negotiated)
+			assert.DeepEqual(t, cli.ServerInfo(), tc.expectedServer)
+			assert.Equal(t, apiclient.negotiated, tc.negotiated)
 		})
 	}
 }
@@ -277,10 +276,9 @@ func TestExperimentalCLI(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
-			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
+			dir := fs.NewDir(t, tc.doc, fs.WithFile("config.json", tc.configfile))
 			defer dir.Remove()
 			apiclient := &fakeClient{
 				version: defaultVersion,

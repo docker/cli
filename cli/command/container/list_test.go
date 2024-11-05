@@ -277,7 +277,6 @@ func TestContainerListFormatSizeSetsOption(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				containerListFunc: func(options container.ListOptions) ([]container.Summary, error) {

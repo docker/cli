@@ -23,7 +23,6 @@ func TestRemoveForce(t *testing.T) {
 		{name: "without force", args: []string{"nosuchcontainer", "mycontainer"}, expectedErr: "no such container"},
 		{name: "with force", args: []string{"--force", "nosuchcontainer", "mycontainer"}, expectedErr: ""},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			var removed []string
 			mutex := new(sync.Mutex)
