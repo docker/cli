@@ -61,7 +61,6 @@ NO_SUCH_ENV
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			envs, err := ReadKVEnvStrings(tc.files, tc.overrides)
 			assert.NilError(t, err)
