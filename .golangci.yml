@@ -98,6 +98,10 @@ linters-settings:
       - name: import-shadowing
         severity: warning
         disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
+      - name: unused-receiver
+        severity: warning
+        disabled: false
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
       - name: use-any
         severity: warning
