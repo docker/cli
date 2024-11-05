@@ -36,35 +36,35 @@ The following command shows all the tasks that are part of the `redis` service:
 $ docker service ps redis
 
 ID             NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE          ERROR  PORTS
-0qihejybwf1x   redis.1   redis:3.0.5  manager1  Running        Running 8 seconds
-bk658fpbex0d   redis.2   redis:3.0.5  worker2   Running        Running 9 seconds
-5ls5s5fldaqg   redis.3   redis:3.0.5  worker1   Running        Running 9 seconds
-8ryt076polmc   redis.4   redis:3.0.5  worker1   Running        Running 9 seconds
-1x0v8yomsncd   redis.5   redis:3.0.5  manager1  Running        Running 8 seconds
-71v7je3el7rr   redis.6   redis:3.0.5  worker2   Running        Running 9 seconds
-4l3zm9b7tfr7   redis.7   redis:3.0.5  worker2   Running        Running 9 seconds
-9tfpyixiy2i7   redis.8   redis:3.0.5  worker1   Running        Running 9 seconds
-3w1wu13yupln   redis.9   redis:3.0.5  manager1  Running        Running 8 seconds
-8eaxrb2fqpbn   redis.10  redis:3.0.5  manager1  Running        Running 8 seconds
+0qihejybwf1x   redis.1   redis:7.4.0  manager1  Running        Running 8 seconds
+bk658fpbex0d   redis.2   redis:7.4.0  worker2   Running        Running 9 seconds
+5ls5s5fldaqg   redis.3   redis:7.4.0  worker1   Running        Running 9 seconds
+8ryt076polmc   redis.4   redis:7.4.0  worker1   Running        Running 9 seconds
+1x0v8yomsncd   redis.5   redis:7.4.0  manager1  Running        Running 8 seconds
+71v7je3el7rr   redis.6   redis:7.4.0  worker2   Running        Running 9 seconds
+4l3zm9b7tfr7   redis.7   redis:7.4.0  worker2   Running        Running 9 seconds
+9tfpyixiy2i7   redis.8   redis:7.4.0  worker1   Running        Running 9 seconds
+3w1wu13yupln   redis.9   redis:7.4.0  manager1  Running        Running 8 seconds
+8eaxrb2fqpbn   redis.10  redis:7.4.0  manager1  Running        Running 8 seconds
 ```
 
 In addition to running tasks, the output also shows the task history. For
-example, after updating the service to use the `redis:3.0.6` image, the output
+example, after updating the service to use the `redis:7.4.1` image, the output
 may look like this:
 
 ```console
 $ docker service ps redis
 
 ID            NAME         IMAGE        NODE      DESIRED STATE  CURRENT STATE                   ERROR  PORTS
-50qe8lfnxaxk  redis.1      redis:3.0.6  manager1  Running        Running 6 seconds ago
-ky2re9oz86r9   \_ redis.1  redis:3.0.5  manager1  Shutdown       Shutdown 8 seconds ago
-3s46te2nzl4i  redis.2      redis:3.0.6  worker2   Running        Running less than a second ago
-nvjljf7rmor4   \_ redis.2  redis:3.0.6  worker2   Shutdown       Rejected 23 seconds ago        "No such image: redis@sha256:6…"
-vtiuz2fpc0yb   \_ redis.2  redis:3.0.5  worker2   Shutdown       Shutdown 1 second ago
-jnarweeha8x4  redis.3      redis:3.0.6  worker1   Running        Running 3 seconds ago
-vs448yca2nz4   \_ redis.3  redis:3.0.5  worker1   Shutdown       Shutdown 4 seconds ago
-jf1i992619ir  redis.4      redis:3.0.6  worker1   Running        Running 10 seconds ago
-blkttv7zs8ee   \_ redis.4  redis:3.0.5  worker1   Shutdown       Shutdown 11 seconds ago
+50qe8lfnxaxk  redis.1      redis:7.4.1  manager1  Running        Running 6 seconds ago
+ky2re9oz86r9   \_ redis.1  redis:7.4.0  manager1  Shutdown       Shutdown 8 seconds ago
+3s46te2nzl4i  redis.2      redis:7.4.1  worker2   Running        Running less than a second ago
+nvjljf7rmor4   \_ redis.2  redis:7.4.1  worker2   Shutdown       Rejected 23 seconds ago        "No such image: redis@sha256:6…"
+vtiuz2fpc0yb   \_ redis.2  redis:7.4.0  worker2   Shutdown       Shutdown 1 second ago
+jnarweeha8x4  redis.3      redis:7.4.1  worker1   Running        Running 3 seconds ago
+vs448yca2nz4   \_ redis.3  redis:7.4.0  worker1   Shutdown       Shutdown 4 seconds ago
+jf1i992619ir  redis.4      redis:7.4.1  worker1   Running        Running 10 seconds ago
+blkttv7zs8ee   \_ redis.4  redis:7.4.0  worker1   Shutdown       Shutdown 11 seconds ago
 ```
 
 The number of items in the task history is determined by the
@@ -82,10 +82,10 @@ example:
 $ docker service ps --no-trunc redis
 
 ID                          NAME         IMAGE                                                                                NODE      DESIRED STATE  CURRENT STATE            ERROR                                                                                           PORTS
-50qe8lfnxaxksi9w2a704wkp7   redis.1      redis:3.0.6@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  manager1  Running        Running 5 minutes ago
-ky2re9oz86r9556i2szb8a8af   \_ redis.1   redis:3.0.5@sha256:f8829e00d95672c48c60f468329d6693c4bdd28d1f057e755f8ba8b40008682e  worker2   Shutdown       Shutdown 5 minutes ago
-bk658fpbex0d57cqcwoe3jthu   redis.2      redis:3.0.6@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  worker2   Running        Running 5 seconds
-nvjljf7rmor4htv7l8rwcx7i7   \_ redis.2   redis:3.0.6@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  worker2   Shutdown       Rejected 5 minutes ago   "No such image: redis@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842"
+50qe8lfnxaxksi9w2a704wkp7   redis.1      redis:7.4.1@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  manager1  Running        Running 5 minutes ago
+ky2re9oz86r9556i2szb8a8af   \_ redis.1   redis:7.4.0@sha256:f8829e00d95672c48c60f468329d6693c4bdd28d1f057e755f8ba8b40008682e  worker2   Shutdown       Shutdown 5 minutes ago
+bk658fpbex0d57cqcwoe3jthu   redis.2      redis:7.4.1@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  worker2   Running        Running 5 seconds
+nvjljf7rmor4htv7l8rwcx7i7   \_ redis.2   redis:7.4.1@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842  worker2   Shutdown       Rejected 5 minutes ago   "No such image: redis@sha256:6a692a76c2081888b589e26e6ec835743119fe453d67ecf03df7de5b73d69842"
 ```
 
 ### <a name="filter"></a> Filtering (--filter)
@@ -111,8 +111,8 @@ The `id` filter matches on all or a prefix of a task's ID.
 $ docker service ps -f "id=8" redis
 
 ID             NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE      ERROR  PORTS
-8ryt076polmc   redis.4   redis:3.0.6  worker1   Running        Running 9 seconds
-8eaxrb2fqpbn   redis.10  redis:3.0.6  manager1  Running        Running 8 seconds
+8ryt076polmc   redis.4   redis:7.4.1  worker1   Running        Running 9 seconds
+8eaxrb2fqpbn   redis.10  redis:7.4.1  manager1  Running        Running 8 seconds
 ```
 
 #### name
@@ -123,7 +123,7 @@ The `name` filter matches on task names.
 $ docker service ps -f "name=redis.1" redis
 
 ID            NAME     IMAGE        NODE      DESIRED STATE  CURRENT STATE      ERROR  PORTS
-qihejybwf1x5  redis.1  redis:3.0.6  manager1  Running        Running 8 seconds
+qihejybwf1x5  redis.1  redis:7.4.1  manager1  Running        Running 8 seconds
 ```
 
 
@@ -135,10 +135,10 @@ The `node` filter matches on a node name or a node ID.
 $ docker service ps -f "node=manager1" redis
 
 ID            NAME      IMAGE        NODE      DESIRED STATE  CURRENT STATE      ERROR  PORTS
-0qihejybwf1x  redis.1   redis:3.0.6  manager1  Running        Running 8 seconds
-1x0v8yomsncd  redis.5   redis:3.0.6  manager1  Running        Running 8 seconds
-3w1wu13yupln  redis.9   redis:3.0.6  manager1  Running        Running 8 seconds
-8eaxrb2fqpbn  redis.10  redis:3.0.6  manager1  Running        Running 8 seconds
+0qihejybwf1x  redis.1   redis:7.4.1  manager1  Running        Running 8 seconds
+1x0v8yomsncd  redis.5   redis:7.4.1  manager1  Running        Running 8 seconds
+3w1wu13yupln  redis.9   redis:7.4.1  manager1  Running        Running 8 seconds
+8eaxrb2fqpbn  redis.10  redis:7.4.1  manager1  Running        Running 8 seconds
 ```
 
 #### desired-state
