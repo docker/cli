@@ -64,14 +64,13 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 	)
 	defer dir.Remove()
 
-	for _, tt := range testcases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
 			ctx2, cancel2 := context.WithCancel(ctx)
 			defer cancel2()
 
-			if tt.builder != "" {
-				t.Setenv("BUILDX_BUILDER", tt.builder)
+			if tc.builder != "" {
+				t.Setenv("BUILDX_BUILDER", tc.builder)
 			}
 
 			var b bytes.Buffer
@@ -84,10 +83,10 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			assert.NilError(t, err)
 			assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 
-			if tt.context != "" {
-				if tt.context != command.DefaultContextName {
+			if tc.context != "" {
+				if tc.context != command.DefaultContextName {
 					assert.NilError(t, dockerCli.ContextStore().CreateOrUpdate(store.Metadata{
-						Name: tt.context,
+						Name: tc.context,
 						Endpoints: map[string]any{
 							"docker": map[string]any{
 								"host": "unix://" + filepath.Join(t.TempDir(), "docker.sock"),
@@ -96,12 +95,12 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 					}))
 				}
 				opts := flags.NewClientOptions()
-				opts.Context = tt.context
+				opts.Context = tc.context
 				assert.NilError(t, dockerCli.Initialize(opts))
 			}
 
 			dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
-			if tt.alias {
+			if tc.alias {
 				dockerCli.ConfigFile().Aliases = map[string]string{"builder": "buildx"}
 			}
 
@@ -115,8 +114,8 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
 			assert.NilError(t, err)
 			assert.DeepEqual(t, []string{builderDefaultPlugin, "build", "."}, args)
-			if tt.expectedEnvs != nil {
-				assert.DeepEqual(t, tt.expectedEnvs, envs)
+			if tc.expectedEnvs != nil {
+				assert.DeepEqual(t, tc.expectedEnvs, envs)
 			} else {
 				assert.Check(t, len(envs) == 0)
 			}
@@ -289,10 +288,9 @@ func TestHasBuilderName(t *testing.T) {
 			expected: true,
 		},
 	}
-	for _, tt := range cases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, hasBuilderName(tt.args, tt.envs))
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, hasBuilderName(tc.args, tc.envs))
 		})
 	}
 }
