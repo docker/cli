@@ -297,7 +297,6 @@ func TestConvertToHostname(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			actual := ConvertToHostname(tc.input)
 			assert.Equal(t, actual, tc.expected)
