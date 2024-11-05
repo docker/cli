@@ -349,7 +349,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	return running == replicas, nil
 }
 
-func (u *replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes map[string]struct{}) map[int]swarm.Task {
+func (*replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes map[string]struct{}) map[int]swarm.Task {
 	// If there are multiple tasks with the same slot number, favor the one
 	// with the *lowest* desired state. This can happen in restart
 	// scenarios.
@@ -470,7 +470,7 @@ func (u *globalProgressUpdater) update(_ swarm.Service, tasks []swarm.Task, acti
 	return running == nodeCount, nil
 }
 
-func (u *globalProgressUpdater) tasksByNode(tasks []swarm.Task) map[string]swarm.Task {
+func (*globalProgressUpdater) tasksByNode(tasks []swarm.Task) map[string]swarm.Task {
 	// If there are multiple tasks with the same node ID, favor the one
 	// with the *lowest* desired state. This can happen in restart
 	// scenarios.
