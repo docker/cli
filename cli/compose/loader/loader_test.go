@@ -971,7 +971,7 @@ func uint32Ptr(value uint32) *uint32 {
 }
 
 func TestFullExample(t *testing.T) {
-	skip.If(t, runtime.GOOS == "windows", "FIXME: TestFullExample substitutes platform-specific HOME-directories and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
+	skip.If(t, runtime.GOOS == "windows", "FIXME: substitutes platform-specific HOME-dirs and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
 
 	data, err := os.ReadFile("full-example.yml")
 	assert.NilError(t, err)
