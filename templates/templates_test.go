@@ -64,25 +64,23 @@ func TestParseTruncateFunction(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCases {
-		testCase := testCase
-
-		tm, err := Parse(testCase.template)
+	for _, tc := range testCases {
+		tm, err := Parse(tc.template)
 		assert.NilError(t, err)
 
-		t.Run("Non Empty Source Test with template: "+testCase.template, func(t *testing.T) {
+		t.Run("Non Empty Source Test with template: "+tc.template, func(t *testing.T) {
 			var b bytes.Buffer
 			assert.NilError(t, tm.Execute(&b, source))
-			assert.Check(t, is.Equal(testCase.expected, b.String()))
+			assert.Check(t, is.Equal(tc.expected, b.String()))
 		})
 
-		t.Run("Empty Source Test with template: "+testCase.template, func(t *testing.T) {
+		t.Run("Empty Source Test with template: "+tc.template, func(t *testing.T) {
 			var c bytes.Buffer
 			assert.NilError(t, tm.Execute(&c, ""))
 			assert.Check(t, is.Equal("", c.String()))
 		})
 
-		t.Run("Nil Source Test with template: "+testCase.template, func(t *testing.T) {
+		t.Run("Nil Source Test with template: "+tc.template, func(t *testing.T) {
 			var c bytes.Buffer
 			assert.Check(t, tm.Execute(&c, nil) != nil)
 			assert.Check(t, is.Equal("", c.String()))
