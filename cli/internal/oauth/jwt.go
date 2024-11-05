@@ -1,7 +1,8 @@
 package oauth
 
 import (
-	"github.com/go-jose/go-jose/v3/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 // Claims represents standard claims along with some custom ones.
@@ -66,8 +67,23 @@ func GetClaims(accessToken string) (claims Claims, err error) {
 	return
 }
 
+// allowedSignatureAlgorithms is a list of allowed signature algorithms for JWTs.
+// We add all supported algorithms for Auth0, including with higher key lengths.
+// See auth0 docs: https://auth0.com/docs/get-started/applications/signing-algorithms
+var allowedSignatureAlgorithms = []jose.SignatureAlgorithm{
+	jose.HS256,
+	jose.HS384,
+	jose.HS512,
+	jose.RS256, // currently used for auth0
+	jose.RS384,
+	jose.RS512,
+	jose.PS256,
+	jose.PS384,
+	jose.PS512,
+}
+
 // parseSigned parses a JWT and returns the signature object or error. This does
 // not verify the validity of the JWT.
 func parseSigned(token string) (*jwt.JSONWebToken, error) {
-	return jwt.ParseSigned(token)
+	return jwt.ParseSigned(token, allowedSignatureAlgorithms)
 }
