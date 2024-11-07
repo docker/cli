@@ -1283,7 +1283,7 @@ connect to services running on the host machine.
 
 It's conventional to use `host.docker.internal` as the hostname referring to
 `host-gateway`. Docker Desktop automatically resolves this hostname, see
-[Explore networking features](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host).
+[Explore networking features](https://docs.docker.com/desktop/features/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host).
 
 The following example shows how the special `host-gateway` value works. The
 example runs an HTTP server that serves a file from host to container over the
