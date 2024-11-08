@@ -44,6 +44,65 @@ var allLinuxCapabilities = sync.OnceValue(func() []string {
 	return out
 })
 
+// logDriverOptions provides the options for each built-in logging driver.
+var logDriverOptions = map[string][]string{
+	"awslogs": {
+		"max-buffer-size", "mode", "awslogs-create-group", "awslogs-credentials-endpoint", "awslogs-datetime-format",
+		"awslogs-group", "awslogs-multiline-pattern", "awslogs-region", "awslogs-stream", "tag",
+	},
+	"fluentd": {
+		"max-buffer-size", "mode", "env", "env-regex", "labels", "fluentd-address", "fluentd-async",
+		"fluentd-buffer-limit", "fluentd-request-ack", "fluentd-retry-wait", "fluentd-max-retries",
+		"fluentd-sub-second-precision", "tag",
+	},
+	"gcplogs": {
+		"max-buffer-size", "mode", "env", "env-regex", "labels", "gcp-log-cmd", "gcp-meta-id", "gcp-meta-name",
+		"gcp-meta-zone", "gcp-project",
+	},
+	"gelf": {
+		"max-buffer-size", "mode", "env", "env-regex", "labels", "gelf-address", "gelf-compression-level",
+		"gelf-compression-type", "gelf-tcp-max-reconnect", "gelf-tcp-reconnect-delay", "tag",
+	},
+	"journald":  {"max-buffer-size", "mode", "env", "env-regex", "labels", "tag"},
+	"json-file": {"max-buffer-size", "mode", "env", "env-regex", "labels", "compress", "max-file", "max-size"},
+	"local":     {"max-buffer-size", "mode", "compress", "max-file", "max-size"},
+	"none":      {},
+	"splunk": {
+		"max-buffer-size", "mode", "env", "env-regex", "labels", "splunk-caname", "splunk-capath", "splunk-format",
+		"splunk-gzip", "splunk-gzip-level", "splunk-index", "splunk-insecureskipverify", "splunk-source",
+		"splunk-sourcetype", "splunk-token", "splunk-url", "splunk-verify-connection", "tag",
+	},
+	"syslog": {
+		"max-buffer-size", "mode", "env", "env-regex", "labels", "syslog-address", "syslog-facility", "syslog-format",
+		"syslog-tls-ca-cert", "syslog-tls-cert", "syslog-tls-key", "syslog-tls-skip-verify", "tag",
+	},
+}
+
+// builtInLogDrivers provides a list of the built-in logging drivers.
+var builtInLogDrivers = sync.OnceValue(func() []string {
+	drivers := make([]string, 0, len(logDriverOptions))
+	for driver := range logDriverOptions {
+		drivers = append(drivers, driver)
+	}
+	return drivers
+})
+
+// allLogDriverOptions provides all options of the built-in logging drivers.
+// The list does not contain duplicates.
+var allLogDriverOptions = sync.OnceValue(func() []string {
+	var result []string
+	seen := make(map[string]bool)
+	for driver := range logDriverOptions {
+		for _, opt := range logDriverOptions[driver] {
+			if !seen[opt] {
+				seen[opt] = true
+				result = append(result, opt)
+			}
+		}
+	}
+	return result
+})
+
 // restartPolicies is a list of all valid restart-policies..
 //
 // TODO(thaJeztah): add descriptions, and enable descriptions for our completion scripts (cobra.CompletionOptions.DisableDescriptions is currently set to "true")
@@ -63,6 +122,8 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc("ipc", completeIpc(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("link", completeLink(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc("log-driver", completeLogDriver(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc("log-opt", completeLogOpt)
 	_ = cmd.RegisterFlagCompletionFunc("network", completion.NetworkNames(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("pid", completePid(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
@@ -107,6 +168,30 @@ func completeLink(dockerCLI completion.APIClientProvider) func(cmd *cobra.Comman
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return postfixWith(":", containerNames(dockerCLI, cmd, args, toComplete)), cobra.ShellCompDirectiveNoSpace
 	}
+}
+
+// completeLogDriver implements shell completion for the `--log-driver` option  of `run` and `create`.
+// The log drivers are collected from a call to the Info endpoint with a fallback to a hard-coded list
+// of the build-in log drivers.
+func completeLogDriver(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		info, err := dockerCLI.Client().Info(cmd.Context())
+		if err != nil {
+			return builtInLogDrivers(), cobra.ShellCompDirectiveNoFileComp
+		}
+		drivers := info.Plugins.Log
+		return drivers, cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+// completeLogOpt implements shell completion for the `--log-opt` option  of `run` and `create`.
+// If the user supplied a log-driver, only options for that driver are returned.
+func completeLogOpt(cmd *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+	driver, _ := cmd.Flags().GetString("log-driver")
+	if options, exists := logDriverOptions[driver]; exists {
+		return postfixWith("=", options), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
+	}
+	return postfixWith("=", allLogDriverOptions()), cobra.ShellCompDirectiveNoSpace
 }
 
 // completePid implements shell completion for the `--pid` option  of `run` and `create`.
