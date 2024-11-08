@@ -56,7 +56,7 @@ The base command for the Docker CLI.
 | [`stop`](stop.md)             | Stop one or more running containers                                           |
 | [`swarm`](swarm.md)           | Manage Swarm                                                                  |
 | [`system`](system.md)         | Manage Docker                                                                 |
-| [`tag`](tag.md)               | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                         |
+| [`tag`](tag.md)               | Create one or more tags TARGET_IMAGE that refers to SOURCE_IMAGE              |
 | [`top`](top.md)               | Display the running processes of a container                                  |
 | [`trust`](trust.md)           | Manage trust on Docker images                                                 |
 | [`unpause`](unpause.md)       | Unpause all processes within one or more containers                           |
