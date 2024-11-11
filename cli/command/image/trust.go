@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"sort"
 
 	"github.com/distribution/reference"
@@ -263,16 +264,44 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
-	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
-	if err != nil {
-		return err
+	getToken := func(realm, scope, service string) string {
+		to := TokenOptions{
+			Realm:             realm,
+			Service:           service,
+			Scopes:            []string{scope},
+			Username:          imgRefAndAuth.AuthConfig().Username,
+			Secret:            imgRefAndAuth.AuthConfig().Password,
+			FetchRefreshToken: false,
+		}
+		response, err := FetchToken(ctx, http.DefaultClient, nil, to)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		return response.AccessToken
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull")
+
+	challengeHandlerFunc := func(ctx context.Context, challenge string) (string, error) {
+		_, params := parseValueAndParams(challenge)
+		realm := params["realm"]
+		scope := params["scope"]
+		service := params["service"]
+		newToken := getToken(realm, scope, service)
+
+		newAc := *imgRefAndAuth.AuthConfig()
+		newAc.RegistryToken = newToken
+		var newEc string
+		newEc, err := registrytypes.EncodeAuthConfig(newAc)
+		if err != nil {
+			return "", err
+		}
+		return newEc, nil
+	}
+
 	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), image.PullOptions{
-		RegistryAuth:  encodedAuth,
-		PrivilegeFunc: requestPrivilege,
-		All:           opts.all,
-		Platform:      opts.platform,
+		All:                  opts.all,
+		Platform:             opts.platform,
+		ChallengeHandlerFunc: challengeHandlerFunc,
 	})
 	if err != nil {
 		return err
