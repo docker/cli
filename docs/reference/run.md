@@ -285,7 +285,7 @@ See 'docker run --help'.
 ### 126
 
 Exit code `126` indicates that the specified contained command can't be invoked.
-The container command in the following example is: `/etc; echo $?`.
+The container command in the following example is: `/etc`.
 
 ```console
 $ docker run busybox /etc; echo $?

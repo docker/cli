@@ -84,7 +84,7 @@ $ docker service ls
 
 ID            NAME      MODE        REPLICAS  IMAGE
 3pr5mlvu3fh9  frontend  replicated  5/5       nginx:alpine
-74nzcxxjv6fq  backend   replicated  3/3       redis:3.0.6
+74nzcxxjv6fq  backend   replicated  3/3       redis:7.4.1
 ```
 
 ## Related commands
