@@ -112,7 +112,7 @@ func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, 
 		return nil, wrapAsPluginError(err, "failed to marshall hook data")
 	}
 
-	pCmd := exec.CommandContext(ctx, p.Path, p.Name, HookSubcommandName, string(hDataBytes))
+	pCmd := exec.CommandContext(ctx, p.Path, p.Name, HookSubcommandName, string(hDataBytes)) // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
 	pCmd.Env = os.Environ()
 	pCmd.Env = append(pCmd.Env, ReexecEnvvar+"="+os.Args[0])
 	hookCmdOutput, err := pCmd.Output()
