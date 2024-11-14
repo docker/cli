@@ -46,7 +46,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 			}
 
 			if image, tag, found := strings.Cut(toComplete, ":"); found {
-				remoteTags, err := dockerCli.Client().ImageHubTags(cmd.Context(), image, hub.ImageOptions{
+				remoteTags, err := dockerCli.Client().HubImageTags(cmd.Context(), image, hub.ImageOptions{
 					Name:     tag,
 					Ordering: "last_updated",
 					Page:     0,
@@ -64,7 +64,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 				return images, cobra.ShellCompDirectiveKeepOrder | cobra.ShellCompDirectiveNoFileComp
 			}
 
-			remoteImages, err := dockerCli.Client().ImageHubSearch(cmd.Context(), toComplete, hub.SearchOptions{
+			remoteImages, err := dockerCli.Client().HubImageSearch(cmd.Context(), toComplete, hub.SearchOptions{
 				From:              0,
 				Size:              25,
 				Type:              hub.SearchTypeImage,
