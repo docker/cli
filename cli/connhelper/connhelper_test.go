@@ -63,3 +63,32 @@ func TestDisablePseudoTerminalAllocation(t *testing.T) {
 		})
 	}
 }
+
+func TestDockerSSHBinaryOverride(t *testing.T) {
+	testCases := []struct {
+		name     string
+		env      string
+		expected string
+	}{
+		{
+			name:     "Default",
+			env:      "",
+			expected: "docker",
+		},
+		{
+			name:     "Override",
+			env:      "other-binary",
+			expected: "other-binary",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(DockerSSHRemoteBinaryEnv, tc.env)
+			result := dockerSSHRemoteBinary()
+			if result != tc.expected {
+				t.Errorf("expected %q, got %q", tc.expected, result)
+			}
+		})
+	}
+}
