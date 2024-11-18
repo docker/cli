@@ -11,7 +11,7 @@ import (
 	composeLoader "github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 func newConfigCommand(dockerCli command.Cli) *cobra.Command {
