@@ -54,9 +54,10 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 		}
 		sshFlags = addSSHTimeout(sshFlags)
 		sshFlags = disablePseudoTerminalAllocation(sshFlags)
+		remoteDockerBinary := dockerSSHRemoteBinary()
 		return &ConnectionHelper{
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				args := []string{dockerSSHRemoteBinary()}
+				args := []string{remoteDockerBinary}
 				if sp.Path != "" {
 					args = append(args, "--host", "unix://"+sp.Path)
 				}
