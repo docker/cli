@@ -26,7 +26,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.0.0-20241017191044-e8ecf83ee08e
-	github.com/moby/sys/capability v0.3.0
+	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.6.0
 	github.com/moby/sys/signal v0.7.1
 	github.com/moby/term v0.5.0
