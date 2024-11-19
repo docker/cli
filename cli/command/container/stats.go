@@ -287,16 +287,26 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		cStats.mu.RUnlock()
 
 		if !options.NoStream {
-			// Start by clearing the screen and moving the cursor to the top-left
-			_, _ = fmt.Fprint(&statsTextBuffer, "\033[2J\033[H")
+			// Start by moving the cursor to the top-left
+			_, _ = fmt.Fprint(&statsTextBuffer, "\033[H")
 		}
 
 		if err = statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 			break
 		}
 
-		_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
+		if !options.NoStream {
+			for _, line := range strings.Split(statsTextBuffer.String(), "\n") {
+				// In case the new text is shorter than the one we are writing over,
+				// we'll append the "erase line" escape sequence to clear the remaining text.
+				_, _ = fmt.Fprint(&statsTextBuffer, line, "\033[K\n")
+			}
 
+			// We might have fewer containers than before, so let's clear the remaining text
+			_, _ = fmt.Fprint(&statsTextBuffer, "\033[J")
+		}
+
+		_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
 		statsTextBuffer.Reset()
 
 		if len(cStats.cs) == 0 && !showAll {
