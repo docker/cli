@@ -78,7 +78,8 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		if err != nil {
 			return errors.Wrap(err, "invalid platform")
 		}
-		options.Platform = &p
+		// TODO(thaJeztah): change flag-type to support multiple platforms.
+		options.Platforms = append(options.Platforms, p)
 	}
 
 	response, err := dockerCli.Client().ImageLoad(ctx, input, options)
