@@ -109,7 +109,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			name: "with platform",
 			args: []string{"--platform", "linux/amd64"},
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
-				assert.Check(t, is.DeepEqual(ocispec.Platform{OS: "linux", Architecture: "amd64"}, *options.Platform))
+				assert.Check(t, is.DeepEqual([]ocispec.Platform{{OS: "linux", Architecture: "amd64"}}, options.Platforms))
 				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},

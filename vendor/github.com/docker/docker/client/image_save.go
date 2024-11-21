@@ -2,8 +2,6 @@ package client // import "github.com/docker/docker/client"
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/url"
 
@@ -17,16 +15,15 @@ func (cli *Client) ImageSave(ctx context.Context, imageIDs []string, opts image.
 		"names": imageIDs,
 	}
 
-	if opts.Platform != nil {
+	if len(opts.Platforms) > 0 {
 		if err := cli.NewVersionError(ctx, "1.48", "platform"); err != nil {
 			return nil, err
 		}
-
-		p, err := json.Marshal(*opts.Platform)
+		p, err := encodePlatforms(opts.Platforms...)
 		if err != nil {
-			return nil, fmt.Errorf("invalid platform: %v", err)
+			return nil, err
 		}
-		query.Set("platform", string(p))
+		query["platform"] = p
 	}
 
 	resp, err := cli.get(ctx, "/images/get", query, nil)

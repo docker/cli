@@ -106,7 +106,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 			imageSaveFunc: func(images []string, options image.SaveOptions) (io.ReadCloser, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
-				assert.Check(t, is.DeepEqual(ocispec.Platform{OS: "linux", Architecture: "amd64"}, *options.Platform))
+				assert.Check(t, is.DeepEqual([]ocispec.Platform{{OS: "linux", Architecture: "amd64"}}, options.Platforms))
 				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},

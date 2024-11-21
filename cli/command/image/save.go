@@ -63,7 +63,8 @@ func RunSave(ctx context.Context, dockerCli command.Cli, opts saveOptions) error
 		if err != nil {
 			return errors.Wrap(err, "invalid platform")
 		}
-		options.Platform = &p
+		// TODO(thaJeztah): change flag-type to support multiple platforms.
+		options.Platforms = append(options.Platforms, p)
 	}
 
 	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images, options)
