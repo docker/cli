@@ -40,9 +40,9 @@ jobs:
           targets: test-coverage
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          file: ./build/coverage/coverage.txt
+          files: ./build/coverage/coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
 
   host:
@@ -78,8 +78,8 @@ jobs:
         shell: bash
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          file: /tmp/coverage.txt
+          files: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
           token: ${{ secrets.CODECOV_TOKEN }}
