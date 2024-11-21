@@ -293,7 +293,7 @@ github.com/theupdateframework/notary/tuf/data
 github.com/theupdateframework/notary/tuf/signed
 github.com/theupdateframework/notary/tuf/utils
 github.com/theupdateframework/notary/tuf/validation
-# github.com/tonistiigi/go-rosetta v0.0.0-20200727161949-f79598599c5d
+# github.com/tonistiigi/go-rosetta v0.0.0-20220804170347-3f4430f2d346
 ## explicit; go 1.13
 github.com/tonistiigi/go-rosetta
 # github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb
