@@ -25,7 +25,7 @@ type fakeClient struct {
 		platform *specs.Platform,
 		containerName string) (container.CreateResponse, error)
 	containerStartFunc      func(containerID string, options container.StartOptions) error
-	imageCreateFunc         func(parentReference string, options image.CreateOptions) (io.ReadCloser, error)
+	imageCreateFunc         func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error)
 	infoFunc                func() (system.Info, error)
 	containerStatPathFunc   func(containerID, path string) (container.PathStat, error)
 	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, container.PathStat, error)
@@ -94,9 +94,9 @@ func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, op
 	return nil
 }
 
-func (f *fakeClient) ImageCreate(_ context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 	if f.imageCreateFunc != nil {
-		return f.imageCreateFunc(parentReference, options)
+		return f.imageCreateFunc(ctx, parentReference, options)
 	}
 	return nil, nil
 }
