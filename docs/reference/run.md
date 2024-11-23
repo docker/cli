@@ -14,6 +14,29 @@ isolated process tree separate from the host.
 
 This page details how to use the `docker run` command to run containers.
 
+## Quick Start Examples
+
+Here are some common use cases for `docker run`:
+
+```console
+# Run a container in interactive mode
+$ docker run -it ubuntu bash
+
+# Run a container in the background (detached mode)
+$ docker run -d nginx
+
+# Run a container with port mapping
+$ docker run -p 8080:80 nginx
+
+# Run a container with environment variables
+$ docker run -e DB_HOST=localhost -e DB_PORT=5432 myapp
+
+# Run a container with volume mount
+$ docker run -v /host/path:/container/path myapp
+```
+
+For more detailed examples and explanations, see the sections below.
+
 ## General form
 
 A `docker run` command takes the following form:
