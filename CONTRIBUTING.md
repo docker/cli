@@ -134,9 +134,41 @@ committing your changes. Most editors have plug-ins that do this automatically.
 Pull request descriptions should be as clear as possible and include a reference
 to all the issues that they address.
 
-Commit messages must start with a capitalized and short summary (max. 50 chars)
-written in the imperative, followed by an optional, more detailed explanatory
-text which is separated from the summary by an empty line.
+Commit messages must be written in the imperative mood (max. 72 chars), followed
+by an optional, more detailed explanatory text usually expanding on
+why the work is necessary. The explanatory text should be separated by an
+empty line.
+
+The commit message *could* have a prefix scoping the change, however this is
+not enforced. Common prefixes are `docs: <message>`, `vendor: <message>`,
+`chore: <message>` or the package/area related to the change such as `pkg/foo: <message>`
+or `telemetry: <message>`.
+
+A standard commit.
+```
+Fix the exploding flux capacitor
+
+A call to function A causes the flux capacitor to blow up every time
+the sun and the moon align.
+```
+
+Using a package as prefix.
+```
+pkg/foo: prevent panic in flux capacitor
+
+Calling function A causes the flux capacitor to blow up every time
+the sun and the moon align.
+```
+
+Updating a specific vendored package.
+```
+vendor: github.com/docker/docker 6ac445c42bad (master, v28.0-dev)
+```
+
+Fixing a broken docs link.
+```
+docs: fix style/lint issues in deprecated.md
+```
 
 Code review comments may be added to your pull request. Discuss, then make the
 suggested modifications and push additional commits to your feature branch. Post
