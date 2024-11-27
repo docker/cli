@@ -82,7 +82,7 @@ func TestValidateOutputPath(t *testing.T) {
 }
 
 func TestPromptForInput(t *testing.T) {
-	t.Run("case=cancelling the context", func(t *testing.T) {
+	t.Run("cancelling the context", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		t.Cleanup(cancel)
 		reader, _ := io.Pipe()
@@ -116,7 +116,7 @@ func TestPromptForInput(t *testing.T) {
 		}
 	})
 
-	t.Run("case=user input should be properly trimmed", func(t *testing.T) {
+	t.Run("user input should be properly trimmed", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		t.Cleanup(cancel)
 
@@ -196,7 +196,7 @@ func TestPromptForConfirmation(t *testing.T) {
 			return promptReader.Close()
 		}, promptResult{false, nil}},
 	} {
-		t.Run("case="+tc.desc, func(t *testing.T) {
+		t.Run(tc.desc, func(t *testing.T) {
 			notifyCtx, notifyCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 			t.Cleanup(notifyCancel)
 

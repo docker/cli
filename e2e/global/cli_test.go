@@ -182,7 +182,7 @@ func TestPromptExitCode(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run("case="+tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			buf := new(bytes.Buffer)
