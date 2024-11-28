@@ -86,9 +86,7 @@ func TestDockerSSHBinaryOverride(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Setenv(DockerSSHRemoteBinaryEnv, tc.env)
 			result := dockerSSHRemoteBinary()
-			if result != tc.expected {
-				t.Errorf("expected %q, got %q", tc.expected, result)
-			}
+			assert.Check(t, is.Equal(result, tc.expected))
 		})
 	}
 }
