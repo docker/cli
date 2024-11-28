@@ -83,16 +83,15 @@ func TestConvertExtraHosts(t *testing.T) {
 func TestConvertResourcesFull(t *testing.T) {
 	source := composetypes.Resources{
 		Limits: &composetypes.Resource{
-			NanoCPUs:    "0.003",
+			NanoCPUs:    0.003,
 			MemoryBytes: composetypes.UnitBytes(300000000),
 		},
 		Reservations: &composetypes.Resource{
-			NanoCPUs:    "0.002",
+			NanoCPUs:    0.002,
 			MemoryBytes: composetypes.UnitBytes(200000000),
 		},
 	}
-	resources, err := convertResources(source)
-	assert.NilError(t, err)
+	resources := convertResources(source)
 
 	expected := &swarm.ResourceRequirements{
 		Limits: &swarm.Limit{
@@ -116,8 +115,7 @@ func TestConvertResourcesOnlyMemory(t *testing.T) {
 			MemoryBytes: composetypes.UnitBytes(200000000),
 		},
 	}
-	resources, err := convertResources(source)
-	assert.NilError(t, err)
+	resources := convertResources(source)
 
 	expected := &swarm.ResourceRequirements{
 		Limits: &swarm.Limit{

@@ -85,10 +85,7 @@ func Service(
 		return swarm.ServiceSpec{}, err
 	}
 
-	resources, err := convertResources(service.Deploy.Resources)
-	if err != nil {
-		return swarm.ServiceSpec{}, err
-	}
+	resources := convertResources(service.Deploy.Resources)
 
 	restartPolicy, err := convertRestartPolicy(
 		service.Restart, service.Deploy.RestartPolicy)
@@ -535,17 +532,10 @@ func convertUpdateConfig(source *composetypes.UpdateConfig) *swarm.UpdateConfig 
 	}
 }
 
-func convertResources(source composetypes.Resources) (*swarm.ResourceRequirements, error) {
+func convertResources(source composetypes.Resources) *swarm.ResourceRequirements {
 	resources := &swarm.ResourceRequirements{}
-	var err error
 	if source.Limits != nil {
-		var cpus int64
-		if source.Limits.NanoCPUs != "" {
-			cpus, err = opts.ParseCPUs(source.Limits.NanoCPUs)
-			if err != nil {
-				return nil, err
-			}
-		}
+		cpus := int64(source.Limits.NanoCPUs * 1e9)
 		resources.Limits = &swarm.Limit{
 			NanoCPUs:    cpus,
 			MemoryBytes: int64(source.Limits.MemoryBytes),
@@ -553,13 +543,7 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 		}
 	}
 	if source.Reservations != nil {
-		var cpus int64
-		if source.Reservations.NanoCPUs != "" {
-			cpus, err = opts.ParseCPUs(source.Reservations.NanoCPUs)
-			if err != nil {
-				return nil, err
-			}
-		}
+		cpus := int64(source.Reservations.NanoCPUs * 1e9)
 
 		var generic []swarm.GenericResource
 		for _, res := range source.Reservations.GenericResources {
@@ -581,7 +565,7 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 			GenericResources: generic,
 		}
 	}
-	return resources, nil
+	return resources
 }
 
 func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) (*swarm.EndpointSpec, error) {

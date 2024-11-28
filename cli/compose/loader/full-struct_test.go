@@ -90,12 +90,12 @@ func services(workingDir, homeDir string) types.Services {
 				},
 				Resources: types.Resources{
 					Limits: &types.Resource{
-						NanoCPUs:    "0.001",
+						NanoCPUs:    0.001,
 						MemoryBytes: 50 * 1024 * 1024,
 						Pids:        100,
 					},
 					Reservations: &types.Resource{
-						NanoCPUs:    "0.0001",
+						NanoCPUs:    0.0001,
 						MemoryBytes: 20 * 1024 * 1024,
 						GenericResources: []types.GenericResource{
 							{
@@ -130,7 +130,9 @@ func services(workingDir, homeDir string) types.Services {
 				},
 				EndpointMode: "dnsrr",
 			},
-			Devices:    []string{"/dev/ttyUSB0:/dev/ttyUSB0"},
+			Devices: []types.DeviceMapping{{
+				Source: "/dev/ttyUSB0", Target: "/dev/ttyUSB0",
+			}},
 			DNS:        []string{"8.8.8.8", "9.9.9.9"},
 			DNSSearch:  []string{"dc1.example.com", "dc2.example.com"},
 			DomainName: "foo.com",

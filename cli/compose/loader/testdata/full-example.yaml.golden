@@ -64,11 +64,11 @@ services:
         order: start-first
       resources:
         limits:
-          cpus: "0.001"
+          cpus: 0.001
           memory: "52428800"
           pids: 100
         reservations:
-          cpus: "0.0001"
+          cpus: 0.0001
           memory: "20971520"
           generic_resources:
           - discrete_resource_spec:
@@ -90,7 +90,8 @@ services:
         max_replicas_per_node: 5
       endpoint_mode: dnsrr
     devices:
-    - /dev/ttyUSB0:/dev/ttyUSB0
+    - source: /dev/ttyUSB0
+      target: /dev/ttyUSB0
     dns:
     - 8.8.8.8
     - 9.9.9.9

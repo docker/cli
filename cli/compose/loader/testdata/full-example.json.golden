@@ -1,81 +1,5 @@
 {
-  "configs": {
-    "config1": {
-      "file": "/foo/config_data",
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "config2": {
-      "name": "my_config",
-      "external": true
-    },
-    "config3": {
-      "name": "config3",
-      "external": true
-    },
-    "config4": {
-      "name": "foo",
-      "file": "/foo"
-    }
-  },
   "name": "full-example",
-  "networks": {
-    "external-network": {
-      "name": "external-network",
-      "ipam": {},
-      "external": true
-    },
-    "other-external-network": {
-      "name": "my-cool-network",
-      "ipam": {},
-      "external": true
-    },
-    "other-network": {
-      "driver": "overlay",
-      "driver_opts": {
-        "baz": "1",
-        "foo": "bar"
-      },
-      "ipam": {
-        "driver": "overlay",
-        "config": [
-          {
-            "subnet": "172.16.238.0/24"
-          },
-          {
-            "subnet": "2001:3984:3989::/64"
-          }
-        ]
-      },
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "some-network": {
-      "ipam": {}
-    }
-  },
-  "secrets": {
-    "secret1": {
-      "file": "/foo/secret_data",
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "secret2": {
-      "name": "my_secret",
-      "external": true
-    },
-    "secret3": {
-      "name": "secret3",
-      "external": true
-    },
-    "secret4": {
-      "name": "bar",
-      "file": "/foo"
-    }
-  },
   "services": {
     "foo": {
       "build": {
@@ -160,12 +84,12 @@
         },
         "resources": {
           "limits": {
-            "cpus": "0.001",
+            "cpus": 0.001,
             "memory": "52428800",
             "pids": 100
           },
           "reservations": {
-            "cpus": "0.0001",
+            "cpus": 0.0001,
             "memory": "20971520",
             "generic_resources": [
               {
@@ -203,7 +127,10 @@
         "endpoint_mode": "dnsrr"
       },
       "devices": [
-        "/dev/ttyUSB0:/dev/ttyUSB0"
+        {
+          "source": "/dev/ttyUSB0",
+          "target": "/dev/ttyUSB0"
+        }
       ],
       "dns": [
         "8.8.8.8",
@@ -516,6 +443,42 @@
       "working_dir": "/code"
     }
   },
+  "networks": {
+    "external-network": {
+      "name": "external-network",
+      "ipam": {},
+      "external": true
+    },
+    "other-external-network": {
+      "name": "my-cool-network",
+      "ipam": {},
+      "external": true
+    },
+    "other-network": {
+      "driver": "overlay",
+      "driver_opts": {
+        "baz": "1",
+        "foo": "bar"
+      },
+      "ipam": {
+        "driver": "overlay",
+        "config": [
+          {
+            "subnet": "172.16.238.0/24"
+          },
+          {
+            "subnet": "2001:3984:3989::/64"
+          }
+        ]
+      },
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "some-network": {
+      "ipam": {}
+    }
+  },
   "volumes": {
     "another-volume": {
       "name": "user_specified_name",
@@ -552,10 +515,44 @@
     },
     "some-volume": {}
   },
-  "x-bar": "baz",
-  "x-foo": "bar",
-  "x-nested": {
-    "bar": "baz",
-    "foo": "bar"
+  "secrets": {
+    "secret1": {
+      "file": "/foo/secret_data",
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "secret2": {
+      "name": "my_secret",
+      "external": true
+    },
+    "secret3": {
+      "name": "secret3",
+      "external": true
+    },
+    "secret4": {
+      "name": "bar",
+      "file": "/foo"
+    }
+  },
+  "configs": {
+    "config1": {
+      "file": "/foo/config_data",
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "config2": {
+      "name": "my_config",
+      "external": true
+    },
+    "config3": {
+      "name": "config3",
+      "external": true
+    },
+    "config4": {
+      "name": "foo",
+      "file": "/foo"
+    }
   }
 }
