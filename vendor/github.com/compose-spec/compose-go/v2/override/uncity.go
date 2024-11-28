@@ -36,12 +36,12 @@ func init() {
 	unique["services.*.annotations"] = keyValueIndexer
 	unique["services.*.build.args"] = keyValueIndexer
 	unique["services.*.build.additional_contexts"] = keyValueIndexer
-	unique["services.*.build.extra_hosts"] = keyValueIndexer
 	unique["services.*.build.platform"] = keyValueIndexer
 	unique["services.*.build.tags"] = keyValueIndexer
 	unique["services.*.build.labels"] = keyValueIndexer
 	unique["services.*.cap_add"] = keyValueIndexer
 	unique["services.*.cap_drop"] = keyValueIndexer
+	unique["services.*.devices"] = volumeIndexer
 	unique["services.*.configs"] = mountIndexer("")
 	unique["services.*.deploy.labels"] = keyValueIndexer
 	unique["services.*.dns"] = keyValueIndexer
@@ -50,7 +50,6 @@ func init() {
 	unique["services.*.environment"] = keyValueIndexer
 	unique["services.*.env_file"] = envFileIndexer
 	unique["services.*.expose"] = exposeIndexer
-	unique["services.*.extra_hosts"] = keyValueIndexer
 	unique["services.*.labels"] = keyValueIndexer
 	unique["services.*.links"] = keyValueIndexer
 	unique["services.*.networks.*.aliases"] = keyValueIndexer
@@ -61,6 +60,7 @@ func init() {
 	unique["services.*.sysctls"] = keyValueIndexer
 	unique["services.*.tmpfs"] = keyValueIndexer
 	unique["services.*.volumes"] = volumeIndexer
+	unique["services.*.devices"] = deviceMappingIndexer
 }
 
 // EnforceUnicity removes redefinition of elements declared in a sequence
@@ -107,13 +107,17 @@ func enforceUnicity(value any, p tree.Path) (any, error) {
 	return value, nil
 }
 
-func keyValueIndexer(y any, _ tree.Path) (string, error) {
-	value := y.(string)
-	key, _, found := strings.Cut(value, "=")
-	if !found {
+func keyValueIndexer(v any, p tree.Path) (string, error) {
+	switch value := v.(type) {
+	case string:
+		key, _, found := strings.Cut(value, "=")
+		if found {
+			return key, nil
+		}
 		return value, nil
+	default:
+		return "", fmt.Errorf("%s: unexpected type %T", p, v)
 	}
-	return key, nil
 }
 
 func volumeIndexer(y any, p tree.Path) (string, error) {
@@ -130,6 +134,24 @@ func volumeIndexer(y any, p tree.Path) (string, error) {
 			return "", err
 		}
 		return volume.Target, nil
+	}
+	return "", nil
+}
+
+func deviceMappingIndexer(y any, p tree.Path) (string, error) {
+	switch value := y.(type) {
+	case map[string]any:
+		target, ok := value["target"].(string)
+		if !ok {
+			return "", fmt.Errorf("service device %s is missing a mount target", p)
+		}
+		return target, nil
+	case string:
+		arr := strings.Split(value, ":")
+		if len(arr) == 1 {
+			return arr[0], nil
+		}
+		return arr[1], nil
 	}
 	return "", nil
 }
@@ -193,12 +215,15 @@ func portIndexer(y any, p tree.Path) (string, error) {
 	return "", nil
 }
 
-func envFileIndexer(y any, _ tree.Path) (string, error) {
+func envFileIndexer(y any, p tree.Path) (string, error) {
 	switch value := y.(type) {
 	case string:
 		return value, nil
 	case map[string]any:
-		return value["path"].(string), nil
+		if pathValue, ok := value["path"]; ok {
+			return pathValue.(string), nil
+		}
+		return "", fmt.Errorf("environment path attribute %s is missing", p)
 	}
 	return "", nil
 }

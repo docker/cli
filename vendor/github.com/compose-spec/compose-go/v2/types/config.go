@@ -21,7 +21,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 )
 
 var (
@@ -67,6 +67,10 @@ type ConfigFile struct {
 	Config map[string]interface{}
 }
 
+func (cf ConfigFile) IsStdin() bool {
+	return cf.Filename == "-"
+}
+
 func ToConfigFiles(path []string) (f []ConfigFile) {
 	for _, p := range path {
 		f = append(f, ConfigFile{Filename: p})
@@ -100,7 +104,13 @@ type Secrets map[string]SecretConfig
 type Configs map[string]ConfigObjConfig
 
 // Extensions is a map of custom extension
-type Extensions map[string]interface{}
+type Extensions map[string]any
+
+func (e Extensions) DeepCopy(t Extensions) {
+	for k, v := range e {
+		t[k] = v
+	}
+}
 
 // MarshalJSON makes Config implement json.Marshaler
 func (c Config) MarshalJSON() ([]byte, error) {

@@ -30,6 +30,9 @@ var (
 
 	// ErrIncompatible is returned when a compose project uses an incompatible attribute
 	ErrIncompatible = errors.New("incompatible attribute")
+
+	// ErrDisabled is returned when a resource was found in model but is disabled
+	ErrDisabled = errors.New("disabled")
 )
 
 // IsNotFoundError returns true if the unwrapped error is ErrNotFound

@@ -16,14 +16,6 @@
 
 package graph
 
-import (
-	"fmt"
-	"strings"
-
-	"github.com/compose-spec/compose-go/v2/utils"
-	"golang.org/x/exp/slices"
-)
-
 // graph represents project as service dependencies
 type graph[T any] struct {
 	vertices map[string]*vertex[T]
@@ -70,34 +62,6 @@ func (g *graph[T]) leaves() []*vertex[T] {
 	}
 
 	return res
-}
-
-func (g *graph[T]) checkCycle() error {
-	// iterate on vertices in a name-order to render a predicable error message
-	// this is required by tests and enforce command reproducibility by user, which otherwise could be confusing
-	names := utils.MapKeys(g.vertices)
-	for _, name := range names {
-		err := searchCycle([]string{name}, g.vertices[name])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func searchCycle[T any](path []string, v *vertex[T]) error {
-	names := utils.MapKeys(v.children)
-	for _, name := range names {
-		if i := slices.Index(path, name); i > 0 {
-			return fmt.Errorf("dependency cycle detected: %s", strings.Join(path[i:], " -> "))
-		}
-		ch := v.children[name]
-		err := searchCycle(append(path, name), ch)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // descendents return all descendents for a vertex, might contain duplicates

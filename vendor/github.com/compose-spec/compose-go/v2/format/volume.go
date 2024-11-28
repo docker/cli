@@ -95,7 +95,7 @@ func populateFieldFromBuffer(char rune, buffer []rune, volume *types.ServiceVolu
 			if isBindOption(option) {
 				setBindOption(volume, option)
 			}
-			// ignore unknown options
+			// ignore unknown options FIXME why not report an error here?
 		}
 	}
 	return nil

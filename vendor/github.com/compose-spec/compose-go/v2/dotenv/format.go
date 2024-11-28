@@ -14,33 +14,25 @@
    limitations under the License.
 */
 
-package transform
+package dotenv
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/compose-spec/compose-go/v2/tree"
+	"io"
 )
 
-func transformKeyValue(data any, p tree.Path, ignoreParseError bool) (any, error) {
-	switch v := data.(type) {
-	case map[string]any:
-		return v, nil
-	case []any:
-		mapping := map[string]any{}
-		for _, e := range v {
-			before, after, found := strings.Cut(e.(string), "=")
-			if !found {
-				if ignoreParseError {
-					return data, nil
-				}
-				return nil, fmt.Errorf("%s: invalid value %s, expected key=value", p, e)
-			}
-			mapping[before] = after
-		}
-		return mapping, nil
-	default:
-		return nil, fmt.Errorf("%s: invalid type %T", p, v)
+var formats = map[string]Parser{}
+
+type Parser func(r io.Reader, filename string, lookup func(key string) (string, bool)) (map[string]string, error)
+
+func RegisterFormat(format string, p Parser) {
+	formats[format] = p
+}
+
+func ParseWithFormat(r io.Reader, filename string, resolve LookupFn, format string) (map[string]string, error) {
+	parser, ok := formats[format]
+	if !ok {
+		return nil, fmt.Errorf("unsupported env_file format %q", format)
 	}
+	return parser(r, filename, resolve)
 }

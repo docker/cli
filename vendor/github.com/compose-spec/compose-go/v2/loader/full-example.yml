@@ -118,7 +118,9 @@ services:
       - "a 7:* rmw"
 
     devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
+      - source: /dev/ttyUSB0
+        target: /dev/ttyUSB0
+        permissions: rwm
 
     # String or list
     # dns: 8.8.8.8

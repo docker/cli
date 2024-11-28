@@ -22,10 +22,10 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformBuild(data any, p tree.Path) (any, error) {
+func transformBuild(data any, p tree.Path, ignoreParseError bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
-		return transformMapping(v, p)
+		return transformMapping(v, p, ignoreParseError)
 	case string:
 		return map[string]any{
 			"context": v,
@@ -35,7 +35,7 @@ func transformBuild(data any, p tree.Path) (any, error) {
 	}
 }
 
-func defaultBuildContext(data any, _ tree.Path) (any, error) {
+func defaultBuildContext(data any, _ tree.Path, _ bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		if _, ok := v["context"]; !ok {

@@ -23,24 +23,38 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformKeyValue(data any, p tree.Path, ignoreParseError bool) (any, error) {
+func transformDeviceMapping(data any, p tree.Path, ignoreParseError bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		return v, nil
-	case []any:
-		mapping := map[string]any{}
-		for _, e := range v {
-			before, after, found := strings.Cut(e.(string), "=")
-			if !found {
-				if ignoreParseError {
-					return data, nil
-				}
-				return nil, fmt.Errorf("%s: invalid value %s, expected key=value", p, e)
+	case string:
+		src := ""
+		dst := ""
+		permissions := "rwm"
+		arr := strings.Split(v, ":")
+		switch len(arr) {
+		case 3:
+			permissions = arr[2]
+			fallthrough
+		case 2:
+			dst = arr[1]
+			fallthrough
+		case 1:
+			src = arr[0]
+		default:
+			if !ignoreParseError {
+				return nil, fmt.Errorf("confusing device mapping, please use long syntax: %s", v)
 			}
-			mapping[before] = after
 		}
-		return mapping, nil
+		if dst == "" {
+			dst = src
+		}
+		return map[string]any{
+			"source":      src,
+			"target":      dst,
+			"permissions": permissions,
+		}, nil
 	default:
-		return nil, fmt.Errorf("%s: invalid type %T", p, v)
+		return data, fmt.Errorf("%s: invalid type %T for service volume mount", p, v)
 	}
 }

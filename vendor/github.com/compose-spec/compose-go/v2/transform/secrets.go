@@ -22,7 +22,7 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformFileMount(data any, p tree.Path) (any, error) {
+func transformFileMount(data any, p tree.Path, _ bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		return data, nil
@@ -35,7 +35,7 @@ func transformFileMount(data any, p tree.Path) (any, error) {
 	}
 }
 
-func defaultSecretMount(data any, p tree.Path) (any, error) {
+func defaultSecretMount(data any, p tree.Path, _ bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		source := v["source"]

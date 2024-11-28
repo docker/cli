@@ -23,11 +23,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func transformMaybeExternal(data any, p tree.Path) (any, error) {
+func transformMaybeExternal(data any, p tree.Path, ignoreParseError bool) (any, error) {
 	if data == nil {
 		return nil, nil
 	}
-	resource, err := transformMapping(data.(map[string]any), p)
+	resource, err := transformMapping(data.(map[string]any), p, ignoreParseError)
 	if err != nil {
 		return nil, err
 	}

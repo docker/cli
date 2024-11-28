@@ -18,6 +18,7 @@ package types
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -25,9 +26,9 @@ import (
 	"sort"
 
 	"github.com/compose-spec/compose-go/v2/dotenv"
+	"github.com/compose-spec/compose-go/v2/errdefs"
 	"github.com/compose-spec/compose-go/v2/utils"
 	"github.com/distribution/reference"
-	"github.com/mitchellh/copystructure"
 	godigest "github.com/opencontainers/go-digest"
 	"golang.org/x/exp/maps"
 	"golang.org/x/sync/errgroup"
@@ -215,9 +216,9 @@ func (p *Project) GetService(name string) (ServiceConfig, error) {
 	if !ok {
 		_, ok := p.DisabledServices[name]
 		if ok {
-			return ServiceConfig{}, fmt.Errorf("service %s is disabled", name)
+			return ServiceConfig{}, fmt.Errorf("no such service: %s: %w", name, errdefs.ErrDisabled)
 		}
-		return ServiceConfig{}, fmt.Errorf("no such service: %s", name)
+		return ServiceConfig{}, fmt.Errorf("no such service: %s: %w", name, errdefs.ErrNotFound)
 	}
 	return service, nil
 }
@@ -331,6 +332,9 @@ func (s ServiceConfig) HasProfile(profiles []string) bool {
 		return true
 	}
 	for _, p := range profiles {
+		if p == "*" {
+			return true
+		}
 		for _, sp := range s.Profiles {
 			if sp == p {
 				return true
@@ -344,11 +348,6 @@ func (s ServiceConfig) HasProfile(profiles []string) bool {
 // It returns a new Project instance with the changes and keep the original Project unchanged
 func (p *Project) WithProfiles(profiles []string) (*Project, error) {
 	newProject := p.deepCopy()
-	for _, p := range profiles {
-		if p == "*" {
-			return newProject, nil
-		}
-	}
 	enabled := Services{}
 	disabled := Services{}
 	for name, service := range newProject.AllServices() {
@@ -536,77 +535,97 @@ func (p *Project) WithServicesDisabled(names ...string) *Project {
 // WithImagesResolved updates services images to include digest computed by a resolver function
 // It returns a new Project instance with the changes and keep the original Project unchanged
 func (p *Project) WithImagesResolved(resolver func(named reference.Named) (godigest.Digest, error)) (*Project, error) {
-	newProject := p.deepCopy()
-	eg := errgroup.Group{}
-	for i, s := range newProject.Services {
-		idx := i
-		service := s
-
+	return p.WithServicesTransform(func(name string, service ServiceConfig) (ServiceConfig, error) {
 		if service.Image == "" {
-			continue
+			return service, nil
 		}
-		eg.Go(func() error {
-			named, err := reference.ParseDockerRef(service.Image)
+		named, err := reference.ParseDockerRef(service.Image)
+		if err != nil {
+			return service, err
+		}
+
+		if _, ok := named.(reference.Canonical); !ok {
+			// image is named but not digested reference
+			digest, err := resolver(named)
 			if err != nil {
-				return err
+				return service, err
 			}
-
-			if _, ok := named.(reference.Canonical); !ok {
-				// image is named but not digested reference
-				digest, err := resolver(named)
-				if err != nil {
-					return err
-				}
-				named, err = reference.WithDigest(named, digest)
-				if err != nil {
-					return err
-				}
+			named, err = reference.WithDigest(named, digest)
+			if err != nil {
+				return service, err
 			}
+		}
+		service.Image = named.String()
+		return service, nil
+	})
+}
 
-			service.Image = named.String()
-			newProject.Services[idx] = service
-			return nil
-		})
+type marshallOptions struct {
+	secretsContent bool
+}
+
+func WithSecretContent(o *marshallOptions) {
+	o.secretsContent = true
+}
+
+func (opt *marshallOptions) apply(p *Project) *Project {
+	if opt.secretsContent {
+		p = p.deepCopy()
+		for name, config := range p.Secrets {
+			config.marshallContent = true
+			p.Secrets[name] = config
+		}
 	}
-	return newProject, eg.Wait()
+	return p
+}
+
+func applyMarshallOptions(p *Project, options ...func(*marshallOptions)) *Project {
+	opts := &marshallOptions{}
+	for _, option := range options {
+		option(opts)
+	}
+	p = opts.apply(p)
+	return p
 }
 
 // MarshalYAML marshal Project into a yaml tree
-func (p *Project) MarshalYAML() ([]byte, error) {
+func (p *Project) MarshalYAML(options ...func(*marshallOptions)) ([]byte, error) {
 	buf := bytes.NewBuffer([]byte{})
 	encoder := yaml.NewEncoder(buf)
 	encoder.SetIndent(2)
 	// encoder.CompactSeqIndent() FIXME https://github.com/go-yaml/yaml/pull/753
-	err := encoder.Encode(p)
+	src := applyMarshallOptions(p, options...)
+	err := encoder.Encode(src)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-// MarshalJSON makes Config implement json.Marshaler
-func (p *Project) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal Project into a json document
+func (p *Project) MarshalJSON(options ...func(*marshallOptions)) ([]byte, error) {
+	src := applyMarshallOptions(p, options...)
 	m := map[string]interface{}{
-		"name":     p.Name,
-		"services": p.Services,
+		"name":     src.Name,
+		"services": src.Services,
 	}
 
-	if len(p.Networks) > 0 {
-		m["networks"] = p.Networks
+	if len(src.Networks) > 0 {
+		m["networks"] = src.Networks
 	}
-	if len(p.Volumes) > 0 {
-		m["volumes"] = p.Volumes
+	if len(src.Volumes) > 0 {
+		m["volumes"] = src.Volumes
 	}
-	if len(p.Secrets) > 0 {
-		m["secrets"] = p.Secrets
+	if len(src.Secrets) > 0 {
+		m["secrets"] = src.Secrets
 	}
-	if len(p.Configs) > 0 {
-		m["configs"] = p.Configs
+	if len(src.Configs) > 0 {
+		m["configs"] = src.Configs
 	}
-	for k, v := range p.Extensions {
+	for k, v := range src.Extensions {
 		m[k] = v
 	}
-	return json.Marshal(m)
+	return json.MarshalIndent(m, "", "  ")
 }
 
 // WithServicesEnvironmentResolved parses env_files set for services to resolve the actual environment map for services
@@ -627,22 +646,11 @@ func (p Project) WithServicesEnvironmentResolved(discardEnvFiles bool) (*Project
 		}
 
 		for _, envFile := range service.EnvFiles {
-			if _, err := os.Stat(envFile.Path); os.IsNotExist(err) {
-				if envFile.Required {
-					return nil, fmt.Errorf("env file %s not found: %w", envFile.Path, err)
-				}
-				continue
-			}
-			b, err := os.ReadFile(envFile.Path)
+			vars, err := loadEnvFile(envFile, resolve)
 			if err != nil {
-				return nil, fmt.Errorf("failed to load %s: %w", envFile.Path, err)
+				return nil, err
 			}
-
-			fileVars, err := dotenv.ParseWithLookup(bytes.NewBuffer(b), resolve)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read %s: %w", envFile.Path, err)
-			}
-			environment.OverrideBy(Mapping(fileVars).ToMappingWithEquals())
+			environment.OverrideBy(vars.ToMappingWithEquals())
 		}
 
 		service.Environment = environment.OverrideBy(service.Environment)
@@ -655,10 +663,95 @@ func (p Project) WithServicesEnvironmentResolved(discardEnvFiles bool) (*Project
 	return newProject, nil
 }
 
-func (p *Project) deepCopy() *Project {
-	instance, err := copystructure.Copy(p)
-	if err != nil {
-		panic(err)
+func loadEnvFile(envFile EnvFile, resolve dotenv.LookupFn) (Mapping, error) {
+	if _, err := os.Stat(envFile.Path); os.IsNotExist(err) {
+		if envFile.Required {
+			return nil, fmt.Errorf("env file %s not found: %w", envFile.Path, err)
+		}
+		return nil, nil
 	}
-	return instance.(*Project)
+	file, err := os.Open(envFile.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close() //nolint:errcheck
+
+	var fileVars map[string]string
+	if envFile.Format != "" {
+		fileVars, err = dotenv.ParseWithFormat(file, envFile.Path, resolve, envFile.Format)
+	} else {
+		fileVars, err = dotenv.ParseWithLookup(file, resolve)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return fileVars, nil
+}
+
+func (p *Project) deepCopy() *Project {
+	if p == nil {
+		return nil
+	}
+	n := &Project{}
+	deriveDeepCopyProject(n, p)
+	return n
+
+}
+
+// WithServicesTransform applies a transformation to project services and return a new project with transformation results
+func (p *Project) WithServicesTransform(fn func(name string, s ServiceConfig) (ServiceConfig, error)) (*Project, error) {
+	type result struct {
+		name    string
+		service ServiceConfig
+	}
+	expect := len(p.Services)
+	resultCh := make(chan result, expect)
+	newProject := p.deepCopy()
+
+	eg, ctx := errgroup.WithContext(context.Background())
+	eg.Go(func() error {
+		s := Services{}
+		for expect > 0 {
+			select {
+			case <-ctx.Done():
+				// interrupted as some goroutine returned an error
+				return nil
+			case r := <-resultCh:
+				s[r.name] = r.service
+				expect--
+			}
+		}
+		newProject.Services = s
+		return nil
+	})
+	for n, s := range newProject.Services {
+		name := n
+		service := s
+		eg.Go(func() error {
+			updated, err := fn(name, service)
+			if err != nil {
+				return err
+			}
+			resultCh <- result{
+				name:    name,
+				service: updated,
+			}
+			return nil
+		})
+	}
+	return newProject, eg.Wait()
+}
+
+// CheckContainerNameUnicity validate project doesn't have services declaring the same container_name
+func (p *Project) CheckContainerNameUnicity() error {
+	names := utils.Set[string]{}
+	for name, s := range p.Services {
+		if s.ContainerName != "" {
+			if existing, ok := names[s.ContainerName]; ok {
+				return fmt.Errorf(`services.%s: container name %q is already in use by service %s"`, name, s.ContainerName, existing)
+			}
+			names.Add(s.ContainerName)
+		}
+	}
+	return nil
 }

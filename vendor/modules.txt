@@ -20,7 +20,7 @@ github.com/cenkalti/backoff/v4
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/compose-spec/compose-go/v2 v2.0.0-rc.7
+# github.com/compose-spec/compose-go/v2 v2.4.5
 ## explicit; go 1.21
 github.com/compose-spec/compose-go/v2/consts
 github.com/compose-spec/compose-go/v2/dotenv
@@ -38,12 +38,6 @@ github.com/compose-spec/compose-go/v2/tree
 github.com/compose-spec/compose-go/v2/types
 github.com/compose-spec/compose-go/v2/utils
 github.com/compose-spec/compose-go/v2/validation
-# github.com/containerd/containerd v1.7.12
-## explicit; go 1.19
-github.com/containerd/containerd/errdefs
-github.com/containerd/containerd/log
-github.com/containerd/containerd/pkg/userns
-github.com/containerd/containerd/platforms
 # github.com/containerd/log v0.1.0
 ## explicit; go 1.20
 github.com/containerd/log
@@ -157,7 +151,7 @@ github.com/go-logr/logr/funcr
 # github.com/go-logr/stdr v1.2.2
 ## explicit; go 1.16
 github.com/go-logr/stdr
-# github.com/go-viper/mapstructure/v2 v2.2.1
+# github.com/go-viper/mapstructure/v2 v2.0.0
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
@@ -208,12 +202,14 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/mattn/go-runewidth v0.0.15
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
-# github.com/miekg/pkcs11 v1.1.1
-## explicit; go 1.12
-github.com/miekg/pkcs11
 # github.com/mattn/go-shellwords v1.0.12
 ## explicit; go 1.13
 github.com/mattn/go-shellwords
+# github.com/miekg/pkcs11 v1.1.1
+## explicit; go 1.12
+github.com/miekg/pkcs11
+# github.com/mitchellh/mapstructure v1.5.0
+## explicit; go 1.14
 # github.com/moby/docker-image-spec v1.3.1
 ## explicit; go 1.18
 github.com/moby/docker-image-spec/specs-go/v1
@@ -411,6 +407,11 @@ go.opentelemetry.io/proto/otlp/trace/v1
 ## explicit; go 1.20
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/pbkdf2
+# golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
+## explicit; go 1.20
+golang.org/x/exp/constraints
+golang.org/x/exp/maps
+golang.org/x/exp/slices
 # golang.org/x/net v0.30.0
 ## explicit; go 1.18
 golang.org/x/net/http/httpguts

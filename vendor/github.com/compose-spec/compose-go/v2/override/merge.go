@@ -41,10 +41,13 @@ var mergeSpecials = map[tree.Path]merger{}
 
 func init() {
 	mergeSpecials["networks.*.ipam.config"] = mergeIPAMConfig
+	mergeSpecials["networks.*.labels"] = mergeToSequence
+	mergeSpecials["volumes.*.labels"] = mergeToSequence
 	mergeSpecials["services.*.annotations"] = mergeToSequence
 	mergeSpecials["services.*.build"] = mergeBuild
 	mergeSpecials["services.*.build.args"] = mergeToSequence
 	mergeSpecials["services.*.build.additional_contexts"] = mergeToSequence
+	mergeSpecials["services.*.build.extra_hosts"] = mergeExtraHosts
 	mergeSpecials["services.*.build.labels"] = mergeToSequence
 	mergeSpecials["services.*.command"] = override
 	mergeSpecials["services.*.depends_on"] = mergeDependsOn
@@ -55,7 +58,7 @@ func init() {
 	mergeSpecials["services.*.entrypoint"] = override
 	mergeSpecials["services.*.env_file"] = mergeToSequence
 	mergeSpecials["services.*.environment"] = mergeToSequence
-	mergeSpecials["services.*.extra_hosts"] = mergeToSequence
+	mergeSpecials["services.*.extra_hosts"] = mergeExtraHosts
 	mergeSpecials["services.*.healthcheck.test"] = override
 	mergeSpecials["services.*.labels"] = mergeToSequence
 	mergeSpecials["services.*.logging"] = mergeLogging
@@ -160,6 +163,22 @@ func mergeNetworks(c any, o any, path tree.Path) (any, error) {
 	return mergeMappings(right, left, path)
 }
 
+func mergeExtraHosts(c any, o any, _ tree.Path) (any, error) {
+	right := convertIntoSequence(c)
+	left := convertIntoSequence(o)
+	// Rewrite content of left slice to remove duplicate elements
+	i := 0
+	for _, v := range left {
+		if !slices.Contains(right, v) {
+			left[i] = v
+			i++
+		}
+	}
+	// keep only not duplicated elements from left slice
+	left = left[:i]
+	return append(right, left...), nil
+}
+
 func mergeToSequence(c any, o any, _ tree.Path) (any, error) {
 	right := convertIntoSequence(c)
 	left := convertIntoSequence(o)
@@ -169,15 +188,21 @@ func mergeToSequence(c any, o any, _ tree.Path) (any, error) {
 func convertIntoSequence(value any) []any {
 	switch v := value.(type) {
 	case map[string]any:
-		seq := make([]any, len(v))
-		i := 0
-		for k, v := range v {
-			if v == nil {
-				seq[i] = k
+		var seq []any
+		for k, val := range v {
+			if val == nil {
+				seq = append(seq, k)
 			} else {
-				seq[i] = fmt.Sprintf("%s=%v", k, v)
+				switch vl := val.(type) {
+				// if val is an array we need to add the key with each value one by one
+				case []any:
+					for _, vlv := range vl {
+						seq = append(seq, fmt.Sprintf("%s=%v", k, vlv))
+					}
+				default:
+					seq = append(seq, fmt.Sprintf("%s=%v", k, val))
+				}
 			}
-			i++
 		}
 		slices.SortFunc(seq, func(a, b any) int {
 			return cmp.Compare(a.(string), b.(string))
@@ -234,18 +259,31 @@ func mergeIPAMConfig(c any, o any, path tree.Path) (any, error) {
 	return ipamConfigs, nil
 }
 
-func convertIntoMapping(a any, defaultValue any) map[string]any {
+func convertIntoMapping(a any, defaultValue map[string]any) map[string]any {
 	switch v := a.(type) {
 	case map[string]any:
 		return v
 	case []any:
 		converted := map[string]any{}
 		for _, s := range v {
-			converted[s.(string)] = defaultValue
+			if defaultValue == nil {
+				converted[s.(string)] = nil
+			} else {
+				// Create a new map for each key
+				converted[s.(string)] = copyMap(defaultValue)
+			}
 		}
 		return converted
 	}
 	return nil
+}
+
+func copyMap(m map[string]any) map[string]any {
+	c := make(map[string]any)
+	for k, v := range m {
+		c[k] = v
+	}
+	return c
 }
 
 func override(_ any, other any, _ tree.Path) (any, error) {

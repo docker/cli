@@ -19,19 +19,23 @@ package loader
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/compose-spec/compose-go/v2/tree"
 	"gopkg.in/yaml.v3"
 )
 
 type ResetProcessor struct {
-	target interface{}
-	paths  []tree.Path
+	target       interface{}
+	paths        []tree.Path
+	visitedNodes map[*yaml.Node][]string
 }
 
 // UnmarshalYAML implement yaml.Unmarshaler
 func (p *ResetProcessor) UnmarshalYAML(value *yaml.Node) error {
+	p.visitedNodes = make(map[*yaml.Node][]string)
 	resolved, err := p.resolveReset(value, tree.NewPath())
+	p.visitedNodes = nil
 	if err != nil {
 		return err
 	}
@@ -40,6 +44,21 @@ func (p *ResetProcessor) UnmarshalYAML(value *yaml.Node) error {
 
 // resolveReset detects `!reset` tag being set on yaml nodes and record position in the yaml tree
 func (p *ResetProcessor) resolveReset(node *yaml.Node, path tree.Path) (*yaml.Node, error) {
+	pathStr := path.String()
+	// If the path contains "<<", removing the "<<" element and merging the path
+	if strings.Contains(pathStr, ".<<") {
+		path = tree.NewPath(strings.Replace(pathStr, ".<<", "", 1))
+	}
+
+	// If the node is an alias, We need to process the alias field in order to consider the !override and !reset tags
+	if node.Kind == yaml.AliasNode {
+		if err := p.checkForCycle(node.Alias, path); err != nil {
+			return nil, err
+		}
+
+		return p.resolveReset(node.Alias, path)
+	}
+
 	if node.Tag == "!reset" {
 		p.paths = append(p.paths, path)
 		return nil, nil
@@ -123,4 +142,49 @@ func (p *ResetProcessor) applyNullOverrides(target any, path tree.Path) error {
 		}
 	}
 	return nil
+}
+
+func (p *ResetProcessor) checkForCycle(node *yaml.Node, path tree.Path) error {
+	paths := p.visitedNodes[node]
+	pathStr := path.String()
+
+	for _, prevPath := range paths {
+		// If we're visiting the exact same path, it's not a cycle
+		if pathStr == prevPath {
+			continue
+		}
+
+		// If either path is using a merge key, it's legitimate YAML merging
+		if strings.Contains(prevPath, "<<") || strings.Contains(pathStr, "<<") {
+			continue
+		}
+
+		// Only consider it a cycle if one path is contained within the other
+		// and they're not in different service definitions
+		if (strings.HasPrefix(pathStr, prevPath+".") ||
+			strings.HasPrefix(prevPath, pathStr+".")) &&
+			!areInDifferentServices(pathStr, prevPath) {
+			return fmt.Errorf("cycle detected: node at path %s references node at path %s", pathStr, prevPath)
+		}
+	}
+
+	p.visitedNodes[node] = append(paths, pathStr)
+	return nil
+}
+
+// areInDifferentServices checks if two paths are in different service definitions
+func areInDifferentServices(path1, path2 string) bool {
+	// Split paths into components
+	parts1 := strings.Split(path1, ".")
+	parts2 := strings.Split(path2, ".")
+
+	// Look for the services component and compare the service names
+	for i := 0; i < len(parts1) && i < len(parts2); i++ {
+		if parts1[i] == "services" && i+1 < len(parts1) &&
+			parts2[i] == "services" && i+1 < len(parts2) {
+			// If they're different services, it's not a cycle
+			return parts1[i+1] != parts2[i+1]
+		}
+	}
+	return false
 }

@@ -7,9 +7,8 @@ module github.com/docker/cli
 go 1.22.0
 
 require (
-	dario.cat/mergo v1.0.1
+	github.com/compose-spec/compose-go/v2 v2.4.5
 	github.com/containerd/platforms v0.2.1
-	github.com/compose-spec/compose-go/v2 v2.0.0-rc.7
 	github.com/creack/pty v1.1.21
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.8.0
@@ -20,7 +19,6 @@ require (
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.1.0
 	github.com/go-jose/go-jose/v4 v4.0.4
-	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.6.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -49,11 +47,11 @@ require (
 	go.opentelemetry.io/otel/sdk v1.28.0
 	go.opentelemetry.io/otel/sdk/metric v1.28.0
 	go.opentelemetry.io/otel/trace v1.28.0
+	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
 	golang.org/x/sync v0.8.0
 	golang.org/x/sys v0.26.0
 	golang.org/x/term v0.25.0
 	golang.org/x/text v0.19.0
-	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/v3 v3.5.1
 	tags.cncf.io/container-device-interface v0.8.0
@@ -73,6 +71,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
@@ -81,9 +80,7 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/mattn/go-shellwords v1.0.12 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
-	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/symlink v0.3.0 // indirect
 	github.com/moby/sys/user v0.3.0 // indirect

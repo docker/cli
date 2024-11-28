@@ -18,266 +18,246 @@ package loader
 
 import (
 	"fmt"
+	"path"
+	"strconv"
 	"strings"
 
-	"github.com/compose-spec/compose-go/v2/errdefs"
 	"github.com/compose-spec/compose-go/v2/types"
-	"github.com/sirupsen/logrus"
 )
 
 // Normalize compose project by moving deprecated attributes to their canonical position and injecting implicit defaults
-func Normalize(project *types.Project) error {
-	if project.Networks == nil {
-		project.Networks = make(map[string]types.NetworkConfig)
+func Normalize(dict map[string]any, env types.Mapping) (map[string]any, error) {
+	normalizeNetworks(dict)
+
+	if d, ok := dict["services"]; ok {
+		services := d.(map[string]any)
+		for name, s := range services {
+			service := s.(map[string]any)
+
+			if service["pull_policy"] == types.PullPolicyIfNotPresent {
+				service["pull_policy"] = types.PullPolicyMissing
+			}
+
+			fn := func(s string) (string, bool) {
+				v, ok := env[s]
+				return v, ok
+			}
+
+			if b, ok := service["build"]; ok {
+				build := b.(map[string]any)
+				if build["context"] == nil {
+					build["context"] = "."
+				}
+				if build["dockerfile"] == nil && build["dockerfile_inline"] == nil {
+					build["dockerfile"] = "Dockerfile"
+				}
+
+				if a, ok := build["args"]; ok {
+					build["args"], _ = resolve(a, fn, false)
+				}
+
+				service["build"] = build
+			}
+
+			if e, ok := service["environment"]; ok {
+				service["environment"], _ = resolve(e, fn, true)
+			}
+
+			var dependsOn map[string]any
+			if d, ok := service["depends_on"]; ok {
+				dependsOn = d.(map[string]any)
+			} else {
+				dependsOn = map[string]any{}
+			}
+			if l, ok := service["links"]; ok {
+				links := l.([]any)
+				for _, e := range links {
+					link := e.(string)
+					parts := strings.Split(link, ":")
+					if len(parts) == 2 {
+						link = parts[0]
+					}
+					if _, ok := dependsOn[link]; !ok {
+						dependsOn[link] = map[string]any{
+							"condition": types.ServiceConditionStarted,
+							"restart":   true,
+							"required":  true,
+						}
+					}
+				}
+			}
+
+			for _, namespace := range []string{"network_mode", "ipc", "pid", "uts", "cgroup"} {
+				if n, ok := service[namespace]; ok {
+					ref := n.(string)
+					if strings.HasPrefix(ref, types.ServicePrefix) {
+						shared := ref[len(types.ServicePrefix):]
+						if _, ok := dependsOn[shared]; !ok {
+							dependsOn[shared] = map[string]any{
+								"condition": types.ServiceConditionStarted,
+								"restart":   true,
+								"required":  true,
+							}
+						}
+					}
+				}
+			}
+
+			if v, ok := service["volumes"]; ok {
+				volumes := v.([]any)
+				for i, volume := range volumes {
+					vol := volume.(map[string]any)
+					target := vol["target"].(string)
+					vol["target"] = path.Clean(target)
+					volumes[i] = vol
+				}
+				service["volumes"] = volumes
+			}
+
+			if n, ok := service["volumes_from"]; ok {
+				volumesFrom := n.([]any)
+				for _, v := range volumesFrom {
+					vol := v.(string)
+					if !strings.HasPrefix(vol, types.ContainerPrefix) {
+						spec := strings.Split(vol, ":")
+						if _, ok := dependsOn[spec[0]]; !ok {
+							dependsOn[spec[0]] = map[string]any{
+								"condition": types.ServiceConditionStarted,
+								"restart":   false,
+								"required":  true,
+							}
+						}
+					}
+				}
+			}
+			if len(dependsOn) > 0 {
+				service["depends_on"] = dependsOn
+			}
+			services[name] = service
+		}
+
+		dict["services"] = services
 	}
+	setNameFromKey(dict)
 
-	// If not declared explicitly, Compose model involves an implicit "default" network
-	if _, ok := project.Networks["default"]; !ok {
-		project.Networks["default"] = types.NetworkConfig{}
-	}
-
-	for name, s := range project.Services {
-		if len(s.Networks) == 0 && s.NetworkMode == "" {
-			// Service without explicit network attachment are implicitly exposed on default network
-			s.Networks = map[string]*types.ServiceNetworkConfig{"default": nil}
-		}
-
-		if s.PullPolicy == types.PullPolicyIfNotPresent {
-			s.PullPolicy = types.PullPolicyMissing
-		}
-
-		fn := func(s string) (string, bool) {
-			v, ok := project.Environment[s]
-			return v, ok
-		}
-
-		if s.Build != nil {
-			if s.Build.Context == "" {
-				s.Build.Context = "."
-			}
-			if s.Build.Dockerfile == "" && s.Build.DockerfileInline == "" {
-				s.Build.Dockerfile = "Dockerfile"
-			}
-			s.Build.Args = s.Build.Args.Resolve(fn)
-		}
-		s.Environment = s.Environment.Resolve(fn)
-
-		for _, link := range s.Links {
-			parts := strings.Split(link, ":")
-			if len(parts) == 2 {
-				link = parts[0]
-			}
-			s.DependsOn = setIfMissing(s.DependsOn, link, types.ServiceDependency{
-				Condition: types.ServiceConditionStarted,
-				Restart:   true,
-				Required:  true,
-			})
-		}
-
-		for _, namespace := range []string{s.NetworkMode, s.Ipc, s.Pid, s.Uts, s.Cgroup} {
-			if strings.HasPrefix(namespace, types.ServicePrefix) {
-				name := namespace[len(types.ServicePrefix):]
-				s.DependsOn = setIfMissing(s.DependsOn, name, types.ServiceDependency{
-					Condition: types.ServiceConditionStarted,
-					Restart:   true,
-					Required:  true,
-				})
-			}
-		}
-
-		for _, vol := range s.VolumesFrom {
-			if !strings.HasPrefix(vol, types.ContainerPrefix) {
-				spec := strings.Split(vol, ":")
-				s.DependsOn = setIfMissing(s.DependsOn, spec[0], types.ServiceDependency{
-					Condition: types.ServiceConditionStarted,
-					Restart:   false,
-					Required:  true,
-				})
-			}
-		}
-
-		err := relocateLogDriver(&s)
-		if err != nil {
-			return err
-		}
-
-		err = relocateLogOpt(&s)
-		if err != nil {
-			return err
-		}
-
-		err = relocateDockerfile(&s)
-		if err != nil {
-			return err
-		}
-
-		inferImplicitDependencies(&s)
-
-		project.Services[name] = s
-	}
-
-	setNameFromKey(project)
-
-	return nil
+	return dict, nil
 }
 
-// IsServiceDependency check the relation set by ref refers to a service
-func IsServiceDependency(ref string) (string, bool) {
-	if strings.HasPrefix(
-		ref,
-		types.ServicePrefix,
-	) {
-		return ref[len(types.ServicePrefix):], true
+func normalizeNetworks(dict map[string]any) {
+	var networks map[string]any
+	if n, ok := dict["networks"]; ok {
+		networks = n.(map[string]any)
+	} else {
+		networks = map[string]any{}
 	}
-	return "", false
+
+	// implicit `default` network must be introduced only if actually used by some service
+	usesDefaultNetwork := false
+
+	if s, ok := dict["services"]; ok {
+		services := s.(map[string]any)
+		for name, se := range services {
+			service := se.(map[string]any)
+			if _, ok := service["network_mode"]; ok {
+				continue
+			}
+			if n, ok := service["networks"]; !ok {
+				// If none explicitly declared, service is connected to default network
+				service["networks"] = map[string]any{"default": nil}
+				usesDefaultNetwork = true
+			} else {
+				net := n.(map[string]any)
+				if len(net) == 0 {
+					// networks section declared but empty (corner case)
+					service["networks"] = map[string]any{"default": nil}
+					usesDefaultNetwork = true
+				} else if _, ok := net["default"]; ok {
+					usesDefaultNetwork = true
+				}
+			}
+			services[name] = service
+		}
+		dict["services"] = services
+	}
+
+	if _, ok := networks["default"]; !ok && usesDefaultNetwork {
+		// If not declared explicitly, Compose model involves an implicit "default" network
+		networks["default"] = nil
+	}
+
+	if len(networks) > 0 {
+		dict["networks"] = networks
+	}
 }
 
-func inferImplicitDependencies(service *types.ServiceConfig) {
-	var dependencies []string
-
-	maybeReferences := []string{
-		service.NetworkMode,
-		service.Ipc,
-		service.Pid,
-		service.Uts,
-		service.Cgroup,
-	}
-	for _, ref := range maybeReferences {
-		if dep, ok := IsServiceDependency(ref); ok {
-			dependencies = append(dependencies, dep)
-		}
-	}
-
-	for _, vol := range service.VolumesFrom {
-		spec := strings.Split(vol, ":")
-		if len(spec) == 0 {
-			continue
-		}
-		if spec[0] == "container" {
-			continue
-		}
-		dependencies = append(dependencies, spec[0])
-	}
-
-	for _, link := range service.Links {
-		dependencies = append(dependencies, strings.Split(link, ":")[0])
-	}
-
-	if len(dependencies) > 0 && service.DependsOn == nil {
-		service.DependsOn = make(types.DependsOnConfig)
-	}
-
-	for _, d := range dependencies {
-		if _, ok := service.DependsOn[d]; !ok {
-			service.DependsOn[d] = types.ServiceDependency{
-				Condition: types.ServiceConditionStarted,
-				Required:  true,
+func resolve(a any, fn func(s string) (string, bool), keepEmpty bool) (any, bool) {
+	switch v := a.(type) {
+	case []any:
+		var resolved []any
+		for _, val := range v {
+			if r, ok := resolve(val, fn, keepEmpty); ok {
+				resolved = append(resolved, r)
 			}
 		}
+		return resolved, true
+	case map[string]any:
+		resolved := map[string]any{}
+		for key, val := range v {
+			if val != nil {
+				resolved[key] = val
+				continue
+			}
+			if s, ok := fn(key); ok {
+				resolved[key] = s
+			} else if keepEmpty {
+				resolved[key] = nil
+			}
+		}
+		return resolved, true
+	case string:
+		if !strings.Contains(v, "=") {
+			if val, ok := fn(v); ok {
+				return fmt.Sprintf("%s=%s", v, val), true
+			}
+			if keepEmpty {
+				return v, true
+			}
+			return "", false
+		}
+		return v, true
+	default:
+		return v, false
 	}
-}
-
-// setIfMissing adds a ServiceDependency for service if not already defined
-func setIfMissing(d types.DependsOnConfig, service string, dep types.ServiceDependency) types.DependsOnConfig {
-	if d == nil {
-		d = types.DependsOnConfig{}
-	}
-	if _, ok := d[service]; !ok {
-		d[service] = dep
-	}
-	return d
 }
 
 // Resources with no explicit name are actually named by their key in map
-func setNameFromKey(project *types.Project) {
-	for key, n := range project.Networks {
-		if n.Name == "" {
-			if n.External {
-				n.Name = key
-			} else {
-				n.Name = fmt.Sprintf("%s_%s", project.Name, key)
-			}
-			project.Networks[key] = n
+func setNameFromKey(dict map[string]any) {
+	for _, r := range []string{"networks", "volumes", "configs", "secrets"} {
+		a, ok := dict[r]
+		if !ok {
+			continue
 		}
-	}
-
-	for key, v := range project.Volumes {
-		if v.Name == "" {
-			if v.External {
-				v.Name = key
+		toplevel := a.(map[string]any)
+		for key, r := range toplevel {
+			var resource map[string]any
+			if r != nil {
+				resource = r.(map[string]any)
 			} else {
-				v.Name = fmt.Sprintf("%s_%s", project.Name, key)
+				resource = map[string]any{}
 			}
-			project.Volumes[key] = v
-		}
-	}
-
-	for key, c := range project.Configs {
-		if c.Name == "" {
-			if c.External {
-				c.Name = key
-			} else {
-				c.Name = fmt.Sprintf("%s_%s", project.Name, key)
+			if resource["name"] == nil {
+				if x, ok := resource["external"]; ok && isTrue(x) {
+					resource["name"] = key
+				} else {
+					resource["name"] = fmt.Sprintf("%s_%s", dict["name"], key)
+				}
 			}
-			project.Configs[key] = c
-		}
-	}
-
-	for key, s := range project.Secrets {
-		if s.Name == "" {
-			if s.External {
-				s.Name = key
-			} else {
-				s.Name = fmt.Sprintf("%s_%s", project.Name, key)
-			}
-			project.Secrets[key] = s
+			toplevel[key] = resource
 		}
 	}
 }
 
-func relocateLogOpt(s *types.ServiceConfig) error {
-	if len(s.LogOpt) != 0 {
-		logrus.Warn("`log_opts` is deprecated. Use the `logging` element")
-		if s.Logging == nil {
-			s.Logging = &types.LoggingConfig{}
-		}
-		for k, v := range s.LogOpt {
-			if _, ok := s.Logging.Options[k]; !ok {
-				s.Logging.Options[k] = v
-			} else {
-				return fmt.Errorf("can't use both 'log_opt' (deprecated) and 'logging.options': %w", errdefs.ErrInvalid)
-			}
-		}
-	}
-	return nil
-}
-
-func relocateLogDriver(s *types.ServiceConfig) error {
-	if s.LogDriver != "" {
-		logrus.Warn("`log_driver` is deprecated. Use the `logging` element")
-		if s.Logging == nil {
-			s.Logging = &types.LoggingConfig{}
-		}
-		if s.Logging.Driver == "" {
-			s.Logging.Driver = s.LogDriver
-		} else {
-			return fmt.Errorf("can't use both 'log_driver' (deprecated) and 'logging.driver': %w", errdefs.ErrInvalid)
-		}
-	}
-	return nil
-}
-
-func relocateDockerfile(s *types.ServiceConfig) error {
-	if s.Dockerfile != "" {
-		logrus.Warn("`dockerfile` is deprecated. Use the `build` element")
-		if s.Build == nil {
-			s.Build = &types.BuildConfig{}
-		}
-		if s.Dockerfile == "" {
-			s.Build.Dockerfile = s.Dockerfile
-		} else {
-			return fmt.Errorf("can't use both 'dockerfile' (deprecated) and 'build.dockerfile': %w", errdefs.ErrInvalid)
-		}
-	}
-	return nil
+func isTrue(x any) bool {
+	parseBool, _ := strconv.ParseBool(fmt.Sprint(x))
+	return parseBool
 }

@@ -17,7 +17,6 @@
 package loader
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -70,16 +69,13 @@ func checkConsistency(project *types.Project) error {
 			}
 		}
 
-		for dependedService := range s.DependsOn {
+		for dependedService, cfg := range s.DependsOn {
 			if _, err := project.GetService(dependedService); err != nil {
-				return fmt.Errorf("service %q depends on undefined service %s: %w", s.Name, dependedService, errdefs.ErrInvalid)
+				if errors.Is(err, errdefs.ErrDisabled) && !cfg.Required {
+					continue
+				}
+				return fmt.Errorf("service %q depends on undefined service %q: %w", s.Name, dependedService, errdefs.ErrInvalid)
 			}
-		}
-		// Check there isn't a cycle in depends_on declarations
-		if err := graph.InDependencyOrder(context.Background(), project, func(ctx context.Context, s string, config types.ServiceConfig) error {
-			return nil
-		}); err != nil {
-			return err
 		}
 
 		if strings.HasPrefix(s.NetworkMode, types.ServicePrefix) {
@@ -123,6 +119,31 @@ func checkConsistency(project *types.Project) error {
 			s.Deploy.Replicas = s.Scale
 		}
 
+		if s.CPUS != 0 && s.Deploy != nil {
+			if s.Deploy.Resources.Limits != nil && s.Deploy.Resources.Limits.NanoCPUs.Value() != s.CPUS {
+				return fmt.Errorf("services.%s: can't set distinct values on 'cpus' and 'deploy.resources.limits.cpus': %w",
+					s.Name, errdefs.ErrInvalid)
+			}
+		}
+		if s.MemLimit != 0 && s.Deploy != nil {
+			if s.Deploy.Resources.Limits != nil && s.Deploy.Resources.Limits.MemoryBytes != s.MemLimit {
+				return fmt.Errorf("services.%s: can't set distinct values on 'mem_limit' and 'deploy.resources.limits.memory': %w",
+					s.Name, errdefs.ErrInvalid)
+			}
+		}
+		if s.MemReservation != 0 && s.Deploy != nil {
+			if s.Deploy.Resources.Reservations != nil && s.Deploy.Resources.Reservations.MemoryBytes != s.MemReservation {
+				return fmt.Errorf("services.%s: can't set distinct values on 'mem_reservation' and 'deploy.resources.reservations.memory': %w",
+					s.Name, errdefs.ErrInvalid)
+			}
+		}
+		if s.PidsLimit != 0 && s.Deploy != nil {
+			if s.Deploy.Resources.Limits != nil && s.Deploy.Resources.Limits.Pids != s.PidsLimit {
+				return fmt.Errorf("services.%s: can't set distinct values on 'pids_limit' and 'deploy.resources.limits.pids': %w",
+					s.Name, errdefs.ErrInvalid)
+			}
+		}
+
 		if s.GetScale() > 1 && s.ContainerName != "" {
 			attr := "scale"
 			if s.Scale == nil {
@@ -130,6 +151,15 @@ func checkConsistency(project *types.Project) error {
 			}
 			return fmt.Errorf("services.%s: can't set container_name and %s as container name must be unique: %w", attr,
 				s.Name, errdefs.ErrInvalid)
+		}
+
+		if s.Develop != nil && s.Develop.Watch != nil {
+			for _, watch := range s.Develop.Watch {
+				if watch.Action != types.WatchActionRebuild && watch.Target == "" {
+					return fmt.Errorf("services.%s.develop.watch: target is required for non-rebuild actions: %w", s.Name, errdefs.ErrInvalid)
+				}
+			}
+
 		}
 	}
 
@@ -142,5 +172,5 @@ func checkConsistency(project *types.Project) error {
 		}
 	}
 
-	return nil
+	return graph.CheckCycle(project)
 }

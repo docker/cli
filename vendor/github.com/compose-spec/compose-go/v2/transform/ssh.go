@@ -23,7 +23,7 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformSSH(data any, p tree.Path) (any, error) {
+func transformSSH(data any, p tree.Path, _ bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		return v, nil

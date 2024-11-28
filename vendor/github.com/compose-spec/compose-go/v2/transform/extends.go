@@ -22,10 +22,10 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformExtends(data any, p tree.Path) (any, error) {
+func transformExtends(data any, p tree.Path, ignoreParseError bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
-		return transformMapping(v, p)
+		return transformMapping(v, p, ignoreParseError)
 	case string:
 		return map[string]any{
 			"service": v,

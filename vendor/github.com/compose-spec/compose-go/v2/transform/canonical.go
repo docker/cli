@@ -20,7 +20,7 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-type transformFunc func(data any, p tree.Path) (any, error)
+type transformFunc func(data any, p tree.Path, ignoreParseError bool) (any, error)
 
 var transformers = map[tree.Path]transformFunc{}
 
@@ -33,6 +33,8 @@ func init() {
 	transformers["services.*.extends"] = transformExtends
 	transformers["services.*.networks"] = transformServiceNetworks
 	transformers["services.*.volumes.*"] = transformVolumeMount
+	transformers["services.*.dns"] = transformStringOrList
+	transformers["services.*.devices.*"] = transformDeviceMapping
 	transformers["services.*.secrets.*"] = transformFileMount
 	transformers["services.*.configs.*"] = transformFileMount
 	transformers["services.*.ports"] = transformPorts
@@ -47,19 +49,28 @@ func init() {
 	transformers["include.*"] = transformInclude
 }
 
+func transformStringOrList(data any, _ tree.Path, _ bool) (any, error) {
+	switch t := data.(type) {
+	case string:
+		return []any{t}, nil
+	default:
+		return data, nil
+	}
+}
+
 // Canonical transforms a compose model into canonical syntax
-func Canonical(yaml map[string]any) (map[string]any, error) {
-	canonical, err := transform(yaml, tree.NewPath())
+func Canonical(yaml map[string]any, ignoreParseError bool) (map[string]any, error) {
+	canonical, err := transform(yaml, tree.NewPath(), ignoreParseError)
 	if err != nil {
 		return nil, err
 	}
 	return canonical.(map[string]any), nil
 }
 
-func transform(data any, p tree.Path) (any, error) {
+func transform(data any, p tree.Path, ignoreParseError bool) (any, error) {
 	for pattern, transformer := range transformers {
 		if p.Matches(pattern) {
-			t, err := transformer(data, p)
+			t, err := transformer(data, p, ignoreParseError)
 			if err != nil {
 				return nil, err
 			}
@@ -68,13 +79,13 @@ func transform(data any, p tree.Path) (any, error) {
 	}
 	switch v := data.(type) {
 	case map[string]any:
-		a, err := transformMapping(v, p)
+		a, err := transformMapping(v, p, ignoreParseError)
 		if err != nil {
 			return a, err
 		}
 		return v, nil
 	case []any:
-		a, err := transformSequence(v, p)
+		a, err := transformSequence(v, p, ignoreParseError)
 		if err != nil {
 			return a, err
 		}
@@ -84,9 +95,9 @@ func transform(data any, p tree.Path) (any, error) {
 	}
 }
 
-func transformSequence(v []any, p tree.Path) ([]any, error) {
+func transformSequence(v []any, p tree.Path, ignoreParseError bool) ([]any, error) {
 	for i, e := range v {
-		t, err := transform(e, p.Next("[]"))
+		t, err := transform(e, p.Next("[]"), ignoreParseError)
 		if err != nil {
 			return nil, err
 		}
@@ -95,9 +106,9 @@ func transformSequence(v []any, p tree.Path) ([]any, error) {
 	return v, nil
 }
 
-func transformMapping(v map[string]any, p tree.Path) (map[string]any, error) {
+func transformMapping(v map[string]any, p tree.Path, ignoreParseError bool) (map[string]any, error) {
 	for k, e := range v {
-		t, err := transform(e, p.Next(k))
+		t, err := transform(e, p.Next(k), ignoreParseError)
 		if err != nil {
 			return nil, err
 		}

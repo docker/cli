@@ -22,7 +22,7 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformDependsOn(data any, p tree.Path) (any, error) {
+func transformDependsOn(data any, p tree.Path, _ bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		for i, e := range v {

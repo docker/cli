@@ -18,29 +18,19 @@ package transform
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformKeyValue(data any, p tree.Path, ignoreParseError bool) (any, error) {
-	switch v := data.(type) {
-	case map[string]any:
-		return v, nil
-	case []any:
-		mapping := map[string]any{}
-		for _, e := range v {
-			before, after, found := strings.Cut(e.(string), "=")
-			if !found {
-				if ignoreParseError {
-					return data, nil
-				}
-				return nil, fmt.Errorf("%s: invalid value %s, expected key=value", p, e)
-			}
-			mapping[before] = after
-		}
-		return mapping, nil
-	default:
-		return nil, fmt.Errorf("%s: invalid type %T", p, v)
+func deviceRequestDefaults(data any, p tree.Path, _ bool) (any, error) {
+	v, ok := data.(map[string]any)
+	if !ok {
+		return data, fmt.Errorf("%s: invalid type %T for device request", p, v)
 	}
+	_, hasCount := v["count"]
+	_, hasIds := v["device_ids"]
+	if !hasCount && !hasIds {
+		v["count"] = "all"
+	}
+	return v, nil
 }

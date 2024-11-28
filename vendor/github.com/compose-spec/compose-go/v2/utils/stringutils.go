@@ -32,8 +32,10 @@ func StringToBool(s string) bool {
 func GetAsEqualsMap(em []string) map[string]string {
 	m := make(map[string]string)
 	for _, v := range em {
-		kv := strings.SplitN(v, "=", 2)
-		m[kv[0]] = kv[1]
+		key, val, found := strings.Cut(v, "=")
+		if found {
+			m[key] = val
+		}
 	}
 	return m
 }

@@ -30,6 +30,7 @@ import (
 	"strings"
 
 	"github.com/compose-spec/compose-go/v2/consts"
+	"github.com/compose-spec/compose-go/v2/errdefs"
 	interp "github.com/compose-spec/compose-go/v2/interpolation"
 	"github.com/compose-spec/compose-go/v2/override"
 	"github.com/compose-spec/compose-go/v2/paths"
@@ -39,8 +40,9 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 	"github.com/compose-spec/compose-go/v2/types"
 	"github.com/compose-spec/compose-go/v2/validation"
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v3"
 )
 
@@ -82,6 +84,15 @@ type Options struct {
 	KnownExtensions map[string]any
 	// Metada for telemetry
 	Listeners []Listener
+}
+
+var versionWarning []string
+
+func (o *Options) warnObsoleteVersion(file string) {
+	if !slices.Contains(versionWarning, file) {
+		logrus.Warning(fmt.Sprintf("%s: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion", file))
+	}
+	versionWarning = append(versionWarning, file)
 }
 
 type Listener = func(event string, metadata map[string]any)
@@ -129,22 +140,33 @@ func (l localResourceLoader) abs(p string) string {
 	return filepath.Join(l.WorkingDir, p)
 }
 
-func (l localResourceLoader) Accept(p string) bool {
-	_, err := os.Stat(l.abs(p))
-	return err == nil
+func (l localResourceLoader) Accept(_ string) bool {
+	// LocalResourceLoader is the last loader tested so it always should accept the config and try to get the content.
+	return true
 }
 
 func (l localResourceLoader) Load(_ context.Context, p string) (string, error) {
 	return l.abs(p), nil
 }
 
-func (l localResourceLoader) Dir(path string) string {
-	path = l.abs(filepath.Dir(path))
+func (l localResourceLoader) Dir(originalPath string) string {
+	path := l.abs(originalPath)
+	if !l.isDir(path) {
+		path = l.abs(filepath.Dir(originalPath))
+	}
 	rel, err := filepath.Rel(l.WorkingDir, path)
 	if err != nil {
 		return path
 	}
 	return rel
+}
+
+func (l localResourceLoader) isDir(path string) bool {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return fileInfo.IsDir()
 }
 
 func (o *Options) clone() *Options {
@@ -279,18 +301,95 @@ func parseYAML(decoder *yaml.Decoder) (map[string]interface{}, PostProcessor, er
 	return converted.(map[string]interface{}), &processor, nil
 }
 
+// LoadConfigFiles ingests config files with ResourceLoader and returns config details with paths to local copies
+func LoadConfigFiles(ctx context.Context, configFiles []string, workingDir string, options ...func(*Options)) (*types.ConfigDetails, error) {
+	if len(configFiles) < 1 {
+		return &types.ConfigDetails{}, fmt.Errorf("no configuration file provided: %w", errdefs.ErrNotFound)
+	}
+
+	opts := &Options{}
+	config := &types.ConfigDetails{
+		ConfigFiles: make([]types.ConfigFile, len(configFiles)),
+	}
+
+	for _, op := range options {
+		op(opts)
+	}
+	opts.ResourceLoaders = append(opts.ResourceLoaders, localResourceLoader{})
+
+	for i, p := range configFiles {
+		if p == "-" {
+			config.ConfigFiles[i] = types.ConfigFile{
+				Filename: p,
+			}
+			continue
+		}
+
+		for _, loader := range opts.ResourceLoaders {
+			_, isLocalResourceLoader := loader.(localResourceLoader)
+			if !loader.Accept(p) {
+				continue
+			}
+			local, err := loader.Load(ctx, p)
+			if err != nil {
+				return nil, err
+			}
+			if config.WorkingDir == "" && !isLocalResourceLoader {
+				config.WorkingDir = filepath.Dir(local)
+			}
+			abs, err := filepath.Abs(local)
+			if err != nil {
+				abs = local
+			}
+			config.ConfigFiles[i] = types.ConfigFile{
+				Filename: abs,
+			}
+			break
+		}
+	}
+	if config.WorkingDir == "" {
+		config.WorkingDir = workingDir
+	}
+	return config, nil
+}
+
 // Load reads a ConfigDetails and returns a fully loaded configuration.
 // Deprecated: use LoadWithContext.
 func Load(configDetails types.ConfigDetails, options ...func(*Options)) (*types.Project, error) {
 	return LoadWithContext(context.Background(), configDetails, options...)
 }
 
-// LoadWithContext reads a ConfigDetails and returns a fully loaded configuration
+// LoadWithContext reads a ConfigDetails and returns a fully loaded configuration as a compose-go Project
 func LoadWithContext(ctx context.Context, configDetails types.ConfigDetails, options ...func(*Options)) (*types.Project, error) {
+	opts := toOptions(&configDetails, options)
+	dict, err := loadModelWithContext(ctx, &configDetails, opts)
+	if err != nil {
+		return nil, err
+	}
+	return modelToProject(dict, opts, configDetails)
+}
+
+// LoadModelWithContext reads a ConfigDetails and returns a fully loaded configuration as a yaml dictionary
+func LoadModelWithContext(ctx context.Context, configDetails types.ConfigDetails, options ...func(*Options)) (map[string]any, error) {
+	opts := toOptions(&configDetails, options)
+	return loadModelWithContext(ctx, &configDetails, opts)
+}
+
+// LoadModelWithContext reads a ConfigDetails and returns a fully loaded configuration as a yaml dictionary
+func loadModelWithContext(ctx context.Context, configDetails *types.ConfigDetails, opts *Options) (map[string]any, error) {
 	if len(configDetails.ConfigFiles) < 1 {
 		return nil, errors.New("No files specified")
 	}
 
+	err := projectName(configDetails, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return load(ctx, *configDetails, opts, nil)
+}
+
+func toOptions(configDetails *types.ConfigDetails, options []func(*Options)) *Options {
 	opts := &Options{
 		Interpolate: &interp.Options{
 			Substitute:      template.Substitute,
@@ -304,22 +403,7 @@ func LoadWithContext(ctx context.Context, configDetails types.ConfigDetails, opt
 		op(opts)
 	}
 	opts.ResourceLoaders = append(opts.ResourceLoaders, localResourceLoader{configDetails.WorkingDir})
-
-	projectName, err := projectName(configDetails, opts)
-	if err != nil {
-		return nil, err
-	}
-	opts.projectName = projectName
-
-	// TODO(milas): this should probably ALWAYS set (overriding any existing)
-	if _, ok := configDetails.Environment[consts.ComposeProjectName]; !ok && projectName != "" {
-		if configDetails.Environment == nil {
-			configDetails.Environment = map[string]string{}
-		}
-		configDetails.Environment[consts.ComposeProjectName] = projectName
-	}
-
-	return load(ctx, configDetails, opts, nil)
+	return opts
 }
 
 func loadYamlModel(ctx context.Context, config types.ConfigDetails, opts *Options, ct *cycleTracker, included []string) (map[string]interface{}, error) {
@@ -327,108 +411,13 @@ func loadYamlModel(ctx context.Context, config types.ConfigDetails, opts *Option
 		dict = map[string]interface{}{}
 		err  error
 	)
+	workingDir, environment := config.WorkingDir, config.Environment
+
 	for _, file := range config.ConfigFiles {
-		fctx := context.WithValue(ctx, consts.ComposeFileKey{}, file.Filename)
-		if len(file.Content) == 0 && file.Config == nil {
-			content, err := os.ReadFile(file.Filename)
-			if err != nil {
-				return nil, err
-			}
-			file.Content = content
+		dict, _, err = loadYamlFile(ctx, file, opts, workingDir, environment, ct, dict, included)
+		if err != nil {
+			return nil, err
 		}
-
-		processRawYaml := func(raw interface{}, processors ...PostProcessor) error {
-			converted, err := convertToStringKeysRecursive(raw, "")
-			if err != nil {
-				return err
-			}
-			cfg, ok := converted.(map[string]interface{})
-			if !ok {
-				return errors.New("Top-level object must be a mapping")
-			}
-
-			if opts.Interpolate != nil && !opts.SkipInterpolation {
-				cfg, err = interp.Interpolate(cfg, *opts.Interpolate)
-				if err != nil {
-					return err
-				}
-			}
-
-			fixEmptyNotNull(cfg)
-
-			if !opts.SkipExtends {
-				err = ApplyExtends(fctx, cfg, opts, ct, processors...)
-				if err != nil {
-					return err
-				}
-			}
-
-			for _, processor := range processors {
-				if err := processor.Apply(dict); err != nil {
-					return err
-				}
-			}
-
-			if !opts.SkipInclude {
-				included = append(included, config.ConfigFiles[0].Filename)
-				err = ApplyInclude(ctx, config, cfg, opts, included)
-				if err != nil {
-					return err
-				}
-			}
-
-			dict, err = override.Merge(dict, cfg)
-			if err != nil {
-				return err
-			}
-
-			dict, err = override.EnforceUnicity(dict)
-			if err != nil {
-				return err
-			}
-
-			if !opts.SkipValidation {
-				if err := schema.Validate(dict); err != nil {
-					return fmt.Errorf("validating %s: %w", file.Filename, err)
-				}
-			}
-
-			return err
-		}
-
-		if file.Config == nil {
-			r := bytes.NewReader(file.Content)
-			decoder := yaml.NewDecoder(r)
-			for {
-				var raw interface{}
-				processor := &ResetProcessor{target: &raw}
-				err := decoder.Decode(processor)
-				if err != nil && errors.Is(err, io.EOF) {
-					break
-				}
-				if err != nil {
-					return nil, err
-				}
-				if err := processRawYaml(raw, processor); err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			if err := processRawYaml(file.Config); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	dict, err = transform.Canonical(dict)
-	if err != nil {
-		return nil, err
-	}
-
-	// Canonical transformation can reveal duplicates, typically as ports can be a range and conflict with an override
-	dict, err = override.EnforceUnicity(dict)
-	if err != nil {
-		return nil, err
 	}
 
 	if !opts.SkipDefaultValues {
@@ -454,11 +443,121 @@ func loadYamlModel(ctx context.Context, config types.ConfigDetails, opts *Option
 			return nil, err
 		}
 	}
+	ResolveEnvironment(dict, config.Environment)
 
 	return dict, nil
 }
 
-func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options, loaded []string) (*types.Project, error) {
+func loadYamlFile(ctx context.Context, file types.ConfigFile, opts *Options, workingDir string, environment types.Mapping, ct *cycleTracker, dict map[string]interface{}, included []string) (map[string]interface{}, PostProcessor, error) {
+	ctx = context.WithValue(ctx, consts.ComposeFileKey{}, file.Filename)
+	if file.Content == nil && file.Config == nil {
+		content, err := os.ReadFile(file.Filename)
+		if err != nil {
+			return nil, nil, err
+		}
+		file.Content = content
+	}
+
+	processRawYaml := func(raw interface{}, processors ...PostProcessor) error {
+		converted, err := convertToStringKeysRecursive(raw, "")
+		if err != nil {
+			return err
+		}
+		cfg, ok := converted.(map[string]interface{})
+		if !ok {
+			return errors.New("Top-level object must be a mapping")
+		}
+
+		if opts.Interpolate != nil && !opts.SkipInterpolation {
+			cfg, err = interp.Interpolate(cfg, *opts.Interpolate)
+			if err != nil {
+				return err
+			}
+		}
+
+		fixEmptyNotNull(cfg)
+
+		if !opts.SkipExtends {
+			err = ApplyExtends(ctx, cfg, opts, ct, processors...)
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, processor := range processors {
+			if err := processor.Apply(dict); err != nil {
+				return err
+			}
+		}
+
+		if !opts.SkipInclude {
+			included = append(included, file.Filename)
+			err = ApplyInclude(ctx, workingDir, environment, cfg, opts, included)
+			if err != nil {
+				return err
+			}
+		}
+
+		dict, err = override.Merge(dict, cfg)
+		if err != nil {
+			return err
+		}
+
+		dict, err = override.EnforceUnicity(dict)
+		if err != nil {
+			return err
+		}
+
+		if !opts.SkipValidation {
+			if err := schema.Validate(dict); err != nil {
+				return fmt.Errorf("validating %s: %w", file.Filename, err)
+			}
+			if _, ok := dict["version"]; ok {
+				opts.warnObsoleteVersion(file.Filename)
+				delete(dict, "version")
+			}
+		}
+
+		dict, err = transform.Canonical(dict, opts.SkipInterpolation)
+		if err != nil {
+			return err
+		}
+
+		dict = OmitEmpty(dict)
+
+		// Canonical transformation can reveal duplicates, typically as ports can be a range and conflict with an override
+		dict, err = override.EnforceUnicity(dict)
+		return err
+	}
+
+	var processor PostProcessor
+	if file.Config == nil {
+		r := bytes.NewReader(file.Content)
+		decoder := yaml.NewDecoder(r)
+		for {
+			var raw interface{}
+			reset := &ResetProcessor{target: &raw}
+			err := decoder.Decode(reset)
+			if err != nil && errors.Is(err, io.EOF) {
+				break
+			}
+			if err != nil {
+				return nil, nil, err
+			}
+			processor = reset
+			if err := processRawYaml(raw, processor); err != nil {
+				return nil, nil, err
+			}
+		}
+	} else {
+		if err := processRawYaml(file.Config); err != nil {
+			return nil, nil, err
+		}
+	}
+	return dict, processor, nil
+}
+
+func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options, loaded []string) (map[string]interface{}, error) {
 	mainFile := configDetails.ConfigFiles[0].Filename
 	for _, f := range loaded {
 		if f == mainFile {
@@ -477,6 +576,23 @@ func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options,
 		return nil, errors.New("empty compose file")
 	}
 
+	if opts.projectName == "" {
+		return nil, errors.New("project name must not be empty")
+	}
+
+	if !opts.SkipNormalization {
+		dict["name"] = opts.projectName
+		dict, err = Normalize(dict, configDetails.Environment)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return dict, nil
+}
+
+// modelToProject binds a canonical yaml dict into compose-go structs
+func modelToProject(dict map[string]interface{}, opts *Options, configDetails types.ConfigDetails) (*types.Project, error) {
 	project := &types.Project{
 		Name:        opts.projectName,
 		WorkingDir:  configDetails.WorkingDir,
@@ -484,6 +600,7 @@ func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options,
 	}
 	delete(dict, "name") // project name set by yaml must be identified by caller as opts.projectName
 
+	var err error
 	dict, err = processExtensions(dict, tree.NewPath(), opts.KnownExtensions)
 	if err != nil {
 		return nil, err
@@ -492,13 +609,6 @@ func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options,
 	err = Transform(dict, project)
 	if err != nil {
 		return nil, err
-	}
-
-	if !opts.SkipNormalization {
-		err := Normalize(project)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	if opts.ConvertWindowsPaths {
@@ -510,15 +620,15 @@ func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options,
 		}
 	}
 
+	if project, err = project.WithProfiles(opts.Profiles); err != nil {
+		return nil, err
+	}
+
 	if !opts.SkipConsistencyCheck {
 		err := checkConsistency(project)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if project, err = project.WithProfiles(opts.Profiles); err != nil {
-		return nil, err
 	}
 
 	if !opts.SkipResolveEnvironment {
@@ -527,7 +637,6 @@ func load(ctx context.Context, configDetails types.ConfigDetails, opts *Options,
 			return nil, err
 		}
 	}
-
 	return project, nil
 }
 
@@ -541,72 +650,75 @@ func InvalidProjectNameErr(v string) error {
 // projectName determines the canonical name to use for the project considering
 // the loader Options as well as `name` fields in Compose YAML fields (which
 // also support interpolation).
-//
-// TODO(milas): restructure loading so that we don't need to re-parse the YAML
-// here, as it's both wasteful and makes this code error-prone.
-func projectName(details types.ConfigDetails, opts *Options) (string, error) {
-	projectName, projectNameImperativelySet := opts.GetProjectName()
+func projectName(details *types.ConfigDetails, opts *Options) error {
+	defer func() {
+		if details.Environment == nil {
+			details.Environment = map[string]string{}
+		}
+		details.Environment[consts.ComposeProjectName] = opts.projectName
+	}()
+
+	if opts.projectNameImperativelySet {
+		if NormalizeProjectName(opts.projectName) != opts.projectName {
+			return InvalidProjectNameErr(opts.projectName)
+		}
+		return nil
+	}
+
+	type named struct {
+		Name string `yaml:"name"`
+	}
 
 	// if user did NOT provide a name explicitly, then see if one is defined
 	// in any of the config files
-	if !projectNameImperativelySet {
-		var pjNameFromConfigFile string
-		for _, configFile := range details.ConfigFiles {
-			content := configFile.Content
-			if content == nil {
-				// This can be hit when Filename is set but Content is not. One
-				// example is when using ToConfigFiles().
-				d, err := os.ReadFile(configFile.Filename)
-				if err != nil {
-					return "", fmt.Errorf("failed to read file %q: %w", configFile.Filename, err)
-				}
-				content = d
+	var pjNameFromConfigFile string
+	for _, configFile := range details.ConfigFiles {
+		content := configFile.Content
+		if content == nil {
+			// This can be hit when Filename is set but Content is not. One
+			// example is when using ToConfigFiles().
+			d, err := os.ReadFile(configFile.Filename)
+			if err != nil {
+				return fmt.Errorf("failed to read file %q: %w", configFile.Filename, err)
 			}
-			yml, err := ParseYAML(content)
+			content = d
+			configFile.Content = d
+		}
+		var n named
+		r := bytes.NewReader(content)
+		decoder := yaml.NewDecoder(r)
+		for {
+			err := decoder.Decode(&n)
+			if err != nil && errors.Is(err, io.EOF) {
+				break
+			}
 			if err != nil {
 				// HACK: the way that loading is currently structured, this is
 				// a duplicative parse just for the `name`. if it fails, we
 				// give up but don't return the error, knowing that it'll get
 				// caught downstream for us
-				return "", nil
+				break
 			}
-			if val, ok := yml["name"]; ok && val != "" {
-				sVal, ok := val.(string)
-				if !ok {
-					// HACK: see above - this is a temporary parsed version
-					// that hasn't been schema-validated, but we don't want
-					// to be the ones to actually report that, so give up,
-					// knowing that it'll get caught downstream for us
-					return "", nil
-				}
-				pjNameFromConfigFile = sVal
+			if n.Name != "" {
+				pjNameFromConfigFile = n.Name
 			}
 		}
-		if !opts.SkipInterpolation {
-			interpolated, err := interp.Interpolate(
-				map[string]interface{}{"name": pjNameFromConfigFile},
-				*opts.Interpolate,
-			)
-			if err != nil {
-				return "", err
-			}
-			pjNameFromConfigFile = interpolated["name"].(string)
+	}
+	if !opts.SkipInterpolation {
+		interpolated, err := interp.Interpolate(
+			map[string]interface{}{"name": pjNameFromConfigFile},
+			*opts.Interpolate,
+		)
+		if err != nil {
+			return err
 		}
-		pjNameFromConfigFile = NormalizeProjectName(pjNameFromConfigFile)
-		if pjNameFromConfigFile != "" {
-			projectName = pjNameFromConfigFile
-		}
+		pjNameFromConfigFile = interpolated["name"].(string)
 	}
-
-	if projectName == "" {
-		return "", errors.New("project name must not be empty")
+	pjNameFromConfigFile = NormalizeProjectName(pjNameFromConfigFile)
+	if pjNameFromConfigFile != "" {
+		opts.projectName = pjNameFromConfigFile
 	}
-
-	if NormalizeProjectName(projectName) != projectName {
-		return "", InvalidProjectNameErr(projectName)
-	}
-
-	return projectName, nil
+	return nil
 }
 
 func NormalizeProjectName(s string) string {
@@ -618,6 +730,7 @@ func NormalizeProjectName(s string) string {
 
 var userDefinedKeys = []tree.Path{
 	"services",
+	"services.*.depends_on",
 	"volumes",
 	"networks",
 	"secrets",
@@ -630,7 +743,7 @@ func processExtensions(dict map[string]any, p tree.Path, extensions map[string]a
 	for key, value := range dict {
 		skip := false
 		for _, uk := range userDefinedKeys {
-			if uk.Matches(p) {
+			if p.Matches(uk) {
 				skip = true
 				break
 			}
@@ -681,7 +794,9 @@ func Transform(source interface{}, target interface{}) error {
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			nameServices,
 			decoderHook,
-			cast),
+			cast,
+			secretConfigDecoderHook,
+		),
 		Result:   target,
 		TagName:  "yaml",
 		Metadata: &data,
@@ -705,6 +820,28 @@ func nameServices(from reflect.Value, to reflect.Value) (interface{}, error) {
 		}
 	}
 	return from.Interface(), nil
+}
+
+func secretConfigDecoderHook(from, to reflect.Type, data interface{}) (interface{}, error) {
+	// Check if the input is a map and we're decoding into a SecretConfig
+	if from.Kind() == reflect.Map && to == reflect.TypeOf(types.SecretConfig{}) {
+		if v, ok := data.(map[string]interface{}); ok {
+			if ext, ok := v[consts.Extensions].(map[string]interface{}); ok {
+				if val, ok := ext[types.SecretConfigXValue].(string); ok {
+					// Return a map with the Content field populated
+					v["Content"] = val
+					delete(ext, types.SecretConfigXValue)
+
+					if len(ext) == 0 {
+						delete(v, consts.Extensions)
+					}
+				}
+			}
+		}
+	}
+
+	// Return the original data so the rest is handled by default mapstructure logic
+	return data, nil
 }
 
 // keys need to be converted to strings for jsonschema

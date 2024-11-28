@@ -86,7 +86,7 @@ func ReadWithLookup(lookupFn LookupFn, filenames ...string) (map[string]string, 
 	envMap := make(map[string]string)
 
 	for _, filename := range filenames {
-		individualEnvMap, individualErr := readFile(filename, lookupFn)
+		individualEnvMap, individualErr := ReadFile(filename, lookupFn)
 
 		if individualErr != nil {
 			return envMap, individualErr
@@ -129,7 +129,7 @@ func filenamesOrDefault(filenames []string) []string {
 }
 
 func loadFile(filename string, overload bool) error {
-	envMap, err := readFile(filename, nil)
+	envMap, err := ReadFile(filename, nil)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func loadFile(filename string, overload bool) error {
 	return nil
 }
 
-func readFile(filename string, lookupFn LookupFn) (map[string]string, error) {
+func ReadFile(filename string, lookupFn LookupFn) (map[string]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err

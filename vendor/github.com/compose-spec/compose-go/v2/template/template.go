@@ -44,7 +44,7 @@ var patternString = fmt.Sprintf(
 	groupInvalid,
 )
 
-var defaultPattern = regexp.MustCompile(patternString)
+var DefaultPattern = regexp.MustCompile(patternString)
 
 // InvalidTemplateError is returned when a variable template is not in a valid
 // format
@@ -121,7 +121,7 @@ func SubstituteWithOptions(template string, mapping Mapping, options ...Option) 
 	var returnErr error
 
 	cfg := &Config{
-		pattern:         defaultPattern,
+		pattern:         DefaultPattern,
 		replacementFunc: DefaultReplacementFunc,
 		logging:         true,
 	}
@@ -258,7 +258,7 @@ func getFirstBraceClosingIndex(s string) int {
 				return i
 			}
 		}
-		if strings.HasPrefix(s[i:], "${") {
+		if s[i] == '{' {
 			openVariableBraces++
 			i++
 		}
@@ -268,103 +268,7 @@ func getFirstBraceClosingIndex(s string) int {
 
 // Substitute variables in the string with their values
 func Substitute(template string, mapping Mapping) (string, error) {
-	return SubstituteWith(template, mapping, defaultPattern)
-}
-
-// ExtractVariables returns a map of all the variables defined in the specified
-// composefile (dict representation) and their default value if any.
-func ExtractVariables(configDict map[string]interface{}, pattern *regexp.Regexp) map[string]Variable {
-	if pattern == nil {
-		pattern = defaultPattern
-	}
-	return recurseExtract(configDict, pattern)
-}
-
-func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]Variable {
-	m := map[string]Variable{}
-
-	switch value := value.(type) {
-	case string:
-		if values, is := extractVariable(value, pattern); is {
-			for _, v := range values {
-				m[v.Name] = v
-			}
-		}
-	case map[string]interface{}:
-		for _, elem := range value {
-			submap := recurseExtract(elem, pattern)
-			for key, value := range submap {
-				m[key] = value
-			}
-		}
-
-	case []interface{}:
-		for _, elem := range value {
-			if values, is := extractVariable(elem, pattern); is {
-				for _, v := range values {
-					m[v.Name] = v
-				}
-			}
-		}
-	}
-
-	return m
-}
-
-type Variable struct {
-	Name          string
-	DefaultValue  string
-	PresenceValue string
-	Required      bool
-}
-
-func extractVariable(value interface{}, pattern *regexp.Regexp) ([]Variable, bool) {
-	sValue, ok := value.(string)
-	if !ok {
-		return []Variable{}, false
-	}
-	matches := pattern.FindAllStringSubmatch(sValue, -1)
-	if len(matches) == 0 {
-		return []Variable{}, false
-	}
-	values := []Variable{}
-	for _, match := range matches {
-		groups := matchGroups(match, pattern)
-		if escaped := groups[groupEscaped]; escaped != "" {
-			continue
-		}
-		val := groups[groupNamed]
-		if val == "" {
-			val = groups[groupBraced]
-		}
-		name := val
-		var defaultValue string
-		var presenceValue string
-		var required bool
-		switch {
-		case strings.Contains(val, ":?"):
-			name, _ = partition(val, ":?")
-			required = true
-		case strings.Contains(val, "?"):
-			name, _ = partition(val, "?")
-			required = true
-		case strings.Contains(val, ":-"):
-			name, defaultValue = partition(val, ":-")
-		case strings.Contains(val, "-"):
-			name, defaultValue = partition(val, "-")
-		case strings.Contains(val, ":+"):
-			name, presenceValue = partition(val, ":+")
-		case strings.Contains(val, "+"):
-			name, presenceValue = partition(val, "+")
-		}
-		values = append(values, Variable{
-			Name:          name,
-			DefaultValue:  defaultValue,
-			PresenceValue: presenceValue,
-			Required:      required,
-		})
-	}
-	return values, len(values) > 0
+	return SubstituteWith(template, mapping, DefaultPattern)
 }
 
 // Soft default (fall back if unset or empty)

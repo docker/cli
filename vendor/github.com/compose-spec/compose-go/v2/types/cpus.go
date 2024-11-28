@@ -14,33 +14,35 @@
    limitations under the License.
 */
 
-package transform
+package types
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/compose-spec/compose-go/v2/tree"
+	"strconv"
 )
 
-func transformKeyValue(data any, p tree.Path, ignoreParseError bool) (any, error) {
-	switch v := data.(type) {
-	case map[string]any:
-		return v, nil
-	case []any:
-		mapping := map[string]any{}
-		for _, e := range v {
-			before, after, found := strings.Cut(e.(string), "=")
-			if !found {
-				if ignoreParseError {
-					return data, nil
-				}
-				return nil, fmt.Errorf("%s: invalid value %s, expected key=value", p, e)
-			}
-			mapping[before] = after
+type NanoCPUs float32
+
+func (n *NanoCPUs) DecodeMapstructure(a any) error {
+	switch v := a.(type) {
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return err
 		}
-		return mapping, nil
+		*n = NanoCPUs(f)
+	case int:
+		*n = NanoCPUs(v)
+	case float32:
+		*n = NanoCPUs(v)
+	case float64:
+		*n = NanoCPUs(v)
 	default:
-		return nil, fmt.Errorf("%s: invalid type %T", p, v)
+		return fmt.Errorf("unexpected value type %T for cpus", v)
 	}
+	return nil
+}
+
+func (n *NanoCPUs) Value() float32 {
+	return float32(*n)
 }

@@ -28,7 +28,11 @@ func (l *StringList) DecodeMapstructure(value interface{}) error {
 	case []interface{}:
 		list := make([]string, len(v))
 		for i, e := range v {
-			list[i] = e.(string)
+			val, ok := e.(string)
+			if !ok {
+				return fmt.Errorf("invalid type %T for string list", value)
+			}
+			list[i] = val
 		}
 		*l = list
 	default:

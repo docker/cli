@@ -16,24 +16,13 @@
 
 package types
 
-type DevelopConfig struct {
-	Watch []Trigger `yaml:"watch,omitempty" json:"watch,omitempty"`
+// ServiceHook is a command to exec inside container by some lifecycle events
+type ServiceHook struct {
+	Command     ShellCommand      `yaml:"command,omitempty" json:"command"`
+	User        string            `yaml:"user,omitempty" json:"user,omitempty"`
+	Privileged  bool              `yaml:"privileged,omitempty" json:"privileged,omitempty"`
+	WorkingDir  string            `yaml:"working_dir,omitempty" json:"working_dir,omitempty"`
+	Environment MappingWithEquals `yaml:"environment,omitempty" json:"environment,omitempty"`
 
 	Extensions Extensions `yaml:"#extensions,inline,omitempty" json:"-"`
-}
-
-type WatchAction string
-
-const (
-	WatchActionSync        WatchAction = "sync"
-	WatchActionRebuild     WatchAction = "rebuild"
-	WatchActionSyncRestart WatchAction = "sync+restart"
-)
-
-type Trigger struct {
-	Path       string      `yaml:"path" json:"path"`
-	Action     WatchAction `yaml:"action" json:"action"`
-	Target     string      `yaml:"target,omitempty" json:"target,omitempty"`
-	Ignore     []string    `yaml:"ignore,omitempty" json:"ignore,omitempty"`
-	Extensions Extensions  `yaml:"#extensions,inline,omitempty" json:"-"`
 }

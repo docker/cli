@@ -27,6 +27,7 @@ type DeviceRequest struct {
 	Driver       string      `yaml:"driver,omitempty" json:"driver,omitempty"`
 	Count        DeviceCount `yaml:"count,omitempty" json:"count,omitempty"`
 	IDs          []string    `yaml:"device_ids,omitempty" json:"device_ids,omitempty"`
+	Options      Mapping     `yaml:"options,omitempty" json:"options,omitempty"`
 }
 
 type DeviceCount int64

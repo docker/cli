@@ -22,7 +22,7 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformEnvFile(data any, p tree.Path) (any, error) {
+func transformEnvFile(data any, p tree.Path, _ bool) (any, error) {
 	switch v := data.(type) {
 	case string:
 		return []any{

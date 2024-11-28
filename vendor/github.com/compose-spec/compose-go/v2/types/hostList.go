@@ -36,9 +36,9 @@ func NewHostsList(hosts []string) (HostsList, error) {
 			if ok {
 				// Mapping found with this separator, stop here.
 				if ips, ok := list[host]; ok {
-					list[host] = append(ips, ip)
+					list[host] = append(ips, strings.Split(ip, ",")...)
 				} else {
-					list[host] = []string{ip}
+					list[host] = strings.Split(ip, ",")
 				}
 				found = true
 				break
@@ -89,7 +89,18 @@ func (h *HostsList) DecodeMapstructure(value interface{}) error {
 			if e == nil {
 				e = ""
 			}
-			list[i] = []string{fmt.Sprint(e)}
+			switch t := e.(type) {
+			case string:
+				list[i] = []string{t}
+			case []any:
+				hosts := make([]string, len(t))
+				for j, h := range t {
+					hosts[j] = fmt.Sprint(h)
+				}
+				list[i] = hosts
+			default:
+				return fmt.Errorf("unexpected value type %T for extra_hosts entry", value)
+			}
 		}
 		err := list.cleanup()
 		if err != nil {
@@ -109,7 +120,7 @@ func (h *HostsList) DecodeMapstructure(value interface{}) error {
 		*h = list
 		return nil
 	default:
-		return fmt.Errorf("unexpected value type %T for mapping", value)
+		return fmt.Errorf("unexpected value type %T for extra_hosts", value)
 	}
 }
 

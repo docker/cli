@@ -29,12 +29,15 @@ import (
 	"github.com/compose-spec/compose-go/v2/types"
 )
 
-// loadIncludeConfig parse the require config from raw yaml
+// loadIncludeConfig parse the required config from raw yaml
 func loadIncludeConfig(source any) ([]types.IncludeConfig, error) {
 	if source == nil {
 		return nil, nil
 	}
-	configs := source.([]any)
+	configs, ok := source.([]any)
+	if !ok {
+		return nil, fmt.Errorf("`include` must be a list, got %s", source)
+	}
 	for i, config := range configs {
 		if v, ok := config.(string); ok {
 			configs[i] = map[string]any{
@@ -47,43 +50,55 @@ func loadIncludeConfig(source any) ([]types.IncludeConfig, error) {
 	return requires, err
 }
 
-func ApplyInclude(ctx context.Context, configDetails types.ConfigDetails, model map[string]any, options *Options, included []string) error {
+func ApplyInclude(ctx context.Context, workingDir string, environment types.Mapping, model map[string]any, options *Options, included []string) error {
 	includeConfig, err := loadIncludeConfig(model["include"])
 	if err != nil {
 		return err
 	}
+
 	for _, r := range includeConfig {
 		for _, listener := range options.Listeners {
 			listener("include", map[string]any{
 				"path":       r.Path,
-				"workingdir": configDetails.WorkingDir,
+				"workingdir": workingDir,
 			})
 		}
 
+		var relworkingdir string
 		for i, p := range r.Path {
 			for _, loader := range options.ResourceLoaders {
-				if loader.Accept(p) {
-					path, err := loader.Load(ctx, p)
-					if err != nil {
-						return err
+				if !loader.Accept(p) {
+					continue
+				}
+				path, err := loader.Load(ctx, p)
+				if err != nil {
+					return err
+				}
+				p = path
+
+				if i == 0 { // This is the "main" file, used to define project-directory. Others are overrides
+
+					switch {
+					case r.ProjectDirectory == "":
+						relworkingdir = loader.Dir(path)
+						r.ProjectDirectory = filepath.Dir(path)
+					case !filepath.IsAbs(r.ProjectDirectory):
+						relworkingdir = loader.Dir(r.ProjectDirectory)
+						r.ProjectDirectory = filepath.Join(workingDir, r.ProjectDirectory)
+
+					default:
+						relworkingdir = r.ProjectDirectory
+
 					}
-					p = path
-					break
+					for _, f := range included {
+						if f == path {
+							included = append(included, path)
+							return fmt.Errorf("include cycle detected:\n%s\n include %s", included[0], strings.Join(included[1:], "\n include "))
+						}
+					}
 				}
 			}
-			r.Path[i] = absPath(configDetails.WorkingDir, p)
-		}
-
-		mainFile := r.Path[0]
-		for _, f := range included {
-			if f == mainFile {
-				included = append(included, mainFile)
-				return fmt.Errorf("include cycle detected:\n%s\n include %s", included[0], strings.Join(included[1:], "\n include "))
-			}
-		}
-
-		if r.ProjectDirectory == "" {
-			r.ProjectDirectory = filepath.Dir(mainFile)
+			r.Path[i] = p
 		}
 
 		loadOptions := options.clone()
@@ -99,17 +114,33 @@ func ApplyInclude(ctx context.Context, configDetails types.ConfigDetails, model 
 			if s, err := os.Stat(f); err == nil && !s.IsDir() {
 				r.EnvFile = types.StringList{f}
 			}
+		} else {
+			envFile := []string{}
+			for _, f := range r.EnvFile {
+				if !filepath.IsAbs(f) {
+					f = filepath.Join(workingDir, f)
+					s, err := os.Stat(f)
+					if err != nil {
+						return err
+					}
+					if s.IsDir() {
+						return fmt.Errorf("%s is not a file", f)
+					}
+				}
+				envFile = append(envFile, f)
+			}
+			r.EnvFile = envFile
 		}
 
-		envFromFile, err := dotenv.GetEnvFromFile(configDetails.Environment, r.EnvFile)
+		envFromFile, err := dotenv.GetEnvFromFile(environment, r.EnvFile)
 		if err != nil {
 			return err
 		}
 
 		config := types.ConfigDetails{
-			WorkingDir:  r.ProjectDirectory,
+			WorkingDir:  relworkingdir,
 			ConfigFiles: types.ToConfigFiles(r.Path),
-			Environment: configDetails.Environment.Clone().Merge(envFromFile),
+			Environment: environment.Clone().Merge(envFromFile),
 		}
 		loadOptions.Interpolate = &interp.Options{
 			Substitute:      options.Interpolate.Substitute,

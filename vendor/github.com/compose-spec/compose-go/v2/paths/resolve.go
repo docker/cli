@@ -38,7 +38,7 @@ func ResolveRelativePaths(project map[string]any, base string, remotes []RemoteR
 		"services.*.build.additional_contexts.*": r.absContextPath,
 		"services.*.env_file.*.path":             r.absPath,
 		"services.*.extends.file":                r.absExtendsPath,
-		"services.*.develop.watch.*.path":        r.absPath,
+		"services.*.develop.watch.*.path":        r.absSymbolicLink,
 		"services.*.volumes.*":                   r.absVolumeMount,
 		"configs.*.file":                         r.maybeUnixPath,
 		"secrets.*.file":                         r.maybeUnixPath,
@@ -116,24 +116,30 @@ func (r *relativePathsResolver) absPath(value any) (any, error) {
 		}
 		return v, nil
 	}
+
 	return nil, fmt.Errorf("unexpected type %T", value)
 }
 
 func (r *relativePathsResolver) absVolumeMount(a any) (any, error) {
-	vol := a.(map[string]any)
-	if vol["type"] != types.VolumeTypeBind {
+	switch vol := a.(type) {
+	case map[string]any:
+		if vol["type"] != types.VolumeTypeBind {
+			return vol, nil
+		}
+		src, ok := vol["source"]
+		if !ok {
+			return nil, errors.New(`invalid mount config for type "bind": field Source must not be empty`)
+		}
+		abs, err := r.maybeUnixPath(src.(string))
+		if err != nil {
+			return nil, err
+		}
+		vol["source"] = abs
 		return vol, nil
+	default:
+		// not using canonical format, skip
+		return a, nil
 	}
-	src, ok := vol["source"]
-	if !ok {
-		return nil, errors.New(`invalid mount config for type "bind": field Source must not be empty`)
-	}
-	abs, err := r.maybeUnixPath(src.(string))
-	if err != nil {
-		return nil, err
-	}
-	vol["source"] = abs
-	return vol, nil
 }
 
 func (r *relativePathsResolver) volumeDriverOpts(a any) (any, error) {

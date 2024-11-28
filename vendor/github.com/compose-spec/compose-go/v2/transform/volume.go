@@ -24,13 +24,16 @@ import (
 	"github.com/compose-spec/compose-go/v2/tree"
 )
 
-func transformVolumeMount(data any, p tree.Path) (any, error) {
+func transformVolumeMount(data any, p tree.Path, ignoreParseError bool) (any, error) {
 	switch v := data.(type) {
 	case map[string]any:
 		return v, nil
 	case string:
 		volume, err := format.ParseVolume(v) // TODO(ndeloof) ParseVolume should not rely on types and return map[string]
 		if err != nil {
+			if ignoreParseError {
+				return v, nil
+			}
 			return nil, err
 		}
 		volume.Target = cleanTarget(volume.Target)
