@@ -77,8 +77,10 @@ func getPluginDirs(cfg *configfile.ConfigFile) ([]string, error) {
 
 func addPluginCandidatesFromDir(res map[string][]string, d string) error {
 	dentries, err := os.ReadDir(d)
+	// Silently ignore any directories which we cannot list (e.g. due to
+	// permissions or anything else) or which is not a directory
 	if err != nil {
-		return err
+		return nil
 	}
 	for _, dentry := range dentries {
 		switch dentry.Type() & os.ModeType {
@@ -106,12 +108,6 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) error {
 func listPluginCandidates(dirs []string) (map[string][]string, error) {
 	result := make(map[string][]string)
 	for _, d := range dirs {
-		// Silently ignore any directories which we cannot
-		// Stat (e.g. due to permissions or anything else) or
-		// which is not a directory.
-		if fi, err := os.Stat(d); err != nil || !fi.IsDir() {
-			continue
-		}
 		if err := addPluginCandidatesFromDir(result, d); err != nil {
 			// Silently ignore paths which don't exist.
 			if os.IsNotExist(err) {

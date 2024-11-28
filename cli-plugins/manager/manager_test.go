@@ -82,6 +82,30 @@ func TestListPluginCandidates(t *testing.T) {
 	assert.DeepEqual(t, candidates, exp)
 }
 
+// Regression test for https://github.com/docker/cli/issues/5643.
+// Check that inaccessible directories that come before accessible ones are ignored
+// and do not prevent the latter from being processed.
+func TestListPluginCandidatesInaccesibleDir(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithDir("no-perm", fs.WithMode(0)),
+		fs.WithDir("plugins",
+			fs.WithFile("docker-buildx", ""),
+		),
+	)
+	defer dir.Remove()
+
+	candidates, err := listPluginCandidates([]string{
+		dir.Join("no-perm"),
+		dir.Join("plugins"),
+	})
+	assert.NilError(t, err)
+	assert.DeepEqual(t, candidates, map[string][]string{
+		"buildx": {
+			dir.Join("plugins", "docker-buildx"),
+		},
+	})
+}
+
 func TestGetPlugin(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("docker-bbb", `
