@@ -51,8 +51,7 @@ func TestListPluginCandidates(t *testing.T) {
 		dirs = append(dirs, dir.Join(d))
 	}
 
-	candidates, err := listPluginCandidates(dirs)
-	assert.NilError(t, err)
+	candidates := listPluginCandidates(dirs)
 	exp := map[string][]string{
 		"plugin1": {
 			dir.Join("plugins1", "docker-plugin1"),
@@ -94,11 +93,10 @@ func TestListPluginCandidatesInaccesibleDir(t *testing.T) {
 	)
 	defer dir.Remove()
 
-	candidates, err := listPluginCandidates([]string{
+	candidates := listPluginCandidates([]string{
 		dir.Join("no-perm"),
 		dir.Join("plugins"),
 	})
-	assert.NilError(t, err)
 	assert.DeepEqual(t, candidates, map[string][]string{
 		"buildx": {
 			dir.Join("plugins", "docker-buildx"),
