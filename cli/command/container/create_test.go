@@ -133,7 +133,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 						return container.CreateResponse{ID: containerID}, nil
 					}
 				},
-				imageCreateFunc: func(parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
+				imageCreateFunc: func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 					defer func() { pullCounter++ }()
 					return io.NopCloser(strings.NewReader("")), nil
 				},

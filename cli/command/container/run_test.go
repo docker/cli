@@ -2,7 +2,9 @@ package container
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"syscall"
@@ -16,7 +18,9 @@ import (
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/pkg/jsonmessage"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
@@ -185,6 +189,87 @@ func TestRunAttachTermination(t *testing.T) {
 			StatusCode: 130,
 		})
 	case <-time.After(2 * time.Second):
+		t.Fatal("cmd did not return before the timeout")
+	}
+}
+
+func TestRunPullTermination(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	attachCh := make(chan struct{})
+	fakeCLI := test.NewFakeCli(&fakeClient{
+		createContainerFunc: func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig,
+			platform *specs.Platform, containerName string,
+		) (container.CreateResponse, error) {
+			select {
+			case <-ctx.Done():
+				return container.CreateResponse{}, ctx.Err()
+			default:
+			}
+			return container.CreateResponse{}, fakeNotFound{}
+		},
+		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
+			return types.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
+		},
+		imageCreateFunc: func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
+			server, client := net.Pipe()
+			t.Cleanup(func() {
+				_ = server.Close()
+			})
+			go func() {
+				enc := json.NewEncoder(server)
+				for i := 0; i < 100; i++ {
+					select {
+					case <-ctx.Done():
+						assert.NilError(t, server.Close(), "failed to close imageCreateFunc server")
+						return
+					default:
+					}
+					assert.NilError(t, enc.Encode(jsonmessage.JSONMessage{
+						Status:   "Downloading",
+						ID:       fmt.Sprintf("id-%d", i),
+						TimeNano: time.Now().UnixNano(),
+						Time:     time.Now().Unix(),
+						Progress: &jsonmessage.JSONProgress{
+							Current: int64(i),
+							Total:   100,
+							Start:   0,
+						},
+					}))
+					time.Sleep(100 * time.Millisecond)
+				}
+			}()
+			attachCh <- struct{}{}
+			return client, nil
+		},
+		Version: "1.30",
+	})
+
+	cmd := NewRunCommand(fakeCLI)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.SetArgs([]string{"foobar:latest"})
+
+	cmdErrC := make(chan error, 1)
+	go func() {
+		cmdErrC <- cmd.ExecuteContext(ctx)
+	}()
+
+	select {
+	case <-time.After(5 * time.Second):
+		t.Fatal("imageCreateFunc was not called before the timeout")
+	case <-attachCh:
+	}
+
+	cancel()
+
+	select {
+	case cmdErr := <-cmdErrC:
+		assert.Equal(t, cmdErr, cli.StatusError{
+			StatusCode: 125,
+		})
+	case <-time.After(10 * time.Second):
 		t.Fatal("cmd did not return before the timeout")
 	}
 }
