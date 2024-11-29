@@ -75,10 +75,12 @@ func getPluginDirs(cfg *configfile.ConfigFile) ([]string, error) {
 	return pluginDirs, nil
 }
 
-func addPluginCandidatesFromDir(res map[string][]string, d string) error {
+func addPluginCandidatesFromDir(res map[string][]string, d string) {
 	dentries, err := os.ReadDir(d)
+	// Silently ignore any directories which we cannot list (e.g. due to
+	// permissions or anything else) or which is not a directory
 	if err != nil {
-		return err
+		return
 	}
 	for _, dentry := range dentries {
 		switch dentry.Type() & os.ModeType {
@@ -99,28 +101,15 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) error {
 		}
 		res[name] = append(res[name], filepath.Join(d, dentry.Name()))
 	}
-	return nil
 }
 
 // listPluginCandidates returns a map from plugin name to the list of (unvalidated) Candidates. The list is in descending order of priority.
-func listPluginCandidates(dirs []string) (map[string][]string, error) {
+func listPluginCandidates(dirs []string) map[string][]string {
 	result := make(map[string][]string)
 	for _, d := range dirs {
-		// Silently ignore any directories which we cannot
-		// Stat (e.g. due to permissions or anything else) or
-		// which is not a directory.
-		if fi, err := os.Stat(d); err != nil || !fi.IsDir() {
-			continue
-		}
-		if err := addPluginCandidatesFromDir(result, d); err != nil {
-			// Silently ignore paths which don't exist.
-			if os.IsNotExist(err) {
-				continue
-			}
-			return nil, err // Or return partial result?
-		}
+		addPluginCandidatesFromDir(result, d)
 	}
-	return result, nil
+	return result
 }
 
 // GetPlugin returns a plugin on the system by its name
@@ -130,11 +119,7 @@ func GetPlugin(name string, dockerCli command.Cli, rootcmd *cobra.Command) (*Plu
 		return nil, err
 	}
 
-	candidates, err := listPluginCandidates(pluginDirs)
-	if err != nil {
-		return nil, err
-	}
-
+	candidates := listPluginCandidates(pluginDirs)
 	if paths, ok := candidates[name]; ok {
 		if len(paths) == 0 {
 			return nil, errPluginNotFound(name)
@@ -160,10 +145,7 @@ func ListPlugins(dockerCli command.Cli, rootcmd *cobra.Command) ([]Plugin, error
 		return nil, err
 	}
 
-	candidates, err := listPluginCandidates(pluginDirs)
-	if err != nil {
-		return nil, err
-	}
+	candidates := listPluginCandidates(pluginDirs)
 
 	var plugins []Plugin
 	var mu sync.Mutex
