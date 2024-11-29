@@ -161,7 +161,8 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		waitDisplayID chan struct{}
 		errCh         chan error
 	)
-	if !config.AttachStdout && !config.AttachStderr {
+	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
+	if !attach {
 		// Make this asynchronous to allow the client to write to stdin before having to read the ID
 		waitDisplayID = make(chan struct{})
 		go func() {
@@ -169,7 +170,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			_, _ = fmt.Fprintln(stdout, containerID)
 		}()
 	}
-	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
 	if attach {
 		detachKeys := dockerCli.ConfigFile().DetachKeys
 		if runOpts.detachKeys != "" {
@@ -234,7 +234,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	}
 
 	// Detached mode: wait for the id to be displayed and return.
-	if !config.AttachStdout && !config.AttachStderr {
+	if !attach {
 		// Detached mode
 		<-waitDisplayID
 		return nil
