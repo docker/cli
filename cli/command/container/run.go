@@ -118,8 +118,6 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 
 //nolint:gocyclo
 func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
-	ctx = context.WithoutCancel(ctx)
-
 	config := containerCfg.Config
 	stdout, stderr := dockerCli.Out(), dockerCli.Err()
 	apiClient := dockerCli.Client()
@@ -141,9 +139,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		config.StdinOnce = false
 	}
 
-	ctx, cancelFun := context.WithCancel(ctx)
-	defer cancelFun()
-
 	containerID, err := createContainer(ctx, dockerCli, containerCfg, &runOpts.createOptions)
 	if err != nil {
 		return toStatusError(err)
@@ -158,6 +153,9 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
+
+	ctx, cancelFun := context.WithCancel(context.WithoutCancel(ctx))
+	defer cancelFun()
 
 	var (
 		waitDisplayID chan struct{}
