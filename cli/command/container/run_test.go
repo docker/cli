@@ -268,7 +268,6 @@ func TestRunPullTermination(t *testing.T) {
 	case cmdErr := <-cmdErrC:
 		assert.Equal(t, cmdErr, cli.StatusError{
 			StatusCode: 125,
-			Status:     "docker: context canceled\n\nRun 'docker run --help' for more information",
 		})
 	case <-time.After(10 * time.Second):
 		t.Fatal("cmd did not return before the timeout")
