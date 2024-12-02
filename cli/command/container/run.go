@@ -215,7 +215,14 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		return toStatusError(err)
 	}
 
-	if attach && config.Tty && dockerCli.Out().IsTerminal() {
+	// Detached mode: wait for the id to be displayed and return.
+	if !attach {
+		// Detached mode
+		<-waitDisplayID
+		return nil
+	}
+
+	if config.Tty && dockerCli.Out().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
 			_, _ = fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
@@ -231,13 +238,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			logrus.Debugf("Error hijack: %s", err)
 			return err
 		}
-	}
-
-	// Detached mode: wait for the id to be displayed and return.
-	if !attach {
-		// Detached mode
-		<-waitDisplayID
-		return nil
 	}
 
 	status := <-statusChan
