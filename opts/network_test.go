@@ -112,6 +112,16 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				},
 			},
 		},
+		{
+			value: "name=docknet1,gw-priority=10",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:     "docknet1",
+					Aliases:    []string{},
+					GwPriority: 10,
+				},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.value, func(t *testing.T) {

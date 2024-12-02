@@ -56,6 +56,7 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 			"driveropt1": "optval1,optval2",
 			"driveropt2": "optval4",
 		},
+		GwPriority: 100,
 	}
 	cli := test.NewFakeCli(&fakeClient{
 		networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
@@ -76,6 +77,7 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 		{"ip6", "fdef:f401:8da0:1234::5678"},
 		{"link", "otherctr"},
 		{"link-local-ip", "169.254.42.42"},
+		{"gw-priority", "100"},
 	} {
 		err := cmd.Flags().Set(opt.name, opt.value)
 		assert.Check(t, err)

@@ -749,15 +749,16 @@ To specify options when connecting to more than one network, use the extended sy
 for the `--network` flag. Comma-separated options that can be specified in the extended
 `--network` syntax are:
 
-| Option          | Top-level Equivalent                  | Description                                     |
-|-----------------|---------------------------------------|-------------------------------------------------|
-| `name`          |                                       | The name of the network (mandatory)             |
-| `alias`         | `--network-alias`                     | Add network-scoped alias for the container      |
-| `ip`            | `--ip`                                | IPv4 address (e.g., 172.30.100.104)             |
-| `ip6`           | `--ip6`                               | IPv6 address (e.g., 2001:db8::33)               |
-| `mac-address`   | `--mac-address`                       | Container MAC address (e.g., 92:d0:c6:0a:29:33) |
-| `link-local-ip` | `--link-local-ip`                     | Container IPv4/IPv6 link-local addresses        |
-| `driver-opt`    | `docker network connect --driver-opt` | Network driver options                          |
+| Option          | Top-level Equivalent                  | Description                                                                             |
+|-----------------|---------------------------------------|-----------------------------------------------------------------------------------------|
+| `name`          |                                       | The name of the network (mandatory)                                                     |
+| `alias`         | `--network-alias`                     | Add network-scoped alias for the container                                              |
+| `ip`            | `--ip`                                | IPv4 address (e.g., 172.30.100.104)                                                     |
+| `ip6`           | `--ip6`                               | IPv6 address (e.g., 2001:db8::33)                                                       |
+| `mac-address`   | `--mac-address`                       | Container MAC address (e.g., 92:d0:c6:0a:29:33)                                         |
+| `link-local-ip` | `--link-local-ip`                     | Container IPv4/IPv6 link-local addresses                                                |
+| `driver-opt`    | `docker network connect --driver-opt` | Network driver options                                                                  |
+| `gw-priority`   |                                       | Highest gw-priority provides the default gateway. Accepts positive and negative values. |
 
 ```console
 $ docker network create --subnet 192.0.2.0/24 my-net1
