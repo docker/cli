@@ -228,20 +228,31 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		}
 	}
 
-	if err := <-errCh; err != nil {
-		if _, ok := err.(term.EscapeError); ok {
-			// The user entered the detach escape sequence.
-			return nil
+	select {
+	case err := <-errCh:
+		if err != nil {
+			if _, ok := err.(term.EscapeError); ok {
+				// The user entered the detach escape sequence.
+				return nil
+			}
+
+			logrus.Debugf("Error hijack: %s", err)
+			return err
 		}
-
-		logrus.Debugf("Error hijack: %s", err)
-		return err
+		status := <-statusChan
+		if status != 0 {
+			return cli.StatusError{StatusCode: status}
+		}
+	case status := <-statusChan:
+		// notify hijackedIOStreamer that we're exiting and wait
+		// so that the terminal can be restored.
+		cancelFun()
+		<-errCh
+		if status != 0 {
+			return cli.StatusError{StatusCode: status}
+		}
 	}
 
-	status := <-statusChan
-	if status != 0 {
-		return cli.StatusError{StatusCode: status}
-	}
 	return nil
 }
 

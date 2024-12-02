@@ -3,11 +3,13 @@ package container
 import (
 	"bytes"
 	"fmt"
+	"os/exec"
 	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/creack/pty"
 	"github.com/docker/cli/e2e/internal/fixtures"
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/docker/api/types/versions"
@@ -36,6 +38,39 @@ func TestRunAttachedFromRemoteImageAndRemove(t *testing.T) {
 	result.Assert(t, icmd.Success)
 	assert.Check(t, is.Equal("this is output\n", result.Stdout()))
 	golden.Assert(t, result.Stderr(), "run-attached-from-remote-and-remove.golden")
+}
+
+func TestRunAttach(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+	t.Parallel()
+
+	streams := []string{"stdin", "stdout", "stderr"}
+	for _, stream := range streams {
+		t.Run(stream, func(t *testing.T) {
+			t.Parallel()
+			c := exec.Command("docker", "run", "-a", stream, "--rm", "alpine",
+				"sh", "-c", "sleep 1 && exit 7")
+			d := bytes.Buffer{}
+			c.Stdout = &d
+			c.Stderr = &d
+			_, err := pty.Start(c)
+			assert.NilError(t, err)
+
+			done := make(chan error)
+			go func() {
+				done <- c.Wait()
+			}()
+
+			select {
+			case <-time.After(20 * time.Second):
+				t.Fatal("docker run took too long, likely hang", d.String())
+			case <-done:
+			}
+
+			assert.Equal(t, c.ProcessState.ExitCode(), 7)
+			assert.Check(t, is.Contains(d.String(), "exit status 7"))
+		})
+	}
 }
 
 // Regression test for https://github.com/docker/cli/issues/5053
