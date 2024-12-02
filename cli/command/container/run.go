@@ -215,7 +215,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		return toStatusError(err)
 	}
 
-	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
+	if attach && config.Tty && dockerCli.Out().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
 			_, _ = fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
