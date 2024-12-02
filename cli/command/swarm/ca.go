@@ -120,7 +120,7 @@ func attach(ctx context.Context, dockerCli command.Cli, opts caOptions) error {
 		return <-errChan
 	}
 
-	err := jsonmessage.DisplayJSONMessagesToStream(pipeReader, dockerCli.Out(), nil)
+	err := jsonmessage.DisplayJSONMessagesToStream(ctx, pipeReader, dockerCli.Out(), nil)
 	if err == nil {
 		err = <-errChan
 	}

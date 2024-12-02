@@ -90,5 +90,5 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 	}
 	defer responseBody.Close()
 
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	return jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, dockerCli.Out(), nil)
 }

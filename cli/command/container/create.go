@@ -148,7 +148,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 	if options.quiet {
 		out = streams.NewOut(io.Discard)
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
+	return jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, out, nil)
 }
 
 type cidFile struct {
