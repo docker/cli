@@ -228,16 +228,14 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		}
 	}
 
-	if errCh != nil {
-		if err := <-errCh; err != nil {
-			if _, ok := err.(term.EscapeError); ok {
-				// The user entered the detach escape sequence.
-				return nil
-			}
-
-			logrus.Debugf("Error hijack: %s", err)
-			return err
+	if err := <-errCh; err != nil {
+		if _, ok := err.(term.EscapeError); ok {
+			// The user entered the detach escape sequence.
+			return nil
 		}
+
+		logrus.Debugf("Error hijack: %s", err)
+		return err
 	}
 
 	status := <-statusChan
