@@ -20,6 +20,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image/build"
+	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -28,7 +30,6 @@ import (
 	"github.com/docker/docker/builder/remotecontext/urlutil"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/pkg/errors"
@@ -352,7 +353,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	defer response.Body.Close()
 
 	imageID := ""
-	aux := func(msg jsonmessage.JSONMessage) {
+	aux := func(msg jsonstream.JSONMessage) {
 		var result types.BuildResult
 		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
 			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
@@ -361,9 +362,9 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		}
 	}
 
-	err = jsonmessage.DisplayJSONMessagesStream(response.Body, buildBuff, dockerCli.Out().FD(), dockerCli.Out().IsTerminal(), aux)
+	err = jsonstream.Display(ctx, response.Body, streams.NewOut(buildBuff), jsonstream.WithAuxCallback(aux))
 	if err != nil {
-		if jerr, ok := err.(*jsonmessage.JSONError); ok {
+		if jerr, ok := err.(*jsonstream.JSONError); ok {
 			// If no error code is set, default to 1
 			if jerr.Code == 0 {
 				jerr.Code = 1

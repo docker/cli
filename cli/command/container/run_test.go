@@ -230,12 +230,7 @@ func TestRunPullTermination(t *testing.T) {
 		createContainerFunc: func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig,
 			platform *specs.Platform, containerName string,
 		) (container.CreateResponse, error) {
-			select {
-			case <-ctx.Done():
-				return container.CreateResponse{}, ctx.Err()
-			default:
-			}
-			return container.CreateResponse{}, fakeNotFound{}
+			return container.CreateResponse{}, errors.New("shouldn't try to create a container")
 		},
 		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
 			return types.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
@@ -253,19 +248,19 @@ func TestRunPullTermination(t *testing.T) {
 						assert.NilError(t, server.Close(), "failed to close imageCreateFunc server")
 						return
 					default:
+						assert.NilError(t, enc.Encode(jsonmessage.JSONMessage{
+							Status:   "Downloading",
+							ID:       fmt.Sprintf("id-%d", i),
+							TimeNano: time.Now().UnixNano(),
+							Time:     time.Now().Unix(),
+							Progress: &jsonmessage.JSONProgress{
+								Current: int64(i),
+								Total:   100,
+								Start:   0,
+							},
+						}))
+						time.Sleep(100 * time.Millisecond)
 					}
-					assert.NilError(t, enc.Encode(jsonmessage.JSONMessage{
-						Status:   "Downloading",
-						ID:       fmt.Sprintf("id-%d", i),
-						TimeNano: time.Now().UnixNano(),
-						Time:     time.Now().Unix(),
-						Progress: &jsonmessage.JSONProgress{
-							Current: int64(i),
-							Total:   100,
-							Start:   0,
-						},
-					}))
-					time.Sleep(100 * time.Millisecond)
 				}
 			}()
 			attachCh <- struct{}{}
@@ -277,7 +272,7 @@ func TestRunPullTermination(t *testing.T) {
 	cmd := NewRunCommand(fakeCLI)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
-	cmd.SetArgs([]string{"foobar:latest"})
+	cmd.SetArgs([]string{"--pull", "always", "foobar:latest"})
 
 	cmdErrC := make(chan error, 1)
 	go func() {

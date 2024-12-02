@@ -15,11 +15,11 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -140,23 +140,23 @@ To push the complete multi-platform image, remove the --platform flag.
 	defer responseBody.Close()
 	if !opts.untrusted {
 		// TODO PushTrustedReference currently doesn't respect `--quiet`
-		return PushTrustedReference(dockerCli, repoInfo, ref, authConfig, responseBody)
+		return PushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
 	}
 
 	if opts.quiet {
-		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), handleAux(dockerCli))
+		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux()))
 		if err == nil {
 			fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), handleAux(dockerCli))
+	return jsonstream.Display(ctx, responseBody, dockerCli.Out(), jsonstream.WithAuxCallback(handleAux()))
 }
 
 var notes []string
 
-func handleAux(dockerCli command.Cli) func(jm jsonmessage.JSONMessage) {
-	return func(jm jsonmessage.JSONMessage) {
+func handleAux() func(jm jsonstream.JSONMessage) {
+	return func(jm jsonstream.JSONMessage) {
 		b := []byte(*jm.Aux)
 
 		var stripped auxprogress.ManifestPushedInsteadOfIndex

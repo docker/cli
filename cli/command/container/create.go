@@ -13,13 +13,13 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/jsonmessage"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -148,7 +148,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 	if options.quiet {
 		out = streams.NewOut(io.Discard)
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
+	return jsonstream.Display(ctx, responseBody, out)
 }
 
 type cidFile struct {

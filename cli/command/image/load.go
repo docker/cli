@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -89,7 +89,7 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 	defer response.Body.Close()
 
 	if response.Body != nil && response.JSON {
-		return jsonmessage.DisplayJSONMessagesToStream(response.Body, dockerCli.Out(), nil)
+		return jsonstream.Display(ctx, response.Body, dockerCli.Out())
 	}
 
 	_, err = io.Copy(dockerCli.Out(), response.Body)

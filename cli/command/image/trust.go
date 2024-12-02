@@ -10,12 +10,12 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -39,20 +39,20 @@ func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 
 	defer responseBody.Close()
 
-	return PushTrustedReference(cli, repoInfo, ref, authConfig, responseBody)
+	return PushTrustedReference(ctx, cli, repoInfo, ref, authConfig, responseBody)
 }
 
 // PushTrustedReference pushes a canonical reference to the trust server.
 //
 //nolint:gocyclo
-func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.
 	target := &client.Target{}
 	// Count the times of calling for handleTarget,
 	// if it is called more that once, that should be considered an error in a trusted push.
 	cnt := 0
-	handleTarget := func(msg jsonmessage.JSONMessage) {
+	handleTarget := func(msg jsonstream.JSONMessage) {
 		cnt++
 		if cnt > 1 {
 			// handleTarget should only be called once. This will be treated as an error.
@@ -84,14 +84,14 @@ func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.Reposito
 	default:
 		// We want trust signatures to always take an explicit tag,
 		// otherwise it will act as an untrusted push.
-		if err := jsonmessage.DisplayJSONMessagesToStream(in, ioStreams.Out(), nil); err != nil {
+		if err := jsonstream.Display(ctx, in, ioStreams.Out()); err != nil {
 			return err
 		}
 		fmt.Fprintln(ioStreams.Err(), "No tag specified, skipping trust metadata push")
 		return nil
 	}
 
-	if err := jsonmessage.DisplayJSONMessagesToStream(in, ioStreams.Out(), handleTarget); err != nil {
+	if err := jsonstream.Display(ctx, in, ioStreams.Out(), jsonstream.WithAuxCallback(handleTarget)); err != nil {
 		return err
 	}
 
@@ -283,7 +283,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 	if opts.quiet {
 		out = streams.NewOut(io.Discard)
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
+	return jsonstream.Display(ctx, responseBody, out)
 }
 
 // TrustedReference returns the canonical trusted reference for an image reference

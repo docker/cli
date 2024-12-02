@@ -9,9 +9,9 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -129,7 +129,7 @@ func runInstall(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 		return err
 	}
 	defer responseBody.Close()
-	if err := jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil); err != nil {
+	if err := jsonstream.Display(ctx, responseBody, dockerCli.Out()); err != nil {
 		return err
 	}
 	fmt.Fprintf(dockerCli.Out(), "Installed plugin %s\n", opts.remote) // todo: return proper values from the API for this result
