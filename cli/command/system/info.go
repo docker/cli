@@ -19,6 +19,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/debug"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
@@ -457,9 +458,9 @@ func formatInfo(output io.Writer, info dockerInfo, format string) error {
 
 	tmpl, err := templates.Parse(format)
 	if err != nil {
-		return cli.StatusError{
+		return internal.StatusError{
 			StatusCode: 64,
-			Status:     "template parsing error: " + err.Error(),
+			Cause:      fmt.Errorf("template parsing error: %w", err),
 		}
 	}
 	err = tmpl.Execute(output, info)

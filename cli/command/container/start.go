@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
@@ -172,7 +173,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		}
 
 		if status := <-statusChan; status != 0 {
-			return cli.StatusError{StatusCode: status}
+			return internal.StatusError{StatusCode: status}
 		}
 		return nil
 	case opts.Checkpoint != "":

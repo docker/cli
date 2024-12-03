@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/cli/cli/debug"
+	"github.com/docker/cli/internal"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -93,14 +94,11 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 	plugin := makeCmd(dockerCli)
 
 	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
-		var stErr cli.StatusError
+		var stErr internal.StatusError
 		if errors.As(err, &stErr) {
+			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
-			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.
-				stErr.StatusCode = 1
-			}
-			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
 			os.Exit(stErr.StatusCode)
 		}
 		_, _ = fmt.Fprintln(dockerCli.Err(), err)

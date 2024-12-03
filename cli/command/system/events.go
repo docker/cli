@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types/events"
@@ -58,9 +59,9 @@ func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
 func runEvents(ctx context.Context, dockerCli command.Cli, options *eventsOptions) error {
 	tmpl, err := makeTemplate(options.format)
 	if err != nil {
-		return cli.StatusError{
+		return internal.StatusError{
 			StatusCode: 64,
-			Status:     "Error parsing format: " + err.Error(),
+			Cause:      fmt.Errorf("error parsing format: %w", err),
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)

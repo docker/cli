@@ -1,21 +1,20 @@
 package cli
 
 import (
-	"strconv"
+	"github.com/docker/cli/internal"
 )
 
 // StatusError reports an unsuccessful exit by a command.
-type StatusError struct {
-	Status     string
-	StatusCode int
+type StatusError interface {
+	Error() string
+	Unwrap() error
+
+	// GetStatusCode returns the status code of the error.
+	// The status code will never be 0.
+	GetStatusCode() int
 }
 
-// Error formats the error for printing. If a custom Status is provided,
-// it is returned as-is, otherwise it generates a generic error-message
-// based on the StatusCode.
-func (e StatusError) Error() string {
-	if e.Status == "" {
-		return "exit status " + strconv.Itoa(e.StatusCode)
-	}
-	return e.Status
-}
+// Pin the exported StatusError interface to the internal.StatusError type.
+// This is necessary to ensure that the internal.StatusError type does
+// not break the compatibility of the exported interface.
+var _ StatusError = internal.StatusError{}

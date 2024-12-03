@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -69,7 +70,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	if err := InspectFormatWrite(nodeCtx, opts.nodeIds, getRef); err != nil {
-		return cli.StatusError{StatusCode: 1, Status: err.Error()}
+		return internal.StatusError{StatusCode: 1, Cause: err}
 	}
 	return nil
 }

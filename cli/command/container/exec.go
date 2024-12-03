@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -206,11 +207,11 @@ func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient,
 		if !client.IsErrConnectionFailed(err) {
 			return err
 		}
-		return cli.StatusError{StatusCode: -1}
+		return internal.StatusError{StatusCode: -1}
 	}
 	status := resp.ExitCode
 	if status != 0 {
-		return cli.StatusError{StatusCode: status}
+		return internal.StatusError{StatusCode: status}
 	}
 	return nil
 }

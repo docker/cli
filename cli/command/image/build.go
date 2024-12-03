@@ -20,6 +20,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image/build"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -371,7 +372,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			if options.quiet {
 				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
 			}
-			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+			return internal.StatusError{Cause: jerr, StatusCode: jerr.Code}
 		}
 		return err
 	}

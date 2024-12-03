@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
@@ -231,7 +231,7 @@ func TestGetExecExitStatus(t *testing.T) {
 		},
 		{
 			exitCode:      15,
-			expectedError: cli.StatusError{StatusCode: 15},
+			expectedError: internal.StatusError{StatusCode: 15},
 		},
 	}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
@@ -148,7 +149,7 @@ func runVersion(ctx context.Context, dockerCli command.Cli, opts *versionOptions
 	var err error
 	tmpl, err := newVersionTemplate(opts.format)
 	if err != nil {
-		return cli.StatusError{StatusCode: 64, Status: err.Error()}
+		return internal.StatusError{StatusCode: 64, Cause: err}
 	}
 
 	// TODO print error if kubernetes is used?

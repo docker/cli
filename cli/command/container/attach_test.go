@@ -4,7 +4,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
@@ -110,7 +110,7 @@ func TestGetExitStatus(t *testing.T) {
 			result: &container.WaitResponse{
 				StatusCode: 15,
 			},
-			expectedError: cli.StatusError{StatusCode: 15},
+			expectedError: internal.StatusError{StatusCode: 15},
 		},
 	}
 
