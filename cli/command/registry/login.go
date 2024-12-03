@@ -187,7 +187,7 @@ func loginWithUsernameAndPassword(ctx context.Context, dockerCli command.Cli, op
 		return nil, err
 	}
 
-	response, err := loginWithRegistry(ctx, dockerCli, authConfig)
+	response, err := loginWithRegistry(ctx, dockerCli.Client(), authConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCli command.Cli) (*regis
 		return nil, err
 	}
 
-	response, err := loginWithRegistry(ctx, dockerCli, registrytypes.AuthConfig(*authConfig))
+	response, err := loginWithRegistry(ctx, dockerCli.Client(), registrytypes.AuthConfig(*authConfig))
 	if err != nil {
 		return nil, err
 	}
@@ -231,8 +231,8 @@ func storeCredentials(dockerCli command.Cli, authConfig registrytypes.AuthConfig
 	return nil
 }
 
-func loginWithRegistry(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
-	response, err := dockerCli.Client().RegistryLogin(ctx, authConfig)
+func loginWithRegistry(ctx context.Context, apiClient client.SystemAPIClient, authConfig registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
+	response, err := apiClient.RegistryLogin(ctx, authConfig)
 	if err != nil {
 		if client.IsErrConnectionFailed(err) {
 			// daemon isn't responding; attempt to login client side.
