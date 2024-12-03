@@ -200,7 +200,7 @@ func loginWithUsernameAndPassword(ctx context.Context, dockerCli command.Cli, op
 		return nil, err
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 func loginWithDeviceCodeFlow(ctx context.Context, dockerCli command.Cli) (*registrytypes.AuthenticateOKBody, error) {
@@ -219,7 +219,7 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCli command.Cli) (*regis
 		return nil, err
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 func storeCredentials(dockerCli command.Cli, authConfig registrytypes.AuthConfig) error {
@@ -231,30 +231,32 @@ func storeCredentials(dockerCli command.Cli, authConfig registrytypes.AuthConfig
 	return nil
 }
 
-func loginWithRegistry(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func loginWithRegistry(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
 	response, err := dockerCli.Client().RegistryLogin(ctx, authConfig)
-	if err != nil && client.IsErrConnectionFailed(err) {
-		// If the server isn't responding (yet) attempt to login purely client side
-		response, err = loginClientSide(ctx, authConfig)
-	}
-	// If we (still) have an error, give up
 	if err != nil {
-		return registrytypes.AuthenticateOKBody{}, err
+		if client.IsErrConnectionFailed(err) {
+			// daemon isn't responding; attempt to login client side.
+			return loginClientSide(ctx, authConfig)
+		}
+		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
-func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
 	svc, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
-		return registrytypes.AuthenticateOKBody{}, err
+		return nil, err
 	}
 
 	status, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+	if err != nil {
+		return nil, err
+	}
 
-	return registrytypes.AuthenticateOKBody{
+	return &registrytypes.AuthenticateOKBody{
 		Status:        status,
 		IdentityToken: token,
-	}, err
+	}, nil
 }
