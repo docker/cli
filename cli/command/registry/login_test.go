@@ -349,16 +349,16 @@ func TestLoginNonInteractive(t *testing.T) {
 		// "" meaning default registry
 		registries := []string{"", "my-registry.com"}
 
-		for _, registry := range registries {
+		for _, registryAddr := range registries {
 			for _, tc := range testCases {
 				t.Run(tc.doc, func(t *testing.T) {
 					tmpFile := fs.NewFile(t, "test-run-login")
 					defer tmpFile.Remove()
 					cli := test.NewFakeCli(&fakeClient{})
-					configfile := cli.ConfigFile()
-					configfile.Filename = tmpFile.Path()
+					cfg := cli.ConfigFile()
+					cfg.Filename = tmpFile.Path()
 					options := loginOptions{
-						serverAddress: registry,
+						serverAddress: registryAddr,
 					}
 					if tc.username {
 						options.user = "my-username"
@@ -412,26 +412,26 @@ func TestLoginNonInteractive(t *testing.T) {
 		// "" meaning default registry
 		registries := []string{"", "my-registry.com"}
 
-		for _, registry := range registries {
+		for _, registryAddr := range registries {
 			for _, tc := range testCases {
 				t.Run(tc.doc, func(t *testing.T) {
 					tmpFile := fs.NewFile(t, "test-run-login")
 					defer tmpFile.Remove()
 					cli := test.NewFakeCli(&fakeClient{})
-					configfile := cli.ConfigFile()
-					configfile.Filename = tmpFile.Path()
-					serverAddress := registry
+					cfg := cli.ConfigFile()
+					cfg.Filename = tmpFile.Path()
+					serverAddress := registryAddr
 					if serverAddress == "" {
 						serverAddress = "https://index.docker.io/v1/"
 					}
-					assert.NilError(t, configfile.GetCredentialsStore(serverAddress).Store(configtypes.AuthConfig{
+					assert.NilError(t, cfg.GetCredentialsStore(serverAddress).Store(configtypes.AuthConfig{
 						Username:      "my-username",
 						Password:      "my-password",
 						ServerAddress: serverAddress,
 					}))
 
 					options := loginOptions{
-						serverAddress: registry,
+						serverAddress: registryAddr,
 					}
 					if tc.username {
 						options.user = "my-username"
