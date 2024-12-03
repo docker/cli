@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/errdefs"
 	"github.com/spf13/cobra"
@@ -68,7 +69,7 @@ func runRemove(ctx context.Context, dockerCli command.Cli, networks []string, op
 	}
 
 	if status != 0 {
-		return cli.StatusError{StatusCode: status}
+		return internal.StatusError{StatusCode: status}
 	}
 	return nil
 }

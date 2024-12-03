@@ -10,6 +10,7 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/internal"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/docker/docker/registry"
 	"github.com/fvbommel/sortorder"
@@ -92,8 +93,8 @@ func FlagErrorFunc(cmd *cobra.Command, err error) error {
 		return nil
 	}
 
-	return StatusError{
-		Status:     fmt.Sprintf("%s\n\nUsage:  %s\n\nRun '%s --help' for more information", err, cmd.UseLine(), cmd.CommandPath()),
+	return internal.StatusError{
+		Cause:      fmt.Errorf("%w\n\nUsage:  %s\n\nRun '%s --help' for more information", err, cmd.UseLine(), cmd.CommandPath()),
 		StatusCode: 125,
 	}
 }

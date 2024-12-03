@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types"
@@ -131,7 +131,7 @@ func TestRunAttach(t *testing.T) {
 
 	select {
 	case cmdErr := <-cmdErrC:
-		assert.Equal(t, cmdErr, cli.StatusError{
+		assert.Equal(t, cmdErr, internal.StatusError{
 			StatusCode: 33,
 		})
 	case <-time.After(2 * time.Second):
@@ -213,7 +213,7 @@ func TestRunAttachTermination(t *testing.T) {
 
 	select {
 	case cmdErr := <-cmdErrC:
-		assert.Equal(t, cmdErr, cli.StatusError{
+		assert.Equal(t, cmdErr, internal.StatusError{
 			StatusCode: 130,
 		})
 	case <-time.After(2 * time.Second):
@@ -289,10 +289,10 @@ func TestRunPullTermination(t *testing.T) {
 
 	select {
 	case cmdErr := <-cmdErrC:
-		assert.Equal(t, cmdErr, cli.StatusError{
-			StatusCode: 125,
-			Status:     "docker: context canceled\n\nRun 'docker run --help' for more information",
-		})
+		assert.ErrorIs(t, cmdErr, context.Canceled)
+		v, ok := cmdErr.(internal.StatusError)
+		assert.Check(t, ok)
+		assert.Check(t, is.Equal(v.StatusCode, 125))
 	case <-time.After(10 * time.Second):
 		t.Fatal("cmd did not return before the timeout")
 	}
@@ -342,7 +342,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			err := cmd.Execute()
-			statusErr := cli.StatusError{}
+			statusErr := internal.StatusError{}
 			assert.Check(t, errors.As(err, &statusErr))
 			assert.Check(t, is.Equal(statusErr.StatusCode, 125))
 			assert.Check(t, is.ErrorContains(err, tc.expectedError))
@@ -375,7 +375,7 @@ func TestRunContainerImagePullPolicyInvalid(t *testing.T) {
 				&containerOptions{},
 			)
 
-			statusErr := cli.StatusError{}
+			statusErr := internal.StatusError{}
 			assert.Check(t, errors.As(err, &statusErr))
 			assert.Check(t, is.Equal(statusErr.StatusCode, 125))
 			assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))

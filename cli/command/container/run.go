@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
@@ -84,8 +85,8 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 
 func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+		return internal.StatusError{
+			Cause:      withHelp(err, "run"),
 			StatusCode: 125,
 		}
 	}
@@ -102,14 +103,14 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	// just in case the parse does not exit
 	if err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+		return internal.StatusError{
+			Cause:      withHelp(err, "run"),
 			StatusCode: 125,
 		}
 	}
 	if err = validateAPIVersion(containerCfg, dockerCli.CurrentVersion()); err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+		return internal.StatusError{
+			Cause:      withHelp(err, "run"),
 			StatusCode: 125,
 		}
 	}
@@ -241,7 +242,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		}
 		status := <-statusChan
 		if status != 0 {
-			return cli.StatusError{StatusCode: status}
+			return internal.StatusError{StatusCode: status}
 		}
 	case status := <-statusChan:
 		// notify hijackedIOStreamer that we're exiting and wait
@@ -249,7 +250,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		cancelFun()
 		<-errCh
 		if status != 0 {
-			return cli.StatusError{StatusCode: status}
+			return internal.StatusError{StatusCode: status}
 		}
 	}
 
@@ -311,7 +312,7 @@ func withHelp(err error, commandName string) error {
 
 // toStatusError attempts to detect specific error-conditions to assign
 // an appropriate exit-code for situations where the problem originates
-// from the container. It returns [cli.StatusError] with the original
+// from the container. It returns [internal.StatusError] with the original
 // error message and the Status field set as follows:
 //
 // - 125: for generic failures sent back from the daemon
@@ -323,21 +324,21 @@ func toStatusError(err error) error {
 	errMsg := err.Error()
 
 	if strings.Contains(errMsg, "executable file not found") || strings.Contains(errMsg, "no such file or directory") || strings.Contains(errMsg, "system cannot find the file specified") {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+		return internal.StatusError{
+			Cause:      withHelp(err, "run"),
 			StatusCode: 127,
 		}
 	}
 
 	if strings.Contains(errMsg, syscall.EACCES.Error()) || strings.Contains(errMsg, syscall.EISDIR.Error()) {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+		return internal.StatusError{
+			Cause:      withHelp(err, "run"),
 			StatusCode: 126,
 		}
 	}
 
-	return cli.StatusError{
-		Status:     withHelp(err, "run").Error(),
+	return internal.StatusError{
+		Cause:      withHelp(err, "run"),
 		StatusCode: 125,
 	}
 }

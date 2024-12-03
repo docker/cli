@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"
@@ -161,7 +162,7 @@ func getExitStatus(errC <-chan error, resultC <-chan container.WaitResponse) err
 			return errors.New(result.Error.Message)
 		}
 		if result.StatusCode != 0 {
-			return cli.StatusError{StatusCode: int(result.StatusCode)}
+			return internal.StatusError{StatusCode: int(result.StatusCode)}
 		}
 	case err := <-errC:
 		return err

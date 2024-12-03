@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/internal"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/docker/docker/api/types/container"
@@ -185,7 +185,7 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 				&containerOptions{},
 			)
 
-			statusErr := cli.StatusError{}
+			var statusErr internal.StatusError
 			assert.Check(t, errors.As(err, &statusErr))
 			assert.Check(t, is.Equal(statusErr.StatusCode, 125))
 			assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))

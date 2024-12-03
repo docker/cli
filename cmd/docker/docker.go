@@ -19,6 +19,7 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+	"github.com/docker/cli/internal"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
@@ -51,14 +52,14 @@ func dockerMain(ctx context.Context) error {
 }
 
 // getExitCode returns the exit-code to use for the given error.
-// If err is a [cli.StatusError] and has a StatusCode set, it uses the
+// If err is a [internal.StatusError] and has a StatusCode set, it uses the
 // status-code from it, otherwise it returns "1" for any error.
 func getExitCode(err error) int {
 	if err == nil {
 		return 0
 	}
-	var stErr cli.StatusError
-	if errors.As(err, &stErr) && stErr.StatusCode != 0 { // FIXME(thaJeztah): StatusCode should never be used with a zero status-code. Check if we do this anywhere.
+	var stErr internal.StatusError
+	if errors.As(err, &stErr) {
 		return stErr.StatusCode
 	}
 
@@ -321,7 +322,7 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 		if ws, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 			statusCode = ws.ExitStatus()
 		}
-		return cli.StatusError{
+		return internal.StatusError{
 			StatusCode: statusCode,
 		}
 	}
