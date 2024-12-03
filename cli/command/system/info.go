@@ -459,7 +459,7 @@ func formatInfo(output io.Writer, info dockerInfo, format string) error {
 	if err != nil {
 		return cli.StatusError{
 			StatusCode: 64,
-			Status:     "template parsing error: " + err.Error(),
+			Cause:      fmt.Errorf("template parsing error: %w", err),
 		}
 	}
 	err = tmpl.Execute(output, info)

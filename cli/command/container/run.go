@@ -85,7 +85,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
 		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+			Cause:      withHelp(err, "run"),
 			StatusCode: 125,
 		}
 	}
@@ -103,13 +103,13 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 	// just in case the parse does not exit
 	if err != nil {
 		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+			Cause:      withHelp(err, "run"),
 			StatusCode: 125,
 		}
 	}
 	if err = validateAPIVersion(containerCfg, dockerCli.CurrentVersion()); err != nil {
 		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+			Cause:      withHelp(err, "run"),
 			StatusCode: 125,
 		}
 	}
@@ -315,20 +315,20 @@ func toStatusError(err error) error {
 
 	if strings.Contains(errMsg, "executable file not found") || strings.Contains(errMsg, "no such file or directory") || strings.Contains(errMsg, "system cannot find the file specified") {
 		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+			Cause:      withHelp(err, "run"),
 			StatusCode: 127,
 		}
 	}
 
 	if strings.Contains(errMsg, syscall.EACCES.Error()) || strings.Contains(errMsg, syscall.EISDIR.Error()) {
 		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
+			Cause:      withHelp(err, "run"),
 			StatusCode: 126,
 		}
 	}
 
 	return cli.StatusError{
-		Status:     withHelp(err, "run").Error(),
+		Cause:      withHelp(err, "run"),
 		StatusCode: 125,
 	}
 }
