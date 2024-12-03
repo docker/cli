@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/internal/oauth/manager"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -134,7 +135,7 @@ func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, auth
 		authConfig.IdentityToken = response.IdentityToken
 	}
 
-	if err := storeCredentials(dockerCli, authConfig); err != nil {
+	if err := storeCredentials(dockerCli.ConfigFile(), authConfig); err != nil {
 		return nil, err
 	}
 
@@ -196,7 +197,7 @@ func loginWithUsernameAndPassword(ctx context.Context, dockerCli command.Cli, op
 		authConfig.Password = ""
 		authConfig.IdentityToken = response.IdentityToken
 	}
-	if err = storeCredentials(dockerCli, authConfig); err != nil {
+	if err = storeCredentials(dockerCli.ConfigFile(), authConfig); err != nil {
 		return nil, err
 	}
 
@@ -215,15 +216,15 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCli command.Cli) (*regis
 		return nil, err
 	}
 
-	if err = storeCredentials(dockerCli, registrytypes.AuthConfig(*authConfig)); err != nil {
+	if err = storeCredentials(dockerCli.ConfigFile(), registrytypes.AuthConfig(*authConfig)); err != nil {
 		return nil, err
 	}
 
 	return response, nil
 }
 
-func storeCredentials(dockerCli command.Cli, authConfig registrytypes.AuthConfig) error {
-	creds := dockerCli.ConfigFile().GetCredentialsStore(authConfig.ServerAddress)
+func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
+	creds := cfg.GetCredentialsStore(authConfig.ServerAddress)
 	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
 	}
