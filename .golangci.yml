@@ -43,7 +43,7 @@ linters:
 run:
   # prevent golangci-lint from deducting the go version to lint for through go.mod,
   # which causes it to fallback to go1.17 semantics.
-  go: "1.23.3"
+  go: "1.23.4"
   timeout: 5m
 
 linters-settings:
