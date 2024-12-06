@@ -1,10 +1,10 @@
 package registry
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -55,8 +55,9 @@ func (c *fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthCon
 func TestLoginWithCredStoreCreds(t *testing.T) {
 	testCases := []struct {
 		inputAuthConfig registrytypes.AuthConfig
-		expectedMsg     string
 		expectedErr     string
+		expectedMsg     string
+		expectedErrMsg  string
 	}{
 		{
 			inputAuthConfig: registrytypes.AuthConfig{},
@@ -66,20 +67,25 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 			inputAuthConfig: registrytypes.AuthConfig{
 				Username: unknownUser,
 			},
-			expectedMsg: "Authenticating with existing credentials...\n",
-			expectedErr: fmt.Sprintf("Login did not succeed, error: %s\n", errUnknownUser),
+			expectedErr:    errUnknownUser,
+			expectedMsg:    "Authenticating with existing credentials...\n",
+			expectedErrMsg: fmt.Sprintf("Login did not succeed, error: %s\n", errUnknownUser),
 		},
 	}
 	ctx := context.Background()
+	cli := test.NewFakeCli(&fakeClient{})
+	cli.ConfigFile().Filename = filepath.Join(t.TempDir(), "config.json")
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{})
-		errBuf := new(bytes.Buffer)
-		cli.SetErr(streams.NewOut(errBuf))
-		loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
-		outputString := cli.OutBuffer().String()
-		assert.Check(t, is.Equal(tc.expectedMsg, outputString))
-		errorString := errBuf.String()
-		assert.Check(t, is.Equal(tc.expectedErr, errorString))
+		_, err := loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
+		if tc.expectedErrMsg != "" {
+			assert.Check(t, is.Error(err, tc.expectedErr))
+		} else {
+			assert.NilError(t, err)
+		}
+		assert.Check(t, is.Equal(tc.expectedMsg, cli.OutBuffer().String()))
+		assert.Check(t, is.Equal(tc.expectedErrMsg, cli.ErrBuffer().String()))
+		cli.ErrBuffer().Reset()
+		cli.OutBuffer().Reset()
 	}
 }
 
@@ -349,16 +355,16 @@ func TestLoginNonInteractive(t *testing.T) {
 		// "" meaning default registry
 		registries := []string{"", "my-registry.com"}
 
-		for _, registry := range registries {
+		for _, registryAddr := range registries {
 			for _, tc := range testCases {
 				t.Run(tc.doc, func(t *testing.T) {
 					tmpFile := fs.NewFile(t, "test-run-login")
 					defer tmpFile.Remove()
 					cli := test.NewFakeCli(&fakeClient{})
-					configfile := cli.ConfigFile()
-					configfile.Filename = tmpFile.Path()
+					cfg := cli.ConfigFile()
+					cfg.Filename = tmpFile.Path()
 					options := loginOptions{
-						serverAddress: registry,
+						serverAddress: registryAddr,
 					}
 					if tc.username {
 						options.user = "my-username"
@@ -412,26 +418,26 @@ func TestLoginNonInteractive(t *testing.T) {
 		// "" meaning default registry
 		registries := []string{"", "my-registry.com"}
 
-		for _, registry := range registries {
+		for _, registryAddr := range registries {
 			for _, tc := range testCases {
 				t.Run(tc.doc, func(t *testing.T) {
 					tmpFile := fs.NewFile(t, "test-run-login")
 					defer tmpFile.Remove()
 					cli := test.NewFakeCli(&fakeClient{})
-					configfile := cli.ConfigFile()
-					configfile.Filename = tmpFile.Path()
-					serverAddress := registry
+					cfg := cli.ConfigFile()
+					cfg.Filename = tmpFile.Path()
+					serverAddress := registryAddr
 					if serverAddress == "" {
 						serverAddress = "https://index.docker.io/v1/"
 					}
-					assert.NilError(t, configfile.GetCredentialsStore(serverAddress).Store(configtypes.AuthConfig{
+					assert.NilError(t, cfg.GetCredentialsStore(serverAddress).Store(configtypes.AuthConfig{
 						Username:      "my-username",
 						Password:      "my-password",
 						ServerAddress: serverAddress,
 					}))
 
 					options := loginOptions{
-						serverAddress: registry,
+						serverAddress: registryAddr,
 					}
 					if tc.username {
 						options.user = "my-username"
