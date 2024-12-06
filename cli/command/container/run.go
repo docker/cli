@@ -161,7 +161,8 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		waitDisplayID chan struct{}
 		errCh         chan error
 	)
-	if !config.AttachStdout && !config.AttachStderr {
+	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
+	if !attach {
 		// Make this asynchronous to allow the client to write to stdin before having to read the ID
 		waitDisplayID = make(chan struct{})
 		go func() {
@@ -169,7 +170,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			_, _ = fmt.Fprintln(stdout, containerID)
 		}()
 	}
-	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
 	if attach {
 		detachKeys := dockerCli.ConfigFile().DetachKeys
 		if runOpts.detachKeys != "" {
@@ -215,14 +215,22 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		return toStatusError(err)
 	}
 
-	if (config.AttachStdin || config.AttachStdout || config.AttachStderr) && config.Tty && dockerCli.Out().IsTerminal() {
+	// Detached mode: wait for the id to be displayed and return.
+	if !attach {
+		// Detached mode
+		<-waitDisplayID
+		return nil
+	}
+
+	if config.Tty && dockerCli.Out().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, containerID, false); err != nil {
 			_, _ = fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
 	}
 
-	if errCh != nil {
-		if err := <-errCh; err != nil {
+	select {
+	case err := <-errCh:
+		if err != nil {
 			if _, ok := err.(term.EscapeError); ok {
 				// The user entered the detach escape sequence.
 				return nil
@@ -231,19 +239,20 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			logrus.Debugf("Error hijack: %s", err)
 			return err
 		}
+		status := <-statusChan
+		if status != 0 {
+			return cli.StatusError{StatusCode: status}
+		}
+	case status := <-statusChan:
+		// notify hijackedIOStreamer that we're exiting and wait
+		// so that the terminal can be restored.
+		cancelFun()
+		<-errCh
+		if status != 0 {
+			return cli.StatusError{StatusCode: status}
+		}
 	}
 
-	// Detached mode: wait for the id to be displayed and return.
-	if !config.AttachStdout && !config.AttachStderr {
-		// Detached mode
-		<-waitDisplayID
-		return nil
-	}
-
-	status := <-statusChan
-	if status != 0 {
-		return cli.StatusError{StatusCode: status}
-	}
 	return nil
 }
 
