@@ -858,7 +858,9 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 		}
 	}
 
-	epConfig := &networktypes.EndpointSettings{}
+	epConfig := &networktypes.EndpointSettings{
+		GwPriority: ep.GwPriority,
+	}
 	epConfig.Aliases = append(epConfig.Aliases, ep.Aliases...)
 	if len(ep.DriverOpts) > 0 {
 		epConfig.DriverOpts = make(map[string]string)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ const (
 	networkOptMacAddress  = "mac-address"
 	networkOptLinkLocalIP = "link-local-ip"
 	driverOpt             = "driver-opt"
+	gwPriorityOpt         = "gw-priority"
 )
 
 // NetworkAttachmentOpts represents the network options for endpoint creation
@@ -28,6 +30,7 @@ type NetworkAttachmentOpts struct {
 	IPv6Address  string
 	LinkLocalIPs []string
 	MacAddress   string
+	GwPriority   int
 }
 
 // NetworkOpt represents a network config in swarm mode.
@@ -83,6 +86,11 @@ func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 					netOpt.DriverOpts = make(map[string]string)
 				}
 				netOpt.DriverOpts[key] = val
+			case gwPriorityOpt:
+				netOpt.GwPriority, err = strconv.Atoi(val)
+				if err != nil {
+					return fmt.Errorf("invalid gw-priority: %w", err)
+				}
 			default:
 				return errors.New("invalid field key " + key)
 			}

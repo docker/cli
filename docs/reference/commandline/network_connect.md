@@ -5,14 +5,15 @@ Connect a container to a network
 
 ### Options
 
-| Name                | Type          | Default | Description                                |
-|:--------------------|:--------------|:--------|:-------------------------------------------|
-| [`--alias`](#alias) | `stringSlice` |         | Add network-scoped alias for the container |
-| `--driver-opt`      | `stringSlice` |         | driver options for the network             |
-| [`--ip`](#ip)       | `string`      |         | IPv4 address (e.g., `172.30.100.104`)      |
-| `--ip6`             | `string`      |         | IPv6 address (e.g., `2001:db8::33`)        |
-| [`--link`](#link)   | `list`        |         | Add link to another container              |
-| `--link-local-ip`   | `stringSlice` |         | Add a link-local address for the container |
+| Name                | Type          | Default | Description                                                                             |
+|:--------------------|:--------------|:--------|:----------------------------------------------------------------------------------------|
+| [`--alias`](#alias) | `stringSlice` |         | Add network-scoped alias for the container                                              |
+| `--driver-opt`      | `stringSlice` |         | driver options for the network                                                          |
+| `--gw-priority`     | `int`         | `0`     | Highest gw-priority provides the default gateway. Accepts positive and negative values. |
+| [`--ip`](#ip)       | `string`      |         | IPv4 address (e.g., `172.30.100.104`)                                                   |
+| `--ip6`             | `string`      |         | IPv6 address (e.g., `2001:db8::33`)                                                     |
+| [`--link`](#link)   | `list`        |         | Add link to another container                                                           |
+| `--link-local-ip`   | `stringSlice` |         | Add a link-local address for the container                                              |
 
 
 <!---MARKER_GEN_END-->
