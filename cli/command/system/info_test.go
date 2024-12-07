@@ -70,8 +70,6 @@ var sampleInfoNoSwarm = system.Info{
 	Architecture:       "x86_64",
 	IndexServerAddress: "https://index.docker.io/v1/",
 	RegistryConfig: &registrytypes.ServiceConfig{
-		AllowNondistributableArtifactsCIDRs:     nil,
-		AllowNondistributableArtifactsHostnames: nil,
 		InsecureRegistryCIDRs: []*registrytypes.NetIPNet{
 			{
 				IP:   net.ParseIP("127.0.0.0"),
