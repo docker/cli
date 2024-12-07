@@ -6,6 +6,9 @@ module github.com/docker/cli
 
 go 1.22.0
 
+// FIXME(thaJeztah): testing https://github.com/moby/moby/pull/49005
+replace github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20241207110217-3014d6d7a324+incompatible
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v0.2.1
