@@ -140,17 +140,17 @@ To push the complete multi-platform image, remove the --platform flag.
 	defer responseBody.Close()
 	if !opts.untrusted {
 		// TODO PushTrustedReference currently doesn't respect `--quiet`
-		return PushTrustedReference(dockerCli, repoInfo, ref, authConfig, responseBody)
+		return PushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
 	}
 
 	if opts.quiet {
-		err = jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(io.Discard), handleAux(dockerCli))
+		err = jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, streams.NewOut(io.Discard), handleAux(dockerCli))
 		if err == nil {
 			fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), handleAux(dockerCli))
+	return jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, dockerCli.Out(), handleAux(dockerCli))
 }
 
 var notes []string
