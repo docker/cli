@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/compose-spec/compose-go/v2/loader"
 	yaml "gopkg.in/yaml.v2"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -22,9 +23,12 @@ func TestMarshallConfig(t *testing.T) {
 	// Make sure the expected can be parsed.
 	yamlData, err := os.ReadFile("testdata/full-example.yaml.golden")
 	assert.NilError(t, err)
-	dict, err := ParseYAML(yamlData)
-	assert.NilError(t, err)
-	_, err = Load(buildConfigDetails(dict, map[string]string{}))
+	_, err = Load(buildConfigDetailsFromYAML(string(yamlData), map[string]string{}), func(options *loader.Options) {
+		options.SkipConsistencyCheck = true
+		options.SkipNormalization = true
+		options.ResolvePaths = false
+		options.SkipResolveEnvironment = true
+	})
 	assert.NilError(t, err)
 }
 
@@ -38,8 +42,12 @@ func TestJSONMarshallConfig(t *testing.T) {
 
 	jsonData, err := os.ReadFile("testdata/full-example.json.golden")
 	assert.NilError(t, err)
-	dict, err := ParseYAML(jsonData)
-	assert.NilError(t, err)
-	_, err = Load(buildConfigDetails(dict, map[string]string{}))
+	_, err = Load(buildConfigDetailsFromYAML(string(jsonData), map[string]string{}),
+		func(options *loader.Options) {
+			options.SkipConsistencyCheck = true
+			options.SkipNormalization = true
+			options.ResolvePaths = false
+			options.SkipResolveEnvironment = true
+		})
 	assert.NilError(t, err)
 }

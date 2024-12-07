@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	composetypes "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
-	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/pkg/errors"
@@ -23,7 +23,7 @@ const (
 )
 
 // RunDeploy is the swarm implementation of docker stack deploy
-func RunDeploy(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts *options.Deploy, cfg *composetypes.Config) error {
+func RunDeploy(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts *options.Deploy, project *composetypes.Project) error {
 	if err := validateResolveImageFlag(opts); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func RunDeploy(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 			"In a future release, --detach=false will become the default.")
 	}
 
-	return deployCompose(ctx, dockerCli, opts, cfg)
+	return deployCompose(ctx, dockerCli, opts, project)
 }
 
 // validateResolveImageFlag validates the opts.resolveImage command line option

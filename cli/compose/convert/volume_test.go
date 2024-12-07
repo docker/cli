@@ -3,7 +3,8 @@ package convert
 import (
 	"testing"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
+	clitypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/docker/api/types/mount"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -151,49 +152,6 @@ func TestConvertVolumeToMountConflictingOptionsTmpfsInBind(t *testing.T) {
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
 	assert.Error(t, err, "tmpfs options are incompatible with type bind")
-}
-
-func TestConvertVolumeToMountConflictingOptionsClusterInVolume(t *testing.T) {
-	namespace := NewNamespace("foo")
-
-	config := composetypes.ServiceVolumeConfig{
-		Type:    "volume",
-		Target:  "/target",
-		Cluster: &composetypes.ServiceVolumeCluster{},
-	}
-	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.Error(t, err, "cluster options are incompatible with type volume")
-}
-
-func TestConvertVolumeToMountConflictingOptionsClusterInBind(t *testing.T) {
-	namespace := NewNamespace("foo")
-
-	config := composetypes.ServiceVolumeConfig{
-		Type:   "bind",
-		Source: "/foo",
-		Target: "/target",
-		Bind: &composetypes.ServiceVolumeBind{
-			Propagation: "slave",
-		},
-		Cluster: &composetypes.ServiceVolumeCluster{},
-	}
-	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.Error(t, err, "cluster options are incompatible with type bind")
-}
-
-func TestConvertVolumeToMountConflictingOptionsClusterInTmpfs(t *testing.T) {
-	namespace := NewNamespace("foo")
-
-	config := composetypes.ServiceVolumeConfig{
-		Type:   "tmpfs",
-		Target: "/target",
-		Tmpfs: &composetypes.ServiceVolumeTmpfs{
-			Size: 1000,
-		},
-		Cluster: &composetypes.ServiceVolumeCluster{},
-	}
-	_, err := convertVolumeToMount(config, volumes{}, namespace)
-	assert.Error(t, err, "cluster options are incompatible with type tmpfs")
 }
 
 func TestConvertVolumeToMountConflictingOptionsBindInTmpfs(t *testing.T) {
@@ -365,7 +323,7 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{
 			Name:     "special",
-			External: composetypes.External{External: true},
+			External: true,
 		},
 	}
 	namespace := NewNamespace("foo")
@@ -389,7 +347,7 @@ func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 	stackVolumes := volumes{
 		"outside": composetypes.VolumeConfig{
 			Name:     "special",
-			External: composetypes.External{External: true},
+			External: true,
 		},
 	}
 	namespace := NewNamespace("foo")
@@ -521,14 +479,16 @@ func TestConvertVolumeMountClusterName(t *testing.T) {
 	stackVolumes := volumes{
 		"my-csi": composetypes.VolumeConfig{
 			Driver: "mycsidriver",
-			Spec: &composetypes.ClusterVolumeSpec{
-				Group: "mygroup",
-				AccessMode: &composetypes.AccessMode{
-					Scope:       "single",
-					Sharing:     "none",
-					BlockVolume: &composetypes.BlockVolume{},
+			Extensions: map[string]any{
+				"x-cluster-spec": &clitypes.ClusterVolumeSpec{
+					Group: "mygroup",
+					AccessMode: &clitypes.AccessMode{
+						Scope:       "single",
+						Sharing:     "none",
+						BlockVolume: &clitypes.BlockVolume{},
+					},
+					Availability: "active",
 				},
-				Availability: "active",
 			},
 		},
 	}
@@ -555,14 +515,16 @@ func TestConvertVolumeMountClusterGroup(t *testing.T) {
 	stackVolumes := volumes{
 		"my-csi": composetypes.VolumeConfig{
 			Driver: "mycsidriver",
-			Spec: &composetypes.ClusterVolumeSpec{
-				Group: "mygroup",
-				AccessMode: &composetypes.AccessMode{
-					Scope:       "single",
-					Sharing:     "none",
-					BlockVolume: &composetypes.BlockVolume{},
+			Extensions: map[string]any{
+				"x-cluster-spec": &clitypes.ClusterVolumeSpec{
+					Group: "mygroup",
+					AccessMode: &clitypes.AccessMode{
+						Scope:       "single",
+						Sharing:     "none",
+						BlockVolume: &clitypes.BlockVolume{},
+					},
+					Availability: "active",
 				},
-				Availability: "active",
 			},
 		},
 	}

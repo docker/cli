@@ -1,86 +1,5 @@
 {
-  "configs": {
-    "config1": {
-      "file": "/foo/config_data",
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "config2": {
-      "name": "my_config",
-      "external": true
-    },
-    "config3": {
-      "name": "config3",
-      "external": true
-    },
-    "config4": {
-      "name": "foo",
-      "file": "/foo",
-      "external": false
-    }
-  },
-  "networks": {
-    "external-network": {
-      "name": "external-network",
-      "ipam": {},
-      "external": true
-    },
-    "other-external-network": {
-      "name": "my-cool-network",
-      "ipam": {},
-      "external": true
-    },
-    "other-network": {
-      "driver": "overlay",
-      "driver_opts": {
-        "baz": "1",
-        "foo": "bar"
-      },
-      "ipam": {
-        "driver": "overlay",
-        "config": [
-          {
-            "subnet": "172.16.238.0/24"
-          },
-          {
-            "subnet": "2001:3984:3989::/64"
-          }
-        ]
-      },
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "some-network": {
-      "ipam": {},
-      "external": false
-    }
-  },
-  "secrets": {
-    "secret1": {
-      "file": "/foo/secret_data",
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "secret2": {
-      "name": "my_secret",
-      "external": true
-    },
-    "secret3": {
-      "name": "secret3",
-      "external": true
-    },
-    "secret4": {
-      "name": "bar",
-      "file": "/foo",
-      "external": false
-    }
-  },
+  "name": "full-example",
   "services": {
     "foo": {
       "build": {
@@ -97,8 +16,8 @@
           "bar"
         ],
         "extra_hosts": [
-          "ipv4.example.com:127.0.0.1",
-          "ipv6.example.com:::1"
+          "ipv4.example.com=127.0.0.1",
+          "ipv6.example.com=::1"
         ],
         "network": "foo",
         "target": "foo"
@@ -131,11 +50,16 @@
         }
       ],
       "container_name": "my-web-container",
-      "credential_spec": {},
-      "depends_on": [
-        "db",
-        "redis"
-      ],
+      "depends_on": {
+        "db": {
+          "condition": "service_started",
+          "required": true
+        },
+        "redis": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
       "deploy": {
         "mode": "replicated",
         "replicas": 6,
@@ -160,12 +84,12 @@
         },
         "resources": {
           "limits": {
-            "cpus": "0.001",
+            "cpus": 0.001,
             "memory": "52428800",
             "pids": 100
           },
           "reservations": {
-            "cpus": "0.0001",
+            "cpus": 0.0001,
             "memory": "20971520",
             "generic_resources": [
               {
@@ -203,7 +127,10 @@
         "endpoint_mode": "dnsrr"
       },
       "devices": [
-        "/dev/ttyUSB0:/dev/ttyUSB0"
+        {
+          "source": "/dev/ttyUSB0",
+          "target": "/dev/ttyUSB0"
+        }
       ],
       "dns": [
         "8.8.8.8",
@@ -226,8 +153,11 @@
         "QUX": "qux_from_environment"
       },
       "env_file": [
-        "./example1.env",
-        "./example2.env"
+        "/foo/example1.env",
+        {
+          "path": "/foo/example2.env",
+          "required": false
+        }
       ],
       "expose": [
         "3000",
@@ -239,9 +169,9 @@
         "project_db_1:postgresql"
       ],
       "extra_hosts": [
-        "somehost:162.242.195.82",
-        "otherhost:50.31.209.229",
-        "host.docker.internal:host-gateway"
+        "host.docker.internal=host-gateway",
+        "otherhost=50.31.209.229",
+        "somehost=162.242.195.82"
       ],
       "hostname": "foo",
       "healthcheck": {
@@ -327,97 +257,97 @@
         {
           "mode": "ingress",
           "target": 8000,
-          "published": 8000,
+          "published": "8000",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 8080,
-          "published": 9090,
+          "published": "9090",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 8081,
-          "published": 9091,
+          "published": "9091",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 22,
-          "published": 49100,
+          "published": "49100",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 8001,
-          "published": 8001,
+          "published": "8001",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5000,
-          "published": 5000,
+          "published": "5000",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5001,
-          "published": 5001,
+          "published": "5001",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5002,
-          "published": 5002,
+          "published": "5002",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5003,
-          "published": 5003,
+          "published": "5003",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5004,
-          "published": 5004,
+          "published": "5004",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5005,
-          "published": 5005,
+          "published": "5005",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5006,
-          "published": 5006,
+          "published": "5006",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5007,
-          "published": 5007,
+          "published": "5007",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5008,
-          "published": 5008,
+          "published": "5008",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5009,
-          "published": 5009,
+          "published": "5009",
           "protocol": "tcp"
         },
         {
           "mode": "ingress",
           "target": 5010,
-          "published": 5010,
+          "published": "5010",
           "protocol": "tcp"
         }
       ],
@@ -501,7 +431,7 @@
           "type": "tmpfs",
           "target": "/opt",
           "tmpfs": {
-            "size": 10000
+            "size": "10000"
           }
         },
         {
@@ -513,7 +443,42 @@
       "working_dir": "/code"
     }
   },
-  "version": "3.13",
+  "networks": {
+    "external-network": {
+      "name": "external-network",
+      "ipam": {},
+      "external": true
+    },
+    "other-external-network": {
+      "name": "my-cool-network",
+      "ipam": {},
+      "external": true
+    },
+    "other-network": {
+      "driver": "overlay",
+      "driver_opts": {
+        "baz": "1",
+        "foo": "bar"
+      },
+      "ipam": {
+        "driver": "overlay",
+        "config": [
+          {
+            "subnet": "172.16.238.0/24"
+          },
+          {
+            "subnet": "2001:3984:3989::/64"
+          }
+        ]
+      },
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "some-network": {
+      "ipam": {}
+    }
+  },
   "volumes": {
     "another-volume": {
       "name": "user_specified_name",
@@ -521,59 +486,10 @@
       "driver_opts": {
         "baz": "1",
         "foo": "bar"
-      },
-      "external": false
+      }
     },
     "cluster-volume": {
-      "driver": "my-csi-driver",
-      "external": false,
-      "x-cluster-spec": {
-        "group": "mygroup",
-        "access_mode": {
-          "scope": "single",
-          "sharing": "none",
-          "block_volume": {}
-        },
-        "accessibility_requirements": {
-          "requisite": [
-            {
-              "segments": {
-                "region": "R1",
-                "zone": "Z1"
-              }
-            },
-            {
-              "segments": {
-                "region": "R1",
-                "zone": "Z2"
-              }
-            }
-          ],
-          "preferred": [
-            {
-              "segments": {
-                "region": "R1",
-                "zone": "Z1"
-              }
-            }
-          ]
-        },
-        "capacity_range": {
-          "required_bytes": "1073741824",
-          "limit_bytes": "8589934592"
-        },
-        "secrets": [
-          {
-            "key": "mycsisecret",
-            "secret": "secret1"
-          },
-          {
-            "key": "mycsisecret2",
-            "secret": "secret4"
-          }
-        ],
-        "availability": "active"
-      }
+      "driver": "my-csi-driver"
     },
     "external-volume": {
       "name": "external-volume",
@@ -593,19 +509,50 @@
         "baz": "1",
         "foo": "bar"
       },
-      "external": false,
       "labels": {
         "foo": "bar"
       }
     },
-    "some-volume": {
-      "external": false
+    "some-volume": {}
+  },
+  "secrets": {
+    "secret1": {
+      "file": "/foo/secret_data",
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "secret2": {
+      "name": "my_secret",
+      "external": true
+    },
+    "secret3": {
+      "name": "secret3",
+      "external": true
+    },
+    "secret4": {
+      "name": "bar",
+      "file": "/foo"
     }
   },
-  "x-bar": "baz",
-  "x-foo": "bar",
-  "x-nested": {
-    "bar": "baz",
-    "foo": "bar"
+  "configs": {
+    "config1": {
+      "file": "/foo/config_data",
+      "labels": {
+        "foo": "bar"
+      }
+    },
+    "config2": {
+      "name": "my_config",
+      "external": true
+    },
+    "config3": {
+      "name": "config3",
+      "external": true
+    },
+    "config4": {
+      "name": "foo",
+      "file": "/foo"
+    }
   }
 }

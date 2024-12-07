@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/compose/loader"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/compose-spec/compose-go/v2/types"
+
 	"github.com/docker/cli/internal/test"
 	"gotest.tools/v3/assert"
 )
@@ -41,13 +41,18 @@ services:
     image: busybox:${VERSION}
     command: cat file2.txt
 `,
-			expected: `version: "3.7"
+			expected: `name: firstconfig
 services:
   foo:
     command:
     - cat
     - file2.txt
     image: busybox:1.0
+    networks:
+      default: null
+networks:
+  default:
+    name: firstconfig_default
 `,
 		},
 		{
@@ -65,28 +70,28 @@ services:
     image: busybox:${VERSION}
     command: cat file2.txt
 `,
-			expected: `version: "3.7"
+			expected: `name: firstconfig
 services:
   foo:
     command:
     - cat
     - file2.txt
     image: busybox:${VERSION}
+    networks:
+      default: null
+networks:
+  default:
+    name: firstconfig_default
 `,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			firstConfigData, err := loader.ParseYAML([]byte(tc.fileOne))
-			assert.Check(t, err)
-			secondConfigData, err := loader.ParseYAML([]byte(tc.fileTwo))
-			assert.Check(t, err)
-
 			actual, err := outputConfig(composetypes.ConfigDetails{
 				ConfigFiles: []composetypes.ConfigFile{
-					{Config: firstConfigData, Filename: "firstConfig"},
-					{Config: secondConfigData, Filename: "secondConfig"},
+					{Content: []byte(tc.fileOne), Filename: "firstConfig"},
+					{Content: []byte(tc.fileTwo), Filename: "secondConfig"},
 				},
 				Environment: map[string]string{
 					"VERSION": "1.0",

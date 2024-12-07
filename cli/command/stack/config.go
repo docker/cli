@@ -2,14 +2,16 @@ package stack
 
 import (
 	"fmt"
+	"path/filepath"
 
+	specLoader "github.com/compose-spec/compose-go/v2/loader"
+	compose "github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	composeLoader "github.com/docker/cli/cli/compose/loader"
-	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -45,9 +47,17 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // outputConfig returns the merged and interpolated config file
-func outputConfig(configFiles composetypes.ConfigDetails, skipInterpolation bool) (string, error) {
-	optsFunc := func(opts *composeLoader.Options) {
+func outputConfig(configFiles compose.ConfigDetails, skipInterpolation bool) (string, error) {
+	var dir string
+	for _, f := range configFiles.ConfigFiles {
+		if f.Filename != "" {
+			dir = filepath.Base(f.Filename)
+			break
+		}
+	}
+	optsFunc := func(opts *specLoader.Options) {
 		opts.SkipInterpolation = skipInterpolation
+		opts.SetProjectName(specLoader.NormalizeProjectName(dir), true)
 	}
 	config, err := composeLoader.Load(configFiles, optsFunc)
 	if err != nil {
