@@ -86,7 +86,7 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 		return err
 	}
 	defer responseBody.Close()
-	if err := jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil); err != nil {
+	if err := jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, dockerCli.Out(), nil); err != nil {
 		return err
 	}
 	fmt.Fprintf(dockerCli.Out(), "Upgraded plugin %s to %s\n", opts.localName, opts.remote) // todo: return proper values from the API for this result
