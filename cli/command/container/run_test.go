@@ -294,10 +294,10 @@ func TestRunPullTermination(t *testing.T) {
 
 	select {
 	case cmdErr := <-cmdErrC:
-		assert.Equal(t, cmdErr, cli.StatusError{
-			StatusCode: 125,
-			Status:     "docker: context canceled\n\nRun 'docker run --help' for more information",
-		})
+		assert.ErrorIs(t, cmdErr, context.Canceled)
+		v, ok := cmdErr.(cli.StatusError)
+		assert.Check(t, ok)
+		assert.Check(t, is.Equal(v.StatusCode, 125))
 	case <-time.After(10 * time.Second):
 		t.Fatal("cmd did not return before the timeout")
 	}

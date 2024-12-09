@@ -93,7 +93,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
 		return cli.StatusError{
-			Status:     withHelp(err, "create").Error(),
+			Cause:      withHelp(err, "create"),
 			StatusCode: 125,
 		}
 	}
@@ -110,13 +110,13 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
 		return cli.StatusError{
-			Status:     withHelp(err, "create").Error(),
+			Cause:      withHelp(err, "create"),
 			StatusCode: 125,
 		}
 	}
 	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
 		return cli.StatusError{
-			Status:     withHelp(err, "create").Error(),
+			Cause:      withHelp(err, "create"),
 			StatusCode: 125,
 		}
 	}

@@ -67,7 +67,7 @@ type GetRefFunc func(ref string) (any, []byte, error)
 func Inspect(out io.Writer, references []string, tmplStr string, getRef GetRefFunc) error {
 	inspector, err := NewTemplateInspectorFromString(out, tmplStr)
 	if err != nil {
-		return cli.StatusError{StatusCode: 64, Status: err.Error()}
+		return cli.StatusError{StatusCode: 64, Cause: err}
 	}
 
 	var inspectErrs []string
@@ -90,7 +90,7 @@ func Inspect(out io.Writer, references []string, tmplStr string, getRef GetRefFu
 	if len(inspectErrs) != 0 {
 		return cli.StatusError{
 			StatusCode: 1,
-			Status:     strings.Join(inspectErrs, "\n"),
+			Cause:      errors.New(strings.Join(inspectErrs, "\n")),
 		}
 	}
 	return nil

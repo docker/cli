@@ -67,7 +67,7 @@ func RunConfigInspect(ctx context.Context, dockerCli command.Cli, opts InspectOp
 	}
 
 	if err := InspectFormatWrite(configCtx, opts.Names, getRef); err != nil {
-		return cli.StatusError{StatusCode: 1, Status: err.Error()}
+		return cli.StatusError{StatusCode: 1, Cause: err}
 	}
 	return nil
 }
