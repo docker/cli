@@ -37,7 +37,6 @@ func TestAttachInterrupt(t *testing.T) {
 	// todo(laurazard): make this test work w/ dind over ssh
 	skip.If(t, strings.Contains(os.Getenv("DOCKER_HOST"), "ssh://"))
 
-	// if
 	result := icmd.RunCommand("docker", "run", "-d", fixtures.AlpineImage,
 		"sh", "-c", "trap \"exit 33\" SIGINT; for i in $(seq 100); do sleep 0.1; done; exit 34")
 	result.Assert(t, icmd.Success)
