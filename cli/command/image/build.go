@@ -371,7 +371,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			if options.quiet {
 				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
 			}
-			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+			return cli.StatusError{Cause: jerr, StatusCode: jerr.Code}
 		}
 		return err
 	}
