@@ -165,13 +165,13 @@ The following arguments can be passed to `docker network create` for any
 network driver, again with their approximate equivalents to Docker daemon
 flags used for the docker0 bridge:
 
-| Argument     | Equivalent     | Description                                |
-|--------------|----------------|--------------------------------------------|
-| `--gateway`  | -              | IPv4 or IPv6 Gateway for the master subnet |
-| `--ip-range` | `--fixed-cidr` | Allocate IPs from a range                  |
-| `--internal` | -              | Restrict external access to the network    |
-| `--ipv6`     | `--ipv6`       | Enable or disable IPv6 networking          |
-| `--subnet`   | `--bip`        | Subnet for network                         |
+| Argument     | Equivalent                        | Description                                |
+|--------------|-----------------------------------|--------------------------------------------|
+| `--gateway`  | -                                 | IPv4 or IPv6 Gateway for the master subnet |
+| `--ip-range` | `--fixed-cidr`, `--fixed-cidr-v6` | Allocate IPs from a range                  |
+| `--internal` | -                                 | Restrict external access to the network    |
+| `--ipv6`     | `--ipv6`                          | Enable or disable IPv6 networking          |
+| `--subnet`   | `--bip`, `--bip6`                 | Subnet for network                         |
 
 For example, let's use `-o` or `--opt` options to specify an IP address binding
 when publishing ports:
