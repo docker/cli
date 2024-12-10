@@ -24,6 +24,7 @@ type createOptions struct {
 	driverOpts opts.MapOpts
 	labels     opts.ListOpts
 	internal   bool
+	ipv4       *bool
 	ipv6       *bool
 	attachable bool
 	ingress    bool
@@ -42,7 +43,7 @@ type ipamOptions struct {
 }
 
 func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
-	var ipv6 bool
+	var ipv4, ipv6 bool
 	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
 		labels:     opts.NewListOpts(opts.ValidateLabel),
@@ -59,6 +60,9 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.name = args[0]
 
+			if cmd.Flag("ipv4").Changed {
+				options.ipv4 = &ipv4
+			}
 			if cmd.Flag("ipv6").Changed {
 				options.ipv6 = &ipv6
 			}
@@ -73,7 +77,8 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.VarP(&options.driverOpts, "opt", "o", "Set driver specific options")
 	flags.Var(&options.labels, "label", "Set metadata on a network")
 	flags.BoolVar(&options.internal, "internal", false, "Restrict external access to the network")
-	flags.BoolVar(&ipv6, "ipv6", false, "Enable or disable IPv6 networking")
+	flags.BoolVar(&ipv4, "ipv4", true, "Enable or disable IPv4 address assignment")
+	flags.BoolVar(&ipv6, "ipv6", false, "Enable or disable IPv6 address assignment")
 	flags.BoolVar(&options.attachable, "attachable", false, "Enable manual container attachment")
 	flags.SetAnnotation("attachable", "version", []string{"1.25"})
 	flags.BoolVar(&options.ingress, "ingress", false, "Create swarm routing-mesh network")
@@ -113,6 +118,7 @@ func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io
 		Options:    options.driverOpts.GetAll(),
 		IPAM:       ipamCfg,
 		Internal:   options.internal,
+		EnableIPv4: options.ipv4,
 		EnableIPv6: options.ipv6,
 		Attachable: options.attachable,
 		Ingress:    options.ingress,

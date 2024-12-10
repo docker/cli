@@ -18,7 +18,8 @@ Create a network
 | `--ip-range`              | `stringSlice` |           | Allocate container ip from a sub-range                  |
 | `--ipam-driver`           | `string`      | `default` | IP Address Management Driver                            |
 | `--ipam-opt`              | `map`         | `map[]`   | Set IPAM driver specific options                        |
-| `--ipv6`                  | `bool`        |           | Enable or disable IPv6 networking                       |
+| `--ipv4`                  | `bool`        | `true`    | Enable or disable IPv4 address assignment               |
+| `--ipv6`                  | `bool`        |           | Enable or disable IPv6 address assignment               |
 | `--label`                 | `list`        |           | Set metadata on a network                               |
 | `-o`, `--opt`             | `map`         | `map[]`   | Set driver specific options                             |
 | `--scope`                 | `string`      |           | Control the network's scope                             |
@@ -170,7 +171,8 @@ flags used for the `docker0` bridge:
 | `--gateway`           | -                                 | IPv4 or IPv6 Gateway for the master subnet |
 | `--ip-range`          | `--fixed-cidr`, `--fixed-cidr-v6` | Allocate IP addresses from a range         |
 | `--internal`          | -                                 | Restrict external access to the network    |
-| `--ipv6`              | `--ipv6`                          | Enable or disable IPv6 networking          |
+| `--ipv4`              | -                                 | Enable or disable IPv4 address assignment  |
+| `--ipv6`              | `--ipv6`                          | Enable or disable IPv6 address assignment  |
 | `--subnet`            | `--bip`, `--bip6`                 | Subnet for network                         |
 
 For example, let's use `-o` or `--opt` options to specify an IP address binding
