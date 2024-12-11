@@ -52,7 +52,7 @@ shellcheck: ## run shellcheck validation
 .PHONY: fmt
 fmt: ## run gofumpt (if present) or gofmt
 	@if command -v gofumpt > /dev/null; then \
-		gofumpt -w -d -lang=1.21 . ; \
+		gofumpt -w -d -lang=1.23 . ; \
 	else \
 		go list -f {{.Dir}} ./... | xargs gofmt -w -s -d ; \
 	fi
