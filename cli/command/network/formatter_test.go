@@ -43,6 +43,9 @@ func TestNetworkContext(t *testing.T) {
 			n: network.Summary{Driver: "driver_name"},
 		}, "driver_name", ctx.Driver},
 		{networkContext{
+			n: network.Summary{EnableIPv4: true},
+		}, "true", ctx.IPv4},
+		{networkContext{
 			n: network.Summary{EnableIPv6: true},
 		}, "true", ctx.IPv6},
 		{networkContext{
@@ -180,8 +183,8 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
 	expectedJSONs := []map[string]any{
-		{"Driver": "", "ID": "networkID1", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
-		{"Driver": "", "ID": "networkID2", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
+		{"Driver": "", "ID": "networkID1", "IPv4": "false", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
+		{"Driver": "", "ID": "networkID2", "IPv4": "false", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
 	}
 
 	out := bytes.NewBufferString("")

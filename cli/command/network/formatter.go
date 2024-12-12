@@ -13,6 +13,7 @@ const (
 	defaultNetworkTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}"
 
 	networkIDHeader = "NETWORK ID"
+	ipv4Header      = "IPV4"
 	ipv6Header      = "IPV6"
 	internalHeader  = "INTERNAL"
 )
@@ -51,6 +52,7 @@ func FormatWrite(ctx formatter.Context, networks []network.Summary) error {
 		"Name":      formatter.NameHeader,
 		"Driver":    formatter.DriverHeader,
 		"Scope":     formatter.ScopeHeader,
+		"IPv4":      ipv4Header,
 		"IPv6":      ipv6Header,
 		"Internal":  internalHeader,
 		"Labels":    formatter.LabelsHeader,
@@ -86,6 +88,10 @@ func (c *networkContext) Driver() string {
 
 func (c *networkContext) Scope() string {
 	return c.n.Scope
+}
+
+func (c *networkContext) IPv4() string {
+	return strconv.FormatBool(c.n.EnableIPv4)
 }
 
 func (c *networkContext) IPv6() string {
