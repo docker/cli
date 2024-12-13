@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"syscall"
 
@@ -116,12 +117,8 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 	return runContainer(ctx, dockerCli, ropts, copts, containerCfg)
 }
 
-//nolint:gocyclo
 func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOptions, copts *containerOptions, containerCfg *containerConfig) error {
 	config := containerCfg.Config
-	stdout, stderr := dockerCli.Out(), dockerCli.Err()
-	apiClient := dockerCli.Client()
-
 	config.ArgsEscaped = false
 
 	if !runOpts.detach {
@@ -144,71 +141,39 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		return toStatusError(err)
 	}
 
+	apiClient := dockerCli.Client()
+
 	// New context here because we don't to cancel waiting on container exit/remove
 	// when we cancel attach, etc.
 	statusCtx, cancelStatusCtx := context.WithCancel(context.WithoutCancel(ctx))
 	defer cancelStatusCtx()
 	statusChan := waitExitOrRemoved(statusCtx, apiClient, containerID, copts.autoRemove)
 
-	var (
-		waitDisplayID chan struct{}
-		errCh         chan error
-	)
+	var waitDisplayID chan struct{}
 	attach := config.AttachStdin || config.AttachStdout || config.AttachStderr
 	if !attach {
 		// Make this asynchronous to allow the client to write to stdin before having to read the ID
 		waitDisplayID = make(chan struct{})
 		go func() {
 			defer close(waitDisplayID)
-			_, _ = fmt.Fprintln(stdout, containerID)
+			_, _ = fmt.Fprintln(dockerCli.Out(), containerID)
 		}()
 	}
 
-	attachCtx, attachCancel := context.WithCancel(context.WithoutCancel(ctx))
-	defer attachCancel()
+	var attachWait func(<-chan int, error) error
 	if attach {
-		detachKeys := dockerCli.ConfigFile().DetachKeys
-		if runOpts.detachKeys != "" {
-			detachKeys = runOpts.detachKeys
-		}
-
-		// ctx should not be cancellable here, as this would kill the stream to the container
-		// and we want to keep the stream open until the process in the container exits or until
-		// the user forcefully terminates the CLI.
-		closeFn, err := attachContainer(attachCtx, dockerCli, containerID, &errCh, config, container.AttachOptions{
-			Stream:     true,
-			Stdin:      config.AttachStdin,
-			Stdout:     config.AttachStdout,
-			Stderr:     config.AttachStderr,
-			DetachKeys: detachKeys,
-		})
+		attachWait, err = setupContainerAttach(ctx, dockerCli, containerID, runOpts, config)
 		if err != nil {
 			return err
 		}
-		defer closeFn()
-	}
-
-	if runOpts.sigProxy {
-		sigc := notifyAllSignals()
-		// since we're explicitly setting up signal handling here, and the daemon will
-		// get notified independently of the clients ctx cancellation, we use this context
-		// but without cancellation to avoid ForwardAllSignals from returning
-		// before all signals are forwarded.
-		bgCtx := context.WithoutCancel(ctx)
-		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
-		defer signal.StopCatch(sigc)
 	}
 
 	// start the container
-	if err := apiClient.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
-		// If we have hijackedIOStreamer, we should notify
-		// hijackedIOStreamer we are going to exit and wait
-		// to avoid the terminal are not restored.
+	err = apiClient.ContainerStart(ctx, containerID, container.StartOptions{})
+	if err != nil {
 		if attach {
-			attachCancel()
-			<-errCh
+			attachWait(statusChan, err)
 		}
-
 		if copts.autoRemove {
 			// wait container to be removed
 			<-statusChan
@@ -216,51 +181,100 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		return toStatusError(err)
 	}
 
+	if attach {
+		return attachWait(statusChan, nil)
+	}
+
 	// Detached mode: wait for the id to be displayed and return.
-	if !attach {
-		// Detached mode
-		<-waitDisplayID
-		return nil
-	}
-
-	if config.Tty && dockerCli.Out().IsTerminal() {
-		if err := MonitorTtySize(attachCtx, dockerCli, containerID, false); err != nil {
-			_, _ = fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
-		}
-	}
-
-	select {
-	case err := <-errCh:
-		if err != nil {
-			if _, ok := err.(term.EscapeError); ok {
-				// The user entered the detach escape sequence.
-				return nil
-			}
-
-			logrus.Debugf("Error hijack: %s", err)
-			return err
-		}
-		status := <-statusChan
-		if status != 0 {
-			return cli.StatusError{StatusCode: status}
-		}
-	case status := <-statusChan:
-		// notify hijackedIOStreamer that we're exiting and wait
-		// so that the terminal can be restored.
-		attachCancel()
-		<-errCh
-		if status != 0 {
-			return cli.StatusError{StatusCode: status}
-		}
-	}
-
+	<-waitDisplayID
 	return nil
 }
 
-func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options container.AttachOptions) (func(), error) {
+func setupContainerAttach(ctx context.Context, dockerCli command.Cli, containerID string, runOpts *runOptions, config *container.Config) (func(<-chan int, error) error, error) {
+	detachKeys := dockerCli.ConfigFile().DetachKeys
+	if runOpts.detachKeys != "" {
+		detachKeys = runOpts.detachKeys
+	}
+
+	// ctx should not be cancellable here, as this would kill the stream to the container
+	// and we want to keep the stream open until the process in the container exits or until
+	// the user forcefully terminates the CLI.
+	attachCtx, attachCancel := context.WithCancel(context.WithoutCancel(ctx))
+	errCh, closeFn, err := attachContainer(attachCtx, dockerCli, containerID, config, container.AttachOptions{
+		Stream:     true,
+		Stdin:      config.AttachStdin,
+		Stdout:     config.AttachStdout,
+		Stderr:     config.AttachStderr,
+		DetachKeys: detachKeys,
+	})
+	if err != nil {
+		attachCancel()
+		return nil, err
+	}
+
+	var sigc chan os.Signal
+	if runOpts.sigProxy {
+		sigc = notifyAllSignals()
+		// since we're explicitly setting up signal handling here, and the daemon will
+		// get notified independently of the clients ctx cancellation, we use this context
+		// but without cancellation to avoid ForwardAllSignals from returning
+		// before all signals are forwarded.
+		bgCtx := context.WithoutCancel(ctx)
+		go ForwardAllSignals(bgCtx, dockerCli.Client(), containerID, sigc)
+	}
+
+	return func(statusC <-chan int, err error) error {
+		defer closeFn()
+		if runOpts.sigProxy {
+			defer signal.StopCatch(sigc)
+		}
+
+		// if the container failed to start, just cancel the streamer
+		// and wait for the terminal to be restored
+		if err != nil {
+			attachCancel()
+			<-errCh
+			return nil
+		}
+
+		if config.Tty && dockerCli.Out().IsTerminal() {
+			if err := MonitorTtySize(attachCtx, dockerCli, containerID, false); err != nil {
+				_, _ = fmt.Fprintln(dockerCli.Err(), "Error monitoring TTY size:", err)
+			}
+		}
+
+		select {
+		case err := <-errCh:
+			if err != nil {
+				if _, ok := err.(term.EscapeError); ok {
+					// The user entered the detach escape sequence.
+					return nil
+				}
+
+				logrus.Debugf("Error hijack: %s", err)
+				return err
+			}
+			status := <-statusC
+			if status != 0 {
+				return cli.StatusError{StatusCode: status}
+			}
+		case status := <-statusC:
+			// notify hijackedIOStreamer that we're exiting and wait
+			// so that the terminal can be restored.
+			attachCancel()
+			<-errCh
+			if status != 0 {
+				return cli.StatusError{StatusCode: status}
+			}
+		}
+		return nil
+	}, nil
+}
+
+func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, config *container.Config, options container.AttachOptions) (chan error, func(), error) {
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
 	if errAttach != nil {
-		return nil, errAttach
+		return nil, nil, errAttach
 	}
 
 	var (
@@ -282,8 +296,6 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 	}
 
 	ch := make(chan error, 1)
-	*errCh = ch
-
 	go func() {
 		ch <- func() error {
 			streamer := hijackedIOStreamer{
@@ -302,7 +314,7 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 			return errAttach
 		}()
 	}()
-	return resp.Close, nil
+	return ch, resp.Close, nil
 }
 
 // withHelp decorates the error with a suggestion to use "--help".
