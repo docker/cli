@@ -143,16 +143,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	if err != nil {
 		return toStatusError(err)
 	}
-	if runOpts.sigProxy {
-		sigc := notifyAllSignals()
-		// since we're explicitly setting up signal handling here, and the daemon will
-		// get notified independently of the clients ctx cancellation, we use this context
-		// but without cancellation to avoid ForwardAllSignals from returning
-		// before all signals are forwarded.
-		bgCtx := context.WithoutCancel(ctx)
-		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
-		defer signal.StopCatch(sigc)
-	}
 
 	// New context here because we don't to cancel waiting on container exit/remove
 	// when we cancel attach, etc.
@@ -196,6 +186,17 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			return err
 		}
 		defer closeFn()
+	}
+
+	if runOpts.sigProxy {
+		sigc := notifyAllSignals()
+		// since we're explicitly setting up signal handling here, and the daemon will
+		// get notified independently of the clients ctx cancellation, we use this context
+		// but without cancellation to avoid ForwardAllSignals from returning
+		// before all signals are forwarded.
+		bgCtx := context.WithoutCancel(ctx)
+		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
+		defer signal.StopCatch(sigc)
 	}
 
 	// start the container
