@@ -199,10 +199,8 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		defer signal.StopCatch(sigc)
 	}
 
-	startCtx, startCancel := context.WithCancel(context.WithoutCancel(ctx))
-	defer startCancel()
 	// start the container
-	if err := apiClient.ContainerStart(startCtx, containerID, container.StartOptions{}); err != nil {
+	if err := apiClient.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
