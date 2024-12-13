@@ -253,8 +253,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 		"WARNING: No cpu shares support",
 		"WARNING: No cpuset support",
 		"WARNING: IPv4 forwarding is disabled",
-		"WARNING: bridge-nf-call-iptables is disabled",
-		"WARNING: bridge-nf-call-ip6tables is disabled",
 	}
 
 	sampleInfoBadSecurity := sampleInfoNoSwarm
