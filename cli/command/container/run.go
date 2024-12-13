@@ -150,9 +150,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	defer cancelStatusCtx()
 	statusChan := waitExitOrRemoved(statusCtx, apiClient, containerID, copts.autoRemove)
 
-	attachStartCtx, attachStartCancel := context.WithCancel(context.WithoutCancel(ctx))
-	defer attachStartCancel()
-
 	var (
 		waitDisplayID chan struct{}
 		errCh         chan error
@@ -166,6 +163,9 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			_, _ = fmt.Fprintln(stdout, containerID)
 		}()
 	}
+
+	attachCtx, attachCancel := context.WithCancel(context.WithoutCancel(ctx))
+	defer attachCancel()
 	if attach {
 		detachKeys := dockerCli.ConfigFile().DetachKeys
 		if runOpts.detachKeys != "" {
@@ -175,7 +175,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		// ctx should not be cancellable here, as this would kill the stream to the container
 		// and we want to keep the stream open until the process in the container exits or until
 		// the user forcefully terminates the CLI.
-		closeFn, err := attachContainer(attachStartCtx, dockerCli, containerID, &errCh, config, container.AttachOptions{
+		closeFn, err := attachContainer(attachCtx, dockerCli, containerID, &errCh, config, container.AttachOptions{
 			Stream:     true,
 			Stdin:      config.AttachStdin,
 			Stdout:     config.AttachStdout,
@@ -199,13 +199,15 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		defer signal.StopCatch(sigc)
 	}
 
+	startCtx, startCancel := context.WithCancel(context.WithoutCancel(ctx))
+	defer startCancel()
 	// start the container
-	if err := apiClient.ContainerStart(attachStartCtx, containerID, container.StartOptions{}); err != nil {
+	if err := apiClient.ContainerStart(startCtx, containerID, container.StartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
 		if attach {
-			attachStartCancel()
+			attachCancel()
 			<-errCh
 		}
 
@@ -224,7 +226,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	}
 
 	if config.Tty && dockerCli.Out().IsTerminal() {
-		if err := MonitorTtySize(attachStartCtx, dockerCli, containerID, false); err != nil {
+		if err := MonitorTtySize(attachCtx, dockerCli, containerID, false); err != nil {
 			_, _ = fmt.Fprintln(stderr, "Error monitoring TTY size:", err)
 		}
 	}
@@ -247,7 +249,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	case status := <-statusChan:
 		// notify hijackedIOStreamer that we're exiting and wait
 		// so that the terminal can be restored.
-		attachStartCancel()
+		attachCancel()
 		<-errCh
 		if status != 0 {
 			return cli.StatusError{StatusCode: status}
