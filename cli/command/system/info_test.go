@@ -53,8 +53,6 @@ var sampleInfoNoSwarm = system.Info{
 	CPUShares:          true,
 	CPUSet:             true,
 	IPv4Forwarding:     true,
-	BridgeNfIptables:   true,
-	BridgeNfIP6tables:  true,
 	Debug:              true,
 	NFd:                33,
 	OomKillDisable:     true,
@@ -240,8 +238,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 	infoWithWarningsLinux.CPUShares = false
 	infoWithWarningsLinux.CPUSet = false
 	infoWithWarningsLinux.IPv4Forwarding = false
-	infoWithWarningsLinux.BridgeNfIptables = false
-	infoWithWarningsLinux.BridgeNfIP6tables = false
 
 	sampleInfoDaemonWarnings := sampleInfoNoSwarm
 	sampleInfoDaemonWarnings.Warnings = []string{
