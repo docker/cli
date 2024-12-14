@@ -33,22 +33,24 @@ func TestEventsFormat(t *testing.T) {
 		})
 	}
 	tests := []struct {
-		name, format string
+		name string
+		args []string
 	}{
 		{
 			name: "default",
+			args: []string{},
 		},
 		{
-			name:   "json",
-			format: "json",
+			name: "json",
+			args: []string{"--format", "json"},
 		},
 		{
-			name:   "json template",
-			format: "{{ json . }}",
+			name: "json template",
+			args: []string{"--format", "{{ json . }}"},
 		},
 		{
-			name:   "json action",
-			format: "{{ json .Action }}",
+			name: "json action",
+			args: []string{"--format", "{{ json .Action }}"},
 		},
 	}
 
@@ -69,9 +71,9 @@ func TestEventsFormat(t *testing.T) {
 				return messages, errs
 			}})
 			cmd := NewEventsCommand(cli)
-			if tc.format != "" {
-				cmd.Flags().Set("format", tc.format)
-			}
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.Check(t, cmd.Execute())
 			out := cli.OutBuffer().String()
 			assert.Check(t, golden.String(out, fmt.Sprintf("docker-events-%s.golden", strings.ReplaceAll(tc.name, " ", "-"))))
