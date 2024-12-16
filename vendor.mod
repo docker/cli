@@ -6,6 +6,9 @@ module github.com/docker/cli
 
 go 1.22.0
 
+// FIXME(thaJeztah): testing https://github.com/moby/moby/pull/49072
+replace github.com/docker/docker => github.com/dmcgowan/docker v1.1.3-0.20241217181958-95a218fd37d3
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v0.2.1
