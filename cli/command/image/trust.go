@@ -39,13 +39,13 @@ func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 
 	defer responseBody.Close()
 
-	return PushTrustedReference(cli, repoInfo, ref, authConfig, responseBody)
+	return PushTrustedReference(ctx, cli, repoInfo, ref, authConfig, responseBody)
 }
 
 // PushTrustedReference pushes a canonical reference to the trust server.
 //
 //nolint:gocyclo
-func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.
 	target := &client.Target{}
@@ -84,14 +84,14 @@ func PushTrustedReference(ioStreams command.Streams, repoInfo *registry.Reposito
 	default:
 		// We want trust signatures to always take an explicit tag,
 		// otherwise it will act as an untrusted push.
-		if err := jsonmessage.DisplayJSONMessagesToStream(in, ioStreams.Out(), nil); err != nil {
+		if err := jsonmessage.DisplayJSONMessagesToStream(ctx, in, ioStreams.Out(), nil); err != nil {
 			return err
 		}
 		fmt.Fprintln(ioStreams.Err(), "No tag specified, skipping trust metadata push")
 		return nil
 	}
 
-	if err := jsonmessage.DisplayJSONMessagesToStream(in, ioStreams.Out(), handleTarget); err != nil {
+	if err := jsonmessage.DisplayJSONMessagesToStream(ctx, in, ioStreams.Out(), handleTarget); err != nil {
 		return err
 	}
 
@@ -283,7 +283,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 	if opts.quiet {
 		out = streams.NewOut(io.Discard)
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, out, nil)
+	return jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, out, nil)
 }
 
 // TrustedReference returns the canonical trusted reference for an image reference
