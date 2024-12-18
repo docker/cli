@@ -91,6 +91,7 @@ github.com/docker/docker/pkg/longpath
 github.com/docker/docker/pkg/pools
 github.com/docker/docker/pkg/process
 github.com/docker/docker/pkg/progress
+github.com/docker/docker/pkg/reexec
 github.com/docker/docker/pkg/stdcopy
 github.com/docker/docker/pkg/streamformatter
 github.com/docker/docker/pkg/stringid
