@@ -6,7 +6,7 @@ import (
 
 // StatusError reports an unsuccessful exit by a command.
 type StatusError struct {
-	Status     string
+	Cause      error
 	StatusCode int
 }
 
@@ -14,8 +14,15 @@ type StatusError struct {
 // it is returned as-is, otherwise it generates a generic error-message
 // based on the StatusCode.
 func (e StatusError) Error() string {
-	if e.Status == "" {
+	if e.Cause == nil {
 		return "exit status " + strconv.Itoa(e.StatusCode)
 	}
-	return e.Status
+	return e.Cause.Error()
+}
+
+// Unwrap returns the wrapped error.
+//
+// This allows StatusError to be checked with errors.Is.
+func (e StatusError) Unwrap() error {
+	return e.Cause
 }

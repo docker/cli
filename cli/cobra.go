@@ -93,7 +93,7 @@ func FlagErrorFunc(cmd *cobra.Command, err error) error {
 	}
 
 	return StatusError{
-		Status:     fmt.Sprintf("%s\n\nUsage:  %s\n\nRun '%s --help' for more information", err, cmd.UseLine(), cmd.CommandPath()),
+		Cause:      fmt.Errorf("%w\n\nUsage:  %s\n\nRun '%s --help' for more information", err, cmd.UseLine(), cmd.CommandPath()),
 		StatusCode: 125,
 	}
 }
