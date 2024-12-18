@@ -6,6 +6,9 @@ module github.com/docker/cli
 
 go 1.22.0
 
+// FIXME(thaJeztah): testing https://github.com/moby/moby/pull/49072
+replace github.com/docker/docker => github.com/dmcgowan/docker v1.1.3-0.20241217181958-95a218fd37d3
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v0.2.1
@@ -13,7 +16,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.8.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v27.0.2-0.20241209174241-b249c5ebd214+incompatible // master (v-next)
+	github.com/docker/docker v27.0.2-0.20241216174307-9fe5649fedaa+incompatible // master (v-next)
 	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
