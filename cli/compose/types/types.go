@@ -158,6 +158,7 @@ func (s Services) MarshalJSON() ([]byte, error) {
 type ServiceConfig struct {
 	Name string `yaml:"-" json:"-"`
 
+	AppArmor        string                           `yaml:"apparmor,omitempty" json:"apparmor,omitempty"`
 	Build           BuildConfig                      `yaml:",omitempty" json:"build,omitempty"`
 	CapAdd          []string                         `mapstructure:"cap_add" yaml:"cap_add,omitempty" json:"cap_add,omitempty"`
 	CapDrop         []string                         `mapstructure:"cap_drop" yaml:"cap_drop,omitempty" json:"cap_drop,omitempty"`
@@ -191,11 +192,13 @@ type ServiceConfig struct {
 	MacAddress      string                           `mapstructure:"mac_address" yaml:"mac_address,omitempty" json:"mac_address,omitempty"`
 	NetworkMode     string                           `mapstructure:"network_mode" yaml:"network_mode,omitempty" json:"network_mode,omitempty"`
 	Networks        map[string]*ServiceNetworkConfig `yaml:",omitempty" json:"networks,omitempty"`
+	NoNewPrivileges bool                             `mapstructure:"no_new_privileges" yaml:"no_new_privileges,omitempty" json:"no_new_privileges,omitempty"`
 	Pid             string                           `yaml:",omitempty" json:"pid,omitempty"`
 	Ports           []ServicePortConfig              `yaml:",omitempty" json:"ports,omitempty"`
 	Privileged      bool                             `yaml:",omitempty" json:"privileged,omitempty"`
 	ReadOnly        bool                             `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
 	Restart         string                           `yaml:",omitempty" json:"restart,omitempty"`
+	Seccomp         string                           `yaml:",omitempty" json:"seccomp,omitempty"`
 	Secrets         []ServiceSecretConfig            `yaml:",omitempty" json:"secrets,omitempty"`
 	SecurityOpt     []string                         `mapstructure:"security_opt" yaml:"security_opt,omitempty" json:"security_opt,omitempty"`
 	ShmSize         string                           `mapstructure:"shm_size" yaml:"shm_size,omitempty" json:"shm_size,omitempty"`

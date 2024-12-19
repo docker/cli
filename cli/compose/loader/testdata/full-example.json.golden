@@ -83,6 +83,7 @@
   },
   "services": {
     "foo": {
+      "apparmor": "disabled",
       "build": {
         "context": "./dir",
         "dockerfile": "Dockerfile",
@@ -292,6 +293,7 @@
           }
         }
       },
+      "no_new_privileges": true,
       "pid": "host",
       "ports": [
         {
@@ -424,6 +426,7 @@
       "privileged": true,
       "read_only": true,
       "restart": "always",
+      "seccomp": "unconfined",
       "secrets": [
         {
           "source": "secret1"
