@@ -89,7 +89,7 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 	defer response.Body.Close()
 
 	if response.Body != nil && response.JSON {
-		return jsonmessage.DisplayJSONMessagesToStream(response.Body, dockerCli.Out(), nil)
+		return jsonmessage.DisplayJSONMessagesToStream(ctx, response.Body, dockerCli.Out(), nil)
 	}
 
 	_, err = io.Copy(dockerCli.Out(), response.Body)

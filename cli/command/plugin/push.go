@@ -66,8 +66,8 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	defer responseBody.Close()
 
 	if !opts.untrusted {
-		return image.PushTrustedReference(dockerCli, repoInfo, named, authConfig, responseBody)
+		return image.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody)
 	}
 
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	return jsonmessage.DisplayJSONMessagesToStream(ctx, responseBody, dockerCli.Out(), nil)
 }
