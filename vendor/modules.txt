@@ -55,7 +55,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v27.0.2-0.20241223115700-a72026acbbdf+incompatible
+# github.com/docker/docker v27.0.2-0.20241223115700-a72026acbbdf+incompatible => github.com/dmcgowan/docker v1.1.3-0.20241223115939-cb7934ca2190
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -216,9 +216,6 @@ github.com/moby/sys/signal
 # github.com/moby/sys/symlink v0.3.0
 ## explicit; go 1.17
 github.com/moby/sys/symlink
-# github.com/moby/sys/user v0.3.0
-## explicit; go 1.17
-github.com/moby/sys/user
 # github.com/moby/sys/userns v0.1.0
 ## explicit; go 1.21
 github.com/moby/sys/userns
@@ -545,3 +542,4 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/docker => github.com/dmcgowan/docker v1.1.3-0.20241223115939-cb7934ca2190

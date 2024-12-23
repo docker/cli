@@ -6,6 +6,9 @@ module github.com/docker/cli
 
 go 1.22.0
 
+// FIXME(thaJeztah): testing https://github.com/moby/moby/pull/49087 (split-idtools-internal branch)
+replace github.com/docker/docker => github.com/dmcgowan/docker v1.1.3-0.20241223115939-cb7934ca2190
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v0.2.1
@@ -80,7 +83,6 @@ require (
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/symlink v0.3.0 // indirect
-	github.com/moby/sys/user v0.3.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
