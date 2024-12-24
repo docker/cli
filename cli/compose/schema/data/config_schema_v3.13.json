@@ -75,6 +75,7 @@
 
       "properties": {
         "deploy": {"$ref": "#/definitions/deployment"},
+        "apparmor": {"type": "string"},
         "build": {
           "oneOf": [
             {"type": "string"},
@@ -216,6 +217,7 @@
             }
           ]
         },
+        "no_new_privileges": {"type": "boolean"},
         "pid": {"type": ["string", "null"]},
 
         "ports": {
@@ -244,6 +246,7 @@
         "restart": {"type": "string"},
         "security_opt": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "shm_size": {"type": ["number", "string"]},
+        "seccomp": {"type": "string"},
         "secrets": {
           "type": "array",
           "items": {

@@ -3,6 +3,8 @@ version: "3.13"
 services:
   foo:
 
+    apparmor: disabled
+
     build:
       context: ./dir
       dockerfile: Dockerfile
@@ -215,6 +217,8 @@ services:
         ipv6_address: 2001:3984:3989::10
       other-other-network:
 
+    no_new_privileges: true
+
     pid: "host"
 
     ports:
@@ -231,6 +235,8 @@ services:
     read_only: true
 
     restart: always
+
+    seccomp: unconfined
 
     secrets:
       - secret1
