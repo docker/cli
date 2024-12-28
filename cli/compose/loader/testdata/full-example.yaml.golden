@@ -1,6 +1,7 @@
 version: "3.13"
 services:
   foo:
+    apparmor: disabled
     build:
       context: ./dir
       dockerfile: Dockerfile
@@ -155,6 +156,7 @@ services:
         driver_opts:
           driveropt1: optval1
           driveropt2: optval2
+    no_new_privileges: true
     pid: host
     ports:
     - mode: ingress
@@ -242,6 +244,7 @@ services:
     privileged: true
     read_only: true
     restart: always
+    seccomp: unconfined
     secrets:
     - source: secret1
     - source: secret2

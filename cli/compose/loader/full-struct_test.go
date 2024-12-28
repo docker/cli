@@ -33,6 +33,8 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 		{
 			Name: "foo",
 
+			AppArmor: "disabled",
+
 			Build: types.BuildConfig{
 				Context:    "./dir",
 				Dockerfile: "Dockerfile",
@@ -201,7 +203,8 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				},
 				"other-other-network": nil,
 			},
-			Pid: "host",
+			NoNewPrivileges: true,
+			Pid:             "host",
 			Ports: []types.ServicePortConfig{
 				// "3000",
 				{
@@ -339,6 +342,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			Privileged: true,
 			ReadOnly:   true,
 			Restart:    "always",
+			Seccomp:    "unconfined",
 			Secrets: []types.ServiceSecretConfig{
 				{
 					Source: "secret1",

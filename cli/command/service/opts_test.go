@@ -326,3 +326,93 @@ func TestToServiceSysCtls(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Sysctls, expected))
 }
+
+func TestToPrivilegesAppArmor(t *testing.T) {
+	for _, mode := range []string{"default", "disabled"} {
+		flags := newCreateCommand(nil).Flags()
+		flags.Set("apparmor", mode)
+		o := newServiceOptions()
+		o.appArmor = mode
+		privileges, err := o.ToPrivileges(flags)
+		assert.NilError(t, err)
+		enumMode := swarm.AppArmorMode(mode)
+		assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{
+			AppArmor: &swarm.AppArmorOpts{
+				Mode: enumMode,
+			},
+		}))
+	}
+}
+
+func TestToPrivilegesAppArmorInvalid(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("apparmor", "invalid")
+	o := newServiceOptions()
+	o.appArmor = "invalid"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.ErrorContains(t, err, "AppArmor")
+	assert.Check(t, is.Nil(privileges))
+}
+
+func TestToPrivilegesSeccomp(t *testing.T) {
+	for _, mode := range []string{"default", "unconfined"} {
+		flags := newCreateCommand(nil).Flags()
+		flags.Set("seccomp", mode)
+		o := newServiceOptions()
+		o.seccomp = mode
+
+		privileges, err := o.ToPrivileges(flags)
+		assert.NilError(t, err)
+		enumMode := swarm.SeccompMode(mode)
+		assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{
+			Seccomp: &swarm.SeccompOpts{
+				Mode: enumMode,
+			},
+		}))
+	}
+}
+
+const testJSON = `{
+  "json": "you betcha"
+}
+`
+
+func TestToPrivilegesSeccompCustomProfile(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("seccomp", "testdata/test-seccomp-valid.json")
+	o := newServiceOptions()
+	o.seccomp = "testdata/test-seccomp-valid.json"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{
+		Seccomp: &swarm.SeccompOpts{
+			Mode:    swarm.SeccompModeCustom,
+			Profile: []byte(testJSON),
+		},
+	}))
+}
+
+func TestToPrivilegesSeccompInvalidJson(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	// why make an invalid json file when we have one lying right there?
+	flags.Set("seccomp", "testdata/service-context-write-raw.golden")
+	o := newServiceOptions()
+	o.seccomp = "testdata/service-context-write-raw.golden"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.ErrorContains(t, err, "json")
+	assert.Check(t, is.Nil(privileges))
+}
+
+func TestToPrivilegesNoNewPrivileges(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("no-new-privileges", "true")
+	o := newServiceOptions()
+	o.noNewPrivileges = true
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{NoNewPrivileges: true}))
+}
