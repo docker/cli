@@ -195,7 +195,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 ## explicit; go 1.19
 github.com/moby/patternmatcher
 github.com/moby/patternmatcher/ignorefile
-# github.com/moby/swarmkit/v2 v2.0.0-20241017191044-e8ecf83ee08e
+# github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
 ## explicit; go 1.18
 github.com/moby/swarmkit/v2/api
 github.com/moby/swarmkit/v2/api/deepcopy
