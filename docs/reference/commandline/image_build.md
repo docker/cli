@@ -133,8 +133,6 @@ Linux namespaces. On Microsoft Windows, you can specify these values:
 | `process` | Namespace isolation only.                                                                                                                                                      |
 | `hyperv`  | Hyper-V hypervisor partition-based isolation.                                                                                                                                  |
 
-Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
-
 ### <a name="security-opt"></a> Optional security options (--security-opt)
 
 This flag is only supported on a daemon running on Windows, and only supports
