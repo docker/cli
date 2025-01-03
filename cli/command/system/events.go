@@ -60,7 +60,7 @@ func runEvents(ctx context.Context, dockerCli command.Cli, options *eventsOption
 	if err != nil {
 		return cli.StatusError{
 			StatusCode: 64,
-			Status:     "Error parsing format: " + err.Error(),
+			Cause:      fmt.Errorf("error parsing format: %w", err),
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
