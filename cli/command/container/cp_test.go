@@ -67,14 +67,15 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 }
 
 func TestRunCopyFromContainerToFilesystem(t *testing.T) {
-	destDir := fs.NewDir(t, "cp-test",
+	srcDir := fs.NewDir(t, "cp-test",
 		fs.WithFile("file1", "content\n"))
-	defer destDir.Remove()
+
+	destDir := fs.NewDir(t, "cp-test")
 
 	cli := test.NewFakeCli(&fakeClient{
 		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
 			assert.Check(t, is.Equal("container", ctr))
-			readCloser, err := archive.TarWithOptions(destDir.Path(), &archive.TarOptions{})
+			readCloser, err := archive.Tar(srcDir.Path(), archive.Uncompressed)
 			return readCloser, container.PathStat{}, err
 		},
 	})
