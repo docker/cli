@@ -9,8 +9,6 @@ Linux namespaces. On Microsoft Windows, you can specify these values:
 * `process`: Namespace isolation only.
 * `hyperv`: Hyper-V hypervisor partition-based isolation.
 
-Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
-
 ### Dealing with dynamically created devices (--device-cgroup-rule)
 
 Devices available to a container are assigned at creation time. The
