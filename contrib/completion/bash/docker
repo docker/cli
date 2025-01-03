@@ -2591,7 +2591,6 @@ _docker_daemon() {
 		--mtu
 		--network-control-plane-mtu
 		--node-generic-resource
-		--oom-score-adjust
 		--pidfile -p
 		--registry-mirror
 		--seccomp-profile
