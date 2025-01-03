@@ -17,7 +17,6 @@ import (
 	"github.com/docker/docker/builder/remotecontext/git"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
@@ -434,7 +433,7 @@ func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
 		}
 		defer buildCtx.Close()
 
-		if _, err := pools.Copy(compressWriter, buildCtx); err != nil {
+		if _, err := io.Copy(compressWriter, buildCtx); err != nil {
 			pipeWriter.CloseWithError(errors.Wrap(err, "failed to compress context"))
 			compressWriter.Close()
 			return
