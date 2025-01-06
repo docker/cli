@@ -2,29 +2,28 @@ package ioutils // import "github.com/docker/docker/pkg/ioutils"
 
 import (
 	"context"
-	"io"
-	"runtime/debug"
-	"sync/atomic"
-
 	// make sure crypto.SHA256, crypto.sha512 and crypto.SHA384 are registered
 	// TODO remove once https://github.com/opencontainers/go-digest/pull/64 is merged.
 	_ "crypto/sha256"
 	_ "crypto/sha512"
+	"io"
+	"runtime/debug"
+	"sync/atomic"
 
 	"github.com/containerd/log"
 )
 
-// ReadCloserWrapper wraps an io.Reader, and implements an io.ReadCloser
+// readCloserWrapper wraps an io.Reader, and implements an io.ReadCloser
 // It calls the given callback function when closed. It should be constructed
 // with NewReadCloserWrapper
-type ReadCloserWrapper struct {
+type readCloserWrapper struct {
 	io.Reader
 	closer func() error
 	closed atomic.Bool
 }
 
 // Close calls back the passed closer function
-func (r *ReadCloserWrapper) Close() error {
+func (r *readCloserWrapper) Close() error {
 	if !r.closed.CompareAndSwap(false, true) {
 		subsequentCloseWarn("ReadCloserWrapper")
 		return nil
@@ -32,31 +31,11 @@ func (r *ReadCloserWrapper) Close() error {
 	return r.closer()
 }
 
-// NewReadCloserWrapper returns a new io.ReadCloser.
+// NewReadCloserWrapper wraps an io.Reader, and implements an io.ReadCloser.
+// It calls the given callback function when closed.
 func NewReadCloserWrapper(r io.Reader, closer func() error) io.ReadCloser {
-	return &ReadCloserWrapper{
+	return &readCloserWrapper{
 		Reader: r,
-		closer: closer,
-	}
-}
-
-type readerErrWrapper struct {
-	reader io.Reader
-	closer func()
-}
-
-func (r *readerErrWrapper) Read(p []byte) (int, error) {
-	n, err := r.reader.Read(p)
-	if err != nil {
-		r.closer()
-	}
-	return n, err
-}
-
-// NewReaderErrWrapper returns a new io.Reader.
-func NewReaderErrWrapper(r io.Reader, closer func()) io.Reader {
-	return &readerErrWrapper{
-		reader: r,
 		closer: closer,
 	}
 }
