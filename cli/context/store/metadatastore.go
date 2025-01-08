@@ -12,7 +12,7 @@ import (
 	"sort"
 
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/docker/docker/pkg/atomicwriter"
 	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
 )
@@ -40,7 +40,7 @@ func (s *metadataStore) createOrUpdate(meta Metadata) error {
 	if err != nil {
 		return err
 	}
-	return ioutils.AtomicWriteFile(filepath.Join(contextDir, metaFile), bytes, 0o644)
+	return atomicwriter.WriteFile(filepath.Join(contextDir, metaFile), bytes, 0o644)
 }
 
 func parseTypedOrMap(payload []byte, getter TypeGetter) (any, error) {

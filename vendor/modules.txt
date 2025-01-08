@@ -55,7 +55,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v27.0.2-0.20250101151200-6f6c3b921180+incompatible
+# github.com/docker/docker v27.0.2-0.20250108165300-50212d215ba7+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -81,8 +81,10 @@ github.com/docker/docker/builder/remotecontext/git
 github.com/docker/docker/builder/remotecontext/urlutil
 github.com/docker/docker/client
 github.com/docker/docker/errdefs
+github.com/docker/docker/internal/lazyregexp
 github.com/docker/docker/internal/multierror
 github.com/docker/docker/pkg/archive
+github.com/docker/docker/pkg/atomicwriter
 github.com/docker/docker/pkg/homedir
 github.com/docker/docker/pkg/idtools
 github.com/docker/docker/pkg/ioutils
@@ -195,7 +197,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 ## explicit; go 1.19
 github.com/moby/patternmatcher
 github.com/moby/patternmatcher/ignorefile
-# github.com/moby/swarmkit/v2 v2.0.0-20241017191044-e8ecf83ee08e
+# github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
 ## explicit; go 1.18
 github.com/moby/swarmkit/v2/api
 github.com/moby/swarmkit/v2/api/deepcopy

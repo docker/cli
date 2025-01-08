@@ -13,7 +13,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.8.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v27.0.2-0.20250101151200-6f6c3b921180+incompatible // master (v-next)
+	github.com/docker/docker v27.0.2-0.20250108165300-50212d215ba7+incompatible // master (v-next)
 	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -25,7 +25,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/moby/patternmatcher v0.6.0
-	github.com/moby/swarmkit/v2 v2.0.0-20241017191044-e8ecf83ee08e
+	github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
 	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.6.0
 	github.com/moby/sys/signal v0.7.1

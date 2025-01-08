@@ -51,8 +51,8 @@ github.com/docker/cli-docs-tool v0.8.0/go.mod h1:8TQQ3E7mOXoYUs811LiPdUnAhXrcVsB
 github.com/docker/distribution v2.7.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/distribution v2.8.3+incompatible h1:AtKxIZ36LoNK51+Z6RpzLpddBirtxJnzDrHLEKxTAYk=
 github.com/docker/distribution v2.8.3+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
-github.com/docker/docker v27.0.2-0.20250101151200-6f6c3b921180+incompatible h1:R8zzddOp6gD0KL9SGDvRtbGiWZ8fxqzzu2v6t+whvdc=
-github.com/docker/docker v27.0.2-0.20250101151200-6f6c3b921180+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
+github.com/docker/docker v27.0.2-0.20250108165300-50212d215ba7+incompatible h1:d2wmwnGBWKKlr7JBS6SD/1O3DRvZATLQg4tbgk0rzvo=
+github.com/docker/docker v27.0.2-0.20250108165300-50212d215ba7+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker-credential-helpers v0.8.2 h1:bX3YxiGzFP5sOXWc3bTPEXdEaZSeVMrFgOr3T+zrFAo=
 github.com/docker/docker-credential-helpers v0.8.2/go.mod h1:P3ci7E3lwkZg6XiHdRKft1KckHiO9a2rNtyFbZ/ry9M=
 github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c h1:lzqkGL9b3znc+ZUgi7FlLnqjQhcXxkNM/quxIjBVMD0=
@@ -166,8 +166,8 @@ github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3N
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
 github.com/moby/patternmatcher v0.6.0 h1:GmP9lR19aU5GqSSFko+5pRqHi+Ohk1O69aFiKkVGiPk=
 github.com/moby/patternmatcher v0.6.0/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
-github.com/moby/swarmkit/v2 v2.0.0-20241017191044-e8ecf83ee08e h1:1yC8fRqStY6NirU/swI74fsrHvZVMbtxsHcvl8YpzDg=
-github.com/moby/swarmkit/v2 v2.0.0-20241017191044-e8ecf83ee08e/go.mod h1:mTTGIAz/59OGZR5Qe+QByIe3Nxc+sSuJkrsStFhr6Lg=
+github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554 h1:DMHJbgyNZWyrPKYjCYt2IxEO7KA0eSd4fo6KQsv2W84=
+github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554/go.mod h1:mTTGIAz/59OGZR5Qe+QByIe3Nxc+sSuJkrsStFhr6Lg=
 github.com/moby/sys/capability v0.4.0 h1:4D4mI6KlNtWMCM1Z/K0i7RV1FkX+DBDHKVJpCndZoHk=
 github.com/moby/sys/capability v0.4.0/go.mod h1:4g9IK291rVkms3LKCDOoYlnV8xKwoDTpIrNEE35Wq0I=
 github.com/moby/sys/sequential v0.6.0 h1:qrx7XFUd/5DxtqcoH1h438hF5TmOvzC/lspjy7zgvCU=

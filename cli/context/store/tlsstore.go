@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/ioutils"
+	"github.com/docker/docker/pkg/atomicwriter"
 	"github.com/pkg/errors"
 )
 
@@ -32,7 +32,7 @@ func (s *tlsStore) createOrUpdate(name, endpointName, filename string, data []by
 	if err := os.MkdirAll(endpointDir, 0o700); err != nil {
 		return err
 	}
-	return ioutils.AtomicWriteFile(filepath.Join(endpointDir, filename), data, 0o600)
+	return atomicwriter.WriteFile(filepath.Join(endpointDir, filename), data, 0o600)
 }
 
 func (s *tlsStore) getData(name, endpointName, filename string) ([]byte, error) {
