@@ -14,6 +14,7 @@ import (
 var defaults = map[string]string{
 	"USER":  "jenny",
 	"FOO":   "bar",
+	"CMD":   "my-cmd",
 	"count": "5",
 }
 
@@ -26,6 +27,10 @@ func TestInterpolate(t *testing.T) {
 	services := map[string]any{
 		"servicea": map[string]any{
 			"image":   "example:${USER}",
+			"command": []any{
+				"${CMD:-${UNDEF_CMD:-}}",
+				"${UNDEF:-${CMD}}",
+			},
 			"volumes": []any{"$FOO:/target"},
 			"logging": map[string]any{
 				"driver": "${FOO}",
@@ -38,6 +43,7 @@ func TestInterpolate(t *testing.T) {
 	expected := map[string]any{
 		"servicea": map[string]any{
 			"image":   "example:jenny",
+			"command": []any{"my-cmd", "my-cmd"},
 			"volumes": []any{"bar:/target"},
 			"logging": map[string]any{
 				"driver": "bar",

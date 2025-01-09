@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli/compose/template"
+	"github.com/compose-spec/compose-go/v2/template"
 	"github.com/pkg/errors"
 )
 
