@@ -8,6 +8,7 @@ go 1.22.0
 
 require (
 	dario.cat/mergo v1.0.1
+	github.com/compose-spec/compose-go/v2 v2.4.7
 	github.com/containerd/platforms v0.2.1
 	github.com/creack/pty v1.1.21
 	github.com/distribution/reference v0.6.0
