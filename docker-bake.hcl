@@ -141,16 +141,19 @@ target "update-authors" {
 }
 
 target "test" {
+    inherits = ["_common"]
     target = "test"
     output = ["type=cacheonly"]
 }
 
 target "test-coverage" {
+    inherits = ["_common"]
     target = "test-coverage"
     output = ["build/coverage"]
 }
 
 target "e2e-image" {
+    inherits = ["_common"]
     target = "e2e"
     output = ["type=docker"]
     tags = ["${IMAGE_NAME}"]
