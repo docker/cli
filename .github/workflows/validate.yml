@@ -36,11 +36,8 @@ jobs:
           - update-authors # ensure authors update target runs fine
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
-      -
         name: Run
-        uses: docker/bake-action@v5
+        uses: docker/bake-action@v6
         with:
           targets: ${{ matrix.target }}
 

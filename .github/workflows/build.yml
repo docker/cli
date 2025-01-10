@@ -62,16 +62,11 @@ jobs:
           - glibc
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
         name: Build
-        uses: docker/bake-action@v5
+        uses: docker/bake-action@v6
         with:
           targets: ${{ matrix.target }}
           set: |
@@ -104,8 +99,12 @@ jobs:
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_CLIBIN_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_CLIBIN_TOKEN }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -124,19 +123,12 @@ jobs:
             type=ref,event=pr
             type=sha
       -
-        name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_CLIBIN_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_CLIBIN_TOKEN }}
-      -
         name: Build and push image
-        uses: docker/bake-action@v5
+        uses: docker/bake-action@v6
         with:
           files: |
             ./docker-bake.hcl
-            ${{ steps.meta.outputs.bake-file }}
+            cwd://${{ steps.meta.outputs.bake-file }}
           targets: bin-image-cross
           push: ${{ github.event_name != 'pull_request' }}
           set: |
@@ -171,14 +163,11 @@ jobs:
         platform: ${{ fromJson(needs.prepare-plugins.outputs.matrix) }}
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
         name: Build
-        uses: docker/bake-action@v5
+        uses: docker/bake-action@v6
         with:
           targets: plugins-cross
           set: |
