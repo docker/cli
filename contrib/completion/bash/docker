@@ -971,7 +971,7 @@ __docker_complete_log_driver_options() {
 			__docker_nospace
 			return
 			;;
-		compress|fluentd-async-connect)
+		compress|fluentd-async)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
 			return
 			;;
