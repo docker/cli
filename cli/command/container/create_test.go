@@ -109,7 +109,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 		}, {
 			PullPolicy:     PullImageNever,
 			ExpectedPulls:  0,
-			ExpectedErrMsg: "error fake not found",
+			ExpectedErrMsg: "No such image: does-not-exist-locally:latest",
 		},
 	}
 	for _, tc := range cases {
@@ -127,7 +127,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 					defer func() { tc.ResponseCounter++ }()
 					switch tc.ResponseCounter {
 					case 0:
-						return container.CreateResponse{}, fakeNotFound{}
+						return container.CreateResponse{}, fakeNotFound{image: imageName + ":latest"}
 					default:
 						return container.CreateResponse{ID: containerID}, nil
 					}
@@ -155,6 +155,83 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 				assert.Check(t, is.Equal(tc.ExpectedID, id))
 			}
 
+			assert.Check(t, is.Equal(tc.ExpectedPulls, pullCounter))
+		})
+	}
+}
+
+func TestCreateContainerImagePullMissingValidate(t *testing.T) {
+	cases := []struct {
+		ContainerImage string
+		MissingImage   string
+		ExpectedPulls  int
+		ExpectedErrMsg string
+	}{
+		{
+			ContainerImage: "does-not-exist-locally",
+			MissingImage:   "does-not-exist-locally:latest",
+			ExpectedPulls:  1,
+			ExpectedErrMsg: "No such image: does-not-exist-locally:latest",
+		}, {
+			ContainerImage: "registry:5000/does-not-exist-locally",
+			MissingImage:   "registry:5000/does-not-exist-locally:latest",
+			ExpectedPulls:  1,
+			ExpectedErrMsg: "No such image: registry:5000/does-not-exist-locally",
+		}, {
+			ContainerImage: "registry:5000/does-not-exist-locally:tag",
+			MissingImage:   "registry:5000/does-not-exist-locally:tag",
+			ExpectedPulls:  1,
+			ExpectedErrMsg: "No such image: registry:5000/does-not-exist-locally:tag",
+		}, {
+			ContainerImage: "registry:5000/does-not-exist-locally@sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+			MissingImage:   "registry:5000/does-not-exist-locally@sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+			ExpectedPulls:  1,
+			ExpectedErrMsg: "No such image: registry:5000/does-not-exist-locally@sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+		}, {
+			ContainerImage: "does-not-exist-locally",
+			MissingImage:   "some-other-image",
+			ExpectedPulls:  0,
+			ExpectedErrMsg: "No such image: some-other-image",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.MissingImage, func(t *testing.T) {
+			pullCounter := 0
+
+			config := &containerConfig{
+				Config: &container.Config{
+					Image: tc.ContainerImage,
+				},
+				HostConfig: &container.HostConfig{},
+			}
+
+			client := &fakeClient{
+				createContainerFunc: func(
+					config *container.Config,
+					hostConfig *container.HostConfig,
+					networkingConfig *network.NetworkingConfig,
+					platform *specs.Platform,
+					containerName string,
+				) (container.CreateResponse, error) {
+					return container.CreateResponse{}, fakeNotFound{image: tc.MissingImage}
+				},
+				imageCreateFunc: func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
+					defer func() { pullCounter++ }()
+					return io.NopCloser(strings.NewReader("")), nil
+				},
+				infoFunc: func() (system.Info, error) {
+					return system.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
+				},
+			}
+			fakeCLI := test.NewFakeCli(client)
+			_, err := createContainer(context.Background(), fakeCLI, config, &createOptions{
+				name:      "name",
+				platform:  runtime.GOOS,
+				untrusted: true,
+				pull:      PullImageMissing,
+			})
+
+			assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))
 			assert.Check(t, is.Equal(tc.ExpectedPulls, pullCounter))
 		})
 	}
@@ -378,7 +455,17 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 	assert.NilError(t, err)
 }
 
-type fakeNotFound struct{}
+type fakeNotFound struct {
+	image string
+}
 
-func (f fakeNotFound) NotFound()     {}
-func (f fakeNotFound) Error() string { return "error fake not found" }
+func (f fakeNotFound) NotFound() {}
+func (f fakeNotFound) Error() string {
+	img := "fake"
+
+	if f.image != "" {
+		img = f.image
+	}
+
+	return "No such image: " + img
+}
