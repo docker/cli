@@ -41,39 +41,39 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		name             string
 		args             []string
 		imageCount       int
-		imageInspectFunc func(img string) (image.InspectResponse, []byte, error)
+		imageInspectFunc func(img string) (image.InspectResponse, error)
 	}{
 		{
 			name:       "simple",
 			args:       []string{"image"},
 			imageCount: 1,
-			imageInspectFunc: func(img string) (image.InspectResponse, []byte, error) {
+			imageInspectFunc: func(img string) (image.InspectResponse, error) {
 				imageInspectInvocationCount++
 				assert.Check(t, is.Equal("image", img))
-				return image.InspectResponse{}, nil, nil
+				return image.InspectResponse{}, nil
 			},
 		},
 		{
 			name:       "format",
 			imageCount: 1,
 			args:       []string{"--format='{{.ID}}'", "image"},
-			imageInspectFunc: func(img string) (image.InspectResponse, []byte, error) {
+			imageInspectFunc: func(img string) (image.InspectResponse, error) {
 				imageInspectInvocationCount++
-				return image.InspectResponse{ID: img}, nil, nil
+				return image.InspectResponse{ID: img}, nil
 			},
 		},
 		{
 			name:       "simple-many",
 			args:       []string{"image1", "image2"},
 			imageCount: 2,
-			imageInspectFunc: func(img string) (image.InspectResponse, []byte, error) {
+			imageInspectFunc: func(img string) (image.InspectResponse, error) {
 				imageInspectInvocationCount++
 				if imageInspectInvocationCount == 1 {
 					assert.Check(t, is.Equal("image1", img))
 				} else {
 					assert.Check(t, is.Equal("image2", img))
 				}
-				return image.InspectResponse{}, nil, nil
+				return image.InspectResponse{}, nil
 			},
 		},
 	}

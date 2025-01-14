@@ -32,8 +32,8 @@ func (c *fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (c *fakeClient) ImageInspectWithRaw(context.Context, string) (image.InspectResponse, []byte, error) {
-	return image.InspectResponse{}, []byte{}, nil
+func (c *fakeClient) ImageInspect(context.Context, string, ...client.ImageInspectOption) (image.InspectResponse, error) {
+	return image.InspectResponse{}, nil
 }
 
 func (c *fakeClient) ImagePush(context.Context, string, image.PushOptions) (io.ReadCloser, error) {

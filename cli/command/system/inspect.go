@@ -4,6 +4,7 @@
 package system
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -13,7 +14,9 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -67,7 +70,12 @@ func inspectContainers(ctx context.Context, dockerCli command.Cli, getSize bool)
 
 func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().ImageInspectWithRaw(ctx, ref)
+		var buf bytes.Buffer
+		resp, err := dockerCli.Client().ImageInspect(ctx, ref, client.ImageInspectWithRawResponse(&buf))
+		if err != nil {
+			return image.InspectResponse{}, nil, err
+		}
+		return resp, buf.Bytes(), err
 	}
 }
 

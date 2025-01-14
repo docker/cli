@@ -28,7 +28,7 @@ func Services(
 	ctx context.Context,
 	namespace Namespace,
 	config *composetypes.Config,
-	apiClient client.CommonAPIClient,
+	apiClient client.APIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
 	for _, service := range config.Services {
