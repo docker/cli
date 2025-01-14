@@ -17,8 +17,7 @@ package tabwriter
 
 import (
 	"io"
-
-	"github.com/mattn/go-runewidth"
+	"unicode/utf8"
 )
 
 // ----------------------------------------------------------------------------
@@ -418,7 +417,7 @@ func (b *Writer) append(text []byte) {
 
 // Update the cell width.
 func (b *Writer) updateWidth() {
-	b.cell.width += runewidth.StringWidth(string(b.buf[b.pos:]))
+	b.cell.width += utf8.RuneCount(b.buf[b.pos:])
 	b.pos = len(b.buf)
 }
 
