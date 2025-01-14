@@ -2,7 +2,7 @@
 
 set -eu
 
-: "${CLI_DOCS_TOOL_VERSION=v0.8.0}"
+: "${CLI_DOCS_TOOL_VERSION=v0.9.0}"
 
 export GO111MODULE=auto
 

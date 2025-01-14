@@ -11,7 +11,7 @@ require (
 	github.com/containerd/platforms v1.0.0-rc.1
 	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
-	github.com/docker/cli-docs-tool v0.8.0
+	github.com/docker/cli-docs-tool v0.9.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v27.0.2-0.20250110234321-69687190936d+incompatible // master (v-next)
 	github.com/docker/docker-credential-helpers v0.8.2

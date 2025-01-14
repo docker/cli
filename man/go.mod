@@ -7,7 +7,7 @@ go 1.12.0
 
 //require (
 //	github.com/docker/cli v0.0.0+incompatible
-//	github.com/cpuguy83/go-md2man/v2 v2.0.5
+//	github.com/cpuguy83/go-md2man/v2 v2.0.6
 //	github.com/spf13/cobra v1.2.1
 //	github.com/spf13/pflag v1.0.5
 //)
