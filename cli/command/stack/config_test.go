@@ -45,8 +45,8 @@ services:
 services:
   foo:
     command:
-    - cat
-    - file2.txt
+      - cat
+      - file2.txt
     image: busybox:1.0
 `,
 		},
@@ -69,8 +69,8 @@ services:
 services:
   foo:
     command:
-    - cat
-    - file2.txt
+      - cat
+      - file2.txt
     image: busybox:${VERSION}
 `,
 		},

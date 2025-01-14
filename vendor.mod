@@ -52,7 +52,7 @@ require (
 	golang.org/x/sys v0.28.0
 	golang.org/x/term v0.27.0
 	golang.org/x/text v0.21.0
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/v3 v3.5.1
 	tags.cncf.io/container-device-interface v0.8.0
 )
