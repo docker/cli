@@ -9,7 +9,7 @@ go 1.22.0
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v0.2.1
-	github.com/creack/pty v1.1.21
+	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.8.0
 	github.com/docker/distribution v2.8.3+incompatible
