@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -17,6 +16,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -78,6 +78,7 @@ Image index won't be pushed, meaning that other manifests, including attestation
 //nolint:gocyclo
 func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	var platform *ocispec.Platform
+	out := tui.NewOutput(dockerCli.Out())
 	if opts.platform != "" {
 		p, err := platforms.Parse(opts.platform)
 		if err != nil {
@@ -86,7 +87,7 @@ func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		}
 		platform = &p
 
-		printNote(dockerCli, `Using --platform pushes only the specified platform manifest of a multi-platform image index.
+		out.PrintNote(`Using --platform pushes only the specified platform manifest of a multi-platform image index.
 Other components, like attestations, will not be included.
 To push the complete multi-platform image, remove the --platform flag.
 `)
@@ -132,8 +133,7 @@ To push the complete multi-platform image, remove the --platform flag.
 
 	defer func() {
 		for _, note := range notes {
-			fmt.Fprintln(dockerCli.Err(), "")
-			printNote(dockerCli, note)
+			out.PrintNote(note)
 		}
 	}()
 
@@ -181,27 +181,5 @@ func handleAux() func(jm jsonstream.JSONMessage) {
 				You can also push only a single platform specific manifest directly by specifying the platform you want to push with the --platform flag.`
 			notes = append(notes, note)
 		}
-	}
-}
-
-func printNote(dockerCli command.Cli, format string, args ...any) {
-	if dockerCli.Err().IsTerminal() {
-		format = strings.ReplaceAll(format, "--platform", aec.Bold.Apply("--platform"))
-	}
-
-	header := " Info -> "
-	padding := len(header)
-	if dockerCli.Err().IsTerminal() {
-		padding = len("i Info > ")
-		header = aec.Bold.Apply(aec.LightCyanB.Apply(aec.BlackF.Apply("i")) + " " + aec.LightCyanF.Apply("Info → "))
-	}
-
-	_, _ = fmt.Fprint(dockerCli.Err(), header)
-	s := fmt.Sprintf(format, args...)
-	for idx, line := range strings.Split(s, "\n") {
-		if idx > 0 {
-			_, _ = fmt.Fprint(dockerCli.Err(), strings.Repeat(" ", padding))
-		}
-		_, _ = fmt.Fprintln(dockerCli.Err(), aec.Italic.Apply(line))
 	}
 }
