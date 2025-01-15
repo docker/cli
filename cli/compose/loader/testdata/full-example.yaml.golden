@@ -9,36 +9,36 @@ services:
       labels:
         FOO: BAR
       cache_from:
-      - foo
-      - bar
+        - foo
+        - bar
       extra_hosts:
-      - ipv4.example.com:127.0.0.1
-      - ipv6.example.com:::1
+        - ipv4.example.com:127.0.0.1
+        - ipv6.example.com:::1
       network: foo
       target: foo
     cap_add:
-    - ALL
+      - ALL
     cap_drop:
-    - NET_ADMIN
-    - SYS_ADMIN
+      - NET_ADMIN
+      - SYS_ADMIN
     cgroup_parent: m-executor-abcd
     command:
-    - bundle
-    - exec
-    - thin
-    - -p
-    - "3000"
+      - bundle
+      - exec
+      - thin
+      - -p
+      - "3000"
     configs:
-    - source: config1
-    - source: config2
-      target: /my_config
-      uid: "103"
-      gid: "103"
-      mode: 288
+      - source: config1
+      - source: config2
+        target: /my_config
+        uid: "103"
+        gid: "103"
+        mode: 288
     container_name: my-web-container
     depends_on:
-    - db
-    - redis
+      - db
+      - redis
     deploy:
       mode: replicated
       replicas: 6
@@ -67,12 +67,12 @@ services:
           cpus: "0.0001"
           memory: "20971520"
           generic_resources:
-          - discrete_resource_spec:
-              kind: gpu
-              value: 2
-          - discrete_resource_spec:
-              kind: ssd
-              value: 1
+            - discrete_resource_spec:
+                kind: gpu
+                value: 2
+            - discrete_resource_spec:
+                kind: ssd
+                value: 1
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -80,48 +80,48 @@ services:
         window: 2m0s
       placement:
         constraints:
-        - node=foo
+          - node=foo
         preferences:
-        - spread: node.labels.az
+          - spread: node.labels.az
         max_replicas_per_node: 5
       endpoint_mode: dnsrr
     devices:
-    - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB0:/dev/ttyUSB0
     dns:
-    - 8.8.8.8
-    - 9.9.9.9
+      - 8.8.8.8
+      - 9.9.9.9
     dns_search:
-    - dc1.example.com
-    - dc2.example.com
+      - dc1.example.com
+      - dc2.example.com
     domainname: foo.com
     entrypoint:
-    - /code/entrypoint.sh
-    - -p
-    - "3000"
+      - /code/entrypoint.sh
+      - -p
+      - "3000"
     environment:
       BAR: bar_from_env_file_2
       BAZ: baz_from_service_def
       FOO: foo_from_env_file
       QUX: qux_from_environment
     env_file:
-    - ./example1.env
-    - ./example2.env
+      - ./example1.env
+      - ./example2.env
     expose:
-    - "3000"
-    - "8000"
+      - "3000"
+      - "8000"
     external_links:
-    - redis_1
-    - project_db_1:mysql
-    - project_db_1:postgresql
+      - redis_1
+      - project_db_1:mysql
+      - project_db_1:postgresql
     extra_hosts:
-    - somehost:162.242.195.82
-    - otherhost:50.31.209.229
-    - host.docker.internal:host-gateway
+      - somehost:162.242.195.82
+      - otherhost:50.31.209.229
+      - host.docker.internal:host-gateway
     hostname: foo
     healthcheck:
       test:
-      - CMD-SHELL
-      - echo "hello world"
+        - CMD-SHELL
+        - echo "hello world"
       timeout: 1s
       interval: 10s
       retries: 5
@@ -134,9 +134,9 @@ services:
       com.example.empty-label: ""
       com.example.number: "42"
     links:
-    - db
-    - db:database
-    - redis
+      - db
+      - db:database
+      - redis
     logging:
       driver: syslog
       options:
@@ -150,108 +150,108 @@ services:
       other-other-network: null
       some-network:
         aliases:
-        - alias1
-        - alias3
+          - alias1
+          - alias3
         driver_opts:
           driveropt1: optval1
           driveropt2: optval2
     pid: host
     ports:
-    - mode: ingress
-      target: 3000
-      protocol: tcp
-    - mode: ingress
-      target: 3001
-      protocol: tcp
-    - mode: ingress
-      target: 3002
-      protocol: tcp
-    - mode: ingress
-      target: 3003
-      protocol: tcp
-    - mode: ingress
-      target: 3004
-      protocol: tcp
-    - mode: ingress
-      target: 3005
-      protocol: tcp
-    - mode: ingress
-      target: 8000
-      published: 8000
-      protocol: tcp
-    - mode: ingress
-      target: 8080
-      published: 9090
-      protocol: tcp
-    - mode: ingress
-      target: 8081
-      published: 9091
-      protocol: tcp
-    - mode: ingress
-      target: 22
-      published: 49100
-      protocol: tcp
-    - mode: ingress
-      target: 8001
-      published: 8001
-      protocol: tcp
-    - mode: ingress
-      target: 5000
-      published: 5000
-      protocol: tcp
-    - mode: ingress
-      target: 5001
-      published: 5001
-      protocol: tcp
-    - mode: ingress
-      target: 5002
-      published: 5002
-      protocol: tcp
-    - mode: ingress
-      target: 5003
-      published: 5003
-      protocol: tcp
-    - mode: ingress
-      target: 5004
-      published: 5004
-      protocol: tcp
-    - mode: ingress
-      target: 5005
-      published: 5005
-      protocol: tcp
-    - mode: ingress
-      target: 5006
-      published: 5006
-      protocol: tcp
-    - mode: ingress
-      target: 5007
-      published: 5007
-      protocol: tcp
-    - mode: ingress
-      target: 5008
-      published: 5008
-      protocol: tcp
-    - mode: ingress
-      target: 5009
-      published: 5009
-      protocol: tcp
-    - mode: ingress
-      target: 5010
-      published: 5010
-      protocol: tcp
+      - mode: ingress
+        target: 3000
+        protocol: tcp
+      - mode: ingress
+        target: 3001
+        protocol: tcp
+      - mode: ingress
+        target: 3002
+        protocol: tcp
+      - mode: ingress
+        target: 3003
+        protocol: tcp
+      - mode: ingress
+        target: 3004
+        protocol: tcp
+      - mode: ingress
+        target: 3005
+        protocol: tcp
+      - mode: ingress
+        target: 8000
+        published: 8000
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        published: 9090
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: 9091
+        protocol: tcp
+      - mode: ingress
+        target: 22
+        published: 49100
+        protocol: tcp
+      - mode: ingress
+        target: 8001
+        published: 8001
+        protocol: tcp
+      - mode: ingress
+        target: 5000
+        published: 5000
+        protocol: tcp
+      - mode: ingress
+        target: 5001
+        published: 5001
+        protocol: tcp
+      - mode: ingress
+        target: 5002
+        published: 5002
+        protocol: tcp
+      - mode: ingress
+        target: 5003
+        published: 5003
+        protocol: tcp
+      - mode: ingress
+        target: 5004
+        published: 5004
+        protocol: tcp
+      - mode: ingress
+        target: 5005
+        published: 5005
+        protocol: tcp
+      - mode: ingress
+        target: 5006
+        published: 5006
+        protocol: tcp
+      - mode: ingress
+        target: 5007
+        published: 5007
+        protocol: tcp
+      - mode: ingress
+        target: 5008
+        published: 5008
+        protocol: tcp
+      - mode: ingress
+        target: 5009
+        published: 5009
+        protocol: tcp
+      - mode: ingress
+        target: 5010
+        published: 5010
+        protocol: tcp
     privileged: true
     read_only: true
     restart: always
     secrets:
-    - source: secret1
-    - source: secret2
-      target: my_secret
-      uid: "103"
-      gid: "103"
-      mode: 288
+      - source: secret1
+      - source: secret2
+        target: my_secret
+        uid: "103"
+        gid: "103"
+        mode: 288
     security_opt:
-    - label=level:s0:c100,c200
-    - label=type:svirt_apache_t
+      - label=level:s0:c100,c200
+      - label=type:svirt_apache_t
     stdin_open: true
     stop_grace_period: 20s
     stop_signal: SIGUSR1
@@ -259,8 +259,8 @@ services:
       net.core.somaxconn: "1024"
       net.ipv4.tcp_syncookies: "0"
     tmpfs:
-    - /run
-    - /tmp
+      - /run
+      - /tmp
     tty: true
     ulimits:
       nofile:
@@ -269,35 +269,35 @@ services:
       nproc: 65535
     user: someone
     volumes:
-    - type: volume
-      target: /var/lib/mysql
-    - type: bind
-      source: /opt/data
-      target: /var/lib/mysql
-    - type: bind
-      source: /foo
-      target: /code
-    - type: bind
-      source: /foo/static
-      target: /var/www/html
-    - type: bind
-      source: /bar/configs
-      target: /etc/configs/
-      read_only: true
-    - type: volume
-      source: datavolume
-      target: /var/lib/mysql
-    - type: bind
-      source: /foo/opt
-      target: /opt
-      consistency: cached
-    - type: tmpfs
-      target: /opt
-      tmpfs:
-        size: 10000
-    - type: cluster
-      source: group:mygroup
-      target: /srv
+      - type: volume
+        target: /var/lib/mysql
+      - type: bind
+        source: /opt/data
+        target: /var/lib/mysql
+      - type: bind
+        source: /foo
+        target: /code
+      - type: bind
+        source: /foo/static
+        target: /var/www/html
+      - type: bind
+        source: /bar/configs
+        target: /etc/configs/
+        read_only: true
+      - type: volume
+        source: datavolume
+        target: /var/lib/mysql
+      - type: bind
+        source: /foo/opt
+        target: /opt
+        consistency: cached
+      - type: tmpfs
+        target: /opt
+        tmpfs:
+          size: 10000
+      - type: cluster
+        source: group:mygroup
+        target: /srv
     working_dir: /code
     x-bar: baz
     x-foo: bar
@@ -318,8 +318,8 @@ networks:
     ipam:
       driver: overlay
       config:
-      - subnet: 172.16.238.0/24
-      - subnet: 2001:3984:3989::/64
+        - subnet: 172.16.238.0/24
+        - subnet: 2001:3984:3989::/64
     labels:
       foo: bar
   some-network: {}
@@ -340,24 +340,24 @@ volumes:
         block_volume: {}
       accessibility_requirements:
         requisite:
-        - segments:
-            region: R1
-            zone: Z1
-        - segments:
-            region: R1
-            zone: Z2
+          - segments:
+              region: R1
+              zone: Z1
+          - segments:
+              region: R1
+              zone: Z2
         preferred:
-        - segments:
-            region: R1
-            zone: Z1
+          - segments:
+              region: R1
+              zone: Z1
       capacity_range:
         required_bytes: "1073741824"
         limit_bytes: "8589934592"
       secrets:
-      - key: mycsisecret
-        secret: secret1
-      - key: mycsisecret2
-        secret: secret4
+        - key: mycsisecret
+          secret: secret1
+        - key: mycsisecret2
+          secret: secret4
       availability: active
   external-volume:
     name: external-volume
