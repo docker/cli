@@ -188,6 +188,27 @@ func TestMountOptTypeConflict(t *testing.T) {
 	assert.ErrorContains(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
 }
 
+func TestMountOptSetImageNoError(t *testing.T) {
+	for _, testcase := range []string{
+		"type=image,source=foo,target=/target,image-subpath=/bar",
+	} {
+		var mount MountOpt
+
+		assert.NilError(t, mount.Set(testcase))
+
+		mounts := mount.Value()
+		assert.Assert(t, is.Len(mounts, 1))
+		assert.Check(t, is.DeepEqual(mounttypes.Mount{
+			Type:   mounttypes.TypeImage,
+			Source: "foo",
+			Target: "/target",
+			ImageOptions: &mounttypes.ImageOptions{
+				Subpath: "/bar",
+			},
+		}, mounts[0]))
+	}
+}
+
 func TestMountOptSetTmpfsNoError(t *testing.T) {
 	for _, testcase := range []string{
 		// tests several aliases that should have same result.
