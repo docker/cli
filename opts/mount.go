@@ -43,6 +43,13 @@ func (m *MountOpt) Set(value string) error {
 		return mount.VolumeOptions
 	}
 
+	imageOptions := func() *mounttypes.ImageOptions {
+		if mount.ImageOptions == nil {
+			mount.ImageOptions = new(mounttypes.ImageOptions)
+		}
+		return mount.ImageOptions
+	}
+
 	bindOptions := func() *mounttypes.BindOptions {
 		if mount.BindOptions == nil {
 			mount.BindOptions = new(mounttypes.BindOptions)
@@ -147,6 +154,8 @@ func (m *MountOpt) Set(value string) error {
 				volumeOptions().DriverConfig.Options = make(map[string]string)
 			}
 			setValueOnMap(volumeOptions().DriverConfig.Options, val)
+		case "image-subpath":
+			imageOptions().Subpath = val
 		case "tmpfs-size":
 			sizeBytes, err := units.RAMInBytes(val)
 			if err != nil {
@@ -174,6 +183,9 @@ func (m *MountOpt) Set(value string) error {
 
 	if mount.VolumeOptions != nil && mount.Type != mounttypes.TypeVolume {
 		return fmt.Errorf("cannot mix 'volume-*' options with mount type '%s'", mount.Type)
+	}
+	if mount.ImageOptions != nil && mount.Type != mounttypes.TypeImage {
+		return fmt.Errorf("cannot mix 'image-*' options with mount type '%s'", mount.Type)
 	}
 	if mount.BindOptions != nil && mount.Type != mounttypes.TypeBind {
 		return fmt.Errorf("cannot mix 'bind-*' options with mount type '%s'", mount.Type)
