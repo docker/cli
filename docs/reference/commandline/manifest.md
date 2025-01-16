@@ -21,6 +21,7 @@ For full details on using docker manifest lists, see the registry v2 specificati
 | [`annotate`](manifest_annotate.md) | Add additional information to a local image manifest                  |
 | [`create`](manifest_create.md)     | Create a local manifest list for annotating and pushing to a registry |
 | [`inspect`](manifest_inspect.md)   | Display an image manifest, or manifest list                           |
+| [`ls`](manifest_ls.md)             | List local manifest lists                                             |
 | [`push`](manifest_push.md)         | Push a manifest list to a repository                                  |
 | [`rm`](manifest_rm.md)             | Delete one or more manifest lists from local storage                  |
 
