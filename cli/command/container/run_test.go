@@ -235,7 +235,7 @@ func TestRunPullTermination(t *testing.T) {
 				return container.CreateResponse{}, ctx.Err()
 			default:
 			}
-			return container.CreateResponse{}, fakeNotFound{}
+			return container.CreateResponse{}, fakeNotFound{image: "foobar:latest"}
 		},
 		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
 			return types.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
