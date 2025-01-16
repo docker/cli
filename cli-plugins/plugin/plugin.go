@@ -158,7 +158,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd:   false,
 			HiddenDefaultCmd:    true,
-			DisableDescriptions: true,
+			DisableDescriptions: os.Getenv("DOCKER_CLI_DISABLE_COMPLETION_DESCRIPTION") != "",
 		},
 	}
 	opts, _ := cli.SetupPluginRootCommand(cmd)
