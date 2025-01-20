@@ -309,7 +309,7 @@ type imgColumn struct {
 func truncateRunes(s string, length int) string {
 	runes := []rune(s)
 	if len(runes) > length {
-		return string(runes[:length-3]) + "..."
+		return string(runes[:length-1]) + "…"
 	}
 	return s
 }
