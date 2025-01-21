@@ -8,8 +8,8 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -86,7 +86,7 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 		return err
 	}
 	defer responseBody.Close()
-	if err := jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil); err != nil {
+	if err := jsonstream.Display(ctx, responseBody, dockerCli.Out()); err != nil {
 		return err
 	}
 	fmt.Fprintf(dockerCli.Out(), "Upgraded plugin %s to %s\n", opts.localName, opts.remote) // todo: return proper values from the API for this result
