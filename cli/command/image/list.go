@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -80,6 +81,8 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 	if options.matchName != "" {
 		filters.Add("reference", options.matchName)
 	}
+
+	options = applyListFeatures(dockerCLI, options)
 
 	if options.tree {
 		if options.quiet {
@@ -166,4 +169,32 @@ func printAmbiguousHint(stdErr io.Writer, matchName string) {
 
 		_, _ = fmt.Fprintf(stdErr, "\nNo images found matching %q: did you mean \"docker image %[1]s\"?\n", matchName)
 	}
+}
+
+// applyListFeatures checks for feature flags in the config file
+// and adjusts the options accordingly.
+// Supported features:
+// image-tree => --tree option is implied when possible
+func applyListFeatures(dockerCLI command.Cli, options imagesOptions) imagesOptions {
+	cfg := dockerCLI.ConfigFile()
+	var treeOptIn bool
+	if v, ok := cfg.Features["image-tree"]; ok {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return options
+		}
+		if enabled {
+			treeOptIn = true
+		}
+	}
+
+	if !options.tree && treeOptIn {
+		treeOptIn = !options.quiet
+		treeOptIn = treeOptIn && !options.noTrunc
+		treeOptIn = treeOptIn && !options.showDigests
+		treeOptIn = treeOptIn && options.format == ""
+		options.tree = treeOptIn
+	}
+
+	return options
 }
