@@ -43,7 +43,7 @@ func notifyContext(ctx context.Context, signals ...os.Signal) (context.Context, 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, signals...)
 
-	ctx, cancel := context.WithCancelCause(ctx)
+	ctxCause, cancel := context.WithCancelCause(ctx)
 
 	go func() {
 		select {
@@ -57,7 +57,7 @@ func notifyContext(ctx context.Context, signals ...os.Signal) (context.Context, 
 		}
 	}()
 
-	return ctx, func() {
+	return ctxCause, func() {
 		signal.Stop(ch)
 		cancel(nil)
 	}
