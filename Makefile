@@ -87,14 +87,31 @@ authors: ## generate AUTHORS file from git history
 	scripts/docs/generate-authors.sh
 
 .PHONY: completion
-completion: binary
-completion: /etc/bash_completion.d/docker
-completion: ## generate and install the completion scripts
+completion: shell-completion
+completion: ## generate and install the shell-completion scripts
+# Note: this uses system-wide paths, and so may overwrite completion
+# scripts installed as part of deb/rpm packages.
+#
+# Given that this target is intended to debug/test updated versions, we could
+# consider installing in per-user (~/.config, XDG_DATA_DIR) paths instead, but
+# this will add more complexity.
+#
+# See https://github.com/docker/cli/pull/5770#discussion_r1927772710
+	install -D -p -m 0644 ./build/completion/bash/docker /usr/share/bash-completion/completions/docker
+	install -D -p -m 0644 ./build/completion/fish/docker.fish debian/docker-ce-cli/usr/share/fish/vendor_completions.d/docker.fish
+	install -D -p -m 0644 ./build/completion/zsh/_docker debian/docker-ce-cli/usr/share/zsh/vendor-completions/_docker
 
-.PHONY: /etc/bash_completion.d/docker
-/etc/bash_completion.d/docker: ## generate and install the bash-completion script
-	mkdir -p /etc/bash_completion.d
-	docker completion bash > /etc/bash_completion.d/docker
+
+build/docker:
+# This target is used by the "shell-completion" target, which requires either
+# "binary" or "dynbinary" to have been built. We don't want to trigger those
+# to prevent replacing a static binary with a dynamic one, or vice-versa.
+	@echo "Run 'make binary' or 'make dynbinary' first" && exit 1
+
+.PHONY: shell-completion
+shell-completion: build/docker # requires either "binary" or "dynbinary" to be built.
+shell-completion: ## generate shell-completion scripts
+	@ ./scripts/build/shell-completion
 
 .PHONY: manpages
 manpages: ## generate man pages from go source and markdown
