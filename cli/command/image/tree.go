@@ -226,6 +226,21 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 			DetailsValue: func(d *imageDetails) string {
 				return d.ContentSize
 			},
+			// Hide if all content sizes are 0
+			Hide: func() bool {
+				zero := units.HumanSize(0.0)
+				for _, img := range view.images {
+					if img.Details.ContentSize != zero {
+						return false
+					}
+					for _, sub := range img.Children {
+						if sub.Details.ContentSize != zero {
+							return false
+						}
+					}
+				}
+				return true
+			},
 		},
 		{
 			Title: "Extra",
@@ -289,7 +304,15 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 // adjustColumns adjusts the width of the first column to maximize the space
 // available for image names and removes any columns that would be too narrow
 // to display their content.
+// Also removes any columns that should not be displayed.
 func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColumn {
+	for idx := len(columns) - 1; idx >= 0; idx-- {
+		h := columns[idx]
+		if h.Hide != nil && h.Hide() {
+			columns = append(columns[:idx], columns[idx+1:]...)
+		}
+	}
+
 	nameWidth := int(width)
 	for idx, h := range columns {
 		if h.Width == 0 {
@@ -410,6 +433,7 @@ type imgColumn struct {
 
 	DetailsValue func(*imageDetails) string
 	Color        *aec.ANSI
+	Hide         func() bool
 }
 
 func (h imgColumn) Print(clr aec.ANSI, s string) string {
