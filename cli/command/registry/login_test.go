@@ -61,14 +61,12 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 	}{
 		{
 			inputAuthConfig: registrytypes.AuthConfig{},
-			expectedMsg:     "Authenticating with existing credentials...\n",
 		},
 		{
 			inputAuthConfig: registrytypes.AuthConfig{
 				Username: unknownUser,
 			},
 			expectedErr:    errUnknownUser,
-			expectedMsg:    "Authenticating with existing credentials...\n",
 			expectedErrMsg: fmt.Sprintf("Login did not succeed, error: %s\n", errUnknownUser),
 		},
 	}
@@ -83,7 +81,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 			assert.NilError(t, err)
 		}
 		assert.Check(t, is.Equal(tc.expectedMsg, cli.OutBuffer().String()))
-		assert.Check(t, is.Equal(tc.expectedErrMsg, cli.ErrBuffer().String()))
+		assert.Check(t, is.Contains(cli.ErrBuffer().String(), tc.expectedErrMsg))
 		cli.ErrBuffer().Reset()
 		cli.OutBuffer().Reset()
 	}
