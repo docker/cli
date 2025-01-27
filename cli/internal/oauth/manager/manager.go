@@ -93,7 +93,8 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 	}
 
 	_, _ = fmt.Fprintln(w, aec.Bold.Apply("\nUSING WEB-BASED LOGIN"))
-	_, _ = fmt.Fprintln(w, "To sign in with credentials on the command line, use 'docker login -u <username>'")
+	_, _ = fmt.Fprintln(w, "> To sign in with username and PAT credentials on the command line, use 'docker login -u <username>'")
+	_, _ = fmt.Fprintln(w, "> When prompted to enter a password, enter the PAT retrieved from: "+aec.Underline.Apply("https://app.docker.com/settings"))
 	_, _ = fmt.Fprintf(w, "\nYour one-time device confirmation code is: "+aec.Bold.Apply("%s\n"), state.UserCode)
 	_, _ = fmt.Fprintf(w, aec.Bold.Apply("Press ENTER")+" to open your browser or submit your device code here: "+aec.Underline.Apply("%s\n"), strings.Split(state.VerificationURI, "?")[0])
 

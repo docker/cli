@@ -61,14 +61,14 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 	}{
 		{
 			inputAuthConfig: registrytypes.AuthConfig{},
-			expectedMsg:     "Authenticating with existing credentials...\n",
+			expectedMsg:     "Authenticating with existing credentials...\nTo login with a different account, run 'docker logout' followed by 'docker login'\n\n",
 		},
 		{
 			inputAuthConfig: registrytypes.AuthConfig{
 				Username: unknownUser,
 			},
 			expectedErr:    errUnknownUser,
-			expectedMsg:    "Authenticating with existing credentials...\n",
+			expectedMsg:    "Authenticating with existing credentials... [Username: userunknownError]\nTo login with a different account, run 'docker logout' followed by 'docker login'\n\n",
 			expectedErrMsg: fmt.Sprintf("Login did not succeed, error: %s\n", errUnknownUser),
 		},
 	}

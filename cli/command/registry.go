@@ -178,7 +178,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 			}
 		}()
 
-		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password: ")
+		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password/PAT: ")
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}

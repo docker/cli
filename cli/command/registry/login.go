@@ -53,8 +53,8 @@ func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
-	flags.StringVarP(&opts.password, "password", "p", "", "Password")
-	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
+	flags.StringVarP(&opts.password, "password", "p", "", "Password/PAT")
+	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password/PAT from stdin")
 
 	return cmd
 }
@@ -120,7 +120,12 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 }
 
 func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (msg string, _ error) {
-	_, _ = fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
+	_, _ = fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...")
+	if authConfig.Username != "" {
+		_, _ = fmt.Fprintf(dockerCli.Out(), " [Username: %s]", authConfig.Username)
+	}
+
+	_, _ = fmt.Fprintf(dockerCli.Out(), "\nTo login with a different account, run 'docker logout' followed by 'docker login'\n\n")
 	response, err := dockerCli.Client().RegistryLogin(ctx, authConfig)
 	if err != nil {
 		if errdefs.IsUnauthorized(err) {
