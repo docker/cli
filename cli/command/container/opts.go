@@ -825,7 +825,9 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		n.Aliases = make([]string, copts.aliases.Len())
 		copy(n.Aliases, copts.aliases.GetAll())
 	}
-	if n.Target != "default" && copts.links.Len() > 0 {
+	// For a user-defined network, "--link" is an endpoint option, it creates an alias. But,
+	// for the default bridge it defines a legacy-link.
+	if container.NetworkMode(n.Target).IsUserDefined() && copts.links.Len() > 0 {
 		n.Links = make([]string, copts.links.Len())
 		copy(n.Links, copts.links.GetAll())
 	}

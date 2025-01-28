@@ -72,14 +72,75 @@ func mustParse(t *testing.T, args string) (*container.Config, *container.HostCon
 }
 
 func TestParseRunLinks(t *testing.T) {
-	if _, hostConfig, _ := mustParse(t, "--link a:b"); len(hostConfig.Links) == 0 || hostConfig.Links[0] != "a:b" {
-		t.Fatalf("Error parsing links. Expected []string{\"a:b\"}, received: %v", hostConfig.Links)
+	tests := []struct {
+		name               string
+		input              string
+		expHostConfigLinks []string
+		expNetConfigLinks  map[string][]string
+	}{
+		// Default bridge - legacy links ...
+		{
+			name:               "default/onelink",
+			input:              "--link a:b",
+			expHostConfigLinks: []string{"a:b"},
+			expNetConfigLinks:  map[string][]string{"default": nil},
+		},
+		{
+			name:               "default/twolinks",
+			input:              "--link a:b --link c:d",
+			expHostConfigLinks: []string{"a:b", "c:d"},
+			expNetConfigLinks:  map[string][]string{"default": nil},
+		},
+		{
+			name:               "bridge/onelink",
+			input:              "--network bridge --link a:b",
+			expHostConfigLinks: []string{"a:b"},
+			// expNetConfigLinks - no EndpointsConfig is created for a single named network with no options set.
+			// See the "For backward compatibility" comment in parseNetworkOpts().
+		},
+		{
+			name:              "default/nolinks",
+			expNetConfigLinks: map[string][]string{"default": nil},
+		},
+
+		// User-defined bridge - links become DNS aliases ...
+		{
+			name:               "userdefnet/onelink",
+			input:              "--network userdefnet --link a:b",
+			expHostConfigLinks: []string{"a:b"},
+			expNetConfigLinks:  map[string][]string{"userdefnet": {"a:b"}},
+		},
+		{
+			name:               "userdefnet/twolinks",
+			input:              "--network userdefnet --link a:b --link c:d",
+			expHostConfigLinks: []string{"a:b", "c:d"},
+			expNetConfigLinks:  map[string][]string{"userdefnet": {"a:b", "c:d"}},
+		},
+		{
+			name:  "userdefnet/nolinks",
+			input: "--network userdefnet",
+		},
+		{
+			// Link options are applied to the first network (and there's no "advanced syntax"
+			// link key, like "--network name=userdefnet,link=a:b").
+			name:               "links apply to the first network",
+			input:              "--network userdefnet --link a:b --network bar --link c:d",
+			expHostConfigLinks: []string{"a:b", "c:d"},
+			expNetConfigLinks:  map[string][]string{"userdefnet": {"a:b", "c:d"}, "bar": nil},
+		},
 	}
-	if _, hostConfig, _ := mustParse(t, "--link a:b --link c:d"); len(hostConfig.Links) < 2 || hostConfig.Links[0] != "a:b" || hostConfig.Links[1] != "c:d" {
-		t.Fatalf("Error parsing links. Expected []string{\"a:b\", \"c:d\"}, received: %v", hostConfig.Links)
-	}
-	if _, hostConfig, _ := mustParse(t, ""); len(hostConfig.Links) != 0 {
-		t.Fatalf("Error parsing links. No link expected, received: %v", hostConfig.Links)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, hostConfig, netConfig := mustParse(t, tc.input)
+			assert.Check(t, is.DeepEqual(hostConfig.Links, tc.expHostConfigLinks))
+			assert.Check(t, is.Len(netConfig.EndpointsConfig, len(tc.expNetConfigLinks)))
+			for netName, expLinks := range tc.expNetConfigLinks {
+				nc, ok := netConfig.EndpointsConfig[netName]
+				assert.Assert(t, ok)
+				assert.Check(t, is.DeepEqual(nc.Links, expLinks))
+			}
+		})
 	}
 }
 
