@@ -58,9 +58,9 @@ func getExitCode(err error) int {
 	if err == nil {
 		return 0
 	}
-	var stErr internal.StatusError
+	var stErr cli.StatusCodeError
 	if errors.As(err, &stErr) {
-		return stErr.StatusCode
+		return stErr.GetStatusCode()
 	}
 
 	// No status-code provided; all errors should have a non-zero exit code.

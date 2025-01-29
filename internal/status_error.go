@@ -2,7 +2,8 @@ package internal
 
 import "strconv"
 
-// StatusError reports an unsuccessful exit by a command.
+// StatusError implements [cli.StatusCodeError] and
+// reports an unsuccessful exit by a command.
 // StatusCode must be non-zero.
 // Cause may be nil if a generic error-message is desired.
 type StatusError struct {
