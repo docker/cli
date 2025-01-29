@@ -290,6 +290,7 @@ func TestRunPullTermination(t *testing.T) {
 	select {
 	case cmdErr := <-cmdErrC:
 		assert.Equal(t, cmdErr, cli.StatusError{
+			Cause:      context.Canceled,
 			StatusCode: 125,
 			Status:     "docker: context canceled\n\nRun 'docker run --help' for more information",
 		})
