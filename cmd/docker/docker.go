@@ -30,7 +30,7 @@ import (
 
 func main() {
 	err := dockerMain(context.Background())
-	if err != nil && !errdefs.IsCancelled(err) {
+	if err != nil && !errdefs.IsCancelled(err) && !errors.Is(err, context.Canceled) {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(getExitCode(err))
 	}
