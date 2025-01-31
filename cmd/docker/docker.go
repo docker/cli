@@ -28,16 +28,43 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
+var errCtxUserTerminated = errors.New("user terminated the process")
+
 func main() {
-	err := dockerMain(context.Background())
-	if err != nil && !errdefs.IsCancelled(err) {
+	ctx := context.Background()
+	err := dockerMain(ctx)
+	if err != nil && !errdefs.IsCancelled(err) && !errors.Is(err, errCtxUserTerminated) {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(getExitCode(err))
 	}
 }
 
+func notifyContext(ctx context.Context, signals ...os.Signal) (context.Context, context.CancelFunc) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, signals...)
+
+	ctxCause, cancel := context.WithCancelCause(ctx)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			signal.Stop(ch)
+			return
+		case <-ch:
+			cancel(errCtxUserTerminated)
+			signal.Stop(ch)
+			return
+		}
+	}()
+
+	return ctxCause, func() {
+		signal.Stop(ch)
+		cancel(nil)
+	}
+}
+
 func dockerMain(ctx context.Context) error {
-	ctx, cancelNotify := signal.NotifyContext(ctx, platformsignals.TerminationSignals...)
+	ctx, cancelNotify := notifyContext(ctx, platformsignals.TerminationSignals...)
 	defer cancelNotify()
 
 	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
