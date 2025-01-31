@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
+	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 )
 
@@ -178,7 +179,15 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 			}
 		}()
 
-		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password/PAT: ")
+		var credentialPrompt strings.Builder
+		credentialPrompt.WriteString(
+			aec.CyanF.Apply("Info → A Personal Access Token (PAT) can be used instead. To create a PAT, visit " +
+				aec.Underline.Apply("https://app.docker.com/settings"),
+			))
+		credentialPrompt.WriteString("\n\n")
+		credentialPrompt.WriteString("Password: ")
+
+		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), credentialPrompt.String())
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
