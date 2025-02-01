@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -29,21 +29,21 @@ func TestNodePsErrors(t *testing.T) {
 	}{
 		{
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, errors.New("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
 		{
 			args: []string{"nodeID"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
+				return swarm.Node{}, []byte{}, errors.New("error inspecting the node")
 			},
 			expectedError: "error inspecting the node",
 		},
 		{
 			args: []string{"nodeID"},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{}, errors.Errorf("error returning the task list")
+				return []swarm.Task{}, errors.New("error returning the task list")
 			},
 			expectedError: "error returning the task list",
 		},
