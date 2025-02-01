@@ -143,9 +143,10 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 					}, nil
 				},
 			}))
-		assert.Check(t, cmd.Flags().Parse(testCase.args))
+		cmd.SetArgs([]string{})
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
+		assert.Check(t, cmd.Flags().Parse(testCase.args))
 		assert.ErrorContains(t, cmd.Execute(), testCase.errorMsg)
 	}
 }

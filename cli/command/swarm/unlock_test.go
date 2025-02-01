@@ -70,7 +70,11 @@ func TestSwarmUnlockErrors(t *testing.T) {
 					infoFunc:        tc.infoFunc,
 					swarmUnlockFunc: tc.swarmUnlockFunc,
 				}))
-			cmd.SetArgs(tc.args)
+			if tc.args == nil {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
+			}
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -97,5 +101,8 @@ func TestSwarmUnlock(t *testing.T) {
 	})
 	dockerCli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
 	cmd := newUnlockCommand(dockerCli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 }

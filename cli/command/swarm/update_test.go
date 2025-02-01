@@ -72,12 +72,16 @@ func TestSwarmUpdateErrors(t *testing.T) {
 					swarmUpdateFunc:       tc.swarmUpdateFunc,
 					swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
 				}))
-			cmd.SetArgs(tc.args)
-			for key, value := range tc.flags {
-				assert.Check(t, cmd.Flags().Set(key, value))
+			if tc.args == nil {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
 			}
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
+			}
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -180,8 +184,8 @@ func TestSwarmUpdate(t *testing.T) {
 			} else {
 				cmd.SetArgs(tc.args)
 			}
-			for key, value := range tc.flags {
-				assert.Check(t, cmd.Flags().Set(key, value))
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
 			}
 			cmd.SetOut(cli.OutBuffer())
 			assert.NilError(t, cmd.Execute())

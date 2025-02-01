@@ -27,6 +27,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 	}{
 		{
 			name:          "not-enough-args",
+			args:          []string{},
 			expectedError: "requires 1 argument",
 		},
 		{

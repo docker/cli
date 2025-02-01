@@ -25,6 +25,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		},
 		{
 			name: "leave-failed",
+			args: []string{},
 			swarmLeaveFunc: func() error {
 				return errors.New("error leaving the swarm")
 			},
@@ -48,6 +49,9 @@ func TestSwarmLeaveErrors(t *testing.T) {
 func TestSwarmLeave(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newLeaveCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("Node left the swarm.", strings.TrimSpace(cli.OutBuffer().String())))
 }
