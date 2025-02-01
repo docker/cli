@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -34,7 +34,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 			name: "join-failed",
 			args: []string{"remote"},
 			swarmJoinFunc: func() error {
-				return errors.Errorf("error joining the swarm")
+				return errors.New("error joining the swarm")
 			},
 			expectedError: "error joining the swarm",
 		},
@@ -42,7 +42,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 			name: "join-failed-on-init",
 			args: []string{"remote"},
 			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.Errorf("error asking for node info")
+				return system.Info{}, errors.New("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
