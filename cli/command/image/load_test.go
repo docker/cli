@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -39,7 +39,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			args:          []string{},
 			expectedError: "something went wrong",
 			imageLoadFunc: func(input io.Reader, options image.LoadOptions) (image.LoadResponse, error) {
-				return image.LoadResponse{}, errors.Errorf("something went wrong")
+				return image.LoadResponse{}, errors.New("something went wrong")
 			},
 		},
 		{

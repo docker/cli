@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -32,7 +32,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 			args:          []string{"image:tag"},
 			expectedError: "something went wrong",
 			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
-				return []image.HistoryResponseItem{{}}, errors.Errorf("something went wrong")
+				return []image.HistoryResponseItem{{}}, errors.New("something went wrong")
 			},
 		},
 		{

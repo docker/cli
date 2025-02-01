@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -30,7 +30,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 			name:          "failed-list",
 			expectedError: "something went wrong",
 			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
-				return []image.Summary{}, errors.Errorf("something went wrong")
+				return []image.Summary{}, errors.New("something went wrong")
 			},
 		},
 	}

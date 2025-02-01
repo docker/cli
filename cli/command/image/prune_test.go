@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -34,7 +34,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 			args:          []string{"--force"},
 			expectedError: "something went wrong",
 			imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
-				return image.PruneReport{}, errors.Errorf("something went wrong")
+				return image.PruneReport{}, errors.New("something went wrong")
 			},
 		},
 	}
