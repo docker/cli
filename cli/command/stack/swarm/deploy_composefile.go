@@ -292,10 +292,5 @@ func waitOnServices(ctx context.Context, dockerCli command.Cli, serviceIDs []str
 			errs = append(errs, fmt.Errorf("%s: %w", serviceID, err))
 		}
 	}
-
-	if len(errs) > 0 {
-		return errors.Join(errs...)
-	}
-
-	return nil
+	return errors.Join(errs...)
 }
