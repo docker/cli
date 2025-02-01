@@ -101,7 +101,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	case !opts.all && reference.IsNameOnly(ref):
 		ref = reference.TagNameOnly(ref)
 		if tagged, ok := ref.(reference.Tagged); ok && !opts.quiet {
-			_, _ = fmt.Fprintf(dockerCli.Out(), "Using default tag: %s\n", tagged.Tag())
+			_, _ = fmt.Fprintln(dockerCli.Out(), "Using default tag:", tagged.Tag())
 		}
 	}
 

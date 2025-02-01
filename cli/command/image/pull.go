@@ -66,7 +66,7 @@ func RunPull(ctx context.Context, dockerCLI command.Cli, opts PullOptions) error
 	case !opts.all && reference.IsNameOnly(distributionRef):
 		distributionRef = reference.TagNameOnly(distributionRef)
 		if tagged, ok := distributionRef.(reference.Tagged); ok && !opts.quiet {
-			fmt.Fprintf(dockerCLI.Out(), "Using default tag: %s\n", tagged.Tag())
+			_, _ = fmt.Fprintln(dockerCLI.Out(), "Using default tag:", tagged.Tag())
 		}
 	}
 
@@ -88,6 +88,6 @@ func RunPull(ctx context.Context, dockerCLI command.Cli, opts PullOptions) error
 		}
 		return err
 	}
-	fmt.Fprintln(dockerCLI.Out(), imgRefAndAuth.Reference().String())
+	_, _ = fmt.Fprintln(dockerCLI.Out(), imgRefAndAuth.Reference().String())
 	return nil
 }
