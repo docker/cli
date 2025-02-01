@@ -129,8 +129,8 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 }
 
 //nolint:gocyclo
-func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
-	apiClient := dockerCli.Client()
+func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
+	apiClient := dockerCLI.Client()
 
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	if err != nil {
@@ -188,7 +188,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	}
 
 	if flags.Changed("image") {
-		if err := resolveServiceImageDigestContentTrust(dockerCli, spec); err != nil {
+		if err := resolveServiceImageDigestContentTrust(dockerCLI, spec); err != nil {
 			return err
 		}
 		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
@@ -225,7 +225,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
 		if err != nil {
 			return err
 		}
@@ -242,16 +242,16 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintln(dockerCli.Err(), warning)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), serviceID)
 
 	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return WaitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return WaitOnService(ctx, dockerCLI, serviceID, options.quiet)
 }
 
 //nolint:gocyclo

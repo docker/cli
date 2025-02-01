@@ -34,8 +34,8 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRollback(ctx context.Context, dockerCli command.Cli, options *serviceOptions, serviceID string) error {
-	apiClient := dockerCli.Client()
+func runRollback(ctx context.Context, dockerCLI command.Cli, options *serviceOptions, serviceID string) error {
+	apiClient := dockerCLI.Client()
 
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	if err != nil {
@@ -53,14 +53,14 @@ func runRollback(ctx context.Context, dockerCli command.Cli, options *serviceOpt
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintln(dockerCli.Err(), warning)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), serviceID)
 
 	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return WaitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return WaitOnService(ctx, dockerCLI, serviceID, options.quiet)
 }
