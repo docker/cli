@@ -161,19 +161,27 @@ func TestVolumeCreateCluster(t *testing.T) {
 		},
 	})
 
-	cmd := newCreateCommand(cli)
-	cmd.Flags().Set("type", "block")
-	cmd.Flags().Set("group", "gronp")
-	cmd.Flags().Set("driver", "csi")
-	cmd.SetArgs([]string{"name"})
+	t.Run("csi-volume", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		assert.Check(t, cmd.Flags().Set("type", "block"))
+		assert.Check(t, cmd.Flags().Set("group", "gronp"))
+		assert.Check(t, cmd.Flags().Set("driver", "csi"))
+		cmd.SetArgs([]string{"my-csi-volume"})
 
-	assert.NilError(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
+	})
 
-	cmd = newCreateCommand(cli)
-	cmd.Flags().Set("driver", "notcsi")
-	cmd.SetArgs([]string{"name"})
+	t.Run("non-csi-volume", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		assert.Check(t, cmd.Flags().Set("driver", "notcsi"))
+		cmd.SetArgs([]string{"my-non-csi-volume"})
 
-	assert.NilError(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
+	})
 }
 
 func TestVolumeCreateClusterOpts(t *testing.T) {
