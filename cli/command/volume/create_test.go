@@ -1,6 +1,8 @@
 package volume
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"sort"
@@ -9,7 +11,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -34,7 +35,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 		},
 		{
 			volumeCreateFunc: func(createBody volume.CreateOptions) (volume.Volume, error) {
-				return volume.Volume{}, errors.Errorf("error creating volume")
+				return volume.Volume{}, errors.New("error creating volume")
 			},
 			expectedError: "error creating volume",
 		},
@@ -60,7 +61,7 @@ func TestVolumeCreateWithName(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
 			if body.Name != name {
-				return volume.Volume{}, errors.Errorf("expected name %q, got %q", name, body.Name)
+				return volume.Volume{}, fmt.Errorf("expected name %q, got %q", name, body.Name)
 			}
 			return volume.Volume{
 				Name: body.Name,
@@ -99,16 +100,16 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
 			if body.Name != "" {
-				return volume.Volume{}, errors.Errorf("expected empty name, got %q", body.Name)
+				return volume.Volume{}, fmt.Errorf("expected empty name, got %q", body.Name)
 			}
 			if body.Driver != expectedDriver {
-				return volume.Volume{}, errors.Errorf("expected driver %q, got %q", expectedDriver, body.Driver)
+				return volume.Volume{}, fmt.Errorf("expected driver %q, got %q", expectedDriver, body.Driver)
 			}
 			if !reflect.DeepEqual(body.DriverOpts, expectedOpts) {
-				return volume.Volume{}, errors.Errorf("expected drivers opts %v, got %v", expectedOpts, body.DriverOpts)
+				return volume.Volume{}, fmt.Errorf("expected drivers opts %v, got %v", expectedOpts, body.DriverOpts)
 			}
 			if !reflect.DeepEqual(body.Labels, expectedLabels) {
-				return volume.Volume{}, errors.Errorf("expected labels %v, got %v", expectedLabels, body.Labels)
+				return volume.Volume{}, fmt.Errorf("expected labels %v, got %v", expectedLabels, body.Labels)
 			}
 			return volume.Volume{
 				Name: name,
