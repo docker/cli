@@ -75,8 +75,8 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 				return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 			}
 
-			fmt.Fprintf(dockerCLI.Out(), "Created signer: %s\n", imgRefAndAuth.AuthConfig().Username)
-			fmt.Fprintf(dockerCLI.Out(), "Finished initializing signed repository for %s\n", imageName)
+			_, _ = fmt.Fprintln(dockerCLI.Out(), "Created signer:", imgRefAndAuth.AuthConfig().Username)
+			_, _ = fmt.Fprintln(dockerCLI.Out(), "Finished initializing signed repository for", imageName)
 		default:
 			return trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), err)
 		}
@@ -91,18 +91,17 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			if err := checkLocalImageExistence(ctx, dockerCLI.Client(), imageName); err != nil {
 				return err
 			}
-			fmt.Fprintf(dockerCLI.Err(), "Signing and pushing trust data for local image %s, may overwrite remote trust data\n", imageName)
+			_, _ = fmt.Fprintf(dockerCLI.Err(), "Signing and pushing trust data for local image %s, may overwrite remote trust data\n", imageName)
 
 			authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), imgRefAndAuth.RepoInfo().Index)
 			encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 			if err != nil {
 				return err
 			}
-			options := imagetypes.PushOptions{
+			return image.TrustedPush(ctx, dockerCLI, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), *imgRefAndAuth.AuthConfig(), imagetypes.PushOptions{
 				RegistryAuth:  encodedAuth,
 				PrivilegeFunc: requestPrivilege,
-			}
-			return image.TrustedPush(ctx, dockerCLI, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), *imgRefAndAuth.AuthConfig(), options)
+			})
 		default:
 			return err
 		}
@@ -112,7 +111,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 
 func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, notaryRepo notaryclient.Repository, target notaryclient.Target) error {
 	tag := imgRefAndAuth.Tag()
-	fmt.Fprintf(out, "Signing and pushing trust metadata for %s\n", imgRefAndAuth.Name())
+	_, _ = fmt.Fprintln(out, "Signing and pushing trust metadata for", imgRefAndAuth.Name())
 	existingSigInfo, err := getExistingSignatureInfoForReleasedTag(notaryRepo, tag)
 	if err != nil {
 		return err
@@ -125,7 +124,7 @@ func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, 
 	if err != nil {
 		return errors.Wrapf(err, "failed to sign %s:%s", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	}
-	fmt.Fprintf(out, "Successfully signed %s:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
+	_, _ = fmt.Fprintf(out, "Successfully signed %s:%s\n", imgRefAndAuth.RepoInfo().Name.Name(), tag)
 	return nil
 }
 
@@ -188,7 +187,7 @@ func getExistingSignatureInfoForReleasedTag(notaryRepo notaryclient.Repository, 
 func prettyPrintExistingSignatureInfo(out io.Writer, existingSigInfo trustTagRow) {
 	sort.Strings(existingSigInfo.Signers)
 	joinedSigners := strings.Join(existingSigInfo.Signers, ", ")
-	fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.SignedTag, existingSigInfo.Digest, joinedSigners)
+	_, _ = fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.SignedTag, existingSigInfo.Digest, joinedSigners)
 }
 
 func initNotaryRepoWithSigners(notaryRepo notaryclient.Repository, newSigner data.RoleName) error {

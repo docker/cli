@@ -53,7 +53,7 @@ func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions)
 
 			// Additional separator between the inspection output of each image
 			if index < len(opts.remotes)-1 {
-				fmt.Fprint(dockerCLI.Out(), "\n\n")
+				_, _ = fmt.Fprint(dockerCLI.Out(), "\n\n")
 			}
 		}
 

@@ -41,9 +41,9 @@ func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 func removeSigner(ctx context.Context, dockerCLI command.Cli, options signerRemoveOptions) error {
 	var errRepos []string
 	for _, repo := range options.repos {
-		fmt.Fprintf(dockerCLI.Out(), "Removing signer \"%s\" from %s...\n", options.signer, repo)
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "Removing signer \"%s\" from %s...\n", options.signer, repo)
 		if _, err := removeSingleSigner(ctx, dockerCLI, repo, options.signer, options.forceYes); err != nil {
-			fmt.Fprintln(dockerCLI.Err(), err.Error()+"\n")
+			_, _ = fmt.Fprintln(dockerCLI.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repo)
 		}
 	}
@@ -150,7 +150,7 @@ func removeSingleSigner(ctx context.Context, dockerCLI command.Cli, repoName, si
 		return false, err
 	}
 
-	fmt.Fprintf(dockerCLI.Out(), "Successfully removed %s from %s\n\n", signerName, repoName)
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully removed %s from %s\n\n", signerName, repoName)
 
 	return true, nil
 }
