@@ -274,7 +274,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
 			if !options.quiet {
 				// we don't want to write to stdout anything apart from container.ID
-				fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
 			if err := pullAndTagImage(); err != nil {
@@ -292,7 +292,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	for _, w := range response.Warnings {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", w)
+		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
 	}
 	err = containerIDFile.Write(response.ID)
 	return response.ID, err
@@ -300,7 +300,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
 	if hostConfig.OomKillDisable != nil && *hostConfig.OomKillDisable && hostConfig.Memory == 0 {
-		fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
+		_, _ = fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
 	}
 }
 
@@ -309,7 +309,7 @@ func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
 func warnOnLocalhostDNS(hostConfig container.HostConfig, stderr io.Writer) {
 	for _, dnsIP := range hostConfig.DNS {
 		if isLocalhost(dnsIP) {
-			fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
+			_, _ = fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
 			return
 		}
 	}
