@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -28,7 +28,7 @@ func TestSecretInspectErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			secretInspectFunc: func(_ context.Context, secretID string) (swarm.Secret, []byte, error) {
-				return swarm.Secret{}, nil, errors.Errorf("error while inspecting the secret")
+				return swarm.Secret{}, nil, errors.New("error while inspecting the secret")
 			},
 			expectedError: "error while inspecting the secret",
 		},
@@ -45,7 +45,7 @@ func TestSecretInspectErrors(t *testing.T) {
 				if secretID == "foo" {
 					return *builders.Secret(builders.SecretName("foo")), nil, nil
 				}
-				return swarm.Secret{}, nil, errors.Errorf("error while inspecting the secret")
+				return swarm.Secret{}, nil, errors.New("error while inspecting the secret")
 			},
 			expectedError: "error while inspecting the secret",
 		},
@@ -77,7 +77,7 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 			args: []string{"foo"},
 			secretInspectFunc: func(_ context.Context, name string) (swarm.Secret, []byte, error) {
 				if name != "foo" {
-					return swarm.Secret{}, nil, errors.Errorf("Invalid name, expected %s, got %s", "foo", name)
+					return swarm.Secret{}, nil, fmt.Errorf("invalid name, expected %s, got %s", "foo", name)
 				}
 				return *builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")), nil, nil
 			},
