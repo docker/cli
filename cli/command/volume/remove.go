@@ -41,17 +41,17 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, opts *removeOptions) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) error {
+	apiClient := dockerCLI.Client()
 
 	var errs []string
 
 	for _, name := range opts.volumes {
-		if err := client.VolumeRemove(ctx, name, opts.force); err != nil {
+		if err := apiClient.VolumeRemove(ctx, name, opts.force); err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
 
 	if len(errs) > 0 {
