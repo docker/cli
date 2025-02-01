@@ -40,15 +40,15 @@ const ingressWarning = "WARNING! Before removing the routing-mesh network, " +
 	"Otherwise, removal may not be effective and functionality of newly create " +
 	"ingress networks will be impaired.\nAre you sure you want to continue?"
 
-func runRemove(ctx context.Context, dockerCli command.Cli, networks []string, opts *removeOptions) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, networks []string, opts *removeOptions) error {
+	apiClient := dockerCLI.Client()
 
 	status := 0
 
 	for _, name := range networks {
-		nw, _, err := client.NetworkInspectWithRaw(ctx, name, network.InspectOptions{})
+		nw, _, err := apiClient.NetworkInspectWithRaw(ctx, name, network.InspectOptions{})
 		if err == nil && nw.Ingress {
-			r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), ingressWarning)
+			r, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), ingressWarning)
 			if err != nil {
 				return err
 			}
@@ -56,15 +56,15 @@ func runRemove(ctx context.Context, dockerCli command.Cli, networks []string, op
 				continue
 			}
 		}
-		if err := client.NetworkRemove(ctx, name); err != nil {
+		if err := apiClient.NetworkRemove(ctx, name); err != nil {
 			if opts.force && errdefs.IsNotFound(err) {
 				continue
 			}
-			_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n", err)
+			_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 			status = 1
 			continue
 		}
-		_, _ = fmt.Fprintf(dockerCli.Out(), "%s\n", name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
 
 	if status != 0 {
