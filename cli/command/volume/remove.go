@@ -25,8 +25,7 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Use:     "rm [OPTIONS] VOLUME [VOLUME...]",
 		Aliases: []string{"remove"},
 		Short:   "Remove one or more volumes",
-		Long:    removeDescription,
-		Example: removeExample,
+		Long:    "Remove one or more volumes. You cannot remove a volume that is in use by a container.",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.volumes = args
@@ -59,12 +58,3 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) 
 	}
 	return nil
 }
-
-var removeDescription = `
-Remove one or more volumes. You cannot remove a volume that is in use by a container.
-`
-
-var removeExample = `
-$ docker volume rm hello
-hello
-`
