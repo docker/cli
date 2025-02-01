@@ -15,7 +15,7 @@ func TestRunGoodArgument(t *testing.T) {
 	res := icmd.RunCmd(run("helloworld", "--who", "Cleveland"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
-		Out:      "Hello Cleveland!",
+		Out:      "Hello Cleveland",
 	})
 }
 
@@ -33,25 +33,25 @@ func TestClashWithGlobalArgs(t *testing.T) {
 		{
 			name:        "short-without-val",
 			args:        []string{"-D"},
-			expectedOut: "Hello World!",
+			expectedOut: "Hello World",
 			expectedErr: "Plugin debug mode enabled",
 		},
 		{
 			name:        "long-without-val",
 			args:        []string{"--debug"},
-			expectedOut: "Hello World!",
+			expectedOut: "Hello World",
 			expectedErr: "Plugin debug mode enabled",
 		},
 		{
 			name:        "short-with-val",
 			args:        []string{"-c", "Christmas"},
-			expectedOut: "Merry Christmas!",
+			expectedOut: "Merry Christmas",
 			expectedErr: icmd.None,
 		},
 		{
 			name:        "short-with-val",
 			args:        []string{"--context", "Christmas"},
-			expectedOut: "Merry Christmas!",
+			expectedOut: "Merry Christmas",
 			expectedErr: icmd.None,
 		},
 	} {
@@ -220,7 +220,7 @@ func TestCliPluginsVersion(t *testing.T) {
 			name:    "plugin-with-version",
 			args:    []string{"helloworld", "version"},
 			expCode: 0,
-			expOut:  "Hello World!",
+			expOut:  "Hello World",
 			expErr:  icmd.None,
 		},
 		{
