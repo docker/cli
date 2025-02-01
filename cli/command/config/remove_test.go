@@ -1,12 +1,12 @@
 package config
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -24,7 +24,7 @@ func TestConfigRemoveErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			configRemoveFunc: func(name string) error {
-				return errors.Errorf("error removing config")
+				return errors.New("error removing config")
 			},
 			expectedError: "error removing config",
 		},
@@ -66,7 +66,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			if name == "foo" {
-				return errors.Errorf("error removing config: %s", name)
+				return errors.New("error removing config: " + name)
 			}
 			return nil
 		},
