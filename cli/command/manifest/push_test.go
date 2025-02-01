@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -9,17 +10,16 @@ import (
 	"github.com/docker/cli/cli/manifest/store"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
 func newFakeRegistryClient() *fakeRegistryClient {
 	return &fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, _ reference.Named) (manifesttypes.ImageManifest, error) {
-			return manifesttypes.ImageManifest{}, errors.New("")
+			return manifesttypes.ImageManifest{}, errors.New("unexpected error")
 		},
 		getManifestListFunc: func(_ context.Context, _ reference.Named) ([]manifesttypes.ImageManifest, error) {
-			return nil, errors.Errorf("")
+			return nil, errors.New("unexpected error")
 		},
 	}
 }
