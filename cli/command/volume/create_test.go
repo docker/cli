@@ -104,7 +104,8 @@ func TestVolumeCreateWithName(t *testing.T) {
 }
 
 func TestVolumeCreateWithFlags(t *testing.T) {
-	expectedDriver := "foo"
+	const name = "random-generated-name"
+	const expectedDriver = "foo-volume-driver"
 	expectedOpts := map[string]string{
 		"bar": "1",
 		"baz": "baz",
@@ -113,7 +114,6 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 		"lbl1": "v1",
 		"lbl2": "v2",
 	}
-	name := "banana"
 
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
@@ -136,13 +136,16 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	})
 
 	cmd := newCreateCommand(cli)
-	cmd.Flags().Set("driver", "foo")
-	cmd.Flags().Set("opt", "bar=1")
-	cmd.Flags().Set("opt", "baz=baz")
-	cmd.Flags().Set("label", "lbl1=v1")
-	cmd.Flags().Set("label", "lbl2=v2")
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.SetArgs([]string{})
+	assert.Check(t, cmd.Flags().Set("driver", expectedDriver))
+	assert.Check(t, cmd.Flags().Set("opt", "bar=1"))
+	assert.Check(t, cmd.Flags().Set("opt", "baz=baz"))
+	assert.Check(t, cmd.Flags().Set("label", "lbl1=v1"))
+	assert.Check(t, cmd.Flags().Set("label", "lbl2=v2"))
 	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Equal(name, strings.TrimSpace(cli.OutBuffer().String())))
+	assert.Check(t, is.Equal(strings.TrimSpace(cli.OutBuffer().String()), name))
 }
 
 func TestVolumeCreateCluster(t *testing.T) {
