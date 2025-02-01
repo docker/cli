@@ -37,13 +37,13 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runRemove(ctx context.Context, dockerCli command.Cli, opts *rmOptions) error {
-	var errs error
+	var errs []error
 	for _, name := range opts.plugins {
 		if err := dockerCli.Client().PluginRemove(ctx, name, types.PluginRemoveOptions{Force: opts.force}); err != nil {
-			errs = errors.Join(errs, err)
+			errs = append(errs, err)
 			continue
 		}
 		_, _ = fmt.Fprintln(dockerCli.Out(), name)
 	}
-	return errs
+	return errors.Join(errs...)
 }
