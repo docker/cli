@@ -24,14 +24,14 @@ func newPromoteCommand(dockerCli command.Cli) *cobra.Command {
 func runPromote(ctx context.Context, dockerCli command.Cli, nodes []string) error {
 	promote := func(node *swarm.Node) error {
 		if node.Spec.Role == swarm.NodeRoleManager {
-			fmt.Fprintf(dockerCli.Out(), "Node %s is already a manager.\n", node.ID)
+			_, _ = fmt.Fprintf(dockerCli.Out(), "Node %s is already a manager.\n", node.ID)
 			return errNoRoleChange
 		}
 		node.Spec.Role = swarm.NodeRoleManager
 		return nil
 	}
 	success := func(nodeID string) {
-		fmt.Fprintf(dockerCli.Out(), "Node %s promoted to a manager in the swarm.\n", nodeID)
+		_, _ = fmt.Fprintf(dockerCli.Out(), "Node %s promoted to a manager in the swarm.\n", nodeID)
 	}
 	return updateNodes(ctx, dockerCli, nodes, promote, success)
 }
