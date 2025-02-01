@@ -48,7 +48,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
