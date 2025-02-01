@@ -57,7 +57,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 }
 
 func TestVolumeCreateWithName(t *testing.T) {
-	name := "foo"
+	const name = "my-volume-name"
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
 			if body.Name != name {
@@ -70,19 +70,37 @@ func TestVolumeCreateWithName(t *testing.T) {
 	})
 
 	buf := cli.OutBuffer()
+	t.Run("using-flags", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		cmd.SetArgs([]string{})
+		assert.Check(t, cmd.Flags().Set("name", name))
+		assert.NilError(t, cmd.Execute())
+		assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), name))
+	})
 
-	// Test by flags
-	cmd := newCreateCommand(cli)
-	cmd.Flags().Set("name", name)
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Equal(name, strings.TrimSpace(buf.String())))
-
-	// Then by args
 	buf.Reset()
-	cmd = newCreateCommand(cli)
-	cmd.SetArgs([]string{name})
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Equal(name, strings.TrimSpace(buf.String())))
+	t.Run("using-args", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		cmd.SetArgs([]string{name})
+		assert.NilError(t, cmd.Execute())
+		assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), name))
+	})
+
+	buf.Reset()
+	t.Run("using-both", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		cmd.SetArgs([]string{name})
+		assert.Check(t, cmd.Flags().Set("name", name))
+		err := cmd.Execute()
+		assert.Check(t, is.Error(err, `conflicting options: cannot specify a volume-name through both --name and as a positional arg`))
+		assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), ""))
+	})
 }
 
 func TestVolumeCreateWithFlags(t *testing.T) {
