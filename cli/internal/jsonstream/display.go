@@ -51,8 +51,8 @@ func Display(ctx context.Context, in io.Reader, stream Stream, opts ...Options) 
 		return ctx.Err()
 	}
 
-	ctxReader := &ctxReader{err: make(chan error, 1), r: in}
-	stopFunc := context.AfterFunc(ctx, func() { ctxReader.err <- ctx.Err() })
+	reader := &ctxReader{err: make(chan error, 1), r: in}
+	stopFunc := context.AfterFunc(ctx, func() { reader.err <- ctx.Err() })
 	defer stopFunc()
 
 	o := options{}
@@ -60,7 +60,7 @@ func Display(ctx context.Context, in io.Reader, stream Stream, opts ...Options) 
 		opt(&o)
 	}
 
-	if err := jsonmessage.DisplayJSONMessagesStream(ctxReader, stream, stream.FD(), stream.IsTerminal(), o.AuxCallback); err != nil {
+	if err := jsonmessage.DisplayJSONMessagesStream(reader, stream, stream.FD(), stream.IsTerminal(), o.AuxCallback); err != nil {
 		return err
 	}
 
