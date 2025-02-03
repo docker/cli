@@ -59,6 +59,11 @@ make help
 
 ### In-container development environment
 
+#### Using devcontainers
+
+You can setup a containerized development environment in any IDE supporting the devcontainers spec. See [CONTRIBUTING.MD](CONTRIBUTING.md) for more details
+
+#### Shell-based development container
 Start an interactive development environment:
 
 ```shell

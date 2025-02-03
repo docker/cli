@@ -7,11 +7,37 @@ start participating.
 
 ## Topics
 
+* [Development environment](#development-environment)
 * [Reporting Security Issues](#reporting-security-issues)
 * [Design and Cleanup Proposals](#design-and-cleanup-proposals)
 * [Reporting Issues](#reporting-other-issues)
 * [Quick Contribution Tips and Guidelines](#quick-contribution-tips-and-guidelines)
 * [Community Guidelines](#docker-community-guidelines)
+
+## Development environment
+
+The only requirements for setting up a local development environment are:
+
+- [`go`](https://go.dev/dl/) -> latest version is fine, we use `//go:build go1.xx` directives in individual files to build those using a specific version of the go language/compiler;
+- [`docker`](https://www.docker.com) -> latest version is also fine;
+- `make` (on MacOS, install the developer command line tools with `xcode-select --install`)
+- IDE of your choice ([`VSCode`](https://code.visualstudio.com/download), [`Jetbrains GoLand`](https://www.jetbrains.com/go/), etc.)
+
+### Go modules
+
+Currently the project is not setup as a standard "go modules" project to avoid breaking dependent projects. To develop the project as if it were a go module project, you should symlink the  `vendor.mod/sum` files to `go.mod/sum`, the following command should do the trick:
+
+`ln -s vendor.mod go.mod && ln -s vendor.sum go.sum`
+
+This step is unnecessary if using the devcontainers approach seen below, as it's already configured to create the symlinks for development.
+
+### Using a devcontainer
+
+This project also comes with an included `.devcontainer/` directory and a `devcontainer.json` file that can be used with `VSCode` or `GoLand` to quickly setup a development container, with all the basic required development dependencies already included.  
+
+Using VSCode, all that's required is installing the [`Dev Containers` extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containersCheck), and it should auto-detect the `devcontainer.json` file and give you the option to start the container.  
+
+For other IDEs, please check the relevant documentation of your editor for instructions on how to use devcontainers
 
 ## Reporting security issues
 
