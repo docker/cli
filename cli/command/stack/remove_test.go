@@ -161,7 +161,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Error(t, cmd.Execute(), "Failed to remove some resources from stack: foo")
+	assert.Error(t, cmd.Execute(), "failed to remove some resources from stack: foo")
 	assert.Check(t, is.DeepEqual(allServiceIDs, removedServices))
 	assert.Check(t, is.DeepEqual(allNetworkIDs, cli.removedNetworks))
 	assert.Check(t, is.DeepEqual(allSecretIDs, cli.removedSecrets))
