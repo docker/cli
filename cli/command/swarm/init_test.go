@@ -71,11 +71,12 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 					swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
 					nodeInspectFunc:       tc.nodeInspectFunc,
 				}))
-			for key, value := range tc.flags {
-				cmd.Flags().Set(key, value)
-			}
+			cmd.SetArgs([]string{})
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
+			}
 			assert.Error(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -112,17 +113,22 @@ func TestSwarmInit(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			swarmInitFunc:         tc.swarmInitFunc,
-			swarmInspectFunc:      tc.swarmInspectFunc,
-			swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-			nodeInspectFunc:       tc.nodeInspectFunc,
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInitFunc:         tc.swarmInitFunc,
+				swarmInspectFunc:      tc.swarmInspectFunc,
+				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+				nodeInspectFunc:       tc.nodeInspectFunc,
+			})
+			cmd := newInitCommand(cli)
+			cmd.SetArgs([]string{})
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
+			}
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("init-%s.golden", tc.name))
 		})
-		cmd := newInitCommand(cli)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("init-%s.golden", tc.name))
 	}
 }

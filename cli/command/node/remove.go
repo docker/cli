@@ -33,18 +33,18 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, args []string, opts removeOptions) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, nodeIDs []string, opts removeOptions) error {
+	apiClient := dockerCLI.Client()
 
 	var errs []string
 
-	for _, nodeID := range args {
-		err := client.NodeRemove(ctx, nodeID, types.NodeRemoveOptions{Force: opts.force})
+	for _, id := range nodeIDs {
+		err := apiClient.NodeRemove(ctx, id, types.NodeRemoveOptions{Force: opts.force})
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", nodeID)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	}
 
 	if len(errs) > 0 {

@@ -121,12 +121,12 @@ const rfc3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
 // Actor attributes are printed at the end if the actor has any.
 func prettyPrintEvent(out io.Writer, event events.Message) error {
 	if event.TimeNano != 0 {
-		fmt.Fprintf(out, "%s ", time.Unix(0, event.TimeNano).Format(rfc3339NanoFixed))
+		_, _ = fmt.Fprintf(out, "%s ", time.Unix(0, event.TimeNano).Format(rfc3339NanoFixed))
 	} else if event.Time != 0 {
-		fmt.Fprintf(out, "%s ", time.Unix(event.Time, 0).Format(rfc3339NanoFixed))
+		_, _ = fmt.Fprintf(out, "%s ", time.Unix(event.Time, 0).Format(rfc3339NanoFixed))
 	}
 
-	fmt.Fprintf(out, "%s %s %s", event.Type, event.Action, event.Actor.ID)
+	_, _ = fmt.Fprintf(out, "%s %s %s", event.Type, event.Action, event.Actor.ID)
 
 	if len(event.Actor.Attributes) > 0 {
 		var attrs []string
@@ -139,9 +139,9 @@ func prettyPrintEvent(out io.Writer, event events.Message) error {
 			v := event.Actor.Attributes[k]
 			attrs = append(attrs, k+"="+v)
 		}
-		fmt.Fprintf(out, " (%s)", strings.Join(attrs, ", "))
+		_, _ = fmt.Fprintf(out, " (%s)", strings.Join(attrs, ", "))
 	}
-	fmt.Fprint(out, "\n")
+	_, _ = fmt.Fprint(out, "\n")
 	return nil
 }
 

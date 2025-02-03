@@ -299,7 +299,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			for _, line := range strings.Split(statsTextBuffer.String(), "\n") {
 				// In case the new text is shorter than the one we are writing over,
 				// we'll append the "erase line" escape sequence to clear the remaining text.
-				_, _ = fmt.Fprint(&statsTextBuffer, line, "\033[K\n")
+				_, _ = fmt.Fprintln(&statsTextBuffer, line, "\033[K")
 			}
 
 			// We might have fewer containers than before, so let's clear the remaining text

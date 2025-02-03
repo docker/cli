@@ -78,8 +78,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
-	apiClient := dockerCli.Client()
+func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
+	apiClient := dockerCLI.Client()
 	createOpts := types.ServiceCreateOptions{}
 
 	service, err := opts.ToService(ctx, apiClient, flags)
@@ -87,7 +87,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	if err = validateAPIVersion(service, dockerCli.Client().ClientVersion()); err != nil {
+	if err = validateAPIVersion(service, dockerCLI.Client().ClientVersion()); err != nil {
 		return err
 	}
 
@@ -105,14 +105,14 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	if err := resolveServiceImageDigestContentTrust(dockerCli, &service); err != nil {
+	if err := resolveServiceImageDigestContentTrust(dockerCLI, &service); err != nil {
 		return err
 	}
 
 	// only send auth if flag was set
 	if opts.registryAuth {
 		// Retrieve encoded auth token from the image reference
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), opts.image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), opts.image)
 		if err != nil {
 			return err
 		}
@@ -130,16 +130,16 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintln(dockerCli.Err(), warning)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", response.ID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), response.ID)
 
 	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return WaitOnService(ctx, dockerCli, response.ID, opts.quiet)
+	return WaitOnService(ctx, dockerCLI, response.ID, opts.quiet)
 }
 
 // setConfigs does double duty: it both sets the ConfigReferences of the

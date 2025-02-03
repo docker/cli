@@ -36,8 +36,8 @@ func newUpgradeCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) error {
-	p, _, err := dockerCli.Client().PluginInspectWithRaw(ctx, opts.localName)
+func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) error {
+	p, _, err := dockerCLI.Client().PluginInspectWithRaw(ctx, opts.localName)
 	if err != nil {
 		return errors.Errorf("error reading plugin data: %v", err)
 	}
@@ -62,9 +62,9 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 	}
 	old = reference.TagNameOnly(old)
 
-	fmt.Fprintf(dockerCli.Out(), "Upgrading plugin %s from %s to %s\n", p.Name, reference.FamiliarString(old), reference.FamiliarString(remote))
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "Upgrading plugin %s from %s to %s\n", p.Name, reference.FamiliarString(old), reference.FamiliarString(remote))
 	if !opts.skipRemoteCheck && remote.String() != old.String() {
-		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), "Plugin images do not match, are you sure?")
+		r, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), "Plugin images do not match, are you sure?")
 		if err != nil {
 			return err
 		}
@@ -73,12 +73,12 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 		}
 	}
 
-	options, err := buildPullConfig(ctx, dockerCli, opts, "plugin upgrade")
+	options, err := buildPullConfig(ctx, dockerCLI, opts, "plugin upgrade")
 	if err != nil {
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().PluginUpgrade(ctx, opts.localName, options)
+	responseBody, err := dockerCLI.Client().PluginUpgrade(ctx, opts.localName, options)
 	if err != nil {
 		if strings.Contains(err.Error(), "target is image") {
 			return errors.New(err.Error() + " - Use `docker image pull`")
@@ -86,9 +86,9 @@ func runUpgrade(ctx context.Context, dockerCli command.Cli, opts pluginOptions) 
 		return err
 	}
 	defer responseBody.Close()
-	if err := jsonstream.Display(ctx, responseBody, dockerCli.Out()); err != nil {
+	if err := jsonstream.Display(ctx, responseBody, dockerCLI.Out()); err != nil {
 		return err
 	}
-	fmt.Fprintf(dockerCli.Out(), "Upgraded plugin %s to %s\n", opts.localName, opts.remote) // todo: return proper values from the API for this result
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "Upgraded plugin %s to %s\n", opts.localName, opts.remote) // todo: return proper values from the API for this result
 	return nil
 }

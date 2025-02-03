@@ -268,13 +268,13 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 	return mountRequest{ref: mountRef, manifest: imageManifest}, err
 }
 
-func pushList(ctx context.Context, dockerCli command.Cli, req pushRequest) error {
-	rclient := dockerCli.RegistryClient(req.insecure)
+func pushList(ctx context.Context, dockerCLI command.Cli, req pushRequest) error {
+	rclient := dockerCLI.RegistryClient(req.insecure)
 
 	if err := mountBlobs(ctx, rclient, req.targetRef, req.manifestBlobs); err != nil {
 		return err
 	}
-	if err := pushReferences(ctx, dockerCli.Out(), rclient, req.mountRequests); err != nil {
+	if err := pushReferences(ctx, dockerCLI.Out(), rclient, req.mountRequests); err != nil {
 		return err
 	}
 	dgst, err := rclient.PutManifest(ctx, req.targetRef, req.list)
@@ -282,7 +282,7 @@ func pushList(ctx context.Context, dockerCli command.Cli, req pushRequest) error
 		return err
 	}
 
-	fmt.Fprintln(dockerCli.Out(), dgst.String())
+	_, _ = fmt.Fprintln(dockerCLI.Out(), dgst.String())
 	return nil
 }
 
@@ -292,7 +292,7 @@ func pushReferences(ctx context.Context, out io.Writer, client registryclient.Re
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(out, "Pushed ref %s with digest: %s\n", mount.ref, newDigest)
+		_, _ = fmt.Fprintf(out, "Pushed ref %s with digest: %s\n", mount.ref, newDigest)
 	}
 	return nil
 }

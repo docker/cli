@@ -129,13 +129,12 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 		Use: `cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
 	docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH`,
 		Short: "Copy files/folders between a container and the local filesystem",
-		Long: strings.Join([]string{
-			"Copy files/folders between a container and the local filesystem\n",
-			"\nUse '-' as the source to read a tar archive from stdin\n",
-			"and extract it to a directory destination in a container.\n",
-			"Use '-' as the destination to stream a tar archive of a\n",
-			"container source to stdout.",
-		}, ""),
+		Long: `Copy files/folders between a container and the local filesystem
+
+Use '-' as the source to read a tar archive from stdin
+and extract it to a directory destination in a container.
+Use '-' as the destination to stream a tar archive of a
+container source to stdout.`,
 		Args: cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if args[0] == "" {

@@ -113,7 +113,7 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 			select {
 			case <-done:
 			case <-time.After(2 * time.Second):
-				_, _ = fmt.Fprint(dockerCli.Err(), "timeout after 2 seconds")
+				_, _ = fmt.Fprintln(dockerCli.Err(), "timeout after 2 seconds")
 			}
 			return nil
 		},

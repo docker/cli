@@ -29,17 +29,17 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, sids []string) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, serviceIDs []string) error {
+	apiClient := dockerCLI.Client()
 
 	var errs []string
-	for _, sid := range sids {
-		err := client.ServiceRemove(ctx, sid)
+	for _, id := range serviceIDs {
+		err := apiClient.ServiceRemove(ctx, id)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
-		_, _ = fmt.Fprintf(dockerCli.Out(), "%s\n", sid)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	}
 	if len(errs) > 0 {
 		return errors.New(strings.Join(errs, "\n"))

@@ -114,7 +114,7 @@ func (cli *DockerCli) CurrentVersion() string {
 // Client returns the APIClient
 func (cli *DockerCli) Client() client.APIClient {
 	if err := cli.initialize(); err != nil {
-		_, _ = fmt.Fprintf(cli.Err(), "Failed to initialize: %s\n", err)
+		_, _ = fmt.Fprintln(cli.Err(), "Failed to initialize:", err)
 		os.Exit(1)
 	}
 	return cli.client
@@ -475,7 +475,7 @@ func (cli *DockerCli) DockerEndpoint() docker.Endpoint {
 	if err := cli.initialize(); err != nil {
 		// Note that we're not terminating here, as this function may be used
 		// in cases where we're able to continue.
-		_, _ = fmt.Fprintf(cli.Err(), "%v\n", cli.initErr)
+		_, _ = fmt.Fprintln(cli.Err(), cli.initErr)
 	}
 	return cli.dockerEndpoint
 }

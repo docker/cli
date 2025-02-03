@@ -48,7 +48,7 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 		}
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
-			_, _ = fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", namespace)
+			_, _ = fmt.Fprintln(dockerCli.Err(), "Nothing found in stack:", namespace)
 			continue
 		}
 
@@ -82,26 +82,26 @@ func sortServiceByName(services []swarm.Service) func(i, j int) bool {
 	}
 }
 
-func removeServices(ctx context.Context, dockerCli command.Cli, services []swarm.Service) bool {
+func removeServices(ctx context.Context, dockerCLI command.Cli, services []swarm.Service) bool {
 	var hasError bool
 	sort.Slice(services, sortServiceByName(services))
 	for _, service := range services {
-		fmt.Fprintf(dockerCli.Out(), "Removing service %s\n", service.Spec.Name)
-		if err := dockerCli.Client().ServiceRemove(ctx, service.ID); err != nil {
+		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing service", service.Spec.Name)
+		if err := dockerCLI.Client().ServiceRemove(ctx, service.ID); err != nil {
 			hasError = true
-			fmt.Fprintf(dockerCli.Err(), "Failed to remove service %s: %s", service.ID, err)
+			_, _ = fmt.Fprintf(dockerCLI.Err(), "Failed to remove service %s: %s", service.ID, err)
 		}
 	}
 	return hasError
 }
 
-func removeNetworks(ctx context.Context, dockerCli command.Cli, networks []network.Summary) bool {
+func removeNetworks(ctx context.Context, dockerCLI command.Cli, networks []network.Summary) bool {
 	var hasError bool
 	for _, nw := range networks {
-		fmt.Fprintf(dockerCli.Out(), "Removing network %s\n", nw.Name)
-		if err := dockerCli.Client().NetworkRemove(ctx, nw.ID); err != nil {
+		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing network", nw.Name)
+		if err := dockerCLI.Client().NetworkRemove(ctx, nw.ID); err != nil {
 			hasError = true
-			fmt.Fprintf(dockerCli.Err(), "Failed to remove network %s: %s", nw.ID, err)
+			_, _ = fmt.Fprintf(dockerCLI.Err(), "Failed to remove network %s: %s", nw.ID, err)
 		}
 	}
 	return hasError
@@ -110,22 +110,22 @@ func removeNetworks(ctx context.Context, dockerCli command.Cli, networks []netwo
 func removeSecrets(ctx context.Context, dockerCli command.Cli, secrets []swarm.Secret) bool {
 	var hasError bool
 	for _, secret := range secrets {
-		fmt.Fprintf(dockerCli.Out(), "Removing secret %s\n", secret.Spec.Name)
+		_, _ = fmt.Fprintln(dockerCli.Out(), "Removing secret", secret.Spec.Name)
 		if err := dockerCli.Client().SecretRemove(ctx, secret.ID); err != nil {
 			hasError = true
-			fmt.Fprintf(dockerCli.Err(), "Failed to remove secret %s: %s", secret.ID, err)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Failed to remove secret %s: %s", secret.ID, err)
 		}
 	}
 	return hasError
 }
 
-func removeConfigs(ctx context.Context, dockerCli command.Cli, configs []swarm.Config) bool {
+func removeConfigs(ctx context.Context, dockerCLI command.Cli, configs []swarm.Config) bool {
 	var hasError bool
 	for _, config := range configs {
-		fmt.Fprintf(dockerCli.Out(), "Removing config %s\n", config.Spec.Name)
-		if err := dockerCli.Client().ConfigRemove(ctx, config.ID); err != nil {
+		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing config", config.Spec.Name)
+		if err := dockerCLI.Client().ConfigRemove(ctx, config.ID); err != nil {
 			hasError = true
-			fmt.Fprintf(dockerCli.Err(), "Failed to remove config %s: %s", config.ID, err)
+			_, _ = fmt.Fprintf(dockerCLI.Err(), "Failed to remove config %s: %s", config.ID, err)
 		}
 	}
 	return hasError

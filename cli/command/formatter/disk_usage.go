@@ -237,7 +237,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 	if err != nil {
 		return err
 	}
-	ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
+	_, _ = ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
 	for _, v := range duc.Volumes {
 		if err := ctx.contextFormat(tmpl, v); err != nil {
 			return err
@@ -249,7 +249,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
+	_, _ = fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
 	for _, v := range duc.BuildCache {
 		if err := ctx.contextFormat(tmpl, v); err != nil {
 			return err

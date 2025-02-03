@@ -177,19 +177,19 @@ func TestPromptForConfirmation(t *testing.T) {
 			return nil
 		}, promptResult{false, command.ErrPromptTerminated}},
 		{"no", func() error {
-			_, err := fmt.Fprint(promptWriter, "n\n")
+			_, err := fmt.Fprintln(promptWriter, "n")
 			return err
 		}, promptResult{false, nil}},
 		{"yes", func() error {
-			_, err := fmt.Fprint(promptWriter, "y\n")
+			_, err := fmt.Fprintln(promptWriter, "y")
 			return err
 		}, promptResult{true, nil}},
 		{"any", func() error {
-			_, err := fmt.Fprint(promptWriter, "a\n")
+			_, err := fmt.Fprintln(promptWriter, "a")
 			return err
 		}, promptResult{false, nil}},
 		{"with space", func() error {
-			_, err := fmt.Fprint(promptWriter, " y\n")
+			_, err := fmt.Fprintln(promptWriter, " y")
 			return err
 		}, promptResult{true, nil}},
 		{"reader closed", func() error {

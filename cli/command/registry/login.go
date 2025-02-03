@@ -119,14 +119,14 @@ func runLogin(ctx context.Context, dockerCli command.Cli, opts loginOptions) err
 	return nil
 }
 
-func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, authConfig registrytypes.AuthConfig) (msg string, _ error) {
-	_, _ = fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
-	response, err := dockerCli.Client().RegistryLogin(ctx, authConfig)
+func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, authConfig registrytypes.AuthConfig) (msg string, _ error) {
+	_, _ = fmt.Fprintln(dockerCLI.Out(), "Authenticating with existing credentials...")
+	response, err := dockerCLI.Client().RegistryLogin(ctx, authConfig)
 	if err != nil {
 		if errdefs.IsUnauthorized(err) {
-			_, _ = fmt.Fprintf(dockerCli.Err(), "Stored credentials invalid or expired\n")
+			_, _ = fmt.Fprintln(dockerCLI.Err(), "Stored credentials invalid or expired")
 		} else {
-			_, _ = fmt.Fprintf(dockerCli.Err(), "Login did not succeed, error: %s\n", err)
+			_, _ = fmt.Fprintln(dockerCLI.Err(), "Login did not succeed, error:", err)
 		}
 	}
 
@@ -135,7 +135,7 @@ func loginWithStoredCredentials(ctx context.Context, dockerCli command.Cli, auth
 		authConfig.IdentityToken = response.IdentityToken
 	}
 
-	if err := storeCredentials(dockerCli.ConfigFile(), authConfig); err != nil {
+	if err := storeCredentials(dockerCLI.ConfigFile(), authConfig); err != nil {
 		return "", err
 	}
 

@@ -20,7 +20,7 @@ func TestConfig(t *testing.T) {
 	res := icmd.RunCmd(run("helloworld"))
 	res.Assert(t, icmd.Expected{
 		ExitCode: 0,
-		Out:      "Hello Cambridge!",
+		Out:      "Hello Cambridge",
 	})
 
 	cfg2, err := config.Load(filepath.Dir(cfg.GetFilename()))

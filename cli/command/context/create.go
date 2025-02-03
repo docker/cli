@@ -34,11 +34,11 @@ func longCreateDescription() string {
 	buf := bytes.NewBuffer(nil)
 	buf.WriteString("Create a context\n\nDocker endpoint config:\n\n")
 	tw := tabwriter.NewWriter(buf, 20, 1, 3, ' ', 0)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
+	_, _ = fmt.Fprintln(tw, "NAME\tDESCRIPTION")
 	for _, d := range dockerConfigKeysDescriptions {
-		fmt.Fprintf(tw, "%s\t%s\n", d.name, d.description)
+		_, _ = fmt.Fprintf(tw, "%s\t%s\n", d.name, d.description)
 	}
-	tw.Flush()
+	_ = tw.Flush()
 	buf.WriteString("\nExample:\n\n$ docker context create my-context --description \"some description\" --docker \"host=tcp://myserver:2376,ca=~/ca-file,cert=~/cert-file,key=~/key-file\"\n")
 	return buf.String()
 }
@@ -79,8 +79,8 @@ func RunCreate(dockerCLI command.Cli, o *CreateOptions) error {
 		err = createNewContext(s, o)
 	}
 	if err == nil {
-		fmt.Fprintln(dockerCLI.Out(), o.Name)
-		fmt.Fprintf(dockerCLI.Err(), "Successfully created context %q\n", o.Name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), o.Name)
+		_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully created context %q\n", o.Name)
 	}
 	return err
 }

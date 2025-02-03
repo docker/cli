@@ -130,7 +130,7 @@ func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io
 	if err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintf(output, "%s\n", resp.ID)
+	_, _ = fmt.Fprintln(output, resp.ID)
 	return nil
 }
 

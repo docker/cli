@@ -51,8 +51,8 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions, images []string) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, images []string) error {
+	apiClient := dockerCLI.Client()
 
 	options := image.RemoveOptions{
 		Force:         opts.force,
@@ -62,7 +62,7 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions, i
 	var errs []string
 	fatalErr := false
 	for _, img := range images {
-		dels, err := client.ImageRemove(ctx, img, options)
+		dels, err := apiClient.ImageRemove(ctx, img, options)
 		if err != nil {
 			if !errdefs.IsNotFound(err) {
 				fatalErr = true
@@ -71,9 +71,9 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions, i
 		} else {
 			for _, del := range dels {
 				if del.Deleted != "" {
-					fmt.Fprintf(dockerCli.Out(), "Deleted: %s\n", del.Deleted)
+					_, _ = fmt.Fprintln(dockerCLI.Out(), "Deleted:", del.Deleted)
 				} else {
-					fmt.Fprintf(dockerCli.Out(), "Untagged: %s\n", del.Untagged)
+					_, _ = fmt.Fprintln(dockerCLI.Out(), "Untagged:", del.Untagged)
 				}
 			}
 		}
@@ -84,7 +84,7 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions, i
 		if !opts.force || fatalErr {
 			return errors.New(msg)
 		}
-		fmt.Fprintln(dockerCli.Err(), msg)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), msg)
 	}
 	return nil
 }

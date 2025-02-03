@@ -35,7 +35,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogout(ctx context.Context, dockerCli command.Cli, serverAddress string) error {
+func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string) error {
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
@@ -55,25 +55,25 @@ func runLogout(ctx context.Context, dockerCli command.Cli, serverAddress string)
 	}
 
 	if isDefaultRegistry {
-		store := dockerCli.ConfigFile().GetCredentialsStore(registry.IndexServer)
+		store := dockerCLI.ConfigFile().GetCredentialsStore(registry.IndexServer)
 		if err := manager.NewManager(store).Logout(ctx); err != nil {
-			fmt.Fprintf(dockerCli.Err(), "WARNING: %v\n", err)
+			_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING:", err)
 		}
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing login credentials for", hostnameAddress)
 	errs := make(map[string]error)
 	for _, r := range regsToLogout {
-		if err := dockerCli.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
+		if err := dockerCLI.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
 			errs[r] = err
 		}
 	}
 
 	// if at least one removal succeeded, report success. Otherwise report errors
 	if len(errs) == len(regsToLogout) {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: could not erase credentials:")
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: could not erase credentials:")
 		for k, v := range errs {
-			fmt.Fprintf(dockerCli.Err(), "%s: %s\n", k, v)
+			_, _ = fmt.Fprintf(dockerCLI.Err(), "%s: %s\n", k, v)
 		}
 	}
 

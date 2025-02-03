@@ -87,12 +87,16 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 					swarmUpdateFunc:       tc.swarmUpdateFunc,
 					swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
 				}))
-			cmd.SetArgs(tc.args)
-			for k, v := range tc.flags {
-				assert.Check(t, cmd.Flags().Set(k, v))
+			if tc.args == nil {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
 			}
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
+			}
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -101,7 +105,6 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 func TestSwarmUnlockKey(t *testing.T) {
 	testCases := []struct {
 		name                  string
-		args                  []string
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
 		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
@@ -164,7 +167,9 @@ func TestSwarmUnlockKey(t *testing.T) {
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
 			})
 			cmd := newUnlockKeyCommand(cli)
-			cmd.SetArgs(tc.args)
+			cmd.SetArgs([]string{})
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			for k, v := range tc.flags {
 				assert.Check(t, cmd.Flags().Set(k, v))
 			}

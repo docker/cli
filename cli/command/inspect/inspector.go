@@ -84,7 +84,7 @@ func Inspect(out io.Writer, references []string, tmplStr string, getRef GetRefFu
 	}
 
 	if err := inspector.Flush(); err != nil {
-		logrus.Errorf("%s\n", err)
+		logrus.Error(err)
 	}
 
 	if len(inspectErrs) != 0 {

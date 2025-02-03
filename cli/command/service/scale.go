@@ -117,9 +117,9 @@ func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID strin
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintln(dockerCli.Err(), warning)
+		_, _ = fmt.Fprintln(dockerCli.Err(), warning)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s scaled to %d\n", serviceID, scale)
+	_, _ = fmt.Fprintf(dockerCli.Out(), "%s scaled to %d\n", serviceID, scale)
 	return nil
 }
