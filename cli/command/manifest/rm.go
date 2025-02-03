@@ -6,39 +6,43 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	manifeststore "github.com/docker/cli/cli/manifest/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-func newRmManifestListCommand(dockerCli command.Cli) *cobra.Command {
+func newRmManifestListCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rm MANIFEST_LIST [MANIFEST_LIST...]",
 		Short: "Delete one or more manifest lists from local storage",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRm(cmd.Context(), dockerCli, args)
+			return runRemove(cmd.Context(), dockerCLI.ManifestStore(), args)
 		},
 	}
 
 	return cmd
 }
 
-func runRm(_ context.Context, dockerCli command.Cli, targets []string) error {
+func runRemove(ctx context.Context, store manifeststore.Store, targets []string) error {
 	var errs []string
 	for _, target := range targets {
-		targetRef, refErr := normalizeReference(target)
-		if refErr != nil {
-			errs = append(errs, refErr.Error())
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		targetRef, err := normalizeReference(target)
+		if err != nil {
+			errs = append(errs, err.Error())
 			continue
 		}
-		_, searchErr := dockerCli.ManifestStore().GetList(targetRef)
-		if searchErr != nil {
-			errs = append(errs, searchErr.Error())
+		_, err = store.GetList(targetRef)
+		if err != nil {
+			errs = append(errs, err.Error())
 			continue
 		}
-		rmErr := dockerCli.ManifestStore().Remove(targetRef)
-		if rmErr != nil {
-			errs = append(errs, rmErr.Error())
+		err = store.Remove(targetRef)
+		if err != nil {
+			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
