@@ -48,7 +48,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.Check(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
@@ -57,7 +57,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 }
 
 func TestVolumeCreateWithName(t *testing.T) {
-	name := "foo"
+	const name = "my-volume-name"
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
 			if body.Name != name {
@@ -70,23 +70,42 @@ func TestVolumeCreateWithName(t *testing.T) {
 	})
 
 	buf := cli.OutBuffer()
+	t.Run("using-flags", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		cmd.SetArgs([]string{})
+		assert.Check(t, cmd.Flags().Set("name", name))
+		assert.NilError(t, cmd.Execute())
+		assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), name))
+	})
 
-	// Test by flags
-	cmd := newCreateCommand(cli)
-	cmd.Flags().Set("name", name)
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Equal(name, strings.TrimSpace(buf.String())))
-
-	// Then by args
 	buf.Reset()
-	cmd = newCreateCommand(cli)
-	cmd.SetArgs([]string{name})
-	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Equal(name, strings.TrimSpace(buf.String())))
+	t.Run("using-args", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		cmd.SetArgs([]string{name})
+		assert.NilError(t, cmd.Execute())
+		assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), name))
+	})
+
+	buf.Reset()
+	t.Run("using-both", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		cmd.SetArgs([]string{name})
+		assert.Check(t, cmd.Flags().Set("name", name))
+		err := cmd.Execute()
+		assert.Check(t, is.Error(err, `conflicting options: cannot specify a volume-name through both --name and as a positional arg`))
+		assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), ""))
+	})
 }
 
 func TestVolumeCreateWithFlags(t *testing.T) {
-	expectedDriver := "foo"
+	const name = "random-generated-name"
+	const expectedDriver = "foo-volume-driver"
 	expectedOpts := map[string]string{
 		"bar": "1",
 		"baz": "baz",
@@ -95,7 +114,6 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 		"lbl1": "v1",
 		"lbl2": "v2",
 	}
-	name := "banana"
 
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
@@ -118,13 +136,16 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	})
 
 	cmd := newCreateCommand(cli)
-	cmd.Flags().Set("driver", "foo")
-	cmd.Flags().Set("opt", "bar=1")
-	cmd.Flags().Set("opt", "baz=baz")
-	cmd.Flags().Set("label", "lbl1=v1")
-	cmd.Flags().Set("label", "lbl2=v2")
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.SetArgs([]string{})
+	assert.Check(t, cmd.Flags().Set("driver", expectedDriver))
+	assert.Check(t, cmd.Flags().Set("opt", "bar=1"))
+	assert.Check(t, cmd.Flags().Set("opt", "baz=baz"))
+	assert.Check(t, cmd.Flags().Set("label", "lbl1=v1"))
+	assert.Check(t, cmd.Flags().Set("label", "lbl2=v2"))
 	assert.NilError(t, cmd.Execute())
-	assert.Check(t, is.Equal(name, strings.TrimSpace(cli.OutBuffer().String())))
+	assert.Check(t, is.Equal(strings.TrimSpace(cli.OutBuffer().String()), name))
 }
 
 func TestVolumeCreateCluster(t *testing.T) {
@@ -140,19 +161,27 @@ func TestVolumeCreateCluster(t *testing.T) {
 		},
 	})
 
-	cmd := newCreateCommand(cli)
-	cmd.Flags().Set("type", "block")
-	cmd.Flags().Set("group", "gronp")
-	cmd.Flags().Set("driver", "csi")
-	cmd.SetArgs([]string{"name"})
+	t.Run("csi-volume", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		assert.Check(t, cmd.Flags().Set("type", "block"))
+		assert.Check(t, cmd.Flags().Set("group", "gronp"))
+		assert.Check(t, cmd.Flags().Set("driver", "csi"))
+		cmd.SetArgs([]string{"my-csi-volume"})
 
-	assert.NilError(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
+	})
 
-	cmd = newCreateCommand(cli)
-	cmd.Flags().Set("driver", "notcsi")
-	cmd.SetArgs([]string{"name"})
+	t.Run("non-csi-volume", func(t *testing.T) {
+		cmd := newCreateCommand(cli)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		assert.Check(t, cmd.Flags().Set("driver", "notcsi"))
+		cmd.SetArgs([]string{"my-non-csi-volume"})
 
-	assert.NilError(t, cmd.Execute())
+		assert.NilError(t, cmd.Execute())
+	})
 }
 
 func TestVolumeCreateClusterOpts(t *testing.T) {
@@ -204,25 +233,27 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 	})
 
 	cmd := newCreateCommand(cli)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"name"})
-	cmd.Flags().Set("driver", "csi")
-	cmd.Flags().Set("group", "gronp")
-	cmd.Flags().Set("scope", "multi")
-	cmd.Flags().Set("sharing", "onewriter")
-	cmd.Flags().Set("type", "mount")
-	cmd.Flags().Set("sharing", "onewriter")
-	cmd.Flags().Set("required-bytes", "1234")
-	cmd.Flags().Set("limit-bytes", "567890")
+	assert.Check(t, cmd.Flags().Set("driver", "csi"))
+	assert.Check(t, cmd.Flags().Set("group", "gronp"))
+	assert.Check(t, cmd.Flags().Set("scope", "multi"))
+	assert.Check(t, cmd.Flags().Set("sharing", "onewriter"))
+	assert.Check(t, cmd.Flags().Set("type", "mount"))
+	assert.Check(t, cmd.Flags().Set("sharing", "onewriter"))
+	assert.Check(t, cmd.Flags().Set("required-bytes", "1234"))
+	assert.Check(t, cmd.Flags().Set("limit-bytes", "567890"))
 
-	cmd.Flags().Set("secret", "key1=secret1")
-	cmd.Flags().Set("secret", "key2=secret2")
+	assert.Check(t, cmd.Flags().Set("secret", "key1=secret1"))
+	assert.Check(t, cmd.Flags().Set("secret", "key2=secret2"))
 
-	cmd.Flags().Set("topology-required", "region=R1,zone=Z1")
-	cmd.Flags().Set("topology-required", "region=R1,zone=Z2")
-	cmd.Flags().Set("topology-required", "region=R1,zone=Z3")
+	assert.Check(t, cmd.Flags().Set("topology-required", "region=R1,zone=Z1"))
+	assert.Check(t, cmd.Flags().Set("topology-required", "region=R1,zone=Z2"))
+	assert.Check(t, cmd.Flags().Set("topology-required", "region=R1,zone=Z3"))
 
-	cmd.Flags().Set("topology-preferred", "region=R1,zone=Z2")
-	cmd.Flags().Set("topology-preferred", "region=R1,zone=Z3")
+	assert.Check(t, cmd.Flags().Set("topology-preferred", "region=R1,zone=Z2"))
+	assert.Check(t, cmd.Flags().Set("topology-preferred", "region=R1,zone=Z3"))
 
-	cmd.Execute()
+	assert.NilError(t, cmd.Execute())
 }
