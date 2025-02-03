@@ -79,14 +79,6 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 	signal.Notify(sigint, os.Interrupt)
 	defer signal.Stop(sigint)
 
-	taskFilter := filters.NewArgs()
-	taskFilter.Add("service", serviceID)
-	taskFilter.Add("_up-to-date", "true")
-
-	getUpToDateTasks := func() ([]swarm.Task, error) {
-		return apiClient.TaskList(ctx, types.TaskListOptions{Filters: taskFilter})
-	}
-
 	var (
 		updater     progressUpdater
 		converged   bool
@@ -151,7 +143,10 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			return nil
 		}
 
-		tasks, err := getUpToDateTasks()
+		tasks, err := apiClient.TaskList(ctx, types.TaskListOptions{Filters: filters.NewArgs(
+			filters.KeyValuePair{Key: "service", Value: service.ID},
+			filters.KeyValuePair{Key: "_up-to-date", Value: "true"},
+		)})
 		if err != nil {
 			return err
 		}
@@ -218,7 +213,10 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 	}
 }
 
-func getActiveNodes(ctx context.Context, apiClient client.APIClient) (map[string]struct{}, error) {
+// getActiveNodes returns all nodes that are currently not in status [swarm.NodeStateDown].
+//
+// TODO(thaJeztah): this should really be a filter on [apiClient.NodeList] instead of being filtered on the client side.
+func getActiveNodes(ctx context.Context, apiClient client.NodeAPIClient) (map[string]struct{}, error) {
 	nodes, err := apiClient.NodeList(ctx, types.NodeListOptions{})
 	if err != nil {
 		return nil, err
@@ -573,16 +571,17 @@ type replicatedJobProgressUpdater struct {
 }
 
 func newReplicatedJobProgressUpdater(service swarm.Service, progressOut progress.Output) *replicatedJobProgressUpdater {
-	u := &replicatedJobProgressUpdater{
-		progressOut:  progressOut,
-		concurrent:   int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent),
-		total:        int(*service.Spec.Mode.ReplicatedJob.TotalCompletions),
-		jobIteration: service.JobStatus.JobIteration.Index,
-	}
-	u.progressDigits = len(strconv.Itoa(u.total))
-	u.activeDigits = len(strconv.Itoa(u.concurrent))
+	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent)
+	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)
 
-	return u
+	return &replicatedJobProgressUpdater{
+		progressOut:    progressOut,
+		concurrent:     concurrent,
+		total:          total,
+		jobIteration:   service.JobStatus.JobIteration.Index,
+		progressDigits: len(strconv.Itoa(total)),
+		activeDigits:   len(strconv.Itoa(concurrent)),
+	}
 }
 
 // update writes out the progress of the replicated job.
