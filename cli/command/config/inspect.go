@@ -43,15 +43,15 @@ func newConfigInspectCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigInspect inspects the given Swarm config.
-func RunConfigInspect(ctx context.Context, dockerCli command.Cli, opts InspectOptions) error {
-	client := dockerCli.Client()
+func RunConfigInspect(ctx context.Context, dockerCLI command.Cli, opts InspectOptions) error {
+	apiClient := dockerCLI.Client()
 
 	if opts.Pretty {
 		opts.Format = "pretty"
 	}
 
 	getRef := func(id string) (any, []byte, error) {
-		return client.ConfigInspectWithRaw(ctx, id)
+		return apiClient.ConfigInspectWithRaw(ctx, id)
 	}
 	f := opts.Format
 
@@ -62,7 +62,7 @@ func RunConfigInspect(ctx context.Context, dockerCli command.Cli, opts InspectOp
 	}
 
 	configCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: NewFormat(f, false),
 	}
 
