@@ -573,16 +573,17 @@ type replicatedJobProgressUpdater struct {
 }
 
 func newReplicatedJobProgressUpdater(service swarm.Service, progressOut progress.Output) *replicatedJobProgressUpdater {
-	u := &replicatedJobProgressUpdater{
-		progressOut:  progressOut,
-		concurrent:   int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent),
-		total:        int(*service.Spec.Mode.ReplicatedJob.TotalCompletions),
-		jobIteration: service.JobStatus.JobIteration.Index,
-	}
-	u.progressDigits = len(strconv.Itoa(u.total))
-	u.activeDigits = len(strconv.Itoa(u.concurrent))
+	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent)
+	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)
 
-	return u
+	return &replicatedJobProgressUpdater{
+		progressOut:    progressOut,
+		concurrent:     concurrent,
+		total:          total,
+		jobIteration:   service.JobStatus.JobIteration.Index,
+		progressDigits: len(strconv.Itoa(total)),
+		activeDigits:   len(strconv.Itoa(concurrent)),
+	}
 }
 
 // update writes out the progress of the replicated job.
