@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -36,7 +36,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				flagTaskHistoryLimit: "10",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.Errorf("error inspecting the swarm")
+				return swarm.Swarm{}, errors.New("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
@@ -46,7 +46,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				flagTaskHistoryLimit: "10",
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
-				return errors.Errorf("error updating the swarm")
+				return errors.New("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
 		},
@@ -59,7 +59,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				return *builders.Swarm(), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{}, errors.Errorf("error getting unlock key")
+				return types.SwarmUnlockKeyResponse{}, errors.New("error getting unlock key")
 			},
 			expectedError: "error getting unlock key",
 		},
@@ -114,33 +114,33 @@ func TestSwarmUpdate(t *testing.T) {
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
-					return errors.Errorf("historyLimit not correctly set")
+					return errors.New("historyLimit not correctly set")
 				}
 				heartbeatDuration, err := time.ParseDuration("10s")
 				if err != nil {
 					return err
 				}
 				if swarm.Dispatcher.HeartbeatPeriod != heartbeatDuration {
-					return errors.Errorf("heartbeatPeriodLimit not correctly set")
+					return errors.New("heartbeatPeriodLimit not correctly set")
 				}
 				certExpiryDuration, err := time.ParseDuration("20s")
 				if err != nil {
 					return err
 				}
 				if swarm.CAConfig.NodeCertExpiry != certExpiryDuration {
-					return errors.Errorf("certExpiry not correctly set")
+					return errors.New("certExpiry not correctly set")
 				}
 				if len(swarm.CAConfig.ExternalCAs) != 1 || swarm.CAConfig.ExternalCAs[0].CACert != "trustroot" {
-					return errors.Errorf("externalCA not correctly set")
+					return errors.New("externalCA not correctly set")
 				}
 				if *swarm.Raft.KeepOldSnapshots != 10 {
-					return errors.Errorf("keepOldSnapshots not correctly set")
+					return errors.New("keepOldSnapshots not correctly set")
 				}
 				if swarm.Raft.SnapshotInterval != 100 {
-					return errors.Errorf("snapshotInterval not correctly set")
+					return errors.New("snapshotInterval not correctly set")
 				}
 				if !swarm.EncryptionConfig.AutoLockManagers {
-					return errors.Errorf("autolock not correctly set")
+					return errors.New("autolock not correctly set")
 				}
 				return nil
 			},
@@ -153,7 +153,7 @@ func TestSwarmUpdate(t *testing.T) {
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
-					return errors.Errorf("historyLimit not correctly set")
+					return errors.New("historyLimit not correctly set")
 				}
 				return nil
 			},

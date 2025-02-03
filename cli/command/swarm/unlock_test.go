@@ -1,6 +1,7 @@
 package swarm
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -58,7 +58,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 				}, nil
 			},
 			swarmUnlockFunc: func(req swarm.UnlockRequest) error {
-				return errors.Errorf("error unlocking the swarm")
+				return errors.New("error unlocking the swarm")
 			},
 			expectedError: "error unlocking the swarm",
 		},
@@ -90,7 +90,7 @@ func TestSwarmUnlock(t *testing.T) {
 		},
 		swarmUnlockFunc: func(req swarm.UnlockRequest) error {
 			if req.UnlockKey != input {
-				return errors.Errorf("Invalid unlock key")
+				return errors.New("invalid unlock key")
 			}
 			return nil
 		},

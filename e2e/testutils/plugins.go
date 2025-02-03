@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
@@ -87,7 +86,7 @@ func buildPlugin(t *testing.T, ctx context.Context) (string, error) {
 	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return "", errors.Wrapf(err, "error building basic plugin bin: %s", string(out))
+		return "", fmt.Errorf("error building basic plugin bin: %s: %w", string(out), err)
 	}
 
 	return installPath, nil

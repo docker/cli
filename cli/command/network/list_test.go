@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/google/go-cmp/cmp"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -23,7 +23,7 @@ func TestNetworkListErrors(t *testing.T) {
 	}{
 		{
 			networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
-				return []network.Summary{}, errors.Errorf("error creating network")
+				return []network.Summary{}, errors.New("error creating network")
 			},
 			expectedError: "error creating network",
 		},

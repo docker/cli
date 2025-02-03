@@ -1,13 +1,13 @@
 package image
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -33,7 +33,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 			args:          []string{"image:repo"},
 			expectedError: "Failed to push",
 			imagePushFunc: func(ref string, options image.PushOptions) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), errors.Errorf("Failed to push")
+				return io.NopCloser(strings.NewReader("")), errors.New("Failed to push")
 			},
 		},
 	}

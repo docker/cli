@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
