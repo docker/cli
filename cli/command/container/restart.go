@@ -2,14 +2,13 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -56,27 +55,25 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRestart(ctx context.Context, dockerCli command.Cli, opts *restartOptions) error {
-	var errs []string
+func runRestart(ctx context.Context, dockerCLI command.Cli, opts *restartOptions) error {
 	var timeout *int
 	if opts.timeoutChanged {
 		timeout = &opts.timeout
 	}
 
+	apiClient := dockerCLI.Client()
+	var errs []error
 	// TODO(thaJeztah): consider using parallelOperation for restart, similar to "stop" and "remove"
 	for _, name := range opts.containers {
-		err := dockerCli.Client().ContainerRestart(ctx, name, container.StopOptions{
+		err := apiClient.ContainerRestart(ctx, name, container.StopOptions{
 			Signal:  opts.signal,
 			Timeout: timeout,
 		})
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
-		_, _ = fmt.Fprintln(dockerCli.Out(), name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
