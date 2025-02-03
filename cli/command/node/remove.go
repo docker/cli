@@ -2,13 +2,12 @@ package node
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -36,20 +35,13 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 func runRemove(ctx context.Context, dockerCLI command.Cli, nodeIDs []string, opts removeOptions) error {
 	apiClient := dockerCLI.Client()
 
-	var errs []string
-
+	var errs []error
 	for _, id := range nodeIDs {
-		err := apiClient.NodeRemove(ctx, id, types.NodeRemoveOptions{Force: opts.force})
-		if err != nil {
-			errs = append(errs, err.Error())
+		if err := apiClient.NodeRemove(ctx, id, types.NodeRemoveOptions{Force: opts.force}); err != nil {
+			errs = append(errs, err)
 			continue
 		}
 		_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	}
-
-	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
-	}
-
-	return nil
+	return errors.Join(errs...)
 }
