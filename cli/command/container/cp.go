@@ -208,7 +208,7 @@ func resolveLocalPath(localPath string) (absPath string, err error) {
 	return archive.PreserveTrailingDotOrSeparator(absPath, localPath), nil
 }
 
-func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpConfig) (err error) {
+func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (err error) {
 	dstPath := copyConfig.destPath
 	srcPath := copyConfig.sourcePath
 
@@ -224,11 +224,11 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		return err
 	}
 
-	client := dockerCli.Client()
+	apiClient := dockerCLI.Client()
 	// if client requests to follow symbol link, then must decide target file to be copied
 	var rebaseName string
 	if copyConfig.followLink {
-		srcStat, err := client.ContainerStatPath(ctx, copyConfig.container, srcPath)
+		srcStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, srcPath)
 
 		// If the destination is a symbolic link, we should follow it.
 		if err == nil && srcStat.Mode&os.ModeSymlink != 0 {
@@ -247,14 +247,14 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	content, stat, err := client.CopyFromContainer(ctx, copyConfig.container, srcPath)
+	content, stat, err := apiClient.CopyFromContainer(ctx, copyConfig.container, srcPath)
 	if err != nil {
 		return err
 	}
 	defer content.Close()
 
 	if dstPath == "-" {
-		_, err = io.Copy(dockerCli.Out(), content)
+		_, err = io.Copy(dockerCLI.Out(), content)
 		return err
 	}
 
@@ -283,12 +283,12 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		return archive.CopyTo(preArchive, srcInfo, dstPath)
 	}
 
-	restore, done := copyProgress(ctx, dockerCli.Err(), copyFromContainerHeader, &copiedSize)
+	restore, done := copyProgress(ctx, dockerCLI.Err(), copyFromContainerHeader, &copiedSize)
 	res := archive.CopyTo(preArchive, srcInfo, dstPath)
 	cancel()
 	<-done
 	restore()
-	fmt.Fprintln(dockerCli.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", dstPath)
+	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", dstPath)
 
 	return res
 }
@@ -297,7 +297,7 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 // about both the source and destination. The API is a simple tar
 // archive/extract API but we can use the stat info header about the
 // destination to be more informed about exactly what the destination is.
-func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpConfig) (err error) {
+func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (err error) {
 	srcPath := copyConfig.sourcePath
 	dstPath := copyConfig.destPath
 
@@ -309,10 +309,10 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		}
 	}
 
-	client := dockerCli.Client()
+	apiClient := dockerCLI.Client()
 	// Prepare destination copy info by stat-ing the container path.
 	dstInfo := archive.CopyInfo{Path: dstPath}
-	dstStat, err := client.ContainerStatPath(ctx, copyConfig.container, dstPath)
+	dstStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, dstPath)
 
 	// If the destination is a symbolic link, we should evaluate it.
 	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
@@ -324,7 +324,8 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		}
 
 		dstInfo.Path = linkTarget
-		dstStat, err = client.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+		dstStat, err = apiClient.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+		// FIXME(thaJeztah): unhandled error (should this return?)
 	}
 
 	// Validate the destination path
@@ -401,16 +402,16 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 	}
 
 	if copyConfig.quiet {
-		return client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+		return apiClient.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
 	}
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	restore, done := copyProgress(ctx, dockerCli.Err(), copyToContainerHeader, &copiedSize)
-	res := client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+	restore, done := copyProgress(ctx, dockerCLI.Err(), copyToContainerHeader, &copiedSize)
+	res := apiClient.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
 	cancel()
 	<-done
 	restore()
-	fmt.Fprintln(dockerCli.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+	fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
 	return res
 }

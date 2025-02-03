@@ -84,13 +84,13 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunExec executes an `exec` command
-func RunExec(ctx context.Context, dockerCli command.Cli, containerIDorName string, options ExecOptions) error {
-	execOptions, err := parseExec(options, dockerCli.ConfigFile())
+func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName string, options ExecOptions) error {
+	execOptions, err := parseExec(options, dockerCLI.ConfigFile())
 	if err != nil {
 		return err
 	}
 
-	apiClient := dockerCli.Client()
+	apiClient := dockerCLI.Client()
 
 	// We need to check the tty _before_ we do the ContainerExecCreate, because
 	// otherwise if we error out we will leak execIDs on the server (and
@@ -100,12 +100,12 @@ func RunExec(ctx context.Context, dockerCli command.Cli, containerIDorName strin
 		return err
 	}
 	if !execOptions.Detach {
-		if err := dockerCli.In().CheckTty(execOptions.AttachStdin, execOptions.Tty); err != nil {
+		if err := dockerCLI.In().CheckTty(execOptions.AttachStdin, execOptions.Tty); err != nil {
 			return err
 		}
 	}
 
-	fillConsoleSize(execOptions, dockerCli)
+	fillConsoleSize(execOptions, dockerCLI)
 
 	response, err := apiClient.ContainerExecCreate(ctx, containerIDorName, *execOptions)
 	if err != nil {
@@ -124,7 +124,7 @@ func RunExec(ctx context.Context, dockerCli command.Cli, containerIDorName strin
 			ConsoleSize: execOptions.ConsoleSize,
 		})
 	}
-	return interactiveExec(ctx, dockerCli, execOptions, execID)
+	return interactiveExec(ctx, dockerCLI, execOptions, execID)
 }
 
 func fillConsoleSize(execOptions *container.ExecOptions, dockerCli command.Cli) {
