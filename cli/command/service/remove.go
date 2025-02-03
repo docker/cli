@@ -2,12 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -32,17 +31,13 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 func runRemove(ctx context.Context, dockerCLI command.Cli, serviceIDs []string) error {
 	apiClient := dockerCLI.Client()
 
-	var errs []string
+	var errs []error
 	for _, id := range serviceIDs {
-		err := apiClient.ServiceRemove(ctx, id)
-		if err != nil {
-			errs = append(errs, err.Error())
+		if err := apiClient.ServiceRemove(ctx, id); err != nil {
+			errs = append(errs, err)
 			continue
 		}
 		_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
