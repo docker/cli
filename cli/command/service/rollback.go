@@ -42,12 +42,9 @@ func runRollback(ctx context.Context, dockerCLI command.Cli, options *serviceOpt
 		return err
 	}
 
-	spec := &service.Spec
-	updateOpts := types.ServiceUpdateOptions{
-		Rollback: "previous",
-	}
-
-	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, *spec, updateOpts)
+	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, types.ServiceUpdateOptions{
+		Rollback: "previous", // TODO(thaJeztah): this should have a const defined
+	})
 	if err != nil {
 		return err
 	}

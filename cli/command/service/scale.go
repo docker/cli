@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,7 +11,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/pkg/errors"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -44,8 +45,8 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 	}
 	for _, arg := range args {
 		if k, v, ok := strings.Cut(arg, "="); !ok || k == "" || v == "" {
-			return errors.Errorf(
-				"Invalid scale specifier '%s'.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
+			return fmt.Errorf(
+				"invalid scale specifier '%s'.\nSee '%s --help'.\n\nUsage:  %s\n\n%s",
 				arg,
 				cmd.CommandPath(),
 				cmd.UseLine(),
@@ -56,49 +57,48 @@ func scaleArgs(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runScale(ctx context.Context, dockerCli command.Cli, options *scaleOptions, args []string) error {
-	var errs []string
-	var serviceIDs []string
-
+func runScale(ctx context.Context, dockerCLI command.Cli, options *scaleOptions, args []string) error {
+	apiClient := dockerCLI.Client()
+	var (
+		errs       []error
+		serviceIDs = make([]string, 0, len(args))
+	)
 	for _, arg := range args {
 		serviceID, scaleStr, _ := strings.Cut(arg, "=")
 
 		// validate input arg scale number
 		scale, err := strconv.ParseUint(scaleStr, 10, 64)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("%s: invalid replicas value %s: %v", serviceID, scaleStr, err))
+			errs = append(errs, fmt.Errorf("%s: invalid replicas value %s: %v", serviceID, scaleStr, err))
 			continue
 		}
 
-		if err := runServiceScale(ctx, dockerCli, serviceID, scale); err != nil {
-			errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
-		} else {
-			serviceIDs = append(serviceIDs, serviceID)
+		warnings, err := runServiceScale(ctx, apiClient, serviceID, scale)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %v", serviceID, err))
+			continue
 		}
+		for _, warning := range warnings {
+			_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
+		}
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "%s scaled to %d\n", serviceID, scale)
+		serviceIDs = append(serviceIDs, serviceID)
 	}
 
-	if len(serviceIDs) > 0 {
-		if !options.detach && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.29") {
-			for _, serviceID := range serviceIDs {
-				if err := WaitOnService(ctx, dockerCli, serviceID, false); err != nil {
-					errs = append(errs, fmt.Sprintf("%s: %v", serviceID, err))
-				}
+	if len(serviceIDs) > 0 && !options.detach && versions.GreaterThanOrEqualTo(dockerCLI.Client().ClientVersion(), "1.29") {
+		for _, serviceID := range serviceIDs {
+			if err := WaitOnService(ctx, dockerCLI, serviceID, false); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %v", serviceID, err))
 			}
 		}
 	}
-
-	if len(errs) == 0 {
-		return nil
-	}
-	return errors.New(strings.Join(errs, "\n"))
+	return errors.Join(errs...)
 }
 
-func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID string, scale uint64) error {
-	client := dockerCli.Client()
-
-	service, _, err := client.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
+func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, serviceID string, scale uint64) (warnings []string, _ error) {
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	serviceMode := &service.Spec.Mode
@@ -108,18 +108,12 @@ func runServiceScale(ctx context.Context, dockerCli command.Cli, serviceID strin
 	case serviceMode.ReplicatedJob != nil:
 		serviceMode.ReplicatedJob.TotalCompletions = &scale
 	default:
-		return errors.Errorf("scale can only be used with replicated or replicated-job mode")
+		return nil, errors.New("scale can only be used with replicated or replicated-job mode")
 	}
 
-	response, err := client.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, types.ServiceUpdateOptions{})
+	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, types.ServiceUpdateOptions{})
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	for _, warning := range response.Warnings {
-		_, _ = fmt.Fprintln(dockerCli.Err(), warning)
-	}
-
-	_, _ = fmt.Fprintf(dockerCli.Out(), "%s scaled to %d\n", serviceID, scale)
-	return nil
+	return response.Warnings, nil
 }

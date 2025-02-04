@@ -60,5 +60,5 @@ func TestRemoveDefault(t *testing.T) {
 	createTestContext(t, cli, "other", nil)
 	cli.SetCurrentContext("current")
 	err := RunRemove(cli, RemoveOptions{}, []string{"default"})
-	assert.ErrorContains(t, err, `default: context "default" cannot be removed`)
+	assert.ErrorContains(t, err, `context "default" cannot be removed`)
 }

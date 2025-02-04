@@ -2,13 +2,12 @@ package volume
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -43,18 +42,13 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) error {
 	apiClient := dockerCLI.Client()
 
-	var errs []string
-
+	var errs []error
 	for _, name := range opts.volumes {
 		if err := apiClient.VolumeRemove(ctx, name, opts.force); err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
 		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-
-	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

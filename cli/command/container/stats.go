@@ -3,6 +3,7 @@ package container
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -238,16 +238,16 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// make sure each container get at least one valid stat data
 		waitFirst.Wait()
 
-		var errs []string
+		var errs []error
 		cStats.mu.RLock()
 		for _, c := range cStats.cs {
 			if err := c.GetError(); err != nil {
-				errs = append(errs, err.Error())
+				errs = append(errs, err)
 			}
 		}
 		cStats.mu.RUnlock()
-		if len(errs) > 0 {
-			return errors.New(strings.Join(errs, "\n"))
+		if err := errors.Join(errs...); err != nil {
+			return err
 		}
 	}
 

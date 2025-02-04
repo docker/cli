@@ -2,15 +2,14 @@ package image
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -59,15 +58,16 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 		PruneChildren: !opts.noPrune,
 	}
 
-	var errs []string
+	// TODO(thaJeztah): this logic can likely be simplified: do we want to print "not found" errors at all when using "force"?
 	fatalErr := false
+	var errs []error
 	for _, img := range images {
 		dels, err := apiClient.ImageRemove(ctx, img, options)
 		if err != nil {
 			if !errdefs.IsNotFound(err) {
 				fatalErr = true
 			}
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 		} else {
 			for _, del := range dels {
 				if del.Deleted != "" {
@@ -79,12 +79,11 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 		}
 	}
 
-	if len(errs) > 0 {
-		msg := strings.Join(errs, "\n")
+	if err := errors.Join(errs...); err != nil {
 		if !opts.force || fatalErr {
-			return errors.New(msg)
+			return err
 		}
-		_, _ = fmt.Fprintln(dockerCLI.Err(), msg)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 	}
 	return nil
 }

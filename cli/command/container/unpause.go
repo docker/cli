@@ -2,14 +2,13 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -39,18 +38,16 @@ func NewUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUnpause(ctx context.Context, dockerCli command.Cli, opts *unpauseOptions) error {
-	var errs []string
-	errChan := parallelOperation(ctx, opts.containers, dockerCli.Client().ContainerUnpause)
+func runUnpause(ctx context.Context, dockerCLI command.Cli, opts *unpauseOptions) error {
+	apiClient := dockerCLI.Client()
+	errChan := parallelOperation(ctx, opts.containers, apiClient.ContainerUnpause)
+	var errs []error
 	for _, ctr := range opts.containers {
 		if err := <-errChan; err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
-		_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), ctr)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

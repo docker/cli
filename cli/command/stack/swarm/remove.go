@@ -2,9 +2,9 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
@@ -12,14 +12,13 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 )
 
 // RunRemove is the swarm implementation of docker stack remove
 func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) error {
 	apiClient := dockerCli.Client()
 
-	var errs []string
+	var errs []error
 	for _, namespace := range opts.Namespaces {
 		services, err := getStackServices(ctx, apiClient, namespace)
 		if err != nil {
@@ -52,28 +51,25 @@ func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) 
 			continue
 		}
 
+		// TODO(thaJeztah): change this "hasError" boolean to return a (multi-)error for each of these functions instead.
 		hasError := removeServices(ctx, dockerCli, services)
 		hasError = removeSecrets(ctx, dockerCli, secrets) || hasError
 		hasError = removeConfigs(ctx, dockerCli, configs) || hasError
 		hasError = removeNetworks(ctx, dockerCli, networks) || hasError
 
 		if hasError {
-			errs = append(errs, "Failed to remove some resources from stack: "+namespace)
+			errs = append(errs, errors.New("failed to remove some resources from stack: "+namespace))
 			continue
 		}
 
 		if !opts.Detach {
 			err = waitOnTasks(ctx, apiClient, namespace)
 			if err != nil {
-				errs = append(errs, fmt.Sprintf("Failed to wait on tasks of stack: %s: %s", namespace, err))
+				errs = append(errs, fmt.Errorf("failed to wait on tasks of stack: %s: %w", namespace, err))
 			}
 		}
 	}
-
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func sortServiceByName(services []swarm.Service) func(i, j int) bool {
