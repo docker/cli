@@ -19,7 +19,14 @@ func ParseURL(daemonURL string) (*Spec, error) {
 		}
 		return nil, fmt.Errorf("invalid SSH URL: %w", err)
 	}
-	s, err := newSpec(u)
+	return NewSpec(u)
+}
+
+// NewSpec creates a [Spec] from the given ssh URL's properties. It returns
+// an error if the URL is using the wrong scheme, contains fragments,
+// query-parameters, or contains a password.
+func NewSpec(sshURL *url.URL) (*Spec, error) {
+	s, err := newSpec(sshURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid SSH URL: %w", err)
 	}
@@ -27,6 +34,9 @@ func ParseURL(daemonURL string) (*Spec, error) {
 }
 
 func newSpec(u *url.URL) (*Spec, error) {
+	if u == nil {
+		return nil, errors.New("URL is nil")
+	}
 	if u.Scheme == "" {
 		return nil, errors.New("no scheme provided")
 	}
