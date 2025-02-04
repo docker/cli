@@ -45,18 +45,18 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigList lists Swarm configs.
-func RunConfigList(ctx context.Context, dockerCli command.Cli, options ListOptions) error {
-	client := dockerCli.Client()
+func RunConfigList(ctx context.Context, dockerCLI command.Cli, options ListOptions) error {
+	apiClient := dockerCLI.Client()
 
-	configs, err := client.ConfigList(ctx, types.ConfigListOptions{Filters: options.Filter.Value()})
+	configs, err := apiClient.ConfigList(ctx, types.ConfigListOptions{Filters: options.Filter.Value()})
 	if err != nil {
 		return err
 	}
 
 	format := options.Format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ConfigFormat) > 0 && !options.Quiet {
-			format = dockerCli.ConfigFile().ConfigFormat
+		if len(dockerCLI.ConfigFile().ConfigFormat) > 0 && !options.Quiet {
+			format = dockerCLI.ConfigFile().ConfigFormat
 		} else {
 			format = formatter.TableFormatKey
 		}
@@ -67,7 +67,7 @@ func RunConfigList(ctx context.Context, dockerCli command.Cli, options ListOptio
 	})
 
 	configCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: NewFormat(format, options.Quiet),
 	}
 	return FormatWrite(configCtx, configs)
