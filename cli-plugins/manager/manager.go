@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -42,8 +43,9 @@ type notFound interface{ NotFound() }
 
 // IsNotFound is true if the given error is due to a plugin not being found.
 func IsNotFound(err error) bool {
-	if e, ok := err.(*pluginError); ok {
-		err = e.Cause()
+	var e *pluginError
+	if errors.As(err, &e) {
+		err = e.Unwrap()
 	}
 	_, ok := err.(notFound)
 	return ok
