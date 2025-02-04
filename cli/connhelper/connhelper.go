@@ -41,7 +41,7 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 		return nil, err
 	}
 	if u.Scheme == "ssh" {
-		sp, err := ssh.ParseURL(daemonURL)
+		sp, err := ssh.NewSpec(u)
 		if err != nil {
 			return nil, fmt.Errorf("ssh host connection is not valid: %w", err)
 		}
