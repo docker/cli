@@ -7,7 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ParseURL parses URL
+// ParseURL creates a [Spec] from the given ssh URL. It returns an error if
+// the URL is using the wrong scheme, contains fragments, query-parameters,
+// or contains a password.
 func ParseURL(daemonURL string) (*Spec, error) {
 	u, err := url.Parse(daemonURL)
 	if err != nil {
