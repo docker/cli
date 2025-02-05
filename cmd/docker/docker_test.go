@@ -5,10 +5,14 @@ import (
 	"context"
 	"io"
 	"os"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/debug"
+	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -74,4 +78,33 @@ func TestVersion(t *testing.T) {
 	err := runCliCommand(t, nil, &b, "--version")
 	assert.NilError(t, err)
 	assert.Check(t, is.Contains(b.String(), "Docker version"))
+}
+
+func TestUserTerminatedError(t *testing.T) {
+	ctx, cancel := context.WithTimeoutCause(context.Background(), time.Second*1, errors.New("test timeout"))
+	t.Cleanup(cancel)
+
+	notifyCtx, cancelNotify := notifyContext(ctx, platformsignals.TerminationSignals...)
+	t.Cleanup(cancelNotify)
+
+	syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+
+	<-notifyCtx.Done()
+	assert.ErrorIs(t, context.Cause(notifyCtx), errCtxSignalTerminated{
+		signal: syscall.SIGINT,
+	})
+
+	assert.Equal(t, getExitCode(context.Cause(notifyCtx)), 130)
+
+	notifyCtx, cancelNotify = notifyContext(ctx, platformsignals.TerminationSignals...)
+	t.Cleanup(cancelNotify)
+
+	syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+
+	<-notifyCtx.Done()
+	assert.ErrorIs(t, context.Cause(notifyCtx), errCtxSignalTerminated{
+		signal: syscall.SIGTERM,
+	})
+
+	assert.Equal(t, getExitCode(context.Cause(notifyCtx)), 143)
 }

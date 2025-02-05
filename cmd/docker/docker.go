@@ -28,16 +28,57 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
+type errCtxSignalTerminated struct {
+	signal os.Signal
+}
+
+func (e errCtxSignalTerminated) Error() string {
+	return ""
+}
+
 func main() {
-	err := dockerMain(context.Background())
+	ctx := context.Background()
+	err := dockerMain(ctx)
+
+	if errors.As(err, &errCtxSignalTerminated{}) {
+		os.Exit(getExitCode(err))
+		return
+	}
+
 	if err != nil && !errdefs.IsCancelled(err) {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(getExitCode(err))
 	}
 }
 
+func notifyContext(ctx context.Context, signals ...os.Signal) (context.Context, context.CancelFunc) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, signals...)
+
+	ctxCause, cancel := context.WithCancelCause(ctx)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			signal.Stop(ch)
+			return
+		case sig := <-ch:
+			cancel(errCtxSignalTerminated{
+				signal: sig,
+			})
+			signal.Stop(ch)
+			return
+		}
+	}()
+
+	return ctxCause, func() {
+		signal.Stop(ch)
+		cancel(nil)
+	}
+}
+
 func dockerMain(ctx context.Context) error {
-	ctx, cancelNotify := signal.NotifyContext(ctx, platformsignals.TerminationSignals...)
+	ctx, cancelNotify := notifyContext(ctx, platformsignals.TerminationSignals...)
 	defer cancelNotify()
 
 	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
@@ -57,6 +98,16 @@ func getExitCode(err error) int {
 	if err == nil {
 		return 0
 	}
+
+	var userTerminatedErr errCtxSignalTerminated
+	if errors.As(err, &userTerminatedErr) {
+		s, ok := userTerminatedErr.signal.(syscall.Signal)
+		if !ok {
+			return 1
+		}
+		return 128 + int(s)
+	}
+
 	var stErr cli.StatusError
 	if errors.As(err, &stErr) && stErr.StatusCode != 0 { // FIXME(thaJeztah): StatusCode should never be used with a zero status-code. Check if we do this anywhere.
 		return stErr.StatusCode
