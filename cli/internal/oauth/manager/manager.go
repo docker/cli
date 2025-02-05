@@ -13,6 +13,8 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/internal/oauth"
 	"github.com/docker/cli/cli/internal/oauth/api"
+	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	"github.com/sirupsen/logrus"
@@ -93,7 +95,15 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 	}
 
 	_, _ = fmt.Fprintln(w, aec.Bold.Apply("\nUSING WEB-BASED LOGIN"))
-	_, _ = fmt.Fprintln(w, "To sign in with credentials on the command line, use 'docker login -u <username>'")
+
+	var out tui.Output
+	switch stream := w.(type) {
+	case *streams.Out:
+		out = tui.NewOutput(stream)
+	default:
+		out = tui.NewOutput(streams.NewOut(w))
+	}
+	out.PrintNote("To sign in with credentials on the command line, use 'docker login -u <username>'\n")
 	_, _ = fmt.Fprintf(w, "\nYour one-time device confirmation code is: "+aec.Bold.Apply("%s\n"), state.UserCode)
 	_, _ = fmt.Fprintf(w, aec.Bold.Apply("Press ENTER")+" to open your browser or submit your device code here: "+aec.Underline.Apply("%s\n"), strings.Split(state.VerificationURI, "?")[0])
 

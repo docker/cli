@@ -6,11 +6,11 @@ Defaults to Docker Hub if no server is specified.
 
 ### Options
 
-| Name                                         | Type     | Default | Description                  |
-|:---------------------------------------------|:---------|:--------|:-----------------------------|
-| `-p`, `--password`                           | `string` |         | Password                     |
-| [`--password-stdin`](#password-stdin)        | `bool`   |         | Take the password from stdin |
-| [`-u`](#username), [`--username`](#username) | `string` |         | Username                     |
+| Name                                         | Type     | Default | Description                                                 |
+|:---------------------------------------------|:---------|:--------|:------------------------------------------------------------|
+| `-p`, `--password`                           | `string` |         | Password or Personal Access Token (PAT)                     |
+| [`--password-stdin`](#password-stdin)        | `bool`   |         | Take the Password or Personal Access Token (PAT) from stdin |
+| [`-u`](#username), [`--username`](#username) | `string` |         | Username                                                    |
 
 
 <!---MARKER_GEN_END-->
