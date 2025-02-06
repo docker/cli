@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stringid"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -425,13 +426,36 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 func TestContainerContextWriteJSON(t *testing.T) {
 	unix := time.Now().Add(-65 * time.Second).Unix()
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: container.StateRunning},
-		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: container.StateRunning},
+		{
+			ID:      "containerID1",
+			Names:   []string{"/foobar_baz"},
+			Image:   "ubuntu",
+			Created: unix,
+			State:   container.StateRunning,
+		},
+		{
+			ID:      "containerID2",
+			Names:   []string{"/foobar_bar"},
+			Image:   "ubuntu",
+			Created: unix,
+			State:   container.StateRunning,
+
+			ImageManifestDescriptor: &ocispec.Descriptor{Platform: &ocispec.Platform{Architecture: "amd64", OS: "linux"}},
+		},
+		{
+			ID:      "containerID3",
+			Names:   []string{"/foobar_bar"},
+			Image:   "ubuntu",
+			Created: unix,
+			State:   container.StateRunning,
+
+			ImageManifestDescriptor: &ocispec.Descriptor{Platform: &ocispec.Platform{}},
+		},
 	}
 	expectedCreated := time.Unix(unix, 0).String()
 	expectedJSONs := []map[string]any{
 		{
-			"Command":      "\"\"",
+			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
 			"ID":           "containerID1",
 			"Image":        "ubuntu",
@@ -440,6 +464,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Mounts":       "",
 			"Names":        "foobar_baz",
 			"Networks":     "",
+			"Platform":     "",
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
 			"Size":         "0B",
@@ -447,7 +472,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Status":       "",
 		},
 		{
-			"Command":      "\"\"",
+			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
 			"ID":           "containerID2",
 			"Image":        "ubuntu",
@@ -456,6 +481,24 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Mounts":       "",
 			"Names":        "foobar_bar",
 			"Networks":     "",
+			"Platform":     "linux/amd64",
+			"Ports":        "",
+			"RunningFor":   "About a minute ago",
+			"Size":         "0B",
+			"State":        "running",
+			"Status":       "",
+		},
+		{
+			"Command":      `""`,
+			"CreatedAt":    expectedCreated,
+			"ID":           "containerID3",
+			"Image":        "ubuntu",
+			"Labels":       "",
+			"LocalVolumes": "0",
+			"Mounts":       "",
+			"Names":        "foobar_bar",
+			"Networks":     "",
+			"Platform":     "unknown",
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
 			"Size":         "0B",
