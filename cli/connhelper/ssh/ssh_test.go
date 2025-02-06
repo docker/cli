@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"strings"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -27,6 +28,28 @@ func TestParseURL(t *testing.T) {
 			},
 		},
 		{
+			doc: "bare ssh URL with trailing slash",
+			url: "ssh://example.com/",
+			expectedArgs: []string{
+				"--", "example.com",
+			},
+			expectedSpec: Spec{
+				Host: "example.com",
+				Path: "/",
+			},
+		},
+		{
+			doc: "bare ssh URL with trailing slashes",
+			url: "ssh://example.com//",
+			expectedArgs: []string{
+				"--", "example.com",
+			},
+			expectedSpec: Spec{
+				Host: "example.com",
+				Path: "//",
+			},
+		},
+		{
 			doc: "bare ssh URL and remote command",
 			url: "ssh://example.com",
 			remoteCommand: []string{
@@ -34,7 +57,7 @@ func TestParseURL(t *testing.T) {
 			},
 			expectedArgs: []string{
 				"--", "example.com",
-				"docker", "system", "dial-stdio",
+				`docker system dial-stdio`,
 			},
 			expectedSpec: Spec{
 				Host: "example.com",
@@ -48,7 +71,7 @@ func TestParseURL(t *testing.T) {
 			},
 			expectedArgs: []string{
 				"--", "example.com",
-				"docker", "--host", "unix:///var/run/docker.sock", "system", "dial-stdio",
+				`docker --host unix:///var/run/docker.sock system dial-stdio`,
 			},
 			expectedSpec: Spec{
 				Host: "example.com",
@@ -82,6 +105,25 @@ func TestParseURL(t *testing.T) {
 				Host: "example.com",
 				Port: "10022",
 				Path: "/var/run/docker.sock",
+			},
+		},
+		{
+			// This test is only to verify the behavior of ParseURL to
+			// pass through the Path as-is. Neither Spec.Args, nor
+			// Spec.Command use the Path field directly, and it should
+			// likely be deprecated.
+			doc: "bad path",
+			url: `ssh://example.com/var/run/docker.sock '$(echo hello > /hello.txt)'`,
+			remoteCommand: []string{
+				"docker", "--host", `unix:///var/run/docker.sock '$(echo hello > /hello.txt)'`, "system", "dial-stdio",
+			},
+			expectedArgs: []string{
+				"--", "example.com",
+				`docker --host "unix:///var/run/docker.sock '\$(echo hello > /hello.txt)'" system dial-stdio`,
+			},
+			expectedSpec: Spec{
+				Host: "example.com",
+				Path: `/var/run/docker.sock '$(echo hello > /hello.txt)'`,
 			},
 		},
 		{
@@ -123,6 +165,21 @@ func TestParseURL(t *testing.T) {
 			url:           "https://example.com",
 			expectedError: `invalid SSH URL: incorrect scheme: https`,
 		},
+		{
+			doc:           "invalid URL with NUL character",
+			url:           "ssh://example.com/var/run/\x00docker.sock",
+			expectedError: `invalid SSH URL: net/url: invalid control character in URL`,
+		},
+		{
+			doc:           "invalid URL with newline character",
+			url:           "ssh://example.com/var/run/docker.sock\n",
+			expectedError: `invalid SSH URL: net/url: invalid control character in URL`,
+		},
+		{
+			doc:           "invalid URL with control character",
+			url:           "ssh://example.com/var/run/\x1bdocker.sock",
+			expectedError: `invalid SSH URL: net/url: invalid control character in URL`,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.doc, func(t *testing.T) {
@@ -135,6 +192,125 @@ func TestParseURL(t *testing.T) {
 			} else {
 				assert.Check(t, is.Error(err, tc.expectedError))
 				assert.Check(t, is.Nil(sp))
+			}
+		})
+	}
+}
+
+func TestCommand(t *testing.T) {
+	testCases := []struct {
+		doc           string
+		url           string
+		sshFlags      []string
+		customCmd     []string
+		expectedCmd   []string
+		expectedError string
+	}{
+		{
+			doc: "bare ssh URL",
+			url: "ssh://example.com",
+			expectedCmd: []string{
+				"--", "example.com",
+				"docker system dial-stdio",
+			},
+		},
+		{
+			doc: "bare ssh URL with trailing slash",
+			url: "ssh://example.com/",
+			expectedCmd: []string{
+				"--", "example.com",
+				"docker system dial-stdio",
+			},
+		},
+		{
+			doc:      "bare ssh URL with custom ssh flags",
+			url:      "ssh://example.com",
+			sshFlags: []string{"-T", "-o", "ConnectTimeout=30", "-oStrictHostKeyChecking=no"},
+			expectedCmd: []string{
+				"-T",
+				"-o", "ConnectTimeout=30",
+				"-oStrictHostKeyChecking=no",
+				"--", "example.com",
+				"docker system dial-stdio",
+			},
+		},
+		{
+			doc:      "ssh URL with all options",
+			url:      "ssh://me@example.com:10022/var/run/docker.sock",
+			sshFlags: []string{"-T", "-o ConnectTimeout=30"},
+			expectedCmd: []string{
+				"-l", "me",
+				"-p", "10022",
+				"-T",
+				"-o ConnectTimeout=30",
+				"--", "example.com",
+				"docker '--host=unix:///var/run/docker.sock' system dial-stdio",
+			},
+		},
+		{
+			doc:      "bad ssh flags",
+			url:      "ssh://example.com",
+			sshFlags: []string{"-T", "-o", `ConnectTimeout=30 $(echo hi > /hi.txt)`},
+			expectedCmd: []string{
+				"-T",
+				"-o", `ConnectTimeout=30 $(echo hi > /hi.txt)`,
+				"--", "example.com",
+				"docker system dial-stdio",
+			},
+		},
+		{
+			doc: "bad username",
+			url: `ssh://$(shutdown)me@example.com`,
+			expectedCmd: []string{
+				"-l", `'$(shutdown)me'`,
+				"--", "example.com",
+				"docker system dial-stdio",
+			},
+		},
+		{
+			doc: "bad hostname",
+			url: `ssh://$(shutdown)example.com`,
+			expectedCmd: []string{
+				"--", `'$(shutdown)example.com'`,
+				"docker system dial-stdio",
+			},
+		},
+		{
+			doc: "bad path",
+			url: `ssh://example.com/var/run/docker.sock '$(echo hello > /hello.txt)'`,
+			expectedCmd: []string{
+				"--", "example.com",
+				`docker "--host=unix:///var/run/docker.sock '\$(echo hello > /hello.txt)'" system dial-stdio`,
+			},
+		},
+		{
+			doc:           "missing command",
+			url:           "ssh://example.com",
+			customCmd:     []string{},
+			expectedError: "no remote command specified",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.doc, func(t *testing.T) {
+			sp, err := ParseURL(tc.url)
+			assert.NilError(t, err)
+
+			var commandAndArgs []string
+			if tc.customCmd == nil {
+				socketPath := sp.Path
+				commandAndArgs = []string{"docker", "system", "dial-stdio"}
+				if strings.Trim(socketPath, "/") != "" {
+					commandAndArgs = []string{"docker", "--host=unix://" + socketPath, "system", "dial-stdio"}
+				}
+			}
+
+			actualCmd, err := sp.Command(tc.sshFlags, commandAndArgs...)
+			if tc.expectedError == "" {
+				assert.NilError(t, err)
+				assert.Check(t, is.DeepEqual(actualCmd, tc.expectedCmd), "%+#v", actualCmd)
+			} else {
+				assert.Check(t, is.Error(err, tc.expectedError))
+				assert.Check(t, is.Nil(actualCmd))
 			}
 		})
 	}
