@@ -37,12 +37,9 @@ func (e errCtxSignalTerminated) Error() string {
 }
 
 func main() {
-	ctx := context.Background()
-	err := dockerMain(ctx)
-
+	err := dockerMain(context.Background())
 	if errors.As(err, &errCtxSignalTerminated{}) {
 		os.Exit(getExitCode(err))
-		return
 	}
 
 	if err != nil && !errdefs.IsCancelled(err) {

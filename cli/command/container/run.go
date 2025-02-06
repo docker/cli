@@ -324,6 +324,7 @@ func toStatusError(err error) error {
 
 	if strings.Contains(errMsg, "executable file not found") || strings.Contains(errMsg, "no such file or directory") || strings.Contains(errMsg, "system cannot find the file specified") {
 		return cli.StatusError{
+			Cause:      err,
 			Status:     withHelp(err, "run").Error(),
 			StatusCode: 127,
 		}
@@ -331,12 +332,14 @@ func toStatusError(err error) error {
 
 	if strings.Contains(errMsg, syscall.EACCES.Error()) || strings.Contains(errMsg, syscall.EISDIR.Error()) {
 		return cli.StatusError{
+			Cause:      err,
 			Status:     withHelp(err, "run").Error(),
 			StatusCode: 126,
 		}
 	}
 
 	return cli.StatusError{
+		Cause:      err,
 		Status:     withHelp(err, "run").Error(),
 		StatusCode: 125,
 	}
