@@ -123,7 +123,8 @@ func TestNewAPIClientFromFlagsWithCustomHeadersFromEnv(t *testing.T) {
 }
 
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
-	customVersion := "v3.3.3"
+	const customVersion = "v3.3.3"
+	const expectedVersion = "3.3.3"
 	t.Setenv("DOCKER_API_VERSION", customVersion)
 	t.Setenv("DOCKER_HOST", ":2375")
 
@@ -131,7 +132,7 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	configFile := &configfile.ConfigFile{}
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
-	assert.Equal(t, apiclient.ClientVersion(), customVersion)
+	assert.Equal(t, apiclient.ClientVersion(), expectedVersion)
 }
 
 type fakeClient struct {

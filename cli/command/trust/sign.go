@@ -140,7 +140,7 @@ func validateTag(imgRefAndAuth trust.ImageRefAndAuth) error {
 }
 
 func checkLocalImageExistence(ctx context.Context, apiClient client.APIClient, imageName string) error {
-	_, _, err := apiClient.ImageInspectWithRaw(ctx, imageName)
+	_, err := apiClient.ImageInspect(ctx, imageName)
 	return err
 }
 

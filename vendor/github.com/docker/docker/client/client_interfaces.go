@@ -20,17 +20,23 @@ import (
 )
 
 // CommonAPIClient is the common methods between stable and experimental versions of APIClient.
-type CommonAPIClient interface {
+//
+// Deprecated: use [APIClient] instead. This type will be an alias for [APIClient] in the next release, and removed after.
+type CommonAPIClient = stableAPIClient
+
+// APIClient is an interface that clients that talk with a docker server must implement.
+type APIClient interface {
+	stableAPIClient
+	CheckpointAPIClient // CheckpointAPIClient is still experimental.
+}
+
+type stableAPIClient interface {
 	ConfigAPIClient
 	ContainerAPIClient
 	DistributionAPIClient
 	ImageAPIClient
-	NodeAPIClient
 	NetworkAPIClient
 	PluginAPIClient
-	ServiceAPIClient
-	SwarmAPIClient
-	SecretAPIClient
 	SystemAPIClient
 	VolumeAPIClient
 	ClientVersion() string
@@ -39,9 +45,25 @@ type CommonAPIClient interface {
 	ServerVersion(ctx context.Context) (types.Version, error)
 	NegotiateAPIVersion(ctx context.Context)
 	NegotiateAPIVersionPing(types.Ping)
-	DialHijack(ctx context.Context, url, proto string, meta map[string][]string) (net.Conn, error)
+	HijackDialer
 	Dialer() func(context.Context) (net.Conn, error)
 	Close() error
+	SwarmManagementAPIClient
+}
+
+// SwarmManagementAPIClient defines all methods for managing Swarm-specific
+// objects.
+type SwarmManagementAPIClient interface {
+	SwarmAPIClient
+	NodeAPIClient
+	ServiceAPIClient
+	SecretAPIClient
+	ConfigAPIClient
+}
+
+// HijackDialer defines methods for a hijack dialer.
+type HijackDialer interface {
+	DialHijack(ctx context.Context, url, proto string, meta map[string][]string) (net.Conn, error)
 }
 
 // ContainerAPIClient defines API client methods for the containers
@@ -93,7 +115,10 @@ type ImageAPIClient interface {
 	ImageCreate(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error)
 	ImageHistory(ctx context.Context, image string, opts image.HistoryOptions) ([]image.HistoryResponseItem, error)
 	ImageImport(ctx context.Context, source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
+	// Deprecated: Use [Client.ImageInspect] instead.
+	// Raw response can be obtained by [ImageInspectWithRawResponse] option.
 	ImageInspectWithRaw(ctx context.Context, image string) (image.InspectResponse, []byte, error)
+	ImageInspect(ctx context.Context, image string, _ ...ImageInspectOption) (image.InspectResponse, error)
 	ImageList(ctx context.Context, options image.ListOptions) ([]image.Summary, error)
 	ImageLoad(ctx context.Context, input io.Reader, opts image.LoadOptions) (image.LoadResponse, error)
 	ImagePull(ctx context.Context, ref string, options image.PullOptions) (io.ReadCloser, error)

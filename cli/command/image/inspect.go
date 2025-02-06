@@ -4,6 +4,7 @@
 package image
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/docker/cli/cli"
@@ -11,6 +12,8 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +45,11 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
 	apiClient := dockerCLI.Client()
 	return inspect.Inspect(dockerCLI.Out(), opts.refs, opts.format, func(ref string) (any, []byte, error) {
-		return apiClient.ImageInspectWithRaw(ctx, ref)
+		var buf bytes.Buffer
+		resp, err := apiClient.ImageInspect(ctx, ref, client.ImageInspectWithRawResponse(&buf))
+		if err != nil {
+			return image.InspectResponse{}, nil, err
+		}
+		return resp, buf.Bytes(), err
 	})
 }
