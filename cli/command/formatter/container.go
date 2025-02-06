@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.Platform}}"
 
 	namesHeader      = "NAMES"
 	commandHeader    = "COMMAND"
@@ -26,6 +26,7 @@ const (
 	mountsHeader     = "MOUNTS"
 	localVolumes     = "LOCAL VOLUMES"
 	networksHeader   = "NETWORKS"
+	platformHeader   = "PLATFORM"
 )
 
 // NewContainerFormat returns a Format for rendering using a Context
@@ -45,7 +46,8 @@ func NewContainerFormat(source string, quiet bool, size bool) Format {
 			return `container_id: {{.ID}}`
 		}
 		format := `container_id: {{.ID}}
-image: {{.Image}}
+image: {{.Image}}{{with .Platform}}
+platform: {{.Platform}}{{end}}
 command: {{.Command}}
 created_at: {{.CreatedAt}}
 state: {{- pad .State 1 0}}
@@ -111,6 +113,7 @@ func NewContainerContext() *ContainerContext {
 		"Mounts":       mountsHeader,
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
+		"Platform":     platformHeader,
 	}
 	return &containerCtx
 }
@@ -208,6 +211,15 @@ func (c *ContainerContext) CreatedAt() string {
 func (c *ContainerContext) RunningFor() string {
 	createdAt := time.Unix(c.c.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
+}
+
+// Platform returns a human-readable representation of the platform
+// of the container if it is available.
+func (c *ContainerContext) Platform() *container.ImagePlatform {
+	if c.c.Platform != nil {
+		return c.c.Platform
+	}
+	return &container.ImagePlatform{}
 }
 
 // Ports returns a comma-separated string representing open ports of the container
