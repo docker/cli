@@ -11,7 +11,7 @@ ENV GOTOOLCHAIN=local
 ENV CGO_ENABLED=0
 
 FROM golang AS gofumpt
-ARG GOFUMPT_VERSION=v0.6.0
+ARG GOFUMPT_VERSION=v0.7.0
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
