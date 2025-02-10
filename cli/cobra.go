@@ -518,4 +518,4 @@ Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 `
 
 const helpTemplate = `
-{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
+{{- if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
