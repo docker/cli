@@ -18,7 +18,7 @@ type fakeClient struct {
 	client.Client
 	inspectFunc         func(string) (container.InspectResponse, error)
 	execInspectFunc     func(execID string) (container.ExecInspect, error)
-	execCreateFunc      func(containerID string, options container.ExecOptions) (types.IDResponse, error)
+	execCreateFunc      func(containerID string, options container.ExecOptions) (container.ExecCreateResponse, error)
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
@@ -42,7 +42,7 @@ type fakeClient struct {
 	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
 	containerDiffFunc       func(ctx context.Context, containerID string) ([]container.FilesystemChange, error)
 	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
-	containerCommitFunc     func(ctx context.Context, container string, options container.CommitOptions) (types.IDResponse, error)
+	containerCommitFunc     func(ctx context.Context, container string, options container.CommitOptions) (container.CommitResponse, error)
 	containerPauseFunc      func(ctx context.Context, container string) error
 	Version                 string
 }
@@ -61,11 +61,11 @@ func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (co
 	return container.InspectResponse{}, nil
 }
 
-func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config container.ExecOptions) (types.IDResponse, error) {
+func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config container.ExecOptions) (container.ExecCreateResponse, error) {
 	if f.execCreateFunc != nil {
 		return f.execCreateFunc(containerID, config)
 	}
-	return types.IDResponse{}, nil
+	return container.ExecCreateResponse{}, nil
 }
 
 func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (container.ExecInspect, error) {
@@ -218,11 +218,11 @@ func (f *fakeClient) ContainerRename(ctx context.Context, oldName, newName strin
 	return nil
 }
 
-func (f *fakeClient) ContainerCommit(ctx context.Context, containerID string, options container.CommitOptions) (types.IDResponse, error) {
+func (f *fakeClient) ContainerCommit(ctx context.Context, containerID string, options container.CommitOptions) (container.CommitResponse, error) {
 	if f.containerCommitFunc != nil {
 		return f.containerCommitFunc(ctx, containerID, options)
 	}
-	return types.IDResponse{}, nil
+	return container.CommitResponse{}, nil
 }
 
 func (f *fakeClient) ContainerPause(ctx context.Context, containerID string) error {

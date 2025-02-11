@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -208,8 +207,8 @@ func TestRunExec(t *testing.T) {
 	}
 }
 
-func execCreateWithID(_ string, _ container.ExecOptions) (types.IDResponse, error) {
-	return types.IDResponse{ID: "execid"}, nil
+func execCreateWithID(_ string, _ container.ExecOptions) (container.ExecCreateResponse, error) {
+	return container.ExecCreateResponse{ID: "execid"}, nil
 }
 
 func TestGetExecExitStatus(t *testing.T) {

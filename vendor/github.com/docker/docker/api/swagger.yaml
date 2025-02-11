@@ -2754,12 +2754,24 @@ definitions:
         type: "string"
       error:
         type: "string"
+        x-nullable: true
+        description: |-
+          errors encountered during the operation.
+
+
+          > **Deprecated**: This field is deprecated since API v1.4, and will be omitted in a future API version. Use the information in errorDetail instead.
       errorDetail:
         $ref: "#/definitions/ErrorDetail"
       status:
         type: "string"
       progress:
         type: "string"
+        x-nullable: true
+        description: |-
+          Progress is a pre-formatted presentation of progressDetail.
+
+
+          > **Deprecated**: This field is deprecated since API v1.8, and will be omitted in a future API version. Use the information in progressDetail instead.
       progressDetail:
         $ref: "#/definitions/ProgressDetail"
       aux:
@@ -2859,12 +2871,24 @@ definitions:
         type: "string"
       error:
         type: "string"
+        x-nullable: true
+        description: |-
+          errors encountered during the operation.
+
+
+          > **Deprecated**: This field is deprecated since API v1.4, and will be omitted in a future API version. Use the information in errorDetail instead.
       errorDetail:
         $ref: "#/definitions/ErrorDetail"
       status:
         type: "string"
       progress:
         type: "string"
+        x-nullable: true
+        description: |-
+          Progress is a pre-formatted presentation of progressDetail.
+
+
+          > **Deprecated**: This field is deprecated since API v1.8, and will be omitted in a future API version. Use the information in progressDetail instead.
       progressDetail:
         $ref: "#/definitions/ProgressDetail"
 
@@ -2873,10 +2897,24 @@ definitions:
     properties:
       error:
         type: "string"
+        x-nullable: true
+        description: |-
+          errors encountered during the operation.
+
+
+          > **Deprecated**: This field is deprecated since API v1.4, and will be omitted in a future API version. Use the information in errorDetail instead.
+      errorDetail:
+        $ref: "#/definitions/ErrorDetail"
       status:
         type: "string"
       progress:
         type: "string"
+        x-nullable: true
+        description: |-
+          Progress is a pre-formatted presentation of progressDetail.
+
+
+          > **Deprecated**: This field is deprecated since API v1.8, and will be omitted in a future API version. Use the information in progressDetail instead.
       progressDetail:
         $ref: "#/definitions/ProgressDetail"
 
@@ -2908,9 +2946,10 @@ definitions:
     example:
       message: "Something went wrong."
 
-  IdResponse:
+  IDResponse:
     description: "Response to an API call that returns just an Id"
     type: "object"
+    x-go-name: "IDResponse"
     required: ["Id"]
     properties:
       Id:
@@ -5326,6 +5365,21 @@ definitions:
           type: "string"
         example: []
 
+  ContainerUpdateResponse:
+    type: "object"
+    title: "ContainerUpdateResponse"
+    x-go-name: "UpdateResponse"
+    description: |-
+      Response for a successful container-update.
+    properties:
+      Warnings:
+        type: "array"
+        description: |-
+          Warnings encountered when updating the container.
+        items:
+          type: "string"
+        example: ["Published ports are discarded when using host network mode"]
+
   ContainerStatsResponse:
     description: |
       Statistics sample for a container.
@@ -5870,6 +5924,58 @@ definitions:
         format: "uint64"
         x-nullable: true
         example: 7593984
+
+  ContainerTopResponse:
+    type: "object"
+    x-go-name: "TopResponse"
+    title: "ContainerTopResponse"
+    description: |-
+      Container "top" response.
+    properties:
+      Titles:
+        description: "The ps column titles"
+        type: "array"
+        items:
+          type: "string"
+        example:
+          Titles:
+            - "UID"
+            - "PID"
+            - "PPID"
+            - "C"
+            - "STIME"
+            - "TTY"
+            - "TIME"
+            - "CMD"
+      Processes:
+        description: |-
+          Each process running in the container, where each process
+          is an array of values corresponding to the titles.
+        type: "array"
+        items:
+          type: "array"
+          items:
+            type: "string"
+        example:
+          Processes:
+            -
+              - "root"
+              - "13642"
+              - "882"
+              - "0"
+              - "17:03"
+              - "pts/0"
+              - "00:00:00"
+              - "/bin/bash"
+            -
+              - "root"
+              - "13735"
+              - "13642"
+              - "0"
+              - "17:06"
+              - "pts/0"
+              - "00:00:00"
+              - "sleep 10"
 
   ContainerWaitResponse:
     description: "OK response to ContainerWait operation"
@@ -8072,54 +8178,7 @@ paths:
         200:
           description: "no error"
           schema:
-            type: "object"
-            title: "ContainerTopResponse"
-            description: "OK response to ContainerTop operation"
-            properties:
-              Titles:
-                description: "The ps column titles"
-                type: "array"
-                items:
-                  type: "string"
-              Processes:
-                description: |
-                  Each process running in the container, where each is process
-                  is an array of values corresponding to the titles.
-                type: "array"
-                items:
-                  type: "array"
-                  items:
-                    type: "string"
-          examples:
-            application/json:
-              Titles:
-                - "UID"
-                - "PID"
-                - "PPID"
-                - "C"
-                - "STIME"
-                - "TTY"
-                - "TIME"
-                - "CMD"
-              Processes:
-                -
-                  - "root"
-                  - "13642"
-                  - "882"
-                  - "0"
-                  - "17:03"
-                  - "pts/0"
-                  - "00:00:00"
-                  - "/bin/bash"
-                -
-                  - "root"
-                  - "13735"
-                  - "13642"
-                  - "0"
-                  - "17:06"
-                  - "pts/0"
-                  - "00:00:00"
-                  - "sleep 10"
+            $ref: "#/definitions/ContainerTopResponse"
         404:
           description: "no such container"
           schema:
@@ -8560,14 +8619,7 @@ paths:
         200:
           description: "The container has been updated."
           schema:
-            type: "object"
-            title: "ContainerUpdateResponse"
-            description: "OK response to ContainerUpdate operation"
-            properties:
-              Warnings:
-                type: "array"
-                items:
-                  type: "string"
+            $ref: "#/definitions/ContainerUpdateResponse"
         404:
           description: "no such container"
           schema:
@@ -10220,7 +10272,7 @@ paths:
         201:
           description: "no error"
           schema:
-            $ref: "#/definitions/IdResponse"
+            $ref: "#/definitions/IDResponse"
         404:
           description: "no such container"
           schema:
@@ -10614,7 +10666,7 @@ paths:
         201:
           description: "no error"
           schema:
-            $ref: "#/definitions/IdResponse"
+            $ref: "#/definitions/IDResponse"
         404:
           description: "no such container"
           schema:
@@ -13094,7 +13146,7 @@ paths:
         201:
           description: "no error"
           schema:
-            $ref: "#/definitions/IdResponse"
+            $ref: "#/definitions/IDResponse"
         409:
           description: "name conflicts with an existing object"
           schema:
@@ -13301,7 +13353,7 @@ paths:
         201:
           description: "no error"
           schema:
-            $ref: "#/definitions/IdResponse"
+            $ref: "#/definitions/IDResponse"
         409:
           description: "name conflicts with an existing object"
           schema:

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -17,16 +16,16 @@ func TestRunCommit(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		containerCommitFunc: func(
 			ctx context.Context,
-			container string,
+			ctr string,
 			options container.CommitOptions,
-		) (types.IDResponse, error) {
+		) (container.CommitResponse, error) {
 			assert.Check(t, is.Equal(options.Author, "Author Name <author@name.com>"))
 			assert.Check(t, is.DeepEqual(options.Changes, []string{"EXPOSE 80"}))
 			assert.Check(t, is.Equal(options.Comment, "commit message"))
 			assert.Check(t, is.Equal(options.Pause, false))
-			assert.Check(t, is.Equal(container, "container-id"))
+			assert.Check(t, is.Equal(ctr, "container-id"))
 
-			return types.IDResponse{ID: "image-id"}, nil
+			return container.CommitResponse{ID: "image-id"}, nil
 		},
 	})
 
@@ -54,10 +53,10 @@ func TestRunCommitClientError(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		containerCommitFunc: func(
 			ctx context.Context,
-			container string,
+			ctr string,
 			options container.CommitOptions,
-		) (types.IDResponse, error) {
-			return types.IDResponse{}, clientError
+		) (container.CommitResponse, error) {
+			return container.CommitResponse{}, clientError
 		},
 	})
 
