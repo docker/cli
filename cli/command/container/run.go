@@ -43,7 +43,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: completion.ImageNames(dockerCli, 1),
 		Annotations: map[string]string{
 			"category-top": "1",
 			"aliases":      "docker container run, docker run",

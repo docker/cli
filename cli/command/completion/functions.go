@@ -27,8 +27,11 @@ type APIClientProvider interface {
 }
 
 // ImageNames offers completion for images present within the local store
-func ImageNames(dockerCLI APIClientProvider) ValidArgsFn {
+func ImageNames(dockerCLI APIClientProvider, limit int) ValidArgsFn {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if limit > 0 && len(args) >= limit {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
 		list, err := dockerCLI.Client().ImageList(cmd.Context(), image.ListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError

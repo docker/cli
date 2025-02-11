@@ -234,7 +234,7 @@ func TestCompleteImageNames(t *testing.T) {
 					}
 					return tc.images, nil
 				},
-			}})
+			}}, -1)
 
 			volumes, directives := comp(&cobra.Command{}, nil, "")
 			assert.Check(t, is.Equal(directives&tc.expDirective, tc.expDirective))
