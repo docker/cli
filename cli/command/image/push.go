@@ -51,7 +51,7 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 			"category-top": "6",
 			"aliases":      "docker image push, docker push",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: completion.ImageNames(dockerCli, 1),
 	}
 
 	flags := cmd.Flags()

@@ -29,7 +29,7 @@ func NewRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(cmd.Context(), dockerCli, opts, args)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
 		Annotations: map[string]string{
 			"aliases": "docker image rm, docker image remove, docker rmi",
 		},

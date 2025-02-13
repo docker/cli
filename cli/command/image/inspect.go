@@ -34,7 +34,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.refs = args
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
 	}
 
 	flags := cmd.Flags()
