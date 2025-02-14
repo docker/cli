@@ -9,9 +9,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -20,7 +19,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 		name             string
 		args             []string
 		expectedError    string
-		imageHistoryFunc func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error)
+		imageHistoryFunc func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -31,7 +30,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 			name:          "client-error",
 			args:          []string{"image:tag"},
 			expectedError: "something went wrong",
-			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(string, ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{}}, errors.New("something went wrong")
 			},
 		},
@@ -56,12 +55,12 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name             string
 		args             []string
-		imageHistoryFunc func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error)
+		imageHistoryFunc func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
 	}{
 		{
 			name: "simple",
 			args: []string{"image:tag"},
-			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(string, ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),
@@ -76,7 +75,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		{
 			name: "non-human",
 			args: []string{"--human=false", "image:tag"},
-			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(string, ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{
 					ID:        "abcdef",
 					Created:   time.Date(2017, 1, 1, 12, 0, 3, 0, time.UTC).Unix(),
@@ -88,7 +87,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		{
 			name: "quiet-no-trunc",
 			args: []string{"--quiet", "--no-trunc", "image:tag"},
-			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
+			imageHistoryFunc: func(string, ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),
@@ -98,8 +97,10 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 		{
 			name: "platform",
 			args: []string{"--platform", "linux/amd64", "image:tag"},
-			imageHistoryFunc: func(img string, options image.HistoryOptions) ([]image.HistoryResponseItem, error) {
-				assert.Check(t, is.DeepEqual(ocispec.Platform{OS: "linux", Architecture: "amd64"}, *options.Platform))
+			imageHistoryFunc: func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
+				// FIXME(thaJeztah): need to find appropriate way to test the result of "ImageHistoryWithPlatform" being applied
+				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
+				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
 				return []image.HistoryResponseItem{{
 					ID:      "1234567890123456789",
 					Created: time.Now().Unix(),

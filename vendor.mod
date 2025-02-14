@@ -13,7 +13,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.9.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.0.0-rc.1.0.20250211164921-b570831cc3a3+incompatible // master (v28.0.0-rc.2)
+	github.com/docker/docker v28.0.0-rc.1.0.20250214181517-5cc3f1dab895+incompatible // master (v28.0.0-rc.2)
 	github.com/docker/docker-credential-helpers v0.8.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -49,7 +49,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.31.0
 	go.opentelemetry.io/otel/trace v1.31.0
 	golang.org/x/sync v0.10.0
-	golang.org/x/sys v0.28.0
+	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.27.0
 	golang.org/x/text v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
