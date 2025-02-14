@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/internal/jsonstream"
-	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -68,9 +68,9 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		return errors.Errorf("requested load from stdin, but stdin is empty")
 	}
 
-	var options image.LoadOptions
+	var options []client.ImageLoadOption
 	if opts.quiet || !dockerCli.Out().IsTerminal() {
-		options.Quiet = true
+		options = append(options, client.ImageLoadWithQuiet(true))
 	}
 
 	if opts.platform != "" {
@@ -79,10 +79,10 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 			return errors.Wrap(err, "invalid platform")
 		}
 		// TODO(thaJeztah): change flag-type to support multiple platforms.
-		options.Platforms = append(options.Platforms, p)
+		options = append(options, client.ImageLoadWithPlatforms(p))
 	}
 
-	response, err := dockerCli.Client().ImageLoad(ctx, input, options)
+	response, err := dockerCli.Client().ImageLoad(ctx, input, options...)
 	if err != nil {
 		return err
 	}

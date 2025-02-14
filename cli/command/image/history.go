@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -56,16 +56,16 @@ func NewHistoryCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runHistory(ctx context.Context, dockerCli command.Cli, opts historyOptions) error {
-	var options image.HistoryOptions
+	var options []client.ImageHistoryOption
 	if opts.platform != "" {
 		p, err := platforms.Parse(opts.platform)
 		if err != nil {
 			return errors.Wrap(err, "invalid platform")
 		}
-		options.Platform = &p
+		options = append(options, client.ImageHistoryWithPlatform(p))
 	}
 
-	history, err := dockerCli.Client().ImageHistory(ctx, opts.image, options)
+	history, err := dockerCli.Client().ImageHistory(ctx, opts.image, options...)
 	if err != nil {
 		return err
 	}

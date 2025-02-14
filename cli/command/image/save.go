@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -57,17 +57,17 @@ func RunSave(ctx context.Context, dockerCli command.Cli, opts saveOptions) error
 		return errors.Wrap(err, "failed to save image")
 	}
 
-	var options image.SaveOptions
+	var options []client.ImageSaveOption
 	if opts.platform != "" {
 		p, err := platforms.Parse(opts.platform)
 		if err != nil {
 			return errors.Wrap(err, "invalid platform")
 		}
 		// TODO(thaJeztah): change flag-type to support multiple platforms.
-		options.Platforms = append(options.Platforms, p)
+		options = append(options, client.ImageSaveWithPlatforms(p))
 	}
 
-	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images, options)
+	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images, options...)
 	if err != nil {
 		return err
 	}
