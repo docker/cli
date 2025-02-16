@@ -15,7 +15,7 @@ import (
 )
 
 // ValidArgsFn a function to be used by cobra command as `ValidArgsFunction` to offer command line completion
-type ValidArgsFn func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective)
+type ValidArgsFn = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective)
 
 // APIClientProvider provides a method to get an [client.APIClient], initializing
 // it if needed.
