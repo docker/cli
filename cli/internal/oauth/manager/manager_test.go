@@ -346,7 +346,7 @@ type fakeStore struct {
 	configs map[string]types.AuthConfig
 }
 
-func (f *fakeStore) Save() error {
+func (*fakeStore) Save() error {
 	return nil
 }
 
@@ -354,7 +354,7 @@ func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
 	return f.configs
 }
 
-func (f *fakeStore) GetFilename() string {
+func (*fakeStore) GetFilename() string {
 	return "/tmp/docker-fakestore"
 }
 
