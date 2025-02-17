@@ -67,6 +67,7 @@ func handleVolumeToMount(
 
 	if volume.Volume != nil {
 		result.VolumeOptions.NoCopy = volume.Volume.NoCopy
+		result.VolumeOptions.Subpath = volume.Volume.Subpath
 	}
 
 	if stackVolume.Name != "" {
