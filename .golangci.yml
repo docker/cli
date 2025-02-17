@@ -15,7 +15,6 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - lll
     - misspell      # Detects commonly misspelled English words in comments.
     - nakedret
     - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
@@ -98,6 +97,11 @@ linters-settings:
       - name: import-shadowing
         severity: warning
         disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
+      - name: line-length-limit
+        severity: warning
+        disabled: false
+        arguments: [200]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
       - name: unused-receiver
         severity: warning
