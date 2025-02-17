@@ -413,6 +413,9 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 
 	if copts.entrypoint != "" {
 		entrypoint = strslice.StrSlice{copts.entrypoint}
+		if entrypoint.UnmarshalJSON([]byte(copts.entrypoint)) != nil {
+			entrypoint = strslice.StrSlice{copts.entrypoint}
+		}
 	} else if flags.Changed("entrypoint") {
 		// if `--entrypoint=` is parsed then Entrypoint is reset
 		entrypoint = []string{""}
