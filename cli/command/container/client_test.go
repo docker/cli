@@ -75,7 +75,7 @@ func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (con
 	return container.ExecInspect{}, nil
 }
 
-func (f *fakeClient) ContainerExecStart(context.Context, string, container.ExecStartOptions) error {
+func (*fakeClient) ContainerExecStart(context.Context, string, container.ExecStartOptions) error {
 	return nil
 }
 
