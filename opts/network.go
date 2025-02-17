@@ -106,7 +106,7 @@ func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 }
 
 // Type returns the type of this option
-func (n *NetworkOpt) Type() string {
+func (*NetworkOpt) Type() string {
 	return "network"
 }
 
@@ -116,7 +116,7 @@ func (n *NetworkOpt) Value() []NetworkAttachmentOpts {
 }
 
 // String returns the network opts as a string
-func (n *NetworkOpt) String() string {
+func (*NetworkOpt) String() string {
 	return ""
 }
 

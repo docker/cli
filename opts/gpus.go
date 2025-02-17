@@ -92,7 +92,7 @@ func (o *GpuOpts) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (o *GpuOpts) Type() string {
+func (*GpuOpts) Type() string {
 	return "gpu-request"
 }
 

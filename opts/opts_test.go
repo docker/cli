@@ -190,7 +190,6 @@ func TestListOptsWithValidator(t *testing.T) {
 	}
 }
 
-//nolint:lll
 func TestValidateDNSSearch(t *testing.T) {
 	valid := []string{
 		`.`,
@@ -232,7 +231,11 @@ func TestValidateDNSSearch(t *testing.T) {
 		`foo.bar-.baz`,
 		`foo.-bar`,
 		`foo.-bar.baz`,
-		`foo.bar.baz.this.should.fail.on.long.name.because.it.is.longer.thanisshouldbethis.should.fail.on.long.name.because.it.is.longer.thanisshouldbethis.should.fail.on.long.name.because.it.is.longer.thanisshouldbethis.should.fail.on.long.name.because.it.is.longer.thanisshouldbe`,
+		`foo.bar.baz.` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe`,
 	}
 
 	for _, domain := range valid {

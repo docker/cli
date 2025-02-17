@@ -121,7 +121,7 @@ func (p *PortOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (p *PortOpt) Type() string {
+func (*PortOpt) Type() string {
 	return "port"
 }
 
