@@ -32,7 +32,7 @@ const (
 // errPluginNotFound is the error returned when a plugin could not be found.
 type errPluginNotFound string
 
-func (e errPluginNotFound) NotFound() {}
+func (errPluginNotFound) NotFound() {}
 
 func (e errPluginNotFound) Error() string {
 	return "Error: No such CLI plugin: " + string(e)
