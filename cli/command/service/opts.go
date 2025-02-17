@@ -42,7 +42,7 @@ func (i *Uint64Opt) Set(s string) error {
 }
 
 // Type returns the type of this option, which will be displayed in `--help` output
-func (i *Uint64Opt) Type() string {
+func (*Uint64Opt) Type() string {
 	return "uint"
 }
 
@@ -67,7 +67,7 @@ func (f *floatValue) Set(s string) error {
 	return err
 }
 
-func (f *floatValue) Type() string {
+func (*floatValue) Type() string {
 	return "float"
 }
 
@@ -114,7 +114,7 @@ func (o *placementPrefOpts) Set(value string) error {
 }
 
 // Type returns a string name for this Option type
-func (o *placementPrefOpts) Type() string {
+func (*placementPrefOpts) Type() string {
 	return "pref"
 }
 
@@ -132,7 +132,7 @@ func (s *ShlexOpt) Set(value string) error {
 }
 
 // Type returns the type of the value
-func (s *ShlexOpt) Type() string {
+func (*ShlexOpt) Type() string {
 	return "command"
 }
 
@@ -363,7 +363,7 @@ func (c *credentialSpecOpt) Set(value string) error {
 	return nil
 }
 
-func (c *credentialSpecOpt) Type() string {
+func (*credentialSpecOpt) Type() string {
 	return "credential-spec"
 }
 

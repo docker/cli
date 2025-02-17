@@ -265,7 +265,7 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 	// and then create a context from the details
 	// this removes the context-specific details from the details map, so we
 	// can more easily print the details later
-	logCtx, err := lw.parseContext(details)
+	logCtx, err := parseContext(details)
 	if err != nil {
 		return 0, err
 	}
@@ -317,7 +317,7 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 }
 
 // parseContext returns a log context and REMOVES the context from the details map
-func (lw *logWriter) parseContext(details map[string]string) (logContext, error) {
+func parseContext(details map[string]string) (logContext, error) {
 	nodeID, ok := details["com.docker.swarm.node.id"]
 	if !ok {
 		return logContext{}, errors.Errorf("missing node id in details: %v", details)
