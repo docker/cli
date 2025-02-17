@@ -144,7 +144,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 }
 
 // completeCgroupns implements shell completion for the `--cgroupns` option of `run` and `create`.
-func completeCgroupns() completion.ValidArgsFn {
+func completeCgroupns() cobra.CompletionFunc {
 	return completion.FromList(string(container.CgroupnsModeHost), string(container.CgroupnsModePrivate))
 }
 
@@ -155,7 +155,7 @@ func completeDetachKeys(_ *cobra.Command, _ []string, _ string) ([]string, cobra
 
 // completeIpc implements shell completion for the `--ipc` option of `run` and `create`.
 // The completion is partly composite.
-func completeIpc(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func completeIpc(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(toComplete) > 0 && strings.HasPrefix("container", toComplete) { //nolint:gocritic // not swapped, matches partly typed "container"
 			return []string{"container:"}, cobra.ShellCompDirectiveNoSpace
@@ -175,7 +175,7 @@ func completeIpc(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command
 }
 
 // completeLink implements shell completion for the `--link` option  of `run` and `create`.
-func completeLink(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func completeLink(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return postfixWith(":", containerNames(dockerCLI, cmd, args, toComplete)), cobra.ShellCompDirectiveNoSpace
 	}
@@ -184,7 +184,7 @@ func completeLink(dockerCLI completion.APIClientProvider) func(cmd *cobra.Comman
 // completeLogDriver implements shell completion for the `--log-driver` option  of `run` and `create`.
 // The log drivers are collected from a call to the Info endpoint with a fallback to a hard-coded list
 // of the build-in log drivers.
-func completeLogDriver(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+func completeLogDriver(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		info, err := dockerCLI.Client().Info(cmd.Context())
 		if err != nil {
@@ -206,7 +206,7 @@ func completeLogOpt(cmd *cobra.Command, _ []string, _ string) ([]string, cobra.S
 }
 
 // completePid implements shell completion for the `--pid` option  of `run` and `create`.
-func completePid(dockerCLI completion.APIClientProvider) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func completePid(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(toComplete) > 0 && strings.HasPrefix("container", toComplete) { //nolint:gocritic // not swapped, matches partly typed "container"
 			return []string{"container:"}, cobra.ShellCompDirectiveNoSpace
@@ -277,7 +277,7 @@ func completeUlimit(_ *cobra.Command, _ []string, _ string) ([]string, cobra.She
 }
 
 // completeVolumeDriver contacts the API to get the built-in and installed volume drivers.
-func completeVolumeDriver(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+func completeVolumeDriver(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 		info, err := dockerCLI.Client().Info(cmd.Context())
 		if err != nil {

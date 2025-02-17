@@ -85,7 +85,7 @@ var (
 )
 
 // completeEventFilters provides completion for the filters that can be used with `--filter`.
-func completeEventFilters(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+func completeEventFilters(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		key, _, ok := strings.Cut(toComplete, "=")
 		if !ok {
