@@ -410,7 +410,8 @@ type ServiceVolumeBind struct {
 
 // ServiceVolumeVolume are options for a service volume of type volume
 type ServiceVolumeVolume struct {
-	NoCopy bool `mapstructure:"nocopy" yaml:"nocopy,omitempty" json:"nocopy,omitempty"`
+	NoCopy  bool   `mapstructure:"nocopy" yaml:"nocopy,omitempty" json:"nocopy,omitempty"`
+	Subpath string `mapstructure:"subpath" yaml:"subpath,omitempty" json:"subpath,omitempty"`
 }
 
 // ServiceVolumeImage are options for a service volume of type image
