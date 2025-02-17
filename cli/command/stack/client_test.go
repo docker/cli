@@ -44,7 +44,7 @@ type fakeClient struct {
 	configRemoveFunc  func(configID string) error
 }
 
-func (cli *fakeClient) ServerVersion(context.Context) (types.Version, error) {
+func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
 		APIVersion: api.DefaultVersion,
@@ -180,7 +180,7 @@ func (cli *fakeClient) ConfigRemove(_ context.Context, configID string) error {
 	return nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (*fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ types.ServiceInspectOptions) (swarm.Service, []byte, error) {
 	return swarm.Service{
 		ID: serviceID,
 		Spec: swarm.ServiceSpec{

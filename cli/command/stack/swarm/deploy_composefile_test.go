@@ -14,7 +14,7 @@ type notFound struct {
 	error
 }
 
-func (n notFound) NotFound() {}
+func (notFound) NotFound() {}
 
 func TestValidateExternalNetworks(t *testing.T) {
 	testcases := []struct {
