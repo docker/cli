@@ -89,7 +89,7 @@ func (scs simpleCredentialStore) RefreshToken(*url.URL, string) string {
 	return scs.auth.IdentityToken
 }
 
-func (scs simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {}
+func (simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {}
 
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
