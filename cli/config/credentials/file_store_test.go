@@ -26,7 +26,7 @@ func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
 	return f.configs
 }
 
-func (f *fakeStore) GetFilename() string {
+func (*fakeStore) GetFilename() string {
 	return "no-config.json"
 }
 
