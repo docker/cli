@@ -107,9 +107,9 @@ func handleImageToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	if volume.Cluster != nil {
 		return mount.Mount{}, errors.New("cluster options are incompatible with type image")
 	}
-	if volume.Bind != nil {
-		result.BindOptions = &mount.BindOptions{
-			Propagation: mount.Propagation(volume.Bind.Propagation),
+	if volume.Image != nil {
+		result.ImageOptions = &mount.ImageOptions{
+			Subpath: volume.Image.Subpath,
 		}
 	}
 	return result, nil

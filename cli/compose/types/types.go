@@ -415,7 +415,7 @@ type ServiceVolumeVolume struct {
 
 // ServiceVolumeImage are options for a service volume of type image
 type ServiceVolumeImage struct {
-	Subpath bool `mapstructure:"subpath" yaml:"subpath,omitempty" json:"subpath,omitempty"`
+	Subpath string `mapstructure:"subpath" yaml:"subpath,omitempty" json:"subpath,omitempty"`
 }
 
 // ServiceVolumeTmpfs are options for a service volume of type tmpfs
