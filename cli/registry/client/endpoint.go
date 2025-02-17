@@ -123,6 +123,6 @@ func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string
 	return nil
 }
 
-func (th *existingTokenHandler) Scheme() string {
+func (*existingTokenHandler) Scheme() string {
 	return "bearer"
 }

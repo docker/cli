@@ -304,4 +304,4 @@ func (n *notFoundError) Error() string {
 }
 
 // NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
-func (n *notFoundError) NotFound() {}
+func (notFoundError) NotFound() {}
