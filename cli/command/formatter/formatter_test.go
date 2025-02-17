@@ -28,7 +28,7 @@ type fakeSubContext struct {
 	Name string
 }
 
-func (f fakeSubContext) FullHeader() any {
+func (fakeSubContext) FullHeader() any {
 	return map[string]string{"Name": "NAME"}
 }
 
