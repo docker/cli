@@ -107,8 +107,8 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedBy(t *testing.T) {
-	withTabs := `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62	&& echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` //nolint:lll
-	expected := `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62 && echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` //nolint:lll
+	const withTabs = `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62	&& echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` //nolint:lll,revive
+	const expected = `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62 && echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` //nolint:lll,revive
 
 	var ctx historyContext
 	cases := []historyCase{
@@ -138,8 +138,8 @@ func TestHistoryContext_CreatedBy(t *testing.T) {
 }
 
 func TestHistoryContext_Size(t *testing.T) {
-	size := int64(182964289)
-	expected := "183MB"
+	const size = int64(182964289)
+	const expected = "183MB"
 
 	var ctx historyContext
 	cases := []historyCase{
@@ -170,7 +170,7 @@ func TestHistoryContext_Size(t *testing.T) {
 }
 
 func TestHistoryContext_Comment(t *testing.T) {
-	comment := "Some comment"
+	const comment = "Some comment"
 
 	var ctx historyContext
 	cases := []historyCase{

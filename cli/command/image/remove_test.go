@@ -21,7 +21,7 @@ func (n notFound) Error() string {
 	return "Error: No such image: " + n.imageID
 }
 
-func (n notFound) NotFound() {}
+func (notFound) NotFound() {}
 
 func TestNewRemoveCommandAlias(t *testing.T) {
 	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
