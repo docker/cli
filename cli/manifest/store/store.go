@@ -44,7 +44,7 @@ func (s *fsStore) Get(listRef reference.Reference, manifest reference.Reference)
 	return s.getFromFilename(manifest, filename)
 }
 
-func (s *fsStore) getFromFilename(ref reference.Reference, filename string) (types.ImageManifest, error) {
+func (*fsStore) getFromFilename(ref reference.Reference, filename string) (types.ImageManifest, error) {
 	bytes, err := os.ReadFile(filename)
 	switch {
 	case os.IsNotExist(err):
@@ -165,7 +165,7 @@ func (n *notFoundError) Error() string {
 }
 
 // NotFound interface
-func (n *notFoundError) NotFound() {}
+func (*notFoundError) NotFound() {}
 
 // IsNotFound returns true if the error is a not found error
 func IsNotFound(err error) bool {
