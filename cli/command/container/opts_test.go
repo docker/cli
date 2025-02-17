@@ -1020,6 +1020,47 @@ func TestParseEntryPoint(t *testing.T) {
 	assert.Check(t, is.DeepEqual([]string(config.Entrypoint), []string{"anything"}))
 }
 
+func TestParseEntryPointSlice(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "nothing",
+			input:    "",
+			expected: nil,
+		},
+		{
+			name:     "empty list",
+			input:    "--entrypoint=[]",
+			expected: []string{},
+		},
+		{
+			name:     "empty string",
+			input:    "--entrypoint=",
+			expected: []string{""},
+		},
+		{
+			name:     "single",
+			input:    `--entrypoint=["something"]`,
+			expected: []string{"something"},
+		},
+		{
+			name:     "multiple",
+			input:    `--entrypoint=["sh","-c","echo foo bar"]`,
+			expected: []string{"sh", "-c", "echo foo bar"},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			config, _, _, err := parseRun([]string{tc.input})
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual([]string(config.Entrypoint), tc.expected))
+		})
+	}
+}
+
 func TestValidateDevice(t *testing.T) {
 	skip.If(t, runtime.GOOS != "linux") // Windows and macOS validate server-side
 	valid := []string{
