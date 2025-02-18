@@ -201,9 +201,10 @@ func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error
 	}
 }
 
-func resolveLocalPath(localPath string) (absPath string, err error) {
-	if absPath, err = filepath.Abs(localPath); err != nil {
-		return
+func resolveLocalPath(localPath string) (absPath string, _ error) {
+	absPath, err := filepath.Abs(localPath)
+	if err != nil {
+		return "", err
 	}
 	return archive.PreserveTrailingDotOrSeparator(absPath, localPath), nil
 }
