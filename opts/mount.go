@@ -100,7 +100,7 @@ func (m *MountOpt) Set(value string) error {
 			mount.Type = mounttypes.Type(strings.ToLower(val))
 		case "source", "src":
 			mount.Source = val
-			if strings.HasPrefix(val, "."+string(filepath.Separator)) || val == "." {
+			if !filepath.IsAbs(val) && strings.HasPrefix(val, ".") {
 				if abs, err := filepath.Abs(val); err == nil {
 					mount.Source = abs
 				}
