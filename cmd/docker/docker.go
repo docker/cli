@@ -32,7 +32,7 @@ type errCtxSignalTerminated struct {
 	signal os.Signal
 }
 
-func (e errCtxSignalTerminated) Error() string {
+func (errCtxSignalTerminated) Error() string {
 	return ""
 }
 

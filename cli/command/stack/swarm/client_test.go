@@ -44,7 +44,7 @@ type fakeClient struct {
 	configRemoveFunc  func(configID string) error
 }
 
-func (cli *fakeClient) ServerVersion(context.Context) (types.Version, error) {
+func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
 		APIVersion: api.DefaultVersion,

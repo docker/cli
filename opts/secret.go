@@ -79,7 +79,7 @@ func (o *SecretOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (o *SecretOpt) Type() string {
+func (*SecretOpt) Type() string {
 	return "secret"
 }
 

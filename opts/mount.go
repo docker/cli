@@ -215,7 +215,7 @@ func (m *MountOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (m *MountOpt) Type() string {
+func (*MountOpt) Type() string {
 	return "mount"
 }
 

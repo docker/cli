@@ -22,7 +22,7 @@ const (
 
 type portsFormatChecker struct{}
 
-func (checker portsFormatChecker) IsFormat(input any) bool {
+func (portsFormatChecker) IsFormat(input any) bool {
 	var portSpec string
 
 	switch p := input.(type) {
@@ -38,7 +38,7 @@ func (checker portsFormatChecker) IsFormat(input any) bool {
 
 type durationFormatChecker struct{}
 
-func (checker durationFormatChecker) IsFormat(input any) bool {
+func (durationFormatChecker) IsFormat(input any) bool {
 	value, ok := input.(string)
 	if !ok {
 		return false

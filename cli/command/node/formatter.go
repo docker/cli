@@ -281,7 +281,8 @@ func (ctx *nodeInspectContext) ResourceNanoCPUs() int {
 	if ctx.Node.Description.Resources.NanoCPUs == 0 {
 		return int(0)
 	}
-	return int(ctx.Node.Description.Resources.NanoCPUs) / 1e9
+	const nano = 1e9
+	return int(ctx.Node.Description.Resources.NanoCPUs) / nano
 }
 
 func (ctx *nodeInspectContext) ResourceMemory() string {

@@ -253,17 +253,17 @@ func (c *commandConn) RemoteAddr() net.Addr {
 	return c.remoteAddr
 }
 
-func (c *commandConn) SetDeadline(t time.Time) error {
+func (*commandConn) SetDeadline(t time.Time) error {
 	logrus.Debugf("unimplemented call: SetDeadline(%v)", t)
 	return nil
 }
 
-func (c *commandConn) SetReadDeadline(t time.Time) error {
+func (*commandConn) SetReadDeadline(t time.Time) error {
 	logrus.Debugf("unimplemented call: SetReadDeadline(%v)", t)
 	return nil
 }
 
-func (c *commandConn) SetWriteDeadline(t time.Time) error {
+func (*commandConn) SetWriteDeadline(t time.Time) error {
 	logrus.Debugf("unimplemented call: SetWriteDeadline(%v)", t)
 	return nil
 }

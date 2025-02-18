@@ -21,19 +21,19 @@ func (f fakeConfigAPIClientList) ConfigList(ctx context.Context, opts types.Conf
 	return f(ctx, opts)
 }
 
-func (f fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
+func (fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 	return types.ConfigCreateResponse{}, nil
 }
 
-func (f fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
+func (fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
 	return nil
 }
 
-func (f fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
+func (fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
 	return swarm.Config{}, nil, nil
 }
 
-func (f fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
+func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
 	return nil
 }
 

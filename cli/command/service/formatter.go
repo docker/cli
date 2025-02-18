@@ -503,7 +503,8 @@ func (ctx *serviceInspectContext) ResourceReservationNanoCPUs() float64 {
 	if ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs == 0 {
 		return float64(0)
 	}
-	return float64(ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs) / 1e9
+	const nano = 1e9
+	return float64(ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs) / nano
 }
 
 func (ctx *serviceInspectContext) ResourceReservationMemory() string {
@@ -521,7 +522,8 @@ func (ctx *serviceInspectContext) HasResourceLimits() bool {
 }
 
 func (ctx *serviceInspectContext) ResourceLimitsNanoCPUs() float64 {
-	return float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs) / 1e9
+	const nano = 1e9
+	return float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs) / nano
 }
 
 func (ctx *serviceInspectContext) ResourceLimitMemory() string {

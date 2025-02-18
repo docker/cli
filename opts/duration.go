@@ -46,7 +46,7 @@ func (d *DurationOpt) Set(s string) error {
 }
 
 // Type returns the type of this option, which will be displayed in `--help` output
-func (d *DurationOpt) Type() string {
+func (*DurationOpt) Type() string {
 	return "duration"
 }
 

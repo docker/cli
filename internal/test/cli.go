@@ -208,6 +208,6 @@ func EnableContentTrust(c *FakeCli) {
 }
 
 // BuildKitEnabled on the fake cli
-func (c *FakeCli) BuildKitEnabled() (bool, error) {
+func (*FakeCli) BuildKitEnabled() (bool, error) {
 	return true, nil
 }

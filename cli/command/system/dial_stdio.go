@@ -110,7 +110,7 @@ type nopCloseReader struct {
 	halfReadWriteCloser
 }
 
-func (x *nopCloseReader) CloseRead() error {
+func (*nopCloseReader) CloseRead() error {
 	return nil
 }
 

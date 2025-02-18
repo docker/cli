@@ -24,10 +24,10 @@ func (a noColor) With(_ ...aec.ANSI) aec.ANSI {
 	return a
 }
 
-func (a noColor) Apply(s string) string {
+func (noColor) Apply(s string) string {
 	return s
 }
 
-func (a noColor) String() string {
+func (noColor) String() string {
 	return ""
 }

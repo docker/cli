@@ -32,7 +32,7 @@ type SubContext interface {
 type SubHeaderContext map[string]string
 
 // Label returns the header label for the specified string
-func (c SubHeaderContext) Label(name string) string {
+func (SubHeaderContext) Label(name string) string {
 	n := strings.Split(name, ".")
 	r := strings.NewReplacer("-", " ", "_", " ")
 	h := r.Replace(n[len(n)-1])

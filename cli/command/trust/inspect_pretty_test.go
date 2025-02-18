@@ -28,15 +28,15 @@ type fakeClient struct {
 	client.Client
 }
 
-func (c *fakeClient) Info(context.Context) (system.Info, error) {
+func (*fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (c *fakeClient) ImageInspect(context.Context, string, ...client.ImageInspectOption) (image.InspectResponse, error) {
+func (*fakeClient) ImageInspect(context.Context, string, ...client.ImageInspectOption) (image.InspectResponse, error) {
 	return image.InspectResponse{}, nil
 }
 
-func (c *fakeClient) ImagePush(context.Context, string, image.PushOptions) (io.ReadCloser, error) {
+func (*fakeClient) ImagePush(context.Context, string, image.PushOptions) (io.ReadCloser, error) {
 	return &utils.NoopCloser{Reader: bytes.NewBuffer([]byte{})}, nil
 }
 

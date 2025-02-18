@@ -270,7 +270,7 @@ func (c *diskUsageImagesContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageImagesContext) Type() string {
+func (*diskUsageImagesContext) Type() string {
 	return "Images"
 }
 
@@ -321,7 +321,7 @@ func (c *diskUsageContainersContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageContainersContext) Type() string {
+func (*diskUsageContainersContext) Type() string {
 	return "Containers"
 }
 
@@ -329,7 +329,7 @@ func (c *diskUsageContainersContext) TotalCount() string {
 	return strconv.Itoa(len(c.containers))
 }
 
-func (c *diskUsageContainersContext) isActive(ctr container.Summary) bool {
+func (*diskUsageContainersContext) isActive(ctr container.Summary) bool {
 	return strings.Contains(ctr.State, "running") ||
 		strings.Contains(ctr.State, "paused") ||
 		strings.Contains(ctr.State, "restarting")
@@ -382,7 +382,7 @@ func (c *diskUsageVolumesContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageVolumesContext) Type() string {
+func (*diskUsageVolumesContext) Type() string {
 	return "Local Volumes"
 }
 
@@ -443,7 +443,7 @@ func (c *diskUsageBuilderContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageBuilderContext) Type() string {
+func (*diskUsageBuilderContext) Type() string {
 	return "Build Cache"
 }
 

@@ -508,19 +508,19 @@ func (s secretAPIClientMock) SecretList(context.Context, types.SecretListOptions
 	return s.listResult, nil
 }
 
-func (s secretAPIClientMock) SecretCreate(context.Context, swarm.SecretSpec) (types.SecretCreateResponse, error) {
+func (secretAPIClientMock) SecretCreate(context.Context, swarm.SecretSpec) (types.SecretCreateResponse, error) {
 	return types.SecretCreateResponse{}, nil
 }
 
-func (s secretAPIClientMock) SecretRemove(context.Context, string) error {
+func (secretAPIClientMock) SecretRemove(context.Context, string) error {
 	return nil
 }
 
-func (s secretAPIClientMock) SecretInspectWithRaw(context.Context, string) (swarm.Secret, []byte, error) {
+func (secretAPIClientMock) SecretInspectWithRaw(context.Context, string) (swarm.Secret, []byte, error) {
 	return swarm.Secret{}, []byte{}, nil
 }
 
-func (s secretAPIClientMock) SecretUpdate(context.Context, string, swarm.Version, swarm.SecretSpec) error {
+func (secretAPIClientMock) SecretUpdate(context.Context, string, swarm.Version, swarm.SecretSpec) error {
 	return nil
 }
 

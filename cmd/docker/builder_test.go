@@ -127,7 +127,7 @@ type fakeClient struct {
 	client.Client
 }
 
-func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {
+func (*fakeClient) Ping(context.Context) (types.Ping, error) {
 	return types.Ping{OSType: "linux"}, nil
 }
 

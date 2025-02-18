@@ -224,7 +224,7 @@ func postForm(ctx context.Context, reqURL string, data io.Reader) (*http.Respons
 	return http.DefaultClient.Do(req)
 }
 
-func (a API) GetAutoPAT(ctx context.Context, audience string, res TokenResponse) (string, error) {
+func (API) GetAutoPAT(ctx context.Context, audience string, res TokenResponse) (string, error) {
 	patURL := audience + "/v2/access-tokens/desktop-generate"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, patURL, nil)
 	if err != nil {

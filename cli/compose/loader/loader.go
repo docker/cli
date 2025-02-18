@@ -269,7 +269,7 @@ type ForbiddenPropertiesError struct {
 	Properties map[string]string
 }
 
-func (e *ForbiddenPropertiesError) Error() string {
+func (*ForbiddenPropertiesError) Error() string {
 	return "Configuration contains forbidden properties"
 }
 

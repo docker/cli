@@ -97,7 +97,7 @@ type DockerCli struct {
 }
 
 // DefaultVersion returns api.defaultVersion.
-func (cli *DockerCli) DefaultVersion() string {
+func (*DockerCli) DefaultVersion() string {
 	return api.DefaultVersion
 }
 
@@ -231,7 +231,7 @@ func (cli *DockerCli) HooksEnabled() bool {
 }
 
 // ManifestStore returns a store for local manifests
-func (cli *DockerCli) ManifestStore() manifeststore.Store {
+func (*DockerCli) ManifestStore() manifeststore.Store {
 	// TODO: support override default location from config file
 	return manifeststore.NewStore(filepath.Join(config.Dir(), "manifests"))
 }

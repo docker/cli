@@ -54,11 +54,11 @@ func (cli *DockerCli) Resource() *resource.Resource {
 	return cli.res.Get()
 }
 
-func (cli *DockerCli) TracerProvider() trace.TracerProvider {
+func (*DockerCli) TracerProvider() trace.TracerProvider {
 	return otel.GetTracerProvider()
 }
 
-func (cli *DockerCli) MeterProvider() metric.MeterProvider {
+func (*DockerCli) MeterProvider() metric.MeterProvider {
 	return otel.GetMeterProvider()
 }
 

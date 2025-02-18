@@ -80,7 +80,7 @@ func (o *ConfigOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (o *ConfigOpt) Type() string {
+func (*ConfigOpt) Type() string {
 	return "config"
 }
 
