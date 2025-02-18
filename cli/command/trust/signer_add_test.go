@@ -68,19 +68,19 @@ func TestTrustSignerAddErrors(t *testing.T) {
 func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	config.SetDir(t.TempDir())
 
-	tmpfile, err := os.CreateTemp("", "pemfile")
+	tmpDir := t.TempDir()
+	tmpFile, err := os.CreateTemp(tmpDir, "pemfile")
 	assert.NilError(t, err)
-	tmpfile.Close()
-	defer os.Remove(tmpfile.Name())
+	assert.Check(t, tmpFile.Close())
 
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignerAddCommand(cli)
-	cmd.SetArgs([]string{"--key", tmpfile.Name(), "alice", "alpine", "linuxkit/alpine"})
+	cmd.SetArgs([]string{"--key", tmpFile.Name(), "alice", "alpine", "linuxkit/alpine"})
 
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
-	assert.Error(t, cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
+	assert.Error(t, cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpFile.Name()))
 }
 
 func TestSignerAddCommandBadKeyPath(t *testing.T) {
@@ -130,10 +130,10 @@ func TestIngestPublicKeys(t *testing.T) {
 	}
 	assert.Error(t, err, expectedError)
 	// Call with real file path
-	tmpfile, err := os.CreateTemp("", "pemfile")
+	tmpDir := t.TempDir()
+	tmpFile, err := os.CreateTemp(tmpDir, "pemfile")
 	assert.NilError(t, err)
-	tmpfile.Close()
-	defer os.Remove(tmpfile.Name())
-	_, err = ingestPublicKeys([]string{tmpfile.Name()})
-	assert.Error(t, err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
+	assert.Check(t, tmpFile.Close())
+	_, err = ingestPublicKeys([]string{tmpFile.Name()})
+	assert.Error(t, err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpFile.Name()))
 }

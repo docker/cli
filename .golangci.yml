@@ -26,7 +26,6 @@ linters:
     - revive        # Metalinter; drop-in replacement for golint.
     - staticcheck
     - stylecheck    # Replacement for golint
-    - tenv          # Detects using os.Setenv instead of t.Setenv.
     - thelper       # Detects test helpers without t.Helper().
     - tparallel     # Detects inappropriate usage of t.Parallel().
     - typecheck
@@ -34,6 +33,7 @@ linters:
     - unparam
     - unused
     - usestdlibvars
+    - usetesting    # Reports uses of functions with replacement inside the testing package.
     - wastedassign
 
   disable:
@@ -42,6 +42,8 @@ linters:
 run:
   # prevent golangci-lint from deducting the go version to lint for through go.mod,
   # which causes it to fallback to go1.17 semantics.
+  #
+  # TODO(thaJeztah): update "usetesting" settings to enable go1.24 features once our minimum version is go1.24
   go: "1.23.6"
   timeout: 5m
 
@@ -110,6 +112,14 @@ linters-settings:
       - name: use-any
         severity: warning
         disabled: false
+
+  usetesting:
+    # FIXME(thaJeztah): Disable `os.Chdir()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
+    os-chdir: false
+    # FIXME(thaJeztah): Disable `context.Background()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
+    context-background: false
+    # FIXME(thaJeztah): Disable `context.TODO()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
+    context-todo: false
 
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below
