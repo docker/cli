@@ -56,15 +56,19 @@ type Source struct {
 }
 
 // GetClaims returns claims from an access token without verification.
-func GetClaims(accessToken string) (claims Claims, err error) {
+func GetClaims(accessToken string) (Claims, error) {
 	token, err := parseSigned(accessToken)
 	if err != nil {
-		return
+		return Claims{}, err
 	}
 
+	var claims Claims
 	err = token.UnsafeClaimsWithoutVerification(&claims)
+	if err != nil {
+		return Claims{}, err
+	}
 
-	return
+	return claims, nil
 }
 
 // allowedSignatureAlgorithms is a list of allowed signature algorithms for JWTs.
