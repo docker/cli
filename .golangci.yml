@@ -17,7 +17,7 @@ linters:
     - ineffassign
     - lll
     - misspell      # Detects commonly misspelled English words in comments.
-    - nakedret
+    - nakedret      # Detects uses of naked returns.
     - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
     - nolintlint    # Detects ill-formed or insufficient nolint directives.
     - perfsprint    # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
@@ -81,8 +81,9 @@ linters-settings:
   lll:
     line-length: 200
   nakedret:
-    command: nakedret
-    pattern: ^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$
+    # Disallow naked returns if func has more lines of code than this setting.
+    # Default: 30
+    max-func-lines: 0
 
   revive:
     rules:
