@@ -2,14 +2,15 @@ package manager
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/baggage"
 )
 
 const (
@@ -136,12 +137,41 @@ func appendPluginResourceAttributesEnvvar(env []string, cmd *cobra.Command, plug
 	if attrs := getPluginResourceAttributes(cmd, plugin); attrs.Len() > 0 {
 		// values in environment variables need to be in baggage format
 		// otel/baggage package can be used after update to v1.22, currently it encodes incorrectly
-		attrsSlice := make([]string, attrs.Len())
+		// Construct baggage members for each of the attributes.
+		// Ignore any failures as these aren't significant and
+		// represent an internal issue.
+		var b baggage.Baggage
 		for iter := attrs.Iter(); iter.Next(); {
-			i, v := iter.IndexedAttribute()
-			attrsSlice[i] = string(v.Key) + "=" + url.PathEscape(v.Value.AsString())
+			attr := iter.Attribute()
+			m, err := baggage.NewMemberRaw(string(attr.Key), attr.Value.AsString())
+			if err != nil {
+				otel.Handle(err)
+				continue
+			}
+
+			newB, err := b.SetMember(m)
+			if err != nil {
+				otel.Handle(err)
+				continue
+			}
+			b = newB
 		}
-		env = append(env, ResourceAttributesEnvvar+"="+strings.Join(attrsSlice, ","))
+
+		// Combine plugin added resource attributes with ones found in the environment
+		// variable. Our own attributes should be namespaced so there shouldn't be a
+		// conflict. We do not parse the environment variable because we do not want
+		// to handle errors in user configuration.
+		attrsSlice := make([]string, 0, 2)
+		if v := strings.TrimSpace(os.Getenv(ResourceAttributesEnvvar)); v != "" {
+			attrsSlice = append(attrsSlice, v)
+		}
+		if v := b.String(); v != "" {
+			attrsSlice = append(attrsSlice, v)
+		}
+
+		if len(attrsSlice) > 0 {
+			env = append(env, ResourceAttributesEnvvar+"="+strings.Join(attrsSlice, ","))
+		}
 	}
 	return env
 }
