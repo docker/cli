@@ -53,6 +53,12 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 
 		var totalContent int64
 		children := make([]subImage, 0, len(img.Manifests))
+		attestations := make(map[string]bool)
+		for _, im := range img.Manifests {
+			if im.Kind == imagetypes.ManifestKindAttestation {
+				attestations[im.AttestationData.For.String()] = true
+			}
+		}
 		for _, im := range img.Manifests {
 			if im.Kind == imagetypes.ManifestKindAttestation {
 				attested[im.AttestationData.For] = true
@@ -70,6 +76,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 					DiskUsage:   units.HumanSizeWithPrecision(float64(im.Size.Total), 3),
 					InUse:       len(im.ImageData.Containers) > 0,
 					ContentSize: units.HumanSizeWithPrecision(float64(im.Size.Content), 3),
+					Attestation: attestations[im.ID],
 				},
 			}
 
@@ -107,6 +114,7 @@ type imageDetails struct {
 	DiskUsage   string
 	InUse       bool
 	ContentSize string
+	Attestation bool
 }
 
 type topImage struct {
@@ -209,6 +217,18 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 			Width: 12,
 			DetailsValue: func(d *imageDetails) string {
 				return stringid.TruncateID(d.ID)
+			},
+		},
+		{
+			Title: "Attest",
+			Align: alignLeft,
+			Width: 6,
+			Color: &greenColor,
+			DetailsValue: func(d *imageDetails) string {
+				if d.Attestation {
+					return "✔"
+				}
+				return " "
 			},
 		},
 		{
