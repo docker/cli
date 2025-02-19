@@ -5,23 +5,23 @@ Initialize a swarm
 
 ### Options
 
-| Name                                        | Type          | Default        | Description                                                                                                                  |
-|:--------------------------------------------|:--------------|:---------------|:-----------------------------------------------------------------------------------------------------------------------------|
-| [`--advertise-addr`](#advertise-addr)       | `string`      |                | Advertised address (format: `<ip\|interface>[:port]`)                                                                        |
-| [`--autolock`](#autolock)                   | `bool`        |                | Enable manager autolocking (requiring an unlock key to start a stopped manager)                                              |
-| [`--availability`](#availability)           | `string`      | `active`       | Availability of the node (`active`, `pause`, `drain`)                                                                        |
-| `--cert-expiry`                             | `duration`    | `2160h0m0s`    | Validity period for node certificates (ns\|us\|ms\|s\|m\|h)                                                                  |
-| [`--data-path-addr`](#data-path-addr)       | `string`      |                | Address or interface to use for data path traffic (format: `<ip\|interface>`)                                                |
-| [`--data-path-port`](#data-path-port)       | `uint32`      | `0`            | Port number to use for data path traffic (1024 - 49151). If no value is set or is set to 0, the default port (4789) is used. |
-| [`--default-addr-pool`](#default-addr-pool) | `ipNetSlice`  |                | default address pool in CIDR format                                                                                          |
-| `--default-addr-pool-mask-length`           | `uint32`      | `24`           | default address pool subnet mask length                                                                                      |
-| `--dispatcher-heartbeat`                    | `duration`    | `5s`           | Dispatcher heartbeat period (ns\|us\|ms\|s\|m\|h)                                                                            |
-| [`--external-ca`](#external-ca)             | `external-ca` |                | Specifications of one or more certificate signing endpoints                                                                  |
-| [`--force-new-cluster`](#force-new-cluster) | `bool`        |                | Force create a new cluster from current state                                                                                |
-| [`--listen-addr`](#listen-addr)             | `node-addr`   | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                                                                            |
-| [`--max-snapshots`](#max-snapshots)         | `uint64`      | `0`            | Number of additional Raft snapshots to retain                                                                                |
-| [`--snapshot-interval`](#snapshot-interval) | `uint64`      | `10000`        | Number of log entries between Raft snapshots                                                                                 |
-| `--task-history-limit`                      | `int64`       | `5`            | Task history retention limit                                                                                                 |
+| Name                                              | Type          | Default        | Description                                                                                                                  |
+|:--------------------------------------------------|:--------------|:---------------|:-----------------------------------------------------------------------------------------------------------------------------|
+| [`--advertise-addr`](#advertise-addr)             | `string`      |                | Advertised address (format: `<ip\|interface>[:port]`)                                                                        |
+| [`--autolock`](#autolock)                         | `bool`        |                | Enable manager autolocking (requiring an unlock key to start a stopped manager)                                              |
+| [`--availability`](#availability)                 | `string`      | `active`       | Availability of the node (`active`, `pause`, `drain`)                                                                        |
+| `--cert-expiry`                                   | `duration`    | `2160h0m0s`    | Validity period for node certificates (ns\|us\|ms\|s\|m\|h)                                                                  |
+| [`--data-path-addr`](#data-path-addr)             | `string`      |                | Address or interface to use for data path traffic (format: `<ip\|interface>`)                                                |
+| [`--data-path-port`](#data-path-port)             | `uint32`      | `0`            | Port number to use for data path traffic (1024 - 49151). If no value is set or is set to 0, the default port (4789) is used. |
+| [`--default-addr-pool`](#default-addr-pool)       | `ipNetSlice`  |                | default address pool in CIDR format                                                                                          |
+| `--default-addr-pool-mask-length`                 | `uint32`      | `24`           | default address pool subnet mask length                                                                                      |
+| [`--dispatcher-heartbeat`](#dispatcher-heartbeat) | `duration`    | `5s`           | Dispatcher heartbeat period (ns\|us\|ms\|s\|m\|h)                                                                            |
+| [`--external-ca`](#external-ca)                   | `external-ca` |                | Specifications of one or more certificate signing endpoints                                                                  |
+| [`--force-new-cluster`](#force-new-cluster)       | `bool`        |                | Force create a new cluster from current state                                                                                |
+| [`--listen-addr`](#listen-addr)                   | `node-addr`   | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                                                                            |
+| [`--max-snapshots`](#max-snapshots)               | `uint64`      | `0`            | Number of additional Raft snapshots to retain                                                                                |
+| [`--snapshot-interval`](#snapshot-interval)       | `uint64`      | `10000`        | Number of log entries between Raft snapshots                                                                                 |
+| `--task-history-limit`                            | `int64`       | `5`            | Task history retention limit                                                                                                 |
 
 
 <!---MARKER_GEN_END-->
@@ -64,7 +64,7 @@ You can disable autolock by running `docker swarm update --autolock=false`.
 After disabling it, the encryption key is no longer required to start the
 manager, and it will start up on its own without user intervention.
 
-### <a name=""></a> Configure node healthcheck frequency (--dispatcher-heartbeat)
+### <a name="dispatcher-heartbeat"></a> Configure node healthcheck frequency (--dispatcher-heartbeat)
 
 The `--dispatcher-heartbeat` flag sets the frequency at which nodes are told to
 report their health.
