@@ -59,42 +59,87 @@ func TestCreate(t *testing.T) {
 	cli := makeFakeCli(t)
 	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
+		doc         string
 		options     CreateOptions
 		expecterErr string
 	}{
 		{
+			doc:         "empty name",
 			expecterErr: `context name cannot be empty`,
 		},
 		{
+			doc: "reserved name",
 			options: CreateOptions{
 				Name: "default",
 			},
 			expecterErr: `"default" is a reserved context name`,
 		},
 		{
+			doc: "whitespace-only name",
 			options: CreateOptions{
 				Name: " ",
 			},
 			expecterErr: `context name " " is invalid`,
 		},
 		{
+			doc: "existing context",
 			options: CreateOptions{
 				Name: "existing-context",
 			},
 			expecterErr: `context "existing-context" already exists`,
 		},
 		{
+			doc: "invalid docker host",
 			options: CreateOptions{
 				Name: "invalid-docker-host",
 				Docker: map[string]string{
-					keyHost: "some///invalid/host",
+					"host": "some///invalid/host",
 				},
 			},
 			expecterErr: `unable to parse docker host`,
 		},
+		{
+			doc: "ssh host with skip-tls-verify=false",
+			options: CreateOptions{
+				Name: "skip-tls-verify-false",
+				Docker: map[string]string{
+					"host": "ssh://example.com,skip-tls-verify=false",
+				},
+			},
+		},
+		{
+			doc: "ssh host with skip-tls-verify=true",
+			options: CreateOptions{
+				Name: "skip-tls-verify-true",
+				Docker: map[string]string{
+					"host": "ssh://example.com,skip-tls-verify=true",
+				},
+			},
+		},
+		{
+			doc: "ssh host with skip-tls-verify=INVALID",
+			options: CreateOptions{
+				Name: "skip-tls-verify-invalid",
+				Docker: map[string]string{
+					"host":            "ssh://example.com",
+					"skip-tls-verify": "INVALID",
+				},
+			},
+			expecterErr: `unable to create docker endpoint config: skip-tls-verify: parsing "INVALID": invalid syntax`,
+		},
+		{
+			doc: "unknown option",
+			options: CreateOptions{
+				Name: "unknown-option",
+				Docker: map[string]string{
+					"UNKNOWN": "value",
+				},
+			},
+			expecterErr: `unable to create docker endpoint config: unrecognized config key: UNKNOWN`,
+		},
 	}
 	for _, tc := range tests {
-		t.Run(tc.options.Name, func(t *testing.T) {
+		t.Run(tc.doc, func(t *testing.T) {
 			err := RunCreate(cli, &tc.options)
 			if tc.expecterErr == "" {
 				assert.NilError(t, err)
