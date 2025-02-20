@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/service/logs"
 	"github.com/docker/docker/api/types"
@@ -22,6 +23,7 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type logsOptions struct {
@@ -69,6 +71,13 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
 	flags.SetAnnotation("details", "version", []string{"1.30"})
 	flags.StringVarP(&opts.tail, "tail", "n", "all", "Number of lines to show from the end of the logs")
+
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 

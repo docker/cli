@@ -1,6 +1,8 @@
 package service
 
 import (
+	"os"
+
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -34,16 +36,25 @@ func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// CompletionFn offers completion for swarm services
+// CompletionFn offers completion for swarm service names and optional IDs.
+// By default, only names are returned.
+// Set DOCKER_COMPLETION_SHOW_SERVICE_IDS=yes to also complete IDs.
 func CompletionFn(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+	// https://github.com/docker/cli/blob/f9ced58158d5e0b358052432244b483774a1983d/contrib/completion/bash/docker#L41-L43
+	showIDs := os.Getenv("DOCKER_COMPLETION_SHOW_SERVICE_IDS") == "yes"
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		list, err := dockerCLI.Client().ServiceList(cmd.Context(), types.ServiceListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
-		var names []string
+
+		names := make([]string, 0, len(list))
 		for _, service := range list {
-			names = append(names, service.ID)
+			if showIDs {
+				names = append(names, service.Spec.Name, service.ID)
+			} else {
+				names = append(names, service.Spec.Name)
+			}
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}

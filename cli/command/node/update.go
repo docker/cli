@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -25,6 +26,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), args[0])
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
@@ -33,6 +35,15 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Var(&options.annotations.labels, flagLabelAdd, `Add or update a node label ("key=value")`)
 	labelKeys := opts.NewListOpts(nil)
 	flags.Var(&labelKeys, flagLabelRemove, "Remove a node label if exists")
+
+	_ = cmd.RegisterFlagCompletionFunc(flagRole, completion.FromList("worker", "manager"))
+	_ = cmd.RegisterFlagCompletionFunc(flagAvailability, completion.FromList("active", "pause", "drain"))
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 

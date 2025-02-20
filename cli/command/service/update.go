@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -23,7 +24,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	options := newServiceOptions()
 
 	cmd := &cobra.Command{
@@ -31,10 +32,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a service",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), options, args[0])
+			return runUpdate(cmd.Context(), dockerCLI, cmd.Flags(), options, args[0])
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
+			return CompletionFn(dockerCLI)(cmd, args, toComplete)
 		},
 	}
 
@@ -116,6 +117,30 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
 	flags.Var(newListOptsVarWithValidator(ValidateSingleGenericResource), flagGenericResourcesAdd, "Add a Generic resource")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
+
+	// TODO(thaJeztah): add completion for capabilities, stop-signal (currently non-exported in container package)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapAdd, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapDrop, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagStopSignal, completeSignals)
+
+	_ = cmd.RegisterFlagCompletionFunc(flagEnvAdd, completion.EnvVarNames)
+	// TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
+	_ = cmd.RegisterFlagCompletionFunc("image", completion.ImageNames(dockerCLI, -1))
+	_ = cmd.RegisterFlagCompletionFunc(flagNetworkAdd, completion.NetworkNames(dockerCLI))
+	// TODO(thaJeztha): flagNetworkRemove (needs to read current list of networks from the service)
+	_ = cmd.RegisterFlagCompletionFunc(flagRestartCondition, completion.FromList("none", "on-failure", "any"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackFailureAction, completion.FromList("pause", "continue"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateFailureAction, completion.FromList("pause", "continue", "rollback"))
+
+	completion.ImageNames(dockerCLI, -1)
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 
 	return cmd
 }

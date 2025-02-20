@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := newServiceOptions()
 
 	cmd := &cobra.Command{
@@ -28,7 +28,7 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				opts.args = args[1:]
 			}
-			return runCreate(cmd.Context(), dockerCli, cmd.Flags(), opts)
+			return runCreate(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -75,6 +75,28 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
 
 	flags.SetInterspersed(false)
+
+	// TODO(thaJeztah): add completion for capabilities, stop-signal (currently non-exported in container package)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapAdd, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapDrop, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagStopSignal, completeSignals)
+
+	_ = cmd.RegisterFlagCompletionFunc(flagMode, completion.FromList("replicated", "global", "replicated-job", "global-job"))
+	_ = cmd.RegisterFlagCompletionFunc(flagEnv, completion.EnvVarNames) // TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
+	_ = cmd.RegisterFlagCompletionFunc(flagEnvFile, completion.FileNames)
+	_ = cmd.RegisterFlagCompletionFunc(flagNetwork, completion.NetworkNames(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc(flagRestartCondition, completion.FromList("none", "on-failure", "any"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackFailureAction, completion.FromList("pause", "continue"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateFailureAction, completion.FromList("pause", "continue", "rollback"))
+
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 

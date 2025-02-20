@@ -32,6 +32,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.nodeIds = args
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
