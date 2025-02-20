@@ -35,7 +35,7 @@ func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // CompletionFn offers completion for swarm services
-func CompletionFn(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+func CompletionFn(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		list, err := dockerCLI.Client().ServiceList(cmd.Context(), types.ServiceListOptions{})
 		if err != nil {
