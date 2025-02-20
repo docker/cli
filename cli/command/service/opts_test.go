@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -325,4 +327,143 @@ func TestToServiceSysCtls(t *testing.T) {
 	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Sysctls, expected))
+}
+
+func TestToPrivilegesAppArmor(t *testing.T) {
+	for _, mode := range []string{"default", "disabled"} {
+		flags := newCreateCommand(nil).Flags()
+		flags.Set("apparmor", mode)
+		o := newServiceOptions()
+		o.appArmor = mode
+		privileges, err := o.ToPrivileges(flags)
+		assert.NilError(t, err)
+		enumMode := swarm.AppArmorMode(mode)
+		assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{
+			AppArmor: &swarm.AppArmorOpts{
+				Mode: enumMode,
+			},
+		}))
+	}
+}
+
+func TestToPrivilegesAppArmorInvalid(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("apparmor", "invalid")
+	o := newServiceOptions()
+	o.appArmor = "invalid"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.ErrorContains(t, err, "AppArmor")
+	assert.Check(t, is.Nil(privileges))
+}
+
+func TestToPrivilegesSeccomp(t *testing.T) {
+	for _, mode := range []string{"default", "unconfined"} {
+		flags := newCreateCommand(nil).Flags()
+		flags.Set("seccomp", mode)
+		o := newServiceOptions()
+		o.seccomp = mode
+
+		privileges, err := o.ToPrivileges(flags)
+		assert.NilError(t, err)
+		enumMode := swarm.SeccompMode(mode)
+		assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{
+			Seccomp: &swarm.SeccompOpts{
+				Mode: enumMode,
+			},
+		}))
+	}
+}
+
+const testJSON = `{
+  "json": "you betcha"
+}
+`
+
+func TestToPrivilegesSeccompCustomProfile(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("seccomp", "testdata/test-seccomp-valid.json")
+	o := newServiceOptions()
+	o.seccomp = "testdata/test-seccomp-valid.json"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{
+		Seccomp: &swarm.SeccompOpts{
+			Mode:    swarm.SeccompModeCustom,
+			Profile: []byte(testJSON),
+		},
+	}))
+}
+
+func TestToPrivilegesSeccompInvalidJson(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	// why make an invalid json file when we have one lying right there?
+	flags.Set("seccomp", "testdata/service-context-write-raw.golden")
+	o := newServiceOptions()
+	o.seccomp = "testdata/service-context-write-raw.golden"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.ErrorContains(t, err, "json")
+	assert.Check(t, is.Nil(privileges))
+}
+
+// TestToPrivilegesSeccompNotPath tests that if the user provides a valid
+// filename but not as a path, we both fail the command (as the argument isn't
+// a valid seccomp mode) and hint that the user should provide the path as a
+// relative path.
+func TestToPrivilegesSeccompNotPath(t *testing.T) {
+	// change the working directory in this test so that the file with no
+	// separators is a valid file. This will revert at the end of the test.
+	// Cannot use this with t.Parallel() tests.
+	// TODO(dperny): When we get to go 1.24, use t.Chdir instead.
+	oldwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir("testdata"); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(oldwd); err != nil {
+			panic(err)
+		}
+	})
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("seccomp", "test-seccomp-valid.json")
+	o := newServiceOptions()
+	o.seccomp = "test-seccomp-valid.json"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.ErrorContains(t, err, "unknown seccomp mode")
+	assert.ErrorContains(t, err, "did you mean")
+	t.Logf("%s", err)
+	assert.Check(t, is.Nil(privileges))
+}
+
+// TestToPrivilegesSeccompNotPathNotValid is like
+// TestToPrivilegesSeccompNotPath except the argument isn't a valid file at
+// all, so there's no hint.
+func TestToPrivilegesSeccompNotPathNotValid(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("seccomp", "test-seccomp-valid.json")
+	o := newServiceOptions()
+	o.seccomp = "test-seccomp-valid.json"
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.ErrorContains(t, err, "unknown seccomp mode")
+	t.Logf("%s", err)
+	assert.Check(t, is.Nil(privileges))
+	assert.Check(t, !strings.Contains(err.Error(), "did you mean"))
+}
+
+func TestToPrivilegesNoNewPrivileges(t *testing.T) {
+	flags := newCreateCommand(nil).Flags()
+	flags.Set("no-new-privileges", "true")
+	o := newServiceOptions()
+	o.noNewPrivileges = true
+
+	privileges, err := o.ToPrivileges(flags)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(privileges, &swarm.Privileges{NoNewPrivileges: true}))
 }
