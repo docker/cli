@@ -43,7 +43,10 @@ func main() {
 	}
 
 	if err != nil && !errdefs.IsCancelled(err) {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		var stErr cli.StatusError
+		if errors.As(err, &stErr) && stErr.Status != "" {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(getExitCode(err))
 	}
 }
