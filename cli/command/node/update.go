@@ -25,6 +25,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), args[0])
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 
 	flags := cmd.Flags()

@@ -18,6 +18,7 @@ func newDemoteCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runDemote(cmd.Context(), dockerCli, args)
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 }
 

@@ -18,6 +18,7 @@ func newPromoteCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runPromote(cmd.Context(), dockerCli, args)
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 }
 
