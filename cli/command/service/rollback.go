@@ -6,9 +6,11 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
@@ -31,6 +33,12 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.quiet, flagQuiet, "q", false, "Suppress progress output")
 	addDetachFlag(flags, &options.detach)
 
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 
