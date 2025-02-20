@@ -68,7 +68,14 @@ func parseBool(config map[string]string, name string) (bool, error) {
 		return false, nil
 	}
 	res, err := strconv.ParseBool(strVal)
-	return res, fmt.Errorf("name: %w", err)
+	if err != nil {
+		var nErr *strconv.NumError
+		if errors.As(err, &nErr) {
+			return res, fmt.Errorf("%s: parsing %q: %w", name, nErr.Num, nErr.Err)
+		}
+		return res, fmt.Errorf("%s: %w", name, err)
+	}
+	return res, nil
 }
 
 func validateConfig(config map[string]string, allowedKeys map[string]struct{}) error {
