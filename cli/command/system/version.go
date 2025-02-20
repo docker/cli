@@ -210,8 +210,10 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	}
 	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
 	tmpl, err := tmpl.Parse(templateFormat)
-
-	return tmpl, errors.Wrap(err, "template parsing error")
+	if err != nil {
+		return nil, errors.Wrap(err, "template parsing error")
+	}
+	return tmpl, nil
 }
 
 func getDetailsOrder(v types.ComponentVersion) []string {
