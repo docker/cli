@@ -121,7 +121,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
 			// if replicas are initialized, figure out if we need to pad them
 			replicas := *service.Spec.Mode.Replicated.Replicas
-			maxLength = getMaxLength(int(replicas))
+			maxLength = getMaxLength(int(replicas)) //nolint:gosec
 		}
 	}
 
