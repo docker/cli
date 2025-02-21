@@ -383,7 +383,7 @@ func (*replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes ma
 }
 
 func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlot int, replicas uint64) {
-	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas {
+	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas { //nolint:gosec
 		return
 	}
 
