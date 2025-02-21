@@ -137,7 +137,6 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 			assert.Assert(t, errors.As(err, &exitError))
 			assert.Check(t, exitError.Exited())
 			assert.Check(t, is.Equal(exitError.ExitCode(), 1))
-			assert.Check(t, is.ErrorContains(err, "exit status 1"))
 
 			// the plugin process does not receive a SIGINT and does
 			// the CLI cannot cancel it over the socket, so it kills
@@ -199,11 +198,10 @@ func TestPluginSocketCommunication(t *testing.T) {
 			assert.Assert(t, errors.As(err, &exitError))
 			assert.Check(t, exitError.Exited())
 			assert.Check(t, is.Equal(exitError.ExitCode(), 2))
-			assert.Check(t, is.ErrorContains(err, "exit status 2"))
 
 			// the plugin does not get signalled, but it does get its
 			// context canceled by the CLI through the socket
-			const expected = "test-socket: exiting after context was done\nexit status 2"
+			const expected = "test-socket: exiting after context was done"
 			actual := strings.TrimSpace(string(out))
 			assert.Check(t, is.Equal(actual, expected))
 		})
@@ -238,7 +236,6 @@ func TestPluginSocketCommunication(t *testing.T) {
 			assert.Assert(t, errors.As(err, &exitError))
 			assert.Check(t, exitError.Exited())
 			assert.Check(t, is.Equal(exitError.ExitCode(), 1))
-			assert.Check(t, is.ErrorContains(err, "exit status 1"))
 
 			// the plugin process does not receive a SIGINT and does
 			// not exit after having it's context canceled, so the CLI

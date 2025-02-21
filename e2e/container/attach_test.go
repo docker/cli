@@ -58,5 +58,4 @@ func TestAttachInterrupt(t *testing.T) {
 	// the CLI should exit with 33 (the SIGINT was forwarded to the container), and the
 	// CLI process waited for the container exit and properly captured/set the exit code
 	assert.Equal(t, c.ProcessState.ExitCode(), 33)
-	assert.Equal(t, d.String(), "exit status 33\n")
 }

@@ -43,7 +43,9 @@ func main() {
 	}
 
 	if err != nil && !errdefs.IsCancelled(err) {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+		if err.Error() != "" {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(getExitCode(err))
 	}
 }
