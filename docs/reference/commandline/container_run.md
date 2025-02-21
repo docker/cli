@@ -1348,6 +1348,25 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 > ```console
 > $ docker run -it --ulimit as=1024 fedora /bin/bash
 > ```
+#### Supported options for `--ulimit`:
+
+   | Option      | Description                                             |
+   |------------|---------------------------------------------------------|
+   | `core`     | Maximum size of core files created (`RLIMIT_CORE`)      |
+   | `cpu`      | CPU time limit in seconds (`RLIMIT_CPU`)                |
+   | `data`     | Maximum data segment size (`RLIMIT_DATA`)               |
+   | `fsize`    | Maximum file size (`RLIMIT_FSIZE`)                      |
+   | `locks`    | Maximum number of file locks (`RLIMIT_LOCKS`)           |
+   | `memlock`  | Maximum locked-in-memory address space (`RLIMIT_MEMLOCK`) |
+   | `msgqueue` | Maximum bytes in POSIX message queues (`RLIMIT_MSGQUEUE`) |
+   | `nice`     | Maximum nice priority adjustment (`RLIMIT_NICE`)        |
+   | `nofile`   | Maximum number of open file descriptors (`RLIMIT_NOFILE`) |
+   | `nproc`    | Maximum number of processes available (`RLIMIT_NPROC`)  |
+   | `rss`      | Maximum resident set size (`RLIMIT_RSS`)                |
+   | `rtprio`   | Maximum real-time scheduling priority (`RLIMIT_RTPRIO`) |
+   | `rttime`   | Maximum real-time execution time (`RLIMIT_RTTIME`)      |
+   | `sigpending` | Maximum number of pending signals (`RLIMIT_SIGPENDING`) |
+   | `stack`    | Maximum stack size (`RLIMIT_STACK`)                     |
 
 Docker sends the values to the appropriate OS `syscall` and doesn't perform any byte conversion.
 Take this into account when setting the values.
