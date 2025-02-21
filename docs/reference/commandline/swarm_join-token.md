@@ -5,10 +5,10 @@ Manage join tokens
 
 ### Options
 
-| Name            | Type   | Default | Description        |
-|:----------------|:-------|:--------|:-------------------|
-| `-q`, `--quiet` | `bool` |         | Only display token |
-| `--rotate`      | `bool` |         | Rotate join token  |
+| Name                                | Type   | Default | Description        |
+|:------------------------------------|:-------|:--------|:-------------------|
+| [`-q`](#quiet), [`--quiet`](#quiet) | `bool` |         | Only display token |
+| [`--rotate`](#rotate)               | `bool` |         | Rotate join token  |
 
 
 <!---MARKER_GEN_END-->
@@ -77,7 +77,7 @@ $ docker swarm join-token -q worker
 SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-b30ljddcqhef9b9v4rs7mel7t
 ```
 
-### `--rotate`
+### <a name="rotate"></a> `--rotate`
 
 Because tokens allow new nodes to join the swarm, you should keep them secret.
 Be particularly careful with manager tokens since they allow new manager nodes
@@ -96,7 +96,7 @@ Rotating a join-token means that no new nodes will be able to join the swarm
 using the old token. Rotation does not affect existing nodes in the swarm
 because the join token is only used for authorizing new nodes joining the swarm.
 
-### `--quiet`
+### <a name="quiet"></a> `--quiet`
 
 Only print the token. Do not print a complete command for joining.
 
