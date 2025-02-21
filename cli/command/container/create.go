@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
@@ -35,11 +36,12 @@ const (
 )
 
 type createOptions struct {
-	name      string
-	platform  string
-	untrusted bool
-	pull      string // always, missing, never
-	quiet     bool
+	name                string
+	platform            string
+	untrusted           bool
+	pull                string // always, missing, never
+	quiet               bool
+	includeDockerSocket bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -70,6 +72,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
+	flags.BoolVarP(&options.includeDockerSocket, "include-docker-socket", "", false, "Bind mount docker socket and required auth")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -237,6 +240,43 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
 		}
 		return nil
+	}
+
+	if options.includeDockerSocket {
+		// We'll create two new mounts to handle this flag:
+		// 1. Mount the actual docker socket.
+		// 2. A synthezised ~/.docker/config.json with resolved tokens.
+
+		// TODO(sjd): Works in naive use cases where we are connected to an
+		// engine locally. We'll need to resolve the external socket for this
+		// work widely.
+		containerCfg.HostConfig.Binds = append(containerCfg.HostConfig.Binds,
+			"/var/run/docker.sock:/var/run/docker.sock")
+
+		fp, err := os.CreateTemp("", "docker-config-*****.json")
+		if err != nil {
+			return "", fmt.Errorf("creating temp for auth: %w", err)
+		}
+		defer fp.Close()
+
+		creds, err := dockerCli.ConfigFile().GetAllCredentials()
+		if err != nil {
+			return "", fmt.Errorf("resolving credentials failed: %w", err)
+		}
+
+		// Create a new config file with just the auth.
+		newConfig := &configfile.ConfigFile{
+			AuthConfigs: creds,
+		}
+
+		if err := newConfig.SaveToWriter(fp); err != nil {
+			return "", fmt.Errorf("saving creds: %w", err)
+		}
+
+		// TODO(sjd): Need a way to clean this cred file up after the cli
+		// process exits.
+		containerCfg.HostConfig.Binds = append(containerCfg.HostConfig.Binds,
+			fp.Name()+":/root/.docker/config.json")
 	}
 
 	var platform *specs.Platform
