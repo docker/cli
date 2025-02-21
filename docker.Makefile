@@ -79,22 +79,6 @@ shellcheck: ## run shellcheck validation
 fmt: ## run gofumpt
 	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make fmt
 
-.PHONY: vendor
-vendor: ## update vendor with go modules
-	$(eval $@_TMP_OUT := $(shell mktemp -d -t dockercli-output.XXXXXXXXXX))
-	docker buildx bake --set "*.output=$($@_TMP_OUT)" update-vendor
-	rm -rf ./vendor
-	cp -R "$($@_TMP_OUT)"/out/* .
-	rm -rf $($@_TMP_OUT)/*
-
-.PHONY: validate-vendor
-validate-vendor: ## validate vendor
-	docker buildx bake validate-vendor
-
-.PHONY: mod-outdated
-mod-outdated: ## check outdated dependencies
-	docker buildx bake mod-outdated
-
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
 	docker buildx bake update-authors

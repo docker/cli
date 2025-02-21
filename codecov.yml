@@ -15,6 +15,5 @@ coverage:
     changes: false
 ignore:
   - "**/internal/test"
-  - "vendor/*"
   - "cli/compose/schema/bindata.go"
   - ".*generated.*"

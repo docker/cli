@@ -18,17 +18,14 @@ trap clean EXIT
   cp -r . "$buildir/"
   cd "$buildir"
   # init dummy go.mod
-  ./scripts/vendor init
   # install go-md2man and copy man/tools.go in root folder
   # to be able to fetch the required dependencies
-  go mod edit -modfile=vendor.mod -require=github.com/cpuguy83/go-md2man/v2@${MD2MAN_VERSION}
+  go get github.com/cpuguy83/go-md2man/v2@${MD2MAN_VERSION}
   cp man/tools.go .
-  # update vendor
-  ./scripts/vendor update
   # build gen-manpages
-  go build -mod=vendor -modfile=vendor.mod -tags manpages -o /tmp/gen-manpages ./man/generate.go
+  go build -tags manpages -o /tmp/gen-manpages ./man/generate.go
   # build go-md2man
-  go build -mod=vendor -modfile=vendor.mod -o /tmp/go-md2man ./vendor/github.com/cpuguy83/go-md2man/v2
+  GOBIN=$buildir/ go install github.com/cpuguy83/go-md2man/v2@${MD2MAN_VERSION}
 )
 
 mkdir -p man/man1

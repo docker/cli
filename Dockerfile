@@ -80,7 +80,7 @@ ENV GO111MODULE=auto
 RUN --mount=type=bind,target=.,rw \
     --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go/pkg/mod \
-    gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
+    gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/e2e/')
 
 FROM scratch AS test-coverage
 COPY --from=test /tmp/coverage.txt /coverage.txt

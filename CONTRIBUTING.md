@@ -140,9 +140,10 @@ why the work is necessary. The explanatory text should be separated by an
 empty line.
 
 The commit message *could* have a prefix scoping the change, however this is
-not enforced. Common prefixes are `docs: <message>`, `vendor: <message>`,
-`chore: <message>` or the package/area related to the change such as `pkg/foo: <message>`
-or `telemetry: <message>`.
+not enforced. Common prefixes are `docs: <message>` or `chore: <message>` or
+the package/area related to the change such as `pkg/foo: <message>` or
+`telemetry: <message>`. It's okay to omit redundant or extended prefixes, such
+as `pkg` or `internal` if room is needed in the top line of a commit.
 
 A standard commit.
 ```
@@ -158,11 +159,6 @@ pkg/foo: prevent panic in flux capacitor
 
 Calling function A causes the flux capacitor to blow up every time
 the sun and the moon align.
-```
-
-Updating a specific vendored package.
-```
-vendor: github.com/docker/docker 6ac445c42bad (master, v28.0-dev)
 ```
 
 Fixing a broken docs link.
