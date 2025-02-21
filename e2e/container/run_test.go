@@ -68,7 +68,6 @@ func TestRunAttach(t *testing.T) {
 			}
 
 			assert.Equal(t, c.ProcessState.ExitCode(), 7)
-			assert.Check(t, is.Contains(d.String(), "exit status 7"))
 		})
 	}
 }

@@ -1,9 +1,5 @@
 package cli
 
-import (
-	"strconv"
-)
-
 // StatusError reports an unsuccessful exit by a command.
 type StatusError struct {
 	Cause      error
@@ -21,7 +17,9 @@ func (e StatusError) Error() string {
 	if e.Cause != nil {
 		return e.Cause.Error()
 	}
-	return "exit status " + strconv.Itoa(e.StatusCode)
+	// we don't want to set a default message here,
+	// some commands might want to be explicit about the error message
+	return ""
 }
 
 func (e StatusError) Unwrap() error {
