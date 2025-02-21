@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	"dario.cat/mergo"
-	"github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/v28/cli/compose/types"
 	"github.com/pkg/errors"
 )
 

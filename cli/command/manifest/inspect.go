@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/types"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/manifest/types"
 	"github.com/docker/distribution/manifest/manifestlist"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"

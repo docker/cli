@@ -3,7 +3,7 @@ package context
 import (
 	"os"
 
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v28/cli/context/store"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/v28/cli-plugins/manager"
 	"gotest.tools/v3/icmd"
 )
 

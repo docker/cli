@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

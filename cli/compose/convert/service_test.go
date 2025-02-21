@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/v28/cli/compose/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"

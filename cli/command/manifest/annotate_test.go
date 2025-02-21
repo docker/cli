@@ -4,8 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/manifest/store"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/cli/manifest/store"
+	"github.com/docker/cli/v28/internal/test"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/docker/cli/e2e/internal/fixtures"
-	"github.com/docker/cli/internal/test/environment"
+	"github.com/docker/cli/v28/e2e/internal/fixtures"
+	"github.com/docker/cli/v28/internal/test/environment"
 	"github.com/docker/docker/api/types/versions"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

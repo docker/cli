@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v28/cli/streams"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 	"github.com/moby/term"

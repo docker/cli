@@ -3,9 +3,9 @@ package manifest
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/manifest/store"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

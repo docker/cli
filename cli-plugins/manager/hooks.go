@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/docker/cli/cli-plugins/hooks"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v28/cli-plugins/hooks"
+	"github.com/docker/cli/v28/cli/command"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/docker/cli/cli/context"
-	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v28/cli/context"
+	"github.com/docker/cli/v28/cli/context/docker"
+	"github.com/docker/cli/v28/cli/context/store"
 	"github.com/docker/docker/client"
 )
 

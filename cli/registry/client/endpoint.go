@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/v28/cli/trust"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/docker/docker/api/types/registry"

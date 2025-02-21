@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"

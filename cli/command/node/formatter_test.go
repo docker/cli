@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/cli/command/formatter"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/pkg/stringid"

@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/internal/jsonstream"
-	dockeropts "github.com/docker/cli/opts"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/completion"
+	"github.com/docker/cli/v28/cli/internal/jsonstream"
+	dockeropts "github.com/docker/cli/v28/opts"
 	"github.com/docker/docker/api/types/image"
 	"github.com/spf13/cobra"
 )

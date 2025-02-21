@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/events"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"

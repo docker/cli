@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
-	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/v28/cli/flags"
+	"github.com/docker/cli/v28/opts"
 	"github.com/docker/docker/api/types/image"
 	"github.com/spf13/cobra"
 )

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v28/cli/config/configfile"
+	"github.com/docker/cli/v28/cli/config/credentials"
+	"github.com/docker/cli/v28/cli/config/types"
 	"github.com/pkg/errors"
 )
 

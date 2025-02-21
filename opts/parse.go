@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/pkg/kvfile"
+	"github.com/docker/cli/v28/pkg/kvfile"
 	"github.com/docker/docker/api/types/container"
 )
 

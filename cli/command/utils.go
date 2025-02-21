@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v28/cli/streams"
 	"github.com/docker/docker/api/types/filters"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/versions"

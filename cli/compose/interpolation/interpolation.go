@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli/compose/template"
+	"github.com/docker/cli/v28/cli/compose/template"
 	"github.com/pkg/errors"
 )
 

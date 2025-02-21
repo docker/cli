@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/config"
+	"github.com/docker/cli/v28/cli/config/configfile"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"

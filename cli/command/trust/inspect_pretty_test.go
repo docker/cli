@@ -7,9 +7,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/trust"
-	"github.com/docker/cli/internal/test"
-	notaryfake "github.com/docker/cli/internal/test/notary"
+	"github.com/docker/cli/v28/cli/trust"
+	"github.com/docker/cli/v28/internal/test"
+	notaryfake "github.com/docker/cli/v28/internal/test/notary"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"

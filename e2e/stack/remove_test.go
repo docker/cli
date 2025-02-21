@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test/environment"
+	"github.com/docker/cli/v28/internal/test/environment"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/poll"

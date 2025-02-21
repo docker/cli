@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli/command"
-	cliflags "github.com/docker/cli/cli/flags"
+	pluginmanager "github.com/docker/cli/v28/cli-plugins/manager"
+	"github.com/docker/cli/v28/cli/command"
+	cliflags "github.com/docker/cli/v28/cli/flags"
 	"github.com/docker/docker/pkg/homedir"
 	"github.com/docker/docker/registry"
 	"github.com/fvbommel/sortorder"

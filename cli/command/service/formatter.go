@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/cli/command/inspect"
+	"github.com/docker/cli/v28/cli/command/formatter"
+	"github.com/docker/cli/v28/cli/command/inspect"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"

@@ -6,10 +6,10 @@ package plugin
 import (
 	"context"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/inspect"
-	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/inspect"
+	flagsHelper "github.com/docker/cli/v28/cli/flags"
 	"github.com/spf13/cobra"
 )
 

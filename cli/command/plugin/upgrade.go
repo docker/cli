@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/internal/jsonstream"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

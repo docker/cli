@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v28/cli/command/formatter"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

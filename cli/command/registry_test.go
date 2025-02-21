@@ -3,9 +3,9 @@ package command_test
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
-	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/config/configfile"
+	configtypes "github.com/docker/cli/v28/cli/config/types"
 	"github.com/docker/docker/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/v28/cli/config"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"

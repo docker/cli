@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/v28/internal/test"
+	"github.com/docker/cli/v28/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"

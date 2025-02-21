@@ -6,8 +6,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/v28/internal/test"
+	"github.com/docker/cli/v28/internal/test/builders"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/google/go-cmp/cmp"

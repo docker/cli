@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/checkpoint"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

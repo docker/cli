@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/options"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/stack/options"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"

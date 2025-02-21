@@ -3,8 +3,8 @@ package swarm
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
 )
 
 // NewSwarmCommand returns a cobra command for `swarm` subcommands

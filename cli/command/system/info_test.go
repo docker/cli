@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/internal/test"
+	pluginmanager "github.com/docker/cli/v28/cli-plugins/manager"
+	"github.com/docker/cli/v28/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"

@@ -1,11 +1,11 @@
 package stack
 
 import (
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/loader"
-	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/cli/cli/command/stack/swarm"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/stack/loader"
+	"github.com/docker/cli/v28/cli/command/stack/options"
+	"github.com/docker/cli/v28/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
 )
 

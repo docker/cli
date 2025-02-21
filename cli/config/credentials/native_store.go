@@ -1,7 +1,7 @@
 package credentials
 
 import (
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v28/cli/config/types"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
 )

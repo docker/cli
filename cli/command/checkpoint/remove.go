@@ -3,8 +3,8 @@ package checkpoint
 import (
 	"context"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
 	"github.com/docker/docker/api/types/checkpoint"
 	"github.com/spf13/cobra"
 )

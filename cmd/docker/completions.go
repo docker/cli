@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v28/cli/context/store"
 	"github.com/spf13/cobra"
 )
 

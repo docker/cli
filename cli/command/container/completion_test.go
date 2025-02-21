@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/v28/internal/test"
+	"github.com/docker/cli/v28/internal/test/builders"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/spf13/cobra"

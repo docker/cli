@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
-	"github.com/docker/cli/cli/manifest/types"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/manifest/store"
+	"github.com/docker/cli/v28/cli/manifest/types"
 )
 
 type osArch struct {

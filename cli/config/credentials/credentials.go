@@ -1,7 +1,7 @@
 package credentials
 
 import (
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v28/cli/config/types"
 )
 
 // Store is the interface that any credentials store must implement.

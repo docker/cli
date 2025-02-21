@@ -3,8 +3,8 @@ package context
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/formatter"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

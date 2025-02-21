@@ -3,9 +3,9 @@ package builder
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/image"
 )
 
 // NewBuilderCommand returns a cobra command for `builder` subcommands

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/v28/cli/config"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"

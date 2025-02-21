@@ -6,8 +6,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/cli/config/configfile"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/image"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

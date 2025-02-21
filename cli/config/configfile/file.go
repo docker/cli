@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v28/cli/config/credentials"
+	"github.com/docker/cli/v28/cli/config/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

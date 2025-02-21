@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/streams"
+	"github.com/docker/cli/v28/internal/test"
 	"gotest.tools/v3/assert"
 )
 

@@ -4,5 +4,5 @@
 package main
 
 import (
-	_ "github.com/docker/cli-docs-tool"
+	_ "github.com/docker/cli/v28-docs-tool"
 )

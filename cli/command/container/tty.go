@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v28/cli/command"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/signal"

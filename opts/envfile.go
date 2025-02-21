@@ -3,7 +3,7 @@ package opts
 import (
 	"os"
 
-	"github.com/docker/cli/pkg/kvfile"
+	"github.com/docker/cli/v28/pkg/kvfile"
 )
 
 // ParseEnvFile reads a file with environment variables enumerated by lines

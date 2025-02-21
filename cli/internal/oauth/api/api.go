@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/v28/cli/version"
 )
 
 type OAuthAPI interface {

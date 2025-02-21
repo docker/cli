@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v28/cli/context/store"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

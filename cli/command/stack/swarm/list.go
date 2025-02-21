@@ -3,8 +3,8 @@ package swarm
 import (
 	"context"
 
-	"github.com/docker/cli/cli/command/stack/formatter"
-	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/cli/v28/cli/command/stack/formatter"
+	"github.com/docker/cli/v28/cli/compose/convert"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"

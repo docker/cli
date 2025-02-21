@@ -3,7 +3,7 @@ package system
 import (
 	"strings"
 
-	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/v28/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/image"

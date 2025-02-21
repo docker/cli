@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v28/cli/streams"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel/attribute"
 	"gotest.tools/v3/assert"

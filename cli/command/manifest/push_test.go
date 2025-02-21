@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/manifest/store"
-	manifesttypes "github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/cli/manifest/store"
+	manifesttypes "github.com/docker/cli/v28/cli/manifest/types"
+	"github.com/docker/cli/v28/internal/test"
 	"gotest.tools/v3/assert"
 )
 

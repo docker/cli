@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"

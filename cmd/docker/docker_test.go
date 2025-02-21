@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/debug"
-	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/debug"
+	platformsignals "github.com/docker/cli/v28/cmd/docker/internal/signals"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"

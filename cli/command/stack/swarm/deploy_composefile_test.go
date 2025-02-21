@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/docker/cli/internal/test/network"
+	"github.com/docker/cli/v28/internal/test/network"
 	networktypes "github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"
 )

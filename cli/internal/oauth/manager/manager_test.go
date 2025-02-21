@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
-	"github.com/docker/cli/cli/internal/oauth/api"
+	"github.com/docker/cli/v28/cli/config/credentials"
+	"github.com/docker/cli/v28/cli/config/types"
+	"github.com/docker/cli/v28/cli/internal/oauth/api"
 	"gotest.tools/v3/assert"
 )
 

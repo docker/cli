@@ -6,7 +6,7 @@ package tui
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v28/cli/streams"
 	"github.com/morikuni/aec"
 )
 

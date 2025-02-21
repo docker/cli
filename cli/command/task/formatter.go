@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/command/formatter"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
-	manifesttypes "github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/cli/trust"
+	manifesttypes "github.com/docker/cli/v28/cli/manifest/types"
+	"github.com/docker/cli/v28/cli/trust"
 	"github.com/docker/distribution"
 	distributionclient "github.com/docker/distribution/registry/client"
 	registrytypes "github.com/docker/docker/api/types/registry"

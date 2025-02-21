@@ -4,9 +4,9 @@
 package command
 
 import (
-	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
-	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v28/cli/context/docker"
+	"github.com/docker/cli/v28/cli/context/store"
+	cliflags "github.com/docker/cli/v28/cli/flags"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 )

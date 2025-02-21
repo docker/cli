@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/cli/compose/loader"
+	"github.com/docker/cli/v28/opts"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"

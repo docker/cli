@@ -4,7 +4,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v28/internal/test"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"gotest.tools/v3/assert"

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/containerd/platforms"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/internal/tui"
+	"github.com/docker/cli/v28/cli/command"
+	"github.com/docker/cli/v28/internal/tui"
 	"github.com/docker/docker/api/types/filters"
 	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"

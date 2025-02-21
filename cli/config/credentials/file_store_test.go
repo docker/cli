@@ -3,7 +3,7 @@ package credentials
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v28/cli/config/types"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

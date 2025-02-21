@@ -3,8 +3,8 @@ package manifest
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v28/cli"
+	"github.com/docker/cli/v28/cli/command"
 
 	"github.com/spf13/cobra"
 )
