@@ -1,4 +1,4 @@
-package docker
+package docker // import "docker.com/cli/v28/cli/context/docker"
 
 import (
 	"crypto/tls"

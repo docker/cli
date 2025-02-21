@@ -1,4 +1,4 @@
-package types
+package types // import "docker.com/cli/v28/cli/manifest/types"
 
 import (
 	"encoding/json"

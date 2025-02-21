@@ -1,4 +1,4 @@
-package testutils
+package testutils // import "docker.com/cli/v28/e2e/testutils"
 
 import (
 	"context"

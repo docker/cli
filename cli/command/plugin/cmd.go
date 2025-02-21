@@ -1,4 +1,4 @@
-package plugin
+package plugin // import "docker.com/cli/v28/cli/command/plugin"
 
 import (
 	"github.com/docker/cli/v28/cli"

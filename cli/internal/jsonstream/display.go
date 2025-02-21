@@ -1,4 +1,4 @@
-package jsonstream
+package jsonstream // import "docker.com/cli/v28/cli/internal/jsonstream"
 
 import (
 	"context"

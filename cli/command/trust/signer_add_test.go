@@ -1,4 +1,4 @@
-package trust
+package trust // import "docker.com/cli/v28/cli/command/trust"
 
 import (
 	"fmt"

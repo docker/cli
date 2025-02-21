@@ -1,4 +1,4 @@
-package socket
+package socket // import "docker.com/cli/v28/cli-plugins/socket"
 
 import (
 	"crypto/rand"

@@ -3,7 +3,7 @@
 //go:build manpages
 // +build manpages
 
-package main
+package main // import "docker.com/cli/v28/man"
 
 import (
 	"fmt"

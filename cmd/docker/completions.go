@@ -1,4 +1,4 @@
-package main
+package main // import "docker.com/cli/v28/cmd/docker"
 
 import (
 	"github.com/docker/cli/v28/cli/context/store"

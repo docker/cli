@@ -1,4 +1,4 @@
-package idresolver
+package idresolver // import "docker.com/cli/v28/cli/command/idresolver"
 
 import (
 	"context"

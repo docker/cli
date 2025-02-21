@@ -1,4 +1,4 @@
-package options
+package options // import "docker.com/cli/v28/cli/command/stack/options"
 
 import "github.com/docker/cli/v28/opts"
 

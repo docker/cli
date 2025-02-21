@@ -1,4 +1,4 @@
-package commands
+package commands // import "docker.com/cli/v28/cli/command/commands"
 
 import (
 	"os"

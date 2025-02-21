@@ -1,4 +1,4 @@
-package main
+package main // import "docker.com/cli/v28/cli-plugins/examples/helloworld"
 
 import (
 	"context"

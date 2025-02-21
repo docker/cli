@@ -1,4 +1,4 @@
-package formatter
+package formatter // import "docker.com/cli/v28/cli/command/formatter"
 
 import (
 	"strconv"

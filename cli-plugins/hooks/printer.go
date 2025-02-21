@@ -1,4 +1,4 @@
-package hooks
+package hooks // import "docker.com/cli/v28/cli-plugins/hooks"
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package context
+package context // import "docker.com/cli/v28/e2e/context"
 
 import (
 	"fmt"

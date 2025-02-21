@@ -3,7 +3,7 @@
 //go:build docsgen
 // +build docsgen
 
-package main
+package main // import "docker.com/cli/v28/docs/generate"
 
 import (
 	"log"

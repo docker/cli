@@ -1,4 +1,4 @@
-package kvfile
+package kvfile // import "docker.com/cli/v28/pkg/kvfile"
 
 import (
 	"bufio"

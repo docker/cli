@@ -1,4 +1,4 @@
-package cli
+package cli // import "docker.com/cli/v28/cli"
 
 import (
 	"errors"

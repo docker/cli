@@ -1,4 +1,4 @@
-package system
+package system // import "docker.com/cli/v28/cli/command/system"
 
 import (
 	"github.com/docker/cli/v28/cli"

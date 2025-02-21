@@ -38,7 +38,7 @@
 // given key.
 //
 // [Environment Variables]: https://pubs.opengroup.org/onlinepubs/7908799/xbd/envvar.html
-package kvfile
+package kvfile // import "docker.com/cli/v28/pkg/kvfile"
 
 import (
 	"bufio"

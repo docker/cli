@@ -1,4 +1,4 @@
-package plugin
+package plugin // import "docker.com/cli/v28/cli-plugins/plugin"
 
 import (
 	"context"

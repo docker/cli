@@ -1,4 +1,4 @@
-package templates
+package templates // import "docker.com/cli/v28/templates"
 
 import (
 	"bytes"

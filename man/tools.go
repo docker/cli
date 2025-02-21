@@ -1,7 +1,7 @@
 //go:build tools
 // +build tools
 
-package main
+package main // import "docker.com/cli/v28/man"
 
 import (
 	_ "github.com/cpuguy83/go-md2man/v2"

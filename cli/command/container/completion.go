@@ -2,7 +2,7 @@
 //go:build go1.22
 // +build go1.22
 
-package container
+package container // import "docker.com/cli/v28/cli/command/container"
 
 import (
 	"strings"

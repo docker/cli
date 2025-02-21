@@ -1,4 +1,4 @@
-package command_test
+package command_test // import "docker.com/cli/v28/cli/command"
 
 import (
 	"testing"

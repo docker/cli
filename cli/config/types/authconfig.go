@@ -1,4 +1,4 @@
-package types
+package types // import "docker.com/cli/v28/cli/config/types"
 
 // AuthConfig contains authorization information for connecting to a Registry
 type AuthConfig struct {

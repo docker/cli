@@ -5,4 +5,4 @@
 //
 // +domain=docker.com
 
-package data
+package data // import "docker.com/cli/v28/cli/compose/schema/data"

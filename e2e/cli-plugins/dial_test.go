@@ -1,4 +1,4 @@
-package cliplugins
+package cliplugins // import "docker.com/cli/v28/e2e/cli-plugins"
 
 import (
 	"os"

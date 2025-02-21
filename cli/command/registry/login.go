@@ -1,4 +1,4 @@
-package registry
+package registry // import "docker.com/cli/v28/cli/command/registry"
 
 import (
 	"context"

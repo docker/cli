@@ -1,6 +1,6 @@
 /*Package logs contains tools for parsing docker log lines.
  */
-package logs
+package logs // import "docker.com/cli/v28/service/logs"
 
 import (
 	"net/url"

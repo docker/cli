@@ -1,4 +1,4 @@
-package hints
+package hints // import "docker.com/cli/v28/cli/hints"
 
 import (
 	"os"

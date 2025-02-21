@@ -1,4 +1,4 @@
-package opts
+package opts // import "docker.com/cli/v28/opts"
 
 import (
 	"testing"

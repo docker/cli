@@ -1,4 +1,4 @@
-package secret
+package secret // import "docker.com/cli/v28/cli/command/secret"
 
 import (
 	"github.com/docker/cli/v28/cli"

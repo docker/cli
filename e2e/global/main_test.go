@@ -1,4 +1,4 @@
-package global
+package global // import "docker.com/cli/v28/e2e/global"
 
 import (
 	"fmt"

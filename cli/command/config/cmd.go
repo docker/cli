@@ -1,4 +1,4 @@
-package config
+package config // import "docker.com/cli/v28/cli/command/config"
 
 import (
 	"github.com/docker/cli/v28/cli"

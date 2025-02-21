@@ -1,5 +1,5 @@
 // Package ssh provides the connection helper for ssh:// URL.
-package ssh
+package ssh // import "docker.com/cli/v28/cli/connhelper/ssh"
 
 import (
 	"net/url"

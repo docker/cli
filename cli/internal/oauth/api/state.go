@@ -1,4 +1,4 @@
-package api
+package api // import "docker.com/cli/v28/cli/internal/oauth/api"
 
 import (
 	"time"

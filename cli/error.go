@@ -1,4 +1,4 @@
-package cli
+package cli // import "docker.com/cli/v28/cli"
 
 // StatusError reports an unsuccessful exit by a command.
 type StatusError struct {

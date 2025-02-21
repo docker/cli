@@ -1,4 +1,4 @@
-package output
+package output // import "docker.com/cli/v28/internal/test/output"
 
 import (
 	"fmt"

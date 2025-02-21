@@ -1,4 +1,4 @@
-package registry
+package registry // import "docker.com/cli/v28/e2e/registry"
 
 import (
 	"fmt"

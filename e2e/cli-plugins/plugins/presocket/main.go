@@ -1,4 +1,4 @@
-package main
+package main // import "docker.com/cli/v28/e2e/cli-plugins/plugins/presocket"
 
 import (
 	"fmt"

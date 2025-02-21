@@ -1,4 +1,4 @@
-package streams
+package streams // import "docker.com/cli/v28/cli/streams"
 
 import (
 	"errors"

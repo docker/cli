@@ -1,4 +1,4 @@
-package context
+package context // import "docker.com/cli/v28/cli/command/context"
 
 import (
 	"strings"

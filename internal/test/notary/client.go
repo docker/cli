@@ -1,4 +1,4 @@
-package notary
+package notary // import "docker.com/cli/v28/internal/test/notary"
 
 import (
 	"github.com/docker/cli/v28/cli/trust"

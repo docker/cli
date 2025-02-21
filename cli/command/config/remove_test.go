@@ -1,4 +1,4 @@
-package config
+package config // import "docker.com/cli/v28/cli/command/config"
 
 import (
 	"errors"

@@ -1,6 +1,6 @@
 //go:build !windows
 
-package manager
+package manager // import "docker.com/cli/v28/cli-plugins/manager"
 
 // defaultSystemPluginDirs are the platform-specific locations to search
 // for plugins in order of preference.

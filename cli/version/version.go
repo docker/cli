@@ -1,4 +1,4 @@
-package version
+package version // import "docker.com/cli/v28/cli/version"
 
 // Default build-time variable.
 // These values are overridden via ldflags

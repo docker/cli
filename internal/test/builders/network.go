@@ -1,4 +1,4 @@
-package builders
+package builders // import "docker.com/cli/v28/internal/test/builders"
 
 import (
 	"github.com/docker/docker/api/types/network"

@@ -1,4 +1,4 @@
-package container
+package container // import "docker.com/cli/v28/cli/command/container"
 
 import (
 	"github.com/docker/cli/v28/cli"

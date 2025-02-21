@@ -1,6 +1,6 @@
 //go:build !windows
 
-package opts
+package opts // import "docker.com/cli/v28/opts"
 
 // defaultHost constant defines the default host string used by docker on other hosts than Windows
 const defaultHost = "unix://" + defaultUnixSocket

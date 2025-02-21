@@ -1,4 +1,4 @@
-package image
+package image // import "docker.com/cli/v28/cli/command/image"
 
 import (
 	"github.com/docker/cli/v28/cli"

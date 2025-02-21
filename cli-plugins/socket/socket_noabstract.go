@@ -1,6 +1,6 @@
 //go:build !windows && !linux
 
-package socket
+package socket // import "docker.com/cli/v28/cli-plugins/socket"
 
 import (
 	"os"

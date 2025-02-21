@@ -1,6 +1,6 @@
 //go:build !windows
 
-package configfile
+package configfile // import "docker.com/cli/v28/cli/config/configfile"
 
 import (
 	"os"

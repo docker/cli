@@ -29,4 +29,4 @@
 //
 // Context IDs are actually SHA256 hashes of the context name, and are there
 // only to avoid dealing with special characters in context names.
-package store
+package store // import "docker.com/cli/v28/cli/context/store"

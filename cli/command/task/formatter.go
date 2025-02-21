@@ -1,4 +1,4 @@
-package task
+package task // import "docker.com/cli/v28/cli/command/task"
 
 import (
 	"fmt"

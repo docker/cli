@@ -1,4 +1,4 @@
-package loader
+package loader // import "docker.com/cli/v28/cli/compose/loader"
 
 import (
 	"bytes"

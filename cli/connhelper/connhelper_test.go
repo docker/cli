@@ -1,4 +1,4 @@
-package connhelper
+package connhelper // import "docker.com/cli/v28/cli/connhelper"
 
 import (
 	"reflect"

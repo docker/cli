@@ -1,6 +1,6 @@
 //go:build !windows
 
-package container
+package container // import "docker.com/cli/v28/cli/command/container"
 
 import (
 	"context"

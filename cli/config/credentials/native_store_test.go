@@ -1,4 +1,4 @@
-package credentials
+package credentials // import "docker.com/cli/v28/cli/config/credentials"
 
 import (
 	"encoding/json"

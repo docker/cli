@@ -1,4 +1,4 @@
-package opts
+package opts // import "docker.com/cli/v28/opts"
 
 // defaultHost constant defines the default host string used by docker on Windows
 const defaultHost = "npipe://" + defaultNamedPipe

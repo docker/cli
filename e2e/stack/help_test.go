@@ -1,4 +1,4 @@
-package stack
+package stack // import "docker.com/cli/v28/e2e/stack"
 
 import (
 	"testing"

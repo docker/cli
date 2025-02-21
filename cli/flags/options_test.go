@@ -1,4 +1,4 @@
-package flags
+package flags // import "docker.com/cli/v28/cli/flags"
 
 import (
 	"path/filepath"

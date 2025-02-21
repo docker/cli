@@ -1,4 +1,4 @@
-package service
+package service // import "docker.com/cli/v28/cli/command/service"
 
 import (
 	"context"

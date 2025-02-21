@@ -1,4 +1,4 @@
-package manager
+package manager // import "docker.com/cli/v28/cli-plugins/manager"
 
 import (
 	"strings"

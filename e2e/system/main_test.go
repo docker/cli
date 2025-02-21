@@ -1,4 +1,4 @@
-package system
+package system // import "docker.com/cli/v28/e2e/system"
 
 import (
 	"fmt"

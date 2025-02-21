@@ -1,4 +1,4 @@
-package progress
+package progress // import "docker.com/cli/v28/cli/command/swarm/progress"
 
 import (
 	"bytes"

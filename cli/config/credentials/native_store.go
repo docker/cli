@@ -1,4 +1,4 @@
-package credentials
+package credentials // import "docker.com/cli/v28/cli/config/credentials"
 
 import (
 	"github.com/docker/cli/v28/cli/config/types"

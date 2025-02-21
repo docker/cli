@@ -1,4 +1,4 @@
-package environment
+package environment // import "docker.com/cli/v28/internal/test/environment"
 
 import (
 	"errors"

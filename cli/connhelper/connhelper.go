@@ -1,5 +1,5 @@
 // Package connhelper provides helpers for connecting to a remote daemon host with custom logic.
-package connhelper
+package connhelper // import "docker.com/cli/v28/cli/connhelper"
 
 import (
 	"context"

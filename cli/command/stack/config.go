@@ -1,4 +1,4 @@
-package stack
+package stack // import "docker.com/cli/v28/cli/command/stack"
 
 import (
 	"bytes"

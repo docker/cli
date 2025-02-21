@@ -1,4 +1,4 @@
-package builder
+package builder // import "docker.com/cli/v28/cli/command/builder"
 
 import (
 	"github.com/spf13/cobra"

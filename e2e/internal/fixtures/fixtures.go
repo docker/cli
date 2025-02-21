@@ -1,4 +1,4 @@
-package fixtures
+package fixtures // import "docker.com/cli/v28/e2e/internal/fixtures"
 
 import (
 	"fmt"

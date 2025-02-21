@@ -1,4 +1,4 @@
-package command
+package command // import "docker.com/cli/v28/cli/command"
 
 // WithEnableGlobalMeterProvider configures the DockerCli to create a new
 // MeterProvider from the initialized DockerCli struct, and set it as

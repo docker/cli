@@ -1,4 +1,4 @@
-package formatter
+package formatter // import "docker.com/cli/v28/cli/command/stack/formatter"
 
 import (
 	"bytes"

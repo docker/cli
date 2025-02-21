@@ -1,4 +1,4 @@
-package network
+package network // import "docker.com/cli/v28/cli/command/network"
 
 import (
 	"github.com/docker/cli/v28/cli"

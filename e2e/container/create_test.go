@@ -1,4 +1,4 @@
-package container
+package container // import "docker.com/cli/v28/e2e/container"
 
 import (
 	"fmt"

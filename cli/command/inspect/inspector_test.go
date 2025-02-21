@@ -1,4 +1,4 @@
-package inspect
+package inspect // import "docker.com/cli/v28/cli/command/inspect"
 
 import (
 	"bytes"

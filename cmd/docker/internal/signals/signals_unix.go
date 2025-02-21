@@ -1,7 +1,7 @@
 //go:build unix
 // +build unix
 
-package signals
+package signals // import "docker.com/cli/v28/cmd/docker/internal/signals"
 
 import (
 	"os"

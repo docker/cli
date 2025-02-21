@@ -1,4 +1,4 @@
-package convert
+package convert // import "docker.com/cli/v28/cli/compose/convert"
 
 import (
 	"os"

@@ -1,4 +1,4 @@
-package client
+package client // import "docker.com/cli/v28/cli/registry/client"
 
 import (
 	"net"

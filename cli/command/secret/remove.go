@@ -1,4 +1,4 @@
-package secret
+package secret // import "docker.com/cli/v28/cli/command/secret"
 
 import (
 	"context"

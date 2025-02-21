@@ -1,4 +1,4 @@
-package logs
+package logs // import "docker.com/cli/v28/service/logs"
 
 import (
 	"testing"

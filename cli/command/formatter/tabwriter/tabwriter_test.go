@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package tabwriter
+package tabwriter // import "docker.com/cli/v28/cli/command/formatter/tabwriter"
 
 import (
 	"bytes"

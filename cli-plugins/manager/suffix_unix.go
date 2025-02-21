@@ -1,6 +1,6 @@
 //go:build !windows
 
-package manager
+package manager // import "docker.com/cli/v28/cli-plugins/manager"
 
 func trimExeSuffix(s string) (string, error) {
 	return s, nil

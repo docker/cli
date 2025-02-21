@@ -1,4 +1,4 @@
-package swarm
+package swarm // import "docker.com/cli/v28/cli/command/swarm"
 
 import (
 	"testing"

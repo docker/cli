@@ -1,6 +1,6 @@
 //go:build !linux
 
-package commandconn
+package commandconn // import "docker.com/cli/v28/cli/connhelper/commandconn"
 
 import (
 	"os/exec"

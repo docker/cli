@@ -1,4 +1,4 @@
-package store
+package store // import "docker.com/cli/v28/cli/manifest/store"
 
 import (
 	"encoding/json"

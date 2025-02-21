@@ -1,4 +1,4 @@
-package volume
+package volume // import "docker.com/cli/v28/cli/command/volume"
 
 import (
 	"github.com/docker/cli/v28/cli"

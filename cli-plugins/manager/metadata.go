@@ -1,4 +1,4 @@
-package manager
+package manager // import "docker.com/cli/v28/cli-plugins/manager"
 
 const (
 	// NamePrefix is the prefix required on all plugin binary names

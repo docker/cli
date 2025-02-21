@@ -1,4 +1,4 @@
-package ssh
+package ssh // import "docker.com/cli/v28/cli/connhelper/ssh"
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package oauth
+package oauth // import "docker.com/cli/v28/cli/internal/oauth"
 
 import (
 	"github.com/go-jose/go-jose/v4"

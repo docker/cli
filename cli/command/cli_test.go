@@ -1,4 +1,4 @@
-package command
+package command // import "docker.com/cli/v28/cli/command"
 
 import (
 	"bytes"

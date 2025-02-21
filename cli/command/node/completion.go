@@ -1,4 +1,4 @@
-package node
+package node // import "docker.com/cli/v28/cli/command/node"
 
 import (
 	"os"

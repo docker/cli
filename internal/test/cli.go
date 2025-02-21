@@ -1,4 +1,4 @@
-package test
+package test // import "docker.com/cli/v28/internal/test"
 
 import (
 	"bytes"

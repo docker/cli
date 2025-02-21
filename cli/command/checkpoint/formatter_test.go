@@ -1,4 +1,4 @@
-package checkpoint
+package checkpoint // import "docker.com/cli/v28/cli/command/checkpoint"
 
 import (
 	"bytes"
