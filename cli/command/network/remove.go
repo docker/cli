@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -68,7 +69,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, networks []string, op
 	}
 
 	if status != 0 {
-		return cli.StatusError{StatusCode: status}
+		return cli.StatusError{StatusCode: status, Status: "exit status " + strconv.Itoa(status)}
 	}
 	return nil
 }
