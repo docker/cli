@@ -150,6 +150,8 @@ func TestRunAttachTermination(t *testing.T) {
 	var conn net.Conn
 	killCh := make(chan struct{})
 	attachCh := make(chan struct{})
+	startCh := make(chan struct{})
+	containerExitC := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
 			return container.CreateResponse{
@@ -158,6 +160,7 @@ func TestRunAttachTermination(t *testing.T) {
 		},
 		containerKillFunc: func(ctx context.Context, containerID, signal string) error {
 			killCh <- struct{}{}
+			containerExitC <- struct{}{}
 			return nil
 		},
 		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
@@ -173,11 +176,19 @@ func TestRunAttachTermination(t *testing.T) {
 			responseChan := make(chan container.WaitResponse, 1)
 			errChan := make(chan error)
 
-			responseChan <- container.WaitResponse{
-				StatusCode: 130,
-			}
+			go func() {
+				<-containerExitC
+				responseChan <- container.WaitResponse{
+					StatusCode: 130,
+				}
+			}()
 			return responseChan, errChan
 		},
+		containerStartFunc: func(containerID string, options container.StartOptions) error {
+			startCh <- struct{}{}
+			return nil
+		},
+
 		// use new (non-legacy) wait API
 		// see: 38591f20d07795aaef45d400df89ca12f29c603b
 		Version: "1.30",
@@ -201,15 +212,23 @@ func TestRunAttachTermination(t *testing.T) {
 	case <-attachCh:
 	}
 
+	// run command should attempt to start the container
+	select {
+	case <-time.After(5 * time.Second):
+		t.Fatal("containerStartCh was not called before the timeout")
+	case <-startCh:
+	}
+
 	assert.NilError(t, syscall.Kill(syscall.Getpid(), syscall.SIGINT))
-	// end stream from "container" so that we'll detach
-	conn.Close()
 
 	select {
 	case <-killCh:
 	case <-time.After(5 * time.Second):
 		t.Fatal("containerKillFunc was not called before the timeout")
 	}
+
+	// end stream from "container" so that we'll detach
+	conn.Close()
 
 	select {
 	case cmdErr := <-cmdErrC:
