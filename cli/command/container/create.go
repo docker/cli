@@ -39,12 +39,12 @@ const (
 )
 
 type createOptions struct {
-	name                string
-	platform            string
-	untrusted           bool
-	pull                string // always, missing, never
-	quiet               bool
-	includeDockerSocket bool
+	name            string
+	platform        string
+	untrusted       bool
+	pull            string // always, missing, never
+	quiet           bool
+	useDockerSocket bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -75,7 +75,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
-	flags.BoolVarP(&options.includeDockerSocket, "include-docker-socket", "", false, "Bind mount docker socket and required auth")
+	flags.BoolVarP(&options.useDockerSocket, "use-docker-socket", "", false, "Bind mount docker socket and required auth")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -245,7 +245,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		return nil
 	}
 
-	if options.includeDockerSocket {
+	if options.useDockerSocket {
 		// We'll create two new mounts to handle this flag:
 		// 1. Mount the actual docker socket.
 		// 2. A synthezised ~/.docker/config.json with resolved tokens.
@@ -334,7 +334,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 	err = containerIDFile.Write(containerID)
 
-	if options.includeDockerSocket {
+	if options.useDockerSocket {
 		creds, err := dockerCli.ConfigFile().GetAllCredentials()
 		if err != nil {
 			return "", fmt.Errorf("resolving credentials failed: %w", err)
