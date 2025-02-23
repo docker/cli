@@ -193,7 +193,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 
 	out.PrintlnWithColor(tui.ColorWarning, "WARNING: This is an experimental feature. The output may change and shouldn't be depended on.")
 
-	out.Println(generateLegend(out, width))
+	out.Println(generateLegend(out, int(width))) //nolint: gosec
 	out.Println()
 
 	possibleChips := getPossibleChips(view)
@@ -316,7 +316,7 @@ func adjustColumns(width int, columns []imgColumn, images []topImage) []imgColum
 	return columns
 }
 
-func generateLegend(out tui.Output, width uint) string {
+func generateLegend(out tui.Output, width int) string {
 	var legend string
 	legend += out.Sprint(tui.InfoHeader)
 	for idx, chip := range allChips {
@@ -327,7 +327,7 @@ func generateLegend(out tui.Output, width uint) string {
 	}
 	legend += " "
 
-	r := int(width) - tui.Width(legend)
+	r := width - tui.Width(legend)
 	if r < 0 {
 		r = 0
 	}
@@ -388,7 +388,7 @@ func printNames(out tui.Output, headers []imgColumn, img topImage, color, untagg
 		// name will be printed alongside other columns.
 		if nameIdx < len(img.Names)-1 {
 			_, fullWidth := out.GetTtySize()
-			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth))))
+			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth)))) //nolint:gosec
 		} else {
 			_, _ = fmt.Fprint(out, headers[0].Print(color, name))
 		}
