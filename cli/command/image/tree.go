@@ -259,7 +259,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 		},
 	}
 
-	columns = adjustColumns(width, columns, view.images)
+	columns = adjustColumns(int(width), columns, view.images) //nolint:gosec
 
 	// Print columns
 	for i, h := range columns {
@@ -289,8 +289,8 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 // adjustColumns adjusts the width of the first column to maximize the space
 // available for image names and removes any columns that would be too narrow
 // to display their content.
-func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColumn {
-	nameWidth := int(width)
+func adjustColumns(width int, columns []imgColumn, images []topImage) []imgColumn {
+	nameWidth := width
 	for idx, h := range columns {
 		if h.Width == 0 {
 			continue
