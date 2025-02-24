@@ -25,14 +25,13 @@ on:
   pull_request:
 
 jobs:
-  e2e:
+  tests:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         target:
-          - non-experimental
-          - experimental
+          - local
           - connhelper-ssh
         base:
           - alpine

@@ -19,8 +19,6 @@ setup() {
     local project=$1
     local file=$2
 
-    test "${DOCKERD_EXPERIMENTAL:-0}" -eq "1" && file="${file}:./e2e/compose-env.experimental.yaml"
-
     if [ "${TEST_CONNHELPER:-}" = "ssh" ];then
         test ! -f "${HOME}/.ssh/id_rsa" && ssh-keygen -t rsa -C docker-e2e-dummy -N "" -f "${HOME}/.ssh/id_rsa" -q
         grep "^StrictHostKeyChecking no" "${HOME}/.ssh/config" > /dev/null 2>&1 || echo "StrictHostKeyChecking no" > "${HOME}/.ssh/config"
