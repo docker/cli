@@ -5,10 +5,10 @@ Manage the unlock key
 
 ### Options
 
-| Name            | Type   | Default | Description        |
-|:----------------|:-------|:--------|:-------------------|
-| `-q`, `--quiet` | `bool` |         | Only display token |
-| `--rotate`      | `bool` |         | Rotate unlock key  |
+| Name                                | Type   | Default | Description        |
+|:------------------------------------|:-------|:--------|:-------------------|
+| [`-q`](#quiet), [`--quiet`](#quiet) | `bool` |         | Only display token |
+| [`--rotate`](#rotate)               | `bool` |         | Rotate unlock key  |
 
 
 <!---MARKER_GEN_END-->
@@ -67,12 +67,12 @@ $ docker swarm unlock-key -q
 SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8
 ```
 
-### `--rotate`
+### <a name="rotate"></a> `--rotate`
 
 This flag rotates the unlock key, replacing it with a new randomly-generated
 key. The old unlock key will no longer be accepted.
 
-### `--quiet`
+### <a name="quiet"></a> `--quiet`
 
 Only print the unlock key, without instructions.
 

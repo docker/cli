@@ -13,7 +13,7 @@ List networks
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `driver=bridge`)                                                                                                                                                                                                                                                                                                                                                                                         |
 | [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
-| `--no-trunc`                           | `bool`   |         | Do not truncate the output                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`--no-trunc`](#no-trunc)              | `bool`   |         | Do not truncate the output                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `-q`, `--quiet`                        | `bool`   |         | Only display network IDs                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 
@@ -36,6 +36,8 @@ NETWORK ID          NAME                DRIVER          SCOPE
 cf03ee007fb4        host                host            local
 78b03ee04fc4        multi-host          overlay         swarm
 ```
+
+### <a name="no-trunc"></a> List networks without truncating the ID column (--no-trun)
 
 Use the `--no-trunc` option to display the full network id:
 
