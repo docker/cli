@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/netip"
 	"os"
+	"strings"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -22,6 +23,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	imagetypes "github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
@@ -250,11 +252,18 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		// 1. Mount the actual docker socket.
 		// 2. A synthezised ~/.docker/config.json with resolved tokens.
 
-		// TODO(sjd): Works in naive use cases where we are connected to an
-		// engine locally. We'll need to resolve the external socket for this
-		// work widely.
-		containerCfg.HostConfig.Binds = append(containerCfg.HostConfig.Binds,
-			"/var/run/docker.sock:/var/run/docker.sock")
+		socket := dockerCli.DockerEndpoint().Host
+		if !strings.HasPrefix(socket, "unix://") {
+			return "", fmt.Errorf("flag --use-docker-socket can only be used with unix sockets: docker endpoint %s incompatible", socket)
+		}
+		socket = strings.TrimPrefix(socket, "unix://") // should we confirm absolute path?
+
+		containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
+			Type:        mount.TypeBind,
+			Source:      socket,
+			Target:      "/var/run/docker.sock",
+			BindOptions: &mount.BindOptions{},
+		})
 
 		/*
 
