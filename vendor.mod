@@ -18,7 +18,7 @@ require (
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.1.0
-	github.com/go-jose/go-jose/v4 v4.0.4
+	github.com/go-jose/go-jose/v4 v4.0.5
 	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.6.0
@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.31.0
 	golang.org/x/sync v0.10.0
 	golang.org/x/sys v0.29.0
-	golang.org/x/term v0.27.0
+	golang.org/x/term v0.28.0
 	golang.org/x/text v0.21.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/v3 v3.5.2
@@ -95,7 +95,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.31.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.31.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38 // indirect
