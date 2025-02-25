@@ -301,7 +301,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 		u.slotMap = make(map[int]int)
 
 		// Draw progress bars in order
-		writeOverallProgress(u.progressOut, 0, int(replicas), rollback)
+		writeOverallProgress(u.progressOut, 0, int(replicas), rollback) //nolint:gosec
 
 		if replicas <= maxProgressBars {
 			for i := uint64(1); i <= replicas; i++ {
@@ -340,7 +340,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	}
 
 	if !u.done {
-		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback)
+		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback) //nolint:gosec
 
 		if running == replicas {
 			u.done = true
@@ -572,8 +572,8 @@ type replicatedJobProgressUpdater struct {
 }
 
 func newReplicatedJobProgressUpdater(service swarm.Service, progressOut progress.Output) *replicatedJobProgressUpdater {
-	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent)
-	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)
+	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent) //nolint:gosec
+	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)   //nolint:gosec
 
 	return &replicatedJobProgressUpdater{
 		progressOut:    progressOut,
