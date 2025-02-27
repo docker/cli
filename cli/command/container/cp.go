@@ -108,7 +108,7 @@ func copyProgress(ctx context.Context, dst io.Writer, header string, total *int6
 				}
 
 				// Write to the buffer first to avoid flickering and context switching
-				fmt.Fprint(buf, aec.Column(uint(len(header)+1))) //nolint:gosec
+				fmt.Fprint(buf, aec.Column(uint(len(header)+1))) // #nosec G115 -- Ignore "integer overflow conversion int -> uint" (go len value always start from 0)
 				fmt.Fprint(buf, aec.EraseLine(aec.EraseModes.Tail))
 				fmt.Fprint(buf, progressHumanSize(n))
 

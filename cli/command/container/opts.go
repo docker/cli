@@ -620,7 +620,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		BlkioDeviceReadIOps:  copts.deviceReadIOps.GetList(),
 		BlkioDeviceWriteIOps: copts.deviceWriteIOps.GetList(),
 		IOMaximumIOps:        copts.ioMaxIOps,
-		IOMaximumBandwidth:   uint64(copts.ioMaxBandwidth), //nolint:gosec
+		IOMaximumBandwidth:   uint64(copts.ioMaxBandwidth), // #nosec G115 -- ignore "integer overflow conversion int64 -> uint64" (Using MemBytes value, which alway assumed to be positive)
 		Ulimits:              copts.ulimits.GetList(),
 		DeviceCgroupRules:    copts.deviceCgroupRules.GetAll(),
 		Devices:              deviceMappings,

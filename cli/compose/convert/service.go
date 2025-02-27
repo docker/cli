@@ -460,8 +460,9 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 	if healthcheck.StartInterval != nil {
 		startInterval = time.Duration(*healthcheck.StartInterval)
 	}
+	// #nosec G115 -- ignore "overflow conversion uint64 -> int", safe to convert for retries value less than 2^32 in a 32bit system
 	if healthcheck.Retries != nil {
-		retries = int(*healthcheck.Retries) //nolint:gosec
+		retries = int(*healthcheck.Retries)
 	}
 	return &container.HealthConfig{
 		Test:          healthcheck.Test,
@@ -488,7 +489,7 @@ func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*
 				Condition: swarm.RestartPolicyConditionAny,
 			}, nil
 		case policy.IsOnFailure():
-			attempts := uint64(policy.MaximumRetryCount) //nolint:gosec
+			attempts := uint64(policy.MaximumRetryCount) // #nosec G115 -- ignore "overflow onversion int -> uint64", validation for negative value exist on MaximumRetryCount init
 			return &swarm.RestartPolicy{
 				Condition:   swarm.RestartPolicyConditionOnFailure,
 				MaxAttempts: &attempts,

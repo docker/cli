@@ -193,7 +193,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 
 	out.PrintlnWithColor(tui.ColorWarning, "WARNING: This is an experimental feature. The output may change and shouldn't be depended on.")
 
-	out.Println(generateLegend(out, int(width))) //nolint: gosec
+	out.Println(generateLegend(out, int(width))) // #nosec G115 -- ignore "overflow conversion uint -> int", int expansion won't cause lost of value
 	out.Println()
 
 	possibleChips := getPossibleChips(view)
@@ -259,7 +259,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 		},
 	}
 
-	columns = adjustColumns(int(width), columns, view.images) //nolint:gosec
+	columns = adjustColumns(int(width), columns, view.images) // #nosec G115 -- ignore "overflow conversion uint -> int", int expansion won't cause lost of value
 
 	// Print columns
 	for i, h := range columns {
@@ -388,7 +388,7 @@ func printNames(out tui.Output, headers []imgColumn, img topImage, color, untagg
 		// name will be printed alongside other columns.
 		if nameIdx < len(img.Names)-1 {
 			_, fullWidth := out.GetTtySize()
-			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth)))) //nolint:gosec
+			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth)))) // #nosec G115 -- ignore "overflow conversion uint -> int", int expansion won't cause lost of value
 		} else {
 			_, _ = fmt.Fprint(out, headers[0].Print(color, name))
 		}

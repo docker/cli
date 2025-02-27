@@ -301,7 +301,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 		u.slotMap = make(map[int]int)
 
 		// Draw progress bars in order
-		writeOverallProgress(u.progressOut, 0, int(replicas), rollback) //nolint:gosec
+		writeOverallProgress(u.progressOut, 0, int(replicas), rollback) // #nosec G115 -- ignore "overflow conversion uint64 -> int", safe for less than 2^32 replica in 32bit system
 
 		if replicas <= maxProgressBars {
 			for i := uint64(1); i <= replicas; i++ {
@@ -340,7 +340,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	}
 
 	if !u.done {
-		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback) //nolint:gosec
+		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback) // #nosec G115 -- ignore "overflow conversion uint64 -> int", safe for less than 2^32 running tasks in 32bit system
 
 		if running == replicas {
 			u.done = true
@@ -383,7 +383,8 @@ func (*replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes ma
 }
 
 func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlot int, replicas uint64) {
-	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas { //nolint:gosec
+	// #nosec G115 -- ignore "overflow conversion uint64 -> int", mappedSlot never negative
+	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas {
 		return
 	}
 
@@ -572,8 +573,8 @@ type replicatedJobProgressUpdater struct {
 }
 
 func newReplicatedJobProgressUpdater(service swarm.Service, progressOut progress.Output) *replicatedJobProgressUpdater {
-	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent) //nolint:gosec
-	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)   //nolint:gosec
+	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent) // #nosec G115 -- ignore "overflow conversion uint64 -> int", safe for less than 2^32 MaxConcurrent in 32bit system
+	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)   // #nosec G115 -- ignore "overflow conversion uint64 -> int", safe for less than 2^32 TotalCompletions in 32bit system
 
 	return &replicatedJobProgressUpdater{
 		progressOut:    progressOut,
