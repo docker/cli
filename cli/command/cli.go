@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -292,6 +293,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	if cli.enableGlobalTracer {
 		cli.createGlobalTracerProvider(cli.baseCtx)
 	}
+	filterResourceAttributesEnvvar()
 
 	return nil
 }
@@ -590,4 +592,47 @@ func DefaultContextStoreConfig() store.Config {
 		func() any { return &DockerContext{} },
 		defaultStoreEndpoints...,
 	)
+}
+
+const (
+	// ResourceAttributesEnvvar is the name of the envvar that includes additional
+	// resource attributes for OTEL.
+	ResourceAttributesEnvvar = "OTEL_RESOURCE_ATTRIBUTES"
+
+	// DockerCliAttributePrefix is the prefix for any docker cli OTEL attributes.
+	DockerCliAttributePrefix = "docker.cli."
+)
+
+func filterResourceAttributesEnvvar() {
+	if v := os.Getenv(ResourceAttributesEnvvar); v != "" {
+		if filtered := filterResourceAttributes(v); filtered != "" {
+			os.Setenv(ResourceAttributesEnvvar, filtered)
+		} else {
+			os.Unsetenv(ResourceAttributesEnvvar)
+		}
+	}
+}
+
+func filterResourceAttributes(s string) string {
+	if trimmed := strings.TrimSpace(s); trimmed == "" {
+		return trimmed
+	}
+
+	pairs := strings.Split(s, ",")
+	elems := make([]string, 0, len(pairs))
+	for _, p := range pairs {
+		k, _, found := strings.Cut(p, "=")
+		if !found {
+			// Do not interact with invalid otel resources.
+			elems = append(elems, p)
+			continue
+		}
+
+		// Skip attributes that have our docker.cli prefix.
+		if strings.HasPrefix(k, DockerCliAttributePrefix) {
+			continue
+		}
+		elems = append(elems, p)
+	}
+	return strings.Join(elems, ",")
 }

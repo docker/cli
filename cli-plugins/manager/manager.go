@@ -26,7 +26,7 @@ const (
 
 	// ResourceAttributesEnvvar is the name of the envvar that includes additional
 	// resource attributes for OTEL.
-	ResourceAttributesEnvvar = "OTEL_RESOURCE_ATTRIBUTES"
+	ResourceAttributesEnvvar = command.ResourceAttributesEnvvar
 )
 
 // errPluginNotFound is the error returned when a plugin could not be found.
