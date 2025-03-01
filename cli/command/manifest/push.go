@@ -68,7 +68,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOpts) error {
 		return err
 	}
 
-	manifests, err := dockerCli.ManifestStore().GetList(targetRef)
+	manifests, err := newManifestStore(dockerCli).GetList(targetRef)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOpts) error {
 		return err
 	}
 	if opts.purge {
-		return dockerCli.ManifestStore().Remove(targetRef)
+		return newManifestStore(dockerCli).Remove(targetRef)
 	}
 	return nil
 }

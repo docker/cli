@@ -2,9 +2,11 @@ package manifest
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/manifest/store"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -19,6 +21,23 @@ type annotateOptions struct {
 	arch       string
 	osFeatures []string
 	osVersion  string
+}
+
+// manifestStoreProvider is used in tests to provide a dummy store.
+type manifestStoreProvider interface {
+	// ManifestStore returns a store for local manifests
+	ManifestStore() store.Store
+}
+
+// newManifestStore returns a store for local manifests
+func newManifestStore(dockerCLI command.Cli) store.Store {
+	if msp, ok := dockerCLI.(manifestStoreProvider); ok {
+		// manifestStoreProvider is used in tests to provide a dummy store.
+		return msp.ManifestStore()
+	}
+
+	// TODO: support override default location from config file
+	return store.NewStore(filepath.Join(config.Dir(), "manifests"))
 }
 
 // NewAnnotateCommand creates a new `docker manifest annotate` command
@@ -47,7 +66,7 @@ func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
+func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
 		return errors.Wrapf(err, "annotate: error parsing name for manifest list %s", opts.target)
@@ -57,7 +76,7 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 		return errors.Wrapf(err, "annotate: error parsing name for manifest %s", opts.image)
 	}
 
-	manifestStore := dockerCli.ManifestStore()
+	manifestStore := newManifestStore(dockerCLI)
 	imageManifest, err := manifestStore.Get(targetRef, imgRef)
 	switch {
 	case store.IsNotFound(err):
