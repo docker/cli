@@ -75,7 +75,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	// Next try a remote manifest
-	registryClient := dockerCli.RegistryClient(opts.insecure)
+	registryClient := newRegistryClient(dockerCli, opts.insecure)
 	imageManifest, err := registryClient.GetManifest(ctx, namedRef)
 	if err == nil {
 		return printManifest(dockerCli, imageManifest, opts)
