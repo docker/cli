@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"runtime"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 )
@@ -28,13 +28,19 @@ const (
 		"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
 )
 
+const (
+	// IndexHostname is the index hostname, used for authentication and image search.
+	indexHostname = "index.docker.io"
+	// IndexServer is used for user auth and image search
+	indexServer = "https://" + indexHostname + "/v1/"
+)
+
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
 	return func(ctx context.Context) (string, error) {
 		_, _ = fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
-		indexServer := registry.GetAuthConfigKey(index)
-		isDefaultRegistry := indexServer == registry.IndexServer
+		isDefaultRegistry := index.Official || index.Name == indexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
 			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
@@ -63,7 +69,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	configKey := index.Name
 	if index.Official {
-		configKey = registry.IndexServer
+		configKey = indexServer
 	}
 
 	a, _ := cfg.GetAuthConfig(configKey)
@@ -132,7 +138,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 
 	argUser = strings.TrimSpace(argUser)
 	if argUser == "" {
-		if serverAddress == registry.IndexServer {
+		if serverAddress == indexServer {
 			// When signing in to the default (Docker Hub) registry, we display
 			// hints for creating an account, and (if hints are enabled), using
 			// a token instead of a password.
@@ -219,15 +225,80 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 	return encodedAuth, nil
 }
 
+// newIndexInfo returns IndexInfo configuration from indexName
+func newIndexInfo(indexName string) *registrytypes.IndexInfo {
+	indexName = normalizeIndexName(indexName)
+
+	// Return any configured index info, first.
+	if indexName == "docker.io" {
+		return &registrytypes.IndexInfo{
+			Name:     "docker.io",
+			Secure:   true,
+			Official: true,
+		}
+	}
+
+	// Construct a non-configured index info.
+	return &registrytypes.IndexInfo{
+		Name:   indexName,
+		Secure: !isInsecure(indexName),
+	}
+}
+
+func normalizeIndexName(val string) string {
+	// TODO(thaJeztah): consider normalizing other known options, such as "(https://)registry-1.docker.io", "https://index.docker.io/v1/".
+	// TODO: upstream this to check to reference package
+	if val == "index.docker.io" {
+		return "docker.io"
+	}
+	return val
+}
+
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
 func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
 	}
-	repoInfo, err := registry.ParseRepositoryInfo(registryRef)
-	if err != nil {
-		return registrytypes.AuthConfig{}, err
+	domainName := reference.Domain(registryRef)
+	idxInfo := newIndexInfo(domainName)
+	return ResolveAuthConfig(cfg, idxInfo), nil
+}
+
+// isInsecure is used to detect whether a registry domain or IP-address is allowed
+// to use an insecure (non-TLS, or self-signed cert) connection according to the
+// defaults, which allows for insecure connections with registries running on a
+// loopback address ("localhost", "::1/128", "127.0.0.0/8").
+//
+// It is used in situations where we don't have access to the daemon's configuration,
+// for example, when used from the client / CLI.
+func isInsecure(hostNameOrIP string) bool {
+	// Attempt to strip port if present; this also strips brackets for
+	// IPv6 addresses with a port (e.g. "[::1]:5000").
+	//
+	// This is best-effort; we'll continue using the address as-is if it fails.
+	if host, _, err := net.SplitHostPort(hostNameOrIP); err == nil {
+		hostNameOrIP = host
 	}
-	return ResolveAuthConfig(cfg, repoInfo.Index), nil
+	if hostNameOrIP == "127.0.0.1" || hostNameOrIP == "::1" || strings.EqualFold(hostNameOrIP, "localhost") {
+		// Fast path; no need to resolve these, assuming nobody overrides
+		// "localhost" for anything else than a loopback address (sorry, not sorry).
+		return true
+	}
+
+	var addresses []net.IP
+	if ip := net.ParseIP(hostNameOrIP); ip != nil {
+		addresses = append(addresses, ip)
+	} else {
+		// Try to resolve the host's IP-addresses.
+		addrs, _ := net.LookupIP(hostNameOrIP)
+		addresses = append(addresses, addrs...)
+	}
+
+	for _, addr := range addresses {
+		if addr.IsLoopback() {
+			return true
+		}
+	}
+	return false
 }

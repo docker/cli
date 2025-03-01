@@ -3,15 +3,12 @@ package cli
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/command"
 	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/pkg/homedir"
-	"github.com/docker/docker/registry"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/term"
 	"github.com/morikuni/aec"
@@ -63,11 +60,13 @@ func setupCommonRootCommand(rootCmd *cobra.Command) (*cliflags.ClientOptions, *c
 	}
 
 	// Configure registry.CertsDir() when running in rootless-mode
-	if os.Getenv("ROOTLESSKIT_STATE_DIR") != "" {
-		if configHome, err := homedir.GetConfigHome(); err == nil {
-			registry.SetCertsDir(filepath.Join(configHome, "docker/certs.d"))
-		}
-	}
+	//
+	// FIXME(thaJeztah): this causes docker/distribution to be a dependency for cli-plugins
+	// if os.Getenv("ROOTLESSKIT_STATE_DIR") != "" {
+	// 	if configHome, err := homedir.GetConfigHome(); err == nil {
+	// 		registry.SetCertsDir(filepath.Join(configHome, "docker/certs.d"))
+	// 	}
+	// }
 
 	return opts, helpCommand
 }
