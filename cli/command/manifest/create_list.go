@@ -41,7 +41,7 @@ func createManifestList(ctx context.Context, dockerCLI command.Cli, args []strin
 		return errors.Wrapf(err, "error parsing name for manifest list %s", newRef)
 	}
 
-	manifestStore := dockerCLI.ManifestStore()
+	manifestStore := newManifestStore(dockerCLI)
 	_, err = manifestStore.GetList(targetRef)
 	switch {
 	case store.IsNotFound(err):
