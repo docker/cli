@@ -7,17 +7,8 @@ import (
 	"github.com/docker/cli/cli/config"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/docker/api/types/registry"
-	notaryclient "github.com/theupdateframework/notary/client"
 )
-
-type DeprecatedNotaryClient interface {
-	// NotaryClient provides a Notary Repository to interact with signed metadata for an image
-	//
-	// Deprecated: use [trust.GetNotaryRepository] instead. This method is no longer used and will be removed in the next release.
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
-}
 
 type DeprecatedManifestClient interface {
 	// ManifestStore returns a store for local manifests
@@ -30,11 +21,6 @@ type DeprecatedManifestClient interface {
 	//
 	// Deprecated: use [registryclient.NewRegistryClient]. This method is no longer used and will be removed in the next release.
 	RegistryClient(bool) registryclient.RegistryClient
-}
-
-// NotaryClient provides a Notary Repository to interact with signed metadata for an image
-func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
 // ManifestStore returns a store for local manifests
