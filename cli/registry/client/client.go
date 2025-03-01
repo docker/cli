@@ -8,7 +8,6 @@ import (
 
 	"github.com/distribution/reference"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution"
 	distributionclient "github.com/docker/distribution/registry/client"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -78,7 +77,7 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 	if err != nil {
 		return err
 	}
-	repoEndpoint.actions = trust.ActionsPushAndPull
+	repoEndpoint.actions = []string{"pull", "push"}
 	repo, err := c.getRepositoryForReference(ctx, targetRef, repoEndpoint)
 	if err != nil {
 		return err
@@ -104,7 +103,7 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 		return "", err
 	}
 
-	repoEndpoint.actions = trust.ActionsPushAndPull
+	repoEndpoint.actions = []string{"pull", "push"}
 	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
 	if err != nil {
 		return "", err
