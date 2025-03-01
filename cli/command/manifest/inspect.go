@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/manifest/manifestlist"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -113,10 +112,7 @@ func printManifest(dockerCli command.Cli, manifest types.ImageManifest, opts ins
 
 func printManifestList(dockerCli command.Cli, namedRef reference.Named, list []types.ImageManifest, opts inspectOptions) error {
 	if !opts.verbose {
-		targetRepo, err := registry.ParseRepositoryInfo(namedRef)
-		if err != nil {
-			return err
-		}
+		targetRepo := reference.TrimNamed(namedRef)
 
 		manifests := []manifestlist.ManifestDescriptor{}
 		// More than one response. This is a manifest list.

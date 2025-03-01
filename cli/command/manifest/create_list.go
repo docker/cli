@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -40,11 +39,6 @@ func createManifestList(ctx context.Context, dockerCLI command.Cli, args []strin
 	targetRef, err := normalizeReference(newRef)
 	if err != nil {
 		return errors.Wrapf(err, "error parsing name for manifest list %s", newRef)
-	}
-
-	_, err = registry.ParseRepositoryInfo(targetRef)
-	if err != nil {
-		return errors.Wrapf(err, "error parsing repository name for manifest list %s", newRef)
 	}
 
 	manifestStore := dockerCLI.ManifestStore()
