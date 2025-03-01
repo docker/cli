@@ -56,7 +56,6 @@ type Cli interface {
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
-	DeprecatedNotaryClient
 	DeprecatedManifestClient
 }
 
