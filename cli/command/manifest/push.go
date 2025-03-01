@@ -248,7 +248,7 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 }
 
 func pushList(ctx context.Context, dockerCLI command.Cli, req pushRequest) error {
-	rclient := dockerCLI.RegistryClient(req.insecure)
+	rclient := newRegistryClient(dockerCLI, req.insecure)
 
 	if err := mountBlobs(ctx, rclient, req.targetRef, req.manifestBlobs); err != nil {
 		return err
