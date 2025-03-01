@@ -49,6 +49,20 @@ type trustKey struct {
 	ID string `json:",omitempty"`
 }
 
+// notaryClientProvider is used in tests to provide a dummy notary client.
+type notaryClientProvider interface {
+	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error)
+}
+
+// newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
+func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
+	if ncp, ok := cli.(notaryClientProvider); ok {
+		// notaryClientProvider is used in tests to provide a dummy notary client.
+		return ncp.NotaryClient(imgRefAndAuth, actions)
+	}
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
+}
+
 // lookupTrustInfo returns processed signature and role information about a notary repository.
 // This information is to be pretty printed or serialized into a machine-readable format.
 func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
@@ -57,7 +71,7 @@ func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]tru
 		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, err
 	}
 	tag := imgRefAndAuth.Tag()
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth, trust.ActionsPullOnly)
 	if err != nil {
 		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}

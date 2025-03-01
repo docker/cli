@@ -53,7 +53,7 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 		}
 	}
 
-	notaryRepo, err := dockerCLI.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := newNotaryClient(dockerCLI, imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return err
 	}

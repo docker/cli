@@ -30,6 +30,20 @@ type target struct {
 	size   int64
 }
 
+// notaryClientProvider is used in tests to provide a dummy notary client.
+type notaryClientProvider interface {
+	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error)
+}
+
+// newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
+func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (client.Repository, error) {
+	if ncp, ok := cli.(notaryClientProvider); ok {
+		// notaryClientProvider is used in tests to provide a dummy notary client.
+		return ncp.NotaryClient(imgRefAndAuth, []string{"pull"})
+	}
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), "pull")
+}
+
 // TrustedPush handles content trust pushing of an image
 func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, options image.PushOptions) error {
 	responseBody, err := cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
@@ -200,7 +214,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 }
 
 func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPullOnly)
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
 	if err != nil {
 		return nil, errors.Wrap(err, "error establishing connection to trust repository")
 	}
@@ -280,7 +294,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 		return nil, err
 	}
 
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, []string{"pull"})
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
 	if err != nil {
 		return nil, errors.Wrap(err, "error establishing connection to trust repository")
 	}
