@@ -5,13 +5,13 @@ Join a swarm as a node and/or manager
 
 ### Options
 
-| Name               | Type        | Default        | Description                                                                   |
-|:-------------------|:------------|:---------------|:------------------------------------------------------------------------------|
-| `--advertise-addr` | `string`    |                | Advertised address (format: `<ip\|interface>[:port]`)                         |
-| `--availability`   | `string`    | `active`       | Availability of the node (`active`, `pause`, `drain`)                         |
-| `--data-path-addr` | `string`    |                | Address or interface to use for data path traffic (format: `<ip\|interface>`) |
-| `--listen-addr`    | `node-addr` | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                             |
-| `--token`          | `string`    |                | Token for entry into the swarm                                                |
+| Name                                  | Type        | Default        | Description                                                                   |
+|:--------------------------------------|:------------|:---------------|:------------------------------------------------------------------------------|
+| [`--advertise-addr`](#advertise-addr) | `string`    |                | Advertised address (format: `<ip\|interface>[:port]`)                         |
+| [`--availability`](#availability)     | `string`    | `active`       | Availability of the node (`active`, `pause`, `drain`)                         |
+| [`--data-path-addr`](#data-path-addr) | `string`    |                | Address or interface to use for data path traffic (format: `<ip\|interface>`) |
+| [`--listen-addr`](#listen-addr)       | `node-addr` | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                             |
+| [`--token`](#token)                   | `string`    |                | Token for entry into the swarm                                                |
 
 
 <!---MARKER_GEN_END-->
@@ -57,7 +57,7 @@ dkp8vy1dq1kxleu9g4u78tlag    worker1   Ready   Active        Reachable
 dvfxp4zseq4s0rih1selh0d20 *  manager1  Ready   Active        Leader
 ```
 
-### `--listen-addr value`
+### <a name="listen-addr"></a> `--listen-addr value`
 
 If the node is a manager, it will listen for inbound swarm manager traffic on this
 address. The default is to listen on 0.0.0.0:2377. It is also possible to specify a
@@ -68,7 +68,7 @@ name, the default port 2377 will be used.
 
 This flag is generally not necessary when joining an existing swarm.
 
-### `--advertise-addr value`
+### <a name="advertise-addr"></a> `--advertise-addr value`
 
 This flag specifies the address that will be advertised to other members of the
 swarm for API access. If unspecified, Docker will check if the system has a
@@ -88,7 +88,7 @@ you're joining new nodes through a load balancer, you should use this flag to
 ensure the node advertises its IP address and not the IP address of the load
 balancer.
 
-### `--data-path-addr`
+### <a name="data-path-addr"></a> `--data-path-addr`
 
 This flag specifies the address that global scope network drivers will publish towards
 other nodes in order to reach the containers running on this node.
@@ -97,11 +97,11 @@ management traffic of the cluster.
 If unspecified, Docker will use the same IP address or interface that is used for the
 advertise address.
 
-### `--token string`
+### <a name="token"></a> `--token string`
 
 Secret value required for nodes to join the swarm
 
-### `--availability`
+### <a name="availability"></a> `--availability`
 
 This flag specifies the availability of the node at the time the node joins a master.
 Possible availability values are `active`, `pause`, or `drain`.

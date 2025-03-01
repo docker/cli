@@ -4,7 +4,7 @@ services:
     image: 'registry:2'
 
   engine:
-      image: 'docker:${ENGINE_VERSION:-26.1}-dind'
+      image: 'docker:${ENGINE_VERSION:-28}-dind'
       privileged: true
       command: ['--insecure-registry=registry:5000']
       environment:
