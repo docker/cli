@@ -1,42 +1,39 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package context
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/kubernetes"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/internal/test"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/env"
 )
 
-func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func()) {
-	dir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
+func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) *test.FakeCli {
+	t.Helper()
+	dir := t.TempDir()
 	storeConfig := store.NewConfig(
-		func() interface{} { return &command.DockerContext{} },
-		store.EndpointTypeGetter(docker.DockerEndpoint, func() interface{} { return &docker.EndpointMeta{} }),
-		store.EndpointTypeGetter(kubernetes.KubernetesEndpoint, func() interface{} { return &kubernetes.EndpointMeta{} }),
+		func() any { return &command.DockerContext{} },
+		store.EndpointTypeGetter(docker.DockerEndpoint, func() any { return &docker.EndpointMeta{} }),
 	)
-	store := &command.ContextStoreWithDefault{
+	contextStore := &command.ContextStoreWithDefault{
 		Store: store.New(dir, storeConfig),
 		Resolver: func() (*command.DefaultContext, error) {
 			return &command.DefaultContext{
 				Meta: store.Metadata{
-					Endpoints: map[string]interface{}{
+					Endpoints: map[string]any{
 						docker.DockerEndpoint: docker.EndpointMeta{
 							Host: "unix:///var/run/docker.sock",
 						},
 					},
 					Metadata: command.DockerContext{
-						Description:       "",
-						StackOrchestrator: command.OrchestratorSwarm,
+						Description: "",
 					},
 					Name: command.DefaultContextName,
 				},
@@ -44,15 +41,12 @@ func makeFakeCli(t *testing.T, opts ...func(*test.FakeCli)) (*test.FakeCli, func
 			}, nil
 		},
 	}
-	cleanup := func() {
-		os.RemoveAll(dir)
-	}
 	result := test.NewFakeCli(nil, opts...)
 	for _, o := range opts {
 		o(result)
 	}
-	result.SetContextStore(store)
-	return result, cleanup
+	result.SetContextStore(contextStore)
+	return result
 }
 
 func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
@@ -61,98 +55,109 @@ func withCliConfig(configFile *configfile.ConfigFile) func(*test.FakeCli) {
 	}
 }
 
-func TestCreateInvalids(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+func TestCreate(t *testing.T) {
+	cli := makeFakeCli(t)
 	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
+		doc         string
 		options     CreateOptions
 		expecterErr string
 	}{
 		{
+			doc:         "empty name",
 			expecterErr: `context name cannot be empty`,
 		},
 		{
+			doc: "reserved name",
 			options: CreateOptions{
 				Name: "default",
 			},
 			expecterErr: `"default" is a reserved context name`,
 		},
 		{
+			doc: "whitespace-only name",
 			options: CreateOptions{
 				Name: " ",
 			},
 			expecterErr: `context name " " is invalid`,
 		},
 		{
+			doc: "existing context",
 			options: CreateOptions{
 				Name: "existing-context",
 			},
 			expecterErr: `context "existing-context" already exists`,
 		},
 		{
+			doc: "invalid docker host",
 			options: CreateOptions{
 				Name: "invalid-docker-host",
 				Docker: map[string]string{
-					keyHost: "some///invalid/host",
+					"host": "some///invalid/host",
 				},
 			},
 			expecterErr: `unable to parse docker host`,
 		},
 		{
+			doc: "ssh host with skip-tls-verify=false",
 			options: CreateOptions{
-				Name:                     "invalid-orchestrator",
-				DefaultStackOrchestrator: "invalid",
+				Name: "skip-tls-verify-false",
+				Docker: map[string]string{
+					"host": "ssh://example.com,skip-tls-verify=false",
+				},
 			},
-			expecterErr: `specified orchestrator "invalid" is invalid, please use either kubernetes, swarm or all`,
 		},
 		{
+			doc: "ssh host with skip-tls-verify=true",
 			options: CreateOptions{
-				Name:                     "orchestrator-kubernetes-no-endpoint",
-				DefaultStackOrchestrator: "kubernetes",
-				Docker:                   map[string]string{},
+				Name: "skip-tls-verify-true",
+				Docker: map[string]string{
+					"host": "ssh://example.com,skip-tls-verify=true",
+				},
 			},
-			expecterErr: `cannot specify orchestrator "kubernetes" without configuring a Kubernetes endpoint`,
 		},
 		{
+			doc: "ssh host with skip-tls-verify=INVALID",
 			options: CreateOptions{
-				Name:                     "orchestrator-all-no-endpoint",
-				DefaultStackOrchestrator: "all",
-				Docker:                   map[string]string{},
+				Name: "skip-tls-verify-invalid",
+				Docker: map[string]string{
+					"host":            "ssh://example.com",
+					"skip-tls-verify": "INVALID",
+				},
 			},
-			expecterErr: `cannot specify orchestrator "all" without configuring a Kubernetes endpoint`,
+			expecterErr: `unable to create docker endpoint config: skip-tls-verify: parsing "INVALID": invalid syntax`,
+		},
+		{
+			doc: "unknown option",
+			options: CreateOptions{
+				Name: "unknown-option",
+				Docker: map[string]string{
+					"UNKNOWN": "value",
+				},
+			},
+			expecterErr: `unable to create docker endpoint config: unrecognized config key: UNKNOWN`,
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.options.Name, func(t *testing.T) {
+		t.Run(tc.doc, func(t *testing.T) {
 			err := RunCreate(cli, &tc.options)
-			assert.ErrorContains(t, err, tc.expecterErr)
+			if tc.expecterErr == "" {
+				assert.NilError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.expecterErr)
+			}
 		})
 	}
 }
 
 func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
+	t.Helper()
 	assert.Equal(t, n+"\n", cli.OutBuffer().String())
 	assert.Equal(t, fmt.Sprintf("Successfully created context %q\n", n), cli.ErrBuffer().String())
 }
 
-func TestCreateOrchestratorSwarm(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-
-	err := RunCreate(cli, &CreateOptions{
-		Name:                     "test",
-		DefaultStackOrchestrator: "swarm",
-		Docker:                   map[string]string{},
-	})
-	assert.NilError(t, err)
-	assertContextCreateLogging(t, cli, "test")
-}
-
 func TestCreateOrchestratorEmpty(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
+	cli := makeFakeCli(t)
 
 	err := RunCreate(cli, &CreateOptions{
 		Name:   "test",
@@ -162,76 +167,25 @@ func TestCreateOrchestratorEmpty(t *testing.T) {
 	assertContextCreateLogging(t, cli, "test")
 }
 
-func validateTestKubeEndpoint(t *testing.T, s store.Reader, name string) {
-	t.Helper()
-	ctxMetadata, err := s.GetMetadata(name)
-	assert.NilError(t, err)
-	kubeMeta := ctxMetadata.Endpoints[kubernetes.KubernetesEndpoint].(kubernetes.EndpointMeta)
-	kubeEP, err := kubeMeta.WithTLSData(s, name)
-	assert.NilError(t, err)
-	assert.Equal(t, "https://someserver.example.com", kubeEP.Host)
-	assert.Equal(t, "the-ca", string(kubeEP.TLSData.CA))
-	assert.Equal(t, "the-cert", string(kubeEP.TLSData.Cert))
-	assert.Equal(t, "the-key", string(kubeEP.TLSData.Key))
-}
-
-func createTestContextWithKube(t *testing.T, cli command.Cli) {
-	t.Helper()
-	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
-	defer revert()
-
-	err := RunCreate(cli, &CreateOptions{
-		Name:                     "test",
-		DefaultStackOrchestrator: "all",
-		Kubernetes: map[string]string{
-			keyFrom: "default",
-		},
-		Docker: map[string]string{},
-	})
-	assert.NilError(t, err)
-}
-
-func TestCreateOrchestratorAllKubernetesEndpointFromCurrent(t *testing.T) {
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-	createTestContextWithKube(t, cli)
-	assertContextCreateLogging(t, cli, "test")
-	validateTestKubeEndpoint(t, cli.ContextStore(), "test")
-}
-
 func TestCreateFromContext(t *testing.T) {
 	cases := []struct {
-		name                 string
-		description          string
-		orchestrator         string
-		expectedDescription  string
-		docker               map[string]string
-		kubernetes           map[string]string
-		expectedOrchestrator command.Orchestrator
+		name                string
+		description         string
+		expectedDescription string
+		docker              map[string]string
 	}{
 		{
-			name:                 "no-override",
-			expectedDescription:  "original description",
-			expectedOrchestrator: command.OrchestratorSwarm,
+			name:                "no-override",
+			expectedDescription: "original description",
 		},
 		{
-			name:                 "override-description",
-			description:          "new description",
-			expectedDescription:  "new description",
-			expectedOrchestrator: command.OrchestratorSwarm,
-		},
-		{
-			name:                 "override-orchestrator",
-			orchestrator:         "kubernetes",
-			expectedDescription:  "original description",
-			expectedOrchestrator: command.OrchestratorKubernetes,
+			name:                "override-description",
+			description:         "new description",
+			expectedDescription: "new description",
 		},
 	}
 
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
-	defer revert()
+	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "original",
@@ -239,10 +193,6 @@ func TestCreateFromContext(t *testing.T) {
 		Docker: map[string]string{
 			keyHost: "tcp://42.42.42.42:2375",
 		},
-		Kubernetes: map[string]string{
-			keyFrom: "default",
-		},
-		DefaultStackOrchestrator: "swarm",
 	}))
 	assertContextCreateLogging(t, cli, "original")
 
@@ -253,76 +203,53 @@ func TestCreateFromContext(t *testing.T) {
 		Docker: map[string]string{
 			keyHost: "tcp://24.24.24.24:2375",
 		},
-		Kubernetes: map[string]string{
-			keyFrom: "default",
-		},
-		DefaultStackOrchestrator: "swarm",
 	}))
 	assertContextCreateLogging(t, cli, "dummy")
 
 	cli.SetCurrentContext("dummy")
 
-	for _, c := range cases {
-		c := c
-		t.Run(c.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
-				From:                     "original",
-				Name:                     c.name,
-				Description:              c.description,
-				DefaultStackOrchestrator: c.orchestrator,
-				Docker:                   c.docker,
-				Kubernetes:               c.kubernetes,
+				From:        "original",
+				Name:        tc.name,
+				Description: tc.description,
+				Docker:      tc.docker,
 			})
 			assert.NilError(t, err)
-			assertContextCreateLogging(t, cli, c.name)
-			newContext, err := cli.ContextStore().GetMetadata(c.name)
+			assertContextCreateLogging(t, cli, tc.name)
+			newContext, err := cli.ContextStore().GetMetadata(tc.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
 			dockerEndpoint, err := docker.EndpointFromContext(newContext)
 			assert.NilError(t, err)
-			kubeEndpoint := kubernetes.EndpointFromContext(newContext)
-			assert.Check(t, kubeEndpoint != nil)
-			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
-			assert.Equal(t, newContextTyped.StackOrchestrator, c.expectedOrchestrator)
+			assert.Equal(t, newContextTyped.Description, tc.expectedDescription)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
-			assert.Equal(t, kubeEndpoint.Host, "https://someserver.example.com")
 		})
 	}
 }
 
 func TestCreateFromCurrent(t *testing.T) {
 	cases := []struct {
-		name                 string
-		description          string
-		orchestrator         string
-		expectedDescription  string
-		expectedOrchestrator command.Orchestrator
+		name                string
+		description         string
+		orchestrator        string
+		expectedDescription string
 	}{
 		{
-			name:                 "no-override",
-			expectedDescription:  "original description",
-			expectedOrchestrator: command.OrchestratorSwarm,
+			name:                "no-override",
+			expectedDescription: "original description",
 		},
 		{
-			name:                 "override-description",
-			description:          "new description",
-			expectedDescription:  "new description",
-			expectedOrchestrator: command.OrchestratorSwarm,
-		},
-		{
-			name:                 "override-orchestrator",
-			orchestrator:         "kubernetes",
-			expectedDescription:  "original description",
-			expectedOrchestrator: command.OrchestratorKubernetes,
+			name:                "override-description",
+			description:         "new description",
+			expectedDescription: "new description",
 		},
 	}
 
-	cli, cleanup := makeFakeCli(t)
-	defer cleanup()
-	revert := env.Patch(t, "KUBECONFIG", "./testdata/test-kubeconfig")
-	defer revert()
+	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
 	assert.NilError(t, RunCreate(cli, &CreateOptions{
 		Name:        "original",
@@ -330,38 +257,28 @@ func TestCreateFromCurrent(t *testing.T) {
 		Docker: map[string]string{
 			keyHost: "tcp://42.42.42.42:2375",
 		},
-		Kubernetes: map[string]string{
-			keyFrom: "default",
-		},
-		DefaultStackOrchestrator: "swarm",
 	}))
 	assertContextCreateLogging(t, cli, "original")
 
 	cli.SetCurrentContext("original")
 
-	for _, c := range cases {
-		c := c
-		t.Run(c.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
-				Name:                     c.name,
-				Description:              c.description,
-				DefaultStackOrchestrator: c.orchestrator,
+				Name:        tc.name,
+				Description: tc.description,
 			})
 			assert.NilError(t, err)
-			assertContextCreateLogging(t, cli, c.name)
-			newContext, err := cli.ContextStore().GetMetadata(c.name)
+			assertContextCreateLogging(t, cli, tc.name)
+			newContext, err := cli.ContextStore().GetMetadata(tc.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
 			dockerEndpoint, err := docker.EndpointFromContext(newContext)
 			assert.NilError(t, err)
-			kubeEndpoint := kubernetes.EndpointFromContext(newContext)
-			assert.Check(t, kubeEndpoint != nil)
-			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
-			assert.Equal(t, newContextTyped.StackOrchestrator, c.expectedOrchestrator)
+			assert.Equal(t, newContextTyped.Description, tc.expectedDescription)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
-			assert.Equal(t, kubeEndpoint.Host, "https://someserver.example.com")
 		})
 	}
 }

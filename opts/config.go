@@ -2,6 +2,7 @@ package opts
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -27,7 +28,7 @@ func (o *ConfigOpt) Set(value string) error {
 		File: &swarmtypes.ConfigReferenceFileTarget{
 			UID:  "0",
 			GID:  "0",
-			Mode: 0444,
+			Mode: 0o444,
 		},
 	}
 
@@ -40,25 +41,23 @@ func (o *ConfigOpt) Set(value string) error {
 	}
 
 	for _, field := range fields {
-		parts := strings.SplitN(field, "=", 2)
-		key := strings.ToLower(parts[0])
-
-		if len(parts) != 2 {
+		key, val, ok := strings.Cut(field, "=")
+		if !ok || key == "" {
 			return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
 
-		value := parts[1]
-		switch key {
+		// TODO(thaJeztah): these options should not be case-insensitive.
+		switch strings.ToLower(key) {
 		case "source", "src":
-			options.ConfigName = value
+			options.ConfigName = val
 		case "target":
-			options.File.Name = value
+			options.File.Name = val
 		case "uid":
-			options.File.UID = value
+			options.File.UID = val
 		case "gid":
-			options.File.GID = value
+			options.File.GID = val
 		case "mode":
-			m, err := strconv.ParseUint(value, 0, 32)
+			m, err := strconv.ParseUint(val, 0, 32)
 			if err != nil {
 				return fmt.Errorf("invalid mode specified: %v", err)
 			}
@@ -70,7 +69,7 @@ func (o *ConfigOpt) Set(value string) error {
 	}
 
 	if options.ConfigName == "" {
-		return fmt.Errorf("source is required")
+		return errors.New("source is required")
 	}
 	if options.File.Name == "" {
 		options.File.Name = options.ConfigName
@@ -81,7 +80,7 @@ func (o *ConfigOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (o *ConfigOpt) Type() string {
+func (*ConfigOpt) Type() string {
 	return "config"
 }
 

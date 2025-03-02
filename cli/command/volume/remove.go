@@ -2,12 +2,12 @@ package volume
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -24,13 +24,13 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Use:     "rm [OPTIONS] VOLUME [VOLUME...]",
 		Aliases: []string{"remove"},
 		Short:   "Remove one or more volumes",
-		Long:    removeDescription,
-		Example: removeExample,
+		Long:    "Remove one or more volumes. You cannot remove a volume that is in use by a container.",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.volumes = args
-			return runRemove(dockerCli, &opts)
+			return runRemove(cmd.Context(), dockerCli, &opts)
 		},
+		ValidArgsFunction: completion.VolumeNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
@@ -39,31 +39,16 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(dockerCli command.Cli, opts *removeOptions) error {
-	client := dockerCli.Client()
-	ctx := context.Background()
+func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) error {
+	apiClient := dockerCLI.Client()
 
-	var errs []string
-
+	var errs []error
 	for _, name := range opts.volumes {
-		if err := client.VolumeRemove(ctx, name, opts.force); err != nil {
-			errs = append(errs, err.Error())
+		if err := apiClient.VolumeRemove(ctx, name, opts.force); err != nil {
+			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-
-	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
-
-var removeDescription = `
-Remove one or more volumes. You cannot remove a volume that is in use by a container.
-`
-
-var removeExample = `
-$ docker volume rm hello
-hello
-`

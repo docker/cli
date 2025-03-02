@@ -33,6 +33,8 @@ const (
 )
 
 // ValidateHost validates that the specified string is a valid host and returns it.
+//
+// TODO(thaJeztah): ValidateHost appears to be unused; deprecate it.
 func ValidateHost(val string) (string, error) {
 	host := strings.TrimSpace(val)
 	// The empty string means default and is not handled by parseDockerDaemonHost
@@ -69,24 +71,25 @@ func ParseHost(defaultToTLS bool, val string) (string, error) {
 // parseDockerDaemonHost parses the specified address and returns an address that will be used as the host.
 // Depending of the address specified, this may return one of the global Default* strings defined in hosts.go.
 func parseDockerDaemonHost(addr string) (string, error) {
-	addrParts := strings.SplitN(addr, "://", 2)
-	if len(addrParts) == 1 && addrParts[0] != "" {
-		addrParts = []string{"tcp", addrParts[0]}
+	proto, host, hasProto := strings.Cut(addr, "://")
+	if !hasProto && proto != "" {
+		host = proto
+		proto = "tcp"
 	}
 
-	switch addrParts[0] {
+	switch proto {
 	case "tcp":
-		return ParseTCPAddr(addrParts[1], defaultTCPHost)
+		return ParseTCPAddr(host, defaultTCPHost)
 	case "unix":
-		return parseSimpleProtoAddr("unix", addrParts[1], defaultUnixSocket)
+		return parseSimpleProtoAddr(proto, host, defaultUnixSocket)
 	case "npipe":
-		return parseSimpleProtoAddr("npipe", addrParts[1], defaultNamedPipe)
+		return parseSimpleProtoAddr(proto, host, defaultNamedPipe)
 	case "fd":
 		return addr, nil
 	case "ssh":
 		return addr, nil
 	default:
-		return "", fmt.Errorf("Invalid bind address format: %s", addr)
+		return "", fmt.Errorf("invalid bind address format: %s", addr)
 	}
 }
 
@@ -97,7 +100,7 @@ func parseDockerDaemonHost(addr string) (string, error) {
 func parseSimpleProtoAddr(proto, addr, defaultAddr string) (string, error) {
 	addr = strings.TrimPrefix(addr, proto+"://")
 	if strings.Contains(addr, "://") {
-		return "", fmt.Errorf("Invalid proto, expected %s: %s", proto, addr)
+		return "", fmt.Errorf("invalid proto, expected %s: %s", proto, addr)
 	}
 	if addr == "" {
 		addr = defaultAddr
@@ -116,7 +119,7 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	}
 	addr := strings.TrimPrefix(tryAddr, "tcp://")
 	if strings.Contains(addr, "://") || addr == "" {
-		return "", fmt.Errorf("Invalid proto, expected tcp: %s", tryAddr)
+		return "", fmt.Errorf("invalid proto, expected tcp: %s", tryAddr)
 	}
 
 	defaultAddr = strings.TrimPrefix(defaultAddr, "tcp://")
@@ -141,7 +144,7 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 		host, port, err = net.SplitHostPort(net.JoinHostPort(u.Host, defaultPort))
 	}
 	if err != nil {
-		return "", fmt.Errorf("Invalid bind address format: %s", tryAddr)
+		return "", fmt.Errorf("invalid bind address format: %s", tryAddr)
 	}
 
 	if host == "" {
@@ -152,25 +155,59 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	}
 	p, err := strconv.Atoi(port)
 	if err != nil && p == 0 {
-		return "", fmt.Errorf("Invalid bind address format: %s", tryAddr)
+		return "", fmt.Errorf("invalid bind address format: %s", tryAddr)
 	}
 
 	return fmt.Sprintf("tcp://%s%s", net.JoinHostPort(host, port), u.Path), nil
 }
 
-// ValidateExtraHost validates that the specified string is a valid extrahost and returns it.
-// ExtraHost is in the form of name:ip where the ip has to be a valid ip (IPv4 or IPv6).
+// ValidateExtraHost validates that the specified string is a valid extrahost and
+// returns it. ExtraHost is in the form of name:ip or name=ip, where the ip has
+// to be a valid ip (IPv4 or IPv6). The address may be enclosed in square
+// brackets.
+//
+// For example:
+//
+//	my-hostname:127.0.0.1
+//	my-hostname:::1
+//	my-hostname=::1
+//	my-hostname:[::1]
+//
+// For compatibility with the API server, this function normalises the given
+// argument to use the ':' separator and strip square brackets enclosing the
+// address.
 func ValidateExtraHost(val string) (string, error) {
-	// allow for IPv6 addresses in extra hosts by only splitting on first ":"
-	arr := strings.SplitN(val, ":", 2)
-	if len(arr) != 2 || len(arr[0]) == 0 {
+	k, v, ok := strings.Cut(val, "=")
+	if !ok {
+		// allow for IPv6 addresses in extra hosts by only splitting on first ":"
+		k, v, ok = strings.Cut(val, ":")
+	}
+	// Check that a hostname was given, and that it doesn't contain a ":". (Colon
+	// isn't allowed in a hostname, along with many other characters. It's
+	// special-cased here because the API server doesn't know about '=' separators in
+	// '--add-host'. So, it'll split at the first colon and generate a strange error
+	// message.)
+	if !ok || k == "" || strings.Contains(k, ":") {
 		return "", fmt.Errorf("bad format for add-host: %q", val)
 	}
 	// Skip IPaddr validation for "host-gateway" string
-	if arr[1] != hostGatewayName {
-		if _, err := ValidateIPAddress(arr[1]); err != nil {
-			return "", fmt.Errorf("invalid IP address in add-host: %q", arr[1])
+	if v != hostGatewayName {
+		// If the address is enclosed in square brackets, extract it (for IPv6, but
+		// permit it for IPv4 as well; we don't know the address family here, but it's
+		// unambiguous).
+		if len(v) > 2 && v[0] == '[' && v[len(v)-1] == ']' {
+			v = v[1 : len(v)-1]
+		}
+		// ValidateIPAddress returns the address in canonical form (for example,
+		// 0:0:0:0:0:0:0:1 -> ::1). But, stick with the original form, to avoid
+		// surprising a user who's expecting to see the address they supplied in the
+		// output of 'docker inspect' or '/etc/hosts'.
+		if _, err := ValidateIPAddress(v); err != nil {
+			return "", fmt.Errorf("invalid IP address in add-host: %q", v)
 		}
 	}
-	return val, nil
+	// This result is passed directly to the API, the daemon doesn't accept the '='
+	// separator or an address enclosed in brackets. So, construct something it can
+	// understand.
+	return k + ":" + v, nil
 }

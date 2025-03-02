@@ -2,19 +2,20 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/container"
 	"github.com/spf13/cobra"
 )
 
 type restartOptions struct {
-	nSeconds        int
-	nSecondsChanged bool
+	signal         string
+	timeout        int
+	timeoutChanged bool
 
 	containers []string
 }
@@ -28,35 +29,51 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Restart one or more containers",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("time") && cmd.Flags().Changed("timeout") {
+				return errors.New("conflicting options: cannot specify both --timeout and --time")
+			}
 			opts.containers = args
-			opts.nSecondsChanged = cmd.Flags().Changed("time")
-			return runRestart(dockerCli, &opts)
+			opts.timeoutChanged = cmd.Flags().Changed("timeout") || cmd.Flags().Changed("time")
+			return runRestart(cmd.Context(), dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container restart, docker restart",
+		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()
-	flags.IntVarP(&opts.nSeconds, "time", "t", 10, "Seconds to wait for stop before killing the container")
+	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
+	flags.IntVarP(&opts.timeout, "timeout", "t", 0, "Seconds to wait before killing the container")
+
+	// The --time option is deprecated, but kept for backward compatibility.
+	flags.IntVar(&opts.timeout, "time", 0, "Seconds to wait before killing the container (deprecated: use --timeout)")
+	_ = flags.MarkDeprecated("time", "use --timeout instead")
+
+	_ = cmd.RegisterFlagCompletionFunc("signal", completeSignals)
+
 	return cmd
 }
 
-func runRestart(dockerCli command.Cli, opts *restartOptions) error {
-	ctx := context.Background()
-	var errs []string
-	var timeout *time.Duration
-	if opts.nSecondsChanged {
-		timeoutValue := time.Duration(opts.nSeconds) * time.Second
-		timeout = &timeoutValue
+func runRestart(ctx context.Context, dockerCLI command.Cli, opts *restartOptions) error {
+	var timeout *int
+	if opts.timeoutChanged {
+		timeout = &opts.timeout
 	}
 
+	apiClient := dockerCLI.Client()
+	var errs []error
+	// TODO(thaJeztah): consider using parallelOperation for restart, similar to "stop" and "remove"
 	for _, name := range opts.containers {
-		if err := dockerCli.Client().ContainerRestart(ctx, name, timeout); err != nil {
-			errs = append(errs, err.Error())
+		err := apiClient.ContainerRestart(ctx, name, container.StopOptions{
+			Signal:  opts.signal,
+			Timeout: timeout,
+		})
+		if err != nil {
+			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

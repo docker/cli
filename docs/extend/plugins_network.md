@@ -1,36 +1,26 @@
 ---
+title: Docker network driver plugins
 description: "Network driver plugins."
 keywords: "Examples, Usage, plugins, docker, documentation, user guide"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
-# Docker network driver plugins
-
 This document describes Docker Engine network driver plugins generally
 available in Docker Engine. To view information on plugins
-managed by Docker Engine, refer to [Docker Engine plugin system](index.md).
+managed by Docker Engine, refer to [Docker Engine plugin system](_index.md).
 
 Docker Engine network plugins enable Engine deployments to be extended to
 support a wide range of networking technologies, such as VXLAN, IPVLAN, MACVLAN
 or something completely different. Network driver plugins are supported via the
-LibNetwork project. Each plugin is implemented as a  "remote driver" for
+LibNetwork project. Each plugin is implemented as a "remote driver" for
 LibNetwork, which shares plugin infrastructure with Engine. Effectively, network
 driver plugins are activated in the same way as other plugins, and use the same
 kind of protocol.
 
-## Network plugins and swarm mode
+## Network plugins and Swarm mode
 
-[Legacy plugins](legacy_plugins.md) do not work in swarm mode. However,
-plugins written using the [v2 plugin system](index.md) do work in swarm mode, as
-long as they are installed on each swarm worker node.
+[Legacy plugins](legacy_plugins.md) do not work in Swarm mode. However,
+plugins written using the [v2 plugin system](_index.md) do work in Swarm mode, as
+long as they are installed on each Swarm worker node.
 
 ## Use network driver plugins
 
@@ -42,7 +32,7 @@ Once running however, network driver plugins are used just like the built-in
 network drivers: by being mentioned as a driver in network-oriented Docker
 commands. For example,
 
-```bash
+```console
 $ docker network create --driver weave mynet
 ```
 
@@ -51,16 +41,15 @@ Some network driver plugins are listed in [plugins](legacy_plugins.md)
 The `mynet` network is now owned by `weave`, so subsequent commands
 referring to that network will be sent to the plugin,
 
-```bash
+```console
 $ docker run --network=mynet busybox top
 ```
-
 
 ## Find network plugins
 
 Network plugins are written by third parties, and are published by those
 third parties, either on
-[Docker Store](https://store.docker.com/search?category=network&q=&type=plugin)
+[Docker Hub](https://hub.docker.com/search?q=&type=plugin)
 or on the third party's site.
 
 ## Write a network plugin
@@ -72,7 +61,7 @@ plugin protocol
 
 The network driver protocol, in addition to the plugin activation call, is
 documented as part of libnetwork:
-[https://github.com/docker/libnetwork/blob/master/docs/remote.md](https://github.com/docker/libnetwork/blob/master/docs/remote.md).
+[https://github.com/moby/moby/blob/master/libnetwork/docs/remote.md](https://github.com/moby/moby/blob/master/libnetwork/docs/remote.md).
 
 ## Related Information
 

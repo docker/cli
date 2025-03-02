@@ -11,8 +11,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/go-units"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -199,7 +199,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	// IPv6
 	flags.Set("dns-add", "2001:db8:abc8::1")
 	// Invalid dns record
-	assert.ErrorContains(t, flags.Set("dns-add", "x.y.z.w"), "x.y.z.w is not an ip address")
+	assert.Check(t, is.ErrorContains(flags.Set("dns-add", "x.y.z.w"), "IP address is not correctly formatted: x.y.z.w"))
 
 	// domains with duplicates
 	flags.Set("dns-search-add", "example.com")
@@ -504,24 +504,29 @@ type secretAPIClientMock struct {
 	listResult []swarm.Secret
 }
 
-func (s secretAPIClientMock) SecretList(ctx context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+func (s secretAPIClientMock) SecretList(context.Context, types.SecretListOptions) ([]swarm.Secret, error) {
 	return s.listResult, nil
 }
-func (s secretAPIClientMock) SecretCreate(ctx context.Context, secret swarm.SecretSpec) (types.SecretCreateResponse, error) {
+
+func (secretAPIClientMock) SecretCreate(context.Context, swarm.SecretSpec) (types.SecretCreateResponse, error) {
 	return types.SecretCreateResponse{}, nil
 }
-func (s secretAPIClientMock) SecretRemove(ctx context.Context, id string) error {
-	return nil
-}
-func (s secretAPIClientMock) SecretInspectWithRaw(ctx context.Context, name string) (swarm.Secret, []byte, error) {
-	return swarm.Secret{}, []byte{}, nil
-}
-func (s secretAPIClientMock) SecretUpdate(ctx context.Context, id string, version swarm.Version, secret swarm.SecretSpec) error {
+
+func (secretAPIClientMock) SecretRemove(context.Context, string) error {
 	return nil
 }
 
-// TestUpdateSecretUpdateInPlace tests the ability to update the "target" of an secret with "docker service update"
-// by combining "--secret-rm" and "--secret-add" for the same secret.
+func (secretAPIClientMock) SecretInspectWithRaw(context.Context, string) (swarm.Secret, []byte, error) {
+	return swarm.Secret{}, []byte{}, nil
+}
+
+func (secretAPIClientMock) SecretUpdate(context.Context, string, swarm.Version, swarm.SecretSpec) error {
+	return nil
+}
+
+// TestUpdateSecretUpdateInPlace tests the ability to update the "target" of a
+// secret with "docker service update" by combining "--secret-rm" and
+// "--secret-add" for the same secret.
 func TestUpdateSecretUpdateInPlace(t *testing.T) {
 	apiClient := secretAPIClientMock{
 		listResult: []swarm.Secret{
@@ -549,7 +554,8 @@ func TestUpdateSecretUpdateInPlace(t *testing.T) {
 		},
 	}
 
-	updatedSecrets, err := getUpdatedSecrets(apiClient, flags, secrets)
+	ctx := context.Background()
+	updatedSecrets, err := getUpdatedSecrets(ctx, apiClient, flags, secrets)
 
 	assert.NilError(t, err)
 	assert.Assert(t, is.Len(updatedSecrets, 1))
@@ -840,20 +846,20 @@ func TestRemoveGenericResources(t *testing.T) {
 
 func TestUpdateNetworks(t *testing.T) {
 	ctx := context.Background()
-	nws := []types.NetworkResource{
+	nws := []network.Summary{
 		{Name: "aaa-network", ID: "id555"},
 		{Name: "mmm-network", ID: "id999"},
 		{Name: "zzz-network", ID: "id111"},
 	}
 
 	client := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
-			for _, network := range nws {
-				if network.ID == networkID || network.Name == networkID {
-					return network, nil
+		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
+			for _, nw := range nws {
+				if nw.ID == networkID || nw.Name == networkID {
+					return nw, nil
 				}
 			}
-			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)
 		},
 	}
 
@@ -1051,7 +1057,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 		},
 	}
 	// cannedConfigRefs is the same thing, but with config references instead
-	// instead of ID, however, it just maps an arbitrary string value. this is
+	// of ID, however, it just maps an arbitrary string value. this is
 	// so we could have multiple config refs using the same config
 	cannedConfigRefs := map[string]*swarm.ConfigReference{
 		"fooRef": {
@@ -1061,7 +1067,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				Name: "foo",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		"barRef": {
@@ -1071,7 +1077,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				Name: "bar",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		"bazRef": {
@@ -1081,7 +1087,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				Name: "baz",
 				UID:  "0",
 				GID:  "0",
-				Mode: 0444,
+				Mode: 0o444,
 			},
 		},
 		"credRef": {
@@ -1226,7 +1232,8 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 				},
 			}
 
-			finalConfigs, err := getUpdatedConfigs(fakeClient, flags, containerSpec)
+			ctx := context.Background()
+			finalConfigs, err := getUpdatedConfigs(ctx, fakeClient, flags, containerSpec)
 			assert.NilError(t, err)
 
 			// ensure that the finalConfigs consists of all of the expected
@@ -1278,7 +1285,7 @@ func TestUpdateCredSpec(t *testing.T) {
 			spec:     &swarm.ContainerSpec{},
 			expected: nil,
 		}, {
-			name:    "add a config credenital spec",
+			name:    "add a config credential spec",
 			flagVal: "config://someConfigName",
 			spec: &swarm.ContainerSpec{
 				Configs: []*swarm.ConfigReference{
@@ -1592,66 +1599,66 @@ func TestUpdateUlimits(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		spec     []*units.Ulimit
+		spec     []*container.Ulimit
 		rm       []string
 		add      []string
-		expected []*units.Ulimit
+		expected []*container.Ulimit
 	}{
 		{
 			name: "from scratch",
 			add:  []string{"nofile=512:1024", "core=1024:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "append new",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			add: []string{"core=1024:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "remove and append new should append",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			rm:  []string{"nofile=512:1024"},
 			add: []string{"nofile=512:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "update existing",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "nofile", Hard: 2048, Soft: 1024},
 			},
 			add: []string{"nofile=512:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "update existing twice",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "nofile", Hard: 2048, Soft: 1024},
 			},
 			add: []string{"nofile=256:512", "nofile=512:1024"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "remove all",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
@@ -1660,30 +1667,29 @@ func TestUpdateUlimits(t *testing.T) {
 		},
 		{
 			name: "remove by key",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			rm: []string{"core"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 		{
 			name: "remove by key and different value",
-			spec: []*units.Ulimit{
+			spec: []*container.Ulimit{
 				{Name: "core", Hard: 1024, Soft: 1024},
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 			rm: []string{"core=1234:5678"},
-			expected: []*units.Ulimit{
+			expected: []*container.Ulimit{
 				{Name: "nofile", Hard: 1024, Soft: 512},
 			},
 		},
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			svc := swarm.ServiceSpec{
 				TaskTemplate: swarm.TaskSpec{

@@ -2,14 +2,13 @@ package network
 
 import (
 	"context"
-	"io/ioutil"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -18,16 +17,16 @@ func TestNetworkCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		networkCreateFunc func(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error)
+		networkCreateFunc func(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error)
 		expectedError     string
 	}{
 		{
-			expectedError: "exactly 1 argument",
+			expectedError: "1 argument",
 		},
 		{
 			args: []string{"toto"},
-			networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
-				return types.NetworkCreateResponse{}, errors.Errorf("error creating network")
+			networkCreateFunc: func(ctx context.Context, name string, createBody network.CreateOptions) (network.CreateResponse, error) {
+				return network.CreateResponse{}, errors.New("error creating network")
 			},
 			expectedError: "error creating network",
 		},
@@ -125,6 +124,15 @@ func TestNetworkCreateErrors(t *testing.T) {
 			},
 			expectedError: "no matching subnet for aux-address",
 		},
+		{
+			args: []string{"toto"},
+			flags: map[string]string{
+				"ip-range": "192.168.83.1-192.168.83.254",
+				"gateway":  "192.168.80.1",
+				"subnet":   "192.168.80.0/20",
+			},
+			expectedError: "invalid CIDR address: 192.168.83.1-192.168.83.254",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -137,11 +145,12 @@ func TestNetworkCreateErrors(t *testing.T) {
 		for key, value := range tc.flags {
 			assert.NilError(t, cmd.Flags().Set(key, value))
 		}
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
-
 	}
 }
+
 func TestNetworkCreateWithFlags(t *testing.T) {
 	expectedDriver := "foo"
 	expectedOpts := []network.IPAMConfig{
@@ -153,10 +162,10 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{
-		networkCreateFunc: func(ctx context.Context, name string, createBody types.NetworkCreate) (types.NetworkCreateResponse, error) {
-			assert.Check(t, is.Equal(expectedDriver, createBody.Driver), "not expected driver error")
-			assert.Check(t, is.DeepEqual(expectedOpts, createBody.IPAM.Config), "not expected driver error")
-			return types.NetworkCreateResponse{
+		networkCreateFunc: func(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error) {
+			assert.Check(t, is.Equal(expectedDriver, options.Driver), "not expected driver error")
+			assert.Check(t, is.DeepEqual(expectedOpts, options.IPAM.Config), "not expected driver error")
+			return network.CreateResponse{
 				ID: name,
 			}, nil
 		},
@@ -171,4 +180,112 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	cmd.Flags().Set("subnet", "192.168.4.0/24")
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("banana", strings.TrimSpace(cli.OutBuffer().String())))
+}
+
+// TestNetworkCreateIPv4 verifies behavior of the "--ipv4" option. This option
+// is an optional bool, and must default to "nil", not "true" or "false".
+func TestNetworkCreateIPv4(t *testing.T) {
+	boolPtr := func(val bool) *bool { return &val }
+
+	tests := []struct {
+		doc, name string
+		flags     []string
+		expected  *bool
+	}{
+		{
+			doc:      "IPv4 default",
+			name:     "ipv4-default",
+			expected: nil,
+		},
+		{
+			doc:      "IPv4 enabled",
+			name:     "ipv4-enabled",
+			flags:    []string{"--ipv4=true"},
+			expected: boolPtr(true),
+		},
+		{
+			doc:      "IPv4 enabled (shorthand)",
+			name:     "ipv4-enabled-shorthand",
+			flags:    []string{"--ipv4"},
+			expected: boolPtr(true),
+		},
+		{
+			doc:      "IPv4 disabled",
+			name:     "ipv4-disabled",
+			flags:    []string{"--ipv4=false"},
+			expected: boolPtr(false),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				networkCreateFunc: func(ctx context.Context, name string, createBody network.CreateOptions) (network.CreateResponse, error) {
+					assert.Check(t, is.DeepEqual(createBody.EnableIPv4, tc.expected))
+					return network.CreateResponse{ID: name}, nil
+				},
+			})
+			cmd := newCreateCommand(cli)
+			cmd.SetArgs([]string{tc.name})
+			if tc.expected != nil {
+				assert.Check(t, cmd.ParseFlags(tc.flags))
+			}
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, is.Equal(tc.name, strings.TrimSpace(cli.OutBuffer().String())))
+		})
+	}
+}
+
+// TestNetworkCreateIPv6 verifies behavior of the "--ipv6" option. This option
+// is an optional bool, and must default to "nil", not "true" or "false".
+func TestNetworkCreateIPv6(t *testing.T) {
+	strPtr := func(val bool) *bool { return &val }
+
+	tests := []struct {
+		doc, name string
+		flags     []string
+		expected  *bool
+	}{
+		{
+			doc:      "IPV6 default",
+			name:     "ipv6-default",
+			expected: nil,
+		},
+		{
+			doc:      "IPV6 enabled",
+			name:     "ipv6-enabled",
+			flags:    []string{"--ipv6=true"},
+			expected: strPtr(true),
+		},
+		{
+			doc:      "IPV6 enabled (shorthand)",
+			name:     "ipv6-enabled-shorthand",
+			flags:    []string{"--ipv6"},
+			expected: strPtr(true),
+		},
+		{
+			doc:      "IPV6 disabled",
+			name:     "ipv6-disabled",
+			flags:    []string{"--ipv6=false"},
+			expected: strPtr(false),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				networkCreateFunc: func(ctx context.Context, name string, createBody network.CreateOptions) (network.CreateResponse, error) {
+					assert.Check(t, is.DeepEqual(tc.expected, createBody.EnableIPv6))
+					return network.CreateResponse{ID: name}, nil
+				},
+			})
+			cmd := newCreateCommand(cli)
+			cmd.SetArgs([]string{tc.name})
+			if tc.expected != nil {
+				assert.Check(t, cmd.ParseFlags(tc.flags))
+			}
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, is.Equal(tc.name, strings.TrimSpace(cli.OutBuffer().String())))
+		})
+	}
 }

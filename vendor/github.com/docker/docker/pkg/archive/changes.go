@@ -1,34 +1,29 @@
-package archive // import "github.com/docker/docker/pkg/archive"
+package archive
 
 import (
 	"archive/tar"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/pools"
-	"github.com/docker/docker/pkg/system"
-	"github.com/sirupsen/logrus"
 )
 
 // ChangeType represents the change type.
 type ChangeType int
 
 const (
-	// ChangeModify represents the modify operation.
-	ChangeModify = iota
-	// ChangeAdd represents the add operation.
-	ChangeAdd
-	// ChangeDelete represents the delete operation.
-	ChangeDelete
+	ChangeModify = 0 // ChangeModify represents the modify operation.
+	ChangeAdd    = 1 // ChangeAdd represents the add operation.
+	ChangeDelete = 2 // ChangeDelete represents the delete operation.
 )
 
 func (c ChangeType) String() string {
@@ -77,11 +72,6 @@ func sameFsTime(a, b time.Time) bool {
 			(a.Nanosecond() == 0 || b.Nanosecond() == 0))
 }
 
-func sameFsTimeSpec(a, b syscall.Timespec) bool {
-	return a.Sec == b.Sec &&
-		(a.Nsec == b.Nsec || a.Nsec == 0 || b.Nsec == 0)
-}
-
 // Changes walks the path rw and determines changes for the files in the path,
 // with respect to the parent layers
 func Changes(layers []string, rw string) ([]Change, error) {
@@ -108,8 +98,10 @@ func aufsDeletedFile(root, path string, fi os.FileInfo) (string, error) {
 	return "", nil
 }
 
-type skipChange func(string) (bool, error)
-type deleteChange func(string, string, os.FileInfo) (string, error)
+type (
+	skipChange   func(string) (bool, error)
+	deleteChange func(string, string, os.FileInfo) (string, error)
+)
 
 func changes(layers []string, rw string, dc deleteChange, sc skipChange) ([]Change, error) {
 	var (
@@ -211,7 +203,7 @@ func changes(layers []string, rw string, dc deleteChange, sc skipChange) ([]Chan
 type FileInfo struct {
 	parent     *FileInfo
 	name       string
-	stat       *system.StatT
+	stat       fs.FileInfo
 	children   map[string]*FileInfo
 	capability []byte
 	added      bool
@@ -247,7 +239,6 @@ func (info *FileInfo) path() string {
 }
 
 func (info *FileInfo) addChanges(oldInfo *FileInfo, changes *[]Change) {
-
 	sizeAtEntry := len(*changes)
 
 	if oldInfo == nil {
@@ -320,7 +311,6 @@ func (info *FileInfo) addChanges(oldInfo *FileInfo, changes *[]Change) {
 		copy((*changes)[sizeAtEntry+1:], (*changes)[sizeAtEntry:])
 		(*changes)[sizeAtEntry] = change
 	}
-
 }
 
 // Changes add changes to file information.
@@ -344,11 +334,9 @@ func newRootFileInfo() *FileInfo {
 // ChangesDirs compares two directories and generates an array of Change objects describing the changes.
 // If oldDir is "", then all files in newDir will be Add-Changes.
 func ChangesDirs(newDir, oldDir string) ([]Change, error) {
-	var (
-		oldRoot, newRoot *FileInfo
-	)
+	var oldRoot, newRoot *FileInfo
 	if oldDir == "" {
-		emptyDir, err := ioutil.TempDir("", "empty")
+		emptyDir, err := os.MkdirTemp("", "empty")
 		if err != nil {
 			return nil, err
 		}
@@ -374,7 +362,7 @@ func ChangesSize(newDir string, changes []Change) int64 {
 			file := filepath.Join(newDir, change.Path)
 			fileInfo, err := os.Lstat(file)
 			if err != nil {
-				logrus.Errorf("Can not stat %q: %s", file, err)
+				log.G(context.TODO()).Errorf("Can not stat %q: %s", file, err)
 				continue
 			}
 
@@ -395,13 +383,10 @@ func ChangesSize(newDir string, changes []Change) int64 {
 }
 
 // ExportChanges produces an Archive from the provided changes, relative to dir.
-func ExportChanges(dir string, changes []Change, uidMaps, gidMaps []idtools.IDMap) (io.ReadCloser, error) {
+func ExportChanges(dir string, changes []Change, idMap idtools.IdentityMapping) (io.ReadCloser, error) {
 	reader, writer := io.Pipe()
 	go func() {
-		ta := newTarAppender(idtools.NewIDMappingsFromMaps(uidMaps, gidMaps), writer, nil)
-
-		// this buffer is needed for the duration of this piped stream
-		defer pools.BufioWriter32KPool.Put(ta.Buffer)
+		ta := newTarAppender(idMap, writer, nil)
 
 		sort.Sort(changesByPath(changes))
 
@@ -423,22 +408,22 @@ func ExportChanges(dir string, changes []Change, uidMaps, gidMaps []idtools.IDMa
 					ChangeTime: timestamp,
 				}
 				if err := ta.TarWriter.WriteHeader(hdr); err != nil {
-					logrus.Debugf("Can't write whiteout header: %s", err)
+					log.G(context.TODO()).Debugf("Can't write whiteout header: %s", err)
 				}
 			} else {
 				path := filepath.Join(dir, change.Path)
 				if err := ta.addTarFile(path, change.Path[1:]); err != nil {
-					logrus.Debugf("Can't add file %s to tar: %s", path, err)
+					log.G(context.TODO()).Debugf("Can't add file %s to tar: %s", path, err)
 				}
 			}
 		}
 
 		// Make sure to check the error on Close.
 		if err := ta.TarWriter.Close(); err != nil {
-			logrus.Debugf("Can't close layer: %s", err)
+			log.G(context.TODO()).Debugf("Can't close layer: %s", err)
 		}
 		if err := writer.Close(); err != nil {
-			logrus.Debugf("failed close Changes writer: %s", err)
+			log.G(context.TODO()).Debugf("failed close Changes writer: %s", err)
 		}
 	}()
 	return reader, nil

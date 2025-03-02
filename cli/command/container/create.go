@@ -7,18 +7,19 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
-	"github.com/docker/distribution/reference"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/versions"
-	apiclient "github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/docker/registry"
+	"github.com/docker/docker/errdefs"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -36,12 +37,13 @@ type createOptions struct {
 	name      string
 	platform  string
 	untrusted bool
-	pull      string // alway, missing, never
+	pull      string // always, missing, never
+	quiet     bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
 func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
-	var opts createOptions
+	var options createOptions
 	var copts *containerOptions
 
 	cmd := &cobra.Command{
@@ -53,90 +55,100 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runCreate(dockerCli, cmd.Flags(), &opts, copts)
+			return runCreate(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container create, docker create",
+		},
+		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
 	}
 
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.StringVar(&opts.name, "name", "", "Assign a name to the container")
-	flags.StringVar(&opts.pull, "pull", PullImageMissing,
-		`Pull image before creating ("`+PullImageAlways+`"|"`+PullImageMissing+`"|"`+PullImageNever+`")`)
+	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
+	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
+	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
 	flags.Bool("help", false, "Print usage")
 
-	command.AddPlatformFlag(flags, &opts.platform)
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	command.AddPlatformFlag(flags, &options.platform)
+	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
+
+	addCompletions(cmd, dockerCli)
+
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
+
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+	if err := validatePullOpt(options.pull); err != nil {
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
+	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
 	for k, v := range proxyConfig {
 		if v == nil {
 			newEnv = append(newEnv, k)
 		} else {
-			newEnv = append(newEnv, fmt.Sprintf("%s=%s", k, *v))
+			newEnv = append(newEnv, k+"="+*v)
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	containerConfig, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
+	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
-	if err = validateAPIVersion(containerConfig, dockerCli.Client().ClientVersion()); err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
-	response, err := createContainer(context.Background(), dockerCli, containerConfig, options)
+	id, err := createContainer(ctx, dockerCli, containerCfg, options)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), response.ID)
+	_, _ = fmt.Fprintln(dockerCli.Out(), id)
 	return nil
 }
 
-func pullImage(ctx context.Context, dockerCli command.Cli, image string, platform string, out io.Writer) error {
-	ref, err := reference.ParseNormalizedNamed(image)
+// FIXME(thaJeztah): this is the only code-path that uses APIClient.ImageCreate. Rewrite this to use the regular "pull" code (or vice-versa).
+func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *createOptions) error {
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), img)
 	if err != nil {
 		return err
 	}
 
-	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return err
-	}
-
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, repoInfo.Index)
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
-	if err != nil {
-		return err
-	}
-
-	options := types.ImageCreateOptions{
+	responseBody, err := dockerCli.Client().ImageCreate(ctx, img, imagetypes.CreateOptions{
 		RegistryAuth: encodedAuth,
-		Platform:     platform,
-	}
-
-	responseBody, err := dockerCli.Client().ImageCreate(ctx, image, options)
+		Platform:     options.platform,
+	})
 	if err != nil {
 		return err
 	}
 	defer responseBody.Close()
 
-	return jsonmessage.DisplayJSONMessagesStream(
-		responseBody,
-		out,
-		dockerCli.Out().FD(),
-		dockerCli.Out().IsTerminal(),
-		nil)
+	out := dockerCli.Err()
+	if options.quiet {
+		out = streams.NewOut(io.Discard)
+	}
+	return jsonstream.Display(ctx, responseBody, out)
 }
 
 type cidFile struct {
@@ -155,7 +167,7 @@ func (cid *cidFile) Close() error {
 		return nil
 	}
 	if err := os.Remove(cid.path); err != nil {
-		return errors.Errorf("failed to remove the CID file '%s': %s \n", cid.path, err)
+		return errors.Wrapf(err, "failed to remove the CID file '%s'", cid.path)
 	}
 
 	return nil
@@ -166,7 +178,7 @@ func (cid *cidFile) Write(id string) error {
 		return nil
 	}
 	if _, err := cid.file.Write([]byte(id)); err != nil {
-		return errors.Errorf("Failed to write the container ID to the file: %s", err)
+		return errors.Wrap(err, "failed to write the container ID to the file")
 	}
 	cid.written = true
 	return nil
@@ -177,26 +189,25 @@ func newCIDFile(path string) (*cidFile, error) {
 		return &cidFile{}, nil
 	}
 	if _, err := os.Stat(path); err == nil {
-		return nil, errors.Errorf("Container ID file found, make sure the other container isn't running or delete %s", path)
+		return nil, errors.Errorf("container ID file found, make sure the other container isn't running or delete %s", path)
 	}
 
 	f, err := os.Create(path)
 	if err != nil {
-		return nil, errors.Errorf("Failed to create the container ID file: %s", err)
+		return nil, errors.Wrap(err, "failed to create the container ID file")
 	}
 
 	return &cidFile{path: path, file: f}, nil
 }
 
-// nolint: gocyclo
-func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig *containerConfig, opts *createOptions) (*container.ContainerCreateCreatedBody, error) {
-	config := containerConfig.Config
-	hostConfig := containerConfig.HostConfig
-	networkingConfig := containerConfig.NetworkingConfig
-	stderr := dockerCli.Err()
+//nolint:gocyclo
+func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, err error) {
+	config := containerCfg.Config
+	hostConfig := containerCfg.HostConfig
+	networkingConfig := containerCfg.NetworkingConfig
 
-	warnOnOomKillDisable(*hostConfig, stderr)
-	warnOnLocalhostDNS(*hostConfig, stderr)
+	warnOnOomKillDisable(*hostConfig, dockerCli.Err())
+	warnOnLocalhostDNS(*hostConfig, dockerCli.Err())
 
 	var (
 		trustedRef reference.Canonical
@@ -205,29 +216,29 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 
 	containerIDFile, err := newCIDFile(hostConfig.ContainerIDFile)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer containerIDFile.Close()
 
 	ref, err := reference.ParseAnyReference(config.Image)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if named, ok := ref.(reference.Named); ok {
 		namedRef = reference.TagNameOnly(named)
 
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && !opts.untrusted {
+		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && !options.untrusted {
 			var err error
-			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef, nil)
+			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 			config.Image = reference.FamiliarString(trustedRef)
 		}
 	}
 
 	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCli, config.Image, opts.platform, stderr); err != nil {
+		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
 			return err
 		}
 		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
@@ -241,50 +252,55 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerConfig
 	// create. It will produce an error if you try to set a platform on older API
 	// versions, so check the API version here to maintain backwards
 	// compatibility for CLI users.
-	if opts.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
-		p, err := platforms.Parse(opts.platform)
+	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
+		p, err := platforms.Parse(options.platform)
 		if err != nil {
-			return nil, errors.Wrap(err, "error parsing specified platform")
+			return "", errors.Wrap(errdefs.InvalidParameter(err), "error parsing specified platform")
 		}
 		platform = &p
 	}
 
-	if opts.pull == PullImageAlways {
+	if options.pull == PullImageAlways {
 		if err := pullAndTagImage(); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
 
-	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
+	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
+
+	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
-		if apiclient.IsErrNotFound(err) && namedRef != nil && opts.pull == PullImageMissing {
-			// we don't want to write to stdout anything apart from container.ID
-			fmt.Fprintf(stderr, "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
+			if !options.quiet {
+				// we don't want to write to stdout anything apart from container.ID
+				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+			}
+
 			if err := pullAndTagImage(); err != nil {
-				return nil, err
+				return "", err
 			}
 
 			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, opts.name)
+			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
 			if retryErr != nil {
-				return nil, retryErr
+				return "", retryErr
 			}
 		} else {
-			return nil, err
+			return "", err
 		}
 	}
 
-	for _, warning := range response.Warnings {
-		fmt.Fprintf(stderr, "WARNING: %s\n", warning)
+	for _, w := range response.Warnings {
+		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
 	}
 	err = containerIDFile.Write(response.ID)
-	return &response, err
+	return response.ID, err
 }
 
 func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
 	if hostConfig.OomKillDisable != nil && *hostConfig.OomKillDisable && hostConfig.Memory == 0 {
-		fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
+		_, _ = fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
 	}
 }
 
@@ -293,7 +309,7 @@ func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
 func warnOnLocalhostDNS(hostConfig container.HostConfig, stderr io.Writer) {
 	for _, dnsIP := range hostConfig.DNS {
 		if isLocalhost(dnsIP) {
-			fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
+			_, _ = fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
 			return
 		}
 	}
@@ -309,4 +325,20 @@ var localhostIPRegexp = regexp.MustCompile(ipLocalhost)
 // localhost addresses
 func isLocalhost(ip string) bool {
 	return localhostIPRegexp.MatchString(ip)
+}
+
+func validatePullOpt(val string) error {
+	switch val {
+	case PullImageAlways, PullImageMissing, PullImageNever, "":
+		// valid option, but nothing to do yet
+		return nil
+	default:
+		return fmt.Errorf(
+			"invalid pull option: '%s': must be one of %q, %q or %q",
+			val,
+			PullImageAlways,
+			PullImageMissing,
+			PullImageNever,
+		)
+	}
 }

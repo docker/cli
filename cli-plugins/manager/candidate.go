@@ -1,8 +1,6 @@
 package manager
 
-import (
-	exec "golang.org/x/sys/execabs"
-)
+import "os/exec"
 
 // Candidate represents a possible plugin candidate, for mocking purposes
 type Candidate interface {
@@ -19,5 +17,5 @@ func (c *candidate) Path() string {
 }
 
 func (c *candidate) Metadata() ([]byte, error) {
-	return exec.Command(c.path, MetadataSubcommandName).Output()
+	return exec.Command(c.path, MetadataSubcommandName).Output() // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
 }

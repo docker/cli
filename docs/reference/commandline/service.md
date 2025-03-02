@@ -1,38 +1,31 @@
----
-title: "service"
-description: "The service command description and usage"
-keywords: "service"
----
-
 # service
 
-```markdown
-Usage:  docker service COMMAND
+<!---MARKER_GEN_START-->
+Manage Swarm services
 
-Manage services
+### Subcommands
 
-Options:
-      --help   Print usage
+| Name                              | Description                                          |
+|:----------------------------------|:-----------------------------------------------------|
+| [`create`](service_create.md)     | Create a new service                                 |
+| [`inspect`](service_inspect.md)   | Display detailed information on one or more services |
+| [`logs`](service_logs.md)         | Fetch the logs of a service or task                  |
+| [`ls`](service_ls.md)             | List services                                        |
+| [`ps`](service_ps.md)             | List the tasks of one or more services               |
+| [`rm`](service_rm.md)             | Remove one or more services                          |
+| [`rollback`](service_rollback.md) | Revert changes to a service's configuration          |
+| [`scale`](service_scale.md)       | Scale one or multiple replicated services            |
+| [`update`](service_update.md)     | Update a service                                     |
 
-Commands:
-  create      Create a new service
-  inspect     Display detailed information on one or more services
-  logs        Fetch the logs of a service or task
-  ls          List services
-  ps          List the tasks of one or more services
-  rm          Remove one or more services
-  scale       Scale one or multiple replicated services
-  update      Update a service
 
-Run 'docker service COMMAND --help' for more information on a command.
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
-Manage services.
+Manage Swarm services.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

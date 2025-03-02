@@ -1,36 +1,21 @@
----
-title: "secret"
-description: "The secret command description and usage"
-keywords: "secret"
----
-
 # secret
 
-```markdown
-Usage:  docker secret COMMAND
+<!---MARKER_GEN_START-->
+Manage Swarm secrets
 
-Manage Docker secrets
+### Subcommands
 
-Options:
-      --help   Print usage
+| Name                           | Description                                         |
+|:-------------------------------|:----------------------------------------------------|
+| [`create`](secret_create.md)   | Create a secret from a file or STDIN as content     |
+| [`inspect`](secret_inspect.md) | Display detailed information on one or more secrets |
+| [`ls`](secret_ls.md)           | List secrets                                        |
+| [`rm`](secret_rm.md)           | Remove one or more secrets                          |
 
-Commands:
-  create      Create a secret from a file or STDIN as content
-  inspect     Display detailed information on one or more secrets
-  ls          List secrets
-  rm          Remove one or more secrets
 
-Run 'docker secret COMMAND --help' for more information on a command.
 
-```
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Manage secrets.
-
-## Related commands
-
-* [secret create](secret_create.md)
-* [secret inspect](secret_inspect.md)
-* [secret list](secret_ls.md)
-* [secret rm](secret_rm.md)

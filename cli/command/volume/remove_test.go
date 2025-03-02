@@ -1,11 +1,11 @@
 package volume
 
 import (
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -21,7 +21,7 @@ func TestVolumeRemoveErrors(t *testing.T) {
 		{
 			args: []string{"nodeID"},
 			volumeRemoveFunc: func(volumeID string, force bool) error {
-				return errors.Errorf("error removing the volume")
+				return errors.New("error removing the volume")
 			},
 			expectedError: "error removing the volume",
 		},
@@ -32,7 +32,8 @@ func TestVolumeRemoveErrors(t *testing.T) {
 				volumeRemoveFunc: tc.volumeRemoveFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

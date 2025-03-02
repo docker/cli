@@ -1,27 +1,20 @@
----
-title: "system"
-description: "The system command description and usage"
-keywords: "system"
----
-
 # system
 
-```markdown
-Usage:  docker system COMMAND
-
+<!---MARKER_GEN_START-->
 Manage Docker
 
-Options:
-      --help   Print usage
+### Subcommands
 
-Commands:
-  df          Show docker disk usage
-  events      Get real time events from the server
-  info        Display system-wide information
-  prune       Remove unused data
+| Name                         | Description                          |
+|:-----------------------------|:-------------------------------------|
+| [`df`](system_df.md)         | Show docker disk usage               |
+| [`events`](system_events.md) | Get real time events from the server |
+| [`info`](system_info.md)     | Display system-wide information      |
+| [`prune`](system_prune.md)   | Remove unused data                   |
 
-Run 'docker system COMMAND --help' for more information on a command.
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

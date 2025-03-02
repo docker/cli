@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
@@ -22,16 +23,20 @@ func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Unlock swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlock(dockerCli)
+			return runUnlock(cmd.Context(), dockerCli)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "manager",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	return cmd
 }
 
-func runUnlock(dockerCli command.Cli) error {
+func runUnlock(ctx context.Context, dockerCli command.Cli) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	// First see if the node is actually part of a swarm, and if it is actually locked first.
 	// If it's in any other state than locked, don't ask for the key.
@@ -49,7 +54,7 @@ func runUnlock(dockerCli command.Cli) error {
 		return errors.New("Error: swarm is not locked")
 	}
 
-	key, err := readKey(dockerCli.In(), "Please enter unlock key: ")
+	key, err := readKey(dockerCli.In(), "Enter unlock key: ")
 	if err != nil {
 		return err
 	}

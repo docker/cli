@@ -48,10 +48,10 @@ Valid placeholders for the Go template are listed below:
 
     $ docker container ls -a
     CONTAINER ID        IMAGE                 COMMAND                CREATED             STATUS      PORTS    NAMES
-    a87ecb4f327c        fedora:20             /bin/sh -c #(nop) MA   20 minutes ago      Exit 0               desperate_brattain
-    01946d9d34d8        vpavlin/rhel7:latest  /bin/sh -c #(nop) MA   33 minutes ago      Exit 0               thirsty_bell
+    a87ecb4f327c        ubuntu:24.04          /bin/sh -c #(nop) MA   20 minutes ago      Exit 0               desperate_brattain
+    01946d9d34d8        busybox               /bin/sh -c #(nop) MA   33 minutes ago      Exit 0               thirsty_bell
     c1d3b0166030        acffc0358b9e          /bin/sh -c yum -y up   2 weeks ago         Exit 1               determined_torvalds
-    41d50ecd2f57        fedora:20             /bin/sh -c #(nop) MA   2 weeks ago         Exit 0               drunk_pike
+    41d50ecd2f57        ubuntu:24.04          /bin/sh -c #(nop) MA   2 weeks ago         Exit 0               drunk_pike
 
 ## Display only IDs of all containers, including non-running
 
@@ -87,10 +87,10 @@ Valid placeholders for the Go template are listed below:
 
     $ docker container ls --format 'table {{.ID}}\t{{(.Label "com.docker.swarm.node")}}'
     CONTAINER ID        NODE
-    a87ecb4f327c        ubuntu
+    a87ecb4f327c        worker-1
     01946d9d34d8
-    c1d3b0166030        debian
-    41d50ecd2f57        fedora
+    c1d3b0166030        worker-1
+    41d50ecd2f57        worker-2
 
 ## Display containers with `remote-volume` mounted
 
@@ -115,3 +115,8 @@ Valid placeholders for the Go template are listed below:
     $ docker ps --filter expose=8000-8080/tcp
     CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
     9833437217a5        busybox             "top"               21 seconds ago      Up 19 seconds       8080/tcp            dreamy_mccarthy
+
+## Display containers in JSON format:
+
+    $ docker ps --format json
+    {"Command":"\"/docker-entrypoint.…\"","CreatedAt":"2021-03-10 00:15:05 +0100 CET","ID":"a762a2b37a1d","Image":"nginx","Labels":"maintainer=NGINX Docker Maintainers \u003cdocker-maint@nginx.com\u003e","LocalVolumes":"0","Mounts":"","Names":"boring_keldysh","Networks":"bridge","Ports":"80/tcp","RunningFor":"4 seconds ago","Size":"0B","State":"running","Status":"Up 3 seconds"}

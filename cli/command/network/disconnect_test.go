@@ -2,11 +2,11 @@ package network
 
 import (
 	"context"
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -17,12 +17,12 @@ func TestNetworkDisconnectErrors(t *testing.T) {
 		expectedError         string
 	}{
 		{
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires 2 arguments",
 		},
 		{
 			args: []string{"toto", "titi"},
 			networkDisconnectFunc: func(ctx context.Context, networkID, container string, force bool) error {
-				return errors.Errorf("error disconnecting network")
+				return errors.New("error disconnecting network")
 			},
 			expectedError: "error disconnecting network",
 		},
@@ -35,7 +35,8 @@ func TestNetworkDisconnectErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

@@ -19,7 +19,8 @@ func TestDiskUsageContextFormatWrite(t *testing.T) {
 				Context: Context{
 					Format: NewDiskUsageFormat("table", false),
 				},
-				Verbose: false},
+				Verbose: false,
+			},
 			`TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
 Images          0         0         0B        0B
 Containers      0         0         0B        0B
@@ -61,8 +62,7 @@ CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED
 					Format: "{{InvalidFunction}}",
 				},
 			},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			DiskUsageContext{
@@ -70,8 +70,7 @@ CACHE ID   CACHE TYPE   SIZE      CREATED   LAST USED   USAGE     SHARED
 					Format: "{{nil}}",
 				},
 			},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table Format
 		{
@@ -107,7 +106,6 @@ Build Cache     0         0         0B        0B
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out

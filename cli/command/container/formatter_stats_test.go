@@ -54,13 +54,11 @@ func TestContainerStatsContextWrite(t *testing.T) {
 	}{
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		{
 			formatter.Context{Format: "table {{.MemUsage}}"},
@@ -180,7 +178,6 @@ container2  --  --
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -225,7 +222,6 @@ func TestContainerStatsContextWriteWithNoStats(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := statsFormatWrite(tc.context, []StatsEntry{}, "linux", false)
 			assert.NilError(t, err)
@@ -267,7 +263,6 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := statsFormatWrite(tc.context, []StatsEntry{}, "windows", false)
 			assert.NilError(t, err)
@@ -309,4 +304,39 @@ func TestContainerStatsContextWriteTrunc(t *testing.T) {
 		// Clean buffer
 		out.Reset()
 	}
+}
+
+func BenchmarkStatsFormat(b *testing.B) {
+	b.ReportAllocs()
+	stats := genStats()
+
+	for i := 0; i < b.N; i++ {
+		for _, s := range stats {
+			_ = s.CPUPerc()
+			_ = s.MemUsage()
+			_ = s.MemPerc()
+			_ = s.NetIO()
+			_ = s.BlockIO()
+			_ = s.PIDs()
+		}
+	}
+}
+
+func genStats() []statsContext {
+	entry := statsContext{s: StatsEntry{
+		CPUPercentage:    12.3456789,
+		Memory:           123.456789,
+		MemoryLimit:      987.654321,
+		MemoryPercentage: 12.3456789,
+		BlockRead:        123.456789,
+		BlockWrite:       987.654321,
+		NetworkRx:        123.456789,
+		NetworkTx:        987.654321,
+		PidsCurrent:      123456789,
+	}}
+	stats := make([]statsContext, 100)
+	for i := 0; i < 100; i++ {
+		stats = append(stats, entry)
+	}
+	return stats
 }

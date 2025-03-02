@@ -12,7 +12,6 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/skip"
 )
 
 type historyCase struct {
@@ -52,8 +51,8 @@ func TestHistoryContext_ID(t *testing.T) {
 }
 
 func TestHistoryContext_CreatedSince(t *testing.T) {
-	skip.If(t, notUTCTimezone, "expected output requires UTC timezone")
-	dateStr := "2009-11-10T23:00:00Z"
+	longerAgo := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	dateStr := longerAgo.Local().Format(time.RFC3339)
 	var ctx historyContext
 	cases := []historyCase{
 		{
@@ -65,10 +64,34 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 		},
 		{
 			historyContext{
-				h:     image.HistoryResponseItem{Created: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC).Unix()},
+				h:     image.HistoryResponseItem{Created: longerAgo.Unix()},
 				trunc: false,
 				human: false,
 			}, dateStr, ctx.CreatedSince,
+		},
+		{
+			// The zero time is not displayed.
+			historyContext{
+				h:     image.HistoryResponseItem{Created: 0},
+				trunc: false,
+				human: true,
+			}, "N/A", ctx.CreatedSince,
+		},
+		{
+			// A time before the year 2000 is not displayed.
+			historyContext{
+				h:     image.HistoryResponseItem{Created: time.Date(1980, time.November, 10, 10, 23, 0, 0, time.UTC).Unix()},
+				trunc: false,
+				human: true,
+			}, "N/A", ctx.CreatedSince,
+		},
+		{
+			// A time after 2000 is displayed.
+			historyContext{
+				h:     image.HistoryResponseItem{Created: time.Now().AddDate(-11, 0, 0).Unix()},
+				trunc: false,
+				human: true,
+			}, "11 years ago", ctx.CreatedSince,
 		},
 	}
 
@@ -78,14 +101,14 @@ func TestHistoryContext_CreatedSince(t *testing.T) {
 		if strings.Contains(v, ",") {
 			test.CompareMultipleValues(t, v, c.expValue)
 		} else if v != c.expValue {
-			t.Fatalf("Expected %s, was %s\n", c.expValue, v)
+			t.Fatalf("Expected %q, was %q\n", c.expValue, v)
 		}
 	}
 }
 
 func TestHistoryContext_CreatedBy(t *testing.T) {
-	withTabs := `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62	&& echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` // nolint: lll
-	expected := `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62 && echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` // nolint: lll
+	const withTabs = `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62	&& echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` //nolint:revive // ignore line-length-limit
+	const expected = `/bin/sh -c apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62 && echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list  && apt-get update  && apt-get install --no-install-recommends --no-install-suggests -y       ca-certificates       nginx=${NGINX_VERSION}       nginx-module-xslt       nginx-module-geoip       nginx-module-image-filter       nginx-module-perl       nginx-module-njs       gettext-base  && rm -rf /var/lib/apt/lists/*` //nolint:revive // ignore line-length-limit
 
 	var ctx historyContext
 	cases := []historyCase{
@@ -115,8 +138,8 @@ func TestHistoryContext_CreatedBy(t *testing.T) {
 }
 
 func TestHistoryContext_Size(t *testing.T) {
-	size := int64(182964289)
-	expected := "183MB"
+	const size = int64(182964289)
+	const expected = "183MB"
 
 	var ctx historyContext
 	cases := []historyCase{
@@ -147,7 +170,7 @@ func TestHistoryContext_Size(t *testing.T) {
 }
 
 func TestHistoryContext_Comment(t *testing.T) {
-	comment := "Some comment"
+	const comment = "Some comment"
 
 	var ctx historyContext
 	cases := []historyCase{
@@ -173,6 +196,7 @@ func TestHistoryContext_Comment(t *testing.T) {
 func TestHistoryContext_Table(t *testing.T) {
 	out := bytes.NewBufferString("")
 	unixTime := time.Now().AddDate(0, 0, -1).Unix()
+	oldDate := time.Now().AddDate(-17, 0, 0).Unix()
 	histories := []image.HistoryResponseItem{
 		{
 			ID:        "imageID1",
@@ -185,43 +209,52 @@ func TestHistoryContext_Table(t *testing.T) {
 		{ID: "imageID2", Created: unixTime, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 		{ID: "imageID3", Created: unixTime, CreatedBy: "/bin/bash ls", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 		{ID: "imageID4", Created: unixTime, CreatedBy: "/bin/bash grep", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
+		{ID: "imageID5", Created: 0, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
+		{ID: "imageID6", Created: oldDate, CreatedBy: "/bin/bash echo", Size: int64(182964289), Comment: "Hi", Tags: []string{"image:tag2"}},
 	}
-	// nolint: lll
-	expectedNoTrunc := `IMAGE      CREATED        CREATED BY                                                                                                                     SIZE      COMMENT
+
+	//nolint:dupword // ignore "Duplicate words (CREATED) found"
+	const expectedNoTrunc = `IMAGE      CREATED        CREATED BY                                                                                                                     SIZE      COMMENT
 imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && karma -c karma.conf.js start && npm start && more commands here && the list goes on   183MB     Hi
 imageID2   24 hours ago   /bin/bash echo                                                                                                                 183MB     Hi
 imageID3   24 hours ago   /bin/bash ls                                                                                                                   183MB     Hi
 imageID4   24 hours ago   /bin/bash grep                                                                                                                 183MB     Hi
+imageID5   N/A            /bin/bash echo                                                                                                                 183MB     Hi
+imageID6   17 years ago   /bin/bash echo                                                                                                                 183MB     Hi
 `
-	expectedTrunc := `IMAGE      CREATED        CREATED BY                                      SIZE      COMMENT
+	//nolint:dupword // ignore "Duplicate words (CREATED) found"
+	const expectedTrunc = `IMAGE      CREATED        CREATED BY                                      SIZE      COMMENT
 imageID1   24 hours ago   /bin/bash ls && npm i && npm run test && kar…   183MB     Hi
 imageID2   24 hours ago   /bin/bash echo                                  183MB     Hi
 imageID3   24 hours ago   /bin/bash ls                                    183MB     Hi
 imageID4   24 hours ago   /bin/bash grep                                  183MB     Hi
+imageID5   N/A            /bin/bash echo                                  183MB     Hi
+imageID6   17 years ago   /bin/bash echo                                  183MB     Hi
 `
 
 	cases := []struct {
 		context  formatter.Context
 		expected string
 	}{
-		{formatter.Context{
-			Format: NewHistoryFormat("table", false, true),
-			Trunc:  true,
-			Output: out,
-		},
+		{
+			formatter.Context{
+				Format: NewHistoryFormat("table", false, true),
+				Trunc:  true,
+				Output: out,
+			},
 			expectedTrunc,
 		},
-		{formatter.Context{
-			Format: NewHistoryFormat("table", false, true),
-			Trunc:  false,
-			Output: out,
-		},
+		{
+			formatter.Context{
+				Format: NewHistoryFormat("table", false, true),
+				Trunc:  false,
+				Output: out,
+			},
 			expectedNoTrunc,
 		},
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := HistoryWrite(tc.context, true, histories)
 			assert.NilError(t, err)

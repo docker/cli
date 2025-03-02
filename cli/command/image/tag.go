@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -24,8 +25,12 @@ func NewTagCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.image = args[0]
 			opts.name = args[1]
-			return runTag(dockerCli, opts)
+			return runTag(cmd.Context(), dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker image tag, docker tag",
+		},
+		ValidArgsFunction: completion.ImageNames(dockerCli, 2),
 	}
 
 	flags := cmd.Flags()
@@ -34,8 +39,6 @@ func NewTagCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runTag(dockerCli command.Cli, opts tagOptions) error {
-	ctx := context.Background()
-
+func runTag(ctx context.Context, dockerCli command.Cli, opts tagOptions) error {
 	return dockerCli.Client().ImageTag(ctx, opts.image, opts.name)
 }

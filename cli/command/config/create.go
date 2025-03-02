@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/system"
+	"github.com/moby/sys/sequential"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -35,8 +35,9 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			createOpts.Name = args[0]
 			createOpts.File = args[1]
-			return RunConfigCreate(dockerCli, createOpts)
+			return RunConfigCreate(cmd.Context(), dockerCli, createOpts)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
 	flags.VarP(&createOpts.Labels, "label", "l", "Config labels")
@@ -47,13 +48,12 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunConfigCreate creates a config with the given options.
-func RunConfigCreate(dockerCli command.Cli, options CreateOptions) error {
-	client := dockerCli.Client()
-	ctx := context.Background()
+func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateOptions) error {
+	apiClient := dockerCLI.Client()
 
-	var in io.Reader = dockerCli.In()
+	var in io.Reader = dockerCLI.In()
 	if options.File != "-" {
-		file, err := system.OpenSequential(options.File)
+		file, err := sequential.Open(options.File)
 		if err != nil {
 			return err
 		}
@@ -61,7 +61,7 @@ func RunConfigCreate(dockerCli command.Cli, options CreateOptions) error {
 		defer file.Close()
 	}
 
-	configData, err := ioutil.ReadAll(in)
+	configData, err := io.ReadAll(in)
 	if err != nil {
 		return errors.Errorf("Error reading content from %q: %v", options.File, err)
 	}
@@ -78,11 +78,11 @@ func RunConfigCreate(dockerCli command.Cli, options CreateOptions) error {
 			Name: options.TemplateDriver,
 		}
 	}
-	r, err := client.ConfigCreate(ctx, spec)
+	r, err := apiClient.ConfigCreate(ctx, spec)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(dockerCli.Out(), r.ID)
+	fmt.Fprintln(dockerCLI.Out(), r.ID)
 	return nil
 }

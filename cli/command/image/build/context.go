@@ -6,9 +6,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -16,14 +16,12 @@ import (
 
 	"github.com/docker/docker/builder/remotecontext/git"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/fileutils"
 	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/moby/patternmatcher"
 	"github.com/pkg/errors"
-	exec "golang.org/x/sys/execabs"
 )
 
 const (
@@ -42,7 +40,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 		return err
 	}
 
-	pm, err := fileutils.NewPatternMatcher(excludes)
+	pm, err := patternmatcher.New(excludes)
 	if err != nil {
 		return err
 	}
@@ -87,13 +85,13 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 	})
 }
 
-func filepathMatches(matcher *fileutils.PatternMatcher, file string) (bool, error) {
+func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool, error) {
 	file = filepath.Clean(file)
 	if file == "." {
 		// Don't let them exclude everything, kind of silly.
 		return false, nil
 	}
-	return matcher.Matches(file)
+	return matcher.MatchesOrParentMatches(file)
 }
 
 // DetectArchiveReader detects whether the input stream is an archive or a
@@ -117,13 +115,13 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool,
 // temporary directory containing the Dockerfile.
 func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 	// err is a named return value, due to the defer call below.
-	dockerfileDir, err = ioutil.TempDir("", "docker-build-tempdockerfile-")
+	dockerfileDir, err = os.MkdirTemp("", "docker-build-tempdockerfile-")
 	if err != nil {
 		return "", errors.Errorf("unable to create temporary context directory: %v", err)
 	}
 	defer func() {
 		if err != nil {
-			os.RemoveAll(dockerfileDir)
+			_ = os.RemoveAll(dockerfileDir)
 		}
 	}()
 
@@ -156,19 +154,22 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 	if dockerfileName == "-" {
 		return nil, "", errors.New("build context is not an archive")
 	}
+	if dockerfileName != "" {
+		return nil, "", errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
+	}
 
 	dockerfileDir, err := WriteTempDockerfile(rc)
 	if err != nil {
 		return nil, "", err
 	}
 
-	tar, err := archive.Tar(dockerfileDir, archive.Uncompressed)
+	tarArchive, err := archive.Tar(dockerfileDir, archive.Uncompressed)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return ioutils.NewReadCloserWrapper(tar, func() error {
-		err := tar.Close()
+	return ioutils.NewReadCloserWrapper(tarArchive, func() error {
+		err := tarArchive.Close()
 		os.RemoveAll(dockerfileDir)
 		return err
 	}), DefaultDockerfileName, nil
@@ -224,7 +225,7 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 	progressOutput := streamformatter.NewProgressOutput(out)
 
 	// Pass the response body through a progress reader.
-	progReader := progress.NewProgressReader(response.Body, progressOutput, response.ContentLength, "", fmt.Sprintf("Downloading build context from remote url: %s", remoteURL))
+	progReader := progress.NewProgressReader(response.Body, progressOutput, response.ContentLength, "", "Downloading build context from remote url: "+remoteURL)
 
 	return GetContextFromReader(ioutils.NewReadCloserWrapper(progReader, func() error { return response.Body.Close() }), dockerfileName)
 }
@@ -232,15 +233,15 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 // getWithStatusError does an http.Get() and returns an error if the
 // status code is 4xx or 5xx.
 func getWithStatusError(url string) (resp *http.Response, err error) {
-	// #nosec G107
+	//nolint:gosec // Ignore G107: Potential HTTP request made with variable url
 	if resp, err = http.Get(url); err != nil {
 		return nil, err
 	}
-	if resp.StatusCode < 400 {
+	if resp.StatusCode < http.StatusBadRequest {
 		return resp, nil
 	}
 	msg := fmt.Sprintf("failed to GET %s with status %s", url, resp.Status)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		return nil, errors.Wrapf(err, "%s: error reading body", msg)
@@ -372,32 +373,38 @@ func isUNC(path string) bool {
 // AddDockerfileToBuildContext from a ReadCloser, returns a new archive and
 // the relative path to the dockerfile in the context.
 func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCloser) (io.ReadCloser, string, error) {
-	file, err := ioutil.ReadAll(dockerfileCtx)
+	file, err := io.ReadAll(dockerfileCtx)
 	dockerfileCtx.Close()
 	if err != nil {
 		return nil, "", err
 	}
 	now := time.Now()
-	hdrTmpl := &tar.Header{
-		Mode:       0600,
-		Uid:        0,
-		Gid:        0,
-		ModTime:    now,
-		Typeflag:   tar.TypeReg,
-		AccessTime: now,
-		ChangeTime: now,
-	}
 	randomName := ".dockerfile." + stringid.GenerateRandomID()[:20]
 
 	buildCtx = archive.ReplaceFileTarWrapper(buildCtx, map[string]archive.TarModifierFunc{
 		// Add the dockerfile with a random filename
-		randomName: func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
-			return hdrTmpl, file, nil
+		randomName: func(_ string, _ *tar.Header, _ io.Reader) (*tar.Header, []byte, error) {
+			header := &tar.Header{
+				Name:       randomName,
+				Mode:       0o600,
+				ModTime:    now,
+				Typeflag:   tar.TypeReg,
+				AccessTime: now,
+				ChangeTime: now,
+			}
+			return header, file, nil
 		},
 		// Update .dockerignore to include the random filename
 		".dockerignore": func(_ string, h *tar.Header, content io.Reader) (*tar.Header, []byte, error) {
 			if h == nil {
-				h = hdrTmpl
+				h = &tar.Header{
+					Name:       ".dockerignore",
+					Mode:       0o600,
+					ModTime:    now,
+					Typeflag:   tar.TypeReg,
+					AccessTime: now,
+					ChangeTime: now,
+				}
 			}
 
 			b := &bytes.Buffer{}
@@ -426,9 +433,8 @@ func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
 		}
 		defer buildCtx.Close()
 
-		if _, err := pools.Copy(compressWriter, buildCtx); err != nil {
-			pipeWriter.CloseWithError(
-				errors.Wrap(err, "failed to compress context"))
+		if _, err := io.Copy(compressWriter, buildCtx); err != nil {
+			pipeWriter.CloseWithError(errors.Wrap(err, "failed to compress context"))
 			compressWriter.Close()
 			return
 		}

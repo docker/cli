@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package service
 
 import (
@@ -29,13 +32,11 @@ func TestServiceContextWrite(t *testing.T) {
 		// Errors
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table format
 		{
@@ -222,7 +223,6 @@ zarp2
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -285,7 +285,7 @@ func TestServiceContextWriteJSON(t *testing.T) {
 			},
 		},
 	}
-	expectedJSONs := []map[string]interface{}{
+	expectedJSONs := []map[string]any{
 		{"ID": "02_bar", "Name": "bar", "Mode": "replicated", "Replicas": "2/4", "Image": "", "Ports": "*:80->8080/tcp"},
 		{"ID": "01_baz", "Name": "baz", "Mode": "global", "Replicas": "1/3", "Image": "", "Ports": "*:80->8080/tcp"},
 	}
@@ -297,12 +297,13 @@ func TestServiceContextWriteJSON(t *testing.T) {
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
-		var m map[string]interface{}
+		var m map[string]any
 		err := json.Unmarshal([]byte(line), &m)
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)
 	}
 }
+
 func TestServiceContextWriteJSONField(t *testing.T) {
 	services := []swarm.Service{
 		{

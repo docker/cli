@@ -28,3 +28,13 @@ func TestQuotedStringSetWithNoQuotes(t *testing.T) {
 	assert.NilError(t, qs.Set("something"))
 	assert.Check(t, is.Equal("something", qs.String()))
 }
+
+func TestQuotedStringShort(t *testing.T) {
+	value := ""
+	qs := NewQuotedString(&value)
+	assert.NilError(t, qs.Set(`"`))
+	assert.Check(t, is.Equal(`"`, qs.String()))
+
+	assert.NilError(t, qs.Set(`'`))
+	assert.Check(t, is.Equal(`'`, qs.String()))
+}

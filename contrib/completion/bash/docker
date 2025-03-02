@@ -43,7 +43,7 @@
 #   "yes" - Show names and ids
 #
 # You can tailor completion for the "events", "history", "inspect", "run",
-# "rmi" and "save" commands by settings the following environment
+# "rmi" and "save" commands by setting the following environment
 # variables:
 #
 # DOCKER_COMPLETION_SHOW_IMAGE_IDS
@@ -63,7 +63,7 @@
 # must have access to the socket for the completions to function correctly
 #
 # Note for developers:
-# Please arrange options sorted alphabetically by long name with the short
+# Arrange options sorted alphabetically by long name with the short
 # options immediately following their corresponding long form.
 # This order should be applied to lists, alternatives and code blocks.
 
@@ -84,13 +84,13 @@ __docker_q() {
 # precedence over the environment setting.
 __docker_configs() {
 	local format
-	if [ "$1" = "--id" ] ; then
+	if [ "${1-}" = "--id" ] ; then
 		format='{{.ID}}'
 		shift
-	elif [ "$1" = "--name" ] ; then
+	elif [ "${1-}" = "--name" ] ; then
 		format='{{.Name}}'
 		shift
-	elif [ "$DOCKER_COMPLETION_SHOW_CONFIG_IDS" = yes ] ; then
+	elif [ "${DOCKER_COMPLETION_SHOW_CONFIG_IDS-}" = yes ] ; then
 		format='{{.ID}} {{.Name}}'
 	else
 		format='{{.Name}}'
@@ -120,13 +120,13 @@ __docker_complete_configs() {
 # precedence over the environment setting.
 __docker_containers() {
 	local format
-	if [ "$1" = "--id" ] ; then
+	if [ "${1-}" = "--id" ] ; then
 		format='{{.ID}}'
 		shift
-	elif [ "$1" = "--name" ] ; then
+	elif [ "${1-}" = "--name" ] ; then
 		format='{{.Names}}'
 		shift
-	elif [ "${DOCKER_COMPLETION_SHOW_CONTAINER_IDS}" = yes ] ; then
+	elif [ "${DOCKER_COMPLETION_SHOW_CONTAINER_IDS-}" = yes ] ; then
 		format='{{.ID}} {{.Names}}'
 	else
 		format='{{.Names}}'
@@ -139,7 +139,7 @@ __docker_containers() {
 # Additional filters may be appended, see `__docker_containers`.
 __docker_complete_containers() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -191,7 +191,7 @@ __docker_complete_container_ids() {
 __docker_contexts() {
 	local add=()
 	while true ; do
-		case "$1" in
+		case "${1-}" in
 			--add)
 				add+=("$2")
 				shift 2
@@ -236,12 +236,12 @@ __docker_images() {
 	local all
 	local format
 
-	if [ "$DOCKER_COMPLETION_SHOW_IMAGE_IDS" = "all" ] ; then
+	if [ "${DOCKER_COMPLETION_SHOW_IMAGE_IDS-}" = "all" ] ; then
 		all='--all'
 	fi
 
 	while true ; do
-		case "$1" in
+		case "${1-}" in
 			--repo)
 				format+="$repo_format\n"
 				shift
@@ -253,7 +253,7 @@ __docker_images() {
 				shift
 				;;
 			--id)
-				if [[ $DOCKER_COMPLETION_SHOW_IMAGE_IDS =~ ^(all|non-intermediate)$ ]] ; then
+				if [[ ${DOCKER_COMPLETION_SHOW_IMAGE_IDS-} =~ ^(all|non-intermediate)$ ]] ; then
 					format+="$id_format\n"
 				fi
 				shift
@@ -269,7 +269,7 @@ __docker_images() {
 		esac
 	done
 
-	__docker_q image ls --no-trunc --format "${format%\\n}" $all "$@" | grep -v '<none>$'
+	__docker_q image ls --no-trunc --format "${format%\\n}" ${all-} "$@" | grep -v '<none>$'
 }
 
 # __docker_complete_images applies completion of images based on the current value of `$cur` or
@@ -277,7 +277,7 @@ __docker_images() {
 # See __docker_images for customization of the returned items.
 __docker_complete_images() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -295,13 +295,13 @@ __docker_complete_images() {
 # precedence over the environment setting.
 __docker_networks() {
 	local format
-	if [ "$1" = "--id" ] ; then
+	if [ "${1-}" = "--id" ] ; then
 		format='{{.ID}}'
 		shift
-	elif [ "$1" = "--name" ] ; then
+	elif [ "${1-}" = "--name" ] ; then
 		format='{{.Name}}'
 		shift
-	elif [ "${DOCKER_COMPLETION_SHOW_NETWORK_IDS}" = yes ] ; then
+	elif [ "${DOCKER_COMPLETION_SHOW_NETWORK_IDS-}" = yes ] ; then
 		format='{{.ID}} {{.Name}}'
 	else
 		format='{{.Name}}'
@@ -314,7 +314,7 @@ __docker_networks() {
 # Additional filters may be appended, see `__docker_networks`.
 __docker_complete_networks() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -340,7 +340,7 @@ __docker_volumes() {
 # Additional filters may be appended, see `__docker_volumes`.
 __docker_complete_volumes() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -356,7 +356,7 @@ __docker_complete_volumes() {
 __docker_plugins_bundled() {
 	local type add=() remove=()
 	while true ; do
-		case "$1" in
+		case "${1-}" in
 			--type)
 				type="$2"
 				shift 2
@@ -390,7 +390,7 @@ __docker_plugins_bundled() {
 # `__docker_complete_plugins_installed`.
 __docker_complete_plugins_bundled() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -406,7 +406,7 @@ __docker_complete_plugins_bundled() {
 # For built-in pugins, see `__docker_plugins_bundled`.
 __docker_plugins_installed() {
 	local format
-	if [ "$DOCKER_COMPLETION_SHOW_PLUGIN_IDS" = yes ] ; then
+	if [ "${DOCKER_COMPLETION_SHOW_PLUGIN_IDS-}" = yes ] ; then
 		format='{{.ID}} {{.Name}}'
 	else
 		format='{{.Name}}'
@@ -421,7 +421,7 @@ __docker_plugins_installed() {
 # For completion of built-in pugins, see `__docker_complete_plugins_bundled`.
 __docker_complete_plugins_installed() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -446,13 +446,13 @@ __docker_complete_runtimes() {
 # precedence over the environment setting.
 __docker_secrets() {
 	local format
-	if [ "$1" = "--id" ] ; then
+	if [ "${1-}" = "--id" ] ; then
 		format='{{.ID}}'
 		shift
-	elif [ "$1" = "--name" ] ; then
+	elif [ "${1-}" = "--name" ] ; then
 		format='{{.Name}}'
 		shift
-	elif [ "$DOCKER_COMPLETION_SHOW_SECRET_IDS" = yes ] ; then
+	elif [ "${DOCKER_COMPLETION_SHOW_SECRET_IDS-}" = yes ] ; then
 		format='{{.ID}} {{.Name}}'
 	else
 		format='{{.Name}}'
@@ -465,7 +465,7 @@ __docker_secrets() {
 # of `$cur` or the value of the optional first option `--cur`, if given.
 __docker_complete_secrets() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -481,7 +481,7 @@ __docker_stacks() {
 # of `$cur` or the value of the optional first option `--cur`, if given.
 __docker_complete_stacks() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -499,7 +499,7 @@ __docker_complete_stacks() {
 # Completions may be added with `--add`, e.g. `--add self`.
 __docker_nodes() {
 	local format
-	if [ "$DOCKER_COMPLETION_SHOW_NODE_IDS" = yes ] ; then
+	if [ "${DOCKER_COMPLETION_SHOW_NODE_IDS-}" = yes ] ; then
 		format='{{.ID}} {{.Hostname}}'
 	else
 		format='{{.Hostname}}'
@@ -508,7 +508,7 @@ __docker_nodes() {
 	local add=()
 
 	while true ; do
-		case "$1" in
+		case "${1-}" in
 			--id)
 				format='{{.ID}}'
 				shift
@@ -535,7 +535,7 @@ __docker_nodes() {
 # Additional filters may be appended, see `__docker_nodes`.
 __docker_complete_nodes() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -552,12 +552,12 @@ __docker_complete_nodes() {
 # precedence over the environment setting.
 __docker_services() {
 	local format='{{.Name}}'  # default: service name only
-	[ "${DOCKER_COMPLETION_SHOW_SERVICE_IDS}" = yes ] && format='{{.ID}} {{.Name}}' # ID & name
+	[ "${DOCKER_COMPLETION_SHOW_SERVICE_IDS-}" = yes ] && format='{{.ID}} {{.Name}}' # ID & name
 
-	if [ "$1" = "--id" ] ; then
+	if [ "${1-}" = "--id" ] ; then
 		format='{{.ID}}' # IDs only
 		shift
-	elif [ "$1" = "--name" ] ; then
+	elif [ "${1-}" = "--name" ] ; then
 		format='{{.Name}}' # names only
 		shift
 	fi
@@ -570,7 +570,7 @@ __docker_services() {
 # Additional filters may be appended, see `__docker_services`.
 __docker_complete_services() {
 	local current="$cur"
-	if [ "$1" = "--cur" ] ; then
+	if [ "${1-}" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
@@ -601,7 +601,7 @@ __docker_append_to_completions() {
 # several variables with the results.
 # The result is cached for the duration of one invocation of bash completion.
 __docker_fetch_info() {
-	if [ -z "$info_fetched" ] ; then
+	if [ -z "${info_fetched-}" ] ; then
 		read -r server_experimental server_os <<< "$(__docker_q version -f '{{.Server.Experimental}} {{.Server.Os}}')"
 		info_fetched=true
 	fi
@@ -624,37 +624,12 @@ __docker_server_os_is() {
 	[ "$server_os" = "$expected_os" ]
 }
 
-# __docker_stack_orchestrator_is tests whether the client is configured to use
-# the orchestrator that is passed in as the first argument.
-__docker_stack_orchestrator_is() {
-	case "$1" in
-		kubernetes)
-			if [ -z "$stack_orchestrator_is_kubernetes" ] ; then
-				__docker_q stack ls --help | grep -qe --namespace
-				stack_orchestrator_is_kubernetes=$?
-			fi
-			return $stack_orchestrator_is_kubernetes
-			;;
-		swarm)
-			if [ -z "$stack_orchestrator_is_swarm" ] ; then
-				__docker_q stack deploy --help | grep -qe "with-registry-auth"
-				stack_orchestrator_is_swarm=$?
-			fi
-			return $stack_orchestrator_is_swarm
-			;;
-		*)
-			return 1
-			;;
-
-	esac
-}
-
 # __docker_pos_first_nonflag finds the position of the first word that is neither
 # option nor an option's argument. If there are options that require arguments,
 # you should pass a glob describing those options, e.g. "--option1|-o|--option2"
 # Use this function to restrict completions to exact positions after the argument list.
 __docker_pos_first_nonflag() {
-	local argument_flags=$1
+	local argument_flags=${1-}
 
 	local counter=$((${subcommand_pos:-${command_pos}} + 1))
 	while [ "$counter" -le "$cword" ]; do
@@ -791,7 +766,7 @@ __docker_local_interfaces() {
 	command -v ip >/dev/null 2>&1 || return
 
 	local format
-	if [ "$1" = "--ip-only" ] ; then
+	if [ "${1-}" = "--ip-only" ] ; then
 		format='\1'
 		shift
 	else
@@ -806,7 +781,7 @@ __docker_local_interfaces() {
 # An additional value can be added to the possible completions with an `--add` argument.
 __docker_complete_local_interfaces() {
 	local additional_interface
-	if [ "$1" = "--add" ] ; then
+	if [ "${1-}" = "--add" ] ; then
 		additional_interface="$2"
 		shift 2
 	fi
@@ -916,7 +891,6 @@ __docker_complete_log_drivers() {
 		journald
 		json-file
 		local
-		logentries
 		none
 		splunk
 		syslog
@@ -924,7 +898,7 @@ __docker_complete_log_drivers() {
 }
 
 __docker_complete_log_options() {
-	# see repository docker/docker.github.io/engine/admin/logging/
+	# see https://docs.docker.com/config/containers/logging/configure/
 
 	# really global options, defined in https://github.com/moby/moby/blob/master/daemon/logger/factory.go
 	local common_options1="max-buffer-size mode"
@@ -941,11 +915,10 @@ __docker_complete_log_options() {
 	local journald_options="$common_options1 $common_options2 tag"
 	local json_file_options="$common_options1 $common_options2 compress max-file max-size"
 	local local_options="$common_options1 compress max-file max-size"
-	local logentries_options="$common_options1 $common_options2 line-only logentries-token tag"
 	local splunk_options="$common_options1 $common_options2 splunk-caname splunk-capath splunk-format splunk-gzip splunk-gzip-level splunk-index splunk-insecureskipverify splunk-source splunk-sourcetype splunk-token splunk-url splunk-verify-connection tag"
 	local syslog_options="$common_options1 $common_options2 syslog-address syslog-facility syslog-format syslog-tls-ca-cert syslog-tls-cert syslog-tls-key syslog-tls-skip-verify tag"
 
-	local all_options="$fluentd_options $gcplogs_options $gelf_options $journald_options $logentries_options $json_file_options $syslog_options $splunk_options"
+	local all_options="$fluentd_options $gcplogs_options $gelf_options $journald_options $json_file_options $syslog_options $splunk_options"
 
 	case $(__docker_value_of_option --log-driver) in
 		'')
@@ -971,9 +944,6 @@ __docker_complete_log_options() {
 			;;
 		local)
 			COMPREPLY=( $( compgen -W "$local_options" -S = -- "$cur" ) )
-			;;
-		logentries)
-			COMPREPLY=( $( compgen -W "$logentries_options" -S = -- "$cur" ) )
 			;;
 		syslog)
 			COMPREPLY=( $( compgen -W "$syslog_options" -S = -- "$cur" ) )
@@ -1001,7 +971,7 @@ __docker_complete_log_driver_options() {
 			__docker_nospace
 			return
 			;;
-		compress|fluentd-async-connect)
+		compress|fluentd-async)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
 			return
 			;;
@@ -1128,23 +1098,6 @@ __docker_complete_signals() {
 	COMPREPLY=( $( compgen -W "${signals[*]} ${signals[*]#SIG}" -- "$( echo "$cur" | tr '[:lower:]' '[:upper:]')" ) )
 }
 
-__docker_complete_stack_orchestrator_options() {
-	case "$prev" in
-		--kubeconfig)
-			_filedir
-			return 0
-			;;
-		--namespace)
-			return 0
-			;;
-		--orchestrator)
-			COMPREPLY=( $( compgen -W "all kubernetes swarm" -- "$cur") )
-			return 0
-			;;
-	esac
-	return 1
-}
-
 __docker_complete_ulimits() {
 	local limits="
 		as
@@ -1167,7 +1120,7 @@ __docker_complete_ulimits() {
 		sigpending
 		stack
 	"
-	if [ "$1" = "--rm" ] ; then
+	if [ "${1-}" = "--rm" ] ; then
 		COMPREPLY=( $( compgen -W "$limits" -- "$cur" ) )
 	else
 		COMPREPLY=( $( compgen -W "$limits" -S = -- "$cur" ) )
@@ -1181,6 +1134,46 @@ __docker_complete_user_group() {
 	else
 		COMPREPLY=( $(compgen -u -S : -- "$cur") )
 		__docker_nospace
+	fi
+}
+
+__docker_plugins_path() {
+	local docker_plugins_path=$(docker info --format '{{range .ClientInfo.Plugins}}{{.Path}}:{{end}}')
+	echo "${docker_plugins_path//:/ }"
+}
+
+__docker_complete_plugin() {
+	local path=$1
+	local completionCommand="__completeNoDesc"
+	local resultArray=($path $completionCommand)
+	local current="$cur"
+	for value in "${words[@]:2}"; do
+		if [ -z "$value" ]; then
+			resultArray+=( "''" )
+		else
+			resultArray+=( "$value" )
+		fi
+	done
+	local rawResult=$(eval "${resultArray[*]}" 2> /dev/null)
+	local result=$(grep -v '^:[0-9]*$' <<< "$rawResult")
+
+	# Compose V2 completions sometimes returns returns `:8` (ShellCompDirectiveFilterFileExt)
+	# with the expected file extensions (such as `yml`, `yaml`) to indicate that the shell should
+	# provide autocompletions for files with matching extensions
+	local completionFlag=$(tail -1 <<< "$rawResult")
+	if [ "$completionFlag" == ":8" ]; then
+		# format a valid glob pattern for the provided file extensions
+		local filePattern=$(tr '\n' '|' <<< "$result")
+
+		_filedir "$filePattern"
+		return
+	fi
+
+	# if result empty, just use filename completion as fallback
+	if [ -z "$result" ]; then
+		_filedir
+	else
+		COMPREPLY=( $(compgen -W "${result}" -- "${current-}") )
 	fi
 }
 
@@ -1851,14 +1844,14 @@ _docker_container_rename() {
 
 _docker_container_restart() {
 	case "$prev" in
-		--time|-t)
+		--timeout|--time|-t)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help --timeout -t" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_containers_all
@@ -1894,6 +1887,7 @@ _docker_container_run() {
 _docker_container_run_and_create() {
 	local options_with_args="
 		--add-host
+		--annotation
 		--attach -a
 		--blkio-weight
 		--blkio-weight-device
@@ -1954,6 +1948,7 @@ _docker_container_run_and_create() {
 		--oom-score-adj
 		--pid
 		--pids-limit
+		--platform
 		--publish -p
 		--pull
 		--restart
@@ -1981,9 +1976,6 @@ _docker_container_run_and_create() {
 		--io-maxiops
 		--isolation
 	"
-	__docker_server_is_experimental && options_with_args+="
-		--platform
-	"
 
 	local boolean_options="
 		--disable-content-trust=false
@@ -1994,6 +1986,7 @@ _docker_container_run_and_create() {
 		--oom-kill-disable
 		--privileged
 		--publish-all -P
+		--quiet -q
 		--read-only
 		--tty -t
 	"
@@ -2263,14 +2256,14 @@ _docker_container_stats() {
 
 _docker_container_stop() {
 	case "$prev" in
-		--time|-t)
+		--timeout|--time|-t)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help --timeout -t" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_containers_stoppable
@@ -2390,11 +2383,7 @@ _docker_context() {
 
 _docker_context_create() {
 	case "$prev" in
-		--default-stack-orchestrator)
-			COMPREPLY=( $( compgen -W "all kubernetes swarm" -- "$cur" ) )
-			return
-			;;
-		--description|--docker|--kubernetes)
+		--description|--docker)
 			return
 			;;
 		--from)
@@ -2405,7 +2394,7 @@ _docker_context_create() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --from --help --kubernetes" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--description --docker --from --help" -- "$cur" ) )
 			;;
 	esac
 }
@@ -2413,7 +2402,7 @@ _docker_context_create() {
 _docker_context_export() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --kubeconfig" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
@@ -2494,18 +2483,14 @@ _docker_context_rm() {
 
 _docker_context_update() {
 	case "$prev" in
-		--default-stack-orchestrator)
-			COMPREPLY=( $( compgen -W "all kubernetes swarm" -- "$cur" ) )
-			return
-			;;
-		--description|--docker|--kubernetes)
+		--description|--docker)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --help --kubernetes" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--description --docker --help" -- "$cur" ) )
 			;;
 		*)
 			local counter=$(__docker_pos_first_nonflag)
@@ -2560,20 +2545,16 @@ _docker_daemon() {
 		--raw-logs
 		--selinux-enabled
 		--userland-proxy=false
+		--validate
 		--version -v
 	"
 	local options_with_args="
 		$global_options_with_args
 		--add-runtime
-		--allow-nondistributable-artifacts
-		--api-cors-header
 		--authorization-plugin
 		--bip
 		--bridge -b
 		--cgroup-parent
-		--cluster-advertise
-		--cluster-store
-		--cluster-store-opt
 		--config-file
 		--containerd
 		--containerd-namespace
@@ -2608,7 +2589,6 @@ _docker_daemon() {
 		--mtu
 		--network-control-plane-mtu
 		--node-generic-resource
-		--oom-score-adjust
 		--pidfile -p
 		--registry-mirror
 		--seccomp-profile
@@ -2621,15 +2601,6 @@ _docker_daemon() {
 	"
 
 	__docker_complete_log_driver_options && return
-
- 	key=$(__docker_map_key_of_current_option '--cluster-store-opt')
- 	case "$key" in
- 		kv.*file)
-			cur=${cur##*=}
- 			_filedir
- 			return
- 			;;
- 	esac
 
  	local key=$(__docker_map_key_of_current_option '--storage-opt')
  	case "$key" in
@@ -2657,16 +2628,6 @@ _docker_daemon() {
 			__docker_complete_plugins_bundled --type Authorization
 			return
 			;;
-		--cluster-store)
-			COMPREPLY=( $( compgen -W "consul etcd zk" -S "://" -- "$cur" ) )
-			__docker_nospace
-			return
-			;;
-		--cluster-store-opt)
-			COMPREPLY=( $( compgen -W "discovery.heartbeat discovery.ttl kv.cacertfile kv.certfile kv.keyfile kv.path" -S = -- "$cur" ) )
-			__docker_nospace
-			return
-			;;
 		--config-file|--containerd|--init-path|--pidfile|-p|--tlscacert|--tlscert|--tlskey|--userland-proxy-path)
 			_filedir
 			return
@@ -2684,7 +2645,7 @@ _docker_daemon() {
 			return
 			;;
 		--storage-driver|-s)
-			COMPREPLY=( $( compgen -W "aufs btrfs overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
+			COMPREPLY=( $( compgen -W "btrfs overlay2 vfs zfs" -- "$(echo "$cur" | tr '[:upper:]' '[:lower:]')" ) )
 			return
 			;;
 		--storage-opt)
@@ -2831,6 +2792,7 @@ _docker_image_build() {
 		--memory -m
 		--memory-swap
 		--network
+		--platform
 		--shm-size
 		--tag -t
 		--target
@@ -2851,18 +2813,14 @@ _docker_image_build() {
 	"
 
 	if __docker_server_is_experimental ; then
-		options_with_args+="
-			--platform
-		"
 		boolean_options+="
 			--squash
 		"
 	fi
 
-	if [ "$DOCKER_BUILDKIT" = "1" ] ; then
+	if [ "${DOCKER_BUILDKIT-}" = "1" ] ; then
 		options_with_args+="
 			--output -o
-			--platform
 			--progress
 			--secret
 			--ssh
@@ -2993,8 +2951,7 @@ _docker_image_import() {
 
 	case "$cur" in
 		-*)
-			local options="--change -c --help --message -m"
-			__docker_server_is_experimental && options+=" --platform"
+			local options="--change -c --help --message -m --platform"
 			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
@@ -3102,9 +3059,7 @@ _docker_image_pull() {
 
 	case "$cur" in
 		-*)
-			local options="--all-tags -a --disable-content-trust=false --help --quiet -q"
-			__docker_server_is_experimental && options+=" --platform"
-
+			local options="--all-tags -a --disable-content-trust=false --help --platform --quiet -q"
 			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
 			;;
 		*)
@@ -3211,7 +3166,7 @@ _docker_inspect() {
 	local preselected_type
 	local type
 
-	if [ "$1" = "--type" ] ; then
+	if [ "${1-}" = "--type" ] ; then
 		preselected_type=yes
 		type="$2"
 	else
@@ -3493,7 +3448,7 @@ _docker_network_prune() {
 _docker_network_rm() {
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_networks --filter type=custom
@@ -4880,6 +4835,7 @@ _docker_search() {
 
 _docker_stack() {
 	local subcommands="
+		config
 		deploy
 		ls
 		ps
@@ -4893,14 +4849,11 @@ _docker_stack() {
 		up
 	"
 
-	__docker_complete_stack_orchestrator_options && return
 	__docker_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
-			local options="--help --orchestrator"
-			__docker_stack_orchestrator_is kubernetes && options+=" --kubeconfig"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
 			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
@@ -4908,9 +4861,22 @@ _docker_stack() {
 	esac
 }
 
-_docker_stack_deploy() {
-	__docker_complete_stack_orchestrator_options && return
+_docker_stack_config() {
+	case "$prev" in
+		--compose-file|-c)
+			_filedir yml
+			return
+			;;
+	esac
 
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--compose-file -c --help --skip-interpolation" -- "$cur" ) )
+			;;
+  esac
+}
+
+_docker_stack_deploy() {
 	case "$prev" in
 		--compose-file|-c)
 			_filedir yml
@@ -4924,13 +4890,10 @@ _docker_stack_deploy() {
 
 	case "$cur" in
 		-*)
-			local options="--compose-file -c --help --orchestrator"
-			__docker_stack_orchestrator_is kubernetes && options+=" --kubeconfig --namespace"
-			__docker_stack_orchestrator_is swarm && options+=" --prune --resolve-image --with-registry-auth"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--compose-file -c --help --prune --resolve-image --with-registry-auth" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--compose-file|-c|--kubeconfig|--namespace|--orchestrator|--resolve-image')
+			local counter=$(__docker_pos_first_nonflag '--compose-file|-c|--resolve-image')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi
@@ -4947,8 +4910,6 @@ _docker_stack_list() {
 }
 
 _docker_stack_ls() {
-	__docker_complete_stack_orchestrator_options && return
-
 	case "$prev" in
 		--format)
 			return
@@ -4957,9 +4918,7 @@ _docker_stack_ls() {
 
 	case "$cur" in
 		-*)
-			local options="--format --help --orchestrator"
-			__docker_stack_orchestrator_is kubernetes && options+=" --all-namespaces --kubeconfig --namespace"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--format --help" -- "$cur" ) )
 			;;
 	esac
 }
@@ -4981,8 +4940,6 @@ _docker_stack_ps() {
 			;;
 	esac
 
-	__docker_complete_stack_orchestrator_options && return
-
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "id name desired-state" -- "$cur" ) )
@@ -4996,12 +4953,10 @@ _docker_stack_ps() {
 
 	case "$cur" in
 		-*)
-			local options="--filter -f --format --help --no-resolve --no-trunc --orchestrator --quiet -q"
-			__docker_stack_orchestrator_is kubernetes && options+=" --all-namespaces --kubeconfig --namespace"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--filter -f --format --help --no-resolve --no-trunc --quiet -q" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--all-namespaces|--filter|-f|--format|--kubeconfig|--namespace')
+			local counter=$(__docker_pos_first_nonflag '--filter|-f|--format')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi
@@ -5014,13 +4969,9 @@ _docker_stack_remove() {
 }
 
 _docker_stack_rm() {
-	__docker_complete_stack_orchestrator_options && return
-
 	case "$cur" in
 		-*)
-			local options="--help --orchestrator"
-			__docker_stack_orchestrator_is kubernetes && options+=" --kubeconfig --namespace"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_stacks
@@ -5044,8 +4995,6 @@ _docker_stack_services() {
 			;;
 	esac
 
-	__docker_complete_stack_orchestrator_options && return
-
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "id label name" -- "$cur" ) )
@@ -5059,12 +5008,10 @@ _docker_stack_services() {
 
 	case "$cur" in
 		-*)
-			local options="--filter -f --format --help --orchestrator --quiet -q"
-			__docker_stack_orchestrator_is kubernetes && options+=" --kubeconfig --namespace"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--filter -f --format --help --quiet -q" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__docker_pos_first_nonflag '--filter|-f|--format|--kubeconfig|--namespace|--orchestrator')
+			local counter=$(__docker_pos_first_nonflag '--filter|-f|--format')
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_stacks
 			fi
@@ -5131,7 +5078,7 @@ _docker_system_events() {
 			return
 			;;
 		daemon)
-			local name=$(__docker_q info | sed -n 's/^\(ID\|Name\): //p')
+			local name=$(__docker_q info --format '{{.Info.Name}} {{.Info.ID}}')
 			COMPREPLY=( $( compgen -W "$name" -- "${cur##*=}" ) )
 			return
 			;;
@@ -5335,8 +5282,6 @@ _docker_top() {
 }
 
 _docker_version() {
-	__docker_complete_stack_orchestrator_options && return
-
 	case "$prev" in
 		--format|-f)
 			return
@@ -5345,9 +5290,7 @@ _docker_version() {
 
 	case "$cur" in
 		-*)
-			local options="--format -f --help"
-			__docker_stack_orchestrator_is kubernetes && options+=" --kubeconfig"
-			COMPREPLY=( $( compgen -W "$options" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
 			;;
 	esac
 }
@@ -5437,7 +5380,7 @@ _docker_volume_prune() {
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--filter --force -f --help" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--all -a --filter --force -f --help" -- "$cur" ) )
 			;;
 	esac
 }
@@ -5554,12 +5497,23 @@ _docker() {
 		wait
 	)
 
+	# Create completion functions for all registered plugins
+	local known_plugin_commands=()
+	local plugin_name=""
+	for plugin_path in $(__docker_plugins_path); do
+		plugin_name=$(basename "$plugin_path" | sed 's/ *$//')
+		plugin_name=${plugin_name#docker-}
+		plugin_name=${plugin_name%%.*}
+		eval "_docker_${plugin_name}() { __docker_complete_plugin \"${plugin_path}\"; }"
+		known_plugin_commands+=(${plugin_name})
+	done
+
 	local experimental_server_commands=(
 		checkpoint
 	)
 
-	local commands=(${management_commands[*]} ${top_level_commands[*]})
-	[ -z "$DOCKER_HIDE_LEGACY_COMMANDS" ] && commands+=(${legacy_commands[*]})
+	local commands=(${management_commands[*]} ${top_level_commands[*]} ${known_plugin_commands[*]})
+	[ -z "${DOCKER_HIDE_LEGACY_COMMANDS-}" ] && commands+=(${legacy_commands[*]})
 
 	# These options are valid as global options for all client commands
 	# and valid as command options for `docker daemon`
@@ -5580,8 +5534,6 @@ _docker() {
 
 	# variables to cache server info, populated on demand for performance reasons
 	local info_fetched server_experimental server_os
-	# variables to cache client info, populated on demand for performance reasons
-	local stack_orchestrator_is_kubernetes stack_orchestrator_is_swarm
 
 	local host config context
 

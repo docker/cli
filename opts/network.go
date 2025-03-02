@@ -2,8 +2,10 @@ package opts
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -12,7 +14,10 @@ const (
 	networkOptAlias       = "alias"
 	networkOptIPv4Address = "ip"
 	networkOptIPv6Address = "ip6"
+	networkOptMacAddress  = "mac-address"
+	networkOptLinkLocalIP = "link-local-ip"
 	driverOpt             = "driver-opt"
+	gwPriorityOpt         = "gw-priority"
 )
 
 // NetworkAttachmentOpts represents the network options for endpoint creation
@@ -23,7 +28,9 @@ type NetworkAttachmentOpts struct {
 	Links        []string // TODO add support for links in the csv notation of `--network`
 	IPv4Address  string
 	IPv6Address  string
-	LinkLocalIPs []string // TODO add support for LinkLocalIPs in the csv notation of `--network` ?
+	LinkLocalIPs []string
+	MacAddress   string
+	GwPriority   int
 }
 
 // NetworkOpt represents a network config in swarm mode.
@@ -32,7 +39,7 @@ type NetworkOpt struct {
 }
 
 // Set networkopts value
-func (n *NetworkOpt) Set(value string) error {
+func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 	longSyntax, err := regexp.MatchString(`\w+=\w+(,\w+=\w+)*`, value)
 	if err != nil {
 		return err
@@ -48,40 +55,48 @@ func (n *NetworkOpt) Set(value string) error {
 
 		netOpt.Aliases = []string{}
 		for _, field := range fields {
-			parts := strings.SplitN(field, "=", 2)
-
-			if len(parts) < 2 {
+			// TODO(thaJeztah): these options should not be case-insensitive.
+			key, val, ok := strings.Cut(strings.ToLower(field), "=")
+			if !ok || key == "" {
 				return fmt.Errorf("invalid field %s", field)
 			}
 
-			key := strings.TrimSpace(strings.ToLower(parts[0]))
-			value := strings.TrimSpace(strings.ToLower(parts[1]))
+			key = strings.TrimSpace(key)
+			val = strings.TrimSpace(val)
 
 			switch key {
 			case networkOptName:
-				netOpt.Target = value
+				netOpt.Target = val
 			case networkOptAlias:
-				netOpt.Aliases = append(netOpt.Aliases, value)
+				netOpt.Aliases = append(netOpt.Aliases, val)
 			case networkOptIPv4Address:
-				netOpt.IPv4Address = value
+				netOpt.IPv4Address = val
 			case networkOptIPv6Address:
-				netOpt.IPv6Address = value
+				netOpt.IPv6Address = val
+			case networkOptMacAddress:
+				netOpt.MacAddress = val
+			case networkOptLinkLocalIP:
+				netOpt.LinkLocalIPs = append(netOpt.LinkLocalIPs, val)
 			case driverOpt:
-				key, value, err = parseDriverOpt(value)
-				if err == nil {
-					if netOpt.DriverOpts == nil {
-						netOpt.DriverOpts = make(map[string]string)
-					}
-					netOpt.DriverOpts[key] = value
-				} else {
+				key, val, err = parseDriverOpt(val)
+				if err != nil {
 					return err
 				}
+				if netOpt.DriverOpts == nil {
+					netOpt.DriverOpts = make(map[string]string)
+				}
+				netOpt.DriverOpts[key] = val
+			case gwPriorityOpt:
+				netOpt.GwPriority, err = strconv.Atoi(val)
+				if err != nil {
+					return fmt.Errorf("invalid gw-priority: %w", err)
+				}
 			default:
-				return fmt.Errorf("invalid field key %s", key)
+				return errors.New("invalid field key " + key)
 			}
 		}
 		if len(netOpt.Target) == 0 {
-			return fmt.Errorf("network name/id is not specified")
+			return errors.New("network name/id is not specified")
 		}
 	} else {
 		netOpt.Target = value
@@ -91,7 +106,7 @@ func (n *NetworkOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (n *NetworkOpt) Type() string {
+func (*NetworkOpt) Type() string {
 	return "network"
 }
 
@@ -101,7 +116,7 @@ func (n *NetworkOpt) Value() []NetworkAttachmentOpts {
 }
 
 // String returns the network opts as a string
-func (n *NetworkOpt) String() string {
+func (*NetworkOpt) String() string {
 	return ""
 }
 
@@ -116,11 +131,13 @@ func (n *NetworkOpt) NetworkMode() string {
 }
 
 func parseDriverOpt(driverOpt string) (string, string, error) {
-	parts := strings.SplitN(driverOpt, "=", 2)
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid key value pair format in driver options")
+	// TODO(thaJeztah): these options should not be case-insensitive.
+	// TODO(thaJeztah): should value be converted to lowercase as well, or only the key?
+	key, value, ok := strings.Cut(strings.ToLower(driverOpt), "=")
+	if !ok || key == "" {
+		return "", "", errors.New("invalid key value pair format in driver options")
 	}
-	key := strings.TrimSpace(strings.ToLower(parts[0]))
-	value := strings.TrimSpace(strings.ToLower(parts[1]))
+	key = strings.TrimSpace(key)
+	value = strings.TrimSpace(value)
 	return key, value, nil
 }

@@ -3,7 +3,6 @@ package trust
 import (
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -79,7 +78,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 	if err := validateKeyArgs(keyName, workingDir); err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out(), "Generating key for %s...\n", keyName)
+	_, _ = fmt.Fprintf(streams.Out(), "Generating key for %s...\n", keyName)
 	// Automatically load the private key to local storage for use
 	privKeyFileStore, err := trustmanager.NewKeyFileStore(trust.GetTrustDirectory(), freshPassRetGetter())
 	if err != nil {
@@ -88,7 +87,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 
 	pubPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
 	if err != nil {
-		fmt.Fprint(streams.Out(), err.Error())
+		_, _ = fmt.Fprint(streams.Out(), err)
 		return errors.Wrapf(err, "failed to generate key for %s", keyName)
 	}
 
@@ -97,7 +96,7 @@ func validateAndGenerateKey(streams command.Streams, keyName string, workingDir 
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out(), "Successfully generated and loaded private key. Corresponding public key available: %s\n", writtenPubFile)
+	_, _ = fmt.Fprintln(streams.Out(), "Successfully generated and loaded private key. Corresponding public key available:", writtenPubFile)
 
 	return nil
 }
@@ -126,7 +125,7 @@ func writePubKeyPEMToDir(pubPEM pem.Block, keyName, workingDir string) (string, 
 	// Output the public key to a file in the CWD or specified dir
 	pubFileName := strings.Join([]string{keyName, "pub"}, ".")
 	pubFilePath := filepath.Join(workingDir, pubFileName)
-	if err := ioutil.WriteFile(pubFilePath, pem.EncodeToMemory(&pubPEM), notary.PrivNoExecPerms); err != nil {
+	if err := os.WriteFile(pubFilePath, pem.EncodeToMemory(&pubPEM), notary.PrivNoExecPerms); err != nil {
 		return "", errors.Wrapf(err, "failed to write public key to %s", pubFilePath)
 	}
 	return pubFilePath, nil

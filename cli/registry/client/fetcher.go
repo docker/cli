@@ -3,18 +3,18 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
+	"github.com/docker/distribution/manifest/ocischema"
 	"github.com/docker/distribution/manifest/schema2"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/distribution/registry/api/errcode"
 	v2 "github.com/docker/distribution/registry/api/v2"
 	distclient "github.com/docker/distribution/registry/client"
 	"github.com/docker/docker/registry"
-	digest "github.com/opencontainers/go-digest"
+	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -31,11 +31,9 @@ func fetchManifest(ctx context.Context, repo distribution.Repository, ref refere
 	switch v := manifest.(type) {
 	// Removed Schema 1 support
 	case *schema2.DeserializedManifest:
-		imageManifest, err := pullManifestSchemaV2(ctx, ref, repo, *v)
-		if err != nil {
-			return types.ImageManifest{}, err
-		}
-		return imageManifest, nil
+		return pullManifestSchemaV2(ctx, ref, repo, *v)
+	case *ocischema.DeserializedManifest:
+		return pullManifestOCISchema(ctx, ref, repo, *v)
 	case *manifestlist.DeserializedManifestList:
 		return types.ImageManifest{}, errors.Errorf("%s is a manifest list", ref)
 	}
@@ -50,11 +48,7 @@ func fetchList(ctx context.Context, repo distribution.Repository, ref reference.
 
 	switch v := manifest.(type) {
 	case *manifestlist.DeserializedManifestList:
-		imageManifests, err := pullManifestList(ctx, ref, repo, *v)
-		if err != nil {
-			return nil, err
-		}
-		return imageManifests, nil
+		return pullManifestList(ctx, ref, repo, *v)
 	default:
 		return nil, errors.Errorf("unsupported manifest format: %v", v)
 	}
@@ -95,6 +89,28 @@ func pullManifestSchemaV2(ctx context.Context, ref reference.Named, repo distrib
 	return types.NewImageManifest(ref, manifestDesc, &mfst), nil
 }
 
+func pullManifestOCISchema(ctx context.Context, ref reference.Named, repo distribution.Repository, mfst ocischema.DeserializedManifest) (types.ImageManifest, error) {
+	manifestDesc, err := validateManifestDigest(ref, mfst)
+	if err != nil {
+		return types.ImageManifest{}, err
+	}
+	configJSON, err := pullManifestSchemaV2ImageConfig(ctx, mfst.Target().Digest, repo)
+	if err != nil {
+		return types.ImageManifest{}, err
+	}
+
+	if manifestDesc.Platform == nil {
+		manifestDesc.Platform = &ocispec.Platform{}
+	}
+
+	// Fill in os and architecture fields from config JSON
+	if err := json.Unmarshal(configJSON, manifestDesc.Platform); err != nil {
+		return types.ImageManifest{}, err
+	}
+
+	return types.NewOCIImageManifest(ref, manifestDesc, &mfst), nil
+}
+
 func pullManifestSchemaV2ImageConfig(ctx context.Context, dgst digest.Digest, repo distribution.Repository) ([]byte, error) {
 	blobs := repo.Blobs(ctx)
 	configJSON, err := blobs.Get(ctx, dgst)
@@ -126,11 +142,8 @@ func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (oc
 	}
 
 	// If pull by digest, then verify the manifest digest.
-	if digested, isDigested := ref.(reference.Canonical); isDigested {
-		if digested.Digest() != desc.Digest {
-			err := fmt.Errorf("manifest verification failed for digest %s", digested.Digest())
-			return ocispec.Descriptor{}, err
-		}
+	if digested, isDigested := ref.(reference.Canonical); isDigested && digested.Digest() != desc.Digest {
+		return ocispec.Descriptor{}, errors.Errorf("manifest verification failed for digest %s", digested.Digest())
 	}
 
 	return desc, nil
@@ -139,12 +152,11 @@ func validateManifestDigest(ref reference.Named, mfst distribution.Manifest) (oc
 // pullManifestList handles "manifest lists" which point to various
 // platform-specific manifests.
 func pullManifestList(ctx context.Context, ref reference.Named, repo distribution.Repository, mfstList manifestlist.DeserializedManifestList) ([]types.ImageManifest, error) {
-	infos := []types.ImageManifest{}
-
 	if _, err := validateManifestDigest(ref, mfstList); err != nil {
 		return nil, err
 	}
 
+	infos := make([]types.ImageManifest, 0, len(mfstList.Manifests))
 	for _, manifestDescriptor := range mfstList.Manifests {
 		manSvc, err := repo.Manifests(ctx)
 		if err != nil {
@@ -154,22 +166,28 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		if err != nil {
 			return nil, err
 		}
-		v, ok := manifest.(*schema2.DeserializedManifest)
-		if !ok {
-			return nil, fmt.Errorf("unsupported manifest format: %v", v)
-		}
 
 		manifestRef, err := reference.WithDigest(ref, manifestDescriptor.Digest)
 		if err != nil {
 			return nil, err
 		}
-		imageManifest, err := pullManifestSchemaV2(ctx, manifestRef, repo, *v)
+
+		var imageManifest types.ImageManifest
+		switch v := manifest.(type) {
+		case *schema2.DeserializedManifest:
+			imageManifest, err = pullManifestSchemaV2(ctx, manifestRef, repo, *v)
+		case *ocischema.DeserializedManifest:
+			imageManifest, err = pullManifestOCISchema(ctx, manifestRef, repo, *v)
+		default:
+			err = errors.Errorf("unsupported manifest type: %T", manifest)
+		}
 		if err != nil {
 			return nil, err
 		}
 
 		// Replace platform from config
-		imageManifest.Descriptor.Platform = types.OCIPlatform(&manifestDescriptor.Platform)
+		p := manifestDescriptor.Platform
+		imageManifest.Descriptor.Platform = types.OCIPlatform(&p)
 
 		infos = append(infos, imageManifest)
 	}
@@ -184,12 +202,12 @@ func continueOnError(err error) bool {
 		}
 		return continueOnError(v[0])
 	case errcode.Error:
-		e := err.(errcode.Error)
-		switch e.Code {
+		switch e := err.(errcode.Error); e.Code {
 		case errcode.ErrorCodeUnauthorized, v2.ErrorCodeManifestUnknown, v2.ErrorCodeNameUnknown:
 			return true
+		default:
+			return false
 		}
-		return false
 	case *distclient.UnexpectedHTTPResponseError:
 		return true
 	}
@@ -209,11 +227,6 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 
 	confirmedTLSRegistries := make(map[string]bool)
 	for _, endpoint := range endpoints {
-		if endpoint.Version == registry.APIVersion1 {
-			logrus.Debugf("skipping v1 endpoint %s", endpoint.URL)
-			continue
-		}
-
 		if endpoint.URL.Scheme != "https" {
 			if _, confirmedTLS := confirmedTLSRegistries[endpoint.URL.Host]; confirmedTLS {
 				logrus.Debugf("skipping non-TLS endpoint %s for host/port that appears to use TLS", endpoint.URL)
@@ -257,7 +270,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 	return newNotFoundError(namedRef.String())
 }
 
-// allEndpoints returns a list of endpoints ordered by priority (v2, https, v1).
+// allEndpoints returns a list of endpoints ordered by priority (v2, http).
 func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoint, error) {
 	repoInfo, err := registry.ParseRepositoryInfo(namedRef)
 	if err != nil {
@@ -278,27 +291,17 @@ func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoi
 	return endpoints, err
 }
 
-type notFoundError struct {
-	object string
+func newNotFoundError(ref string) *notFoundError {
+	return &notFoundError{err: errors.New("no such manifest: " + ref)}
 }
 
-func newNotFoundError(ref string) *notFoundError {
-	return &notFoundError{object: ref}
+type notFoundError struct {
+	err error
 }
 
 func (n *notFoundError) Error() string {
-	return fmt.Sprintf("no such manifest: %s", n.object)
+	return n.err.Error()
 }
 
-// NotFound interface
-func (n *notFoundError) NotFound() {}
-
-// IsNotFound returns true if the error is a not found error
-func IsNotFound(err error) bool {
-	_, ok := err.(notFound)
-	return ok
-}
-
-type notFound interface {
-	NotFound()
-}
+// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
+func (notFoundError) NotFound() {}

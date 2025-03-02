@@ -3,7 +3,7 @@ package trust
 import (
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,40 +26,33 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 	}{
 		{
 			name:          "not-enough-args",
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			name:          "too-many-args",
 			args:          []string{"key-1", "key-2"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 	}
 
-	tmpDir, err := ioutil.TempDir("", "docker-key-generate-test-")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpDir)
-	config.SetDir(tmpDir)
+	config.SetDir(t.TempDir())
 
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{})
 		cmd := newKeyGenerateCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
 func TestGenerateKeySuccess(t *testing.T) {
-	pubKeyCWD, err := ioutil.TempDir("", "pub-keys-")
-	assert.NilError(t, err)
-	defer os.RemoveAll(pubKeyCWD)
+	pubKeyCWD := t.TempDir()
+	privKeyStorageDir := t.TempDir()
 
-	privKeyStorageDir, err := ioutil.TempDir("", "priv-keys-")
-	assert.NilError(t, err)
-	defer os.RemoveAll(privKeyStorageDir)
-
-	passwd := "password"
-	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
+	const testPass = "password"
+	cannedPasswordRetriever := passphrase.ConstantRetriever(testPass)
 	// generate a single key
 	keyName := "alice"
 	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, cannedPasswordRetriever)
@@ -79,7 +72,7 @@ func TestGenerateKeySuccess(t *testing.T) {
 	_, err = os.Stat(expectedPrivKeyDir)
 	assert.NilError(t, err)
 
-	keyFiles, err := ioutil.ReadDir(expectedPrivKeyDir)
+	keyFiles, err := os.ReadDir(expectedPrivKeyDir)
 	assert.NilError(t, err)
 	assert.Check(t, is.Len(keyFiles, 1))
 	privKeyFilePath := filepath.Join(expectedPrivKeyDir, keyFiles[0].Name())
@@ -87,7 +80,7 @@ func TestGenerateKeySuccess(t *testing.T) {
 	// verify the key content
 	privFrom, _ := os.OpenFile(privKeyFilePath, os.O_RDONLY, notary.PrivExecPerms)
 	defer privFrom.Close()
-	fromBytes, _ := ioutil.ReadAll(privFrom)
+	fromBytes, _ := io.ReadAll(privFrom)
 	privKeyPEM, _ := pem.Decode(fromBytes)
 	assert.Check(t, is.Equal(keyName, privKeyPEM.Headers["role"]))
 	// the default GUN is empty
@@ -95,7 +88,7 @@ func TestGenerateKeySuccess(t *testing.T) {
 	// assert encrypted header
 	assert.Check(t, is.Equal("ENCRYPTED PRIVATE KEY", privKeyPEM.Type))
 	// check that the passphrase matches
-	_, err = tufutils.ParsePKCS8ToTufKey(privKeyPEM.Bytes, []byte(passwd))
+	_, err = tufutils.ParsePKCS8ToTufKey(privKeyPEM.Bytes, []byte(testPass))
 	assert.NilError(t, err)
 
 	// check that the public key exists at the correct path if we use the helper:
@@ -106,17 +99,15 @@ func TestGenerateKeySuccess(t *testing.T) {
 	_, err = os.Stat(expectedPubKeyPath)
 	assert.NilError(t, err)
 	// check that the public key is the only file output in CWD
-	cwdKeyFiles, err := ioutil.ReadDir(pubKeyCWD)
+	cwdKeyFiles, err := os.ReadDir(pubKeyCWD)
 	assert.NilError(t, err)
 	assert.Check(t, is.Len(cwdKeyFiles, 1))
 }
 
 func TestValidateKeyArgs(t *testing.T) {
-	pubKeyCWD, err := ioutil.TempDir("", "pub-keys-")
-	assert.NilError(t, err)
-	defer os.RemoveAll(pubKeyCWD)
+	pubKeyCWD := t.TempDir()
 
-	err = validateKeyArgs("a", pubKeyCWD)
+	err := validateKeyArgs("a", pubKeyCWD)
 	assert.NilError(t, err)
 
 	err = validateKeyArgs("a/b", pubKeyCWD)
@@ -125,7 +116,7 @@ func TestValidateKeyArgs(t *testing.T) {
 	err = validateKeyArgs("-", pubKeyCWD)
 	assert.Error(t, err, "key name \"-\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character")
 
-	assert.NilError(t, ioutil.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
+	assert.NilError(t, os.WriteFile(filepath.Join(pubKeyCWD, "a.pub"), []byte("abc"), notary.PrivExecPerms))
 	err = validateKeyArgs("a", pubKeyCWD)
 	assert.Error(t, err, fmt.Sprintf("public key file already exists: \"%s\"", filepath.Join(pubKeyCWD, "a.pub")))
 

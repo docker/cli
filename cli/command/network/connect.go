@@ -2,13 +2,15 @@ package network
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -21,9 +23,10 @@ type connectOptions struct {
 	aliases      []string
 	linklocalips []string
 	driverOpts   []string
+	gwPriority   int
 }
 
-func newConnectCommand(dockerCli command.Cli) *cobra.Command {
+func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 	options := connectOptions{
 		links: opts.NewListOpts(opts.ValidateLink),
 	}
@@ -35,28 +38,35 @@ func newConnectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.network = args[0]
 			options.container = args[1]
-			return runConnect(dockerCli, options)
+			return runConnect(cmd.Context(), dockerCLI.Client(), options)
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			if len(args) == 0 {
+				return completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
+			}
+			nw := args[0]
+			return completion.ContainerNames(dockerCLI, true, not(isConnected(nw)))(cmd, args, toComplete)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&options.ipaddress, "ip", "", "IPv4 address (e.g., 172.30.100.104)")
-	flags.StringVar(&options.ipv6address, "ip6", "", "IPv6 address (e.g., 2001:db8::33)")
+	flags.StringVar(&options.ipaddress, "ip", "", `IPv4 address (e.g., "172.30.100.104")`)
+	flags.StringVar(&options.ipv6address, "ip6", "", `IPv6 address (e.g., "2001:db8::33")`)
 	flags.Var(&options.links, "link", "Add link to another container")
 	flags.StringSliceVar(&options.aliases, "alias", []string{}, "Add network-scoped alias for the container")
 	flags.StringSliceVar(&options.linklocalips, "link-local-ip", []string{}, "Add a link-local address for the container")
 	flags.StringSliceVar(&options.driverOpts, "driver-opt", []string{}, "driver options for the network")
+	flags.IntVar(&options.gwPriority, "gw-priority", 0, "Highest gw-priority provides the default gateway. Accepts positive and negative values.")
 	return cmd
 }
 
-func runConnect(dockerCli command.Cli, options connectOptions) error {
-	client := dockerCli.Client()
-
+func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options connectOptions) error {
 	driverOpts, err := convertDriverOpt(options.driverOpts)
 	if err != nil {
 		return err
 	}
-	epConfig := &network.EndpointSettings{
+
+	return apiClient.NetworkConnect(ctx, options.network, options.container, &network.EndpointSettings{
 		IPAMConfig: &network.EndpointIPAMConfig{
 			IPv4Address:  options.ipaddress,
 			IPv6Address:  options.ipv6address,
@@ -65,21 +75,20 @@ func runConnect(dockerCli command.Cli, options connectOptions) error {
 		Links:      options.links.GetAll(),
 		Aliases:    options.aliases,
 		DriverOpts: driverOpts,
-	}
-
-	return client.NetworkConnect(context.Background(), options.network, options.container, epConfig)
+		GwPriority: options.gwPriority,
+	})
 }
 
-func convertDriverOpt(opts []string) (map[string]string, error) {
+func convertDriverOpt(options []string) (map[string]string, error) {
 	driverOpt := make(map[string]string)
-	for _, opt := range opts {
-		parts := strings.SplitN(opt, "=", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid key/value pair format in driver options")
+	for _, opt := range options {
+		k, v, ok := strings.Cut(opt, "=")
+		// TODO(thaJeztah): we should probably not accept whitespace here (both for key and value).
+		k = strings.TrimSpace(k)
+		if !ok || k == "" {
+			return nil, errors.New("invalid key/value pair format in driver options")
 		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		driverOpt[key] = value
+		driverOpt[k] = strings.TrimSpace(v)
 	}
 	return driverOpt, nil
 }

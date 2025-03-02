@@ -9,7 +9,7 @@ container is unpaused, and then run
 # CAPABILITIES
 
 `privileged` gives the process extended
-[Linux capabilities](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+[Linux capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html)
 when running in a container. 
 
 Without this flag, the process run by `docker exec` in a running container has

@@ -21,19 +21,19 @@ func (f fakeConfigAPIClientList) ConfigList(ctx context.Context, opts types.Conf
 	return f(ctx, opts)
 }
 
-func (f fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
+func (fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 	return types.ConfigCreateResponse{}, nil
 }
 
-func (f fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
+func (fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
 	return nil
 }
 
-func (f fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
+func (fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
 	return swarm.Config{}, nil, nil
 }
 
-func (f fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
+func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
 	return nil
 }
 
@@ -96,8 +96,10 @@ func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 		}, nil
 	}
 
+	ctx := context.Background()
+
 	// now call setConfigs
-	err := setConfigs(fakeClient, service, opts)
+	err := setConfigs(ctx, fakeClient, service, opts)
 	// verify no error is returned
 	assert.NilError(t, err)
 
@@ -118,7 +120,7 @@ func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 			// these are the default field values
 			UID:  "0",
 			GID:  "0",
-			Mode: 0444,
+			Mode: 0o444,
 		},
 	}), "expected configRefs to contain bar config")
 }
@@ -166,7 +168,8 @@ func TestSetConfigsOnlyCredSpec(t *testing.T) {
 	}
 
 	// now call setConfigs
-	err := setConfigs(fakeClient, service, opts)
+	ctx := context.Background()
+	err := setConfigs(ctx, fakeClient, service, opts)
 	// verify no error is returned
 	assert.NilError(t, err)
 
@@ -216,7 +219,8 @@ func TestSetConfigsOnlyConfigs(t *testing.T) {
 	}
 
 	// now call setConfigs
-	err := setConfigs(fakeClient, service, opts)
+	ctx := context.Background()
+	err := setConfigs(ctx, fakeClient, service, opts)
 	// verify no error is returned
 	assert.NilError(t, err)
 
@@ -229,7 +233,7 @@ func TestSetConfigsOnlyConfigs(t *testing.T) {
 			// these are the default field values
 			UID:  "0",
 			GID:  "0",
-			Mode: 0444,
+			Mode: 0o444,
 		},
 	}))
 }
@@ -262,7 +266,8 @@ func TestSetConfigsNoConfigs(t *testing.T) {
 		return nil, nil
 	}
 
-	err := setConfigs(fakeClient, service, opts)
+	ctx := context.Background()
+	err := setConfigs(ctx, fakeClient, service, opts)
 	assert.NilError(t, err)
 
 	// ensure that the value of the credentialspec has not changed

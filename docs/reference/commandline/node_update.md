@@ -1,30 +1,25 @@
----
-title: "node update"
-description: "The node update command description and usage"
-keywords: "resources, update, dynamically"
----
-
 # update
 
-```markdown
-Usage:  docker node update [OPTIONS] NODE
-
+<!---MARKER_GEN_START-->
 Update a node
 
-Options:
-      --availability string   Availability of the node ("active"|"pause"|"drain")
-      --help                  Print usage
-      --label-add value       Add or update a node label (key=value) (default [])
-      --label-rm value        Remove a node label if exists (default [])
-      --role string           Role of the node ("worker"|"manager")
-```
+### Options
+
+| Name                        | Type     | Default | Description                                           |
+|:----------------------------|:---------|:--------|:------------------------------------------------------|
+| `--availability`            | `string` |         | Availability of the node (`active`, `pause`, `drain`) |
+| [`--label-add`](#label-add) | `list`   |         | Add or update a node label (`key=value`)              |
+| `--label-rm`                | `list`   |         | Remove a node label if exists                         |
+| `--role`                    | `string` |         | Role of the node (`worker`, `manager`)                |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Update metadata about a node, such as its availability, labels, or roles.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -32,7 +27,7 @@ Update metadata about a node, such as its availability, labels, or roles.
 
 ## Examples
 
-### Add label metadata to a node
+### <a name="label-add"></a> Add label metadata to a node (--label-add)
 
 Add metadata to a swarm node using node labels. You can specify a node label as
 a key with an empty value:
@@ -43,7 +38,7 @@ $ docker node update --label-add foo worker1
 
 To add multiple labels to a node, pass the `--label-add` flag for each label:
 
-```bash
+```console
 $ docker node update --label-add foo --label-add bar worker1
 ```
 
@@ -60,7 +55,7 @@ $ docker node update --label-add type=queue worker1
 
 The labels you set for nodes using `docker node update` apply only to the node
 entity within the swarm. Do not confuse them with the docker daemon labels for
-[dockerd](dockerd.md).
+[dockerd](https://docs.docker.com/reference/cli/dockerd/).
 
 For more information about labels, refer to [apply custom
 metadata](https://docs.docker.com/engine/userguide/labels-custom-metadata/).

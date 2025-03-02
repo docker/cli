@@ -1,20 +1,16 @@
----
-title: "swarm leave"
-description: "The swarm leave command description and usage"
-keywords: "swarm, leave"
----
-
 # swarm leave
 
-```markdown
-Usage:  docker swarm leave [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Leave the swarm
 
-Options:
-  -f, --force   Force this node to leave the swarm, ignoring warnings
-      --help    Print usage
-```
+### Options
+
+| Name            | Type   | Default | Description                                           |
+|:----------------|:-------|:--------|:------------------------------------------------------|
+| `-f`, `--force` | `bool` |         | Force this node to leave the swarm, ignoring warnings |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -31,7 +27,7 @@ no longer be used after the manager leaves, such as in a single-node swarm.
 
 Consider the following swarm, as seen from the manager:
 
-```bash
+```console
 $ docker node ls
 
 ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
@@ -42,7 +38,7 @@ dvfxp4zseq4s0rih1selh0d20 *  manager1  Ready   Active        Leader
 
 To remove `worker2`, issue the following command from `worker2` itself:
 
-```bash
+```console
 $ docker swarm leave
 
 Node left the default swarm.

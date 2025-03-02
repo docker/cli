@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package template
 
 import (
@@ -6,15 +9,15 @@ import (
 	"strings"
 )
 
-var delimiter = "\\$"
-var substitution = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
-
-var patternString = fmt.Sprintf(
-	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
-	delimiter, delimiter, substitution, substitution,
+const (
+	delimiter = "\\$"
+	subst     = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
 )
 
-var defaultPattern = regexp.MustCompile(patternString)
+var defaultPattern = regexp.MustCompile(fmt.Sprintf(
+	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
+	delimiter, delimiter, subst, subst,
+))
 
 // DefaultSubstituteFuncs contains the default SubstituteFunc used by the docker cli
 var DefaultSubstituteFuncs = []SubstituteFunc{
@@ -45,7 +48,7 @@ type Mapping func(string) (string, bool)
 // the substitution and an error.
 type SubstituteFunc func(string, Mapping) (string, bool, error)
 
-// SubstituteWith subsitute variables in the string with their values.
+// SubstituteWith substitutes variables in the string with their values.
 // It accepts additional substitute function.
 func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, subsFuncs ...SubstituteFunc) (string, error) {
 	var err error
@@ -95,14 +98,14 @@ func Substitute(template string, mapping Mapping) (string, error) {
 
 // ExtractVariables returns a map of all the variables defined in the specified
 // composefile (dict representation) and their default value if any.
-func ExtractVariables(configDict map[string]interface{}, pattern *regexp.Regexp) map[string]string {
+func ExtractVariables(configDict map[string]any, pattern *regexp.Regexp) map[string]string {
 	if pattern == nil {
 		pattern = defaultPattern
 	}
 	return recurseExtract(configDict, pattern)
 }
 
-func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]string {
+func recurseExtract(value any, pattern *regexp.Regexp) map[string]string {
 	m := map[string]string{}
 
 	switch value := value.(type) {
@@ -112,7 +115,7 @@ func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]string
 				m[v.name] = v.value
 			}
 		}
-	case map[string]interface{}:
+	case map[string]any:
 		for _, elem := range value {
 			submap := recurseExtract(elem, pattern)
 			for key, value := range submap {
@@ -120,7 +123,7 @@ func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]string
 			}
 		}
 
-	case []interface{}:
+	case []any:
 		for _, elem := range value {
 			if values, is := extractVariable(elem, pattern); is {
 				for _, v := range values {
@@ -138,7 +141,7 @@ type extractedValue struct {
 	value string
 }
 
-func extractVariable(value interface{}, pattern *regexp.Regexp) ([]extractedValue, bool) {
+func extractVariable(value any, pattern *regexp.Regexp) ([]extractedValue, bool) {
 	sValue, ok := value.(string)
 	if !ok {
 		return []extractedValue{}, false
@@ -237,9 +240,9 @@ func matchGroups(matches []string, pattern *regexp.Regexp) map[string]string {
 //
 // If the separator is not found, return the string itself, followed by an empty string.
 func partition(s, sep string) (string, string) {
-	if strings.Contains(s, sep) {
-		parts := strings.SplitN(s, sep, 2)
-		return parts[0], parts[1]
+	k, v, ok := strings.Cut(s, sep)
+	if !ok {
+		return s, ""
 	}
-	return s, ""
+	return k, v
 }

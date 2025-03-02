@@ -1,24 +1,20 @@
----
-title: "swarm join"
-description: "The swarm join command description and usage"
-keywords: "swarm, join"
----
-
 # swarm join
 
-```markdown
-Usage:  docker swarm join [OPTIONS] HOST:PORT
-
+<!---MARKER_GEN_START-->
 Join a swarm as a node and/or manager
 
-Options:
-      --advertise-addr string   Advertised address (format: <ip|interface>[:port])
-      --availability string     Availability of the node ("active"|"pause"|"drain") (default "active")
-      --data-path-addr string   Address or interface to use for data path traffic (format: <ip|interface>)
-      --help                    Print usage
-      --listen-addr node-addr   Listen address (format: <ip|interface>[:port]) (default 0.0.0.0:2377)
-      --token string            Token for entry into the swarm
-```
+### Options
+
+| Name                                  | Type        | Default        | Description                                                                   |
+|:--------------------------------------|:------------|:---------------|:------------------------------------------------------------------------------|
+| [`--advertise-addr`](#advertise-addr) | `string`    |                | Advertised address (format: `<ip\|interface>[:port]`)                         |
+| [`--availability`](#availability)     | `string`    | `active`       | Availability of the node (`active`, `pause`, `drain`)                         |
+| [`--data-path-addr`](#data-path-addr) | `string`    |                | Address or interface to use for data path traffic (format: `<ip\|interface>`) |
+| [`--listen-addr`](#listen-addr)       | `node-addr` | `0.0.0.0:2377` | Listen address (format: `<ip\|interface>[:port]`)                             |
+| [`--token`](#token)                   | `string`    |                | Token for entry into the swarm                                                |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -32,9 +28,10 @@ pass a worker token, the node joins as a worker.
 
 The example below demonstrates joining a manager node using a manager token.
 
-```bash
+```console
 $ docker swarm join --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-7p73s1dx5in4tatdymyhg9hu2 192.168.99.121:2377
 This node joined a swarm as a manager.
+
 $ docker node ls
 ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
 dkp8vy1dq1kxleu9g4u78tlag *  manager2  Ready   Active        Reachable
@@ -49,9 +46,10 @@ should join as workers instead. Managers should be stable hosts that have static
 
 The example below demonstrates joining a worker node using a worker token.
 
-```bash
+```console
 $ docker swarm join --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx 192.168.99.121:2377
 This node joined a swarm as a worker.
+
 $ docker node ls
 ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
 7ln70fl22uw2dvjn2ft53m3q5    worker2   Ready   Active
@@ -59,7 +57,7 @@ dkp8vy1dq1kxleu9g4u78tlag    worker1   Ready   Active        Reachable
 dvfxp4zseq4s0rih1selh0d20 *  manager1  Ready   Active        Leader
 ```
 
-### `--listen-addr value`
+### <a name="listen-addr"></a> `--listen-addr value`
 
 If the node is a manager, it will listen for inbound swarm manager traffic on this
 address. The default is to listen on 0.0.0.0:2377. It is also possible to specify a
@@ -70,7 +68,7 @@ name, the default port 2377 will be used.
 
 This flag is generally not necessary when joining an existing swarm.
 
-### `--advertise-addr value`
+### <a name="advertise-addr"></a> `--advertise-addr value`
 
 This flag specifies the address that will be advertised to other members of the
 swarm for API access. If unspecified, Docker will check if the system has a
@@ -90,7 +88,7 @@ you're joining new nodes through a load balancer, you should use this flag to
 ensure the node advertises its IP address and not the IP address of the load
 balancer.
 
-### `--data-path-addr`
+### <a name="data-path-addr"></a> `--data-path-addr`
 
 This flag specifies the address that global scope network drivers will publish towards
 other nodes in order to reach the containers running on this node.
@@ -99,11 +97,11 @@ management traffic of the cluster.
 If unspecified, Docker will use the same IP address or interface that is used for the
 advertise address.
 
-### `--token string`
+### <a name="token"></a> `--token string`
 
 Secret value required for nodes to join the swarm
 
-### `--availability`
+### <a name="availability"></a> `--availability`
 
 This flag specifies the availability of the node at the time the node joins a master.
 Possible availability values are `active`, `pause`, or `drain`.

@@ -1,11 +1,11 @@
 package node
 
 import (
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -21,7 +21,7 @@ func TestNodeRemoveErrors(t *testing.T) {
 		{
 			args: []string{"nodeID"},
 			nodeRemoveFunc: func() error {
-				return errors.Errorf("error removing the node")
+				return errors.New("error removing the node")
 			},
 			expectedError: "error removing the node",
 		},
@@ -32,7 +32,8 @@ func TestNodeRemoveErrors(t *testing.T) {
 				nodeRemoveFunc: tc.nodeRemoveFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

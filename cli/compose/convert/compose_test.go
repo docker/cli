@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -14,6 +13,16 @@ import (
 func TestNamespaceScope(t *testing.T) {
 	scoped := Namespace{name: "foo"}.Scope("bar")
 	assert.Check(t, is.Equal("foo_bar", scoped))
+}
+
+func TestNamespaceDescope(t *testing.T) {
+	descoped := Namespace{name: "foo"}.Descope("foo_bar")
+	assert.Check(t, is.Equal("bar", descoped))
+}
+
+func TestNamespaceName(t *testing.T) {
+	namespaceName := Namespace{name: "foo"}.Name()
+	assert.Check(t, is.Equal("foo", namespaceName))
 }
 
 func TestAddStackLabel(t *testing.T) {
@@ -67,7 +76,7 @@ func TestNetworks(t *testing.T) {
 			Name: "othername",
 		},
 	}
-	expected := map[string]types.NetworkCreate{
+	expected := map[string]network.CreateOptions{
 		"foo_default": {
 			Labels: map[string]string{
 				LabelNamespace: "foo",

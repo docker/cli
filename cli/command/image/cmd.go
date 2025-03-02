@@ -1,10 +1,9 @@
 package image
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/spf13/cobra"
 )
 
 // NewImageCommand returns a cobra command for `image` subcommands

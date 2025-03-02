@@ -1,7 +1,7 @@
 package image
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -15,11 +15,12 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 		{"image1"},
 		{"image1", "image2", "image3"},
 	}
-	expectedError := "\"tag\" requires exactly 2 arguments."
+	expectedError := "'tag' requires 2 arguments"
 	for _, args := range testCases {
 		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), expectedError)
 	}
 }
@@ -34,7 +35,7 @@ func TestCliNewTagCommand(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"image1", "image2"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	value, _ := cmd.Flags().GetBool("interspersed")
 	assert.Check(t, !value)

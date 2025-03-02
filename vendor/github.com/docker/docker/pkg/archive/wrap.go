@@ -1,4 +1,4 @@
-package archive // import "github.com/docker/docker/pkg/archive"
+package archive
 
 import (
 	"archive/tar"
@@ -17,8 +17,8 @@ import (
 // Generate("foo.txt", "hello world", "emptyfile")
 //
 // The above call will return an archive with 2 files:
-//  * ./foo.txt with content "hello world"
-//  * ./empty with empty content
+//   - ./foo.txt with content "hello world"
+//   - ./empty with empty content
 //
 // FIXME: stream content instead of buffering
 // FIXME: specify permissions and other archive metadata

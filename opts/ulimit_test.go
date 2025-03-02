@@ -3,12 +3,12 @@ package opts
 import (
 	"testing"
 
-	"github.com/docker/go-units"
+	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 )
 
 func TestUlimitOpt(t *testing.T) {
-	ulimitMap := map[string]*units.Ulimit{
+	ulimitMap := map[string]*container.Ulimit{
 		"nofile": {Name: "nofile", Hard: 1024, Soft: 512},
 	}
 
@@ -37,12 +37,12 @@ func TestUlimitOpt(t *testing.T) {
 }
 
 func TestUlimitOptSorting(t *testing.T) {
-	ulimitOpt := NewUlimitOpt(&map[string]*units.Ulimit{
+	ulimitOpt := NewUlimitOpt(&map[string]*container.Ulimit{
 		"nofile": {Name: "nofile", Hard: 1024, Soft: 512},
 		"core":   {Name: "core", Hard: 1024, Soft: 1024},
 	})
 
-	expected := []*units.Ulimit{
+	expected := []*container.Ulimit{
 		{Name: "core", Hard: 1024, Soft: 1024},
 		{Name: "nofile", Hard: 1024, Soft: 512},
 	}

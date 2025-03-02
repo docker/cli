@@ -70,7 +70,7 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	}
 
 	p := &mockProgress{}
-	updaterTester := updaterTester{
+	ut := updaterTester{
 		t: t,
 		updater: &replicatedProgressUpdater{
 			progressOut: p,
@@ -82,7 +82,7 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 
 	tasks := []swarm.Task{}
 
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
 			{ID: "1/1", Action: " "},
@@ -91,19 +91,20 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 
 	// Task with DesiredState beyond Running is ignored
 	tasks = append(tasks,
-		swarm.Task{ID: "1",
+		swarm.Task{
+			ID:           "1",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateShutdown,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateNew},
 		})
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
 		})
 
 	// Task with valid DesiredState and State updates progress bar
 	tasks[0].DesiredState = swarm.TaskStateRunning
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "1/1", Action: "new      ", Current: 1, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -112,7 +113,7 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// If the task exposes an error, we should show that instead of the
 	// progress bar.
 	tasks[0].Status.Err = "something is wrong"
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "1/1", Action: "something is wrong"},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -121,7 +122,7 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// When the task reaches running, update should return true
 	tasks[0].Status.Err = ""
 	tasks[0].Status.State = swarm.TaskStateRunning
-	updaterTester.testUpdater(tasks, true,
+	ut.testUpdater(tasks, true,
 		[]progress.Progress{
 			{ID: "1/1", Action: "running  ", Current: 9, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "1 out of 1 tasks"},
@@ -130,7 +131,7 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// If the task fails, update should return false again
 	tasks[0].Status.Err = "task failed"
 	tasks[0].Status.State = swarm.TaskStateFailed
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "1/1", Action: "task failed"},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -140,12 +141,13 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// replacement task, not the old task.
 	tasks[0].DesiredState = swarm.TaskStateShutdown
 	tasks = append(tasks,
-		swarm.Task{ID: "2",
+		swarm.Task{
+			ID:           "2",
 			NodeID:       "b",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateRunning},
 		})
-	updaterTester.testUpdater(tasks, true,
+	ut.testUpdater(tasks, true,
 		[]progress.Progress{
 			{ID: "1/1", Action: "running  ", Current: 9, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "1 out of 1 tasks"},
@@ -154,12 +156,13 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 	// Add a new task while the current one is still running, to simulate
 	// "start-then-stop" updates.
 	tasks = append(tasks,
-		swarm.Task{ID: "3",
+		swarm.Task{
+			ID:           "3",
 			NodeID:       "b",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStatePreparing},
 		})
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "1/1", Action: "preparing", Current: 6, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -180,7 +183,7 @@ func TestReplicatedProgressUpdaterManyReplicas(t *testing.T) {
 	}
 
 	p := &mockProgress{}
-	updaterTester := updaterTester{
+	ut := updaterTester{
 		t: t,
 		updater: &replicatedProgressUpdater{
 			progressOut: p,
@@ -193,7 +196,7 @@ func TestReplicatedProgressUpdaterManyReplicas(t *testing.T) {
 	tasks := []swarm.Task{}
 
 	// No per-task progress bars because there are too many replicas
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: fmt.Sprintf("0 out of %d tasks", replicas)},
 			{ID: "overall progress", Action: fmt.Sprintf("0 out of %d tasks", replicas)},
@@ -212,13 +215,13 @@ func TestReplicatedProgressUpdaterManyReplicas(t *testing.T) {
 		if i%2 == 1 {
 			tasks[i].NodeID = "b"
 		}
-		updaterTester.testUpdater(tasks, false,
+		ut.testUpdater(tasks, false,
 			[]progress.Progress{
 				{ID: "overall progress", Action: fmt.Sprintf("%d out of %d tasks", i, replicas)},
 			})
 
 		tasks[i].Status.State = swarm.TaskStateRunning
-		updaterTester.testUpdater(tasks, uint64(i) == replicas-1,
+		ut.testUpdater(tasks, uint64(i) == replicas-1,
 			[]progress.Progress{
 				{ID: "overall progress", Action: fmt.Sprintf("%d out of %d tasks", i+1, replicas)},
 			})
@@ -235,7 +238,7 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	}
 
 	p := &mockProgress{}
-	updaterTester := updaterTester{
+	ut := updaterTester{
 		t: t,
 		updater: &globalProgressUpdater{
 			progressOut: p,
@@ -247,19 +250,20 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 
 	tasks := []swarm.Task{}
 
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: "waiting for new tasks"},
 		})
 
 	// Task with DesiredState beyond Running is ignored
 	tasks = append(tasks,
-		swarm.Task{ID: "1",
+		swarm.Task{
+			ID:           "1",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateShutdown,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateNew},
 		})
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -267,7 +271,7 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 
 	// Task with valid DesiredState and State updates progress bar
 	tasks[0].DesiredState = swarm.TaskStateRunning
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "a", Action: "new      ", Current: 1, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -276,7 +280,7 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// If the task exposes an error, we should show that instead of the
 	// progress bar.
 	tasks[0].Status.Err = "something is wrong"
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "a", Action: "something is wrong"},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -285,7 +289,7 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// When the task reaches running, update should return true
 	tasks[0].Status.Err = ""
 	tasks[0].Status.State = swarm.TaskStateRunning
-	updaterTester.testUpdater(tasks, true,
+	ut.testUpdater(tasks, true,
 		[]progress.Progress{
 			{ID: "a", Action: "running  ", Current: 9, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "1 out of 1 tasks"},
@@ -294,7 +298,7 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// If the task fails, update should return false again
 	tasks[0].Status.Err = "task failed"
 	tasks[0].Status.State = swarm.TaskStateFailed
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "a", Action: "task failed"},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -304,12 +308,13 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// replacement task, not the old task.
 	tasks[0].DesiredState = swarm.TaskStateShutdown
 	tasks = append(tasks,
-		swarm.Task{ID: "2",
+		swarm.Task{
+			ID:           "2",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStateRunning},
 		})
-	updaterTester.testUpdater(tasks, true,
+	ut.testUpdater(tasks, true,
 		[]progress.Progress{
 			{ID: "a", Action: "running  ", Current: 9, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "1 out of 1 tasks"},
@@ -318,12 +323,13 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 	// Add a new task while the current one is still running, to simulate
 	// "start-then-stop" updates.
 	tasks = append(tasks,
-		swarm.Task{ID: "3",
+		swarm.Task{
+			ID:           "3",
 			NodeID:       "a",
 			DesiredState: swarm.TaskStateRunning,
 			Status:       swarm.TaskStatus{State: swarm.TaskStatePreparing},
 		})
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "a", Action: "preparing", Current: 6, Total: 9, HideCounts: true},
 			{ID: "overall progress", Action: "0 out of 1 tasks"},
@@ -342,7 +348,7 @@ func TestGlobalProgressUpdaterManyNodes(t *testing.T) {
 	}
 
 	p := &mockProgress{}
-	updaterTester := updaterTester{
+	ut := updaterTester{
 		t: t,
 		updater: &globalProgressUpdater{
 			progressOut: p,
@@ -353,12 +359,12 @@ func TestGlobalProgressUpdaterManyNodes(t *testing.T) {
 	}
 
 	for i := 0; i != nodes; i++ {
-		updaterTester.activeNodes[strconv.Itoa(i)] = struct{}{}
+		ut.activeNodes[strconv.Itoa(i)] = struct{}{}
 	}
 
 	tasks := []swarm.Task{}
 
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: "waiting for new tasks"},
 		})
@@ -373,7 +379,7 @@ func TestGlobalProgressUpdaterManyNodes(t *testing.T) {
 			})
 	}
 
-	updaterTester.testUpdater(tasks, false,
+	ut.testUpdater(tasks, false,
 		[]progress.Progress{
 			{ID: "overall progress", Action: fmt.Sprintf("0 out of %d tasks", nodes)},
 			{ID: "overall progress", Action: fmt.Sprintf("0 out of %d tasks", nodes)},
@@ -381,7 +387,7 @@ func TestGlobalProgressUpdaterManyNodes(t *testing.T) {
 
 	for i := 0; i != nodes; i++ {
 		tasks[i].Status.State = swarm.TaskStateRunning
-		updaterTester.testUpdater(tasks, i == nodes-1,
+		ut.testUpdater(tasks, i == nodes-1,
 			[]progress.Progress{
 				{ID: "overall progress", Action: fmt.Sprintf("%d out of %d tasks", i+1, nodes)},
 			})
@@ -868,7 +874,7 @@ func TestGlobalJobProgressUpdaterLarge(t *testing.T) {
 	tasks := []swarm.Task{}
 	for nodeID := range activeNodes {
 		tasks = append(tasks, swarm.Task{
-			ID:           fmt.Sprintf("task%s", nodeID),
+			ID:           "task" + nodeID,
 			NodeID:       nodeID,
 			DesiredState: swarm.TaskStateComplete,
 			Status: swarm.TaskStatus{

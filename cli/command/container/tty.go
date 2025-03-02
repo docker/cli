@@ -9,28 +9,28 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/moby/sys/signal"
 	"github.com/sirupsen/logrus"
 )
 
 // resizeTtyTo resizes tty to specific height and width
-func resizeTtyTo(ctx context.Context, client client.ContainerAPIClient, id string, height, width uint, isExec bool) error {
+func resizeTtyTo(ctx context.Context, apiClient client.ContainerAPIClient, id string, height, width uint, isExec bool) error {
 	if height == 0 && width == 0 {
 		return nil
 	}
 
-	options := types.ResizeOptions{
+	options := container.ResizeOptions{
 		Height: height,
 		Width:  width,
 	}
 
 	var err error
 	if isExec {
-		err = client.ContainerExecResize(ctx, id, options)
+		err = apiClient.ContainerExecResize(ctx, id, options)
 	} else {
-		err = client.ContainerResize(ctx, id, options)
+		err = apiClient.ContainerResize(ctx, id, options)
 	}
 
 	if err != nil {
@@ -45,7 +45,7 @@ func resizeTty(ctx context.Context, cli command.Cli, id string, isExec bool) err
 	return resizeTtyTo(ctx, cli.Client(), id, height, width, isExec)
 }
 
-// initTtySize is to init the tty's size to the same as the window, if there is an error, it will retry 5 times.
+// initTtySize is to init the tty's size to the same as the window, if there is an error, it will retry 10 times.
 func initTtySize(ctx context.Context, cli command.Cli, id string, isExec bool, resizeTtyFunc func(ctx context.Context, cli command.Cli, id string, isExec bool) error) {
 	rttyFunc := resizeTtyFunc
 	if rttyFunc == nil {
@@ -54,8 +54,8 @@ func initTtySize(ctx context.Context, cli command.Cli, id string, isExec bool, r
 	if err := rttyFunc(ctx, cli, id, isExec); err != nil {
 		go func() {
 			var err error
-			for retry := 0; retry < 5; retry++ {
-				time.Sleep(10 * time.Millisecond)
+			for retry := 0; retry < 10; retry++ {
+				time.Sleep(time.Duration(retry+1) * 10 * time.Millisecond)
 				if err = rttyFunc(ctx, cli, id, isExec); err == nil {
 					break
 				}

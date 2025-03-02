@@ -1,13 +1,17 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package secret
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -25,24 +29,26 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args
-			return runSecretInspect(dockerCli, opts)
+			return runSecretInspect(cmd.Context(), dockerCli, opts)
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
+	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	cmd.Flags().BoolVar(&opts.pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
 }
 
-func runSecretInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runSecretInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	if opts.pretty {
 		opts.format = "pretty"
 	}
 
-	getRef := func(id string) (interface{}, []byte, error) {
+	getRef := func(id string) (any, []byte, error) {
 		return client.SecretInspectWithRaw(ctx, id)
 	}
 	f := opts.format
@@ -50,7 +56,7 @@ func runSecretInspect(dockerCli command.Cli, opts inspectOptions) error {
 	// check if the user is trying to apply a template to the pretty format, which
 	// is not supported
 	if strings.HasPrefix(f, "pretty") && f != "pretty" {
-		return fmt.Errorf("Cannot supply extra formatting options to the pretty template")
+		return errors.New("cannot supply extra formatting options to the pretty template")
 	}
 
 	secretCtx := formatter.Context{

@@ -2,21 +2,20 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func waitFn(cid string) (<-chan container.ContainerWaitOKBody, <-chan error) {
-	resC := make(chan container.ContainerWaitOKBody)
+func waitFn(cid string) (<-chan container.WaitResponse, <-chan error) {
+	resC := make(chan container.WaitResponse)
 	errC := make(chan error, 1)
-	var res container.ContainerWaitOKBody
+	var res container.WaitResponse
 
 	go func() {
 		switch {
@@ -24,10 +23,10 @@ func waitFn(cid string) (<-chan container.ContainerWaitOKBody, <-chan error) {
 			res.StatusCode = 42
 			resC <- res
 		case strings.Contains(cid, "non-existent"):
-			err := errors.Errorf("No such container: %v", cid)
+			err := fmt.Errorf("no such container: %v", cid)
 			errC <- err
 		case strings.Contains(cid, "wait-error"):
-			res.Error = &container.ContainerWaitOKBodyError{Message: "removal failed"}
+			res.Error = &container.WaitExitError{Message: "removal failed"}
 			resC <- res
 		default:
 			// normal exit
@@ -39,7 +38,7 @@ func waitFn(cid string) (<-chan container.ContainerWaitOKBody, <-chan error) {
 }
 
 func TestWaitExitOrRemoved(t *testing.T) {
-	testcases := []struct {
+	tests := []struct {
 		cid      string
 		exitCode int
 	}{
@@ -61,10 +60,12 @@ func TestWaitExitOrRemoved(t *testing.T) {
 		},
 	}
 
-	client := test.NewFakeCli(&fakeClient{waitFunc: waitFn, Version: api.DefaultVersion})
-	for _, testcase := range testcases {
-		statusC := waitExitOrRemoved(context.Background(), client, testcase.cid, true)
-		exitCode := <-statusC
-		assert.Check(t, is.Equal(testcase.exitCode, exitCode))
+	client := &fakeClient{waitFunc: waitFn, Version: api.DefaultVersion}
+	for _, tc := range tests {
+		t.Run(tc.cid, func(t *testing.T) {
+			statusC := waitExitOrRemoved(context.Background(), client, tc.cid, true)
+			exitCode := <-statusC
+			assert.Check(t, is.Equal(tc.exitCode, exitCode))
+		})
 	}
 }

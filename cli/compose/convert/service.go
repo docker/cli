@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"sort"
 	"strings"
@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 )
 
@@ -26,27 +25,23 @@ const (
 
 // Services from compose-file types to engine API types
 func Services(
+	ctx context.Context,
 	namespace Namespace,
 	config *composetypes.Config,
-	client client.CommonAPIClient,
+	apiClient client.APIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
-
-	services := config.Services
-	volumes := config.Volumes
-	networks := config.Networks
-
-	for _, service := range services {
-		secrets, err := convertServiceSecrets(client, namespace, service.Secrets, config.Secrets)
+	for _, service := range config.Services {
+		secrets, err := convertServiceSecrets(ctx, apiClient, namespace, service.Secrets, config.Secrets)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
-		configs, err := convertServiceConfigObjs(client, namespace, service, config.Configs)
+		configs, err := convertServiceConfigObjs(ctx, apiClient, namespace, service, config.Configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
 
-		serviceSpec, err := Service(client.ClientVersion(), namespace, service, networks, volumes, secrets, configs)
+		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
@@ -134,7 +129,7 @@ func Service(
 				Hosts:           convertExtraHosts(service.ExtraHosts),
 				DNSConfig:       dnsConfig,
 				Healthcheck:     healthcheck,
-				Env:             sortStrings(convertEnvironment(service.Environment)),
+				Env:             convertEnvironment(service.Environment),
 				Labels:          AddStackLabel(namespace, service.Labels),
 				Dir:             service.WorkingDir,
 				User:            service.User,
@@ -153,6 +148,7 @@ func Service(
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         convertUlimits(service.Ulimits),
+				OomScoreAdj:     service.OomScoreAdj,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
@@ -180,7 +176,7 @@ func Service(
 	// ServiceSpec.Networks to TaskTemplate.Networks. So which field to use
 	// is conditional on daemon version.
 	if versions.LessThan(apiVersion, "1.29") {
-		serviceSpec.Networks = networks
+		serviceSpec.Networks = networks //nolint:staticcheck // ignore SA1019: field is deprecated.
 	} else {
 		serviceSpec.TaskTemplate.Networks = networks
 	}
@@ -198,11 +194,6 @@ func getPlacementPreference(preferences []composetypes.PlacementPreferences) []s
 		})
 	}
 	return result
-}
-
-func sortStrings(strs []string) []string {
-	sort.Strings(strs)
-	return strs
 }
 
 func convertServiceNetworks(
@@ -224,16 +215,19 @@ func convertServiceNetworks(
 			return nil, errors.Errorf("undefined network %q", networkName)
 		}
 		var aliases []string
+		var driverOpts map[string]string
 		if network != nil {
 			aliases = network.Aliases
+			driverOpts = network.DriverOpts
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.Name != "" {
 			target = networkConfig.Name
 		}
 		netAttachConfig := swarm.NetworkAttachmentConfig{
-			Target:  target,
-			Aliases: aliases,
+			Target:     target,
+			Aliases:    aliases,
+			DriverOpts: driverOpts,
 		}
 		// Only add default aliases to user defined networks. Other networks do
 		// not support aliases.
@@ -251,7 +245,8 @@ func convertServiceNetworks(
 
 // TODO: fix secrets API so that SecretAPIClient is not required here
 func convertServiceSecrets(
-	client client.SecretAPIClient,
+	ctx context.Context,
+	apiClient client.SecretAPIClient,
 	namespace Namespace,
 	secrets []composetypes.ServiceSecretConfig,
 	secretSpecs map[string]composetypes.SecretConfig,
@@ -278,7 +273,7 @@ func convertServiceSecrets(
 		})
 	}
 
-	secrs, err := servicecli.ParseSecrets(client, refs)
+	secrs, err := servicecli.ParseSecrets(ctx, apiClient, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -289,13 +284,14 @@ func convertServiceSecrets(
 
 // convertServiceConfigObjs takes an API client, a namespace, a ServiceConfig,
 // and a set of compose Config specs, and creates the swarm ConfigReferences
-// required by the serivce. Unlike convertServiceSecrets, this takes the whole
+// required by the service. Unlike convertServiceSecrets, this takes the whole
 // ServiceConfig, because some Configs may be needed as a result of other
 // fields (like CredentialSpecs).
 //
 // TODO: fix configs API so that ConfigsAPIClient is not required here
 func convertServiceConfigObjs(
-	client client.ConfigAPIClient,
+	ctx context.Context,
+	apiClient client.ConfigAPIClient,
 	namespace Namespace,
 	service composetypes.ServiceConfig,
 	configSpecs map[string]composetypes.ConfigObjConfig,
@@ -351,10 +347,9 @@ func convertServiceConfigObjs(
 			ConfigName: name,
 			Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
 		})
-
 	}
 
-	confs, err := servicecli.ParseConfigs(client, refs)
+	confs, err := servicecli.ParseConfigs(ctx, apiClient, refs)
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +401,7 @@ func convertFileObject(
 	}
 	mode := config.Mode
 	if mode == nil {
-		mode = uint32Ptr(0444)
+		mode = uint32Ptr(0o444)
 	}
 
 	return swarmReferenceObject{
@@ -427,11 +422,11 @@ func uint32Ptr(value uint32) *uint32 {
 // convertExtraHosts converts <host>:<ip> mappings to SwarmKit notation:
 // "IP-address hostname(s)". The original order of mappings is preserved.
 func convertExtraHosts(extraHosts composetypes.HostsList) []string {
-	hosts := []string{}
+	hosts := make([]string, 0, len(extraHosts))
 	for _, hostIP := range extraHosts {
-		if v := strings.SplitN(hostIP, ":", 2); len(v) == 2 {
+		if hostName, ipAddr, ok := strings.Cut(hostIP, ":"); ok {
 			// Convert to SwarmKit notation: IP-address hostname(s)
-			hosts = append(hosts, fmt.Sprintf("%s %s", v[1], v[0]))
+			hosts = append(hosts, ipAddr+" "+hostName)
 		}
 	}
 	return hosts
@@ -442,8 +437,8 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return nil, nil
 	}
 	var (
-		timeout, interval, startPeriod time.Duration
-		retries                        int
+		timeout, interval, startPeriod, startInterval time.Duration
+		retries                                       int
 	)
 	if healthcheck.Disable {
 		if len(healthcheck.Test) != 0 {
@@ -452,7 +447,6 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		return &container.HealthConfig{
 			Test: []string{"NONE"},
 		}, nil
-
 	}
 	if healthcheck.Timeout != nil {
 		timeout = time.Duration(*healthcheck.Timeout)
@@ -463,15 +457,19 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 	if healthcheck.StartPeriod != nil {
 		startPeriod = time.Duration(*healthcheck.StartPeriod)
 	}
+	if healthcheck.StartInterval != nil {
+		startInterval = time.Duration(*healthcheck.StartInterval)
+	}
 	if healthcheck.Retries != nil {
 		retries = int(*healthcheck.Retries)
 	}
 	return &container.HealthConfig{
-		Test:        healthcheck.Test,
-		Timeout:     timeout,
-		Interval:    interval,
-		Retries:     retries,
-		StartPeriod: startPeriod,
+		Test:          healthcheck.Test,
+		Timeout:       timeout,
+		Interval:      interval,
+		Retries:       retries,
+		StartPeriod:   startPeriod,
+		StartInterval: startInterval,
 	}, nil
 }
 
@@ -597,6 +595,8 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 	}
 }
 
+// convertEnvironment converts key/value mappings to a slice, and sorts
+// the results.
 func convertEnvironment(source map[string]*string) []string {
 	var output []string
 
@@ -605,10 +605,10 @@ func convertEnvironment(source map[string]*string) []string {
 		case nil:
 			output = append(output, name)
 		default:
-			output = append(output, fmt.Sprintf("%s=%s", name, *value))
+			output = append(output, name+"="+*value)
 		}
 	}
-
+	sort.Strings(output)
 	return output
 }
 
@@ -616,11 +616,21 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	serviceMode := swarm.ServiceMode{}
 
 	switch mode {
+	case "global-job":
+		if replicas != nil {
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
+		}
+		serviceMode.GlobalJob = &swarm.GlobalJob{}
 	case "global":
 		if replicas != nil {
-			return serviceMode, errors.Errorf("replicas can only be used with replicated mode")
+			return serviceMode, errors.Errorf("replicas can only be used with replicated or replicated-job mode")
 		}
 		serviceMode.Global = &swarm.GlobalService{}
+	case "replicated-job":
+		serviceMode.ReplicatedJob = &swarm.ReplicatedJob{
+			MaxConcurrent:    replicas,
+			TotalCompletions: replicas,
+		}
 	case "replicated", "":
 		serviceMode.Replicated = &swarm.ReplicatedService{Replicas: replicas}
 	default:
@@ -629,11 +639,11 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 	return serviceMode, nil
 }
 
-func convertDNSConfig(DNS []string, DNSSearch []string) *swarm.DNSConfig {
-	if DNS != nil || DNSSearch != nil {
+func convertDNSConfig(dns []string, dnsSearch []string) *swarm.DNSConfig {
+	if dns != nil || dnsSearch != nil {
 		return &swarm.DNSConfig{
-			Nameservers: DNS,
-			Search:      DNSSearch,
+			Nameservers: dns,
+			Search:      dnsSearch,
 		}
 	}
 	return nil
@@ -683,24 +693,24 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 	return &swarmCredSpec, nil
 }
 
-func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units.Ulimit {
-	newUlimits := make(map[string]*units.Ulimit)
+func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*container.Ulimit {
+	newUlimits := make(map[string]*container.Ulimit)
 	for name, u := range origUlimits {
 		if u.Single != 0 {
-			newUlimits[name] = &units.Ulimit{
+			newUlimits[name] = &container.Ulimit{
 				Name: name,
 				Soft: int64(u.Single),
 				Hard: int64(u.Single),
 			}
 		} else {
-			newUlimits[name] = &units.Ulimit{
+			newUlimits[name] = &container.Ulimit{
 				Name: name,
 				Soft: int64(u.Soft),
 				Hard: int64(u.Hard),
 			}
 		}
 	}
-	var ulimits []*units.Ulimit
+	ulimits := make([]*container.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		ulimits = append(ulimits, ulimit)
 	}

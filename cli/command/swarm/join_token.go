@@ -26,7 +26,11 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.role = args[0]
-			return runJoinToken(dockerCli, opts)
+			return runJoinToken(cmd.Context(), dockerCli, opts)
+		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "manager",
 		},
 	}
 
@@ -37,7 +41,7 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runJoinToken(dockerCli command.Cli, opts joinTokenOptions) error {
+func runJoinToken(ctx context.Context, dockerCLI command.Cli, opts joinTokenOptions) error {
 	worker := opts.role == "worker"
 	manager := opts.role == "manager"
 
@@ -45,73 +49,71 @@ func runJoinToken(dockerCli command.Cli, opts joinTokenOptions) error {
 		return errors.New("unknown role " + opts.role)
 	}
 
-	client := dockerCli.Client()
-	ctx := context.Background()
+	apiClient := dockerCLI.Client()
 
 	if opts.rotate {
-		flags := swarm.UpdateFlags{
-			RotateWorkerToken:  worker,
-			RotateManagerToken: manager,
-		}
-
-		sw, err := client.SwarmInspect(ctx)
+		sw, err := apiClient.SwarmInspect(ctx)
 		if err != nil {
 			return err
 		}
 
-		if err := client.SwarmUpdate(ctx, sw.Version, sw.Spec, flags); err != nil {
+		err = apiClient.SwarmUpdate(ctx, sw.Version, sw.Spec, swarm.UpdateFlags{
+			RotateWorkerToken:  worker,
+			RotateManagerToken: manager,
+		})
+		if err != nil {
 			return err
 		}
 
 		if !opts.quiet {
-			fmt.Fprintf(dockerCli.Out(), "Successfully rotated %s join token.\n\n", opts.role)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully rotated %s join token.\n\n", opts.role)
 		}
 	}
 
 	// second SwarmInspect in this function,
 	// this is necessary since SwarmUpdate after first changes the join tokens
-	sw, err := client.SwarmInspect(ctx)
+	sw, err := apiClient.SwarmInspect(ctx)
 	if err != nil {
 		return err
 	}
 
 	if opts.quiet && worker {
-		fmt.Fprintln(dockerCli.Out(), sw.JoinTokens.Worker)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), sw.JoinTokens.Worker)
 		return nil
 	}
 
 	if opts.quiet && manager {
-		fmt.Fprintln(dockerCli.Out(), sw.JoinTokens.Manager)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), sw.JoinTokens.Manager)
 		return nil
 	}
 
-	info, err := client.Info(ctx)
+	info, err := apiClient.Info(ctx)
 	if err != nil {
 		return err
 	}
 
-	return printJoinCommand(ctx, dockerCli, info.Swarm.NodeID, worker, manager)
+	return printJoinCommand(ctx, dockerCLI, info.Swarm.NodeID, worker, manager)
 }
 
-func printJoinCommand(ctx context.Context, dockerCli command.Cli, nodeID string, worker bool, manager bool) error {
-	client := dockerCli.Client()
+func printJoinCommand(ctx context.Context, dockerCLI command.Cli, nodeID string, worker bool, manager bool) error {
+	apiClient := dockerCLI.Client()
 
-	node, _, err := client.NodeInspectWithRaw(ctx, nodeID)
+	node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeID)
 	if err != nil {
 		return err
 	}
 
-	sw, err := client.SwarmInspect(ctx)
+	sw, err := apiClient.SwarmInspect(ctx)
 	if err != nil {
 		return err
 	}
 
 	if node.ManagerStatus != nil {
 		if worker {
-			fmt.Fprintf(dockerCli.Out(), "To add a worker to this swarm, run the following command:\n\n    docker swarm join --token %s %s\n\n", sw.JoinTokens.Worker, node.ManagerStatus.Addr)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "To add a worker to this swarm, run the following command:\n\n    docker swarm join --token %s %s\n\n", sw.JoinTokens.Worker, node.ManagerStatus.Addr)
 		}
 		if manager {
-			fmt.Fprintf(dockerCli.Out(), "To add a manager to this swarm, run the following command:\n\n    docker swarm join --token %s %s\n\n", sw.JoinTokens.Manager, node.ManagerStatus.Addr)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "To add a manager to this swarm, run the following command:\n\n    docker swarm join --token %s %s\n\n", sw.JoinTokens.Manager, node.ManagerStatus.Addr)
 		}
 	}
 

@@ -1,11 +1,8 @@
-package idtools // import "github.com/docker/docker/pkg/idtools"
+package idtools
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 )
 
 // IDMap contains a single entry for user namespace range remapping. An array
@@ -16,22 +13,6 @@ type IDMap struct {
 	HostID      int `json:"host_id"`
 	Size        int `json:"size"`
 }
-
-type subIDRange struct {
-	Start  int
-	Length int
-}
-
-type ranges []subIDRange
-
-func (e ranges) Len() int           { return len(e) }
-func (e ranges) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
-func (e ranges) Less(i, j int) bool { return e[i].Start < e[j].Start }
-
-const (
-	subuidFileName = "/etc/subuid"
-	subgidFileName = "/etc/subgid"
-)
 
 // MkdirAllAndChown creates a directory (include any along the path) and then modifies
 // ownership to the requested uid/gid.  If the directory already exists, this
@@ -108,131 +89,58 @@ type Identity struct {
 	SID string
 }
 
-// IdentityMapping contains a mappings of UIDs and GIDs
-type IdentityMapping struct {
-	uids []IDMap
-	gids []IDMap
+// Chown changes the numeric uid and gid of the named file to id.UID and id.GID.
+func (id Identity) Chown(name string) error {
+	return os.Chown(name, id.UID, id.GID)
 }
 
-// NewIDMappingsFromMaps creates a new mapping from two slices
-// Deprecated: this is a temporary shim while transitioning to IDMapping
-func NewIDMappingsFromMaps(uids []IDMap, gids []IDMap) *IdentityMapping {
-	return &IdentityMapping{uids: uids, gids: gids}
+// IdentityMapping contains a mappings of UIDs and GIDs.
+// The zero value represents an empty mapping.
+type IdentityMapping struct {
+	UIDMaps []IDMap `json:"UIDMaps"`
+	GIDMaps []IDMap `json:"GIDMaps"`
 }
 
 // RootPair returns a uid and gid pair for the root user. The error is ignored
 // because a root user always exists, and the defaults are correct when the uid
 // and gid maps are empty.
-func (i *IdentityMapping) RootPair() Identity {
-	uid, gid, _ := GetRootUIDGID(i.uids, i.gids)
+func (i IdentityMapping) RootPair() Identity {
+	uid, gid, _ := GetRootUIDGID(i.UIDMaps, i.GIDMaps)
 	return Identity{UID: uid, GID: gid}
 }
 
 // ToHost returns the host UID and GID for the container uid, gid.
 // Remapping is only performed if the ids aren't already the remapped root ids
-func (i *IdentityMapping) ToHost(pair Identity) (Identity, error) {
+func (i IdentityMapping) ToHost(pair Identity) (Identity, error) {
 	var err error
 	target := i.RootPair()
 
 	if pair.UID != target.UID {
-		target.UID, err = toHost(pair.UID, i.uids)
+		target.UID, err = toHost(pair.UID, i.UIDMaps)
 		if err != nil {
 			return target, err
 		}
 	}
 
 	if pair.GID != target.GID {
-		target.GID, err = toHost(pair.GID, i.gids)
+		target.GID, err = toHost(pair.GID, i.GIDMaps)
 	}
 	return target, err
 }
 
 // ToContainer returns the container UID and GID for the host uid and gid
-func (i *IdentityMapping) ToContainer(pair Identity) (int, int, error) {
-	uid, err := toContainer(pair.UID, i.uids)
+func (i IdentityMapping) ToContainer(pair Identity) (int, int, error) {
+	uid, err := toContainer(pair.UID, i.UIDMaps)
 	if err != nil {
 		return -1, -1, err
 	}
-	gid, err := toContainer(pair.GID, i.gids)
+	gid, err := toContainer(pair.GID, i.GIDMaps)
 	return uid, gid, err
 }
 
 // Empty returns true if there are no id mappings
-func (i *IdentityMapping) Empty() bool {
-	return len(i.uids) == 0 && len(i.gids) == 0
-}
-
-// UIDs return the UID mapping
-// TODO: remove this once everything has been refactored to use pairs
-func (i *IdentityMapping) UIDs() []IDMap {
-	return i.uids
-}
-
-// GIDs return the UID mapping
-// TODO: remove this once everything has been refactored to use pairs
-func (i *IdentityMapping) GIDs() []IDMap {
-	return i.gids
-}
-
-func createIDMap(subidRanges ranges) []IDMap {
-	idMap := []IDMap{}
-
-	containerID := 0
-	for _, idrange := range subidRanges {
-		idMap = append(idMap, IDMap{
-			ContainerID: containerID,
-			HostID:      idrange.Start,
-			Size:        idrange.Length,
-		})
-		containerID = containerID + idrange.Length
-	}
-	return idMap
-}
-
-func parseSubuid(username string) (ranges, error) {
-	return parseSubidFile(subuidFileName, username)
-}
-
-func parseSubgid(username string) (ranges, error) {
-	return parseSubidFile(subgidFileName, username)
-}
-
-// parseSubidFile will read the appropriate file (/etc/subuid or /etc/subgid)
-// and return all found ranges for a specified username. If the special value
-// "ALL" is supplied for username, then all ranges in the file will be returned
-func parseSubidFile(path, username string) (ranges, error) {
-	var rangeList ranges
-
-	subidFile, err := os.Open(path)
-	if err != nil {
-		return rangeList, err
-	}
-	defer subidFile.Close()
-
-	s := bufio.NewScanner(subidFile)
-	for s.Scan() {
-		text := strings.TrimSpace(s.Text())
-		if text == "" || strings.HasPrefix(text, "#") {
-			continue
-		}
-		parts := strings.Split(text, ":")
-		if len(parts) != 3 {
-			return rangeList, fmt.Errorf("Cannot parse subuid/gid information: Format not correct for %s file", path)
-		}
-		if parts[0] == username || username == "ALL" {
-			startid, err := strconv.Atoi(parts[1])
-			if err != nil {
-				return rangeList, fmt.Errorf("String to int conversion failed during subuid/gid parsing of %s: %v", path, err)
-			}
-			length, err := strconv.Atoi(parts[2])
-			if err != nil {
-				return rangeList, fmt.Errorf("String to int conversion failed during subuid/gid parsing of %s: %v", path, err)
-			}
-			rangeList = append(rangeList, subIDRange{startid, length})
-		}
-	}
-
-	return rangeList, s.Err()
+func (i IdentityMapping) Empty() bool {
+	return len(i.UIDMaps) == 0 && len(i.GIDMaps) == 0
 }
 
 // CurrentIdentity returns the identity of the current process

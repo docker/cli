@@ -56,14 +56,14 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (types.ServiceUpdateResponse, error) {
+		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 			receivedOptions = options
 			receivedService = service
-			return types.ServiceUpdateResponse{}, nil
+			return swarm.ServiceUpdateResponse{}, nil
 		},
 	})
 
-	var testcases = []struct {
+	testcases := []struct {
 		image                 string
 		expectedQueryRegistry bool
 		expectedImage         string
@@ -88,7 +88,6 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	ctx := context.Background()
 
 	for _, tc := range testcases {
-		tc := tc
 		t.Run(tc.image, func(t *testing.T) {
 			spec := map[string]swarm.ServiceSpec{
 				"myservice": {
@@ -99,7 +98,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 					},
 				},
 			}
-			err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
+			_, err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(receivedOptions.QueryRegistry, tc.expectedQueryRegistry))
 			assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, tc.expectedImage))

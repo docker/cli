@@ -2,7 +2,7 @@ package cli
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -18,10 +18,14 @@ func TestRequiresNoArgs(t *testing.T) {
 		{
 			args:          []string{"foo"},
 			validateFunc:  NoArgs,
-			expectedError: "accepts no arguments.",
+			expectedError: "accepts no arguments",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestRequiresMinArgs(t *testing.T) {
@@ -32,15 +36,19 @@ func TestRequiresMinArgs(t *testing.T) {
 		},
 		{
 			validateFunc:  RequiresMinArgs(1),
-			expectedError: "at least 1 argument.",
+			expectedError: "at least 1 argument",
 		},
 		{
 			args:          []string{"foo"},
 			validateFunc:  RequiresMinArgs(2),
-			expectedError: "at least 2 arguments.",
+			expectedError: "at least 2 arguments",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestRequiresMaxArgs(t *testing.T) {
@@ -52,15 +60,19 @@ func TestRequiresMaxArgs(t *testing.T) {
 		{
 			args:          []string{"foo", "bar"},
 			validateFunc:  RequiresMaxArgs(1),
-			expectedError: "at most 1 argument.",
+			expectedError: "at most 1 argument",
 		},
 		{
 			args:          []string{"foo", "bar", "baz"},
 			validateFunc:  RequiresMaxArgs(2),
-			expectedError: "at most 2 arguments.",
+			expectedError: "at most 2 arguments",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestRequiresRangeArgs(t *testing.T) {
@@ -76,19 +88,23 @@ func TestRequiresRangeArgs(t *testing.T) {
 		{
 			args:          []string{"foo", "bar"},
 			validateFunc:  RequiresRangeArgs(0, 1),
-			expectedError: "at most 1 argument.",
+			expectedError: "at most 1 argument",
 		},
 		{
 			args:          []string{"foo", "bar", "baz"},
 			validateFunc:  RequiresRangeArgs(0, 2),
-			expectedError: "at most 2 arguments.",
+			expectedError: "at most 2 arguments",
 		},
 		{
 			validateFunc:  RequiresRangeArgs(1, 2),
 			expectedError: "at least 1 ",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 func TestExactArgs(t *testing.T) {
@@ -99,31 +115,24 @@ func TestExactArgs(t *testing.T) {
 		},
 		{
 			validateFunc:  ExactArgs(1),
-			expectedError: "exactly 1 argument.",
+			expectedError: "1 argument",
 		},
 		{
 			validateFunc:  ExactArgs(2),
-			expectedError: "exactly 2 arguments.",
+			expectedError: "2 arguments",
 		},
 	}
-	runTestCases(t, testCases)
+	for _, tc := range testCases {
+		cmd := newDummyCommand(tc.validateFunc)
+		cmd.SetArgs(tc.args)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
 }
 
 type testCase struct {
 	args          []string
 	validateFunc  cobra.PositionalArgs
 	expectedError string
-}
-
-func runTestCases(t *testing.T, testCases []testCase) {
-	for _, tc := range testCases {
-		cmd := newDummyCommand(tc.validateFunc)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
-
-		err := cmd.Execute()
-		assert.ErrorContains(t, err, tc.expectedError)
-	}
 }
 
 func newDummyCommand(validationFunc cobra.PositionalArgs) *cobra.Command {
@@ -134,5 +143,7 @@ func newDummyCommand(validationFunc cobra.PositionalArgs) *cobra.Command {
 			return errors.New("no error")
 		},
 	}
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	return cmd
 }

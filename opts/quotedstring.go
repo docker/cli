@@ -13,7 +13,7 @@ func (s *QuotedString) Set(val string) error {
 }
 
 // Type returns the type of the value
-func (s *QuotedString) Type() string {
+func (*QuotedString) Type() string {
 	return "string"
 }
 
@@ -22,6 +22,9 @@ func (s *QuotedString) String() string {
 }
 
 func trimQuotes(value string) string {
+	if len(value) < 2 {
+		return value
+	}
 	lastIndex := len(value) - 1
 	for _, char := range []byte{'\'', '"'} {
 		if value[0] == char && value[lastIndex] == char {

@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,36 +11,24 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
-	"gotest.tools/v3/env"
-	"gotest.tools/v3/fs"
+	"gotest.tools/v3/skip"
 )
 
-var homeKey = "HOME"
-
-func init() {
-	if runtime.GOOS == "windows" {
-		homeKey = "USERPROFILE"
-	}
-}
-
-func setupConfigDir(t *testing.T) (string, func()) {
-	tmpdir, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
+func setupConfigDir(t *testing.T) string {
+	t.Helper()
+	tmpdir := t.TempDir()
 	oldDir := Dir()
 	SetDir(tmpdir)
-
-	return tmpdir, func() {
+	t.Cleanup(func() {
 		SetDir(oldDir)
-		os.RemoveAll(tmpdir)
-	}
+	})
+	return tmpdir
 }
 
 func TestEmptyConfigDir(t *testing.T) {
-	tmpHome, cleanup := setupConfigDir(t)
-	defer cleanup()
+	tmpHome := setupConfigDir(t)
 
 	config, err := Load("")
 	assert.NilError(t, err)
@@ -54,9 +41,7 @@ func TestEmptyConfigDir(t *testing.T) {
 }
 
 func TestMissingFile(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	config, err := Load(tmpHome)
 	assert.NilError(t, err)
@@ -65,13 +50,42 @@ func TestMissingFile(t *testing.T) {
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
 }
 
-func TestSaveFileToDirs(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
+// TestLoadDanglingSymlink verifies that we gracefully handle dangling symlinks.
+//
+// TODO(thaJeztah): consider whether we want dangling symlinks to be an error condition instead.
+func TestLoadDanglingSymlink(t *testing.T) {
+	cfgDir := t.TempDir()
+	cfgFile := filepath.Join(cfgDir, ConfigFileName)
+	err := os.Symlink(filepath.Join(cfgDir, "no-such-file"), cfgFile)
 	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
 
-	tmpHome += "/.docker"
+	config, err := Load(cfgDir)
+	assert.NilError(t, err)
 
+	// Now save it and make sure it shows up in new form
+	saveConfigAndValidateNewFormat(t, config, cfgDir)
+
+	// Make sure we kept the symlink.
+	fi, err := os.Lstat(cfgFile)
+	assert.NilError(t, err)
+	assert.Equal(t, fi.Mode()&os.ModeSymlink, os.ModeSymlink, "expected %v to be a symlink", cfgFile)
+}
+
+func TestLoadNoPermissions(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		skip.If(t, os.Getuid() == 0, "cannot test permission denied when running as root")
+	}
+	cfgDir := t.TempDir()
+	cfgFile := filepath.Join(cfgDir, ConfigFileName)
+	err := os.WriteFile(cfgFile, []byte(`{}`), os.FileMode(0o000))
+	assert.NilError(t, err)
+
+	_, err = Load(cfgDir)
+	assert.ErrorIs(t, err, os.ErrPermission)
+}
+
+func TestSaveFileToDirs(t *testing.T) {
+	tmpHome := filepath.Join(t.TempDir(), ".docker")
 	config, err := Load(tmpHome)
 	assert.NilError(t, err)
 
@@ -80,12 +94,10 @@ func TestSaveFileToDirs(t *testing.T) {
 }
 
 func TestEmptyFile(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
-	err = ioutil.WriteFile(fn, []byte(""), 0600)
+	err := os.WriteFile(fn, []byte(""), 0o600)
 	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
@@ -93,12 +105,10 @@ func TestEmptyFile(t *testing.T) {
 }
 
 func TestEmptyJSON(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
-	err = ioutil.WriteFile(fn, []byte("{}"), 0600)
+	err := os.WriteFile(fn, []byte("{}"), 0o600)
 	assert.NilError(t, err)
 
 	config, err := Load(tmpHome)
@@ -108,156 +118,23 @@ func TestEmptyJSON(t *testing.T) {
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
 }
 
-func TestOldInvalidsAuth(t *testing.T) {
-	invalids := map[string]string{
-		`username = test`: "The Auth config file is empty",
-		`username
-password`: "Invalid Auth config file",
-		`username = test
-email`: "Invalid auth configuration file",
-	}
+func TestMalformedJSON(t *testing.T) {
+	tmpHome := t.TempDir()
 
-	resetHomeDir()
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
-	defer env.Patch(t, homeKey, tmpHome)()
-
-	for content, expectedError := range invalids {
-		fn := filepath.Join(tmpHome, oldConfigfile)
-		err := ioutil.WriteFile(fn, []byte(content), 0600)
-		assert.NilError(t, err)
-
-		_, err = Load(tmpHome)
-		assert.ErrorContains(t, err, expectedError)
-	}
-}
-
-func TestOldValidAuth(t *testing.T) {
-	resetHomeDir()
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
-	defer env.Patch(t, homeKey, tmpHome)()
-
-	fn := filepath.Join(tmpHome, oldConfigfile)
-	js := `username = am9lam9lOmhlbGxv
-	email = user@example.com`
-	err = ioutil.WriteFile(fn, []byte(js), 0600)
+	fn := filepath.Join(tmpHome, ConfigFileName)
+	err := os.WriteFile(fn, []byte("{"), 0o600)
 	assert.NilError(t, err)
 
-	config, err := Load(tmpHome)
-	assert.NilError(t, err)
-
-	// defaultIndexserver is https://index.docker.io/v1/
-	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	assert.Equal(t, ac.Username, "joejoe")
-	assert.Equal(t, ac.Password, "hello")
-
-	// Now save it and make sure it shows up in new form
-	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
-
-	expConfStr := `{
-	"auths": {
-		"https://index.docker.io/v1/": {
-			"auth": "am9lam9lOmhlbGxv"
-		}
-	}
-}`
-
-	assert.Check(t, is.Equal(expConfStr, configStr))
-}
-
-func TestOldJSONInvalid(t *testing.T) {
-	resetHomeDir()
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
-	defer env.Patch(t, homeKey, tmpHome)()
-
-	fn := filepath.Join(tmpHome, oldConfigfile)
-	js := `{"https://index.docker.io/v1/":{"auth":"test","email":"user@example.com"}}`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	config, err := Load(tmpHome)
-	// Use Contains instead of == since the file name will change each time
-	if err == nil || !strings.Contains(err.Error(), "Invalid auth configuration file") {
-		t.Fatalf("Expected an error got : %v, %v", config, err)
-	}
-}
-
-func TestOldJSON(t *testing.T) {
-	resetHomeDir()
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
-	defer env.Patch(t, homeKey, tmpHome)()
-
-	fn := filepath.Join(tmpHome, oldConfigfile)
-	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	config, err := Load(tmpHome)
-	assert.NilError(t, err)
-
-	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	assert.Equal(t, ac.Username, "joejoe")
-	assert.Equal(t, ac.Password, "hello")
-
-	// Now save it and make sure it shows up in new form
-	configStr := saveConfigAndValidateNewFormat(t, config, tmpHome)
-
-	expConfStr := `{
-	"auths": {
-		"https://index.docker.io/v1/": {
-			"auth": "am9lam9lOmhlbGxv",
-			"email": "user@example.com"
-		}
-	}
-}`
-
-	if configStr != expConfStr {
-		t.Fatalf("Should have save in new form: \n'%s'\n not \n'%s'\n", configStr, expConfStr)
-	}
-}
-
-func TestOldJSONFallbackDeprecationWarning(t *testing.T) {
-	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
-	tmpHome := fs.NewDir(t, t.Name(), fs.WithFile(oldConfigfile, js))
-	defer tmpHome.Remove()
-	defer env.PatchAll(t, map[string]string{homeKey: tmpHome.Path(), "DOCKER_CONFIG": ""})()
-
-	// reset the homeDir, configDir, and its sync.Once, to force them being resolved again
-	resetHomeDir()
-	resetConfigDir()
-
-	buffer := new(bytes.Buffer)
-	configFile := LoadDefaultConfigFile(buffer)
-	expected := configfile.New(tmpHome.Join(configFileDir, ConfigFileName))
-	expected.AuthConfigs = map[string]types.AuthConfig{
-		"https://index.docker.io/v1/": {
-			Username:      "joejoe",
-			Password:      "hello",
-			Email:         "user@example.com",
-			ServerAddress: "https://index.docker.io/v1/",
-		},
-	}
-	assert.Assert(t, strings.Contains(buffer.String(), "WARNING: Support for the legacy ~/.dockercfg configuration file and file-format is deprecated and will be removed in an upcoming release"))
-	assert.Check(t, is.DeepEqual(expected, configFile))
+	_, err = Load(tmpHome)
+	assert.Check(t, is.ErrorContains(err, fmt.Sprintf(`parsing config file (%s):`, fn)))
 }
 
 func TestNewJSON(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv" } } }`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -285,13 +162,11 @@ func TestNewJSON(t *testing.T) {
 }
 
 func TestNewJSONNoEmail(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv" } } }`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -319,16 +194,14 @@ func TestNewJSONNoEmail(t *testing.T) {
 }
 
 func TestJSONWithPsFormat(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := `{
 		"auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } },
 		"psFormat": "table {{.ID}}\\t{{.Label \"com.docker.label.cpu\"}}"
 }`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -348,16 +221,14 @@ func TestJSONWithPsFormat(t *testing.T) {
 }
 
 func TestJSONWithCredentialStore(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := `{
 		"auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } },
 		"credsStore": "crazy-secure-storage"
 }`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -377,16 +248,14 @@ func TestJSONWithCredentialStore(t *testing.T) {
 }
 
 func TestJSONWithCredentialHelpers(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	js := `{
 		"auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } },
 		"credHelpers": { "images.io": "images-io", "containers.com": "crazy-secure-storage" }
 }`
-	if err := ioutil.WriteFile(fn, []byte(js), 0600); err != nil {
+	if err := os.WriteFile(fn, []byte(js), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -416,16 +285,14 @@ func saveConfigAndValidateNewFormat(t *testing.T, config *configfile.ConfigFile,
 	t.Helper()
 	assert.NilError(t, config.Save())
 
-	buf, err := ioutil.ReadFile(filepath.Join(configDir, ConfigFileName))
+	buf, err := os.ReadFile(filepath.Join(configDir, ConfigFileName))
 	assert.NilError(t, err)
 	assert.Check(t, is.Contains(string(buf), `"auths":`))
 	return string(buf)
 }
 
 func TestConfigDir(t *testing.T) {
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	if Dir() == tmpHome {
 		t.Fatalf("Expected ConfigDir to be different than %s by default, but was the same", tmpHome)
@@ -443,17 +310,6 @@ func TestJSONReaderNoFile(t *testing.T) {
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } } }`
 
 	config, err := LoadFromReader(strings.NewReader(js))
-	assert.NilError(t, err)
-
-	ac := config.AuthConfigs["https://index.docker.io/v1/"]
-	assert.Equal(t, ac.Username, "joejoe")
-	assert.Equal(t, ac.Password, "hello")
-}
-
-func TestOldJSONReaderNoFile(t *testing.T) {
-	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
-
-	config, err := LegacyLoadFromReader(strings.NewReader(js))
 	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
@@ -484,16 +340,14 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 	err = config.Save()
 	assert.ErrorContains(t, err, "with empty filename")
 
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
+	tmpHome := t.TempDir()
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
-	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	defer f.Close()
 
 	assert.NilError(t, config.SaveToWriter(f))
-	buf, err := ioutil.ReadFile(filepath.Join(tmpHome, ConfigFileName))
+	buf, err := os.ReadFile(filepath.Join(tmpHome, ConfigFileName))
 	assert.NilError(t, err)
 	expConfStr := `{
 	"auths": {
@@ -508,56 +362,40 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 	}
 }
 
-func TestLegacyJSONSaveWithNoFile(t *testing.T) {
-	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
-	config, err := LegacyLoadFromReader(strings.NewReader(js))
-	assert.NilError(t, err)
-	err = config.Save()
-	assert.ErrorContains(t, err, "with empty filename")
-
-	tmpHome, err := ioutil.TempDir("", "config-test")
-	assert.NilError(t, err)
-	defer os.RemoveAll(tmpHome)
-
-	fn := filepath.Join(tmpHome, ConfigFileName)
-	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	defer f.Close()
-
-	assert.NilError(t, config.SaveToWriter(f))
-	buf, err := ioutil.ReadFile(filepath.Join(tmpHome, ConfigFileName))
-	assert.NilError(t, err)
-
-	expConfStr := `{
-	"auths": {
-		"https://index.docker.io/v1/": {
-			"auth": "am9lam9lOmhlbGxv",
-			"email": "user@example.com"
-		}
-	}
-}`
-
-	if string(buf) != expConfStr {
-		t.Fatalf("Should have save in new form: \n%s\n not \n%s", string(buf), expConfStr)
-	}
-}
-
 func TestLoadDefaultConfigFile(t *testing.T) {
-	dir, cleanup := setupConfigDir(t)
-	defer cleanup()
+	dir := setupConfigDir(t)
 	buffer := new(bytes.Buffer)
 
 	filename := filepath.Join(dir, ConfigFileName)
 	content := []byte(`{"PsFormat": "format"}`)
-	err := ioutil.WriteFile(filename, content, 0644)
+	err := os.WriteFile(filename, content, 0o644)
 	assert.NilError(t, err)
 
-	configFile := LoadDefaultConfigFile(buffer)
-	credStore := credentials.DetectDefaultStore("")
-	expected := configfile.New(filename)
-	expected.CredentialsStore = credStore
-	expected.PsFormat = "format"
+	t.Run("success", func(t *testing.T) {
+		configFile := LoadDefaultConfigFile(buffer)
+		credStore := credentials.DetectDefaultStore("")
+		expected := configfile.New(filename)
+		expected.CredentialsStore = credStore
+		expected.PsFormat = "format"
 
-	assert.Check(t, is.DeepEqual(expected, configFile))
+		assert.Check(t, is.DeepEqual(expected, configFile))
+		assert.Check(t, is.Equal(buffer.String(), ""))
+	})
+
+	t.Run("permission error", func(t *testing.T) {
+		if runtime.GOOS != "windows" {
+			skip.If(t, os.Getuid() == 0, "cannot test permission denied when running as root")
+		}
+		err = os.Chmod(filename, 0o000)
+		assert.NilError(t, err)
+
+		buffer.Reset()
+		_ = LoadDefaultConfigFile(buffer)
+		warnings := buffer.String()
+
+		assert.Check(t, is.Contains(warnings, "WARNING:"))
+		assert.Check(t, is.Contains(warnings, os.ErrPermission.Error()))
+	})
 }
 
 func TestConfigPath(t *testing.T) {
@@ -595,7 +433,6 @@ func TestConfigPath(t *testing.T) {
 			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			SetDir(tc.dir)
 			f, err := Path(tc.path...)
@@ -609,4 +446,13 @@ func TestConfigPath(t *testing.T) {
 	}
 
 	SetDir(oldDir)
+}
+
+// TestSetDir verifies that Dir() does not overwrite the value set through
+// SetDir() if it has not been run before.
+func TestSetDir(t *testing.T) {
+	const expected = "my_config_dir"
+	resetConfigDir()
+	SetDir(expected)
+	assert.Check(t, is.Equal(Dir(), expected))
 }

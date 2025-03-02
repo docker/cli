@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package interpolation
 
 import (
@@ -25,10 +28,10 @@ type Options struct {
 type LookupValue func(key string) (string, bool)
 
 // Cast a value to a new type, or return an error if the value can't be cast
-type Cast func(value string) (interface{}, error)
+type Cast func(value string) (any, error)
 
 // Interpolate replaces variables in a string with the values from a mapping
-func Interpolate(config map[string]interface{}, opts Options) (map[string]interface{}, error) {
+func Interpolate(config map[string]any, opts Options) (map[string]any, error) {
 	if opts.LookupValue == nil {
 		opts.LookupValue = os.LookupEnv
 	}
@@ -39,7 +42,7 @@ func Interpolate(config map[string]interface{}, opts Options) (map[string]interf
 		opts.Substitute = template.Substitute
 	}
 
-	out := map[string]interface{}{}
+	out := map[string]any{}
 
 	for key, value := range config {
 		interpolatedValue, err := recursiveInterpolate(value, NewPath(key), opts)
@@ -52,7 +55,7 @@ func Interpolate(config map[string]interface{}, opts Options) (map[string]interf
 	return out, nil
 }
 
-func recursiveInterpolate(value interface{}, path Path, opts Options) (interface{}, error) {
+func recursiveInterpolate(value any, path Path, opts Options) (any, error) {
 	switch value := value.(type) {
 	case string:
 		newValue, err := opts.Substitute(value, template.Mapping(opts.LookupValue))
@@ -64,10 +67,13 @@ func recursiveInterpolate(value interface{}, path Path, opts Options) (interface
 			return newValue, nil
 		}
 		casted, err := caster(newValue)
-		return casted, newPathError(path, errors.Wrap(err, "failed to cast to expected type"))
+		if err != nil {
+			return casted, newPathError(path, errors.Wrap(err, "failed to cast to expected type"))
+		}
+		return casted, nil
 
-	case map[string]interface{}:
-		out := map[string]interface{}{}
+	case map[string]any:
+		out := map[string]any{}
 		for key, elem := range value {
 			interpolatedElem, err := recursiveInterpolate(elem, path.Next(key), opts)
 			if err != nil {
@@ -77,8 +83,8 @@ func recursiveInterpolate(value interface{}, path Path, opts Options) (interface
 		}
 		return out, nil
 
-	case []interface{}:
-		out := make([]interface{}, len(value))
+	case []any:
+		out := make([]any, len(value))
 		for i, elem := range value {
 			interpolatedElem, err := recursiveInterpolate(elem, path.Next(PathMatchList), opts)
 			if err != nil {
@@ -99,7 +105,7 @@ func newPathError(path Path, err error) error {
 		return nil
 	case *template.InvalidTemplateError:
 		return errors.Errorf(
-			"invalid interpolation format for %s: %#v. You may need to escape any $ with another $.",
+			"invalid interpolation format for %s: %#v; you may need to escape any $ with another $",
 			path, err.Template)
 	default:
 		return errors.Wrapf(err, "error while interpolating %s", path)

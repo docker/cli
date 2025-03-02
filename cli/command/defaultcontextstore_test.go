@@ -1,18 +1,20 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package command
 
 import (
 	"crypto/rand"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/tlsconfig"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/env"
+	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -24,14 +26,14 @@ type testContext struct {
 	Bar string `json:"another_very_recognizable_field_name"`
 }
 
-var testCfg = store.NewConfig(func() interface{} { return &testContext{} },
-	store.EndpointTypeGetter("ep1", func() interface{} { return &endpoint{} }),
-	store.EndpointTypeGetter("ep2", func() interface{} { return &endpoint{} }),
+var testCfg = store.NewConfig(func() any { return &testContext{} },
+	store.EndpointTypeGetter("ep1", func() any { return &endpoint{} }),
+	store.EndpointTypeGetter("ep2", func() any { return &endpoint{} }),
 )
 
 func testDefaultMetadata() store.Metadata {
 	return store.Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: testContext{Bar: "baz"},
@@ -39,11 +41,10 @@ func testDefaultMetadata() store.Metadata {
 	}
 }
 
-func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (store.Store, func()) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	s := &ContextStoreWithDefault{
-		Store: store.New(testDir, testCfg),
+func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) store.Store {
+	t.Helper()
+	return &ContextStoreWithDefault{
+		Store: store.New(t.TempDir(), testCfg),
 		Resolver: func() (*DefaultContext, error) {
 			return &DefaultContext{
 				Meta: meta,
@@ -51,27 +52,21 @@ func testStore(t *testing.T, meta store.Metadata, tls store.ContextTLSData) (sto
 			}, nil
 		},
 	}
-	return s, func() {
-		_ = os.RemoveAll(testDir)
-	}
 }
 
 func TestDefaultContextInitializer(t *testing.T) {
 	cli, err := NewDockerCli()
 	assert.NilError(t, err)
-	defer env.Patch(t, "DOCKER_HOST", "ssh://someswarmserver")()
-	cli.configFile = &configfile.ConfigFile{
-		StackOrchestrator: "swarm",
-	}
-	ctx, err := ResolveDefaultContext(&cliflags.CommonOptions{
+	t.Setenv("DOCKER_HOST", "ssh://someswarmserver")
+	cli.configFile = &configfile.ConfigFile{}
+	ctx, err := ResolveDefaultContext(&cliflags.ClientOptions{
 		TLS: true,
 		TLSOptions: &tlsconfig.Options{
 			CAFile: "./testdata/ca.pem",
 		},
-	}, cli.ConfigFile(), DefaultContextStoreConfig(), cli.Err())
+	}, DefaultContextStoreConfig())
 	assert.NilError(t, err)
 	assert.Equal(t, "default", ctx.Meta.Name)
-	assert.Equal(t, OrchestratorSwarm, ctx.Meta.Metadata.(DockerContext).StackOrchestrator)
 	assert.DeepEqual(t, "ssh://someswarmserver", ctx.Meta.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta).Host)
 	golden.Assert(t, string(ctx.TLS.Endpoints[docker.DockerEndpoint].Files["ca.pem"]), "ca.pem")
 }
@@ -81,7 +76,7 @@ func TestExportDefaultImport(t *testing.T) {
 	rand.Read(file1)
 	file2 := make([]byte, 3700)
 	rand.Read(file2)
-	s, cleanup := testStore(t, testDefaultMetadata(), store.ContextTLSData{
+	s := testStore(t, testDefaultMetadata(), store.ContextTLSData{
 		Endpoints: map[string]store.EndpointTLSData{
 			"ep2": {
 				Files: map[string][]byte{
@@ -91,7 +86,6 @@ func TestExportDefaultImport(t *testing.T) {
 			},
 		},
 	})
-	defer cleanup()
 	r := store.Export("default", s)
 	defer r.Close()
 	err := store.Import("dest", s, r)
@@ -130,8 +124,7 @@ func TestExportDefaultImport(t *testing.T) {
 
 func TestListDefaultContext(t *testing.T) {
 	meta := testDefaultMetadata()
-	s, cleanup := testStore(t, meta, store.ContextTLSData{})
-	defer cleanup()
+	s := testStore(t, meta, store.ContextTLSData{})
 	result, err := s.List()
 	assert.NilError(t, err)
 	assert.Equal(t, 1, len(result))
@@ -139,8 +132,7 @@ func TestListDefaultContext(t *testing.T) {
 }
 
 func TestGetDefaultContextStorageInfo(t *testing.T) {
-	s, cleanup := testStore(t, testDefaultMetadata(), store.ContextTLSData{})
-	defer cleanup()
+	s := testStore(t, testDefaultMetadata(), store.ContextTLSData{})
 	result := s.GetStorageInfo(DefaultContextName)
 	assert.Equal(t, "<IN MEMORY>", result.MetadataPath)
 	assert.Equal(t, "<IN MEMORY>", result.TLSPath)
@@ -148,8 +140,7 @@ func TestGetDefaultContextStorageInfo(t *testing.T) {
 
 func TestGetDefaultContextMetadata(t *testing.T) {
 	meta := testDefaultMetadata()
-	s, cleanup := testStore(t, meta, store.ContextTLSData{})
-	defer cleanup()
+	s := testStore(t, meta, store.ContextTLSData{})
 	result, err := s.GetMetadata(DefaultContextName)
 	assert.NilError(t, err)
 	assert.Equal(t, DefaultContextName, result.Name)
@@ -159,30 +150,29 @@ func TestGetDefaultContextMetadata(t *testing.T) {
 
 func TestErrCreateDefault(t *testing.T) {
 	meta := testDefaultMetadata()
-	s, cleanup := testStore(t, meta, store.ContextTLSData{})
-	defer cleanup()
+	s := testStore(t, meta, store.ContextTLSData{})
 	err := s.CreateOrUpdate(store.Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: testContext{Bar: "baz"},
 		Name:     "default",
 	})
+	assert.Check(t, is.ErrorType(err, errdefs.IsInvalidParameter))
 	assert.Error(t, err, "default context cannot be created nor updated")
 }
 
 func TestErrRemoveDefault(t *testing.T) {
 	meta := testDefaultMetadata()
-	s, cleanup := testStore(t, meta, store.ContextTLSData{})
-	defer cleanup()
+	s := testStore(t, meta, store.ContextTLSData{})
 	err := s.Remove("default")
+	assert.Check(t, is.ErrorType(err, errdefs.IsInvalidParameter))
 	assert.Error(t, err, "default context cannot be removed")
 }
 
 func TestErrTLSDataError(t *testing.T) {
 	meta := testDefaultMetadata()
-	s, cleanup := testStore(t, meta, store.ContextTLSData{})
-	defer cleanup()
+	s := testStore(t, meta, store.ContextTLSData{})
 	_, err := s.GetTLSData("default", "noop", "noop")
-	assert.Check(t, store.IsErrTLSDataDoesNotExist(err))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }

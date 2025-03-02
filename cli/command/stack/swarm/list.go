@@ -3,17 +3,17 @@ package swarm
 import (
 	"context"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )
 
 // GetStacks lists the swarm stacks.
-func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
-	services, err := dockerCli.Client().ServiceList(
-		context.Background(),
+func GetStacks(ctx context.Context, apiClient client.ServiceAPIClient) ([]*formatter.Stack, error) {
+	services, err := apiClient.ServiceList(
+		ctx,
 		types.ServiceListOptions{Filters: getAllStacksFilter()})
 	if err != nil {
 		return nil, err
@@ -29,15 +29,14 @@ func GetStacks(dockerCli command.Cli) ([]*formatter.Stack, error) {
 		ztack, ok := m[name]
 		if !ok {
 			m[name] = &formatter.Stack{
-				Name:         name,
-				Services:     1,
-				Orchestrator: "Swarm",
+				Name:     name,
+				Services: 1,
 			}
 		} else {
 			ztack.Services++
 		}
 	}
-	var stacks []*formatter.Stack
+	stacks := make([]*formatter.Stack, 0, len(m))
 	for _, stack := range m {
 		stacks = append(stacks, stack)
 	}

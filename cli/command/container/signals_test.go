@@ -6,8 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/pkg/signal"
+	"github.com/moby/sys/signal"
 )
 
 func TestForwardSignals(t *testing.T) {
@@ -15,16 +14,15 @@ func TestForwardSignals(t *testing.T) {
 	defer cancel()
 
 	called := make(chan struct{})
-	client := &fakeClient{containerKillFunc: func(ctx context.Context, container, signal string) error {
+	apiClient := &fakeClient{containerKillFunc: func(ctx context.Context, container, signal string) error {
 		close(called)
 		return nil
 	}}
 
-	cli := test.NewFakeCli(client)
 	sigc := make(chan os.Signal)
 	defer close(sigc)
 
-	go ForwardAllSignals(ctx, cli, t.Name(), sigc)
+	go ForwardAllSignals(ctx, apiClient, t.Name(), sigc)
 
 	timer := time.NewTimer(30 * time.Second)
 	defer timer.Stop()
@@ -44,5 +42,4 @@ func TestForwardSignals(t *testing.T) {
 	case <-timer.C:
 		t.Fatal("timeout waiting for signal to be processed")
 	}
-
 }

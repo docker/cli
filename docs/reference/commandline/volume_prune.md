@@ -1,32 +1,30 @@
----
-title: "volume prune"
-description: "Remove unused local volumes"
-keywords: "volume, prune, delete"
----
-
 # volume prune
 
-```markdown
-Usage:  docker volume prune [OPTIONS]
+<!---MARKER_GEN_START-->
+Remove unused local volumes
 
-Remove all unused local volumes
+### Options
 
-Options:
-      --filter filter   Provide filter values (e.g. 'label=<label>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+| Name                          | Type     | Default | Description                                        |
+|:------------------------------|:---------|:--------|:---------------------------------------------------|
+| [`-a`](#all), [`--all`](#all) | `bool`   |         | Remove all unused volumes, not just anonymous ones |
+| [`--filter`](#filter)         | `filter` |         | Provide filter values (e.g. `label=<label>`)       |
+| `-f`, `--force`               | `bool`   |         | Do not prompt for confirmation                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
-Remove all unused local volumes. Unused local volumes are those which are not referenced by any containers
+Remove all unused local volumes. Unused local volumes are those which are not
+referenced by any containers. By default, it only removes anonymous volumes.
 
 ## Examples
 
-```bash
+```console
 $ docker volume prune
 
-WARNING! This will remove all local volumes not used by at least one container.
+WARNING! This will remove anonymous local volumes not used by at least one container.
 Are you sure you want to continue? [y/N] y
 Deleted Volumes:
 07c7bdf3e34ab76d921894c2b834f073721fccfbbcba792aa7648e3a7a664c2e
@@ -35,7 +33,11 @@ my-named-vol
 Total reclaimed space: 36 B
 ```
 
-## Filtering
+### <a name="all"></a> Filtering (--all, -a)
+
+Use the `--all` flag to prune both unused anonymous and named volumes.
+
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -48,7 +50,6 @@ The `label` filter accepts two formats. One is the `label=...` (`label=<key>` or
 which removes volumes with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
 volumes without the specified labels.
-
 
 ## Related commands
 

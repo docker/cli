@@ -1,31 +1,28 @@
----
-title: "volume rm"
-description: "the volume rm command description and usage"
-keywords: "volume, rm"
----
-
 # volume rm
 
-```markdown
-Usage:  docker volume rm [OPTIONS] VOLUME [VOLUME...]
+<!---MARKER_GEN_START-->
+Remove one or more volumes. You cannot remove a volume that is in use by a container.
 
-Remove one or more volumes
+### Aliases
 
-Aliases:
-  rm, remove
+`docker volume rm`, `docker volume remove`
 
-Options:
-  -f, --force  Force the removal of one or more volumes
-      --help   Print usage
-```
+### Options
+
+| Name            | Type   | Default | Description                              |
+|:----------------|:-------|:--------|:-----------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the removal of one or more volumes |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
-Remove one or more volumes. You cannot remove a volume that is in use by a container.
+Remove one or more volumes. You can't remove a volume that's in use by a container.
 
 ## Examples
 
-```bash
+```console
 $ docker volume rm hello
 
 hello

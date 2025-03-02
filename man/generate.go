@@ -1,8 +1,12 @@
+// This file is intended for use with "go run"; it isn't really part of the package.
+
+//go:build manpages
+// +build manpages
+
 package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -19,6 +23,8 @@ import (
 const descriptionSourcePath = "man/src/"
 
 func generateManPages(opts *options) error {
+	log.SetFlags(0)
+
 	header := &doc.GenManHeader{
 		Title:   "DOCKER",
 		Section: "1",
@@ -74,7 +80,8 @@ func loadLongDescription(cmd *cobra.Command, path string) error {
 			continue
 		}
 
-		content, err := ioutil.ReadFile(fullpath)
+		log.Printf("INFO: %s found\n", fullpath)
+		content, err := os.ReadFile(fullpath)
 		if err != nil {
 			return err
 		}
@@ -85,7 +92,7 @@ func loadLongDescription(cmd *cobra.Command, path string) error {
 			continue
 		}
 
-		content, err = ioutil.ReadFile(fullpath)
+		content, err = os.ReadFile(fullpath)
 		if err != nil {
 			return err
 		}

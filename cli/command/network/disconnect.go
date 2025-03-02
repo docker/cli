@@ -5,6 +5,9 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +27,14 @@ func newDisconnectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.network = args[0]
 			opts.container = args[1]
-			return runDisconnect(dockerCli, opts)
+			return runDisconnect(cmd.Context(), dockerCli.Client(), opts)
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			if len(args) == 0 {
+				return completion.NetworkNames(dockerCli)(cmd, args, toComplete)
+			}
+			network := args[0]
+			return completion.ContainerNames(dockerCli, true, isConnected(network))(cmd, args, toComplete)
 		},
 	}
 
@@ -34,8 +44,23 @@ func newDisconnectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runDisconnect(dockerCli command.Cli, opts disconnectOptions) error {
-	client := dockerCli.Client()
+func runDisconnect(ctx context.Context, apiClient client.NetworkAPIClient, opts disconnectOptions) error {
+	return apiClient.NetworkDisconnect(ctx, opts.network, opts.container, opts.force)
+}
 
-	return client.NetworkDisconnect(context.Background(), opts.network, opts.container, opts.force)
+func isConnected(network string) func(container.Summary) bool {
+	return func(ctr container.Summary) bool {
+		if ctr.NetworkSettings == nil {
+			return false
+		}
+		_, ok := ctr.NetworkSettings.Networks[network]
+		return ok
+	}
+}
+
+func not(fn func(container.Summary) bool) func(container.Summary) bool {
+	return func(ctr container.Summary) bool {
+		ok := fn(ctr)
+		return !ok
+	}
 }

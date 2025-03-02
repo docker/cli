@@ -1,7 +1,14 @@
-.circleci
-.dockerignore
-.github
-.gitignore
-appveyor.yml
-build
-/vndr.log
+/build/
+/cli/winresources/versioninfo.json
+/cli/winresources/*.syso
+/man/man*/
+/man/vendor/
+/man/go.sum
+/docs/yaml/
+/docs/vendor/
+/docs/go.sum
+profile.out
+
+# top-level go.mod is not meant to be checked in
+/go.mod
+/go.sum

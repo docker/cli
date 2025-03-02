@@ -2,12 +2,12 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -25,29 +25,30 @@ func NewWaitCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runWait(dockerCli, &opts)
+			return runWait(cmd.Context(), dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container wait, docker wait",
+		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	return cmd
 }
 
-func runWait(dockerCli command.Cli, opts *waitOptions) error {
-	ctx := context.Background()
+func runWait(ctx context.Context, dockerCLI command.Cli, opts *waitOptions) error {
+	apiClient := dockerCLI.Client()
 
-	var errs []string
-	for _, container := range opts.containers {
-		resultC, errC := dockerCli.Client().ContainerWait(ctx, container, "")
+	var errs []error
+	for _, ctr := range opts.containers {
+		resultC, errC := apiClient.ContainerWait(ctx, ctr, "")
 
 		select {
 		case result := <-resultC:
-			fmt.Fprintf(dockerCli.Out(), "%d\n", result.StatusCode)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "%d\n", result.StatusCode)
 		case err := <-errC:
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 		}
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

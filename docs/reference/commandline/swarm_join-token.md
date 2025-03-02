@@ -1,21 +1,17 @@
----
-title: "swarm join-token"
-description: "The swarm join-token command description and usage"
-keywords: "swarm, join-token"
----
-
 # swarm join-token
 
-```markdown
-Usage:  docker swarm join-token [OPTIONS] (worker|manager)
-
+<!---MARKER_GEN_START-->
 Manage join tokens
 
-Options:
-      --help     Print usage
-  -q, --quiet    Only display token
-      --rotate   Rotate join token
-```
+### Options
+
+| Name                                | Type   | Default | Description        |
+|:------------------------------------|:-------|:--------|:-------------------|
+| [`-q`](#quiet), [`--quiet`](#quiet) | `bool` |         | Only display token |
+| [`--rotate`](#rotate)               | `bool` |         | Rotate join token  |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -25,8 +21,7 @@ role. You pass the token using the `--token` flag when you run
 [swarm join](swarm_join.md). Nodes use the join token only when they join the
 swarm.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -40,7 +35,7 @@ As a convenience, you can pass `worker` or `manager` as an argument to
 `join-token` to print the full `docker swarm join` command to join a new node to
 the swarm:
 
-```bash
+```console
 $ docker swarm join-token worker
 
 To add a worker to this swarm, run the following command:
@@ -60,7 +55,7 @@ To add a manager to this swarm, run the following command:
 
 Use the `--rotate` flag to generate a new join token for the specified role:
 
-```bash
+```console
 $ docker swarm join-token --rotate worker
 
 Successfully rotated worker join token.
@@ -76,13 +71,13 @@ After using `--rotate`, only the new token will be valid for joining with the sp
 
 The `-q` (or `--quiet`) flag only prints the token:
 
-```bash
+```console
 $ docker swarm join-token -q worker
 
 SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-b30ljddcqhef9b9v4rs7mel7t
 ```
 
-### `--rotate`
+### <a name="rotate"></a> `--rotate`
 
 Because tokens allow new nodes to join the swarm, you should keep them secret.
 Be particularly careful with manager tokens since they allow new manager nodes
@@ -101,7 +96,7 @@ Rotating a join-token means that no new nodes will be able to join the swarm
 using the old token. Rotation does not affect existing nodes in the swarm
 because the join token is only used for authorizing new nodes joining the swarm.
 
-### `--quiet`
+### <a name="quiet"></a> `--quiet`
 
 Only print the token. Do not print a complete command for joining.
 

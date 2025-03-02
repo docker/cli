@@ -2,12 +2,11 @@ package secret
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ type removeOptions struct {
 	names []string
 }
 
-func newSecretRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newSecretRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:     "rm SECRET [SECRET...]",
 		Aliases: []string{"remove"},
@@ -25,29 +24,24 @@ func newSecretRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			opts := removeOptions{
 				names: args,
 			}
-			return runSecretRemove(dockerCli, opts)
+			return runRemove(cmd.Context(), dockerCLI, opts)
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCLI)(cmd, args, toComplete)
 		},
 	}
 }
 
-func runSecretRemove(dockerCli command.Cli, opts removeOptions) error {
-	client := dockerCli.Client()
-	ctx := context.Background()
+func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions) error {
+	apiClient := dockerCLI.Client()
 
-	var errs []string
-
+	var errs []error
 	for _, name := range opts.names {
-		if err := client.SecretRemove(ctx, name); err != nil {
-			errs = append(errs, err.Error())
+		if err := apiClient.SecretRemove(ctx, name); err != nil {
+			errs = append(errs, err)
 			continue
 		}
-
-		fmt.Fprintln(dockerCli.Out(), name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-
-	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
-	}
-
-	return nil
+	return errors.Join(errs...)
 }

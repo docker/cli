@@ -8,6 +8,11 @@ const (
 	// which must be supported by every plugin and returns the
 	// plugin metadata.
 	MetadataSubcommandName = "docker-cli-plugin-metadata"
+
+	// HookSubcommandName is the name of the plugin subcommand
+	// which must be implemented by plugins declaring support
+	// for hooks in their metadata.
+	HookSubcommandName = "docker-cli-plugin-hooks"
 )
 
 // Metadata provided by the plugin.
@@ -22,7 +27,4 @@ type Metadata struct {
 	ShortDescription string `json:",omitempty"`
 	// URL is a pointer to the plugin's homepage.
 	URL string `json:",omitempty"`
-	// Experimental specifies whether the plugin is experimental.
-	// Deprecated: experimental features are now always enabled in the CLI
-	Experimental bool `json:",omitempty"`
 }

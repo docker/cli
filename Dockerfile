@@ -1,24 +1,26 @@
-#syntax=docker/dockerfile:1.2
+# syntax=docker/dockerfile:1
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.13.15
+ARG ALPINE_VERSION=3.21
+ARG BASE_DEBIAN_DISTRO=bookworm
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS gostable
-FROM --platform=$BUILDPLATFORM golang:1.16-${BASE_VARIANT} AS golatest	
+ARG GO_VERSION=1.23.6
+ARG XX_VERSION=1.6.1
+ARG GOVERSIONINFO_VERSION=v1.4.1
+ARG GOTESTSUM_VERSION=v1.12.0
 
-FROM gostable AS go-linux	
-FROM golatest AS go-darwin
-FROM golatest AS go-windows-amd64
-FROM golatest AS go-windows-386
-FROM golatest AS go-windows-arm
-FROM --platform=$BUILDPLATFORM tonistiigi/golang:497feff1-${BASE_VARIANT} AS go-windows-arm64
-FROM go-windows-${TARGETARCH} AS go-windows
+# BUILDX_VERSION sets the version of buildx to use for the e2e tests.
+# It must be a tag in the docker.io/docker/buildx-bin image repository
+# on Docker Hub.
+ARG BUILDX_VERSION=0.20.1
+ARG COMPOSE_VERSION=v2.32.4
 
-FROM --platform=$BUILDPLATFORM tonistiigi/xx@sha256:620d36a9d7f1e3b102a5c7e8eff12081ac363828b3a44390f24fa8da2d49383d AS xx
+FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
-FROM go-${TARGETOS} AS build-base-alpine
-COPY --from=xx / /
-RUN apk add --no-cache clang lld llvm file git
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build-base-alpine
+ENV GOTOOLCHAIN=local
+COPY --link --from=xx / /
+RUN apk add --no-cache bash clang lld llvm file git
 WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-alpine AS build-alpine
@@ -26,14 +28,28 @@ ARG TARGETPLATFORM
 # gcc is installed for libgcc only
 RUN xx-apk add --no-cache musl-dev gcc
 
-FROM go-${TARGETOS} AS build-base-buster
-COPY --from=xx / /
-RUN apt-get update && apt-get install --no-install-recommends -y clang lld file
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_DEBIAN_DISTRO} AS build-base-debian
+ENV GOTOOLCHAIN=local
+COPY --link --from=xx / /
+RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld llvm file
 WORKDIR /go/src/github.com/docker/cli
 
-FROM build-base-buster AS build-buster
+FROM build-base-debian AS build-debian
 ARG TARGETPLATFORM
-RUN xx-apt install --no-install-recommends -y libc6-dev libgcc-8-dev
+RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-12-dev pkgconf
+
+FROM build-base-${BASE_VARIANT} AS goversioninfo
+ARG GOVERSIONINFO_VERSION
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/out GO111MODULE=on CGO_ENABLED=0 go install "github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}"
+
+FROM build-base-${BASE_VARIANT} AS gotestsum
+ARG GOTESTSUM_VERSION
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/out GO111MODULE=on CGO_ENABLED=0 go install "gotest.tools/gotestsum@${GOTESTSUM_VERSION}" \
+    && /out/gotestsum --version
 
 FROM build-${BASE_VARIANT} AS build
 # GO_LINKMODE defines if static or dynamic binary should be produced
@@ -46,16 +62,77 @@ ARG GO_STRIP
 ARG CGO_ENABLED
 # VERSION sets the version for the produced binary
 ARG VERSION
-RUN --mount=ro --mount=type=cache,target=/root/.cache \
-    --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
+# PACKAGER_NAME sets the company that produced the windows binary
+ARG PACKAGER_NAME
+COPY --link --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
+RUN --mount=type=bind,target=.,ro \
+    --mount=type=cache,target=/root/.cache \
     --mount=type=tmpfs,target=cli/winresources \
+    # override the default behavior of go with xx-go
     xx-go --wrap && \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \
     TARGET=/out ./scripts/build/binary && \
     xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
 
-FROM build-base-${BASE_VARIANT} AS dev 
-COPY . .
+FROM build-${BASE_VARIANT} AS test
+COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+ENV GO111MODULE=auto
+RUN --mount=type=bind,target=.,rw \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/go/pkg/mod \
+    gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
+
+FROM scratch AS test-coverage
+COPY --from=test /tmp/coverage.txt /coverage.txt
+
+FROM build-${BASE_VARIANT} AS build-plugins
+ARG GO_LINKMODE=static
+ARG GO_BUILDTAGS
+ARG GO_STRIP
+ARG CGO_ENABLED
+ARG VERSION
+RUN --mount=ro --mount=type=cache,target=/root/.cache \
+    xx-go --wrap && \
+    TARGET=/out ./scripts/build/plugins e2e/cli-plugins/plugins/*
+
+FROM build-base-alpine AS e2e-base-alpine
+RUN apk add --no-cache build-base curl openssl openssh-client
+
+FROM build-base-debian AS e2e-base-debian
+RUN apt-get update && apt-get install -y build-essential curl openssl openssh-client
+
+FROM docker/buildx-bin:${BUILDX_VERSION}   AS buildx
+FROM docker/compose-bin:${COMPOSE_VERSION} AS compose
+
+FROM e2e-base-${BASE_VARIANT} AS e2e
+ARG NOTARY_VERSION=v0.6.1
+ADD --chmod=0755 https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 /usr/local/bin/notary
+COPY --link e2e/testdata/notary/root-ca.cert /usr/share/ca-certificates/notary.cert
+RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
+COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+COPY --link --from=build /out ./build/
+COPY --link --from=build-plugins /out ./build/
+COPY --link --from=buildx  /buildx         /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docker-compose
+COPY --link . .
+ENV DOCKER_BUILDKIT=1
+ENV PATH=/go/src/github.com/docker/cli/build:$PATH
+CMD ./scripts/test/e2e/entry
+
+FROM build-base-${BASE_VARIANT} AS dev
+COPY --link . .
+
+FROM scratch AS plugins
+COPY --from=build-plugins /out .
+
+FROM scratch AS bin-image-linux
+COPY --from=build /out/docker /docker
+FROM scratch AS bin-image-darwin
+COPY --from=build /out/docker /docker
+FROM scratch AS bin-image-windows
+COPY --from=build /out/docker /docker.exe
+
+FROM bin-image-${TARGETOS} AS bin-image
 
 FROM scratch AS binary
 COPY --from=build /out .

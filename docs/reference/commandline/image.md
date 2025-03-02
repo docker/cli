@@ -1,37 +1,28 @@
-
----
-title: "image"
-description: "The image command description and usage"
-keywords: "image"
----
-
 # image
 
-```markdown
-Usage:  docker image COMMAND
-
+<!---MARKER_GEN_START-->
 Manage images
 
-Options:
-      --help   Print usage
+### Subcommands
 
-Commands:
-  build       Build an image from a Dockerfile
-  history     Show the history of an image
-  import      Import the contents from a tarball to create a filesystem image
-  inspect     Display detailed information on one or more images
-  load        Load an image from a tar archive or STDIN
-  ls          List images
-  prune       Remove unused images
-  pull        Pull an image or a repository from a registry
-  push        Push an image or a repository to a registry
-  rm          Remove one or more images
-  save        Save one or more images to a tar archive (streamed to STDOUT by default)
-  tag         Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
+| Name                          | Description                                                              |
+|:------------------------------|:-------------------------------------------------------------------------|
+| [`build`](image_build.md)     | Build an image from a Dockerfile                                         |
+| [`history`](image_history.md) | Show the history of an image                                             |
+| [`import`](image_import.md)   | Import the contents from a tarball to create a filesystem image          |
+| [`inspect`](image_inspect.md) | Display detailed information on one or more images                       |
+| [`load`](image_load.md)       | Load an image from a tar archive or STDIN                                |
+| [`ls`](image_ls.md)           | List images                                                              |
+| [`prune`](image_prune.md)     | Remove unused images                                                     |
+| [`pull`](image_pull.md)       | Download an image from a registry                                        |
+| [`push`](image_push.md)       | Upload an image to a registry                                            |
+| [`rm`](image_rm.md)           | Remove one or more images                                                |
+| [`save`](image_save.md)       | Save one or more images to a tar archive (streamed to STDOUT by default) |
+| [`tag`](image_tag.md)         | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                    |
 
-Run 'docker image COMMAND --help' for more information on a command.
 
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

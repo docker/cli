@@ -1,46 +1,64 @@
-# syntax=docker/dockerfile:1.1.7-experimental
-ARG GO_VERSION=1.13.15
+# syntax=docker/dockerfile:1
 
-FROM golang:${GO_VERSION}-alpine AS golang
-ENV  CGO_ENABLED=0
+ARG GO_VERSION=1.23.6
+ARG ALPINE_VERSION=3.21
 
-FROM golang AS esc
-ARG ESC_VERSION=v0.2.0
+# BUILDX_VERSION sets the version of buildx to install in the dev container.
+# It must be a valid tag in the docker.io/docker/buildx-bin image repository
+# on Docker Hub.
+ARG BUILDX_VERSION=0.20.1
+FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
+
+FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS golang
+ENV GOTOOLCHAIN=local
+ENV CGO_ENABLED=0
+
+FROM golang AS gofumpt
+ARG GOFUMPT_VERSION=v0.7.0
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
-    GO111MODULE=on go get github.com/mjibson/esc@${ESC_VERSION}
+    GO111MODULE=on go install "mvdan.cc/gofumpt@${GOFUMPT_VERSION}" \
+    && gofumpt --version
 
 FROM golang AS gotestsum
-ARG GOTESTSUM_VERSION=v0.4.0
+ARG GOTESTSUM_VERSION=v1.12.0
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
-    GO111MODULE=on go get gotest.tools/gotestsum@${GOTESTSUM_VERSION}
+    GO111MODULE=on go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
 
-FROM golang AS vndr
-ARG VNDR_VERSION=v0.1.2
+FROM golang AS goversioninfo
+ARG GOVERSIONINFO_VERSION=v1.4.1
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
-    GO111MODULE=on go get github.com/LK4D4/vndr@${VNDR_VERSION}
+    GO111MODULE=on go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}
 
 FROM golang AS dev
 RUN  apk add --no-cache \
     bash \
+    bash-completion \
     build-base \
     ca-certificates \
     coreutils \
     curl \
-    git
+    git \
+    jq \
+    nano
 
-CMD bash
+RUN echo -e "\nYou are now in a development container. Run '\e\033[1mmake help\e\033[0m' to learn about\navailable make targets.\n" > /etc/motd \
+ && echo -e "cat /etc/motd\nPS1=\"\e[0;32m\u@docker-cli-dev\\$ \e[0m\"" >> /root/.bashrc \
+ && echo -e "source /etc/bash/bash_completion.sh" >> /root/.bashrc
+CMD ["/bin/bash"]
 ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENV PATH=$PATH:/go/src/github.com/docker/cli/build
 
-COPY --from=esc       /go/bin/* /go/bin/
-COPY --from=vndr      /go/bin/* /go/bin/
-COPY --from=gotestsum /go/bin/* /go/bin/
+COPY --link --from=buildx          /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link --from=gofumpt         /go/bin/* /go/bin/
+COPY --link --from=gotestsum       /go/bin/* /go/bin/
+COPY --link --from=goversioninfo   /go/bin/* /go/bin/
 
 WORKDIR /go/src/github.com/docker/cli
-COPY . .
+ENV GO111MODULE=auto
+COPY --link . .

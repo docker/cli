@@ -10,4 +10,4 @@ located at `https://registry-1.docker.io/` by default.
     # docker logout localhost:8080
 
 # See also
-**docker-login(1)** to log in to a Docker registry server.
+**docker-login(1)** to log in to a registry.

@@ -1,27 +1,20 @@
----
-title: "config"
-description: "The config command description and usage"
-keywords: "config"
----
-
 # config
 
-```markdown
-Usage:  docker config COMMAND
+<!---MARKER_GEN_START-->
+Manage Swarm configs
 
-Manage Docker configs
+### Subcommands
 
-Options:
-      --help   Print usage
+| Name                           | Description                                         |
+|:-------------------------------|:----------------------------------------------------|
+| [`create`](config_create.md)   | Create a config from a file or STDIN                |
+| [`inspect`](config_inspect.md) | Display detailed information on one or more configs |
+| [`ls`](config_ls.md)           | List configs                                        |
+| [`rm`](config_rm.md)           | Remove one or more configs                          |
 
-Commands:
-  create      Create a config from a file or STDIN
-  inspect     Display detailed information on one or more configs
-  ls          List configs
-  rm          Remove one or more configs
 
-Run 'docker config COMMAND --help' for more information on a command.
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 

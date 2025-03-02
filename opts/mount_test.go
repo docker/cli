@@ -2,6 +2,7 @@ package opts
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -26,6 +27,39 @@ func TestMountOptString(t *testing.T) {
 	}
 	expected := "bind /home/path /target, volume foo /target/foo"
 	assert.Check(t, is.Equal(expected, mount.String()))
+}
+
+func TestMountRelative(t *testing.T) {
+	for _, testcase := range []struct {
+		name string
+		path string
+		bind string
+	}{
+		{
+			name: "Current path",
+			path: ".",
+			bind: "type=bind,source=.,target=/target",
+		}, {
+			name: "Current path with slash",
+			path: "./",
+			bind: "type=bind,source=./,target=/target",
+		},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			var mount MountOpt
+			assert.NilError(t, mount.Set(testcase.bind))
+
+			mounts := mount.Value()
+			assert.Assert(t, is.Len(mounts, 1))
+			abs, err := filepath.Abs(testcase.path)
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual(mounttypes.Mount{
+				Type:   mounttypes.TypeBind,
+				Source: abs,
+				Target: "/target",
+			}, mounts[0]))
+		})
+	}
 }
 
 func TestMountOptSetBindNoErrorBind(t *testing.T) {
@@ -154,6 +188,27 @@ func TestMountOptTypeConflict(t *testing.T) {
 	assert.ErrorContains(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
 }
 
+func TestMountOptSetImageNoError(t *testing.T) {
+	for _, testcase := range []string{
+		"type=image,source=foo,target=/target,image-subpath=/bar",
+	} {
+		var mount MountOpt
+
+		assert.NilError(t, mount.Set(testcase))
+
+		mounts := mount.Value()
+		assert.Assert(t, is.Len(mounts, 1))
+		assert.Check(t, is.DeepEqual(mounttypes.Mount{
+			Type:   mounttypes.TypeImage,
+			Source: "foo",
+			Target: "/target",
+			ImageOptions: &mounttypes.ImageOptions{
+				Subpath: "/bar",
+			},
+		}, mounts[0]))
+	}
+}
+
 func TestMountOptSetTmpfsNoError(t *testing.T) {
 	for _, testcase := range []string{
 		// tests several aliases that should have same result.
@@ -171,7 +226,7 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 			Target: "/target",
 			TmpfsOptions: &mounttypes.TmpfsOptions{
 				SizeBytes: 1024 * 1024, // not 1000 * 1000
-				Mode:      os.FileMode(0700),
+				Mode:      os.FileMode(0o700),
 			},
 		}, mounts[0]))
 	}
@@ -182,4 +237,87 @@ func TestMountOptSetTmpfsError(t *testing.T) {
 	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-size=foo"), "invalid value for tmpfs-size")
 	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
 	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
+}
+
+func TestMountOptSetBindNonRecursive(t *testing.T) {
+	var mount MountOpt
+	assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-nonrecursive"))
+	assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+		{
+			Type:   mounttypes.TypeBind,
+			Source: "/foo",
+			Target: "/bar",
+			BindOptions: &mounttypes.BindOptions{
+				NonRecursive: true,
+			},
+		},
+	}, mount.Value()))
+}
+
+func TestMountOptSetBindRecursive(t *testing.T) {
+	t.Run("enabled", func(t *testing.T) {
+		var mount MountOpt
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=enabled"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:   mounttypes.TypeBind,
+				Source: "/foo",
+				Target: "/bar",
+			},
+		}, mount.Value()))
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		var mount MountOpt
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=disabled"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:   mounttypes.TypeBind,
+				Source: "/foo",
+				Target: "/bar",
+				BindOptions: &mounttypes.BindOptions{
+					NonRecursive: true,
+				},
+			},
+		}, mount.Value()))
+	})
+
+	t.Run("writable", func(t *testing.T) {
+		var mount MountOpt
+		assert.Error(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=writable"),
+			"option 'bind-recursive=writable' requires 'readonly' to be specified in conjunction")
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=writable,readonly"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:     mounttypes.TypeBind,
+				Source:   "/foo",
+				Target:   "/bar",
+				ReadOnly: true,
+				BindOptions: &mounttypes.BindOptions{
+					ReadOnlyNonRecursive: true,
+				},
+			},
+		}, mount.Value()))
+	})
+
+	t.Run("readonly", func(t *testing.T) {
+		var mount MountOpt
+		assert.Error(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=readonly"),
+			"option 'bind-recursive=readonly' requires 'readonly' to be specified in conjunction")
+		assert.Error(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=readonly,readonly"),
+			"option 'bind-recursive=readonly' requires 'bind-propagation=rprivate' to be specified in conjunction")
+		assert.NilError(t, mount.Set("type=bind,source=/foo,target=/bar,bind-recursive=readonly,readonly,bind-propagation=rprivate"))
+		assert.Check(t, is.DeepEqual([]mounttypes.Mount{
+			{
+				Type:     mounttypes.TypeBind,
+				Source:   "/foo",
+				Target:   "/bar",
+				ReadOnly: true,
+				BindOptions: &mounttypes.BindOptions{
+					ReadOnlyForceRecursive: true,
+					Propagation:            mounttypes.PropagationRPrivate,
+				},
+			},
+		}, mount.Value()))
+	})
 }

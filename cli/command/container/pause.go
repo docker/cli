@@ -2,12 +2,13 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/container"
 	"github.com/spf13/cobra"
 )
 
@@ -25,25 +26,28 @@ func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runPause(dockerCli, &opts)
+			return runPause(cmd.Context(), dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container pause, docker pause",
+		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
+			return ctr.State != "paused"
+		}),
 	}
 }
 
-func runPause(dockerCli command.Cli, opts *pauseOptions) error {
-	ctx := context.Background()
+func runPause(ctx context.Context, dockerCLI command.Cli, opts *pauseOptions) error {
+	apiClient := dockerCLI.Client()
+	errChan := parallelOperation(ctx, opts.containers, apiClient.ContainerPause)
 
-	var errs []string
-	errChan := parallelOperation(ctx, opts.containers, dockerCli.Client().ContainerPause)
-	for _, container := range opts.containers {
+	var errs []error
+	for _, ctr := range opts.containers {
 		if err := <-errChan; err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), container)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), ctr)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

@@ -1,0 +1,3 @@
+NAME              DESCRIPTION                               DOCKER ENDPOINT               ERROR
+default           Current DOCKER_HOST based configuration   unix:///var/run/docker.sock   
+nosuchcontext *                                                                           context "nosuchcontext": context not found: …

@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package plugin
 
 import (
@@ -55,17 +58,14 @@ func TestPluginContextWrite(t *testing.T) {
 		context  formatter.Context
 		expected string
 	}{
-
 		// Errors
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table format
 		{
@@ -131,7 +131,6 @@ foobar_bar
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -151,7 +150,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 		{ID: "pluginID1", Name: "foobar_baz"},
 		{ID: "pluginID2", Name: "foobar_bar"},
 	}
-	expectedJSONs := []map[string]interface{}{
+	expectedJSONs := []map[string]any{
 		{"Description": "", "Enabled": false, "ID": "pluginID1", "Name": "foobar_baz", "PluginReference": ""},
 		{"Description": "", "Enabled": false, "ID": "pluginID2", "Name": "foobar_bar", "PluginReference": ""},
 	}
@@ -162,7 +161,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
-		var m map[string]interface{}
+		var m map[string]any
 		if err := json.Unmarshal([]byte(line), &m); err != nil {
 			t.Fatal(err)
 		}

@@ -1,20 +1,16 @@
----
-title: "signer add"
-description: "The signer add command description and usage"
-keywords: "signer, notary, trust"
----
-
 # trust signer add
 
-```markdown
-Usage:  docker trust signer add [OPTIONS] NAME REPOSITORY [REPOSITORY...]
-
+<!---MARKER_GEN_START-->
 Add a signer
 
-Options:
-      --help       Print usage
-  -k, --key list   Path to the signer's public key file
-```
+### Options
+
+| Name    | Type   | Default | Description                          |
+|:--------|:-------|:--------|:-------------------------------------|
+| `--key` | `list` |         | Path to the signer's public key file |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -22,11 +18,11 @@ Options:
 
 ## Examples
 
-### Add a signer to a repo
+### Add a signer to a repository
 
 To add a new signer, `alice`, to this repository:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -44,7 +40,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 Add `alice` with `docker trust signer add`:
 
-```bash
+```console
 $ docker trust signer add alice example/trust-demo --key alice.crt
   Adding signer "alice" to example/trust-demo...
   Enter passphrase for repository key with ID 642692c:
@@ -53,7 +49,7 @@ Successfully added signer: alice to example/trust-demo
 
 `docker trust inspect --pretty` now lists `alice` as a valid signer:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -70,17 +66,17 @@ Repository Key: 642692c14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-## Initialize a new repo and add a signer
+## Initialize a new repository and add a signer
 
-When adding a signer on a repo for the first time, `docker trust signer add` sets up a new repo if it doesn't exist.
+When adding a signer on a repository for the first time, `docker trust signer add` sets up a new repository if it doesn't exist.
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
-No signatures or cannot access example/trust-demo
+no signatures or cannot access example/trust-demo
 ```
 
-```bash
+```console
 $ docker trust signer add alice example/trust-demo --key alice.crt
 
 Initializing signed repository for example/trust-demo...
@@ -93,7 +89,7 @@ Adding signer "alice" to example/trust-demo...
 Successfully added signer: alice to example/trust-demo
 ```
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -111,9 +107,11 @@ Repository Key: 95b9e5565eac3ef5ec01406801bdfb70feb40c17808d2222427c18046eb63beb
 Root Key:       748121c14bd1461f6c58cb3ef39087c8fdc7633bb11a98af844fd9a04e208103
 ```
 
-## Add a signer to multiple repos
+## Add a signer to multiple repositories
+
 To add a signer, `alice`, to multiple repositories:
-```bash
+
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -128,7 +126,8 @@ Administrative keys for example/trust-demo:
 Repository Key: ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
-```bash
+
+```console
 $ docker trust inspect --pretty example/trust-demo2
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -143,9 +142,10 @@ Administrative keys for example/trust-demo2:
 Repository Key: ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d9268
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
+
 Add `alice` to both repositories with a single `docker trust signer add` command:
 
-```bash
+```console
 $ docker trust signer add alice example/trust-demo example/trust-demo2 --key alice.crt
 
 Adding signer "alice" to example/trust-demo...
@@ -160,7 +160,7 @@ Successfully added signer: alice to example/trust-demo2
 `docker trust inspect --pretty` now lists `alice` as a valid signer of both `example/trust-demo` and `example/trust-demo2`:
 
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -177,7 +177,7 @@ Repository Key: 95b9e5514c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo2
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -194,10 +194,10 @@ Repository Key: ece554f14c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4553d2ab20a8d926
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
+`docker trust signer add` adds signers to repositories on a best effort basis.
+It continues to add the signer to subsequent repositories if one attempt fails:
 
-`docker trust signer add` adds signers to repositories on a best effort basis, so it will continue to add the signer to subsequent repositories if one attempt fails:
-
-```bash
+```console
 $ docker trust signer add alice example/unauthorized example/authorized --key alice.crt
 
 Adding signer "alice" to example/unauthorized...
@@ -207,5 +207,5 @@ Adding signer "alice" to example/authorized...
 Enter passphrase for repository key with ID c6772a0:
 Successfully added signer: alice to example/authorized
 
-Failed to add signer to: example/unauthorized
+failed to add signer to: example/unauthorized
 ```

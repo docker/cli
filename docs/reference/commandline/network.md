@@ -1,42 +1,25 @@
----
-title: "network"
-description: "The network command description and usage"
-keywords: "network"
----
-
 # network
 
-```markdown
-Usage:  docker network COMMAND
-
+<!---MARKER_GEN_START-->
 Manage networks
 
-Options:
-      --help   Print usage
+### Subcommands
 
-Commands:
-  connect     Connect a container to a network
-  create      Create a network
-  disconnect  Disconnect a container from a network
-  inspect     Display detailed information on one or more networks
-  ls          List networks
-  prune       Remove all unused networks
-  rm          Remove one or more networks
+| Name                                  | Description                                          |
+|:--------------------------------------|:-----------------------------------------------------|
+| [`connect`](network_connect.md)       | Connect a container to a network                     |
+| [`create`](network_create.md)         | Create a network                                     |
+| [`disconnect`](network_disconnect.md) | Disconnect a container from a network                |
+| [`inspect`](network_inspect.md)       | Display detailed information on one or more networks |
+| [`ls`](network_ls.md)                 | List networks                                        |
+| [`prune`](network_prune.md)           | Remove all unused networks                           |
+| [`rm`](network_rm.md)                 | Remove one or more networks                          |
 
-Run 'docker network COMMAND --help' for more information on a command.
-```
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Manage networks. You can use subcommands to create, inspect, list, remove,
 prune, connect, and disconnect networks.
-
-## Related commands
-
-* [network create](network_create.md)
-* [network inspect](network_inspect.md)
-* [network list](network_ls.md)
-* [network rm](network_rm.md)
-* [network prune](network_prune.md)
-* [network connect](network_connect.md)
-* [network disconnect](network_disconnect.md)

@@ -1,20 +1,16 @@
----
-title: "network disconnect"
-description: "The network disconnect command description and usage"
-keywords: "network, disconnect, user-defined"
----
-
 # network disconnect
 
-```markdown
-Usage:  docker network disconnect [OPTIONS] NETWORK CONTAINER
-
+<!---MARKER_GEN_START-->
 Disconnect a container from a network
 
-Options:
-  -f, --force   Force the container to disconnect from a network
-      --help    Print usage
-```
+### Options
+
+| Name            | Type   | Default | Description                                      |
+|:----------------|:-------|:--------|:-------------------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the container to disconnect from a network |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -23,7 +19,7 @@ disconnect it from the network.
 
 ## Examples
 
-```bash
+```console
 $ docker network disconnect multi-host-network container1
 ```
 

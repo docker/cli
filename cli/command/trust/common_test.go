@@ -11,7 +11,7 @@ import (
 )
 
 func TestMatchReleasedSignaturesSortOrder(t *testing.T) {
-	var releasesRole = data.DelegationRole{BaseRole: data.BaseRole{Name: trust.ReleasesRole}}
+	releasesRole := data.DelegationRole{BaseRole: data.BaseRole{Name: trust.ReleasesRole}}
 	targets := []client.TargetSignedStruct{
 		{Target: client.Target{Name: "target10-foo"}, Role: releasesRole},
 		{Target: client.Target{Name: "target1-foo"}, Role: releasesRole},
@@ -20,7 +20,7 @@ func TestMatchReleasedSignaturesSortOrder(t *testing.T) {
 
 	rows := matchReleasedSignatures(targets)
 
-	var targetNames []string
+	targetNames := make([]string, 0, len(rows))
 	for _, r := range rows {
 		targetNames = append(targetNames, r.SignedTag)
 	}

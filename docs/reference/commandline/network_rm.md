@@ -1,22 +1,20 @@
----
-title: "network rm"
-description: "the network rm command description and usage"
-keywords: "network, rm, user-defined"
----
-
 # network rm
 
-```markdown
-Usage:  docker network rm NETWORK [NETWORK...]
-
+<!---MARKER_GEN_START-->
 Remove one or more networks
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker network rm`, `docker network remove`
+
+### Options
+
+| Name            | Type   | Default | Description                                |
+|:----------------|:-------|:--------|:-------------------------------------------|
+| `-f`, `--force` | `bool` |         | Do not error if the network does not exist |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -29,8 +27,8 @@ you must first disconnect any containers connected to it.
 
 To remove the network named 'my-network':
 
-```bash
-  $ docker network rm my-network
+```console
+$ docker network rm my-network
 ```
 
 ### Remove multiple networks
@@ -39,8 +37,8 @@ To delete multiple networks in a single `docker network rm` command, provide
 multiple network names or ids. The following example deletes a network with id
 `3695c422697f` and a network named `my-network`:
 
-```bash
-  $ docker network rm 3695c422697f my-network
+```console
+$ docker network rm 3695c422697f my-network
 ```
 
 When you specify multiple networks, the command attempts to delete each in turn.

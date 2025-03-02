@@ -1,36 +1,35 @@
 package container
 
 import (
+	"context"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
-var logFn = func(expectedOut string) func(string, types.ContainerLogsOptions) (io.ReadCloser, error) {
-	return func(container string, opts types.ContainerLogsOptions) (io.ReadCloser, error) {
-		return ioutil.NopCloser(strings.NewReader(expectedOut)), nil
+var logFn = func(expectedOut string) func(string, container.LogsOptions) (io.ReadCloser, error) {
+	return func(container string, opts container.LogsOptions) (io.ReadCloser, error) {
+		return io.NopCloser(strings.NewReader(expectedOut)), nil
 	}
 }
 
 func TestRunLogs(t *testing.T) {
-	inspectFn := func(containerID string) (types.ContainerJSON, error) {
-		return types.ContainerJSON{
+	inspectFn := func(containerID string) (container.InspectResponse, error) {
+		return container.InspectResponse{
 			Config:            &container.Config{Tty: true},
-			ContainerJSONBase: &types.ContainerJSONBase{State: &types.ContainerState{Running: false}},
+			ContainerJSONBase: &container.ContainerJSONBase{State: &container.State{Running: false}},
 		}, nil
 	}
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc           string
 		options       *logsOptions
-		client        fakeClient
+		client        *fakeClient
 		expectedError string
 		expectedOut   string
 		expectedErr   string
@@ -39,21 +38,19 @@ func TestRunLogs(t *testing.T) {
 			doc:         "successful logs",
 			expectedOut: "foo",
 			options:     &logsOptions{},
-			client:      fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
+			client:      &fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
 		},
 	}
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			cli := test.NewFakeCli(&testcase.client)
+			cli := test.NewFakeCli(testcase.client)
 
-			err := runLogs(cli, testcase.options)
+			err := runLogs(context.TODO(), cli, testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
-			} else {
-				if !assert.Check(t, err) {
-					return
-				}
+			} else if !assert.Check(t, err) {
+				return
 			}
 			assert.Check(t, is.Equal(testcase.expectedOut, cli.OutBuffer().String()))
 			assert.Check(t, is.Equal(testcase.expectedErr, cli.ErrBuffer().String()))

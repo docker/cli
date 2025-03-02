@@ -1,13 +1,13 @@
 package node
 
 import (
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -24,14 +24,14 @@ func TestNodePromoteErrors(t *testing.T) {
 		{
 			args: []string{"nodeID"},
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.Errorf("error inspecting the node")
+				return swarm.Node{}, []byte{}, errors.New("error inspecting the node")
 			},
 			expectedError: "error inspecting the node",
 		},
 		{
 			args: []string{"nodeID"},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				return errors.Errorf("error updating the node")
+				return errors.New("error updating the node")
 			},
 			expectedError: "error updating the node",
 		},
@@ -43,7 +43,8 @@ func TestNodePromoteErrors(t *testing.T) {
 				nodeUpdateFunc:  tc.nodeUpdateFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -52,11 +53,11 @@ func TestNodePromoteNoChange(t *testing.T) {
 	cmd := newPromoteCommand(
 		test.NewFakeCli(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(Manager()), []byte{}, nil
+				return *builders.Node(builders.Manager()), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if node.Role != swarm.NodeRoleManager {
-					return errors.Errorf("expected role manager, got %s", node.Role)
+					return errors.New("expected role manager, got" + string(node.Role))
 				}
 				return nil
 			},
@@ -69,11 +70,11 @@ func TestNodePromoteMultipleNode(t *testing.T) {
 	cmd := newPromoteCommand(
 		test.NewFakeCli(&fakeClient{
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *Node(), []byte{}, nil
+				return *builders.Node(), []byte{}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 				if node.Role != swarm.NodeRoleManager {
-					return errors.Errorf("expected role manager, got %s", node.Role)
+					return errors.New("expected role manager, got" + string(node.Role))
 				}
 				return nil
 			},

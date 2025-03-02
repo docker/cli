@@ -2,7 +2,7 @@ package swarm
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -65,7 +65,7 @@ type invalidCATestCases struct {
 }
 
 func writeFile(data string) (string, error) {
-	tmpfile, err := ioutil.TempFile("", "testfile")
+	tmpfile, err := os.CreateTemp("", "testfile")
 	if err != nil {
 		return "", err
 	}
@@ -73,15 +73,14 @@ func writeFile(data string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	tmpfile.Close()
-	return tmpfile.Name(), nil
+	return tmpfile.Name(), tmpfile.Close()
 }
 
 func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 	// we need an actual PEMfile to test
 	tmpfile, err := writeFile(cert)
 	assert.NilError(t, err)
-	defer os.Remove(tmpfile)
+	t.Cleanup(func() { _ = os.Remove(tmpfile) })
 
 	errorTestCases := []invalidCATestCases{
 		{
@@ -144,8 +143,10 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 					}, nil
 				},
 			}))
+		cmd.SetArgs([]string{})
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.Check(t, cmd.Flags().Parse(testCase.args))
-		cmd.SetOut(ioutil.Discard)
 		assert.ErrorContains(t, cmd.Execute(), testCase.errorMsg)
 	}
 }
@@ -217,7 +218,8 @@ func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
 		"--detach",
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
-		"--cert-expiry=3m"})
+		"--cert-expiry=3m",
+	})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
@@ -243,7 +245,8 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 		"--rotate",
 		"--detach",
 		"--ca-cert=" + certfile,
-		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com"})
+		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com",
+	})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 
@@ -281,7 +284,8 @@ func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
 		"--detach",
 		"--ca-cert=" + certfile,
 		"--ca-key=" + keyfile,
-		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com"})
+		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com",
+	})
 	cmd.SetOut(cli.OutBuffer())
 	assert.NilError(t, cmd.Execute())
 

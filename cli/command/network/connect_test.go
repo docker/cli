@@ -2,12 +2,12 @@ package network
 
 import (
 	"context"
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/network"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -19,12 +19,12 @@ func TestNetworkConnectErrors(t *testing.T) {
 		expectedError      string
 	}{
 		{
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires 2 arguments",
 		},
 		{
 			args: []string{"toto", "titi"},
 			networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-				return errors.Errorf("error connecting network")
+				return errors.New("error connecting network")
 			},
 			expectedError: "error connecting network",
 		},
@@ -37,34 +37,50 @@ func TestNetworkConnectErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
-
 	}
 }
 
 func TestNetworkConnectWithFlags(t *testing.T) {
-	expectedOpts := []network.IPAMConfig{
-		{
-			Subnet:     "192.168.4.0/24",
-			IPRange:    "192.168.4.0/24",
-			Gateway:    "192.168.4.1/24",
-			AuxAddress: map[string]string{},
+	expectedConfig := &network.EndpointSettings{
+		IPAMConfig: &network.EndpointIPAMConfig{
+			IPv4Address:  "192.168.4.1",
+			IPv6Address:  "fdef:f401:8da0:1234::5678",
+			LinkLocalIPs: []string{"169.254.42.42"},
 		},
+		Links:   []string{"otherctr"},
+		Aliases: []string{"poor-yorick"},
+		DriverOpts: map[string]string{
+			"driveropt1": "optval1,optval2",
+			"driveropt2": "optval4",
+		},
+		GwPriority: 100,
 	}
 	cli := test.NewFakeCli(&fakeClient{
 		networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-			assert.Check(t, is.DeepEqual(expectedOpts, config.IPAMConfig), "not expected driver error")
+			assert.Check(t, is.DeepEqual(expectedConfig, config))
 			return nil
 		},
 	})
-	args := []string{"banana"}
-	cmd := newCreateCommand(cli)
+	args := []string{"mynet", "myctr"}
+	cmd := newConnectCommand(cli)
 
 	cmd.SetArgs(args)
-	cmd.Flags().Set("driver", "foo")
-	cmd.Flags().Set("ip-range", "192.168.4.0/24")
-	cmd.Flags().Set("gateway", "192.168.4.1/24")
-	cmd.Flags().Set("subnet", "192.168.4.0/24")
+	for _, opt := range []struct{ name, value string }{
+		{"alias", "poor-yorick"},
+		{"driver-opt", "\"driveropt1=optval1,optval2\""},
+		{"driver-opt", "driveropt2=optval3"},
+		{"driver-opt", "driveropt2=optval4"}, // replaces value
+		{"ip", "192.168.4.1"},
+		{"ip6", "fdef:f401:8da0:1234::5678"},
+		{"link", "otherctr"},
+		{"link-local-ip", "169.254.42.42"},
+		{"gw-priority", "100"},
+	} {
+		err := cmd.Flags().Set(opt.name, opt.value)
+		assert.Check(t, err)
+	}
 	assert.NilError(t, cmd.Execute())
 }

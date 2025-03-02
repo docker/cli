@@ -6,7 +6,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/spf13/cobra"
 )
@@ -32,14 +33,18 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runLogs(dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container logs, docker logs",
+		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.follow, "follow", "f", false, "Follow log output")
-	flags.StringVar(&opts.since, "since", "", "Show logs since timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)")
-	flags.StringVar(&opts.until, "until", "", "Show logs before a timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)")
+	flags.StringVar(&opts.since, "since", "", `Show logs since timestamp (e.g. "2013-01-02T13:23:37Z") or relative (e.g. "42m" for 42 minutes)`)
+	flags.StringVar(&opts.until, "until", "", `Show logs before a timestamp (e.g. "2013-01-02T13:23:37Z") or relative (e.g. "42m" for 42 minutes)`)
 	flags.SetAnnotation("until", "version", []string{"1.35"})
 	flags.BoolVarP(&opts.timestamps, "timestamps", "t", false, "Show timestamps")
 	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
@@ -47,15 +52,13 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogs(dockerCli command.Cli, opts *logsOptions) error {
-	ctx := context.Background()
-
+func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) error {
 	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
 	if err != nil {
 		return err
 	}
 
-	options := types.ContainerLogsOptions{
+	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Since:      opts.since,
@@ -64,8 +67,7 @@ func runLogs(dockerCli command.Cli, opts *logsOptions) error {
 		Follow:     opts.follow,
 		Tail:       opts.tail,
 		Details:    opts.details,
-	}
-	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, options)
+	})
 	if err != nil {
 		return err
 	}

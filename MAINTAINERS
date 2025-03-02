@@ -24,6 +24,7 @@
 		people = [
 			"albers",
 			"cpuguy83",
+			"rumpl",
 			"silvin-lubecki",
 			"stevvooe",
 			"thajeztah",
@@ -46,8 +47,11 @@
 	# - close an issue or pull request when it's inappropriate or off-topic
 
 		people = [
+			"bsousaa",
+			"neersighted",
 			"programmerq",
-			"thajeztah"
+			"sam-thibault",
+			"vvoland"
 		]
 
 	[Org.Alumni]
@@ -78,6 +82,11 @@
 	Email = "github@albersweb.de"
 	GitHub = "albers"
 
+	[people.bsousaa]
+	Name = "Bruno de Sousa"
+	Email = "bruno.sousa@docker.com"
+	GitHub = "bsousaa"
+
 	[people.cpuguy83]
 	Name = "Brian Goff"
 	Email = "cpuguy83@gmail.com"
@@ -88,10 +97,25 @@
 	Email = "dnephin@gmail.com"
 	GitHub = "dnephin"
 
+	[people.neersighted]
+	Name = "Bjorn Neergaard"
+	Email = "bneergaard@mirantis.com"
+	GitHub = "neersighted"
+
 	[people.programmerq]
 	Name = "Jeff Anderson"
 	Email = "jeff@docker.com"
 	GitHub = "programmerq"
+
+	[people.rumpl]
+	Name = "Djordje Lukic"
+	Email = "djordje.lukic@docker.com"
+	GitHub = "rumpl"
+
+	[people.sam-thibault]
+	Name = "Sam Thibault"
+	Email = "sam.thibault@docker.com"
+	GitHub = "sam-thibault"
 
 	[people.silvin-lubecki]
 	Name = "Silvin Lubecki"
@@ -127,4 +151,9 @@
 	Name = "Victor Vieux"
 	Email = "vieux@docker.com"
 	GitHub = "vieux"
+
+	[people.vvoland]
+	Name = "Paweł Gronowski"
+	Email = "pawel.gronowski@docker.com"
+	GitHub = "vvoland"
 

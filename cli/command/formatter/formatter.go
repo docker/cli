@@ -1,12 +1,15 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package formatter
 
 import (
 	"bytes"
 	"io"
 	"strings"
-	"text/tabwriter"
 	"text/template"
 
+	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/templates"
 	"github.com/pkg/errors"
 )
@@ -16,8 +19,10 @@ const (
 	TableFormatKey  = "table"
 	RawFormatKey    = "raw"
 	PrettyFormatKey = "pretty"
+	JSONFormatKey   = "json"
 
 	DefaultQuietFormat = "{{.ID}}"
+	JSONFormat         = "{{json .}}"
 )
 
 // Format is the format string rendered using the Context
@@ -26,6 +31,11 @@ type Format string
 // IsTable returns true if the format is a table-type format
 func (f Format) IsTable() bool {
 	return strings.HasPrefix(string(f), TableFormatKey)
+}
+
+// IsJSON returns true if the format is the json format
+func (f Format) IsJSON() bool {
+	return string(f) == JSONFormatKey
 }
 
 // Contains returns true if the format contains the substring
@@ -44,16 +54,18 @@ type Context struct {
 
 	// internal element
 	finalFormat string
-	header      interface{}
+	header      any
 	buffer      *bytes.Buffer
 }
 
 func (c *Context) preFormat() {
 	c.finalFormat = string(c.Format)
-
 	// TODO: handle this in the Format type
-	if c.Format.IsTable() {
+	switch {
+	case c.Format.IsTable():
 		c.finalFormat = c.finalFormat[len(TableFormatKey):]
+	case c.Format.IsJSON():
+		c.finalFormat = JSONFormat
 	}
 
 	c.finalFormat = strings.Trim(c.finalFormat, " ")
@@ -64,9 +76,9 @@ func (c *Context) preFormat() {
 func (c *Context) parseFormat() (*template.Template, error) {
 	tmpl, err := templates.Parse(c.finalFormat)
 	if err != nil {
-		return tmpl, errors.Errorf("Template parsing error: %v\n", err)
+		return nil, errors.Wrap(err, "template parsing error")
 	}
-	return tmpl, err
+	return tmpl, nil
 }
 
 func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
@@ -85,7 +97,7 @@ func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
 
 func (c *Context) contextFormat(tmpl *template.Template, subContext SubContext) error {
 	if err := tmpl.Execute(c.buffer, subContext); err != nil {
-		return errors.Errorf("Template parsing error: %v\n", err)
+		return errors.Wrap(err, "template parsing error")
 	}
 	if c.Format.IsTable() && c.header != nil {
 		c.header = subContext.FullHeader()

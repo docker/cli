@@ -9,17 +9,20 @@ Server:
   Stopped: 0
  Images: 0
  Server Version: 17.06.1-ce
- Storage Driver: aufs
-  Root Dir: /var/lib/docker/aufs
+ Storage Driver: overlay2
   Backing Filesystem: extfs
-  Dirs: 0
-  Dirperm1 Supported: true
+  Supports d_type: true
+  Using metacopy: false
+  Native Overlay Diff: true
  Logging Driver: json-file
  Cgroup Driver: cgroupfs
  Plugins:
   Volume: local
   Network: bridge host macvlan null overlay
-  Log: awslogs fluentd gcplogs gelf journald json-file logentries splunk syslog
+  Log: awslogs fluentd gcplogs gelf journald json-file splunk syslog
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
  Swarm: active
   NodeID: qo2dfdig9mmxqkawulggepdih
   Is Manager: true
@@ -67,7 +70,6 @@ Server:
   Goroutines: 135
   System Time: 2017-08-24T17:44:34.077811894Z
   EventsListeners: 0
- Registry: https://index.docker.io/v1/
  Labels:
   provider=digitalocean
  Experimental: false

@@ -1,8 +1,9 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package loader
 
 import (
-	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/docker/cli/cli/compose/types"
@@ -10,16 +11,16 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.9",
+		Version:  "3.13",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
 		Configs:  configs(workingDir),
 		Secrets:  secrets(workingDir),
-		Extras: map[string]interface{}{
+		Extras: map[string]any{
 			"x-foo": "bar",
 			"x-bar": "baz",
-			"x-nested": map[string]interface{}{
+			"x-nested": map[string]any{
 				"foo": "bar",
 				"bar": "baz",
 			},
@@ -58,7 +59,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Target: "/my_config",
 					UID:    "103",
 					GID:    "103",
-					Mode:   uint32Ptr(0440),
+					Mode:   uint32Ptr(0o440),
 				},
 			},
 			ContainerName: "my-web-container",
@@ -151,16 +152,17 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				"otherhost:50.31.209.229",
 				"host.docker.internal:host-gateway",
 			},
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
 			HealthCheck: &types.HealthCheckConfig{
-				Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
-				Interval:    durationPtr(10 * time.Second),
-				Timeout:     durationPtr(1 * time.Second),
-				Retries:     uint64Ptr(5),
-				StartPeriod: durationPtr(15 * time.Second),
+				Test:          types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
+				Interval:      durationPtr(10 * time.Second),
+				Timeout:       durationPtr(1 * time.Second),
+				Retries:       uint64Ptr(5),
+				StartPeriod:   durationPtr(15 * time.Second),
+				StartInterval: durationPtr(1 * time.Second),
 			},
 			Hostname: "foo",
 			Image:    "redis",
@@ -188,6 +190,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Aliases:     []string{"alias1", "alias3"},
 					Ipv4Address: "",
 					Ipv6Address: "",
+					DriverOpts: map[string]string{
+						"driveropt1": "optval1",
+						"driveropt2": "optval2",
+					},
 				},
 				"other-network": {
 					Ipv4Address: "172.16.238.10",
@@ -197,7 +203,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 			},
 			Pid: "host",
 			Ports: []types.ServicePortConfig{
-				//"3000",
+				// "3000",
 				{
 					Mode:     "ingress",
 					Target:   3000,
@@ -228,14 +234,14 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Target:   3005,
 					Protocol: "tcp",
 				},
-				//"8000:8000",
+				// "8000:8000",
 				{
 					Mode:      "ingress",
 					Target:    8000,
 					Published: 8000,
 					Protocol:  "tcp",
 				},
-				//"9090-9091:8080-8081",
+				// "9090-9091:8080-8081",
 				{
 					Mode:      "ingress",
 					Target:    8080,
@@ -248,21 +254,21 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Published: 9091,
 					Protocol:  "tcp",
 				},
-				//"49100:22",
+				// "49100:22",
 				{
 					Mode:      "ingress",
 					Target:    22,
 					Published: 49100,
 					Protocol:  "tcp",
 				},
-				//"127.0.0.1:8001:8001",
+				// "127.0.0.1:8001:8001",
 				{
 					Mode:      "ingress",
 					Target:    8001,
 					Published: 8001,
 					Protocol:  "tcp",
 				},
-				//"127.0.0.1:5000-5010:5000-5010",
+				// "127.0.0.1:5000-5010:5000-5010",
 				{
 					Mode:      "ingress",
 					Target:    5000,
@@ -342,7 +348,7 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Target: "my_secret",
 					UID:    "103",
 					GID:    "103",
-					Mode:   uint32Ptr(0440),
+					Mode:   uint32Ptr(0o440),
 				},
 			},
 			SecurityOpt: []string{
@@ -372,13 +378,14 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 				{Target: "/var/lib/mysql", Type: "volume"},
 				{Source: "/opt/data", Target: "/var/lib/mysql", Type: "bind"},
 				{Source: workingDir, Target: "/code", Type: "bind"},
-				{Source: filepath.Join(workingDir, "static"), Target: "/var/www/html", Type: "bind"},
+				{Source: workingDir + "/static", Target: "/var/www/html", Type: "bind"},
 				{Source: homeDir + "/configs", Target: "/etc/configs/", Type: "bind", ReadOnly: true},
 				{Source: "datavolume", Target: "/var/lib/mysql", Type: "volume"},
-				{Source: filepath.Join(workingDir, "opt"), Target: "/opt", Consistency: "cached", Type: "bind"},
+				{Source: workingDir + "/opt", Target: "/opt", Consistency: "cached", Type: "bind"},
 				{Target: "/opt", Type: "tmpfs", Tmpfs: &types.ServiceVolumeTmpfs{
 					Size: int64(10000),
 				}},
+				{Source: "group:mygroup", Target: "/srv", Type: "cluster"},
 			},
 			WorkingDir: "/code",
 		},
@@ -415,7 +422,7 @@ func networks() map[string]types.NetworkConfig {
 		"other-external-network": {
 			Name:     "my-cool-network",
 			External: types.External{External: true},
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -455,9 +462,44 @@ func volumes() map[string]types.VolumeConfig {
 		"external-volume3": {
 			Name:     "this-is-volume3",
 			External: types.External{External: true},
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
+			},
+		},
+		"cluster-volume": {
+			Driver: "my-csi-driver",
+			Spec: &types.ClusterVolumeSpec{
+				Group: "mygroup",
+				AccessMode: &types.AccessMode{
+					Scope:       "single",
+					Sharing:     "none",
+					BlockVolume: &types.BlockVolume{},
+				},
+				AccessibilityRequirements: &types.TopologyRequirement{
+					Requisite: []types.Topology{
+						{
+							Segments: types.Mapping{"region": "R1", "zone": "Z1"},
+						},
+						{
+							Segments: types.Mapping{"region": "R1", "zone": "Z2"},
+						},
+					},
+					Preferred: []types.Topology{
+						{
+							Segments: types.Mapping{"region": "R1", "zone": "Z1"},
+						},
+					},
+				},
+				CapacityRange: &types.CapacityRange{
+					RequiredBytes: types.UnitBytes(1 * 1024 * 1024 * 1024),
+					LimitBytes:    types.UnitBytes(8 * 1024 * 1024 * 1024),
+				},
+				Secrets: []types.VolumeSecret{
+					{Key: "mycsisecret", Secret: "secret1"},
+					{Key: "mycsisecret2", Secret: "secret4"},
+				},
+				Availability: "active",
 			},
 		},
 	}
@@ -466,7 +508,7 @@ func volumes() map[string]types.VolumeConfig {
 func configs(workingDir string) map[string]types.ConfigObjConfig {
 	return map[string]types.ConfigObjConfig{
 		"config1": {
-			File: filepath.Join(workingDir, "config_data"),
+			File: workingDir + "/config_data",
 			Labels: map[string]string{
 				"foo": "bar",
 			},
@@ -482,7 +524,7 @@ func configs(workingDir string) map[string]types.ConfigObjConfig {
 		"config4": {
 			Name: "foo",
 			File: workingDir,
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
@@ -493,7 +535,7 @@ func configs(workingDir string) map[string]types.ConfigObjConfig {
 func secrets(workingDir string) map[string]types.SecretConfig {
 	return map[string]types.SecretConfig{
 		"secret1": {
-			File: filepath.Join(workingDir, "secret_data"),
+			File: workingDir + "/secret_data",
 			Labels: map[string]string{
 				"foo": "bar",
 			},
@@ -509,960 +551,10 @@ func secrets(workingDir string) map[string]types.SecretConfig {
 		"secret4": {
 			Name: "bar",
 			File: workingDir,
-			Extras: map[string]interface{}{
+			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
 			},
 		},
 	}
-}
-
-func fullExampleYAML(workingDir string) string {
-	return fmt.Sprintf(`version: "3.9"
-services:
-  foo:
-    build:
-      context: ./dir
-      dockerfile: Dockerfile
-      args:
-        foo: bar
-      labels:
-        FOO: BAR
-      cache_from:
-      - foo
-      - bar
-      extra_hosts:
-      - ipv4.example.com:127.0.0.1
-      - ipv6.example.com:::1
-      network: foo
-      target: foo
-    cap_add:
-    - ALL
-    cap_drop:
-    - NET_ADMIN
-    - SYS_ADMIN
-    cgroup_parent: m-executor-abcd
-    command:
-    - bundle
-    - exec
-    - thin
-    - -p
-    - "3000"
-    configs:
-    - source: config1
-    - source: config2
-      target: /my_config
-      uid: "103"
-      gid: "103"
-      mode: 288
-    container_name: my-web-container
-    depends_on:
-    - db
-    - redis
-    deploy:
-      mode: replicated
-      replicas: 6
-      labels:
-        FOO: BAR
-      update_config:
-        parallelism: 3
-        delay: 10s
-        failure_action: continue
-        monitor: 1m0s
-        max_failure_ratio: 0.3
-        order: start-first
-      rollback_config:
-        parallelism: 3
-        delay: 10s
-        failure_action: continue
-        monitor: 1m0s
-        max_failure_ratio: 0.3
-        order: start-first
-      resources:
-        limits:
-          cpus: "0.001"
-          memory: "52428800"
-          pids: 100
-        reservations:
-          cpus: "0.0001"
-          memory: "20971520"
-          generic_resources:
-          - discrete_resource_spec:
-              kind: gpu
-              value: 2
-          - discrete_resource_spec:
-              kind: ssd
-              value: 1
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 2m0s
-      placement:
-        constraints:
-        - node=foo
-        preferences:
-        - spread: node.labels.az
-        max_replicas_per_node: 5
-      endpoint_mode: dnsrr
-    devices:
-    - /dev/ttyUSB0:/dev/ttyUSB0
-    dns:
-    - 8.8.8.8
-    - 9.9.9.9
-    dns_search:
-    - dc1.example.com
-    - dc2.example.com
-    domainname: foo.com
-    entrypoint:
-    - /code/entrypoint.sh
-    - -p
-    - "3000"
-    environment:
-      BAR: bar_from_env_file_2
-      BAZ: baz_from_service_def
-      FOO: foo_from_env_file
-      QUX: qux_from_environment
-    env_file:
-    - ./example1.env
-    - ./example2.env
-    expose:
-    - "3000"
-    - "8000"
-    external_links:
-    - redis_1
-    - project_db_1:mysql
-    - project_db_1:postgresql
-    extra_hosts:
-    - somehost:162.242.195.82
-    - otherhost:50.31.209.229
-    - host.docker.internal:host-gateway
-    hostname: foo
-    healthcheck:
-      test:
-      - CMD-SHELL
-      - echo "hello world"
-      timeout: 1s
-      interval: 10s
-      retries: 5
-      start_period: 15s
-    image: redis
-    ipc: host
-    labels:
-      com.example.description: Accounting webapp
-      com.example.empty-label: ""
-      com.example.number: "42"
-    links:
-    - db
-    - db:database
-    - redis
-    logging:
-      driver: syslog
-      options:
-        syslog-address: tcp://192.168.0.42:123
-    mac_address: 02:42:ac:11:65:43
-    network_mode: container:0cfeab0f748b9a743dc3da582046357c6ef497631c1a016d28d2bf9b4f899f7b
-    networks:
-      other-network:
-        ipv4_address: 172.16.238.10
-        ipv6_address: 2001:3984:3989::10
-      other-other-network: null
-      some-network:
-        aliases:
-        - alias1
-        - alias3
-    pid: host
-    ports:
-    - mode: ingress
-      target: 3000
-      protocol: tcp
-    - mode: ingress
-      target: 3001
-      protocol: tcp
-    - mode: ingress
-      target: 3002
-      protocol: tcp
-    - mode: ingress
-      target: 3003
-      protocol: tcp
-    - mode: ingress
-      target: 3004
-      protocol: tcp
-    - mode: ingress
-      target: 3005
-      protocol: tcp
-    - mode: ingress
-      target: 8000
-      published: 8000
-      protocol: tcp
-    - mode: ingress
-      target: 8080
-      published: 9090
-      protocol: tcp
-    - mode: ingress
-      target: 8081
-      published: 9091
-      protocol: tcp
-    - mode: ingress
-      target: 22
-      published: 49100
-      protocol: tcp
-    - mode: ingress
-      target: 8001
-      published: 8001
-      protocol: tcp
-    - mode: ingress
-      target: 5000
-      published: 5000
-      protocol: tcp
-    - mode: ingress
-      target: 5001
-      published: 5001
-      protocol: tcp
-    - mode: ingress
-      target: 5002
-      published: 5002
-      protocol: tcp
-    - mode: ingress
-      target: 5003
-      published: 5003
-      protocol: tcp
-    - mode: ingress
-      target: 5004
-      published: 5004
-      protocol: tcp
-    - mode: ingress
-      target: 5005
-      published: 5005
-      protocol: tcp
-    - mode: ingress
-      target: 5006
-      published: 5006
-      protocol: tcp
-    - mode: ingress
-      target: 5007
-      published: 5007
-      protocol: tcp
-    - mode: ingress
-      target: 5008
-      published: 5008
-      protocol: tcp
-    - mode: ingress
-      target: 5009
-      published: 5009
-      protocol: tcp
-    - mode: ingress
-      target: 5010
-      published: 5010
-      protocol: tcp
-    privileged: true
-    read_only: true
-    restart: always
-    secrets:
-    - source: secret1
-    - source: secret2
-      target: my_secret
-      uid: "103"
-      gid: "103"
-      mode: 288
-    security_opt:
-    - label=level:s0:c100,c200
-    - label=type:svirt_apache_t
-    stdin_open: true
-    stop_grace_period: 20s
-    stop_signal: SIGUSR1
-    sysctls:
-      net.core.somaxconn: "1024"
-      net.ipv4.tcp_syncookies: "0"
-    tmpfs:
-    - /run
-    - /tmp
-    tty: true
-    ulimits:
-      nofile:
-        soft: 20000
-        hard: 40000
-      nproc: 65535
-    user: someone
-    volumes:
-    - type: volume
-      target: /var/lib/mysql
-    - type: bind
-      source: /opt/data
-      target: /var/lib/mysql
-    - type: bind
-      source: /foo
-      target: /code
-    - type: bind
-      source: %s
-      target: /var/www/html
-    - type: bind
-      source: /bar/configs
-      target: /etc/configs/
-      read_only: true
-    - type: volume
-      source: datavolume
-      target: /var/lib/mysql
-    - type: bind
-      source: %s
-      target: /opt
-      consistency: cached
-    - type: tmpfs
-      target: /opt
-      tmpfs:
-        size: 10000
-    working_dir: /code
-    x-bar: baz
-    x-foo: bar
-networks:
-  external-network:
-    name: external-network
-    external: true
-  other-external-network:
-    name: my-cool-network
-    external: true
-    x-bar: baz
-    x-foo: bar
-  other-network:
-    driver: overlay
-    driver_opts:
-      baz: "1"
-      foo: bar
-    ipam:
-      driver: overlay
-      config:
-      - subnet: 172.16.238.0/24
-      - subnet: 2001:3984:3989::/64
-    labels:
-      foo: bar
-  some-network: {}
-volumes:
-  another-volume:
-    name: user_specified_name
-    driver: vsphere
-    driver_opts:
-      baz: "1"
-      foo: bar
-  external-volume:
-    name: external-volume
-    external: true
-  external-volume3:
-    name: this-is-volume3
-    external: true
-    x-bar: baz
-    x-foo: bar
-  other-external-volume:
-    name: my-cool-volume
-    external: true
-  other-volume:
-    driver: flocker
-    driver_opts:
-      baz: "1"
-      foo: bar
-    labels:
-      foo: bar
-  some-volume: {}
-secrets:
-  secret1:
-    file: %s/secret_data
-    labels:
-      foo: bar
-  secret2:
-    name: my_secret
-    external: true
-  secret3:
-    name: secret3
-    external: true
-  secret4:
-    name: bar
-    file: %s
-    x-bar: baz
-    x-foo: bar
-configs:
-  config1:
-    file: %s/config_data
-    labels:
-      foo: bar
-  config2:
-    name: my_config
-    external: true
-  config3:
-    name: config3
-    external: true
-  config4:
-    name: foo
-    file: %s
-    x-bar: baz
-    x-foo: bar
-x-bar: baz
-x-foo: bar
-x-nested:
-  bar: baz
-  foo: bar
-`,
-		filepath.Join(workingDir, "static"),
-		filepath.Join(workingDir, "opt"),
-		workingDir,
-		workingDir,
-		workingDir,
-		workingDir)
-}
-
-func fullExampleJSON(workingDir string) string {
-	return fmt.Sprintf(`{
-  "configs": {
-    "config1": {
-      "file": "%s/config_data",
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "config2": {
-      "name": "my_config",
-      "external": true
-    },
-    "config3": {
-      "name": "config3",
-      "external": true
-    },
-    "config4": {
-      "name": "foo",
-      "file": "%s",
-      "external": false
-    }
-  },
-  "networks": {
-    "external-network": {
-      "name": "external-network",
-      "ipam": {},
-      "external": true
-    },
-    "other-external-network": {
-      "name": "my-cool-network",
-      "ipam": {},
-      "external": true
-    },
-    "other-network": {
-      "driver": "overlay",
-      "driver_opts": {
-        "baz": "1",
-        "foo": "bar"
-      },
-      "ipam": {
-        "driver": "overlay",
-        "config": [
-          {
-            "subnet": "172.16.238.0/24"
-          },
-          {
-            "subnet": "2001:3984:3989::/64"
-          }
-        ]
-      },
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "some-network": {
-      "ipam": {},
-      "external": false
-    }
-  },
-  "secrets": {
-    "secret1": {
-      "file": "%s/secret_data",
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "secret2": {
-      "name": "my_secret",
-      "external": true
-    },
-    "secret3": {
-      "name": "secret3",
-      "external": true
-    },
-    "secret4": {
-      "name": "bar",
-      "file": "%s",
-      "external": false
-    }
-  },
-  "services": {
-    "foo": {
-      "build": {
-        "context": "./dir",
-        "dockerfile": "Dockerfile",
-        "args": {
-          "foo": "bar"
-        },
-        "labels": {
-          "FOO": "BAR"
-        },
-        "cache_from": [
-          "foo",
-          "bar"
-        ],
-        "extra_hosts": [
-          "ipv4.example.com:127.0.0.1",
-          "ipv6.example.com:::1"
-        ],
-        "network": "foo",
-        "target": "foo"
-      },
-      "cap_add": [
-        "ALL"
-      ],
-      "cap_drop": [
-        "NET_ADMIN",
-        "SYS_ADMIN"
-      ],
-      "cgroup_parent": "m-executor-abcd",
-      "command": [
-        "bundle",
-        "exec",
-        "thin",
-        "-p",
-        "3000"
-      ],
-      "configs": [
-        {
-          "source": "config1"
-        },
-        {
-          "source": "config2",
-          "target": "/my_config",
-          "uid": "103",
-          "gid": "103",
-          "mode": 288
-        }
-      ],
-      "container_name": "my-web-container",
-      "credential_spec": {},
-      "depends_on": [
-        "db",
-        "redis"
-      ],
-      "deploy": {
-        "mode": "replicated",
-        "replicas": 6,
-        "labels": {
-          "FOO": "BAR"
-        },
-        "update_config": {
-          "parallelism": 3,
-          "delay": "10s",
-          "failure_action": "continue",
-          "monitor": "1m0s",
-          "max_failure_ratio": 0.3,
-          "order": "start-first"
-        },
-        "rollback_config": {
-          "parallelism": 3,
-          "delay": "10s",
-          "failure_action": "continue",
-          "monitor": "1m0s",
-          "max_failure_ratio": 0.3,
-          "order": "start-first"
-        },
-        "resources": {
-          "limits": {
-            "cpus": "0.001",
-            "memory": "52428800",
-            "pids": 100
-          },
-          "reservations": {
-            "cpus": "0.0001",
-            "memory": "20971520",
-            "generic_resources": [
-              {
-                "discrete_resource_spec": {
-                  "kind": "gpu",
-                  "value": 2
-                }
-              },
-              {
-                "discrete_resource_spec": {
-                  "kind": "ssd",
-                  "value": 1
-                }
-              }
-            ]
-          }
-        },
-        "restart_policy": {
-          "condition": "on-failure",
-          "delay": "5s",
-          "max_attempts": 3,
-          "window": "2m0s"
-        },
-        "placement": {
-          "constraints": [
-            "node=foo"
-          ],
-          "preferences": [
-            {
-              "spread": "node.labels.az"
-            }
-          ],
-          "max_replicas_per_node": 5
-        },
-        "endpoint_mode": "dnsrr"
-      },
-      "devices": [
-        "/dev/ttyUSB0:/dev/ttyUSB0"
-      ],
-      "dns": [
-        "8.8.8.8",
-        "9.9.9.9"
-      ],
-      "dns_search": [
-        "dc1.example.com",
-        "dc2.example.com"
-      ],
-      "domainname": "foo.com",
-      "entrypoint": [
-        "/code/entrypoint.sh",
-        "-p",
-        "3000"
-      ],
-      "environment": {
-        "BAR": "bar_from_env_file_2",
-        "BAZ": "baz_from_service_def",
-        "FOO": "foo_from_env_file",
-        "QUX": "qux_from_environment"
-      },
-      "env_file": [
-        "./example1.env",
-        "./example2.env"
-      ],
-      "expose": [
-        "3000",
-        "8000"
-      ],
-      "external_links": [
-        "redis_1",
-        "project_db_1:mysql",
-        "project_db_1:postgresql"
-      ],
-      "extra_hosts": [
-        "somehost:162.242.195.82",
-        "otherhost:50.31.209.229",
-        "host.docker.internal:host-gateway"
-      ],
-      "hostname": "foo",
-      "healthcheck": {
-        "test": [
-          "CMD-SHELL",
-          "echo \"hello world\""
-        ],
-        "timeout": "1s",
-        "interval": "10s",
-        "retries": 5,
-        "start_period": "15s"
-      },
-      "image": "redis",
-      "ipc": "host",
-      "labels": {
-        "com.example.description": "Accounting webapp",
-        "com.example.empty-label": "",
-        "com.example.number": "42"
-      },
-      "links": [
-        "db",
-        "db:database",
-        "redis"
-      ],
-      "logging": {
-        "driver": "syslog",
-        "options": {
-          "syslog-address": "tcp://192.168.0.42:123"
-        }
-      },
-      "mac_address": "02:42:ac:11:65:43",
-      "network_mode": "container:0cfeab0f748b9a743dc3da582046357c6ef497631c1a016d28d2bf9b4f899f7b",
-      "networks": {
-        "other-network": {
-          "ipv4_address": "172.16.238.10",
-          "ipv6_address": "2001:3984:3989::10"
-        },
-        "other-other-network": null,
-        "some-network": {
-          "aliases": [
-            "alias1",
-            "alias3"
-          ]
-        }
-      },
-      "pid": "host",
-      "ports": [
-        {
-          "mode": "ingress",
-          "target": 3000,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 3001,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 3002,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 3003,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 3004,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 3005,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 8000,
-          "published": 8000,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 8080,
-          "published": 9090,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 8081,
-          "published": 9091,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 22,
-          "published": 49100,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 8001,
-          "published": 8001,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5000,
-          "published": 5000,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5001,
-          "published": 5001,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5002,
-          "published": 5002,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5003,
-          "published": 5003,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5004,
-          "published": 5004,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5005,
-          "published": 5005,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5006,
-          "published": 5006,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5007,
-          "published": 5007,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5008,
-          "published": 5008,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5009,
-          "published": 5009,
-          "protocol": "tcp"
-        },
-        {
-          "mode": "ingress",
-          "target": 5010,
-          "published": 5010,
-          "protocol": "tcp"
-        }
-      ],
-      "privileged": true,
-      "read_only": true,
-      "restart": "always",
-      "secrets": [
-        {
-          "source": "secret1"
-        },
-        {
-          "source": "secret2",
-          "target": "my_secret",
-          "uid": "103",
-          "gid": "103",
-          "mode": 288
-        }
-      ],
-      "security_opt": [
-        "label=level:s0:c100,c200",
-        "label=type:svirt_apache_t"
-      ],
-      "stdin_open": true,
-      "stop_grace_period": "20s",
-      "stop_signal": "SIGUSR1",
-      "sysctls": {
-        "net.core.somaxconn": "1024",
-        "net.ipv4.tcp_syncookies": "0"
-      },
-      "tmpfs": [
-        "/run",
-        "/tmp"
-      ],
-      "tty": true,
-      "ulimits": {
-        "nofile": {
-          "soft": 20000,
-          "hard": 40000
-        },
-        "nproc": 65535
-      },
-      "user": "someone",
-      "volumes": [
-        {
-          "type": "volume",
-          "target": "/var/lib/mysql"
-        },
-        {
-          "type": "bind",
-          "source": "/opt/data",
-          "target": "/var/lib/mysql"
-        },
-        {
-          "type": "bind",
-          "source": "/foo",
-          "target": "/code"
-        },
-        {
-          "type": "bind",
-          "source": "%s",
-          "target": "/var/www/html"
-        },
-        {
-          "type": "bind",
-          "source": "/bar/configs",
-          "target": "/etc/configs/",
-          "read_only": true
-        },
-        {
-          "type": "volume",
-          "source": "datavolume",
-          "target": "/var/lib/mysql"
-        },
-        {
-          "type": "bind",
-          "source": "%s",
-          "target": "/opt",
-          "consistency": "cached"
-        },
-        {
-          "type": "tmpfs",
-          "target": "/opt",
-          "tmpfs": {
-            "size": 10000
-          }
-        }
-      ],
-      "working_dir": "/code"
-    }
-  },
-  "version": "3.9",
-  "volumes": {
-    "another-volume": {
-      "name": "user_specified_name",
-      "driver": "vsphere",
-      "driver_opts": {
-        "baz": "1",
-        "foo": "bar"
-      },
-      "external": false
-    },
-    "external-volume": {
-      "name": "external-volume",
-      "external": true
-    },
-    "external-volume3": {
-      "name": "this-is-volume3",
-      "external": true
-    },
-    "other-external-volume": {
-      "name": "my-cool-volume",
-      "external": true
-    },
-    "other-volume": {
-      "driver": "flocker",
-      "driver_opts": {
-        "baz": "1",
-        "foo": "bar"
-      },
-      "external": false,
-      "labels": {
-        "foo": "bar"
-      }
-    },
-    "some-volume": {
-      "external": false
-    }
-  },
-  "x-bar": "baz",
-  "x-foo": "bar",
-  "x-nested": {
-    "bar": "baz",
-    "foo": "bar"
-  }
-}`,
-		workingDir,
-		workingDir,
-		workingDir,
-		workingDir,
-		filepath.Join(workingDir, "static"),
-		filepath.Join(workingDir, "opt"))
 }

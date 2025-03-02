@@ -34,23 +34,26 @@ func newJoinCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runJoin(dockerCli, cmd.Flags(), opts)
+			return runJoin(cmd.Context(), dockerCli, cmd.Flags(), opts)
+		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "", // swarm join does not require swarm to be active, and is always available on API 1.24 and up
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.Var(&opts.listenAddr, flagListenAddr, "Listen address (format: <ip|interface>[:port])")
-	flags.StringVar(&opts.advertiseAddr, flagAdvertiseAddr, "", "Advertised address (format: <ip|interface>[:port])")
-	flags.StringVar(&opts.dataPathAddr, flagDataPathAddr, "", "Address or interface to use for data path traffic (format: <ip|interface>)")
+	flags.Var(&opts.listenAddr, flagListenAddr, `Listen address (format: "<ip|interface>[:port]")`)
+	flags.StringVar(&opts.advertiseAddr, flagAdvertiseAddr, "", `Advertised address (format: "<ip|interface>[:port]")`)
+	flags.StringVar(&opts.dataPathAddr, flagDataPathAddr, "", `Address or interface to use for data path traffic (format: "<ip|interface>")`)
 	flags.SetAnnotation(flagDataPathAddr, "version", []string{"1.31"})
 	flags.StringVar(&opts.token, flagToken, "", "Token for entry into the swarm")
-	flags.StringVar(&opts.availability, flagAvailability, "active", `Availability of the node ("active"|"pause"|"drain")`)
+	flags.StringVar(&opts.availability, flagAvailability, "active", `Availability of the node ("active", "pause", "drain")`)
 	return cmd
 }
 
-func runJoin(dockerCli command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
+func runJoin(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	req := swarm.JoinRequest{
 		JoinToken:     opts.token,

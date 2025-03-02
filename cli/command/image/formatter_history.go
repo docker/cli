@@ -22,8 +22,7 @@ const (
 
 // NewHistoryFormat returns a format for rendering an HistoryContext
 func NewHistoryFormat(source string, quiet bool, human bool) formatter.Format {
-	switch source {
-	case formatter.TableFormatKey:
+	if source == formatter.TableFormatKey {
 		switch {
 		case quiet:
 			return formatter.DefaultQuietFormat
@@ -82,16 +81,22 @@ func (c *historyContext) CreatedAt() string {
 	return time.Unix(c.h.Created, 0).Format(time.RFC3339)
 }
 
+// epoch is the time before which created-at dates are not displayed with human units.
+var epoch = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+
 func (c *historyContext) CreatedSince() string {
 	if !c.human {
 		return c.CreatedAt()
+	}
+	if c.h.Created <= epoch {
+		return "N/A"
 	}
 	created := units.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
 	return created + " ago"
 }
 
 func (c *historyContext) CreatedBy() string {
-	createdBy := strings.Replace(c.h.CreatedBy, "\t", " ", -1)
+	createdBy := strings.ReplaceAll(c.h.CreatedBy, "\t", " ")
 	if c.trunc {
 		return formatter.Ellipsis(createdBy, 45)
 	}

@@ -3,14 +3,16 @@ package network
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -22,26 +24,33 @@ type createOptions struct {
 	driverOpts opts.MapOpts
 	labels     opts.ListOpts
 	internal   bool
-	ipv6       bool
+	ipv4       *bool
+	ipv6       *bool
 	attachable bool
 	ingress    bool
 	configOnly bool
 	configFrom string
-
-	ipamDriver  string
-	ipamSubnet  []string
-	ipamIPRange []string
-	ipamGateway []string
-	ipamAux     opts.MapOpts
-	ipamOpt     opts.MapOpts
+	ipam       ipamOptions
 }
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+type ipamOptions struct {
+	driver       string
+	subnets      []string
+	ipRanges     []string
+	gateways     []string
+	auxAddresses opts.MapOpts
+	driverOpts   opts.MapOpts
+}
+
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
+	var ipv4, ipv6 bool
 	options := createOptions{
 		driverOpts: *opts.NewMapOpts(nil, nil),
 		labels:     opts.NewListOpts(opts.ValidateLabel),
-		ipamAux:    *opts.NewMapOpts(nil, nil),
-		ipamOpt:    *opts.NewMapOpts(nil, nil),
+		ipam: ipamOptions{
+			auxAddresses: *opts.NewMapOpts(nil, nil),
+			driverOpts:   *opts.NewMapOpts(nil, nil),
+		},
 	}
 
 	cmd := &cobra.Command{
@@ -50,8 +59,17 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.name = args[0]
-			return runCreate(dockerCli, options)
+
+			if cmd.Flag("ipv4").Changed {
+				options.ipv4 = &ipv4
+			}
+			if cmd.Flag("ipv6").Changed {
+				options.ipv6 = &ipv6
+			}
+
+			return runCreate(cmd.Context(), dockerCLI.Client(), dockerCLI.Out(), options)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
@@ -59,7 +77,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.driverOpts, "opt", "o", "Set driver specific options")
 	flags.Var(&options.labels, "label", "Set metadata on a network")
 	flags.BoolVar(&options.internal, "internal", false, "Restrict external access to the network")
-	flags.BoolVar(&options.ipv6, "ipv6", false, "Enable IPv6 networking")
+	flags.BoolVar(&ipv4, "ipv4", true, "Enable or disable IPv4 address assignment")
+	flags.BoolVar(&ipv6, "ipv6", false, "Enable or disable IPv6 address assignment")
 	flags.BoolVar(&options.attachable, "attachable", false, "Enable manual container attachment")
 	flags.SetAnnotation("attachable", "version", []string{"1.25"})
 	flags.BoolVar(&options.ingress, "ingress", false, "Create swarm routing-mesh network")
@@ -71,72 +90,65 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.configFrom, "config-from", "", "The network from which to copy the configuration")
 	flags.SetAnnotation("config-from", "version", []string{"1.30"})
 
-	flags.StringVar(&options.ipamDriver, "ipam-driver", "default", "IP Address Management Driver")
-	flags.StringSliceVar(&options.ipamSubnet, "subnet", []string{}, "Subnet in CIDR format that represents a network segment")
-	flags.StringSliceVar(&options.ipamIPRange, "ip-range", []string{}, "Allocate container ip from a sub-range")
-	flags.StringSliceVar(&options.ipamGateway, "gateway", []string{}, "IPv4 or IPv6 Gateway for the master subnet")
+	flags.StringVar(&options.ipam.driver, "ipam-driver", "default", "IP Address Management Driver")
+	flags.StringSliceVar(&options.ipam.subnets, "subnet", []string{}, "Subnet in CIDR format that represents a network segment")
+	flags.StringSliceVar(&options.ipam.ipRanges, "ip-range", []string{}, "Allocate container ip from a sub-range")
+	flags.StringSliceVar(&options.ipam.gateways, "gateway", []string{}, "IPv4 or IPv6 Gateway for the master subnet")
 
-	flags.Var(&options.ipamAux, "aux-address", "Auxiliary IPv4 or IPv6 addresses used by Network driver")
-	flags.Var(&options.ipamOpt, "ipam-opt", "Set IPAM driver specific options")
+	flags.Var(&options.ipam.auxAddresses, "aux-address", "Auxiliary IPv4 or IPv6 addresses used by Network driver")
+	flags.Var(&options.ipam.driverOpts, "ipam-opt", "Set IPAM driver specific options")
 
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, options createOptions) error {
-	client := dockerCli.Client()
-
-	ipamCfg, err := consolidateIpam(options.ipamSubnet, options.ipamIPRange, options.ipamGateway, options.ipamAux.GetAll())
+func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io.Writer, options createOptions) error {
+	ipamCfg, err := createIPAMConfig(options.ipam)
 	if err != nil {
 		return err
 	}
 
-	// Construct network create request body
-	nc := types.NetworkCreate{
-		Driver:  options.driver,
-		Options: options.driverOpts.GetAll(),
-		IPAM: &network.IPAM{
-			Driver:  options.ipamDriver,
-			Config:  ipamCfg,
-			Options: options.ipamOpt.GetAll(),
-		},
-		CheckDuplicate: true,
-		Internal:       options.internal,
-		EnableIPv6:     options.ipv6,
-		Attachable:     options.attachable,
-		Ingress:        options.ingress,
-		Scope:          options.scope,
-		ConfigOnly:     options.configOnly,
-		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
-	}
-
-	if from := options.configFrom; from != "" {
-		nc.ConfigFrom = &network.ConfigReference{
-			Network: from,
+	var configFrom *network.ConfigReference
+	if options.configFrom != "" {
+		configFrom = &network.ConfigReference{
+			Network: options.configFrom,
 		}
 	}
-
-	resp, err := client.NetworkCreate(context.Background(), options.name, nc)
+	resp, err := apiClient.NetworkCreate(ctx, options.name, network.CreateOptions{
+		Driver:     options.driver,
+		Options:    options.driverOpts.GetAll(),
+		IPAM:       ipamCfg,
+		Internal:   options.internal,
+		EnableIPv4: options.ipv4,
+		EnableIPv6: options.ipv6,
+		Attachable: options.attachable,
+		Ingress:    options.ingress,
+		Scope:      options.scope,
+		ConfigOnly: options.configOnly,
+		ConfigFrom: configFrom,
+		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
+	})
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(dockerCli.Out(), "%s\n", resp.ID)
+	_, _ = fmt.Fprintln(output, resp.ID)
 	return nil
 }
 
 // Consolidates the ipam configuration as a group from different related configurations
 // user can configure network with multiple non-overlapping subnets and hence it is
 // possible to correlate the various related parameters and consolidate them.
-// consolidateIpam consolidates subnets, ip-ranges, gateways and auxiliary addresses into
+// createIPAMConfig consolidates subnets, ip-ranges, gateways and auxiliary addresses into
 // structured ipam data.
-// nolint: gocyclo
-func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]string) ([]network.IPAMConfig, error) {
-	if len(subnets) < len(ranges) || len(subnets) < len(gateways) {
+//
+//nolint:gocyclo
+func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
+	if len(options.subnets) < len(options.ipRanges) || len(options.subnets) < len(options.gateways) {
 		return nil, errors.Errorf("every ip-range or gateway must have a corresponding subnet")
 	}
 	iData := map[string]*network.IPAMConfig{}
 
 	// Populate non-overlapping subnets into consolidation map
-	for _, s := range subnets {
+	for _, s := range options.subnets {
 		for k := range iData {
 			ok1, err := subnetMatches(s, k)
 			if err != nil {
@@ -154,9 +166,12 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 	}
 
 	// Validate and add valid ip ranges
-	for _, r := range ranges {
+	for _, r := range options.ipRanges {
 		match := false
-		for _, s := range subnets {
+		for _, s := range options.subnets {
+			if _, _, err := net.ParseCIDR(r); err != nil {
+				return nil, err
+			}
 			ok, err := subnetMatches(s, r)
 			if err != nil {
 				return nil, err
@@ -177,9 +192,9 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 	}
 
 	// Validate and add valid gateways
-	for _, g := range gateways {
+	for _, g := range options.gateways {
 		match := false
-		for _, s := range subnets {
+		for _, s := range options.subnets {
 			ok, err := subnetMatches(s, g)
 			if err != nil {
 				return nil, err
@@ -200,9 +215,9 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 	}
 
 	// Validate and add aux-addresses
-	for key, aa := range auxaddrs {
+	for key, aa := range options.auxAddresses.GetAll() {
 		match := false
-		for _, s := range subnets {
+		for _, s := range options.subnets {
 			ok, err := subnetMatches(s, aa)
 			if err != nil {
 				return nil, err
@@ -218,17 +233,20 @@ func consolidateIpam(subnets, ranges, gateways []string, auxaddrs map[string]str
 		}
 	}
 
-	idl := []network.IPAMConfig{}
+	idl := make([]network.IPAMConfig, 0, len(iData))
 	for _, v := range iData {
 		idl = append(idl, *v)
 	}
-	return idl, nil
+
+	return &network.IPAM{
+		Driver:  options.driver,
+		Config:  idl,
+		Options: options.driverOpts.GetAll(),
+	}, nil
 }
 
 func subnetMatches(subnet, data string) (bool, error) {
-	var (
-		ip net.IP
-	)
+	var ip net.IP
 
 	_, s, err := net.ParseCIDR(subnet)
 	if err != nil {

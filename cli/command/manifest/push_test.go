@@ -2,23 +2,24 @@ package manifest
 
 import (
 	"context"
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
+	"github.com/distribution/reference"
+	"github.com/docker/cli/cli/manifest/store"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/distribution/reference"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
 func newFakeRegistryClient() *fakeRegistryClient {
 	return &fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, _ reference.Named) (manifesttypes.ImageManifest, error) {
-			return manifesttypes.ImageManifest{}, errors.New("")
+			return manifesttypes.ImageManifest{}, errors.New("unexpected error")
 		},
 		getManifestListFunc: func(_ context.Context, _ reference.Named) ([]manifesttypes.ImageManifest, error) {
-			return nil, errors.Errorf("")
+			return nil, errors.New("unexpected error")
 		},
 	}
 }
@@ -30,7 +31,7 @@ func TestManifestPushErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{"one-arg", "extra-arg"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"th!si'sa/fa!ke/li$t/-name"},
@@ -42,24 +43,24 @@ func TestManifestPushErrors(t *testing.T) {
 		cli := test.NewFakeCli(nil)
 		cmd := newPushListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
 func TestManifestPush(t *testing.T) {
-	store, sCleanup := newTempManifestStore(t)
-	defer sCleanup()
+	manifestStore := store.NewStore(t.TempDir())
 
 	registry := newFakeRegistryClient()
 
 	cli := test.NewFakeCli(nil)
-	cli.SetManifestStore(store)
+	cli.SetManifestStore(manifestStore)
 	cli.SetRegistryClient(registry)
 
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
-	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	err := manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
 	assert.NilError(t, err)
 
 	cmd := newPushListCommand(cli)

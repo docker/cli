@@ -5,6 +5,7 @@ import (
 	"context"
 	"net"
 	"net/url"
+	"strings"
 
 	"github.com/docker/cli/cli/connhelper/commandconn"
 	"github.com/docker/cli/cli/connhelper/ssh"
@@ -39,15 +40,21 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 	if err != nil {
 		return nil, err
 	}
-	switch scheme := u.Scheme; scheme {
-	case "ssh":
+	if u.Scheme == "ssh" {
 		sp, err := ssh.ParseURL(daemonURL)
 		if err != nil {
 			return nil, errors.Wrap(err, "ssh host connection is not valid")
 		}
+		sshFlags = addSSHTimeout(sshFlags)
+		sshFlags = disablePseudoTerminalAllocation(sshFlags)
 		return &ConnectionHelper{
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				return commandconn.New(ctx, "ssh", append(sshFlags, sp.Args("docker", "system", "dial-stdio")...)...)
+				args := []string{"docker"}
+				if sp.Path != "" {
+					args = append(args, "--host", "unix://"+sp.Path)
+				}
+				args = append(args, "system", "dial-stdio")
+				return commandconn.New(ctx, "ssh", append(sshFlags, sp.Args(args...)...)...)
 			},
 			Host: "http://docker.example.com",
 		}, nil
@@ -65,4 +72,22 @@ func GetCommandConnectionHelper(cmd string, flags ...string) (*ConnectionHelper,
 		},
 		Host: "http://docker.example.com",
 	}, nil
+}
+
+func addSSHTimeout(sshFlags []string) []string {
+	if !strings.Contains(strings.Join(sshFlags, ""), "ConnectTimeout") {
+		sshFlags = append(sshFlags, "-o ConnectTimeout=30")
+	}
+	return sshFlags
+}
+
+// disablePseudoTerminalAllocation disables pseudo-terminal allocation to
+// prevent SSH from executing as a login shell
+func disablePseudoTerminalAllocation(sshFlags []string) []string {
+	for _, flag := range sshFlags {
+		if flag == "-T" {
+			return sshFlags
+		}
+	}
+	return append(sshFlags, "-T")
 }

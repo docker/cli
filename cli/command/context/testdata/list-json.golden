@@ -1,0 +1,5 @@
+{"Name":"context1","Description":"description of context1","DockerEndpoint":"https://someswarmserver.example.com","Current":false,"Error":"","ContextType":"aci"}
+{"Name":"context2","Description":"description of context2","DockerEndpoint":"https://someswarmserver.example.com","Current":false,"Error":"","ContextType":"ecs"}
+{"Name":"context3","Description":"description of context3","DockerEndpoint":"https://someswarmserver.example.com","Current":false,"Error":"","ContextType":"moby"}
+{"Name":"current","Description":"description of current","DockerEndpoint":"https://someswarmserver.example.com","Current":true,"Error":"","ContextType":"moby"}
+{"Name":"default","Description":"Current DOCKER_HOST based configuration","DockerEndpoint":"unix:///var/run/docker.sock","Current":false,"Error":"","ContextType":"moby"}

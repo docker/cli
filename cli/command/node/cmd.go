@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ func NewNodeCommand(dockerCli command.Cli) *cobra.Command {
 		RunE:  command.ShowHelp(dockerCli.Err()),
 		Annotations: map[string]string{
 			"version": "1.24",
-			"swarm":   "",
+			"swarm":   "manager",
 		},
 	}
 	cmd.AddCommand(
@@ -38,9 +38,9 @@ func NewNodeCommand(dockerCli command.Cli) *cobra.Command {
 // Reference returns the reference of a node. The special value "self" for a node
 // reference is mapped to the current node, hence the node ID is retrieved using
 // the `/info` endpoint.
-func Reference(ctx context.Context, client apiclient.APIClient, ref string) (string, error) {
+func Reference(ctx context.Context, apiClient client.APIClient, ref string) (string, error) {
 	if ref == "self" {
-		info, err := client.Info(ctx)
+		info, err := apiClient.Info(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -48,7 +48,7 @@ func Reference(ctx context.Context, client apiclient.APIClient, ref string) (str
 			// If there's no node ID in /info, the node probably
 			// isn't a manager. Call a swarm-specific endpoint to
 			// get a more specific error message.
-			_, err = client.NodeList(ctx, types.NodeListOptions{})
+			_, err = apiClient.NodeList(ctx, types.NodeListOptions{})
 			if err != nil {
 				return "", err
 			}

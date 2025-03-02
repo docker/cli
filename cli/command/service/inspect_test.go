@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package service
 
 import (
@@ -8,8 +11,8 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -17,6 +20,7 @@ import (
 )
 
 func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) string {
+	t.Helper()
 	b := new(bytes.Buffer)
 
 	endpointSpec := &swarm.EndpointSpec{
@@ -128,11 +132,11 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 	}
 
 	err := InspectFormatWrite(ctx, []string{"de179gar9d0o7ltdybungplod"},
-		func(ref string) (interface{}, []byte, error) {
+		func(ref string) (any, []byte, error) {
 			return s, nil, nil
 		},
-		func(ref string) (interface{}, []byte, error) {
-			return types.NetworkResource{
+		func(ref string) (any, []byte, error) {
+			return network.Inspect{
 				ID:   "5vpyomhb6ievnk0i0o60gcnei",
 				Name: "mynetwork",
 			}, nil, nil
@@ -165,7 +169,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 	// s2: {"ID":..}
 	s1 := formatServiceInspect(t, NewFormat(""), now)
 	s2 := formatServiceInspect(t, NewFormat("{{json .}}"), now)
-	var m1Wrap []map[string]interface{}
+	var m1Wrap []map[string]any
 	if err := json.Unmarshal([]byte(s1), &m1Wrap); err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +177,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 		t.Fatalf("strange s1=%s", s1)
 	}
 	m1 := m1Wrap[0]
-	var m2 map[string]interface{}
+	var m2 map[string]any
 	if err := json.Unmarshal([]byte(s2), &m2); err != nil {
 		t.Fatal(err)
 	}

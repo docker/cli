@@ -87,7 +87,7 @@ func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
 	var restoreOnce sync.Once
 	restore = func() {
 		restoreOnce.Do(func() {
-			restoreTerminal(h.streams, h.inputStream)
+			_ = restoreTerminal(h.streams, h.inputStream)
 		})
 	}
 
@@ -185,7 +185,6 @@ func setRawTerminal(streams command.Streams) error {
 	return streams.Out().SetRawTerminal()
 }
 
-// nolint: unparam
 func restoreTerminal(streams command.Streams, in io.Closer) error {
 	streams.In().RestoreTerminal()
 	streams.Out().RestoreTerminal()

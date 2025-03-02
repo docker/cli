@@ -1,5 +1,5 @@
 # if you want to ignore files created by your editor/tools,
-# please consider a global .gitignore https://help.github.com/articles/ignoring-files
+# consider a global .gitignore https://help.github.com/articles/ignoring-files
 *.exe
 *.exe~
 *.orig
@@ -8,11 +8,10 @@
 Thumbs.db
 .editorconfig
 /build/
-cli/winresources/rsrc_*.syso
-/man/man1/
-/man/man5/
-/man/man8/
-/docs/yaml/gen/
-coverage.txt
+/cli/winresources/versioninfo.json
+/cli/winresources/*.syso
 profile.out
-/vndr.log
+
+# top-level go.mod is not meant to be checked in
+/go.mod
+/go.sum

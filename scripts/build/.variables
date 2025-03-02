@@ -1,41 +1,116 @@
 #!/usr/bin/env sh
 set -eu
 
+: "${CGO_ENABLED=}"
+: "${GO_LINKMODE=static}"
+: "${GO_BUILDMODE=}"
+: "${GO_BUILDTAGS=}"
+: "${GO_STRIP=}"
+
 TARGET=${TARGET:-"build"}
 
 PLATFORM=${PLATFORM:-}
 VERSION=${VERSION:-$(git describe --match 'v[0-9]*' --dirty='.m' --always --tags | sed 's/^v//' 2>/dev/null || echo "unknown-version" )}
 GITCOMMIT=${GITCOMMIT:-$(git rev-parse --short HEAD 2> /dev/null || true)}
-BUILDTIME=${BUILDTIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 
-PLATFORM_LDFLAGS=
-if test -n "${PLATFORM}"; then
-	PLATFORM_LDFLAGS="-X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
+if [ "$(uname)" = "Darwin" ]; then
+    # Using BSD date (macOS), which doesn't suppoort the --date option
+    # date -jf "<input format>" "<input value>" +"<output format>" (https://unix.stackexchange.com/a/86510)
+    BUILDTIME=${BUILDTIME:-$(TZ=UTC date -jf "%s" "${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
+else
+    # Using GNU date (Linux)
+    BUILDTIME=${BUILDTIME:-$(TZ=UTC date -u --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +"%Y-%m-%dT%H:%M:%SZ")}
 fi
 
-export LDFLAGS="\
-    -w \
-    ${PLATFORM_LDFLAGS} \
-    -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\" \
-    -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\" \
-    -X \"github.com/docker/cli/cli/version.Version=${VERSION}\" \
-    ${LDFLAGS:-} \
-"
+case "$VERSION" in
+	refs/tags/v*) VERSION=${VERSION#refs/tags/v} ;;
+	refs/tags/*) VERSION=${VERSION#refs/tags/} ;;
+	refs/heads/*) VERSION=$(echo "${VERSION#refs/heads/}" | sed -r 's#/+#-#g') ;;
+	refs/pull/*) VERSION=pr-$(echo "$VERSION" | grep -o '[0-9]\+') ;;
+esac
 
 GOOS="$(go env GOOS)"
 GOARCH="$(go env GOARCH)"
 if [ "${GOARCH}" = "arm" ]; then
-	GOARM="$(go env GOARM)"
+    GOARM="$(go env GOARM)"
 fi
 
 TARGET="$TARGET/docker-${GOOS}-${GOARCH}"
 if [ "${GOARCH}" = "arm" ] && [ -n "${GOARM}" ]; then
     TARGET="${TARGET}-v${GOARM}"
 fi
-
 if [ "${GOOS}" = "windows" ]; then
-	TARGET="${TARGET}.exe"
+    TARGET="${TARGET}.exe"
 fi
 export TARGET
+
+# No CGO when cross building to darwin
+if [ "$(go env GOOS)" = "darwin" ] && [ "$(uname)" != "Darwin" ]; then
+    if [ -z "$CGO_ENABLED" ]; then
+        CGO_ENABLED=0
+    elif [ "$CGO_ENABLED" = "1" ]; then
+        echo "CGO_ENABLED=1 not supported when cross-compiling for Darwin"
+        exit 1
+    fi
+fi
+
+if [ -z "$CGO_ENABLED" ]; then
+    case "$(go env GOOS)" in
+        linux)
+            case "$(go env GOARCH)" in
+                amd64|arm64|arm|s390x|riscv64)
+                    CGO_ENABLED=1
+                ;;
+                *)
+                    CGO_ENABLED=0
+                ;;
+            esac
+        ;;
+        darwin|windows)
+            CGO_ENABLED=1
+        ;;
+        *)
+            CGO_ENABLED=0
+        ;;
+    esac
+fi
+export CGO_ENABLED
+
+if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
+    case "$(go env GOARCH)" in
+        mips*|ppc64)
+            # pie build mode is not supported on mips architectures
+            ;;
+        *)
+            GO_BUILDMODE="-buildmode=pie"
+            ;;
+    esac
+fi
+export GO_BUILDMODE
+
+GO_LDFLAGS="${GO_LDFLAGS:-}"
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
+if test -n "${PLATFORM}"; then
+    GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
+fi
+if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
+    GO_LDFLAGS="$GO_LDFLAGS -extldflags -static"
+fi
+if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ]; then
+    # compiling statically with CGO enabled requires osusergo to be set.
+    GO_BUILDTAGS="$GO_BUILDTAGS osusergo"
+fi
+if [ -n "$GO_STRIP" ]; then
+    # if stripping enabled and building with llvm < 12 against darwin/amd64
+    # platform, it will fail with:
+    #  # github.com/docker/cli/cmd/docker
+    #  /usr/local/go/pkg/tool/linux_amd64/link: /usr/local/go/pkg/tool/linux_amd64/link: running strip failed: exit status 1
+    #  llvm-strip: error: unsupported load command (cmd=0x5)
+    # more info: https://github.com/docker/cli/pull/3717
+    GO_LDFLAGS="$GO_LDFLAGS -s -w"
+fi
+export GO_LDFLAGS="$GO_LDFLAGS" # https://github.com/koalaman/shellcheck/issues/2064
 
 export SOURCE="github.com/docker/cli/cmd/docker"

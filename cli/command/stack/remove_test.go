@@ -2,7 +2,7 @@ package stack
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -42,16 +42,17 @@ func fakeClientForRemoveStackTest(version string) *fakeClient {
 }
 
 func TestRemoveWithEmptyName(t *testing.T) {
-	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}), &orchestrator)
+	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"good", "'   '", "alsogood"})
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }
 
 func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.24")
-	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)
+	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -63,7 +64,7 @@ func TestRemoveStackVersion124DoesNotRemoveConfigsOrSecrets(t *testing.T) {
 
 func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.25")
-	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)
+	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -75,7 +76,7 @@ func TestRemoveStackVersion125DoesNotRemoveConfigs(t *testing.T) {
 
 func TestRemoveStackVersion130RemovesEverything(t *testing.T) {
 	client := fakeClientForRemoveStackTest("1.30")
-	cmd := newRemoveCommand(test.NewFakeCli(client), &orchestrator)
+	cmd := newRemoveCommand(test.NewFakeCli(client))
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
@@ -106,11 +107,12 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 		configs:  allConfigs,
 	}
 	fakeCli := test.NewFakeCli(fakeClient)
-	cmd := newRemoveCommand(fakeCli, &orchestrator)
+	cmd := newRemoveCommand(fakeCli)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NilError(t, cmd.Execute())
-	expectedList := []string{"Removing service bar_service1",
+	expectedList := []string{
+		"Removing service bar_service1",
 		"Removing service bar_service2",
 		"Removing secret bar_secret1",
 		"Removing config bar_config1",
@@ -154,11 +156,12 @@ func TestRemoveContinueAfterError(t *testing.T) {
 			return nil
 		},
 	}
-	cmd := newRemoveCommand(test.NewFakeCli(cli), &orchestrator)
-	cmd.SetOut(ioutil.Discard)
+	cmd := newRemoveCommand(test.NewFakeCli(cli))
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
-	assert.Error(t, cmd.Execute(), "Failed to remove some resources from stack: foo")
+	assert.Error(t, cmd.Execute(), "failed to remove some resources from stack: foo")
 	assert.Check(t, is.DeepEqual(allServiceIDs, removedServices))
 	assert.Check(t, is.DeepEqual(allNetworkIDs, cli.removedNetworks))
 	assert.Check(t, is.DeepEqual(allSecretIDs, cli.removedSecrets))

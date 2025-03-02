@@ -18,7 +18,7 @@ func NewManifestCommand(dockerCli command.Cli) *cobra.Command {
 		Long:  manifestDescription,
 		Args:  cli.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Fprintf(dockerCli.Err(), "\n"+cmd.UsageString())
+			_, _ = fmt.Fprint(dockerCli.Err(), "\n"+cmd.UsageString())
 		},
 		Annotations: map[string]string{"experimentalCLI": ""},
 	}

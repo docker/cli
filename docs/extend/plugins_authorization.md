@@ -1,24 +1,14 @@
 ---
+title: Access authorization plugin
 description: "How to create authorization plugins to manage access control to your Docker daemon."
 keywords: "security, authorization, authentication, docker, documentation, plugin, extend"
-redirect_from:
+aliases:
 - "/engine/extend/authorization/"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
-# Access authorization plugin
-
-This document describes the Docker Engine plugins generally available in Docker
+This document describes the Docker Engine plugins available in Docker
 Engine. To view information on plugins managed by Docker Engine,
-refer to [Docker Engine plugin system](index.md).
+refer to [Docker Engine plugin system](_index.md).
 
 Docker's out-of-the-box authorization model is all or nothing. Any user with
 permission to access the Docker daemon can run any Docker client command. The
@@ -41,7 +31,7 @@ third-party components using a generic API. The access authorization subsystem
 was built using this mechanism.
 
 Using this subsystem, you don't need to rebuild the Docker daemon to add an
-authorization plugin.  You can add a plugin to an installed Docker daemon. You do
+authorization plugin. You can add a plugin to an installed Docker daemon. You do
 need to restart the Docker daemon to add a new plugin.
 
 An authorization plugin approves or denies requests to the Docker daemon based
@@ -53,8 +43,7 @@ Authorization plugins must follow the rules described in [Docker Plugin API](plu
 Each plugin must reside within directories described under the
 [Plugin discovery](plugin_api.md#plugin-discovery) section.
 
-> **Note**
->
+> [!NOTE]
 > The abbreviations `AuthZ` and `AuthN` mean authorization and authentication
 > respectively.
 
@@ -114,9 +103,9 @@ Enable the authorization plugin with a dedicated command line flag in the
 `--authorization-plugin=PLUGIN_ID` format. The flag supplies a `PLUGIN_ID`
 value. This value can be the plugin’s socket or a path to a specification file.
 Authorization plugins can be loaded without restarting the daemon. Refer
-to the [`dockerd` documentation](../reference/commandline/dockerd.md#configuration-reloading) for more information.
+to the [`dockerd` documentation](https://docs.docker.com/reference/cli/dockerd/#configuration-reload-behavior) for more information.
 
-```bash
+```console
 $ dockerd --authorization-plugin=plugin1 --authorization-plugin=plugin2,...
 ```
 
@@ -124,26 +113,26 @@ Docker's authorization subsystem supports multiple `--authorization-plugin` para
 
 ### Calling authorized command (allow)
 
-```bash
+```console
 $ docker pull centos
-...
+<...>
 f1b10cd84249: Pull complete
-...
+<...>
 ```
 
 ### Calling unauthorized command (deny)
 
-```bash
+```console
 $ docker pull centos
-...
+<...>
 docker: Error response from daemon: authorization denied by plugin PLUGIN_NAME: volumes are not allowed.
 ```
 
 ### Error from plugins
 
-```bash
+```console
 $ docker pull centos
-...
+<...>
 docker: Error response from daemon: plugin PLUGIN_NAME failed with error: AuthZPlugin.AuthZReq: Cannot connect to the Docker daemon. Is the docker daemon running on this host?.
 ```
 
@@ -158,7 +147,7 @@ should implement the following two methods:
 
 #### /AuthZPlugin.AuthZReq
 
-**Request**:
+Request
 
 ```json
 {
@@ -171,7 +160,7 @@ should implement the following two methods:
 }
 ```
 
-**Response**:
+Response
 
 ```json
 {
@@ -180,9 +169,10 @@ should implement the following two methods:
     "Err":   "The error message if things go wrong"
 }
 ```
+
 #### /AuthZPlugin.AuthZRes
 
-**Request**:
+Request:
 
 ```json
 {
@@ -198,7 +188,7 @@ should implement the following two methods:
 }
 ```
 
-**Response**:
+Response:
 
 ```json
 {
@@ -223,7 +213,6 @@ Request URI            | string            | The HTTP request URI including API 
 Request headers        | map[string]string | Request headers as key value pairs (without the authorization header)
 Request body           | []byte            | Raw request body
 
-
 #### Plugin -> Daemon
 
 Name    | Type   | Description
@@ -238,7 +227,6 @@ The plugin must support two authorization messages formats, one from the daemon 
 
 #### Daemon -> Plugin
 
-
 Name                    | Type              | Description
 ----------------------- |------------------ |----------------------------------------------------
 User                    | string            | The user identification
@@ -247,10 +235,9 @@ Request method          | string            | The HTTP method (GET/DELETE/POST)
 Request URI             | string            | The HTTP request URI including API version (e.g., v.1.17/containers/json)
 Request headers         | map[string]string | Request headers as key value pairs (without the authorization header)
 Request body            | []byte            | Raw request body
-Response status code    | int               | Status code from the docker daemon
+Response status code    | int               | Status code from the Docker daemon
 Response headers        | map[string]string | Response headers as key value pairs
-Response body           | []byte            | Raw docker daemon response body
-
+Response body           | []byte            | Raw Docker daemon response body
 
 #### Plugin -> Daemon
 

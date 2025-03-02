@@ -1,8 +1,8 @@
 package formatter
 
 import (
-	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,10 +124,16 @@ func (c *buildCacheContext) ID() string {
 }
 
 func (c *buildCacheContext) Parent() string {
-	if c.trunc {
-		return stringid.TruncateID(c.v.Parent)
+	var parent string
+	if len(c.v.Parents) > 0 {
+		parent = strings.Join(c.v.Parents, ", ")
+	} else {
+		parent = c.v.Parent //nolint:staticcheck // Ignore SA1019: Field was deprecated in API v1.42, but kept for backward compatibility
 	}
-	return c.v.Parent
+	if c.trunc {
+		return stringid.TruncateID(parent)
+	}
+	return parent
 }
 
 func (c *buildCacheContext) CacheType() string {
@@ -165,13 +171,13 @@ func (c *buildCacheContext) LastUsedSince() string {
 }
 
 func (c *buildCacheContext) UsageCount() string {
-	return fmt.Sprintf("%d", c.v.UsageCount)
+	return strconv.Itoa(c.v.UsageCount)
 }
 
 func (c *buildCacheContext) InUse() string {
-	return fmt.Sprintf("%t", c.v.InUse)
+	return strconv.FormatBool(c.v.InUse)
 }
 
 func (c *buildCacheContext) Shared() string {
-	return fmt.Sprintf("%t", c.v.Shared)
+	return strconv.FormatBool(c.v.Shared)
 }

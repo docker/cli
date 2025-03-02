@@ -1,37 +1,32 @@
----
-title: "network create"
-description: "The network create command description and usage"
-keywords: "network, create"
----
-
 # network create
 
-```markdown
-Usage:  docker network create [OPTIONS] NETWORK
-
+<!---MARKER_GEN_START-->
 Create a network
 
-Options:
-      --attachable           Enable manual container attachment
-      --ingress              Specify the network provides the routing-mesh
-      --aux-address value    Auxiliary IPv4 or IPv6 addresses used by Network
-                             driver (default map[])
-  -d, --driver string        Driver to manage the Network (default "bridge")
-      --gateway value        IPv4 or IPv6 Gateway for the master subnet (default [])
-      --help                 Print usage
-      --internal             Restrict external access to the network
-      --ip-range value       Allocate container ip from a sub-range (default [])
-      --ipam-driver string   IP Address Management Driver (default "default")
-      --ipam-opt value       Set IPAM driver specific options (default map[])
-      --ipv6                 Enable IPv6 networking
-      --label value          Set metadata on a network (default [])
-  -o, --opt value            Set driver specific options (default map[])
-      --subnet value         Subnet in CIDR format that represents a
-                             network segment (default [])
-      --scope value          Promote a network to swarm scope (value = [ local | swarm ])
-      --config-only          Creates a configuration only network
-      --config-from          The name of the network from which to copy the configuration
-```
+### Options
+
+| Name                      | Type          | Default   | Description                                             |
+|:--------------------------|:--------------|:----------|:--------------------------------------------------------|
+| `--attachable`            | `bool`        |           | Enable manual container attachment                      |
+| `--aux-address`           | `map`         | `map[]`   | Auxiliary IPv4 or IPv6 addresses used by Network driver |
+| `--config-from`           | `string`      |           | The network from which to copy the configuration        |
+| `--config-only`           | `bool`        |           | Create a configuration only network                     |
+| `-d`, `--driver`          | `string`      | `bridge`  | Driver to manage the Network                            |
+| `--gateway`               | `stringSlice` |           | IPv4 or IPv6 Gateway for the master subnet              |
+| [`--ingress`](#ingress)   | `bool`        |           | Create swarm routing-mesh network                       |
+| [`--internal`](#internal) | `bool`        |           | Restrict external access to the network                 |
+| `--ip-range`              | `stringSlice` |           | Allocate container ip from a sub-range                  |
+| `--ipam-driver`           | `string`      | `default` | IP Address Management Driver                            |
+| `--ipam-opt`              | `map`         | `map[]`   | Set IPAM driver specific options                        |
+| `--ipv4`                  | `bool`        | `true`    | Enable or disable IPv4 address assignment               |
+| `--ipv6`                  | `bool`        |           | Enable or disable IPv6 address assignment               |
+| `--label`                 | `list`        |           | Set metadata on a network                               |
+| `-o`, `--opt`             | `map`         | `map[]`   | Set driver specific options                             |
+| `--scope`                 | `string`      |           | Control the network's scope                             |
+| `--subnet`                | `stringSlice` |           | Subnet in CIDR format that represents a network segment |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -40,44 +35,34 @@ built-in network drivers. If you have installed a third party or your own custom
 network driver you can specify that `DRIVER` here also. If you don't specify the
 `--driver` option, the command automatically creates a `bridge` network for you.
 When you install Docker Engine it creates a `bridge` network automatically. This
-network corresponds to the `docker0` bridge that Engine has traditionally relied
+network corresponds to the `docker0` bridge that Docker Engine has traditionally relied
 on. When you launch a new container with  `docker run` it automatically connects to
 this bridge network. You cannot remove this default bridge network, but you can
 create new ones using the `network create` command.
 
-```bash
+```console
 $ docker network create -d bridge my-bridge-network
 ```
 
-Bridge networks are isolated networks on a single Engine installation. If you
-want to create a network that spans multiple Docker hosts each running an
-Engine, you must create an `overlay` network. Unlike `bridge` networks, overlay
-networks require some pre-existing conditions before you can create one. These
-conditions are:
+Bridge networks are isolated networks on a single Docker Engine installation. If you
+want to create a network that spans multiple Docker hosts each running Docker
+Engine, you must enable Swarm mode, and create an `overlay` network. To read more
+about overlay networks with Swarm mode, see ["*use overlay networks*"](https://docs.docker.com/network/overlay/).
 
-* Access to a key-value store. Engine supports Consul, Etcd, and ZooKeeper (Distributed store) key-value stores.
-* A cluster of hosts with connectivity to the key-value store.
-* A properly configured Engine `daemon` on each host in the cluster.
+Once you have enabled swarm mode, you can create a swarm-scoped overlay network:
 
-The `dockerd` options that support the `overlay` network are:
-
-* `--cluster-store`
-* `--cluster-store-opt`
-* `--cluster-advertise`
-
-To read more about these options and how to configure them, see ["*Get started
-with multi-host network*"](https://docs.docker.com/engine/userguide/networking/get-started-overlay).
-
-While not required, it is a good idea to install Docker Swarm to
-manage the cluster that makes up your network. Swarm provides sophisticated
-discovery and server management tools that can assist your implementation.
-
-Once you have prepared the `overlay` network prerequisites you simply choose a
-Docker host in the cluster and issue the following to create the network:
-
-```bash
-$ docker network create -d overlay my-multihost-network
+```console
+$ docker network create --scope=swarm --attachable -d overlay my-multihost-network
 ```
+
+By default, swarm-scoped networks do not allow manually started containers to
+be attached. This restriction is added to prevent someone that has access to
+a non-manager node in the swarm cluster from running a container that is able
+to access the network stack of a swarm service.
+
+The `--attachable` option used in the example above disables this restriction,
+and allows for both swarm services and manually started containers to attach to
+the overlay network.
 
 Network names must be unique. The Docker daemon attempts to identify naming
 conflicts but this is not guaranteed. It is the user's responsibility to avoid
@@ -102,7 +87,7 @@ for more information about different endpoint modes.
 When you start a container, use the `--network` flag to connect it to a network.
 This example adds the `busybox` container to the `mynet` network:
 
-```bash
+```console
 $ docker run -itd --network=mynet busybox
 ```
 
@@ -113,27 +98,27 @@ You can connect multiple containers to the same network. Once connected, the
 containers can communicate using only another container's IP address or name.
 For `overlay` networks or custom plugins that support multi-host connectivity,
 containers connected to the same multi-host network but launched from different
-Engines can also communicate in this way.
+daemons can also communicate in this way.
 
 You can disconnect a container from a network using the `docker network
 disconnect` command.
 
 ### Specify advanced options
 
-When you create a network, Engine creates a non-overlapping subnetwork for the
-network by default. This subnetwork is not a subdivision of an existing
+When you create a network, Docker Engine creates a non-overlapping subnetwork
+for the network by default. This subnetwork is not a subdivision of an existing
 network. It is purely for ip-addressing purposes. You can override this default
 and specify subnetwork values directly using the `--subnet` option. On a
 `bridge` network you can only create a single subnet:
 
-```bash
+```console
 $ docker network create --driver=bridge --subnet=192.168.0.0/16 br0
 ```
 
 Additionally, you also specify the `--gateway` `--ip-range` and `--aux-address`
 options.
 
-```bash
+```console
 $ docker network create \
   --driver=bridge \
   --subnet=172.28.0.0/16 \
@@ -142,13 +127,13 @@ $ docker network create \
   br0
 ```
 
-If you omit the `--gateway` flag the Engine selects one for you from inside a
-preferred pool. For `overlay` networks and for network driver plugins that
+If you omit the `--gateway` flag, Docker Engine selects one for you from inside
+a preferred pool. For `overlay` networks and for network driver plugins that
 support it you can create multiple subnetworks. This example uses two `/25`
 subnet mask to adhere to the current guidance of not having more than 256 IPs in
 a single overlay network. Each of the subnetworks has 126 usable addresses.
 
-```bash
+```console
 $ docker network create -d overlay \
   --subnet=192.168.10.0/25 \
   --subnet=192.168.20.0/25 \
@@ -160,51 +145,59 @@ $ docker network create -d overlay \
 ```
 
 Be sure that your subnetworks do not overlap. If they do, the network create
-fails and Engine returns an error.
+fails and Docker Engine returns an error.
 
 ### Bridge driver options
 
-When creating a custom network, the default network driver (i.e. `bridge`) has
-additional options that can be passed. The following are those options and the
-equivalent docker daemon flags used for docker0 bridge:
+When creating a custom `bridge` network, the following additional options can
+be passed. Some of these have equivalent flags that can be used on the dockerd
+command line or in `daemon.json` to configure the default bridge, `docker0`:
 
-| Option                                           | Equivalent  | Description                                           |
-|--------------------------------------------------|-------------|-------------------------------------------------------|
-| `com.docker.network.bridge.name`                 | -           | Bridge name to be used when creating the Linux bridge |
-| `com.docker.network.bridge.enable_ip_masquerade` | `--ip-masq` | Enable IP masquerading                                |
-| `com.docker.network.bridge.enable_icc`           | `--icc`     | Enable or Disable Inter Container Connectivity        |
-| `com.docker.network.bridge.host_binding_ipv4`    | `--ip`      | Default IP when binding container ports               |
-| `com.docker.network.driver.mtu`                  | `--mtu`     | Set the containers network MTU                        |
-| `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          |
+| Network create option                            | Daemon option for `docker0` | Description                                           |
+|--------------------------------------------------|-----------------------------|-------------------------------------------------------|
+| `com.docker.network.bridge.name`                 | -                           | Bridge name to be used when creating the Linux bridge |
+| `com.docker.network.bridge.enable_ip_masquerade` | `--ip-masq`                 | Enable IP masquerading                                |
+| `com.docker.network.bridge.enable_icc`           | `--icc`                     | Enable or Disable Inter Container Connectivity        |
+| `com.docker.network.bridge.host_binding_ipv4`    | `--ip`                      | Default IP when binding container ports               |
+| `com.docker.network.driver.mtu`                  | `--mtu`                     | Set the containers network MTU                        |
+| `com.docker.network.container_iface_prefix`      | -                           | Set a custom prefix for container interfaces          |
 
 The following arguments can be passed to `docker network create` for any
-network driver, again with their approximate equivalents to `docker daemon`.
+network driver, again with their approximate equivalents to Docker daemon
+flags used for the `docker0` bridge:
 
-| Argument     | Equivalent     | Description                                |
-|--------------|----------------|--------------------------------------------|
-| `--gateway`  | -              | IPv4 or IPv6 Gateway for the master subnet |
-| `--ip-range` | `--fixed-cidr` | Allocate IPs from a range                  |
-| `--internal` | -              | Restrict external access to the network   |
-| `--ipv6`     | `--ipv6`       | Enable IPv6 networking                     |
-| `--subnet`   | `--bip`        | Subnet for network                         |
+| Network create option | Daemon option for `docker0`       | Description                                |
+|-----------------------|-----------------------------------|--------------------------------------------|
+| `--gateway`           | -                                 | IPv4 or IPv6 Gateway for the master subnet |
+| `--ip-range`          | `--fixed-cidr`, `--fixed-cidr-v6` | Allocate IP addresses from a range         |
+| `--internal`          | -                                 | Restrict external access to the network    |
+| `--ipv4`              | -                                 | Enable or disable IPv4 address assignment  |
+| `--ipv6`              | `--ipv6`                          | Enable or disable IPv6 address assignment  |
+| `--subnet`            | `--bip`, `--bip6`                 | Subnet for network                         |
 
 For example, let's use `-o` or `--opt` options to specify an IP address binding
 when publishing ports:
 
-```bash
+```console
 $ docker network create \
     -o "com.docker.network.bridge.host_binding_ipv4"="172.19.0.1" \
     simple-network
 ```
 
-### Network internal mode
+### <a name="internal"></a> Network internal mode (--internal)
+
+Containers on an internal network may communicate between each other, but not
+with any other network, as no default route is configured and firewall rules
+are set up to drop all traffic to or from other networks. Communication with
+the gateway IP  address (and thus appropriately configured host services) is
+possible, and the host may communicate with any container IP directly.
 
 By default, when you connect a container to an `overlay` network, Docker also
 connects a bridge network to it to provide external connectivity. If you want
 to create an externally isolated `overlay` network, you can specify the
 `--internal` option.
 
-### Network ingress mode
+### <a name="ingress"></a> Network ingress mode (--ingress)
 
 You can create the network which will be used to provide the routing-mesh in the
 swarm cluster. You do so by specifying `--ingress` when creating the network. Only
@@ -212,13 +205,50 @@ one ingress network can be created at the time. The network can be removed only
 if no services depend on it. Any option available when creating an overlay network
 is also available when creating the ingress network, besides the `--attachable` option.
 
-```bash
+```console
 $ docker network create -d overlay \
   --subnet=10.11.0.0/16 \
   --ingress \
   --opt com.docker.network.driver.mtu=9216 \
   --opt encrypted=true \
   my-ingress-network
+```
+
+### Run services on predefined networks
+
+You can create services on the predefined Docker networks `bridge` and `host`.
+
+```console
+$ docker service create --name my-service \
+  --network host \
+  --replicas 2 \
+  busybox top
+```
+
+### Swarm networks with local scope drivers
+
+You can create a swarm network with local scope network drivers. You do so
+by promoting the network scope to `swarm` during the creation of the network.
+You will then be able to use this network when creating services.
+
+```console
+$ docker network create -d bridge \
+  --scope swarm \
+  --attachable \
+  swarm-network
+```
+
+For network drivers which provide connectivity across hosts (ex. macvlan), if
+node specific configurations are needed in order to plumb the network on each
+host, you will supply that configuration via a configuration only network.
+When you create the swarm scoped network, you will then specify the name of the
+network which contains the configuration.
+
+
+```console
+node1$ docker network create --config-only --subnet 192.168.100.0/24 --gateway 192.168.100.115 mv-config
+node2$ docker network create --config-only --subnet 192.168.200.0/24 --gateway 192.168.200.202 mv-config
+node1$ docker network create -d macvlan --scope swarm --config-from mv-config --attachable swarm-network
 ```
 
 ## Related commands

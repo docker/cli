@@ -11,10 +11,10 @@ then continue streaming new output from the container's stdout and stderr.
 logging drivers.
 
 The `--since` and `--until` options can be Unix timestamps, date formatted timestamps, 
-or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the client machine's
+or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed relative to the client machine's
 time. Supported formats for date formatted time stamps include RFC3339Nano,
 RFC3339, `2006-01-02T15:04:05`, `2006-01-02T15:04:05.999999999`,
-`2006-01-02Z07:00`, and `2006-01-02`. The local timezone on the client will be
+`2006-01-02T07:00`, and `2006-01-02`. The local timezone on the client will be
 used if you do not provide either a `Z` or a `+-00:00` timezone offset at the
 end of the timestamp.  When providing Unix timestamps enter
 seconds[.nanoseconds], where seconds is the number of seconds that have elapsed
@@ -29,7 +29,7 @@ container.
 
 In order to retrieve logs before a specific point in time, run:
 
-```bash
+```console
 $ docker run --name test -d busybox sh -c "while true; do $(echo date); sleep 1; done"
 $ date
 Tue 14 Nov 2017 16:40:00 CET

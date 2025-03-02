@@ -1,13 +1,13 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -52,7 +52,7 @@ func TestInspectErrors(t *testing.T) {
 			args:          []string{"foo"},
 			expectedError: "error inspecting plugin",
 			inspectFunc: func(name string) (*types.Plugin, []byte, error) {
-				return nil, nil, fmt.Errorf("error inspecting plugin")
+				return nil, nil, errors.New("error inspecting plugin")
 			},
 		},
 		{
@@ -61,7 +61,7 @@ func TestInspectErrors(t *testing.T) {
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
-			expectedError: "Template parsing error",
+			expectedError: "template parsing error",
 		},
 	}
 
@@ -73,7 +73,8 @@ func TestInspectErrors(t *testing.T) {
 			for key, value := range tc.flags {
 				cmd.Flags().Set(key, value)
 			}
-			cmd.SetOut(ioutil.Discard)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}

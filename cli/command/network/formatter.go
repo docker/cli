@@ -1,11 +1,11 @@
 package network
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stringid"
 )
 
@@ -13,6 +13,7 @@ const (
 	defaultNetworkTableFormat = "table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}"
 
 	networkIDHeader = "NETWORK ID"
+	ipv4Header      = "IPV4"
 	ipv6Header      = "IPV6"
 	internalHeader  = "INTERNAL"
 )
@@ -35,10 +36,10 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, networks []types.NetworkResource) error {
+func FormatWrite(ctx formatter.Context, networks []network.Summary) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, network := range networks {
-			networkCtx := &networkContext{trunc: ctx.Trunc, n: network}
+		for _, nw := range networks {
+			networkCtx := &networkContext{trunc: ctx.Trunc, n: nw}
 			if err := format(networkCtx); err != nil {
 				return err
 			}
@@ -51,6 +52,7 @@ func FormatWrite(ctx formatter.Context, networks []types.NetworkResource) error 
 		"Name":      formatter.NameHeader,
 		"Driver":    formatter.DriverHeader,
 		"Scope":     formatter.ScopeHeader,
+		"IPv4":      ipv4Header,
 		"IPv6":      ipv6Header,
 		"Internal":  internalHeader,
 		"Labels":    formatter.LabelsHeader,
@@ -62,7 +64,7 @@ func FormatWrite(ctx formatter.Context, networks []types.NetworkResource) error 
 type networkContext struct {
 	formatter.HeaderContext
 	trunc bool
-	n     types.NetworkResource
+	n     network.Summary
 }
 
 func (c *networkContext) MarshalJSON() ([]byte, error) {
@@ -88,12 +90,16 @@ func (c *networkContext) Scope() string {
 	return c.n.Scope
 }
 
+func (c *networkContext) IPv4() string {
+	return strconv.FormatBool(c.n.EnableIPv4)
+}
+
 func (c *networkContext) IPv6() string {
-	return fmt.Sprintf("%v", c.n.EnableIPv6)
+	return strconv.FormatBool(c.n.EnableIPv6)
 }
 
 func (c *networkContext) Internal() string {
-	return fmt.Sprintf("%v", c.n.Internal)
+	return strconv.FormatBool(c.n.Internal)
 }
 
 func (c *networkContext) Labels() string {
@@ -101,9 +107,9 @@ func (c *networkContext) Labels() string {
 		return ""
 	}
 
-	var joinLabels []string
+	joinLabels := make([]string, 0, len(c.n.Labels))
 	for k, v := range c.n.Labels {
-		joinLabels = append(joinLabels, fmt.Sprintf("%s=%s", k, v))
+		joinLabels = append(joinLabels, k+"="+v)
 	}
 	return strings.Join(joinLabels, ",")
 }

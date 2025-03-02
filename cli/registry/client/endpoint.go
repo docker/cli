@@ -1,15 +1,15 @@
 package client
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	authtypes "github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 )
@@ -17,16 +17,12 @@ import (
 type repositoryEndpoint struct {
 	info     *registry.RepositoryInfo
 	endpoint registry.APIEndpoint
+	actions  []string
 }
 
 // Name returns the repository name
 func (r repositoryEndpoint) Name() string {
-	repoName := r.info.Name.Name()
-	// If endpoint does not support CanonicalName, use the RemoteName instead
-	if r.endpoint.TrimHostname {
-		repoName = reference.Path(r.info.Name)
-	}
-	return repoName
+	return reference.Path(r.info.Name)
 }
 
 // BaseURL returns the endpoint url
@@ -74,14 +70,13 @@ func getDefaultEndpointFromRepoInfo(repoInfo *registry.RepositoryInfo) (registry
 }
 
 // getHTTPTransport builds a transport for use in communicating with a registry
-func getHTTPTransport(authConfig authtypes.AuthConfig, endpoint registry.APIEndpoint, repoName string, userAgent string) (http.RoundTripper, error) {
+func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.APIEndpoint, repoName, userAgent string, actions []string) (http.RoundTripper, error) {
 	// get the http transport, this will be used in a client to upload manifest
 	base := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     endpoint.TLSConfig,
@@ -90,19 +85,19 @@ func getHTTPTransport(authConfig authtypes.AuthConfig, endpoint registry.APIEndp
 
 	modifiers := registry.Headers(userAgent, http.Header{})
 	authTransport := transport.NewTransport(base, modifiers...)
-	challengeManager, confirmedV2, err := registry.PingV2Registry(endpoint.URL, authTransport)
+	challengeManager, err := registry.PingV2Registry(endpoint.URL, authTransport)
 	if err != nil {
 		return nil, errors.Wrap(err, "error pinging v2 registry")
-	}
-	if !confirmedV2 {
-		return nil, fmt.Errorf("unsupported registry version")
 	}
 	if authConfig.RegistryToken != "" {
 		passThruTokenHandler := &existingTokenHandler{token: authConfig.RegistryToken}
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, passThruTokenHandler))
 	} else {
+		if len(actions) == 0 {
+			actions = trust.ActionsPullOnly
+		}
 		creds := registry.NewStaticCredentialStore(&authConfig)
-		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, "push", "pull")
+		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, actions...)
 		basicHandler := auth.NewBasicHandler(creds)
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
 	}
@@ -123,11 +118,11 @@ type existingTokenHandler struct {
 	token string
 }
 
-func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, params map[string]string) error {
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", th.token))
+func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string]string) error {
+	req.Header.Set("Authorization", "Bearer "+th.token)
 	return nil
 }
 
-func (th *existingTokenHandler) Scheme() string {
+func (*existingTokenHandler) Scheme() string {
 	return "bearer"
 }

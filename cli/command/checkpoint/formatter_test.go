@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 	"gotest.tools/v3/assert"
 )
 
@@ -38,15 +38,14 @@ checkpoint-3:
 		},
 	}
 
-	checkpoints := []types.Checkpoint{
-		{Name: "checkpoint-1"},
-		{Name: "checkpoint-2"},
-		{Name: "checkpoint-3"},
-	}
 	for _, testcase := range cases {
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
-		err := FormatWrite(testcase.context, checkpoints)
+		err := FormatWrite(testcase.context, []checkpoint.Summary{
+			{Name: "checkpoint-1"},
+			{Name: "checkpoint-2"},
+			{Name: "checkpoint-3"},
+		})
 		assert.NilError(t, err)
 		assert.Equal(t, out.String(), testcase.expected)
 	}

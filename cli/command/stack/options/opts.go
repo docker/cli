@@ -9,13 +9,20 @@ type Deploy struct {
 	ResolveImage     string
 	SendRegistryAuth bool
 	Prune            bool
+	Detach           bool
+	Quiet            bool
+}
+
+// Config holds docker stack config options
+type Config struct {
+	Composefiles      []string
+	SkipInterpolation bool
 }
 
 // List holds docker stack ls options
 type List struct {
 	Format        string
 	AllNamespaces bool
-	Namespaces    []string
 }
 
 // PS holds docker stack ps options
@@ -31,6 +38,7 @@ type PS struct {
 // Remove holds docker stack remove options
 type Remove struct {
 	Namespaces []string
+	Detach     bool
 }
 
 // Services holds docker stack services options

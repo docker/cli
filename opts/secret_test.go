@@ -59,12 +59,11 @@ func TestSecretOptions(t *testing.T) {
 			fileName:   "testing",
 			uid:        "1000",
 			gid:        "1001",
-			fileMode:   0444,
+			fileMode:   0o444,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			var opt SecretOpt
 			assert.NilError(t, opt.Set(tc.input))

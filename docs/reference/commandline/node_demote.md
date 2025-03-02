@@ -1,34 +1,23 @@
----
-title: "node demote"
-description: "The node demote command description and usage"
-keywords: "node, demote"
----
-
 # node demote
 
-```markdown
-Usage:  docker node demote NODE [NODE...]
-
+<!---MARKER_GEN_START-->
 Demote one or more nodes from manager in the swarm
 
-Options:
-      --help   Print usage
 
-```
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Demotes an existing manager so that it is no longer a manager.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the [Swarm mode
 > section](https://docs.docker.com/engine/swarm/) in the documentation.
 
 ## Examples
 
-```bash
+```console
 $ docker node demote <node name>
 ```
 

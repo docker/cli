@@ -1,21 +1,18 @@
+// Package source provides utilities for handling source-code.
 package source // import "gotest.tools/v3/internal/source"
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/format"
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
 	"runtime"
-	"strconv"
-	"strings"
-
-	"github.com/pkg/errors"
 )
-
-const baseStackIndex = 1
 
 // FormattedCallExprArg returns the argument from an ast.CallExpr at the
 // index in the call stack. The argument is formatted using FormatNode.
@@ -33,28 +30,39 @@ func FormattedCallExprArg(stackIndex int, argPos int) (string, error) {
 // CallExprArgs returns the ast.Expr slice for the args of an ast.CallExpr at
 // the index in the call stack.
 func CallExprArgs(stackIndex int) ([]ast.Expr, error) {
-	_, filename, lineNum, ok := runtime.Caller(baseStackIndex + stackIndex)
+	_, filename, line, ok := runtime.Caller(stackIndex + 1)
 	if !ok {
 		return nil, errors.New("failed to get call stack")
 	}
-	debug("call stack position: %s:%d", filename, lineNum)
+	debug("call stack position: %s:%d", filename, line)
 
-	node, err := getNodeAtLine(filename, lineNum)
-	if err != nil {
-		return nil, err
+	// Normally, `go` will compile programs with absolute paths in
+	// the debug metadata. However, in the name of reproducibility,
+	// Bazel uses a compilation strategy that results in relative paths
+	// (otherwise, since Bazel uses a random tmp dir for compile and sandboxing,
+	// the resulting binaries would change across compiles/test runs).
+	if inBazelTest && !filepath.IsAbs(filename) {
+		var err error
+		filename, err = bazelSourcePath(filename)
+		if err != nil {
+			return nil, err
+		}
 	}
-	debug("found node: %s", debugFormatNode{node})
 
-	return getCallExprArgs(node)
-}
-
-func getNodeAtLine(filename string, lineNum int) (ast.Node, error) {
 	fileset := token.NewFileSet()
 	astFile, err := parser.ParseFile(fileset, filename, nil, parser.AllErrors)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse source file: %s", filename)
+		return nil, fmt.Errorf("failed to parse source file %s: %w", filename, err)
 	}
 
+	expr, err := getCallExprArgs(fileset, astFile, line)
+	if err != nil {
+		return nil, fmt.Errorf("call from %s:%d: %w", filename, line, err)
+	}
+	return expr, nil
+}
+
+func getNodeAtLine(fileset *token.FileSet, astFile ast.Node, lineNum int) (ast.Node, error) {
 	if node := scanToLine(fileset, astFile, lineNum); node != nil {
 		return node, nil
 	}
@@ -64,8 +72,7 @@ func getNodeAtLine(filename string, lineNum int) (ast.Node, error) {
 			return node, err
 		}
 	}
-	return nil, errors.Errorf(
-		"failed to find an expression on line %d in %s", lineNum, filename)
+	return nil, errors.New("failed to find expression")
 }
 
 func scanToLine(fileset *token.FileSet, node ast.Node, lineNum int) ast.Node {
@@ -74,7 +81,7 @@ func scanToLine(fileset *token.FileSet, node ast.Node, lineNum int) ast.Node {
 		switch {
 		case node == nil || matchedNode != nil:
 			return false
-		case nodePosition(fileset, node).Line == lineNum:
+		case fileset.Position(node.Pos()).Line == lineNum:
 			matchedNode = node
 			return false
 		}
@@ -83,39 +90,18 @@ func scanToLine(fileset *token.FileSet, node ast.Node, lineNum int) ast.Node {
 	return matchedNode
 }
 
-// In golang 1.9 the line number changed from being the line where the statement
-// ended to the line where the statement began.
-func nodePosition(fileset *token.FileSet, node ast.Node) token.Position {
-	if goVersionBefore19 {
-		return fileset.Position(node.End())
+func getCallExprArgs(fileset *token.FileSet, astFile ast.Node, line int) ([]ast.Expr, error) {
+	node, err := getNodeAtLine(fileset, astFile, line)
+	if err != nil {
+		return nil, err
 	}
-	return fileset.Position(node.Pos())
-}
 
-// GoVersionLessThan returns true if runtime.Version() is semantically less than
-// version 1.minor.
-func GoVersionLessThan(minor int64) bool {
-	version := runtime.Version()
-	// not a release version
-	if !strings.HasPrefix(version, "go") {
-		return false
-	}
-	version = strings.TrimPrefix(version, "go")
-	parts := strings.Split(version, ".")
-	if len(parts) < 2 {
-		return false
-	}
-	actual, err := strconv.ParseInt(parts[1], 10, 32)
-	return err == nil && parts[0] == "1" && actual < minor
-}
+	debug("found node: %s", debugFormatNode{node})
 
-var goVersionBefore19 = GoVersionLessThan(9)
-
-func getCallExprArgs(node ast.Node) ([]ast.Expr, error) {
 	visitor := &callExprVisitor{}
 	ast.Walk(visitor, node)
 	if visitor.expr == nil {
-		return nil, errors.New("failed to find call expression")
+		return nil, errors.New("failed to find an expression")
 	}
 	debug("callExpr: %s", debugFormatNode{visitor.expr})
 	return visitor.expr.Args, nil
@@ -162,6 +148,9 @@ type debugFormatNode struct {
 }
 
 func (n debugFormatNode) String() string {
+	if n.Node == nil {
+		return "none"
+	}
 	out, err := FormatNode(n.Node)
 	if err != nil {
 		return fmt.Sprintf("failed to format %s: %s", n.Node, err)

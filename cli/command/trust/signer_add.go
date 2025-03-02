@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
@@ -28,7 +27,7 @@ type signerAddOptions struct {
 	repos  []string
 }
 
-func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
+func newSignerAddCommand(dockerCLI command.Cli) *cobra.Command {
 	var options signerAddOptions
 	cmd := &cobra.Command{
 		Use:   "add OPTIONS NAME REPOSITORY [REPOSITORY...] ",
@@ -37,7 +36,7 @@ func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
 			options.repos = args[1:]
-			return addSigner(dockerCli, options)
+			return addSigner(cmd.Context(), dockerCLI, options)
 		},
 	}
 	flags := cmd.Flags()
@@ -48,17 +47,17 @@ func newSignerAddCommand(dockerCli command.Cli) *cobra.Command {
 
 var validSignerName = regexp.MustCompile(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
 
-func addSigner(cli command.Cli, options signerAddOptions) error {
+func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOptions) error {
 	signerName := options.signer
 	if !validSignerName(signerName) {
 		return fmt.Errorf("signer name \"%s\" must start with lowercase alphanumeric characters and can include \"-\" or \"_\" after the first character", signerName)
 	}
 	if signerName == "releases" {
-		return fmt.Errorf("releases is a reserved keyword, please use a different signer name")
+		return errors.New("releases is a reserved keyword, use a different signer name")
 	}
 
 	if options.keys.Len() == 0 {
-		return fmt.Errorf("path to a public key must be provided using the `--key` flag")
+		return errors.New("path to a public key must be provided using the `--key` flag")
 	}
 	signerPubKeys, err := ingestPublicKeys(options.keys.GetAll())
 	if err != nil {
@@ -66,28 +65,27 @@ func addSigner(cli command.Cli, options signerAddOptions) error {
 	}
 	var errRepos []string
 	for _, repoName := range options.repos {
-		fmt.Fprintf(cli.Out(), "Adding signer \"%s\" to %s...\n", signerName, repoName)
-		if err := addSignerToRepo(cli, signerName, repoName, signerPubKeys); err != nil {
-			fmt.Fprintln(cli.Err(), err.Error()+"\n")
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "Adding signer \"%s\" to %s...\n", signerName, repoName)
+		if err := addSignerToRepo(ctx, dockerCLI, signerName, repoName, signerPubKeys); err != nil {
+			_, _ = fmt.Fprintln(dockerCLI.Err(), err.Error()+"\n")
 			errRepos = append(errRepos, repoName)
 		} else {
-			fmt.Fprintf(cli.Out(), "Successfully added signer: %s to %s\n\n", signerName, repoName)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully added signer: %s to %s\n\n", signerName, repoName)
 		}
 	}
 	if len(errRepos) > 0 {
-		return fmt.Errorf("Failed to add signer to: %s", strings.Join(errRepos, ", "))
+		return fmt.Errorf("failed to add signer to: %s", strings.Join(errRepos, ", "))
 	}
 	return nil
 }
 
-func addSignerToRepo(cli command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
-	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), repoName)
+func addSignerToRepo(ctx context.Context, dockerCLI command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), repoName)
 	if err != nil {
 		return err
 	}
 
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := dockerCLI.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return trust.NotaryError(imgRefAndAuth.Reference().Name(), err)
 	}
@@ -95,11 +93,11 @@ func addSignerToRepo(cli command.Cli, signerName string, repoName string, signer
 	if _, err = notaryRepo.ListTargets(); err != nil {
 		switch err.(type) {
 		case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:
-			fmt.Fprintf(cli.Out(), "Initializing signed repository for %s...\n", repoName)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "Initializing signed repository for %s...\n", repoName)
 			if err := getOrGenerateRootKeyAndInitRepo(notaryRepo); err != nil {
 				return trust.NotaryError(repoName, err)
 			}
-			fmt.Fprintf(cli.Out(), "Successfully initialized %q\n", repoName)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully initialized %q\n", repoName)
 		default:
 			return trust.NotaryError(repoName, err)
 		}
@@ -118,14 +116,14 @@ func ingestPublicKeys(pubKeyPaths []string) ([]data.PublicKey, error) {
 	pubKeys := []data.PublicKey{}
 	for _, pubKeyPath := range pubKeyPaths {
 		// Read public key bytes from PEM file, limit to 1 KiB
-		pubKeyFile, err := os.OpenFile(pubKeyPath, os.O_RDONLY, 0666)
+		pubKeyFile, err := os.OpenFile(pubKeyPath, os.O_RDONLY, 0o666)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to read public key from file")
 		}
 		defer pubKeyFile.Close()
 		// limit to
 		l := io.LimitReader(pubKeyFile, 1<<20)
-		pubKeyBytes, err := ioutil.ReadAll(l)
+		pubKeyBytes, err := io.ReadAll(l)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to read public key from file")
 		}

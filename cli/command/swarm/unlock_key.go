@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -25,8 +26,13 @@ func newUnlockKeyCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Manage the unlock key",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlockKey(dockerCli, opts)
+			return runUnlockKey(cmd.Context(), dockerCli, opts)
 		},
+		Annotations: map[string]string{
+			"version": "1.24",
+			"swarm":   "manager",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
@@ -36,14 +42,13 @@ func newUnlockKeyCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUnlockKey(dockerCli command.Cli, opts unlockKeyOptions) error {
-	client := dockerCli.Client()
-	ctx := context.Background()
+func runUnlockKey(ctx context.Context, dockerCLI command.Cli, opts unlockKeyOptions) error {
+	apiClient := dockerCLI.Client()
 
 	if opts.rotate {
 		flags := swarm.UpdateFlags{RotateManagerUnlockKey: true}
 
-		sw, err := client.SwarmInspect(ctx)
+		sw, err := apiClient.SwarmInspect(ctx)
 		if err != nil {
 			return err
 		}
@@ -52,16 +57,16 @@ func runUnlockKey(dockerCli command.Cli, opts unlockKeyOptions) error {
 			return errors.New("cannot rotate because autolock is not turned on")
 		}
 
-		if err := client.SwarmUpdate(ctx, sw.Version, sw.Spec, flags); err != nil {
+		if err := apiClient.SwarmUpdate(ctx, sw.Version, sw.Spec, flags); err != nil {
 			return err
 		}
 
 		if !opts.quiet {
-			fmt.Fprintf(dockerCli.Out(), "Successfully rotated manager unlock key.\n\n")
+			_, _ = fmt.Fprintln(dockerCLI.Out(), "Successfully rotated manager unlock key.")
 		}
 	}
 
-	unlockKeyResp, err := client.SwarmGetUnlockKey(ctx)
+	unlockKeyResp, err := apiClient.SwarmGetUnlockKey(ctx)
 	if err != nil {
 		return errors.Wrap(err, "could not fetch unlock key")
 	}
@@ -71,19 +76,19 @@ func runUnlockKey(dockerCli command.Cli, opts unlockKeyOptions) error {
 	}
 
 	if opts.quiet {
-		fmt.Fprintln(dockerCli.Out(), unlockKeyResp.UnlockKey)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), unlockKeyResp.UnlockKey)
 		return nil
 	}
 
-	printUnlockCommand(dockerCli.Out(), unlockKeyResp.UnlockKey)
+	printUnlockCommand(dockerCLI.Out(), unlockKeyResp.UnlockKey)
 	return nil
 }
 
 func printUnlockCommand(out io.Writer, unlockKey string) {
 	if len(unlockKey) > 0 {
-		fmt.Fprintf(out, "To unlock a swarm manager after it restarts, "+
+		_, _ = fmt.Fprintf(out, "To unlock a swarm manager after it restarts, "+
 			"run the `docker swarm unlock`\ncommand and provide the following key:\n\n    %s\n\n"+
-			"Please remember to store this key in a password manager, since without it you\n"+
+			"Remember to store this key in a password manager, since without it you\n"+
 			"will not be able to restart the manager.\n", unlockKey)
 	}
 }

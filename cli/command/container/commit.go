@@ -6,8 +6,9 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/spf13/cobra"
 )
 
@@ -34,8 +35,12 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.reference = args[1]
 			}
-			return runCommit(dockerCli, &options)
+			return runCommit(cmd.Context(), dockerCli, &options)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container commit, docker commit",
+		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	flags := cmd.Flags()
@@ -43,7 +48,7 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVarP(&options.pause, "pause", "p", true, "Pause container during commit")
 	flags.StringVarP(&options.comment, "message", "m", "", "Commit message")
-	flags.StringVarP(&options.author, "author", "a", "", "Author (e.g., \"John Hannibal Smith <hannibal@a-team.com>\")")
+	flags.StringVarP(&options.author, "author", "a", "", `Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")`)
 
 	options.changes = opts.NewListOpts(nil)
 	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")
@@ -51,21 +56,14 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCommit(dockerCli command.Cli, options *commitOptions) error {
-	ctx := context.Background()
-
-	name := options.container
-	reference := options.reference
-
-	commitOptions := types.ContainerCommitOptions{
-		Reference: reference,
+func runCommit(ctx context.Context, dockerCli command.Cli, options *commitOptions) error {
+	response, err := dockerCli.Client().ContainerCommit(ctx, options.container, container.CommitOptions{
+		Reference: options.reference,
 		Comment:   options.comment,
 		Author:    options.author,
 		Changes:   options.changes.GetAll(),
 		Pause:     options.pause,
-	}
-
-	response, err := dockerCli.Client().ContainerCommit(ctx, name, commitOptions)
+	})
 	if err != nil {
 		return err
 	}

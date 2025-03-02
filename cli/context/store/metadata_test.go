@@ -1,18 +1,21 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package store
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 )
 
 func testMetadata(name string) Metadata {
 	return Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "bar"},
 		},
 		Metadata: context{Bar: "baz"},
@@ -21,21 +24,16 @@ func testMetadata(name string) Metadata {
 }
 
 func TestMetadataGetNotExisting(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir, config: testCfg}
-	_, err = testee.get("noexist")
-	assert.Assert(t, IsErrContextDoesNotExist(err))
+	testee := metadataStore{root: t.TempDir(), config: testCfg}
+	_, err := testee.get("noexist")
+	assert.ErrorType(t, err, errdefs.IsNotFound)
 }
 
 func TestMetadataCreateGetRemove(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
+	testDir := t.TempDir()
 	testee := metadataStore{root: testDir, config: testCfg}
 	expected2 := Metadata{
-		Endpoints: map[string]interface{}{
+		Endpoints: map[string]any{
 			"ep1": endpoint{Foo: "baz"},
 			"ep2": endpoint{Foo: "bee"},
 		},
@@ -43,11 +41,11 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 		Name:     "test-context",
 	}
 	testMeta := testMetadata("test-context")
-	err = testee.createOrUpdate(testMeta)
+	err := testee.createOrUpdate(testMeta)
 	assert.NilError(t, err)
 	// create a new instance to check it does not depend on some sort of state
 	testee = metadataStore{root: testDir, config: testCfg}
-	meta, err := testee.get(contextdirOf("test-context"))
+	meta, err := testee.get("test-context")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, meta, testMeta)
 
@@ -55,33 +53,28 @@ func TestMetadataCreateGetRemove(t *testing.T) {
 
 	err = testee.createOrUpdate(expected2)
 	assert.NilError(t, err)
-	meta, err = testee.get(contextdirOf("test-context"))
+	meta, err = testee.get("test-context")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, meta, expected2)
 
-	assert.NilError(t, testee.remove(contextdirOf("test-context")))
-	assert.NilError(t, testee.remove(contextdirOf("test-context"))) // support duplicate remove
-	_, err = testee.get(contextdirOf("test-context"))
-	assert.Assert(t, IsErrContextDoesNotExist(err))
+	assert.NilError(t, testee.remove("test-context"))
+	assert.NilError(t, testee.remove("test-context")) // support duplicate remove
+	_, err = testee.get("test-context")
+	assert.ErrorType(t, err, errdefs.IsNotFound)
 }
 
 func TestMetadataRespectJsonAnnotation(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
+	testDir := t.TempDir()
 	testee := metadataStore{root: testDir, config: testCfg}
 	assert.NilError(t, testee.createOrUpdate(testMetadata("test")))
-	bytes, err := ioutil.ReadFile(filepath.Join(testDir, string(contextdirOf("test")), "meta.json"))
+	bytes, err := os.ReadFile(filepath.Join(testDir, string(contextdirOf("test")), "meta.json"))
 	assert.NilError(t, err)
 	assert.Assert(t, cmp.Contains(string(bytes), "a_very_recognizable_field_name"))
 	assert.Assert(t, cmp.Contains(string(bytes), "another_very_recognizable_field_name"))
 }
 
 func TestMetadataList(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir, config: testCfg}
+	testee := metadataStore{root: t.TempDir(), config: testCfg}
 	wholeData := []Metadata{
 		testMetadata("context1"),
 		testMetadata("context2"),
@@ -89,8 +82,7 @@ func TestMetadataList(t *testing.T) {
 	}
 
 	for _, s := range wholeData {
-		err = testee.createOrUpdate(s)
-		assert.NilError(t, err)
+		assert.NilError(t, testee.createOrUpdate(s))
 	}
 
 	data, err := testee.list()
@@ -99,10 +91,7 @@ func TestMetadataList(t *testing.T) {
 }
 
 func TestEmptyConfig(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir}
+	testee := metadataStore{root: t.TempDir()}
 	wholeData := []Metadata{
 		testMetadata("context1"),
 		testMetadata("context2"),
@@ -110,8 +99,7 @@ func TestEmptyConfig(t *testing.T) {
 	}
 
 	for _, s := range wholeData {
-		err = testee.createOrUpdate(s)
-		assert.NilError(t, err)
+		assert.NilError(t, testee.createOrUpdate(s))
 	}
 
 	data, err := testee.list()
@@ -127,17 +115,17 @@ type embeddedStruct struct {
 }
 
 func TestWithEmbedding(t *testing.T) {
-	testDir, err := ioutil.TempDir("", t.Name())
-	assert.NilError(t, err)
-	defer os.RemoveAll(testDir)
-	testee := metadataStore{root: testDir, config: NewConfig(func() interface{} { return &contextWithEmbedding{} })}
+	testee := metadataStore{
+		root:   t.TempDir(),
+		config: NewConfig(func() any { return &contextWithEmbedding{} }),
+	}
 	testCtxMeta := contextWithEmbedding{
 		embeddedStruct: embeddedStruct{
 			Val: "Hello",
 		},
 	}
 	assert.NilError(t, testee.createOrUpdate(Metadata{Metadata: testCtxMeta, Name: "test"}))
-	res, err := testee.get(contextdirOf("test"))
+	res, err := testee.get("test")
 	assert.NilError(t, err)
 	assert.Equal(t, testCtxMeta, res.Metadata)
 }

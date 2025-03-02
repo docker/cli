@@ -1,5 +1,5 @@
 Disconnects a container from a network.
 
-```bash
+```console
 $ docker network disconnect multi-host-network container1
 ```

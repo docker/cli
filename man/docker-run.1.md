@@ -1,15 +1,16 @@
 % "DOCKER" "1" "JUNE 2014" "Docker Community" "Docker User Manuals"
 
 # NAME
-docker-run - Run a command in a new container
+docker-run - Create and run a new container from an image
 
 # SYNOPSIS
 **docker run**
 [**-a**|**--attach**[=*[]*]]
 [**--add-host**[=*[]*]]
+[**--annotation**[=*[]*]]
 [**--blkio-weight**[=*[BLKIO-WEIGHT]*]]
 [**--blkio-weight-device**[=*[]*]]
-[**--cpu-shares**[=*0*]]
+[**-c**|**--cpu-shares**[=*0*]]
 [**--cap-add**[=*[]*]]
 [**--cap-drop**[=*[]*]]
 [**--cgroupns**[=*[]*]]
@@ -120,10 +121,15 @@ executables expect) and pass along signals. The **-a** option can be set for
 each of stdin, stdout, and stderr.
 
 **--add-host**=[]
-   Add a custom host-to-IP mapping (host:ip)
+   Add a custom host-to-IP mapping (host=ip, or host:ip)
 
-   Add a line to /etc/hosts. The format is hostname:ip.  The **--add-host**
-option can be set multiple times.
+   Add a line to /etc/hosts. The format is hostname=ip, or hostname:ip.
+   The **--add-host** option can be set multiple times.
+
+**--annotation**=[]
+   Add an annotation to the container (passed through to the OCI runtime).
+
+   The annotations are provided to the OCI runtime.
 
 **--blkio-weight**=*0*
    Block IO weight (relative weight) accepts a weight value between 10 and 1000.
@@ -131,14 +137,14 @@ option can be set multiple times.
 **--blkio-weight-device**=[]
    Block IO weight (relative device weight, format: `DEVICE_NAME:WEIGHT`).
 
-**--cpu-shares**=*0*
+**-c**, **--cpu-shares**=*0*
    CPU shares (relative weight)
 
    By default, all containers get the same proportion of CPU cycles. This proportion
 can be modified by changing the container's CPU share weighting relative
 to the weighting of all other running containers.
 
-To modify the proportion from the default of 1024, use the **--cpu-shares**
+To modify the proportion from the default of 1024, use the **-c** or **--cpu-shares**
 flag to set the weighting to 2 or higher.
 
 The proportion will only apply when CPU-intensive processes are running.
@@ -461,16 +467,20 @@ according to RFC4862.
    * `dst`, `destination`, `target`: mount destination spec.
    * `ro`, `readonly`: `true` or `false` (default).
 
-   **Note**: setting `readonly` for a bind mount does not make its submounts
-   read-only on the current Linux implementation. See also `bind-nonrecursive`.
+   **Note**: setting `readonly` for a bind mount may not make its submounts
+   read-only depending on the kernel version. See also `bind-recursive`.
 
    Options specific to `bind`:
 
    * `bind-propagation`: `shared`, `slave`, `private`, `rshared`, `rslave`, or `rprivate`(default). See also `mount(2)`.
    * `consistency`: `consistent`(default), `cached`, or `delegated`. Currently, only effective for Docker for Mac.
-   * `bind-nonrecursive`: `true` or `false` (default). If set to `true`,
-   submounts are not recursively bind-mounted. This option is useful for
-   `readonly` bind mount.
+   * `bind-recursive`: `enabled` (default), `disabled`, `writable`, or `readonly`:
+      If set to `enabled`, submounts are recursively bind-mounted and attempted to be made recursively read-only.
+      If set to `disabled`, submounts are not recursively bind-mounted.
+      If set to `writable`, submounts are recursively bind-mounted but not made recursively read-only.
+      If set to `readonly`, submounts are recursively bind-mounted and forcibly made recursively read-only.
+   * `bind-nonrecursive` (Deprecated): `true` or `false` (default). Setting `true` equates to `bind-recursive=disabled`.
+     Setting `false` equates to `bind-recursive=enabled`.
 
    Options specific to `volume`:
 
@@ -616,16 +626,35 @@ incompatible with any restart policy other than `none`.
    $ docker run -it --storage-opt size=120G fedora /bin/bash
 
    This (size) will allow to set the container rootfs size to 120G at creation time.
-   This option is only available for the `devicemapper`, `btrfs`, `overlay2`  and `zfs` graph drivers.
-   For the `devicemapper`, `btrfs` and `zfs` storage drivers, user cannot pass a size less than the Default BaseFS Size.
+   This option is only available for the `btrfs`, `overlay2`  and `zfs` graph drivers.
+   For the `btrfs` and `zfs` storage drivers, user cannot pass a size less than the Default BaseFS Size.
    For the `overlay2` storage driver, the size option is only available if the backing fs is `xfs` and mounted with the `pquota` mount option.
    Under these conditions, user can pass any size less than the backing fs size.
 
-**--stop-signal**=*SIGTERM*
-  Signal to stop a container. Default is SIGTERM.
+**--stop-signal**=""
+   Signal to stop the container.
 
-**--stop-timeout**=*10*
-  Timeout (in seconds) to stop a container. Default is 10.
+   The `--stop-signal` flag sets the system call signal that will be sent to the
+   container to exit. This signal can be a signal name in the format `SIG<NAME>`,
+   for instance `SIGKILL`, or an unsigned number that matches a position in the
+   kernel's syscall table, for instance `9`.
+
+   The default is defined by `STOPSIGNAL` in the image, or `SIGTERM` if the image
+   has no `STOPSIGNAL` defined.
+
+**--stop-timeout**
+  Timeout (in seconds) to stop a container, or **-1** to disable timeout.
+
+  The `--stop-timeout` flag sets the number of seconds to wait for the container
+  to stop after sending the pre-defined (see `--stop-signal`) system call signal.
+  If the container does not exit after the timeout elapses, it is forcibly killed
+  with a `SIGKILL` signal.
+
+  If `--stop-timeout` is set to **-1**, no timeout is applied, and the daemon will
+  wait indefinitely for the container to exit.
+
+  The default is determined by the daemon, and 10 seconds for Linux containers,
+  and 30 seconds for Windows containers.
 
 **--shm-size**=""
    Size of `/dev/shm`. The format is `<number><unit>`.
@@ -736,10 +765,10 @@ The `Z` option tells Docker to label the content with a private unshared label.
 Only the current container can use a private volume.
 
 By default bind mounted volumes are `private`. That means any mounts done
-inside container will not be visible on host and vice-a-versa. One can change
+inside container will not be visible on host and vice versa. One can change
 this behavior by specifying a volume mount propagation property. Making a
 volume `shared` mounts done under that volume inside container will be
-visible on host and vice-a-versa. Making a volume `slave` enables only one
+visible on host and vice versa. Making a volume `slave` enables only one
 way mount propagation and that is mounts done on host under that volume
 will be visible inside container but not the other way around.
 

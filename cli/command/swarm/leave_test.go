@@ -1,12 +1,12 @@
 package swarm
 
 import (
-	"io/ioutil"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -25,26 +25,33 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		},
 		{
 			name: "leave-failed",
+			args: []string{},
 			swarmLeaveFunc: func() error {
-				return errors.Errorf("error leaving the swarm")
+				return errors.New("error leaving the swarm")
 			},
 			expectedError: "error leaving the swarm",
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newLeaveCommand(
-			test.NewFakeCli(&fakeClient{
-				swarmLeaveFunc: tc.swarmLeaveFunc,
-			}))
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newLeaveCommand(
+				test.NewFakeCli(&fakeClient{
+					swarmLeaveFunc: tc.swarmLeaveFunc,
+				}))
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
 func TestSwarmLeave(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newLeaveCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("Node left the swarm.", strings.TrimSpace(cli.OutBuffer().String())))
 }

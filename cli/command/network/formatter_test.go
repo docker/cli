@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package network
 
 import (
@@ -10,7 +13,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -26,36 +29,39 @@ func TestNetworkContext(t *testing.T) {
 		call       func() string
 	}{
 		{networkContext{
-			n:     types.NetworkResource{ID: networkID},
+			n:     network.Summary{ID: networkID},
 			trunc: false,
 		}, networkID, ctx.ID},
 		{networkContext{
-			n:     types.NetworkResource{ID: networkID},
+			n:     network.Summary{ID: networkID},
 			trunc: true,
 		}, stringid.TruncateID(networkID), ctx.ID},
 		{networkContext{
-			n: types.NetworkResource{Name: "network_name"},
+			n: network.Summary{Name: "network_name"},
 		}, "network_name", ctx.Name},
 		{networkContext{
-			n: types.NetworkResource{Driver: "driver_name"},
+			n: network.Summary{Driver: "driver_name"},
 		}, "driver_name", ctx.Driver},
 		{networkContext{
-			n: types.NetworkResource{EnableIPv6: true},
+			n: network.Summary{EnableIPv4: true},
+		}, "true", ctx.IPv4},
+		{networkContext{
+			n: network.Summary{EnableIPv6: true},
 		}, "true", ctx.IPv6},
 		{networkContext{
-			n: types.NetworkResource{EnableIPv6: false},
+			n: network.Summary{EnableIPv6: false},
 		}, "false", ctx.IPv6},
 		{networkContext{
-			n: types.NetworkResource{Internal: true},
+			n: network.Summary{Internal: true},
 		}, "true", ctx.Internal},
 		{networkContext{
-			n: types.NetworkResource{Internal: false},
+			n: network.Summary{Internal: false},
 		}, "false", ctx.Internal},
 		{networkContext{
-			n: types.NetworkResource{},
+			n: network.Summary{},
 		}, "", ctx.Labels},
 		{networkContext{
-			n: types.NetworkResource{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
+			n: network.Summary{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
 		}, "label1=value1,label2=value2", ctx.Labels},
 	}
 
@@ -75,17 +81,14 @@ func TestNetworkContextWrite(t *testing.T) {
 		context  formatter.Context
 		expected string
 	}{
-
 		// Errors
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table format
 		{
@@ -155,13 +158,12 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 	timestamp1, _ := time.Parse("2006-01-02", "2016-01-01")
 	timestamp2, _ := time.Parse("2006-01-02", "2017-01-01")
 
-	networks := []types.NetworkResource{
+	networks := []network.Summary{
 		{ID: "networkID1", Name: "foobar_baz", Driver: "foo", Scope: "local", Created: timestamp1},
 		{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2},
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -176,13 +178,13 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 }
 
 func TestNetworkContextWriteJSON(t *testing.T) {
-	networks := []types.NetworkResource{
+	networks := []network.Summary{
 		{ID: "networkID1", Name: "foobar_baz"},
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
-	expectedJSONs := []map[string]interface{}{
-		{"Driver": "", "ID": "networkID1", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
-		{"Driver": "", "ID": "networkID2", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
+	expectedJSONs := []map[string]any{
+		{"Driver": "", "ID": "networkID1", "IPv4": "false", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
+		{"Driver": "", "ID": "networkID2", "IPv4": "false", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_bar", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
 	}
 
 	out := bytes.NewBufferString("")
@@ -192,7 +194,7 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
-		var m map[string]interface{}
+		var m map[string]any
 		err := json.Unmarshal([]byte(line), &m)
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)
@@ -200,7 +202,7 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 }
 
 func TestNetworkContextWriteJSONField(t *testing.T) {
-	networks := []types.NetworkResource{
+	networks := []network.Summary{
 		{ID: "networkID1", Name: "foobar_baz"},
 		{ID: "networkID2", Name: "foobar_bar"},
 	}

@@ -51,9 +51,8 @@ type trustKey struct {
 
 // lookupTrustInfo returns processed signature and role information about a notary repository.
 // This information is to be pretty printed or serialized into a machine-readable format.
-func lookupTrustInfo(cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
-	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), remote)
+func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
 	if err != nil {
 		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, err
 	}
@@ -74,7 +73,7 @@ func lookupTrustInfo(cli command.Cli, remote string) ([]trustTagRow, []client.Ro
 		logrus.Debug(trust.NotaryError(remote, err))
 		// print an empty table if we don't have signed targets, but have an initialized notary repo
 		if _, ok := err.(client.ErrNoSuchTarget); !ok {
-			return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signatures or cannot access %s", remote)
+			return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("no signatures or cannot access %s", remote)
 		}
 	}
 	signatureRows := matchReleasedSignatures(allSignedTargets)
@@ -82,7 +81,7 @@ func lookupTrustInfo(cli command.Cli, remote string) ([]trustTagRow, []client.Ro
 	// get the administrative roles
 	adminRolesWithSigs, err := notaryRepo.ListRoles()
 	if err != nil {
-		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("No signers for %s", remote)
+		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, fmt.Errorf("no signers for %s", remote)
 	}
 
 	// get delegation roles with the canonical key IDs

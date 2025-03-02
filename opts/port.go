@@ -2,6 +2,7 @@ package opts
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"net"
 	"regexp"
@@ -26,7 +27,8 @@ type PortOpt struct {
 }
 
 // Set a new port value
-// nolint: gocyclo
+//
+//nolint:gocyclo
 func (p *PortOpt) Set(value string) error {
 	longSyntax, err := regexp.MatchString(`\w+=\w+(,\w+=\w+)*`, value)
 	if err != nil {
@@ -41,36 +43,33 @@ func (p *PortOpt) Set(value string) error {
 
 		pConfig := swarm.PortConfig{}
 		for _, field := range fields {
-			parts := strings.SplitN(field, "=", 2)
-			if len(parts) != 2 {
+			// TODO(thaJeztah): these options should not be case-insensitive.
+			key, val, ok := strings.Cut(strings.ToLower(field), "=")
+			if !ok || key == "" {
 				return fmt.Errorf("invalid field %s", field)
 			}
-
-			key := strings.ToLower(parts[0])
-			value := strings.ToLower(parts[1])
-
 			switch key {
 			case portOptProtocol:
-				if value != string(swarm.PortConfigProtocolTCP) && value != string(swarm.PortConfigProtocolUDP) && value != string(swarm.PortConfigProtocolSCTP) {
-					return fmt.Errorf("invalid protocol value %s", value)
+				if val != string(swarm.PortConfigProtocolTCP) && val != string(swarm.PortConfigProtocolUDP) && val != string(swarm.PortConfigProtocolSCTP) {
+					return fmt.Errorf("invalid protocol value %s", val)
 				}
 
-				pConfig.Protocol = swarm.PortConfigProtocol(value)
+				pConfig.Protocol = swarm.PortConfigProtocol(val)
 			case portOptMode:
-				if value != string(swarm.PortConfigPublishModeIngress) && value != string(swarm.PortConfigPublishModeHost) {
-					return fmt.Errorf("invalid publish mode value %s", value)
+				if val != string(swarm.PortConfigPublishModeIngress) && val != string(swarm.PortConfigPublishModeHost) {
+					return fmt.Errorf("invalid publish mode value %s", val)
 				}
 
-				pConfig.PublishMode = swarm.PortConfigPublishMode(value)
+				pConfig.PublishMode = swarm.PortConfigPublishMode(val)
 			case portOptTargetPort:
-				tPort, err := strconv.ParseUint(value, 10, 16)
+				tPort, err := strconv.ParseUint(val, 10, 16)
 				if err != nil {
 					return err
 				}
 
 				pConfig.TargetPort = uint32(tPort)
 			case portOptPublishedPort:
-				pPort, err := strconv.ParseUint(value, 10, 16)
+				pPort, err := strconv.ParseUint(val, 10, 16)
 				if err != nil {
 					return err
 				}
@@ -104,7 +103,7 @@ func (p *PortOpt) Set(value string) error {
 		for _, portBindings := range portBindingMap {
 			for _, portBinding := range portBindings {
 				if portBinding.HostIP != "" {
-					return fmt.Errorf("hostip is not supported")
+					return errors.New("hostip is not supported")
 				}
 			}
 		}
@@ -122,7 +121,7 @@ func (p *PortOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (p *PortOpt) Type() string {
+func (*PortOpt) Type() string {
 	return "port"
 }
 
@@ -150,6 +149,7 @@ func ConvertPortToPortConfig(
 
 	for _, binding := range portBindings[port] {
 		if p := net.ParseIP(binding.HostIP); p != nil && !p.IsUnspecified() {
+			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
 			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), port)
 		}
 

@@ -1,22 +1,14 @@
----
-title: "secret rm"
-description: "The secret rm command description and usage"
-keywords: ["secret, rm"]
----
-
 # secret rm
 
-```Markdown
-Usage:  docker secret rm SECRET [SECRET...]
-
+<!---MARKER_GEN_START-->
 Remove one or more secrets
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      --help   Print usage
-```
+`docker secret rm`, `docker secret remove`
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -24,8 +16,7 @@ Removes the specified secrets from the swarm.
 
 For detailed information about using secrets, refer to [manage sensitive data with Docker secrets](https://docs.docker.com/engine/swarm/secrets/).
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -35,15 +26,15 @@ For detailed information about using secrets, refer to [manage sensitive data wi
 
 This example removes a secret:
 
-```bash
+```console
 $ docker secret rm secret.json
 sapth4csdo5b6wz2p5uimh5xg
 ```
 
-> **Warning**
->
+> [!WARNING]
 > Unlike `docker rm`, this command does not ask for confirmation before removing
 > a secret.
+{ .warning }
 
 
 ## Related commands

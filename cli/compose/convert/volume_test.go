@@ -9,6 +9,55 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
+func TestVolumesWithMultipleServiceVolumeConfigs(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	serviceVolumes := []composetypes.ServiceVolumeConfig{
+		{
+			Type:   "volume",
+			Target: "/foo",
+		},
+		{
+			Type:   "volume",
+			Target: "/foo/bar",
+		},
+	}
+
+	expected := []mount.Mount{
+		{
+			Type:   "volume",
+			Target: "/foo",
+		},
+		{
+			Type:   "volume",
+			Target: "/foo/bar",
+		},
+	}
+
+	mnt, err := Volumes(serviceVolumes, volumes{}, namespace)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
+func TestVolumesWithMultipleServiceVolumeConfigsWithUndefinedVolumeConfig(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	serviceVolumes := []composetypes.ServiceVolumeConfig{
+		{
+			Type:   "volume",
+			Source: "foo",
+			Target: "/foo",
+		},
+		{
+			Type:   "volume",
+			Target: "/foo/bar",
+		},
+	}
+
+	_, err := Volumes(serviceVolumes, volumes{}, namespace)
+	assert.Error(t, err, "undefined volume \"foo\"")
+}
+
 func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {
 	config := composetypes.ServiceVolumeConfig{
 		Type:   "volume",
@@ -18,9 +67,9 @@ func TestConvertVolumeToMountAnonymousVolume(t *testing.T) {
 		Type:   mount.TypeVolume,
 		Target: "/foo/bar",
 	}
-	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountAnonymousBind(t *testing.T) {
@@ -41,7 +90,7 @@ func TestConvertVolumeToMountUnapprovedType(t *testing.T) {
 		Target: "/foo/bar",
 	}
 	_, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
-	assert.Error(t, err, "volume type must be volume, bind, tmpfs or npipe")
+	assert.Error(t, err, "volume type must be volume, bind, tmpfs, npipe, or cluster")
 }
 
 func TestConvertVolumeToMountConflictingOptionsBindInVolume(t *testing.T) {
@@ -104,6 +153,49 @@ func TestConvertVolumeToMountConflictingOptionsTmpfsInBind(t *testing.T) {
 	assert.Error(t, err, "tmpfs options are incompatible with type bind")
 }
 
+func TestConvertVolumeToMountConflictingOptionsClusterInVolume(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:    "volume",
+		Target:  "/target",
+		Cluster: &composetypes.ServiceVolumeCluster{},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "cluster options are incompatible with type volume")
+}
+
+func TestConvertVolumeToMountConflictingOptionsClusterInBind(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "bind",
+		Source: "/foo",
+		Target: "/target",
+		Bind: &composetypes.ServiceVolumeBind{
+			Propagation: "slave",
+		},
+		Cluster: &composetypes.ServiceVolumeCluster{},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "cluster options are incompatible with type bind")
+}
+
+func TestConvertVolumeToMountConflictingOptionsClusterInTmpfs(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "tmpfs",
+		Target: "/target",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Size: 1000,
+		},
+		Cluster: &composetypes.ServiceVolumeCluster{},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "cluster options are incompatible with type tmpfs")
+}
+
 func TestConvertVolumeToMountConflictingOptionsBindInTmpfs(t *testing.T) {
 	namespace := NewNamespace("foo")
 
@@ -130,6 +222,50 @@ func TestConvertVolumeToMountConflictingOptionsVolumeInTmpfs(t *testing.T) {
 	}
 	_, err := convertVolumeToMount(config, volumes{}, namespace)
 	assert.Error(t, err, "volume options are incompatible with type tmpfs")
+}
+
+func TestHandleNpipeToMountAnonymousNpipe(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "invalid npipe source, source cannot be empty")
+}
+
+func TestHandleNpipeToMountConflictingOptionsTmpfsInNpipe(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Source: "/foo",
+		Target: "/target",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Size: 1000,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "tmpfs options are incompatible with type npipe")
+}
+
+func TestHandleNpipeToMountConflictingOptionsVolumeInNpipe(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "npipe",
+		Source: "/foo",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "volume options are incompatible with type npipe")
 }
 
 func TestConvertVolumeToMountNamedVolume(t *testing.T) {
@@ -173,9 +309,9 @@ func TestConvertVolumeToMountNamedVolume(t *testing.T) {
 			NoCopy: true,
 		},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
@@ -220,9 +356,9 @@ func TestConvertVolumeToMountNamedVolumeWithNameCustomizd(t *testing.T) {
 			NoCopy: true,
 		},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
@@ -244,9 +380,9 @@ func TestConvertVolumeToMountNamedVolumeExternal(t *testing.T) {
 		Source: "outside",
 		Target: "/foo",
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
@@ -273,9 +409,9 @@ func TestConvertVolumeToMountNamedVolumeExternalNoCopy(t *testing.T) {
 			NoCopy: true,
 		},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountBind(t *testing.T) {
@@ -295,9 +431,9 @@ func TestConvertVolumeToMountBind(t *testing.T) {
 		ReadOnly: true,
 		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
 	}
-	mount, err := convertVolumeToMount(config, stackVolumes, namespace)
+	mnt, err := convertVolumeToMount(config, stackVolumes, namespace)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertVolumeToMountVolumeDoesNotExist(t *testing.T) {
@@ -325,9 +461,9 @@ func TestConvertTmpfsToMountVolume(t *testing.T) {
 		Target:       "/foo/bar",
 		TmpfsOptions: &mount.TmpfsOptions{SizeBytes: 1000},
 	}
-	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
 func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
@@ -344,6 +480,27 @@ func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
 	assert.Error(t, err, "invalid tmpfs source, source must be empty")
 }
 
+func TestHandleNpipeToMountBind(t *testing.T) {
+	namespace := NewNamespace("foo")
+	expected := mount.Mount{
+		Type:        mount.TypeNamedPipe,
+		Source:      "/bar",
+		Target:      "/foo",
+		ReadOnly:    true,
+		BindOptions: &mount.BindOptions{Propagation: mount.PropagationShared},
+	}
+	config := composetypes.ServiceVolumeConfig{
+		Type:     "npipe",
+		Source:   "/bar",
+		Target:   "/foo",
+		ReadOnly: true,
+		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
+	}
+	mnt, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
 func TestConvertVolumeToMountAnonymousNpipe(t *testing.T) {
 	config := composetypes.ServiceVolumeConfig{
 		Type:   "npipe",
@@ -355,7 +512,170 @@ func TestConvertVolumeToMountAnonymousNpipe(t *testing.T) {
 		Source: `\\.\pipe\foo`,
 		Target: `\\.\pipe\foo`,
 	}
-	mount, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(expected, mount))
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
+func TestConvertVolumeMountClusterName(t *testing.T) {
+	stackVolumes := volumes{
+		"my-csi": composetypes.VolumeConfig{
+			Driver: "mycsidriver",
+			Spec: &composetypes.ClusterVolumeSpec{
+				Group: "mygroup",
+				AccessMode: &composetypes.AccessMode{
+					Scope:       "single",
+					Sharing:     "none",
+					BlockVolume: &composetypes.BlockVolume{},
+				},
+				Availability: "active",
+			},
+		},
+	}
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "my-csi",
+		Target: "/srv",
+	}
+
+	expected := mount.Mount{
+		Type:           mount.TypeCluster,
+		Source:         "foo_my-csi",
+		Target:         "/srv",
+		ClusterOptions: &mount.ClusterOptions{},
+	}
+
+	mnt, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
+func TestConvertVolumeMountClusterGroup(t *testing.T) {
+	stackVolumes := volumes{
+		"my-csi": composetypes.VolumeConfig{
+			Driver: "mycsidriver",
+			Spec: &composetypes.ClusterVolumeSpec{
+				Group: "mygroup",
+				AccessMode: &composetypes.AccessMode{
+					Scope:       "single",
+					Sharing:     "none",
+					BlockVolume: &composetypes.BlockVolume{},
+				},
+				Availability: "active",
+			},
+		},
+	}
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "group:mygroup",
+		Target: "/srv",
+	}
+
+	expected := mount.Mount{
+		Type:           mount.TypeCluster,
+		Source:         "group:mygroup",
+		Target:         "/srv",
+		ClusterOptions: &mount.ClusterOptions{},
+	}
+
+	mnt, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
+func TestHandleClusterToMountAnonymousCluster(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "invalid cluster source, source cannot be empty")
+}
+
+func TestHandleClusterToMountConflictingOptionsTmpfsInCluster(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "/foo",
+		Target: "/target",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Size: 1000,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "tmpfs options are incompatible with type cluster")
+}
+
+func TestHandleClusterToMountConflictingOptionsVolumeInCluster(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "/foo",
+		Target: "/target",
+		Volume: &composetypes.ServiceVolumeVolume{
+			NoCopy: true,
+		},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "volume options are incompatible with type cluster")
+}
+
+func TestHandleClusterToMountWithUndefinedVolumeConfig(t *testing.T) {
+	namespace := NewNamespace("foo")
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "foo",
+		Target: "/srv",
+	}
+
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "undefined volume \"foo\"")
+}
+
+func TestHandleClusterToMountWithVolumeConfigName(t *testing.T) {
+	stackVolumes := volumes{
+		"foo": composetypes.VolumeConfig{
+			Name: "bar",
+		},
+	}
+
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "cluster",
+		Source: "foo",
+		Target: "/srv",
+	}
+
+	expected := mount.Mount{
+		Type:           mount.TypeCluster,
+		Source:         "bar",
+		Target:         "/srv",
+		ClusterOptions: &mount.ClusterOptions{},
+	}
+
+	mnt, err := convertVolumeToMount(config, stackVolumes, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
+func TestHandleClusterToMountBind(t *testing.T) {
+	namespace := NewNamespace("foo")
+	config := composetypes.ServiceVolumeConfig{
+		Type:     "cluster",
+		Source:   "/bar",
+		Target:   "/foo",
+		ReadOnly: true,
+		Bind:     &composetypes.ServiceVolumeBind{Propagation: "shared"},
+	}
+	_, err := convertVolumeToMount(config, volumes{}, namespace)
+	assert.Error(t, err, "bind options are incompatible with type cluster")
 }

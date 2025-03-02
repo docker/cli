@@ -16,28 +16,18 @@ func TestStackContextWrite(t *testing.T) {
 		// Errors
 		{
 			formatter.Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table format
 		{
 			formatter.Context{Format: SwarmStackTableFormat},
-			`NAME      SERVICES   ORCHESTRATOR
-baz       2          orchestrator1
-bar       1          orchestrator2
-`,
-		},
-		// Kubernetes table format adds Namespace column
-		{
-			formatter.Context{Format: KubernetesStackTableFormat},
-			`NAME      SERVICES   ORCHESTRATOR    NAMESPACE
-baz       2          orchestrator1   namespace1
-bar       1          orchestrator2   namespace2
+			`NAME      SERVICES
+baz       2
+bar       1
 `,
 		},
 		{
@@ -57,11 +47,10 @@ bar
 	}
 
 	stacks := []*Stack{
-		{Name: "baz", Services: 2, Orchestrator: "orchestrator1", Namespace: "namespace1"},
-		{Name: "bar", Services: 1, Orchestrator: "orchestrator2", Namespace: "namespace2"},
+		{Name: "baz", Services: 2},
+		{Name: "bar", Services: 1},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out

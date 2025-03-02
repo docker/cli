@@ -3,16 +3,13 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/kubernetes"
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
-	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
-func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Command {
+func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	var opts options.Deploy
 
 	cmd := &cobra.Command{
@@ -29,7 +26,10 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 			if err != nil {
 				return err
 			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, common.Orchestrator(), opts)
+			return swarm.RunDeploy(cmd.Context(), dockerCli, cmd.Flags(), &opts, config)
+		},
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeNames(dockerCli)(cmd, args, toComplete)
 		},
 	}
 
@@ -37,21 +37,12 @@ func newDeployCommand(dockerCli command.Cli, common *commonOptions) *cobra.Comma
 	flags.StringSliceVarP(&opts.Composefiles, "compose-file", "c", []string{}, `Path to a Compose file, or "-" to read from stdin`)
 	flags.SetAnnotation("compose-file", "version", []string{"1.25"})
 	flags.BoolVar(&opts.SendRegistryAuth, "with-registry-auth", false, "Send registry authentication details to Swarm agents")
-	flags.SetAnnotation("with-registry-auth", "swarm", nil)
 	flags.BoolVar(&opts.Prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
-	flags.SetAnnotation("prune", "swarm", nil)
 	flags.StringVar(&opts.ResolveImage, "resolve-image", swarm.ResolveImageAlways,
-		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`)
+		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`", "`+swarm.ResolveImageChanged+`", "`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
-	flags.SetAnnotation("resolve-image", "swarm", nil)
-	kubernetes.AddNamespaceFlag(flags)
+	flags.BoolVarP(&opts.Detach, "detach", "d", true, "Exit immediately instead of waiting for the stack services to converge")
+	flags.BoolVarP(&opts.Quiet, "quiet", "q", false, "Suppress progress output")
 	return cmd
-}
-
-// RunDeploy performs a stack deploy against the specified orchestrator
-func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, commonOrchestrator command.Orchestrator, opts options.Deploy) error {
-	return runOrchestratedCommand(dockerCli, flags, commonOrchestrator,
-		func() error { return swarm.RunDeploy(dockerCli, opts, config) },
-		func(kli *kubernetes.KubeCli) error { return kubernetes.RunDeploy(kli, opts, config) })
 }

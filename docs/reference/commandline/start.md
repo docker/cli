@@ -1,25 +1,22 @@
----
-title: "start"
-description: "The start command description and usage"
-keywords: "Start, container, stopped"
----
+# docker start
 
-# start
-
-```markdown
-Usage:  docker start [OPTIONS] CONTAINER [CONTAINER...]
-
+<!---MARKER_GEN_START-->
 Start one or more stopped containers
 
-Options:
-  -a, --attach               Attach STDOUT/STDERR and forward signals
-      --detach-keys string   Override the key sequence for detaching a container
-      --help                 Print usage
-  -i, --interactive          Attach container's STDIN
-```
+### Aliases
 
-## Examples
+`docker container start`, `docker start`
 
-```bash
-$ docker start my_container
-```
+### Options
+
+| Name                  | Type     | Default | Description                                         |
+|:----------------------|:---------|:--------|:----------------------------------------------------|
+| `-a`, `--attach`      | `bool`   |         | Attach STDOUT/STDERR and forward signals            |
+| `--checkpoint`        | `string` |         | Restore from this checkpoint                        |
+| `--checkpoint-dir`    | `string` |         | Use a custom checkpoint storage directory           |
+| `--detach-keys`       | `string` |         | Override the key sequence for detaching a container |
+| `-i`, `--interactive` | `bool`   |         | Attach container's STDIN                            |
+
+
+<!---MARKER_GEN_END-->
+

@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/distribution/reference"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution"
-	"github.com/docker/distribution/reference"
 	distributionclient "github.com/docker/distribution/registry/client"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -25,7 +24,6 @@ type RegistryClient interface {
 	GetManifestList(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error)
 	MountBlob(ctx context.Context, source reference.Canonical, target reference.Named) error
 	PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error)
-	GetTags(ctx context.Context, ref reference.Named) ([]string, error)
 }
 
 // NewRegistryClient returns a new RegistryClient with a resolver
@@ -38,7 +36,7 @@ func NewRegistryClient(resolver AuthConfigResolver, userAgent string, insecure b
 }
 
 // AuthConfigResolver returns Auth Configuration for an index
-type AuthConfigResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig
+type AuthConfigResolver func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig
 
 // PutManifestOptions is the data sent to push a manifest
 type PutManifestOptions struct {
@@ -80,6 +78,7 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 	if err != nil {
 		return err
 	}
+	repoEndpoint.actions = trust.ActionsPushAndPull
 	repo, err := c.getRepositoryForReference(ctx, targetRef, repoEndpoint)
 	if err != nil {
 		return err
@@ -102,39 +101,30 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error) {
 	repoEndpoint, err := newDefaultRepositoryEndpoint(ref, c.insecureRegistry)
 	if err != nil {
-		return digest.Digest(""), err
+		return "", err
 	}
 
+	repoEndpoint.actions = trust.ActionsPushAndPull
 	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
 	if err != nil {
-		return digest.Digest(""), err
+		return "", err
 	}
 
 	manifestService, err := repo.Manifests(ctx)
 	if err != nil {
-		return digest.Digest(""), err
+		return "", err
 	}
 
 	_, opts, err := getManifestOptionsFromReference(ref)
 	if err != nil {
-		return digest.Digest(""), err
+		return "", err
 	}
 
 	dgst, err := manifestService.Put(ctx, manifest, opts...)
-	return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
-}
-
-func (c *client) GetTags(ctx context.Context, ref reference.Named) ([]string, error) {
-	repoEndpoint, err := newDefaultRepositoryEndpoint(ref, c.insecureRegistry)
 	if err != nil {
-		return nil, err
+		return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
 	}
-
-	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	return repo.Tags(ctx).All(ctx)
+	return dgst, nil
 }
 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
@@ -167,8 +157,13 @@ func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoi
 		c.authConfigResolver(ctx, repoEndpoint.info.Index),
 		repoEndpoint.endpoint,
 		repoEndpoint.Name(),
-		c.userAgent)
-	return httpTransport, errors.Wrap(err, "failed to configure transport")
+		c.userAgent,
+		repoEndpoint.actions,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to configure transport")
+	}
+	return httpTransport, nil
 }
 
 // GetManifest returns an ImageManifest for the reference
@@ -206,17 +201,4 @@ func getManifestOptionsFromReference(ref reference.Named) (digest.Digest, []dist
 		return digested.Digest(), []distribution.ManifestServiceOption{}, nil
 	}
 	return "", nil, errors.Errorf("%s no tag or digest", ref)
-}
-
-// GetRegistryAuth returns the auth config given an input image
-func GetRegistryAuth(ctx context.Context, resolver AuthConfigResolver, imageName string) (*types.AuthConfig, error) {
-	distributionRef, err := reference.ParseNormalizedNamed(imageName)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse image name: %s: %s", imageName, err)
-	}
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, resolver, distributionRef.String())
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get imgRefAndAuth: %s", err)
-	}
-	return imgRefAndAuth.AuthConfig(), nil
 }

@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"fmt"
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -19,17 +19,17 @@ func TestPluginDisableErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"plugin-foo"},
-			expectedError: "Error disabling plugin",
+			expectedError: "error disabling plugin",
 			pluginDisableFunc: func(name string, disableOptions types.PluginDisableOptions) error {
-				return fmt.Errorf("Error disabling plugin")
+				return errors.New("error disabling plugin")
 			},
 		},
 	}
@@ -40,7 +40,8 @@ func TestPluginDisableErrors(t *testing.T) {
 				pluginDisableFunc: tc.pluginDisableFunc,
 			}))
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

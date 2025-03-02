@@ -1,20 +1,16 @@
----
-title: "plugin inspect"
-description: "The plugin inspect command description and usage"
-keywords: "plugin, inspect"
----
-
 # plugin inspect
 
-```markdown
-Usage:  docker plugin inspect [OPTIONS] PLUGIN [PLUGIN...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more plugins
 
-Options:
-  -f, --format string   Format the output using the given Go template
-      --help            Print usage
-```
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -25,9 +21,9 @@ in a JSON array.
 
 ### Inspect a plugin
 
-The following example example inspects the `tiborvass/sample-volume-plugin` plugin:
+The following example inspects the `tiborvass/sample-volume-plugin` plugin:
 
-```bash
+```console
 $ docker plugin inspect tiborvass/sample-volume-plugin:latest
 ```
 
@@ -142,9 +138,9 @@ Output is in JSON format (output below is formatted for readability):
 ```
 
 
-### Formatting the output
+### <a name="format"></a> Format the output (--format)
 
-```bash
+```console
 $ docker plugin inspect -f '{{.Id}}' tiborvass/sample-volume-plugin:latest
 
 8c74c978c434745c3ade82f1bc0acf38d04990eaf494fa507c16d9f1daa99c21

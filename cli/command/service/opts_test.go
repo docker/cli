@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -50,7 +50,6 @@ func TestCredentialSpecOpt(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			var cs credentialSpecOpt
 
@@ -108,20 +107,22 @@ func TestUint64OptSetAndValue(t *testing.T) {
 func TestHealthCheckOptionsToHealthConfig(t *testing.T) {
 	dur := time.Second
 	opt := healthCheckOptions{
-		cmd:         "curl",
-		interval:    opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
-		timeout:     opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
-		startPeriod: opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
-		retries:     10,
+		cmd:           "curl",
+		interval:      opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		timeout:       opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		startPeriod:   opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		startInterval: opts.PositiveDurationOpt{DurationOpt: *opts.NewDurationOpt(&dur)},
+		retries:       10,
 	}
 	config, err := opt.toHealthConfig()
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(&container.HealthConfig{
-		Test:        []string{"CMD-SHELL", "curl"},
-		Interval:    time.Second,
-		Timeout:     time.Second,
-		StartPeriod: time.Second,
-		Retries:     10,
+		Test:          []string{"CMD-SHELL", "curl"},
+		Interval:      time.Second,
+		Timeout:       time.Second,
+		StartPeriod:   time.Second,
+		StartInterval: time.Second,
+		Retries:       10,
 	}, config))
 }
 
@@ -180,24 +181,23 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, is.Len(r.Reservations.GenericResources, len(opt.resGenericResources)))
 	}
-
 }
 
 func TestToServiceNetwork(t *testing.T) {
-	nws := []types.NetworkResource{
+	nws := []network.Inspect{
 		{Name: "aaa-network", ID: "id555"},
 		{Name: "mmm-network", ID: "id999"},
 		{Name: "zzz-network", ID: "id111"},
 	}
 
 	client := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error) {
-			for _, network := range nws {
-				if network.ID == networkID || network.Name == networkID {
-					return network, nil
+		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
+			for _, nw := range nws {
+				if nw.ID == networkID || nw.Name == networkID {
+					return nw, nil
 				}
 			}
-			return types.NetworkResource{}, fmt.Errorf("network not found: %s", networkID)
+			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)
 		},
 	}
 

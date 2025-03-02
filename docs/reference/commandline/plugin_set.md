@@ -1,19 +1,10 @@
----
-title: "plugin set"
-description: "the plugin set command description and usage"
-keywords: "plugin, set"
----
-
 # plugin set
 
-```markdown
-Usage:  docker plugin set PLUGIN KEY=VALUE [KEY=VALUE...]
-
+<!---MARKER_GEN_START-->
 Change settings for a plugin
 
-Options:
-      --help                    Print usage
-```
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -84,7 +75,7 @@ On the contrary, the `LOGGING` environment variable doesn't have any settable fi
 The following example change the env variable `DEBUG` on the
 `sample-volume-plugin` plugin.
 
-```bash
+```console
 $ docker plugin inspect -f {{.Settings.Env}} tiborvass/sample-volume-plugin
 [DEBUG=0]
 
@@ -99,7 +90,7 @@ $ docker plugin inspect -f {{.Settings.Env}} tiborvass/sample-volume-plugin
 The following example change the source of the `mymount` mount on
 the `myplugin` plugin.
 
-```bash
+```console
 $ docker plugin inspect -f '{{with $mount := index .Settings.Mounts 0}}{{$mount.Source}}{{end}}' myplugin
 /foo
 
@@ -109,8 +100,7 @@ $ docker plugin inspect -f '{{with $mount := index .Settings.Mounts 0}}{{$mount.
 /bar
 ```
 
-> **Note**
->
+> [!NOTE]
 > Since only `source` is settable in `mymount`,
 > `docker plugins set mymount=/bar myplugin` would work too.
 
@@ -119,7 +109,7 @@ $ docker plugin inspect -f '{{with $mount := index .Settings.Mounts 0}}{{$mount.
 The following example change the path of the `mydevice` device on
 the `myplugin` plugin.
 
-```bash
+```console
 $ docker plugin inspect -f '{{with $device := index .Settings.Devices 0}}{{$device.Path}}{{end}}' myplugin
 
 /dev/foo
@@ -131,7 +121,7 @@ $ docker plugin inspect -f '{{with $device := index .Settings.Devices 0}}{{$devi
 /dev/bar
 ```
 
-> **Note**
+> [!NOTE]
 > Since only `path` is settable in `mydevice`,
 > `docker plugins set mydevice=/dev/bar myplugin` would work too.
 
@@ -139,7 +129,7 @@ $ docker plugin inspect -f '{{with $device := index .Settings.Devices 0}}{{$devi
 
 The following example change the value of the args on the `myplugin` plugin.
 
-```bash
+```console
 $ docker plugin inspect -f '{{.Settings.Args}}' myplugin
 
 ["foo", "bar"]

@@ -8,8 +8,10 @@ import (
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
-const releasedRoleName = "Repo Admin"
-const releasesRoleTUFName = "targets/releases"
+const (
+	releasedRoleName    = "Repo Admin"
+	releasesRoleTUFName = "targets/releases"
+)
 
 // isReleasedTarget checks if a role name is "released":
 // either targets/releases or targets TUF roles

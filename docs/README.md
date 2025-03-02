@@ -28,3 +28,9 @@ the place to edit them.
 
 The docs in the general repo are open-source and we appreciate
 your feedback and pull requests!
+
+# Generate docs
+
+```shell
+$ make -f docker.Makefile yamldocs
+```

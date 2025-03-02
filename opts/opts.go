@@ -55,7 +55,7 @@ func (opts *ListOpts) Set(value string) error {
 		}
 		value = v
 	}
-	(*opts.values) = append((*opts.values), value)
+	*opts.values = append(*opts.values, value)
 	return nil
 }
 
@@ -63,7 +63,7 @@ func (opts *ListOpts) Set(value string) error {
 func (opts *ListOpts) Delete(key string) {
 	for i, k := range *opts.values {
 		if k == key {
-			(*opts.values) = append((*opts.values)[:i], (*opts.values)[i+1:]...)
+			*opts.values = append((*opts.values)[:i], (*opts.values)[i+1:]...)
 			return
 		}
 	}
@@ -81,7 +81,7 @@ func (opts *ListOpts) GetMap() map[string]struct{} {
 
 // GetAll returns the values of slice.
 func (opts *ListOpts) GetAll() []string {
-	return (*opts.values)
+	return *opts.values
 }
 
 // GetAllOrEmpty returns the values of the slice
@@ -106,11 +106,11 @@ func (opts *ListOpts) Get(key string) bool {
 
 // Len returns the amount of element in the slice.
 func (opts *ListOpts) Len() int {
-	return len((*opts.values))
+	return len(*opts.values)
 }
 
 // Type returns a string name for this Option type
-func (opts *ListOpts) Type() string {
+func (*ListOpts) Type() string {
 	return "list"
 }
 
@@ -165,12 +165,8 @@ func (opts *MapOpts) Set(value string) error {
 		}
 		value = v
 	}
-	vals := strings.SplitN(value, "=", 2)
-	if len(vals) == 1 {
-		(opts.values)[vals[0]] = ""
-	} else {
-		(opts.values)[vals[0]] = vals[1]
-	}
+	k, v, _ := strings.Cut(value, "=")
+	opts.values[k] = v
 	return nil
 }
 
@@ -184,7 +180,7 @@ func (opts *MapOpts) String() string {
 }
 
 // Type returns a string name for this Option type
-func (opts *MapOpts) Type() string {
+func (*MapOpts) Type() string {
 	return "map"
 }
 
@@ -228,13 +224,17 @@ type ValidatorFctType func(val string) (string, error)
 // ValidatorFctListType defines a validator function that returns a validated list of string and/or an error
 type ValidatorFctListType func(val string) ([]string, error)
 
-// ValidateIPAddress validates an Ip address.
+// ValidateIPAddress validates if the given value is a correctly formatted
+// IP address, and returns the value in normalized form. Leading and trailing
+// whitespace is allowed, but it does not allow IPv6 addresses surrounded by
+// square brackets ("[::1]").
+//
+// Refer to [net.ParseIP] for accepted formats.
 func ValidateIPAddress(val string) (string, error) {
-	var ip = net.ParseIP(strings.TrimSpace(val))
-	if ip != nil {
+	if ip := net.ParseIP(strings.TrimSpace(val)); ip != nil {
 		return ip.String(), nil
 	}
-	return "", fmt.Errorf("%s is not an ip address", val)
+	return "", fmt.Errorf("IP address is not correctly formatted: %s", val)
 }
 
 // ValidateMACAddress validates a MAC address.
@@ -266,6 +266,8 @@ func validateDomain(val string) (string, error) {
 	return "", fmt.Errorf("%s is not a valid domain", val)
 }
 
+const whiteSpaces = " \t"
+
 // ValidateLabel validates that the specified string is a valid label, and returns it.
 //
 // Labels are in the form of key=value; key must be a non-empty string, and not
@@ -277,16 +279,16 @@ func validateDomain(val string) (string, error) {
 //
 // TODO discuss if quotes (and other special characters) should be valid or invalid for keys
 // TODO discuss if leading/trailing whitespace in keys should be preserved (and valid)
-func ValidateLabel(val string) (string, error) {
-	arr := strings.SplitN(val, "=", 2)
-	key := strings.TrimLeft(arr[0], whiteSpaces)
+func ValidateLabel(value string) (string, error) {
+	key, _, _ := strings.Cut(value, "=")
+	key = strings.TrimLeft(key, whiteSpaces)
 	if key == "" {
-		return "", fmt.Errorf("invalid label '%s': empty name", val)
+		return "", fmt.Errorf("invalid label '%s': empty name", value)
 	}
 	if strings.ContainsAny(key, whiteSpaces) {
 		return "", fmt.Errorf("label '%s' contains whitespaces", key)
 	}
-	return val, nil
+	return value, nil
 }
 
 // ValidateSysctl validates a sysctl and returns it.
@@ -305,31 +307,19 @@ func ValidateSysctl(val string) (string, error) {
 		"net.",
 		"fs.mqueue.",
 	}
-	arr := strings.Split(val, "=")
-	if len(arr) < 2 {
-		return "", fmt.Errorf("sysctl '%s' is not whitelisted", val)
+	k, _, ok := strings.Cut(val, "=")
+	if !ok || k == "" {
+		return "", fmt.Errorf("sysctl '%s' is not allowed", val)
 	}
-	if validSysctlMap[arr[0]] {
+	if validSysctlMap[k] {
 		return val, nil
 	}
-
 	for _, vp := range validSysctlPrefixes {
-		if strings.HasPrefix(arr[0], vp) {
+		if strings.HasPrefix(k, vp) {
 			return val, nil
 		}
 	}
-	return "", fmt.Errorf("sysctl '%s' is not whitelisted", val)
-}
-
-// ValidateProgressOutput errors out if an invalid value is passed to --progress
-func ValidateProgressOutput(val string) error {
-	valid := []string{"auto", "plain", "tty"}
-	for _, s := range valid {
-		if s == val {
-			return nil
-		}
-	}
-	return fmt.Errorf("invalid value %q passed to --progress, valid values are: %s", val, strings.Join(valid, ", "))
+	return "", fmt.Errorf("sysctl '%s' is not allowed", val)
 }
 
 // FilterOpt is a flag type for validating filters
@@ -358,16 +348,17 @@ func (o *FilterOpt) Set(value string) error {
 	if !strings.Contains(value, "=") {
 		return errors.New("bad format of filter (expected name=value)")
 	}
-	f := strings.SplitN(value, "=", 2)
-	name := strings.ToLower(strings.TrimSpace(f[0]))
-	value = strings.TrimSpace(f[1])
+	name, val, _ := strings.Cut(value, "=")
 
-	o.filter.Add(name, value)
+	// TODO(thaJeztah): these options should not be case-insensitive.
+	name = strings.ToLower(strings.TrimSpace(name))
+	val = strings.TrimSpace(val)
+	o.filter.Add(name, val)
 	return nil
 }
 
 // Type returns the option type
-func (o *FilterOpt) Type() string {
+func (*FilterOpt) Type() string {
 	return "filter"
 }
 
@@ -395,7 +386,7 @@ func (c *NanoCPUs) Set(value string) error {
 }
 
 // Type returns the type
-func (c *NanoCPUs) Type() string {
+func (*NanoCPUs) Type() string {
 	return "decimal"
 }
 
@@ -412,7 +403,7 @@ func ParseCPUs(value string) (int64, error) {
 	}
 	nano := cpu.Mul(cpu, big.NewRat(1e9, 1))
 	if !nano.IsInt() {
-		return 0, fmt.Errorf("value is too precise")
+		return 0, errors.New("value is too precise")
 	}
 	return nano.Num().Int64(), nil
 }
@@ -420,12 +411,16 @@ func ParseCPUs(value string) (int64, error) {
 // ParseLink parses and validates the specified string as a link format (name:alias)
 func ParseLink(val string) (string, string, error) {
 	if val == "" {
-		return "", "", fmt.Errorf("empty string specified for links")
+		return "", "", errors.New("empty string specified for links")
 	}
-	arr := strings.Split(val, ":")
+	// We expect two parts, but restrict to three to allow detecting invalid formats.
+	arr := strings.SplitN(val, ":", 3)
+
+	// TODO(thaJeztah): clean up this logic!!
 	if len(arr) > 2 {
-		return "", "", fmt.Errorf("bad format for links: %s", val)
+		return "", "", errors.New("bad format for links: " + val)
 	}
+	// TODO(thaJeztah): this should trim the "/" prefix as well??
 	if len(arr) == 1 {
 		return val, val, nil
 	}
@@ -433,6 +428,7 @@ func ParseLink(val string) (string, string, error) {
 	// from an already created container and the format is not `foo:bar`
 	// but `/foo:/c1/bar`
 	if strings.HasPrefix(arr[0], "/") {
+		// TODO(thaJeztah): clean up this logic!!
 		_, alias := path.Split(arr[1])
 		return arr[0][1:], alias, nil
 	}
@@ -467,7 +463,7 @@ func (m *MemBytes) Set(value string) error {
 }
 
 // Type returns the type
-func (m *MemBytes) Type() string {
+func (*MemBytes) Type() string {
 	return "bytes"
 }
 
@@ -502,7 +498,7 @@ func (m *MemSwapBytes) Set(value string) error {
 }
 
 // Type returns the type
-func (m *MemSwapBytes) Type() string {
+func (*MemSwapBytes) Type() string {
 	return "bytes"
 }
 

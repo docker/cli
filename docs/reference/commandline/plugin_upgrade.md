@@ -1,22 +1,18 @@
----
-title: "plugin upgrade"
-description: "the plugin upgrade command description and usage"
-keywords: "plugin, upgrade"
----
-
 # plugin upgrade
 
-```markdown
-Usage:  docker plugin upgrade [OPTIONS] PLUGIN [REMOTE]
+<!---MARKER_GEN_START-->
+Upgrade an existing plugin
 
-Upgrade a plugin
+### Options
 
-Options:
-      --disable-content-trust   Skip image verification (default true)
-      --grant-all-permissions   Grant all permissions necessary to run the plugin
-      --help                    Print usage
-      --skip-remote-check       Do not check if specified remote plugin matches existing plugin image
-```
+| Name                      | Type   | Default | Description                                                           |
+|:--------------------------|:-------|:--------|:----------------------------------------------------------------------|
+| `--disable-content-trust` | `bool` | `true`  | Skip image verification                                               |
+| `--grant-all-permissions` | `bool` |         | Grant all permissions necessary to run the plugin                     |
+| `--skip-remote-check`     | `bool` |         | Do not check if specified remote plugin matches existing plugin image |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -30,7 +26,7 @@ The plugin must be disabled before running the upgrade.
 The following example installs `vieus/sshfs` plugin, uses it to create and use
 a volume, then upgrades the plugin.
 
-```bash
+```console
 $ docker plugin install vieux/sshfs DEBUG=1
 
 Plugin "vieux/sshfs:next" is requesting the following privileges:

@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
@@ -15,7 +16,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := newServiceOptions()
 
 	cmd := &cobra.Command{
@@ -27,11 +28,12 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				opts.args = args[1:]
 			}
-			return runCreate(dockerCli, cmd.Flags(), opts)
+			return runCreate(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.mode, flagMode, "replicated", "Service mode (replicated, global, replicated-job, or global-job)")
+	flags.StringVar(&opts.mode, flagMode, "replicated", `Service mode ("replicated", "global", "replicated-job", "global-job")`)
 	flags.StringVar(&opts.name, flagName, "", "Service name")
 
 	addServiceFlags(flags, opts, buildServiceDefaultFlagMapping())
@@ -66,51 +68,73 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagSysCtl, "version", []string{"1.40"})
 	flags.Var(&opts.ulimits, flagUlimit, "Ulimit options")
 	flags.SetAnnotation(flagUlimit, "version", []string{"1.41"})
+	flags.Int64Var(&opts.oomScoreAdj, flagOomScoreAdj, 0, "Tune host's OOM preferences (-1000 to 1000) ")
+	flags.SetAnnotation(flagOomScoreAdj, "version", []string{"1.46"})
 
 	flags.Var(cliopts.NewListOptsRef(&opts.resources.resGenericResources, ValidateSingleGenericResource), "generic-resource", "User defined resources")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
 
 	flags.SetInterspersed(false)
+
+	// TODO(thaJeztah): add completion for capabilities, stop-signal (currently non-exported in container package)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapAdd, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapDrop, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagStopSignal, completeSignals)
+
+	_ = cmd.RegisterFlagCompletionFunc(flagMode, completion.FromList("replicated", "global", "replicated-job", "global-job"))
+	_ = cmd.RegisterFlagCompletionFunc(flagEnv, completion.EnvVarNames) // TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
+	_ = cmd.RegisterFlagCompletionFunc(flagEnvFile, completion.FileNames)
+	_ = cmd.RegisterFlagCompletionFunc(flagNetwork, completion.NetworkNames(dockerCLI))
+	_ = cmd.RegisterFlagCompletionFunc(flagRestartCondition, completion.FromList("none", "on-failure", "any"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackFailureAction, completion.FromList("pause", "continue"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateFailureAction, completion.FromList("pause", "continue", "rollback"))
+
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 
-func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
-	apiClient := dockerCli.Client()
+func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
+	apiClient := dockerCLI.Client()
 	createOpts := types.ServiceCreateOptions{}
-
-	ctx := context.Background()
 
 	service, err := opts.ToService(ctx, apiClient, flags)
 	if err != nil {
 		return err
 	}
 
-	if err = validateAPIVersion(service, dockerCli.Client().ClientVersion()); err != nil {
+	if err = validateAPIVersion(service, dockerCLI.Client().ClientVersion()); err != nil {
 		return err
 	}
 
 	specifiedSecrets := opts.secrets.Value()
 	if len(specifiedSecrets) > 0 {
 		// parse and validate secrets
-		secrets, err := ParseSecrets(apiClient, specifiedSecrets)
+		secrets, err := ParseSecrets(ctx, apiClient, specifiedSecrets)
 		if err != nil {
 			return err
 		}
 		service.TaskTemplate.ContainerSpec.Secrets = secrets
 	}
 
-	if err := setConfigs(apiClient, &service, opts); err != nil {
+	if err := setConfigs(ctx, apiClient, &service, opts); err != nil {
 		return err
 	}
 
-	if err := resolveServiceImageDigestContentTrust(dockerCli, &service); err != nil {
+	if err := resolveServiceImageDigestContentTrust(dockerCLI, &service); err != nil {
 		return err
 	}
 
 	// only send auth if flag was set
 	if opts.registryAuth {
 		// Retrieve encoded auth token from the image reference
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(ctx, dockerCli, opts.image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), opts.image)
 		if err != nil {
 			return err
 		}
@@ -128,22 +152,22 @@ func runCreate(dockerCli command.Cli, flags *pflag.FlagSet, opts *serviceOptions
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintln(dockerCli.Err(), warning)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", response.ID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), response.ID)
 
 	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return waitOnService(ctx, dockerCli, response.ID, opts.quiet)
+	return WaitOnService(ctx, dockerCLI, response.ID, opts.quiet)
 }
 
 // setConfigs does double duty: it both sets the ConfigReferences of the
 // service, and it sets the service CredentialSpec. This is because there is an
 // interplay between the CredentialSpec and the Config it depends on.
-func setConfigs(apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, opts *serviceOptions) error {
+func setConfigs(ctx context.Context, apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, opts *serviceOptions) error {
 	specifiedConfigs := opts.configs.Value()
 	// if the user has requested to use a Config, for the CredentialSpec add it
 	// to the specifiedConfigs as a RuntimeTarget.
@@ -155,7 +179,7 @@ func setConfigs(apiClient client.ConfigAPIClient, service *swarm.ServiceSpec, op
 	}
 	if len(specifiedConfigs) > 0 {
 		// parse and validate configs
-		configs, err := ParseConfigs(apiClient, specifiedConfigs)
+		configs, err := ParseConfigs(ctx, apiClient, specifiedConfigs)
 		if err != nil {
 			return err
 		}

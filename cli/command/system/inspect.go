@@ -1,6 +1,10 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package system
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -8,8 +12,12 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/inspect"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
-	apiclient "github.com/docker/docker/client"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -31,23 +39,23 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ids = args
-			return runInspect(dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCli, opts)
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
+	flags.StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	flags.StringVar(&opts.inspectType, "type", "", "Return JSON for specified type")
 	flags.BoolVarP(&opts.size, "size", "s", false, "Display total file sizes if the type is container")
 
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	var elementSearcher inspect.GetRefFunc
 	switch opts.inspectType {
-	case "", "container", "image", "node", "network", "service", "volume", "task", "plugin", "secret":
-		elementSearcher = inspectAll(context.Background(), dockerCli, opts.size, opts.inspectType)
+	case "", "config", "container", "image", "network", "node", "plugin", "secret", "service", "task", "volume":
+		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.inspectType)
 	default:
 		return errors.Errorf("%q is not a valid value for --type", opts.inspectType)
 	}
@@ -55,122 +63,138 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 }
 
 func inspectContainers(ctx context.Context, dockerCli command.Cli, getSize bool) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().ContainerInspectWithRaw(ctx, ref, getSize)
 	}
 }
 
 func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
-		return dockerCli.Client().ImageInspectWithRaw(ctx, ref)
+	return func(ref string) (any, []byte, error) {
+		var buf bytes.Buffer
+		resp, err := dockerCli.Client().ImageInspect(ctx, ref, client.ImageInspectWithRawResponse(&buf))
+		if err != nil {
+			return image.InspectResponse{}, nil, err
+		}
+		return resp, buf.Bytes(), err
 	}
 }
 
 func inspectNetwork(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
-		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, types.NetworkInspectOptions{})
+	return func(ref string) (any, []byte, error) {
+		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, network.InspectOptions{})
 	}
 }
 
 func inspectNode(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().NodeInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectService(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
 		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, types.ServiceInspectOptions{InsertDefaults: true})
 	}
 }
 
 func inspectTasks(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().TaskInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectVolume(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().VolumeInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectPlugin(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().PluginInspectWithRaw(ctx, ref)
 	}
 }
 
 func inspectSecret(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		return dockerCli.Client().SecretInspectWithRaw(ctx, ref)
 	}
 }
 
-func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeConstraint string) inspect.GetRefFunc {
-	var inspectAutodetect = []struct {
+func inspectConfig(ctx context.Context, dockerCLI command.Cli) inspect.GetRefFunc {
+	return func(ref string) (any, []byte, error) {
+		return dockerCLI.Client().ConfigInspectWithRaw(ctx, ref)
+	}
+}
+
+func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeConstraint string) inspect.GetRefFunc {
+	inspectAutodetect := []struct {
 		objectType      string
 		isSizeSupported bool
 		isSwarmObject   bool
-		objectInspector func(string) (interface{}, []byte, error)
+		objectInspector func(string) (any, []byte, error)
 	}{
 		{
 			objectType:      "container",
 			isSizeSupported: true,
-			objectInspector: inspectContainers(ctx, dockerCli, getSize),
+			objectInspector: inspectContainers(ctx, dockerCLI, getSize),
 		},
 		{
 			objectType:      "image",
-			objectInspector: inspectImages(ctx, dockerCli),
+			objectInspector: inspectImages(ctx, dockerCLI),
 		},
 		{
 			objectType:      "network",
-			objectInspector: inspectNetwork(ctx, dockerCli),
+			objectInspector: inspectNetwork(ctx, dockerCLI),
 		},
 		{
 			objectType:      "volume",
-			objectInspector: inspectVolume(ctx, dockerCli),
+			objectInspector: inspectVolume(ctx, dockerCLI),
 		},
 		{
 			objectType:      "service",
 			isSwarmObject:   true,
-			objectInspector: inspectService(ctx, dockerCli),
+			objectInspector: inspectService(ctx, dockerCLI),
 		},
 		{
 			objectType:      "task",
 			isSwarmObject:   true,
-			objectInspector: inspectTasks(ctx, dockerCli),
+			objectInspector: inspectTasks(ctx, dockerCLI),
 		},
 		{
 			objectType:      "node",
 			isSwarmObject:   true,
-			objectInspector: inspectNode(ctx, dockerCli),
+			objectInspector: inspectNode(ctx, dockerCLI),
 		},
 		{
 			objectType:      "plugin",
-			objectInspector: inspectPlugin(ctx, dockerCli),
+			objectInspector: inspectPlugin(ctx, dockerCLI),
 		},
 		{
 			objectType:      "secret",
 			isSwarmObject:   true,
-			objectInspector: inspectSecret(ctx, dockerCli),
+			objectInspector: inspectSecret(ctx, dockerCLI),
+		},
+		{
+			objectType:      "config",
+			isSwarmObject:   true,
+			objectInspector: inspectConfig(ctx, dockerCLI),
 		},
 	}
 
 	// isSwarmManager does an Info API call to verify that the daemon is
 	// a swarm manager.
 	isSwarmManager := func() bool {
-		info, err := dockerCli.Client().Info(ctx)
+		info, err := dockerCLI.Client().Info(ctx)
 		if err != nil {
-			fmt.Fprintln(dockerCli.Err(), err)
+			_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 			return false
 		}
 		return info.Swarm.ControlAvailable
 	}
 
-	return func(ref string) (interface{}, []byte, error) {
+	return func(ref string) (any, []byte, error) {
 		const (
 			swarmSupportUnknown = iota
 			swarmSupported
@@ -203,7 +227,7 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 				return v, raw, err
 			}
 			if getSize && !inspectData.isSizeSupported {
-				fmt.Fprintf(dockerCli.Err(), "WARNING: --size ignored for %s\n", inspectData.objectType)
+				_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: --size ignored for", inspectData.objectType)
 			}
 			return v, raw, err
 		}
@@ -212,7 +236,7 @@ func inspectAll(ctx context.Context, dockerCli command.Cli, getSize bool, typeCo
 }
 
 func isErrSkippable(err error) bool {
-	return apiclient.IsErrNotFound(err) ||
+	return errdefs.IsNotFound(err) ||
 		strings.Contains(err.Error(), "not supported") ||
 		strings.Contains(err.Error(), "invalid reference format")
 }

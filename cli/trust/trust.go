@@ -12,16 +12,15 @@ import (
 	"path/filepath"
 	"time"
 
-	cliconfig "github.com/docker/cli/cli/config"
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
-	digest "github.com/opencontainers/go-digest"
+	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
@@ -47,7 +46,7 @@ var (
 
 // GetTrustDirectory returns the base trust directory name
 func GetTrustDirectory() string {
-	return filepath.Join(cliconfig.Dir(), "trust")
+	return filepath.Join(config.Dir(), "trust")
 }
 
 // certificateDirectory returns the directory containing
@@ -59,7 +58,7 @@ func certificateDirectory(server string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(cliconfig.Dir(), "tls", u.Host), nil
+	return filepath.Join(config.Dir(), "tls", u.Host), nil
 }
 
 // Server returns the base URL for the trust server.
@@ -79,30 +78,29 @@ func Server(index *registrytypes.IndexInfo) (string, error) {
 }
 
 type simpleCredentialStore struct {
-	auth types.AuthConfig
+	auth registrytypes.AuthConfig
 }
 
-func (scs simpleCredentialStore) Basic(u *url.URL) (string, string) {
+func (scs simpleCredentialStore) Basic(*url.URL) (string, string) {
 	return scs.auth.Username, scs.auth.Password
 }
 
-func (scs simpleCredentialStore) RefreshToken(u *url.URL, service string) string {
+func (scs simpleCredentialStore) RefreshToken(*url.URL, string) string {
 	return scs.auth.IdentityToken
 }
 
-func (scs simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {
-}
+func (simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {}
 
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
-func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *types.AuthConfig, actions ...string) (client.Repository, error) {
+func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *registrytypes.AuthConfig, actions ...string) (client.Repository, error) {
 	server, err := Server(repoInfo.Index)
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg = tlsconfig.ClientDefault()
+	cfg := tlsconfig.ClientDefault()
 	cfg.InsecureSkipVerify = !repoInfo.Index.Secure
 
 	// Get certificate base directory
@@ -121,7 +119,6 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     cfg,
@@ -136,7 +133,7 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 		Timeout:   5 * time.Second,
 	}
 	endpointStr := server + "/v2/"
-	req, err := http.NewRequest("GET", endpointStr, nil)
+	req, err := http.NewRequest(http.MethodGet, endpointStr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +157,6 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	scope := auth.RepositoryScope{
 		Repository: repoInfo.Name.Name(),
 		Actions:    actions,
-		Class:      repoInfo.Class,
 	}
 	creds := simpleCredentialStore{auth: *authConfig}
 	tokenHandlerOptions := auth.TokenHandlerOptions{
@@ -264,8 +260,8 @@ func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.Rol
 		return signableRoles, nil
 	}
 
-	// there are delegation roles, find every delegation role we have a key for, and
-	// attempt to sign into into all those roles.
+	// there are delegation roles, find every delegation role we have a key for,
+	// and attempt to sign in to all those roles.
 	for _, delegationRole := range allDelegationRoles {
 		// We do not support signing any delegation role that isn't a direct child of the targets role.
 		// Also don't bother checking the keys if we can't add the target
@@ -287,13 +283,12 @@ func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.Rol
 	}
 
 	return signableRoles, nil
-
 }
 
 // ImageRefAndAuth contains all reference information and the auth config for an image request
 type ImageRefAndAuth struct {
 	original   string
-	authConfig *types.AuthConfig
+	authConfig *registrytypes.AuthConfig
 	reference  reference.Named
 	repoInfo   *registry.RepositoryInfo
 	tag        string
@@ -302,8 +297,8 @@ type ImageRefAndAuth struct {
 
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
 // as an ImageRefAndAuth struct
-func GetImageReferencesAndAuth(ctx context.Context, rs registry.Service,
-	authResolver func(ctx context.Context, index *registrytypes.IndexInfo) types.AuthConfig,
+func GetImageReferencesAndAuth(ctx context.Context,
+	authResolver func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig,
 	imgName string,
 ) (ImageRefAndAuth, error) {
 	ref, err := reference.ParseNormalizedNamed(imgName)
@@ -312,13 +307,7 @@ func GetImageReferencesAndAuth(ctx context.Context, rs registry.Service,
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	var repoInfo *registry.RepositoryInfo
-	if rs != nil {
-		repoInfo, err = rs.ResolveRepository(ref)
-	} else {
-		repoInfo, err = registry.ParseRepositoryInfo(ref)
-	}
-
+	repoInfo, err := registry.ParseRepositoryInfo(ref)
 	if err != nil {
 		return ImageRefAndAuth{}, err
 	}
@@ -357,7 +346,7 @@ func getDigest(ref reference.Named) digest.Digest {
 }
 
 // AuthConfig returns the auth information (username, etc) for a given ImageRefAndAuth
-func (imgRefAuth *ImageRefAndAuth) AuthConfig() *types.AuthConfig {
+func (imgRefAuth *ImageRefAndAuth) AuthConfig() *registrytypes.AuthConfig {
 	return imgRefAuth.authConfig
 }
 
@@ -384,5 +373,4 @@ func (imgRefAuth *ImageRefAndAuth) Digest() digest.Digest {
 // Name returns the image name used to initialize the ImageRefAndAuth
 func (imgRefAuth *ImageRefAndAuth) Name() string {
 	return imgRefAuth.original
-
 }

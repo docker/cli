@@ -1,22 +1,17 @@
----
-title: "container prune"
-description: "Remove all stopped containers"
-keywords: container, prune, delete, remove
----
-
 # container prune
 
-```markdown
-Usage:  docker container prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove all stopped containers
 
-Options:
-Options:
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -26,7 +21,7 @@ Removes all stopped containers.
 
 ### Prune containers
 
-```bash
+```console
 $ docker container prune
 WARNING! This will remove all stopped containers.
 Are you sure you want to continue? [y/N] y
@@ -37,7 +32,7 @@ f98f9c2aa1eaf727e4ec9c0283bc7d4aa4762fbdba7f26191f26c97f64090360
 Total reclaimed space: 212 B
 ```
 
-### Filtering
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -48,12 +43,12 @@ The currently supported filters are:
 * label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove containers with (or without, in case `label!=...` is used) the specified labels.
 
 The `until` filter can be Unix timestamps, date formatted
-timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
+timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
 relative to the daemon machine’s time. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the daemon will be used if you do not provide either a `Z` or a
-`+-00:00` timezone offset at the end of the timestamp.  When providing Unix
+`+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
 that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
@@ -66,7 +61,7 @@ containers without the specified labels.
 
 The following removes containers created more than 5 minutes ago:
 
-```bash
+```console
 $ docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}'
 
 CONTAINER ID        IMAGE               COMMAND             CREATED AT                      STATUS
@@ -88,7 +83,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED AT          
 
 The following removes containers created before `2017-01-04T13:10:00`:
 
-```bash
+```console
 $ docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}'
 
 CONTAINER ID        IMAGE               COMMAND             CREATED AT                      STATUS

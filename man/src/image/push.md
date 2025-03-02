@@ -35,7 +35,7 @@ listed.
 
 ### Push all tags of an image
 
-Use the `-a` (or `--all-tags`) option to push To push all tags of a local image.
+Use the `-a` (or `--all-tags`) option to push all tags of a local image.
 
 The following example creates multiple tags for an image, and pushes all those
 tags to Docker Hub.

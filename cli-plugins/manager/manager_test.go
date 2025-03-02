@@ -46,13 +46,12 @@ func TestListPluginCandidates(t *testing.T) {
 	)
 	defer dir.Remove()
 
-	var dirs []string
+	dirs := make([]string, 0, 6)
 	for _, d := range []string{"plugins1", "nonexistent", "plugins2", "plugins3", "plugins4", "plugins5"} {
 		dirs = append(dirs, dir.Join(d))
 	}
 
-	candidates, err := listPluginCandidates(dirs)
-	assert.NilError(t, err)
+	candidates := listPluginCandidates(dirs)
 	exp := map[string][]string{
 		"plugin1": {
 			dir.Join("plugins1", "docker-plugin1"),
@@ -82,14 +81,60 @@ func TestListPluginCandidates(t *testing.T) {
 	assert.DeepEqual(t, candidates, exp)
 }
 
+// Regression test for https://github.com/docker/cli/issues/5643.
+// Check that inaccessible directories that come before accessible ones are ignored
+// and do not prevent the latter from being processed.
+func TestListPluginCandidatesInaccesibleDir(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithDir("no-perm", fs.WithMode(0)),
+		fs.WithDir("plugins",
+			fs.WithFile("docker-buildx", ""),
+		),
+	)
+	defer dir.Remove()
+
+	candidates := listPluginCandidates([]string{
+		dir.Join("no-perm"),
+		dir.Join("plugins"),
+	})
+	assert.DeepEqual(t, candidates, map[string][]string{
+		"buildx": {
+			dir.Join("plugins", "docker-buildx"),
+		},
+	})
+}
+
+func TestGetPlugin(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithFile("docker-bbb", `
+#!/bin/sh
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
+		fs.WithFile("docker-aaa", `
+#!/bin/sh
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
+	)
+	defer dir.Remove()
+
+	cli := test.NewFakeCli(nil)
+	cli.SetConfigFile(&configfile.ConfigFile{CLIPluginsExtraDirs: []string{dir.Path()}})
+
+	plugin, err := GetPlugin("bbb", cli, &cobra.Command{})
+	assert.NilError(t, err)
+	assert.Equal(t, plugin.Name, "bbb")
+
+	_, err = GetPlugin("ccc", cli, &cobra.Command{})
+	assert.Error(t, err, "Error: No such CLI plugin: ccc")
+	assert.Assert(t, IsNotFound(err))
+}
+
 func TestListPluginsIsSorted(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile("docker-bbb", `
 #!/bin/sh
-echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 		fs.WithFile("docker-aaa", `
 #!/bin/sh
-echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0777)),
+echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 	)
 	defer dir.Remove()
 
@@ -126,7 +171,7 @@ func TestGetPluginDirs(t *testing.T) {
 	expected := append([]string{pluginDir}, defaultSystemPluginDirs...)
 
 	var pluginDirs []string
-	pluginDirs, err = getPluginDirs(cli)
+	pluginDirs, err = getPluginDirs(cli.ConfigFile())
 	assert.Equal(t, strings.Join(expected, ":"), strings.Join(pluginDirs, ":"))
 	assert.NilError(t, err)
 
@@ -137,7 +182,7 @@ func TestGetPluginDirs(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		CLIPluginsExtraDirs: extras,
 	})
-	pluginDirs, err = getPluginDirs(cli)
+	pluginDirs, err = getPluginDirs(cli.ConfigFile())
 	assert.DeepEqual(t, expected, pluginDirs)
 	assert.NilError(t, err)
 }

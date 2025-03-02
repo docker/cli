@@ -6,9 +6,11 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -29,23 +31,23 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List networks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, options)
+			return runList(cmd.Context(), dockerCli, options)
 		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display network IDs")
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate the output")
-	flags.StringVar(&options.format, "format", "", "Pretty-print networks using a Go template")
-	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'driver=bridge')")
+	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
+	flags.VarP(&options.filter, "filter", "f", `Provide filter values (e.g. "driver=bridge")`)
 
 	return cmd
 }
 
-func runList(dockerCli command.Cli, options listOptions) error {
+func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	listOptions := types.NetworkListOptions{Filters: options.filter.Value()}
-	networkResources, err := client.NetworkList(context.Background(), listOptions)
+	networkResources, err := client.NetworkList(ctx, network.ListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}

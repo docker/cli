@@ -1,12 +1,12 @@
 package checkpoint
 
 import (
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
+	"github.com/docker/docker/api/types/checkpoint"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -15,21 +15,21 @@ import (
 func TestCheckpointListErrors(t *testing.T) {
 	testCases := []struct {
 		args               []string
-		checkpointListFunc func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error)
+		checkpointListFunc func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error)
 		expectedError      string
 	}{
 		{
 			args:          []string{},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args: []string{"foo"},
-			checkpointListFunc: func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error) {
-				return []types.Checkpoint{}, errors.Errorf("error getting checkpoints for container foo")
+			checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
+				return []checkpoint.Summary{}, errors.New("error getting checkpoints for container foo")
 			},
 			expectedError: "error getting checkpoints for container foo",
 		},
@@ -41,7 +41,8 @@ func TestCheckpointListErrors(t *testing.T) {
 		})
 		cmd := newListCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -49,10 +50,10 @@ func TestCheckpointListErrors(t *testing.T) {
 func TestCheckpointListWithOptions(t *testing.T) {
 	var containerID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{
-		checkpointListFunc: func(container string, options types.CheckpointListOptions) ([]types.Checkpoint, error) {
+		checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
 			containerID = container
 			checkpointDir = options.CheckpointDir
-			return []types.Checkpoint{
+			return []checkpoint.Summary{
 				{Name: "checkpoint-foo"},
 			}, nil
 		},

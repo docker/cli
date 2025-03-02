@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"fmt"
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -12,7 +12,6 @@ import (
 )
 
 func TestRemoveErrors(t *testing.T) {
-
 	testCases := []struct {
 		args             []string
 		pluginRemoveFunc func(name string, options types.PluginRemoveOptions) error
@@ -25,9 +24,9 @@ func TestRemoveErrors(t *testing.T) {
 		{
 			args: []string{"plugin-foo"},
 			pluginRemoveFunc: func(name string, options types.PluginRemoveOptions) error {
-				return fmt.Errorf("Error removing plugin")
+				return errors.New("error removing plugin")
 			},
-			expectedError: "Error removing plugin",
+			expectedError: "error removing plugin",
 		},
 	}
 
@@ -37,7 +36,8 @@ func TestRemoveErrors(t *testing.T) {
 		})
 		cmd := newRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

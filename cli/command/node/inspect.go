@@ -1,13 +1,17 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package node
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/spf13/cobra"
 )
 
@@ -26,25 +30,25 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.nodeIds = args
-			return runInspect(dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCli, opts)
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.format, "format", "f", "", "Format the output using the given Go template")
+	flags.StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	flags.BoolVar(&opts.pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
 }
 
-func runInspect(dockerCli command.Cli, opts inspectOptions) error {
+func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	if opts.pretty {
 		opts.format = "pretty"
 	}
 
-	getRef := func(ref string) (interface{}, []byte, error) {
+	getRef := func(ref string) (any, []byte, error) {
 		nodeRef, err := Reference(ctx, client, ref)
 		if err != nil {
 			return nil, nil, err
@@ -57,7 +61,7 @@ func runInspect(dockerCli command.Cli, opts inspectOptions) error {
 	// check if the user is trying to apply a template to the pretty format, which
 	// is not supported
 	if strings.HasPrefix(f, "pretty") && f != "pretty" {
-		return fmt.Errorf("Cannot supply extra formatting options to the pretty template")
+		return errors.New("cannot supply extra formatting options to the pretty template")
 	}
 
 	nodeCtx := formatter.Context{

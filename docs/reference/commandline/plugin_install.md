@@ -1,30 +1,26 @@
----
-title: "plugin install"
-description: "the plugin install command description and usage"
-keywords: "plugin, install"
----
-
 # plugin install
 
-```markdown
-Usage:  docker plugin install [OPTIONS] PLUGIN [KEY=VALUE...]
-
+<!---MARKER_GEN_START-->
 Install a plugin
 
-Options:
-      --alias string            Local name for plugin
-      --disable                 Do not enable the plugin on install
-      --disable-content-trust   Skip image verification (default true)
-      --grant-all-permissions   Grant all permissions necessary to run the plugin
-      --help                    Print usage
-```
+### Options
+
+| Name                      | Type     | Default | Description                                       |
+|:--------------------------|:---------|:--------|:--------------------------------------------------|
+| `--alias`                 | `string` |         | Local name for plugin                             |
+| `--disable`               | `bool`   |         | Do not enable the plugin on install               |
+| `--disable-content-trust` | `bool`   | `true`  | Skip image verification                           |
+| `--grant-all-permissions` | `bool`   |         | Grant all permissions necessary to run the plugin |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Installs and enables a plugin. Docker looks first for the plugin on your Docker
 host. If the plugin does not exist locally, then the plugin is pulled from
 the registry. Note that the minimum required registry version to distribute
-plugins is 2.3.0
+plugins is 2.3.0.
 
 ## Examples
 
@@ -33,7 +29,7 @@ The following example installs `vieus/sshfs` plugin and [sets](plugin_set.md) it
 Hub and prompt the user to accept the list of privileges that the plugin needs,
 set the plugin's parameters and enable the plugin.
 
-```bash
+```console
 $ docker plugin install vieux/sshfs DEBUG=1
 
 Plugin "vieux/sshfs" is requesting the following privileges:
@@ -46,7 +42,7 @@ vieux/sshfs
 
 After the plugin is installed, it appears in the list of plugins:
 
-```bash
+```console
 $ docker plugin ls
 
 ID             NAME                  DESCRIPTION                ENABLED

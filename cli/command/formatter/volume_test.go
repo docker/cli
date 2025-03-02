@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package formatter
 
 import (
@@ -8,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -24,22 +27,22 @@ func TestVolumeContext(t *testing.T) {
 		call      func() string
 	}{
 		{volumeContext{
-			v: types.Volume{Name: volumeName},
+			v: volume.Volume{Name: volumeName},
 		}, volumeName, ctx.Name},
 		{volumeContext{
-			v: types.Volume{Driver: "driver_name"},
+			v: volume.Volume{Driver: "driver_name"},
 		}, "driver_name", ctx.Driver},
 		{volumeContext{
-			v: types.Volume{Scope: "local"},
+			v: volume.Volume{Scope: "local"},
 		}, "local", ctx.Scope},
 		{volumeContext{
-			v: types.Volume{Mountpoint: "mountpoint"},
+			v: volume.Volume{Mountpoint: "mountpoint"},
 		}, "mountpoint", ctx.Mountpoint},
 		{volumeContext{
-			v: types.Volume{},
+			v: volume.Volume{},
 		}, "", ctx.Labels},
 		{volumeContext{
-			v: types.Volume{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
+			v: volume.Volume{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
 		}, "label1=value1,label2=value2", ctx.Labels},
 	}
 
@@ -62,13 +65,11 @@ func TestVolumeContextWrite(t *testing.T) {
 		// Errors
 		{
 			Context{Format: "{{InvalidFunction}}"},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			Context{Format: "{{nil}}"},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table format
 		{
@@ -124,13 +125,12 @@ foobar_bar
 		},
 	}
 
-	volumes := []*types.Volume{
+	volumes := []*volume.Volume{
 		{Name: "foobar_baz", Driver: "foo"},
 		{Name: "foobar_bar", Driver: "bar"},
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -145,13 +145,13 @@ foobar_bar
 }
 
 func TestVolumeContextWriteJSON(t *testing.T) {
-	volumes := []*types.Volume{
+	volumes := []*volume.Volume{
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}
-	expectedJSONs := []map[string]interface{}{
-		{"Driver": "foo", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A"},
-		{"Driver": "bar", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A"},
+	expectedJSONs := []map[string]any{
+		{"Availability": "N/A", "Driver": "foo", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A", "Status": "N/A"},
+		{"Availability": "N/A", "Driver": "bar", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A", "Status": "N/A"},
 	}
 	out := bytes.NewBufferString("")
 	err := VolumeWrite(Context{Format: "{{json .}}", Output: out}, volumes)
@@ -160,7 +160,7 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 	}
 	for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 		msg := fmt.Sprintf("Output: line %d: %s", i, line)
-		var m map[string]interface{}
+		var m map[string]any
 		err := json.Unmarshal([]byte(line), &m)
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.DeepEqual(expectedJSONs[i], m), msg)
@@ -168,7 +168,7 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 }
 
 func TestVolumeContextWriteJSONField(t *testing.T) {
-	volumes := []*types.Volume{
+	volumes := []*volume.Volume{
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}

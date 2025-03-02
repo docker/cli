@@ -2,13 +2,13 @@ package registry
 
 import (
 	"context"
-	"sort"
+	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
@@ -27,11 +27,14 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "search [OPTIONS] TERM",
-		Short: "Search the Docker Hub for images",
+		Short: "Search Docker Hub for images",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.term = args[0]
-			return runSearch(dockerCli, options)
+			return runSearch(cmd.Context(), dockerCli, options)
+		},
+		Annotations: map[string]string{
+			"category-top": "10",
 		},
 	}
 
@@ -39,45 +42,38 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Don't truncate output")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
-	flags.IntVar(&options.limit, "limit", registry.DefaultSearchLimit, "Max number of search results")
+	flags.IntVar(&options.limit, "limit", 0, "Max number of search results")
 	flags.StringVar(&options.format, "format", "", "Pretty-print search using a Go template")
 
 	return cmd
 }
 
-func runSearch(dockerCli command.Cli, options searchOptions) error {
+func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions) error {
+	if options.filter.Value().Contains("is-automated") {
+		_, _ = fmt.Fprintln(dockerCli.Err(), `WARNING: the "is-automated" filter is deprecated, and searching for "is-automated=true" will not yield any results in future.`)
+	}
 	indexInfo, err := registry.ParseSearchIndexInfo(options.term)
 	if err != nil {
 		return err
 	}
 
-	ctx := context.Background()
-
-	authConfig := command.ResolveAuthConfig(ctx, dockerCli, indexInfo)
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
-
-	encodedAuth, err := command.EncodeAuthToBase64(authConfig)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
+	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
 	}
 
-	searchOptions := types.ImageSearchOptions{
+	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
+	results, err := dockerCli.Client().ImageSearch(ctx, options.term, registrytypes.SearchOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,
 		Filters:       options.filter.Value(),
 		Limit:         options.limit,
-	}
-
-	clnt := dockerCli.Client()
-
-	results, err := clnt.ImageSearch(ctx, options.term, searchOptions)
+	})
 	if err != nil {
 		return err
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[j].StarCount < results[i].StarCount
-	})
 	searchCtx := formatter.Context{
 		Output: dockerCli.Out(),
 		Format: NewSearchFormat(options.format),

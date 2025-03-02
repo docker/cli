@@ -1,7 +1,0 @@
-Creating network test-stack-deploy-with-names-swarm_network2
-Creating network named-network
-Creating secret named-secret
-Creating secret test-stack-deploy-with-names-swarm_secret2
-Creating config test-stack-deploy-with-names-swarm_config2
-Creating config named-config
-Creating service test-stack-deploy-with-names-swarm_web

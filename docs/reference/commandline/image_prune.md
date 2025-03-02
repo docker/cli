@@ -1,32 +1,28 @@
----
-title: "image prune"
-description: "Remove all stopped images"
-keywords: "image, prune, delete, remove"
----
-
 # image prune
 
-```markdown
-Usage:  docker image prune [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Remove unused images
 
-Options:
-  -a, --all             Remove all unused images, not just dangling ones
-      --filter filter   Provide filter values (e.g. 'until=<timestamp>')
-  -f, --force           Do not prompt for confirmation
-      --help            Print usage
-```
+### Options
+
+| Name                  | Type     | Default | Description                                      |
+|:----------------------|:---------|:--------|:-------------------------------------------------|
+| `-a`, `--all`         | `bool`   |         | Remove all unused images, not just dangling ones |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                   |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
-Remove all dangling images. If `-a` is specified, will also remove all images not referenced by any container.
+Remove all dangling images. If `-a` is specified, also remove all images not referenced by any container.
 
 ## Examples
 
 Example output:
 
-```bash
+```console
 $ docker image prune -a
 
 WARNING! This will remove all images without at least one container associated to them.
@@ -59,7 +55,7 @@ deleted: sha256:2c675ee9ed53425e31a13e3390bf3f539bf8637000e4bcfbb85ee03ef4d910a1
 Total reclaimed space: 16.43 MB
 ```
 
-### Filtering
+### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -70,10 +66,10 @@ The currently supported filters are:
 * label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove images with (or without, in case `label!=...` is used) the specified labels.
 
 The `until` filter can be Unix timestamps, date formatted
-timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
+timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
 relative to the daemon machine’s time. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the daemon will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp.  When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
@@ -86,6 +82,7 @@ which removes images with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
 images without the specified labels.
 
+> [!NOTE]
 > **Predicting what will be removed**
 >
 > If you are using positive filtering (testing for the existence of a label or
@@ -93,15 +90,15 @@ images without the specified labels.
 > same filtering syntax to see which images match your filter.
 >
 > However, if you are using negative filtering (testing for the absence of a
-> label or that a label does *not* have a specific value), this type of filter
-> does not work with `docker image ls` so you cannot easily predict which images
+> label or that a label doesn't have a specific value), this type of filter
+> doesn't work with `docker image ls` so you cannot easily predict which images
 > will be removed. In addition, the confirmation prompt for `docker image prune`
-> always warns that *all* dangling images will be removed, even if you are using
+> always warns that all dangling images will be removed, even if you are using
 > `--filter`.
 
 The following removes images created before `2017-01-04T00:00:00`:
 
-```bash
+```console
 $ docker images --format 'table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}\t{{.Size}}'
 REPOSITORY          TAG                 IMAGE ID            CREATED AT                      SIZE
 foo                 latest              2f287ac753da        2017-01-04 13:42:23 -0800 PST   3.98 MB
@@ -128,7 +125,7 @@ foo                 latest              2f287ac753da        2017-01-04 13:42:23 
 
 The following removes images created more than 10 days (`240h`) ago:
 
-```bash
+```console
 $ docker images
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
@@ -168,33 +165,32 @@ busybox             latest              e02e811dd08f        2 months ago        
 
 The following example removes images with the label `deprecated`:
 
-```bash
+```console
 $ docker image prune --filter="label=deprecated"
 ```
 
 The following example removes images with the label `maintainer` set to `john`:
 
-```bash
+```console
 $ docker image prune --filter="label=maintainer=john"
 ```
 
 This example removes images which have no `maintainer` label:
 
-```bash
+```console
 $ docker image prune --filter="label!=maintainer"
 ```
 
 This example removes images which have a maintainer label not set to `john`:
 
-```bash
+```console
 $ docker image prune --filter="label!=maintainer=john"
 ```
 
-> **Note**
->
+> [!NOTE]
 > You are prompted for confirmation before the `prune` removes
 > anything, but you are not shown a list of what will potentially be removed.
-> In addition, `docker image ls` does not support negative filtering, so it
+> In addition, `docker image ls` doesn't support negative filtering, so it
 > difficult to predict what images will actually be removed.
 
 ## Related commands

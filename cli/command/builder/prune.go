@@ -2,13 +2,16 @@ package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/errdefs"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +32,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove build cache",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			spaceReclaimed, output, err := runPrune(dockerCli, options)
+			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCli, options)
 			if err != nil {
 				return err
 			}
@@ -39,13 +42,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 			fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 			return nil
 		},
-		Annotations: map[string]string{"version": "1.39"},
+		Annotations:       map[string]string{"version": "1.39"},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused build cache, not just dangling ones")
-	flags.Var(&options.filter, "filter", "Provide filter values (e.g. 'until=24h')")
+	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "until=24h")`)
 	flags.Var(&options.keepStorage, "keep-storage", "Amount of disk space to keep for cache")
 
 	return cmd
@@ -56,7 +60,7 @@ const (
 	allCacheWarning = `WARNING! This will remove all build cache. Are you sure you want to continue?`
 )
 
-func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
 	pruneFilters := options.filter.Value()
 	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
 
@@ -64,11 +68,17 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 	if options.all {
 		warning = allCacheWarning
 	}
-	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), warning) {
-		return 0, "", nil
+	if !options.force {
+		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		if err != nil {
+			return 0, "", err
+		}
+		if !r {
+			return 0, "", errdefs.Cancelled(errors.New("builder prune has been cancelled"))
+		}
 	}
 
-	report, err := dockerCli.Client().BuildCachePrune(context.Background(), types.BuildCachePruneOptions{
+	report, err := dockerCli.Client().BuildCachePrune(ctx, types.BuildCachePruneOptions{
 		All:         options.all,
 		KeepStorage: options.keepStorage.Value(),
 		Filters:     pruneFilters,
@@ -91,6 +101,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint6
 }
 
 // CachePrune executes a prune command for build cache
-func CachePrune(dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(dockerCli, pruneOptions{force: true, all: all, filter: filter})
+func CachePrune(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
+	return runPrune(ctx, dockerCli, pruneOptions{force: true, all: all, filter: filter})
 }

@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,47 +11,44 @@ import (
 	"testing"
 
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/fileutils"
+	"github.com/moby/patternmatcher"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 const dockerfileContents = "FROM busybox"
 
-var prepareEmpty = func(t *testing.T) (string, func()) {
-	return "", func() {}
+func prepareEmpty(_ *testing.T) string {
+	return ""
 }
 
-var prepareNoFiles = func(t *testing.T) (string, func()) {
-	return createTestTempDir(t, "builder-context-test")
+func prepareNoFiles(t *testing.T) string {
+	t.Helper()
+	return createTestTempDir(t)
 }
 
-var prepareOneFile = func(t *testing.T) (string, func()) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
+func prepareOneFile(t *testing.T) string {
+	t.Helper()
+	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
-	return contextDir, cleanup
+	return contextDir
 }
 
-func testValidateContextDirectory(t *testing.T, prepare func(t *testing.T) (string, func()), excludes []string) {
-	contextDir, cleanup := prepare(t)
-	defer cleanup()
-
+func testValidateContextDirectory(t *testing.T, prepare func(t *testing.T) string, excludes []string) {
+	t.Helper()
+	contextDir := prepare(t)
 	err := ValidateContextDirectory(contextDir, excludes)
 	assert.NilError(t, err)
 }
 
 func TestGetContextFromLocalDirNoDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
-
+	contextDir := createTestTempDir(t)
 	_, _, err := GetContextFromLocalDir(contextDir, "")
 	assert.ErrorContains(t, err, "Dockerfile")
 }
 
 func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
-
+	contextDir := createTestTempDir(t)
 	fakePath := filepath.Join(contextDir, "fake")
 
 	_, _, err := GetContextFromLocalDir(fakePath, "")
@@ -60,9 +56,7 @@ func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
-
+	contextDir := createTestTempDir(t)
 	fakePath := filepath.Join(contextDir, "fake")
 
 	_, _, err := GetContextFromLocalDir(contextDir, fakePath)
@@ -70,13 +64,10 @@ func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
-	contextDir, dirCleanup := createTestTempDir(t, "builder-context-test")
-	defer dirCleanup()
-
+	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
-	chdirCleanup := chdir(t, contextDir)
-	defer chdirCleanup()
+	chdir(t, contextDir)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
 	assert.NilError(t, err)
@@ -86,9 +77,7 @@ func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
-
+	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
@@ -99,9 +88,7 @@ func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirLocalFile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
-
+	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 	testFilename := createTestTempFile(t, contextDir, "tmpTest", "test")
 
@@ -121,11 +108,8 @@ func TestGetContextFromLocalDirLocalFile(t *testing.T) {
 }
 
 func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
-
-	chdirCleanup := chdir(t, contextDir)
-	defer chdirCleanup()
+	contextDir := createTestTempDir(t)
+	chdir(t, contextDir)
 
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
@@ -137,8 +121,7 @@ func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
 }
 
 func TestGetContextFromReaderString(t *testing.T) {
-	tarArchive, relDockerfile, err := GetContextFromReader(ioutil.NopCloser(strings.NewReader(dockerfileContents)), "")
-
+	tarArchive, relDockerfile, err := GetContextFromReader(io.NopCloser(strings.NewReader(dockerfileContents)), "")
 	if err != nil {
 		t.Fatalf("Error when executing GetContextFromReader: %s", err)
 	}
@@ -146,7 +129,6 @@ func TestGetContextFromReaderString(t *testing.T) {
 	tarReader := tar.NewReader(tarArchive)
 
 	_, err = tarReader.Next()
-
 	if err != nil {
 		t.Fatalf("Error when reading tar archive: %s", err)
 	}
@@ -172,10 +154,15 @@ func TestGetContextFromReaderString(t *testing.T) {
 	}
 }
 
-func TestGetContextFromReaderTar(t *testing.T) {
-	contextDir, cleanup := createTestTempDir(t, "builder-context-test")
-	defer cleanup()
+func TestGetContextFromReaderStringConflict(t *testing.T) {
+	rdr, relDockerfile, err := GetContextFromReader(io.NopCloser(strings.NewReader(dockerfileContents)), "custom.Dockerfile")
+	assert.Check(t, is.Equal(rdr, nil))
+	assert.Check(t, is.Equal(relDockerfile, ""))
+	assert.Check(t, is.ErrorContains(err, "ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles"))
+}
 
+func TestGetContextFromReaderTar(t *testing.T) {
+	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
 	tarStream, err := archive.Tar(contextDir, archive.Uncompressed)
@@ -238,21 +225,24 @@ func TestValidateContextDirectoryWithOneFileExcludes(t *testing.T) {
 	testValidateContextDirectory(t, prepareOneFile, []string{DefaultDockerfileName})
 }
 
-// createTestTempDir creates a temporary directory for testing.
-// It returns the created path and a cleanup function which is meant to be used as deferred call.
-// When an error occurs, it terminates the test.
-//nolint: unparam
-func createTestTempDir(t *testing.T, prefix string) (string, func()) {
-	path, err := ioutil.TempDir("", prefix)
+// createTestTempDir creates a temporary directory for testing. It returns the
+// created path. When an error occurs, it terminates the test.
+func createTestTempDir(t *testing.T) string {
+	t.Helper()
+	path := t.TempDir()
+
+	// Eval Symlinks is needed to account for macOS TMP using symlinks
+	path, err := filepath.EvalSymlinks(path)
 	assert.NilError(t, err)
-	return path, func() { assert.NilError(t, os.RemoveAll(path)) }
+	return path
 }
 
 // createTestTempFile creates a temporary file within dir with specific contents and permissions.
 // When an error occurs, it terminates the test
 func createTestTempFile(t *testing.T, dir, filename, contents string) string {
+	t.Helper()
 	filePath := filepath.Join(dir, filename)
-	err := ioutil.WriteFile(filePath, []byte(contents), 0777)
+	err := os.WriteFile(filePath, []byte(contents), 0o777)
 	assert.NilError(t, err)
 	return filePath
 }
@@ -261,15 +251,18 @@ func createTestTempFile(t *testing.T, dir, filename, contents string) string {
 // It returns a function which changes working directory back to the previous one.
 // This function is meant to be executed as a deferred call.
 // When an error occurs, it terminates the test.
-func chdir(t *testing.T, dir string) func() {
+func chdir(t *testing.T, dir string) {
+	t.Helper()
 	workingDirectory, err := os.Getwd()
 	assert.NilError(t, err)
 	assert.NilError(t, os.Chdir(dir))
-	return func() { assert.NilError(t, os.Chdir(workingDirectory)) }
+	t.Cleanup(func() {
+		assert.NilError(t, os.Chdir(workingDirectory))
+	})
 }
 
 func TestIsArchive(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		doc      string
 		header   []byte
 		expected bool
@@ -301,7 +294,7 @@ func TestIsArchive(t *testing.T) {
 }
 
 func TestDetectArchiveReader(t *testing.T) {
-	var testcases = []struct {
+	testcases := []struct {
 		file     string
 		desc     string
 		expected bool
@@ -333,9 +326,9 @@ func TestDetectArchiveReader(t *testing.T) {
 	}
 }
 
-func mustPatternMatcher(t *testing.T, patterns []string) *fileutils.PatternMatcher {
+func mustPatternMatcher(t *testing.T, patterns []string) *patternmatcher.PatternMatcher {
 	t.Helper()
-	pm, err := fileutils.NewPatternMatcher(patterns)
+	pm, err := patternmatcher.New(patterns)
 	if err != nil {
 		t.Fatal("failed to construct pattern matcher: ", err)
 	}

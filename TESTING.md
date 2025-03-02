@@ -80,6 +80,6 @@ End-to-end test should run the `docker` binary using
 and make assertions about the exit code, stdout, stderr, and local file system.
 
 Any Docker image or registry operations should use `registry:5000/<image name>`
-to communicate with the local instance of the Docker registry. To load 
+to communicate with the local instance of the registry. To load 
 additional fixture images to the registry see
 [scripts/test/e2e/run](https://github.com/docker/cli/blob/master/scripts/test/e2e/run).

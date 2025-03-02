@@ -3,7 +3,6 @@ package container
 import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/archive"
 )
 
 const (
@@ -15,16 +14,14 @@ const (
 
 // NewDiffFormat returns a format for use with a diff Context
 func NewDiffFormat(source string) formatter.Format {
-	switch source {
-	case formatter.TableFormatKey:
+	if source == formatter.TableFormatKey {
 		return defaultDiffTableFormat
 	}
 	return formatter.Format(source)
 }
 
 // DiffFormatWrite writes formatted diff using the Context
-func DiffFormatWrite(ctx formatter.Context, changes []container.ContainerChangeResponseItem) error {
-
+func DiffFormatWrite(ctx formatter.Context, changes []container.FilesystemChange) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, change := range changes {
 			if err := format(&diffContext{c: change}); err != nil {
@@ -38,7 +35,7 @@ func DiffFormatWrite(ctx formatter.Context, changes []container.ContainerChangeR
 
 type diffContext struct {
 	formatter.HeaderContext
-	c container.ContainerChangeResponseItem
+	c container.FilesystemChange
 }
 
 func newDiffContext() *diffContext {
@@ -55,17 +52,7 @@ func (d *diffContext) MarshalJSON() ([]byte, error) {
 }
 
 func (d *diffContext) Type() string {
-	var kind string
-	switch d.c.Kind {
-	case archive.ChangeModify:
-		kind = "C"
-	case archive.ChangeAdd:
-		kind = "A"
-	case archive.ChangeDelete:
-		kind = "D"
-	}
-	return kind
-
+	return d.c.Kind.String()
 }
 
 func (d *diffContext) Path() string {

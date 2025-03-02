@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
@@ -20,7 +20,6 @@ const (
 	taskIDHeader       = "ID"
 	desiredStateHeader = "DESIRED STATE"
 	currentStateHeader = "CURRENT STATE"
-	errorHeader        = "ERROR"
 
 	maxErrLength = 30
 )
@@ -61,7 +60,7 @@ func FormatWrite(ctx formatter.Context, tasks []swarm.Task, names map[string]str
 		"Node":         nodeHeader,
 		"DesiredState": desiredStateHeader,
 		"CurrentState": currentStateHeader,
-		"Error":        errorHeader,
+		"Error":        formatter.ErrorHeader,
 		"Ports":        formatter.PortsHeader,
 	}
 	return ctx.Write(&taskCtx, render)
@@ -124,11 +123,11 @@ func (c *taskContext) CurrentState() string {
 func (c *taskContext) Error() string {
 	// Trim and quote the error message.
 	taskErr := c.task.Status.Err
-	if c.trunc && len(taskErr) > maxErrLength {
-		taskErr = fmt.Sprintf("%s…", taskErr[:maxErrLength-1])
+	if c.trunc {
+		taskErr = formatter.Ellipsis(taskErr, maxErrLength)
 	}
 	if len(taskErr) > 0 {
-		taskErr = fmt.Sprintf("\"%s\"", taskErr)
+		taskErr = fmt.Sprintf(`"%s"`, taskErr)
 	}
 	return taskErr
 }

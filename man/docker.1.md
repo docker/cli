@@ -12,7 +12,7 @@ docker \- Docker image and container command line interface
 **docker** is a client for interacting with the daemon (see **dockerd(8)**) through the CLI.
 
 The Docker CLI has over 30 commands. The commands are listed below and each has
-its own man page which explain usage and arguments.
+its own man page which explains usage and arguments.
 
 To see the man page for a command run **man docker <command>**.
 
@@ -60,7 +60,7 @@ unix://[/path/to/socket] to use.
 Use "docker help" or "docker --help" to get an overview of available commands.
 
 # EXAMPLES
-For specific client examples please see the man page for the specific Docker
+For specific client examples see the man page for the specific Docker
 command. For example:
 
     man docker-run

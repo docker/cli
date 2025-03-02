@@ -1,7 +1,7 @@
 package trust
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/trust"
@@ -38,7 +38,8 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.Flags().Set("pretty", "true")
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -55,26 +56,26 @@ func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
 			doc:              "OfflineErrors",
 			args:             []string{"nonexistent-reg-name.io/image"},
 			notaryRepository: notary.GetOfflineNotaryRepository,
-			err:              "No signatures or cannot access nonexistent-reg-name.io/image",
+			err:              "no signatures or cannot access nonexistent-reg-name.io/image",
 		},
 		{
 			doc:              "OfflineErrorsWithImageTag",
 			args:             []string{"nonexistent-reg-name.io/image:tag"},
 			notaryRepository: notary.GetOfflineNotaryRepository,
-			err:              "No signatures or cannot access nonexistent-reg-name.io/image:tag",
+			err:              "no signatures or cannot access nonexistent-reg-name.io/image:tag",
 		},
 		{
 			doc:              "UninitializedErrors",
 			args:             []string{"reg/unsigned-img"},
 			notaryRepository: notary.GetUninitializedNotaryRepository,
-			err:              "No signatures or cannot access reg/unsigned-img",
+			err:              "no signatures or cannot access reg/unsigned-img",
 			golden:           "trust-inspect-uninitialized.golden",
 		},
 		{
 			doc:              "UninitializedErrorsWithImageTag",
 			args:             []string{"reg/unsigned-img:tag"},
 			notaryRepository: notary.GetUninitializedNotaryRepository,
-			err:              "No signatures or cannot access reg/unsigned-img:tag",
+			err:              "no signatures or cannot access reg/unsigned-img:tag",
 			golden:           "trust-inspect-uninitialized.golden",
 		},
 	}
@@ -85,7 +86,8 @@ func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
 			cli.SetNotaryClient(tc.notaryRepository)
 			cmd := newInspectCommand(cli)
 			cmd.SetArgs(tc.args)
-			cmd.SetOut(ioutil.Discard)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.err)
 			if tc.golden != "" {
 				golden.Assert(t, cli.OutBuffer().String(), tc.golden)

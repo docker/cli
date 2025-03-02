@@ -3,15 +3,16 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/distribution/reference"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
@@ -207,9 +208,9 @@ func NewFormat(source string) formatter.Format {
 
 func resolveNetworks(service swarm.Service, getNetwork inspect.GetRefFunc) map[string]string {
 	networkNames := make(map[string]string)
-	for _, network := range service.Spec.TaskTemplate.Networks {
-		if resolved, _, err := getNetwork(network.Target); err == nil {
-			if resolvedNetwork, ok := resolved.(types.NetworkResource); ok {
+	for _, nw := range service.Spec.TaskTemplate.Networks {
+		if resolved, _, err := getNetwork(nw.Target); err == nil {
+			if resolvedNetwork, ok := resolved.(network.Summary); ok {
 				networkNames[resolvedNetwork.ID] = resolvedNetwork.Name
 			}
 		}
@@ -273,6 +274,7 @@ func (ctx *serviceInspectContext) HasLogDriver() bool {
 func (ctx *serviceInspectContext) HasLogDriverName() bool {
 	return ctx.Service.Spec.TaskTemplate.LogDriver.Name != ""
 }
+
 func (ctx *serviceInspectContext) LogDriverName() string {
 	return ctx.Service.Spec.TaskTemplate.LogDriver.Name
 }
@@ -344,13 +346,13 @@ func (ctx *serviceInspectContext) TaskPlacementPreferences() []string {
 	if ctx.Service.Spec.TaskTemplate.Placement == nil {
 		return nil
 	}
-	var strings []string
+	var out []string
 	for _, pref := range ctx.Service.Spec.TaskTemplate.Placement.Preferences {
 		if pref.Spread != nil {
-			strings = append(strings, "spread="+pref.Spread.SpreadDescriptor)
+			out = append(out, "spread="+pref.Spread.SpreadDescriptor)
 		}
 	}
-	return strings
+	return out
 }
 
 func (ctx *serviceInspectContext) MaxReplicas() uint64 {
@@ -501,7 +503,8 @@ func (ctx *serviceInspectContext) ResourceReservationNanoCPUs() float64 {
 	if ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs == 0 {
 		return float64(0)
 	}
-	return float64(ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs) / 1e9
+	const nano = 1e9
+	return float64(ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs) / nano
 }
 
 func (ctx *serviceInspectContext) ResourceReservationMemory() string {
@@ -519,7 +522,8 @@ func (ctx *serviceInspectContext) HasResourceLimits() bool {
 }
 
 func (ctx *serviceInspectContext) ResourceLimitsNanoCPUs() float64 {
-	return float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs) / 1e9
+	const nano = 1e9
+	return float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs) / nano
 }
 
 func (ctx *serviceInspectContext) ResourceLimitMemory() string {
@@ -741,12 +745,12 @@ func (pr portRange) String() string {
 	if pr.pEnd > pr.pStart {
 		pub = fmt.Sprintf("%d-%d", pr.pStart, pr.pEnd)
 	} else {
-		pub = fmt.Sprintf("%d", pr.pStart)
+		pub = strconv.FormatUint(uint64(pr.pStart), 10)
 	}
 	if pr.tEnd > pr.tStart {
 		tgt = fmt.Sprintf("%d-%d", pr.tStart, pr.tEnd)
 	} else {
-		tgt = fmt.Sprintf("%d", pr.tStart)
+		tgt = strconv.FormatUint(uint64(pr.tStart), 10)
 	}
 	return fmt.Sprintf("*:%s->%s/%s", pub, tgt, pr.protocol)
 }

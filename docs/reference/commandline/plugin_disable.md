@@ -1,20 +1,16 @@
----
-title: "plugin disable"
-description: "the plugin disable command description and usage"
-keywords: "plugin, disable"
----
-
 # plugin disable
 
-```markdown
-Usage:  docker plugin disable [OPTIONS] PLUGIN
-
+<!---MARKER_GEN_START-->
 Disable a plugin
 
-Options:
-  -f, --force   Force the disable of an active plugin
-      --help    Print usage
-```
+### Options
+
+| Name            | Type   | Default | Description                           |
+|:----------------|:-------|:--------|:--------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the disable of an active plugin |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -27,7 +23,7 @@ a plugin that has references (e.g., volumes, networks) cannot be disabled.
 The following example shows that the `sample-volume-plugin` plugin is installed
 and enabled:
 
-```bash
+```console
 $ docker plugin ls
 
 ID            NAME                                    DESCRIPTION                ENABLED
@@ -36,7 +32,7 @@ ID            NAME                                    DESCRIPTION               
 
 To disable the plugin, use the following command:
 
-```bash
+```console
 $ docker plugin disable tiborvass/sample-volume-plugin
 
 tiborvass/sample-volume-plugin

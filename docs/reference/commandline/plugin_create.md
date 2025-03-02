@@ -1,31 +1,27 @@
----
-title: "plugin create"
-description: "the plugin create command description and usage"
-keywords: "plugin, create"
----
-
 # plugin create
 
-```markdown
-Usage:  docker plugin create [OPTIONS] PLUGIN PLUGIN-DATA-DIR
-
+<!---MARKER_GEN_START-->
 Create a plugin from a rootfs and configuration. Plugin data directory must contain config.json and rootfs directory.
 
-Options:
-      --compress   Compress the context using gzip
-      --help       Print usage
-```
+### Options
+
+| Name         | Type   | Default | Description                     |
+|:-------------|:-------|:--------|:--------------------------------|
+| `--compress` | `bool` |         | Compress the context using gzip |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
-Creates a plugin. Before creating the plugin, prepare the plugin's root filesystem as well as
-[the config.json](../../extend/config.md)
+Creates a plugin. Before creating the plugin, prepare the plugin's root
+filesystem as well as the [config.json](https://docs.docker.com/engine/extend/config/).
 
 ## Examples
 
 The following example shows how to create a sample `plugin`.
 
-```bash
+```console
 $ ls -ls /home/pluginDir
 
 total 4

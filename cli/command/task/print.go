@@ -89,7 +89,8 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 // Task-names are not unique in cases where "tasks" contains previous/rotated tasks.
 func generateTaskNames(ctx context.Context, tasks []swarm.Task, resolver *idresolver.IDResolver) ([]swarm.Task, error) {
 	// Use a copy of the tasks list, to not modify the original slice
-	t := append(tasks[:0:0], tasks...)
+	// see https://github.com/go101/go101/wiki/How-to-efficiently-clone-a-slice%3F
+	t := append(tasks[:0:0], tasks...) //nolint:gocritic // ignore appendAssign: append result not assigned to the same slice
 
 	for i, task := range t {
 		serviceName, err := resolver.Resolve(ctx, swarm.Service{}, task.ServiceID)

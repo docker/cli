@@ -1,0 +1,83 @@
+name: test
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.x'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  ctn:
+    runs-on: ubuntu-24.04
+    steps:
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Test
+        uses: docker/bake-action@v6
+        with:
+          targets: test-coverage
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./build/coverage/coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  host:
+    runs-on: ${{ matrix.os }}
+    env:
+      GOPATH: ${{ github.workspace }}
+      GOBIN: ${{ github.workspace }}/bin
+      GO111MODULE: auto
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-13  # macOS 13 on Intel
+          - macos-14  # macOS 14 on arm64 (Apple Silicon M1)
+#          - windows-2022 # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.GOPATH }}/src/github.com/docker/cli
+      -
+        name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.6"
+      -
+        name: Test
+        run: |
+          go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/')
+          go tool cover -func=/tmp/coverage.txt
+        working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+        shell: bash
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: /tmp/coverage.txt
+          working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+          token: ${{ secrets.CODECOV_TOKEN }}

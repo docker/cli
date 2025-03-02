@@ -3,7 +3,6 @@ package image
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -33,6 +32,10 @@ const (
 func TestPushAllTags(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
 
+	// Compared digests are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
+
 	_ = createImage(t, "push-all-tags", "latest", "v1", "v1.0", "v1.0.1")
 	result := icmd.RunCmd(icmd.Command("docker", "push", "--all-tags", registryPrefix+"/push-all-tags"))
 
@@ -40,16 +43,20 @@ func TestPushAllTags(t *testing.T) {
 	golden.Assert(t, result.Stderr(), "push-with-content-trust-err.golden")
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0:  output.Equals("The push refers to repository [registry:5000/push-all-tags]"),
-		1:  output.Equals("5bef08742407: Preparing"),
-		3:  output.Equals("latest: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
-		6:  output.Equals("v1: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
-		9:  output.Equals("v1.0: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
-		12: output.Equals("v1.0.1: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		1:  output.Equals("7cd52847ad77: Preparing"),
+		3:  output.Equals("latest: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
+		6:  output.Equals("v1: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
+		9:  output.Equals("v1.0: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
+		12: output.Equals("v1.0.1: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 	})
 }
 
 func TestPushWithContentTrust(t *testing.T) {
 	skip.If(t, environment.RemoteDaemon())
+
+	// Compared digests are linux/amd64 specific.
+	// TODO: Fix this test and make it work on all platforms.
+	environment.SkipIfNotPlatform(t, "linux/amd64")
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -65,8 +72,8 @@ func TestPushWithContentTrust(t *testing.T) {
 	golden.Assert(t, result.Stderr(), "push-with-content-trust-err.golden")
 	output.Assert(t, result.Stdout(), map[int]func(string) error{
 		0: output.Equals("The push refers to repository [registry:5000/trust-push]"),
-		1: output.Equals("5bef08742407: Preparing"),
-		3: output.Equals("latest: digest: sha256:641b95ddb2ea9dc2af1a0113b6b348ebc20872ba615204fbe12148e98fd6f23d size: 528"),
+		1: output.Equals("7cd52847ad77: Preparing"),
+		3: output.Equals("latest: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 		4: output.Equals("Signing and pushing trust metadata"),
 		5: output.Equals(`Finished initializing "registry:5000/trust-push"`),
 		6: output.Equals("Successfully signed registry:5000/trust-push:latest"),
@@ -235,7 +242,7 @@ func TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor(t *testing.T) 
 	targetsInRole = notaryListTargetsInRole(t, notaryDir, homeDir, baseRef, "targets")
 	assert.Assert(t, targetsInRole["latest"] != "targets", "%v", targetsInRole)
 
-	assert.NilError(t, os.RemoveAll(filepath.Join(dir.Join("trust"))))
+	assert.NilError(t, os.RemoveAll(dir.Join("trust")))
 	// Try to pull, should fail because non of these are the release role
 	// FIXME(vdemeester) should be unit test
 	result = icmd.RunCmd(icmd.Command("docker", "pull", targetRef),
@@ -302,7 +309,7 @@ func TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths(t *testing.T) {
 	targetsInRole = notaryListTargetsInRole(t, notaryDir, homeDir, baseRef, "targets")
 	assert.Assert(t, targetsInRole["latest"] != "targets", "%v", targetsInRole)
 
-	assert.NilError(t, os.RemoveAll(filepath.Join(dir.Join("trust"))))
+	assert.NilError(t, os.RemoveAll(dir.Join("trust")))
 	// Try to pull, should fail because non of these are the release role
 	// FIXME(vdemeester) should be unit test
 	result = icmd.RunCmd(icmd.Command("docker", "pull", targetRef),
@@ -316,6 +323,7 @@ func TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths(t *testing.T) {
 }
 
 func createImage(t *testing.T, repo string, tags ...string) string {
+	t.Helper()
 	icmd.RunCommand("docker", "pull", fixtures.AlpineImage).Assert(t, icmd.Success)
 
 	for _, tag := range tags {
@@ -325,19 +333,20 @@ func createImage(t *testing.T, repo string, tags ...string) string {
 	return fmt.Sprintf("%s/%s:%s", registryPrefix, repo, tags[0])
 }
 
-//nolint: unparam
+//nolint:unparam
 func withNotaryPassphrase(pwd string) func(*icmd.Cmd) {
 	return func(c *icmd.Cmd) {
 		c.Env = append(c.Env, []string{
-			fmt.Sprintf("NOTARY_ROOT_PASSPHRASE=%s", pwd),
-			fmt.Sprintf("NOTARY_TARGETS_PASSPHRASE=%s", pwd),
-			fmt.Sprintf("NOTARY_SNAPSHOT_PASSPHRASE=%s", pwd),
-			fmt.Sprintf("NOTARY_DELEGATION_PASSPHRASE=%s", pwd),
+			"NOTARY_ROOT_PASSPHRASE=" + pwd,
+			"NOTARY_TARGETS_PASSPHRASE=" + pwd,
+			"NOTARY_SNAPSHOT_PASSPHRASE=" + pwd,
+			"NOTARY_DELEGATION_PASSPHRASE=" + pwd,
 		}...)
 	}
 }
 
 func notaryImportPrivateKey(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role, privkey string) {
+	t.Helper()
 	icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "key", "import", privkey, "-g", baseRef, "-r", role),
 		withNotaryPassphrase("foo"),
@@ -346,6 +355,7 @@ func notaryImportPrivateKey(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, r
 }
 
 func notaryPublish(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
+	t.Helper()
 	icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "publish", baseRef),
 		withNotaryPassphrase("foo"),
@@ -354,6 +364,7 @@ func notaryPublish(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
 }
 
 func notaryAddDelegation(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role, pubkey string, paths ...string) {
+	t.Helper()
 	pathsArg := "--all-paths"
 	if len(paths) > 0 {
 		pathsArg = "--paths=" + strings.Join(paths, ",")
@@ -366,6 +377,7 @@ func notaryAddDelegation(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role
 }
 
 func notaryInit(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
+	t.Helper()
 	icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "init", baseRef),
 		withNotaryPassphrase("foo"),
@@ -374,6 +386,7 @@ func notaryInit(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef string) {
 }
 
 func notaryListTargetsInRole(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, role string) map[string]string {
+	t.Helper()
 	result := icmd.RunCmd(
 		icmd.Command(notary, "-c", notaryDir.Join("client-config.json"), "list", baseRef, "-r", role),
 		fixtures.WithHome(homeDir.Path()),
@@ -406,7 +419,8 @@ func notaryListTargetsInRole(t *testing.T, notaryDir, homeDir *fs.Dir, baseRef, 
 }
 
 func setupNotaryConfig(t *testing.T, dockerConfigDir fs.Dir) *fs.Dir {
-	return fs.NewDir(t, "notary_test", fs.WithMode(0700),
+	t.Helper()
+	return fs.NewDir(t, "notary_test", fs.WithMode(0o700),
 		fs.WithFile("client-config.json", fmt.Sprintf(`
 {
 	"trust_dir": "%s",
@@ -418,5 +432,6 @@ func setupNotaryConfig(t *testing.T, dockerConfigDir fs.Dir) *fs.Dir {
 }
 
 func copyPrivateKey(t *testing.T, dir, source string) {
+	t.Helper()
 	icmd.RunCommand("/bin/cp", source, dir).Assert(t, icmd.Success)
 }

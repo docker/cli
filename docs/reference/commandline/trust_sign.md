@@ -1,21 +1,16 @@
----
-title: "trust sign"
-description: "The sign command description and usage"
-keywords: "sign, notary, trust"
----
-
 # trust sign
 
-```markdown
-Usage:  docker trust sign [OPTIONS] IMAGE:TAG
-
+<!---MARKER_GEN_START-->
 Sign an image
 
-Options:
-      --help    print usage
-      --local   force the signing of a local image
+### Options
 
-```
+| Name      | Type   | Default | Description                 |
+|:----------|:-------|:--------|:----------------------------|
+| `--local` | `bool` |         | Sign a locally tagged image |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -23,11 +18,11 @@ Options:
 
 ## Examples
 
-### Sign a tag as a repo admin
+### Sign a tag as a repository admin
 
 Given an image:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -40,7 +35,7 @@ Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 
 Sign a new tag with `docker trust sign`:
 
-```bash
+```console
 $ docker trust sign example/trust-demo:v2
 
 Signing and pushing trust metadata for example/trust-demo:v2
@@ -60,7 +55,7 @@ Successfully signed docker.io/example/trust-demo:v2
 
 Use `docker trust inspect --pretty` to list the new signature:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -76,7 +71,7 @@ Root Key:       246d360f7c53a9021ee7d4259e3c5692f3f1f7ad4737b1ea8c7b8da741ad980b
 
 Given an image:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo
@@ -95,7 +90,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 Sign a new tag with `docker trust sign`:
 
-```bash
+```console
 $ docker trust sign example/trust-demo:v1
 
 Signing and pushing trust metadata for example/trust-demo:v1
@@ -113,7 +108,7 @@ Successfully signed docker.io/example/trust-demo:v1
 
 `docker trust inspect --pretty` lists the new signature:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS
@@ -130,17 +125,17 @@ Repository Key: ecc457614c9fc399da523a5f4e24fe306a0a6ee1cc79a10e4555b3c6ab02f71e
 Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 ```
 
-## Initialize a new repo and sign a tag
+## Initialize a new repository and sign a tag
 
-When signing an image on a repo for the first time, `docker trust sign` sets up new keys before signing the image.
+When signing an image on a repository for the first time, `docker trust sign` sets up new keys before signing the image.
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
-No signatures or cannot access example/trust-demo
+no signatures or cannot access example/trust-demo
 ```
 
-```bash
+```console
 $ docker trust sign example/trust-demo:v1
 
 Signing and pushing trust metadata for example/trust-demo:v1
@@ -165,7 +160,7 @@ Enter passphrase for alice key with ID 6d52b29:
 Successfully signed docker.io/example/trust-demo:v1
 ```
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 SIGNED TAG          DIGEST                                                             SIGNERS

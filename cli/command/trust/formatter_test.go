@@ -23,7 +23,8 @@ func TestTrustTag(t *testing.T) {
 	}{
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
 				},
@@ -33,7 +34,8 @@ func TestTrustTag(t *testing.T) {
 		},
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
 				},
@@ -44,7 +46,8 @@ func TestTrustTag(t *testing.T) {
 		// Empty signers makes a row with empty string
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
 				},
@@ -54,7 +57,8 @@ func TestTrustTag(t *testing.T) {
 		},
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: []string{"alice", "bob", "claire"},
 				},
@@ -65,7 +69,8 @@ func TestTrustTag(t *testing.T) {
 		// alphabetic signing on Signers
 		{
 			trustTagContext{
-				s: SignedTagInfo{Name: trustedTag,
+				s: SignedTagInfo{
+					Name:    trustedTag,
 					Digest:  digest,
 					Signers: []string{"claire", "bob", "alice"},
 				},
@@ -85,7 +90,6 @@ func TestTrustTag(t *testing.T) {
 }
 
 func TestTrustTagContextWrite(t *testing.T) {
-
 	cases := []struct {
 		context  formatter.Context
 		expected string
@@ -95,15 +99,13 @@ func TestTrustTagContextWrite(t *testing.T) {
 			formatter.Context{
 				Format: "{{InvalidFunction}}",
 			},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{
 				Format: "{{nil}}",
 			},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table Format
 		{
@@ -125,7 +127,6 @@ tag3         bbbbbbbb
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -142,7 +143,6 @@ tag3         bbbbbbbb
 // With no trust data, the TagWrite will print an empty table:
 // it's up to the caller to decide whether or not to print this versus an error
 func TestTrustTagContextEmptyWrite(t *testing.T) {
-
 	emptyCase := struct {
 		context  formatter.Context
 		expected string
@@ -191,15 +191,13 @@ func TestSignerInfoContextWrite(t *testing.T) {
 			formatter.Context{
 				Format: "{{InvalidFunction}}",
 			},
-			`Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			`template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
 			formatter.Context{
 				Format: "{{nil}}",
 			},
-			`Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		// Table Format
 		{
@@ -232,7 +230,6 @@ eve       foobarbazquxquux, key31, key32
 		{Name: "eve", Keys: []string{"key31", "key32", "foobarbazquxquux"}},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out

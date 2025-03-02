@@ -2,11 +2,11 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/docker/cli/internal/test/network"
-	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
+	networktypes "github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"
 )
 
@@ -14,13 +14,11 @@ type notFound struct {
 	error
 }
 
-func (n notFound) NotFound() bool {
-	return true
-}
+func (notFound) NotFound() {}
 
 func TestValidateExternalNetworks(t *testing.T) {
-	var testcases = []struct {
-		inspectResponse types.NetworkResource
+	testcases := []struct {
+		inspectResponse networktypes.Inspect
 		inspectError    error
 		expectedMsg     string
 		network         string
@@ -30,8 +28,8 @@ func TestValidateExternalNetworks(t *testing.T) {
 			expectedMsg:  "could not be found. You need to create a swarm-scoped network",
 		},
 		{
-			inspectError: errors.New("Unexpected"),
-			expectedMsg:  "Unexpected",
+			inspectError: errors.New("unexpected"),
+			expectedMsg:  "unexpected",
 		},
 		// FIXME(vdemeester) that doesn't work under windows, the check needs to be smarter
 		/*
@@ -46,18 +44,18 @@ func TestValidateExternalNetworks(t *testing.T) {
 		},
 		{
 			network:         "user",
-			inspectResponse: types.NetworkResource{Scope: "swarm"},
+			inspectResponse: networktypes.Inspect{Scope: "swarm"},
 		},
 	}
 
 	for _, testcase := range testcases {
-		fakeClient := &network.FakeClient{
-			NetworkInspectFunc: func(_ context.Context, _ string, _ types.NetworkInspectOptions) (types.NetworkResource, error) {
+		client := &network.FakeClient{
+			NetworkInspectFunc: func(_ context.Context, _ string, _ networktypes.InspectOptions) (networktypes.Inspect, error) {
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}
 		networks := []string{testcase.network}
-		err := validateExternalNetworks(context.Background(), fakeClient, networks)
+		err := validateExternalNetworks(context.Background(), client, networks)
 		if testcase.expectedMsg == "" {
 			assert.NilError(t, err)
 		} else {

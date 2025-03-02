@@ -1,4 +1,4 @@
-// +build !windows,!darwin,!linux
+//go:build !windows && !darwin && !linux
 
 package credentials
 

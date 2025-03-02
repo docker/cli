@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/swarm/progress"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -34,9 +34,13 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display and rotate the root CA",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCA(dockerCli, cmd.Flags(), opts)
+			return runCA(cmd.Context(), dockerCli, cmd.Flags(), opts)
 		},
-		Annotations: map[string]string{"version": "1.30"},
+		Annotations: map[string]string{
+			"version": "1.30",
+			"swarm":   "manager",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
@@ -50,9 +54,8 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCA(dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) error {
+func runCA(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts caOptions) error {
 	client := dockerCli.Client()
-	ctx := context.Background()
 
 	swarmInspect, err := client.SwarmInspect(ctx)
 	if err != nil {
@@ -113,11 +116,11 @@ func attach(ctx context.Context, dockerCli command.Cli, opts caOptions) error {
 	}()
 
 	if opts.quiet {
-		go io.Copy(ioutil.Discard, pipeReader)
+		go io.Copy(io.Discard, pipeReader)
 		return <-errChan
 	}
 
-	err := jsonmessage.DisplayJSONMessagesToStream(pipeReader, dockerCli.Out(), nil)
+	err := jsonstream.Display(ctx, pipeReader, dockerCli.Out())
 	if err == nil {
 		err = <-errChan
 	}

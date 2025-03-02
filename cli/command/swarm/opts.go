@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
@@ -68,7 +68,7 @@ func (a *NodeAddrOption) Set(value string) error {
 }
 
 // Type returns the type of this flag
-func (a *NodeAddrOption) Type() string {
+func (*NodeAddrOption) Type() string {
 	return "node-addr"
 }
 
@@ -104,7 +104,7 @@ func (m *ExternalCAOption) Set(value string) error {
 }
 
 // Type returns the type of this option.
-func (m *ExternalCAOption) Type() string {
+func (*ExternalCAOption) Type() string {
 	return "external-ca"
 }
 
@@ -129,7 +129,7 @@ type PEMFile struct {
 }
 
 // Type returns the type of this option.
-func (p *PEMFile) Type() string {
+func (*PEMFile) Type() string {
 	return "pem-file"
 }
 
@@ -140,7 +140,7 @@ func (p *PEMFile) String() string {
 
 // Set parses a root rotation option
 func (p *PEMFile) Set(value string) error {
-	contents, err := ioutil.ReadFile(value)
+	contents, err := os.ReadFile(value)
 	if err != nil {
 		return err
 	}
@@ -175,14 +175,12 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 	)
 
 	for _, field := range fields {
-		parts := strings.SplitN(field, "=", 2)
-
-		if len(parts) != 2 {
+		key, value, ok := strings.Cut(field, "=")
+		if !ok {
 			return nil, errors.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
 
-		key, value := parts[0], parts[1]
-
+		// TODO(thaJeztah): these options should not be case-insensitive.
 		switch strings.ToLower(key) {
 		case "protocol":
 			hasProtocol = true
@@ -195,7 +193,7 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 			hasURL = true
 			externalCA.URL = value
 		case "cacert":
-			cacontents, err := ioutil.ReadFile(value)
+			cacontents, err := os.ReadFile(value)
 			if err != nil {
 				return nil, errors.Wrap(err, "unable to read CA cert for external CA")
 			}
@@ -218,38 +216,38 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 	return &externalCA, nil
 }
 
-func addSwarmCAFlags(flags *pflag.FlagSet, opts *swarmCAOptions) {
-	flags.DurationVar(&opts.nodeCertExpiry, flagCertExpiry, 90*24*time.Hour, "Validity period for node certificates (ns|us|ms|s|m|h)")
-	flags.Var(&opts.externalCA, flagExternalCA, "Specifications of one or more certificate signing endpoints")
+func addSwarmCAFlags(flags *pflag.FlagSet, options *swarmCAOptions) {
+	flags.DurationVar(&options.nodeCertExpiry, flagCertExpiry, 90*24*time.Hour, "Validity period for node certificates (ns|us|ms|s|m|h)")
+	flags.Var(&options.externalCA, flagExternalCA, "Specifications of one or more certificate signing endpoints")
 }
 
-func addSwarmFlags(flags *pflag.FlagSet, opts *swarmOptions) {
-	flags.Int64Var(&opts.taskHistoryLimit, flagTaskHistoryLimit, 5, "Task history retention limit")
-	flags.DurationVar(&opts.dispatcherHeartbeat, flagDispatcherHeartbeat, 5*time.Second, "Dispatcher heartbeat period (ns|us|ms|s|m|h)")
-	flags.Uint64Var(&opts.maxSnapshots, flagMaxSnapshots, 0, "Number of additional Raft snapshots to retain")
+func addSwarmFlags(flags *pflag.FlagSet, options *swarmOptions) {
+	flags.Int64Var(&options.taskHistoryLimit, flagTaskHistoryLimit, 5, "Task history retention limit")
+	flags.DurationVar(&options.dispatcherHeartbeat, flagDispatcherHeartbeat, 5*time.Second, "Dispatcher heartbeat period (ns|us|ms|s|m|h)")
+	flags.Uint64Var(&options.maxSnapshots, flagMaxSnapshots, 0, "Number of additional Raft snapshots to retain")
 	flags.SetAnnotation(flagMaxSnapshots, "version", []string{"1.25"})
-	flags.Uint64Var(&opts.snapshotInterval, flagSnapshotInterval, 10000, "Number of log entries between Raft snapshots")
+	flags.Uint64Var(&options.snapshotInterval, flagSnapshotInterval, 10000, "Number of log entries between Raft snapshots")
 	flags.SetAnnotation(flagSnapshotInterval, "version", []string{"1.25"})
-	addSwarmCAFlags(flags, &opts.swarmCAOptions)
+	addSwarmCAFlags(flags, &options.swarmCAOptions)
 }
 
-func (opts *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
+func (o *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
 	if flags.Changed(flagTaskHistoryLimit) {
-		spec.Orchestration.TaskHistoryRetentionLimit = &opts.taskHistoryLimit
+		spec.Orchestration.TaskHistoryRetentionLimit = &o.taskHistoryLimit
 	}
 	if flags.Changed(flagDispatcherHeartbeat) {
-		spec.Dispatcher.HeartbeatPeriod = opts.dispatcherHeartbeat
+		spec.Dispatcher.HeartbeatPeriod = o.dispatcherHeartbeat
 	}
 	if flags.Changed(flagMaxSnapshots) {
-		spec.Raft.KeepOldSnapshots = &opts.maxSnapshots
+		spec.Raft.KeepOldSnapshots = &o.maxSnapshots
 	}
 	if flags.Changed(flagSnapshotInterval) {
-		spec.Raft.SnapshotInterval = opts.snapshotInterval
+		spec.Raft.SnapshotInterval = o.snapshotInterval
 	}
 	if flags.Changed(flagAutolock) {
-		spec.EncryptionConfig.AutoLockManagers = opts.autolock
+		spec.EncryptionConfig.AutoLockManagers = o.autolock
 	}
-	opts.mergeSwarmSpecCAFlags(spec, flags, caCert)
+	o.mergeSwarmSpecCAFlags(spec, flags, caCert)
 }
 
 type swarmCAOptions struct {
@@ -257,20 +255,20 @@ type swarmCAOptions struct {
 	externalCA     ExternalCAOption
 }
 
-func (opts *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
+func (o *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
 	if flags.Changed(flagCertExpiry) {
-		spec.CAConfig.NodeCertExpiry = opts.nodeCertExpiry
+		spec.CAConfig.NodeCertExpiry = o.nodeCertExpiry
 	}
 	if flags.Changed(flagExternalCA) {
-		spec.CAConfig.ExternalCAs = opts.externalCA.Value()
+		spec.CAConfig.ExternalCAs = o.externalCA.Value()
 		for _, ca := range spec.CAConfig.ExternalCAs {
 			ca.CACert = caCert
 		}
 	}
 }
 
-func (opts *swarmOptions) ToSpec(flags *pflag.FlagSet) swarm.Spec {
+func (o *swarmOptions) ToSpec(flags *pflag.FlagSet) swarm.Spec {
 	var spec swarm.Spec
-	opts.mergeSwarmSpec(&spec, flags, "")
+	o.mergeSwarmSpec(&spec, flags, "")
 	return spec
 }

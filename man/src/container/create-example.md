@@ -9,8 +9,6 @@ Linux namespaces. On Microsoft Windows, you can specify these values:
 * `process`: Namespace isolation only.
 * `hyperv`: Hyper-V hypervisor partition-based isolation.
 
-Specifying the `--isolation` flag without a value is the same as setting `--isolation="default"`.
-
 ### Dealing with dynamically created devices (--device-cgroup-rule)
 
 Devices available to a container are assigned at creation time. The
@@ -24,8 +22,8 @@ our container needs access to a character device with major `42` and
 any number of minor number (added as new devices appear), the
 following rule would be added:
 
-```
-docker create --device-cgroup-rule='c 42:* rmw' -name my-container my-image
+```console
+$ docker create --device-cgroup-rule='c 42:* rmw' --name my-container my-image
 ```
 
 Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`

@@ -3,10 +3,11 @@ package context
 import (
 	"errors"
 	"fmt"
-	"strings"
+	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/docker/errdefs"
 	"github.com/spf13/cobra"
 )
 
@@ -31,31 +32,25 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunRemove removes one or more contexts
-func RunRemove(dockerCli command.Cli, opts RemoveOptions, names []string) error {
-	var errs []string
-	currentCtx := dockerCli.CurrentContext()
+func RunRemove(dockerCLI command.Cli, opts RemoveOptions, names []string) error {
+	var errs []error
+	currentCtx := dockerCLI.CurrentContext()
 	for _, name := range names {
 		if name == "default" {
-			errs = append(errs, `default: context "default" cannot be removed`)
-		} else if err := doRemove(dockerCli, name, name == currentCtx, opts.Force); err != nil {
-			errs = append(errs, fmt.Sprintf("%s: %s", name, err))
+			errs = append(errs, errors.New(`context "default" cannot be removed`))
+		} else if err := doRemove(dockerCLI, name, name == currentCtx, opts.Force); err != nil {
+			errs = append(errs, err)
 		} else {
-			fmt.Fprintln(dockerCli.Out(), name)
+			_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 		}
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
-	if _, err := dockerCli.ContextStore().GetMetadata(name); err != nil {
-		return err
-	}
 	if isCurrent {
 		if !force {
-			return errors.New("context is in use, set -f flag to force remove")
+			return fmt.Errorf("context %q is in use, set -f flag to force remove", name)
 		}
 		// fallback to DOCKER_HOST
 		cfg := dockerCli.ConfigFile()
@@ -64,5 +59,24 @@ func doRemove(dockerCli command.Cli, name string, isCurrent, force bool) error {
 			return err
 		}
 	}
+
+	if !force {
+		// TODO(thaJeztah): instead of checking before removing, can we make ContextStore().Remove() return a proper errdef and ignore "not found" errors?
+		if err := checkContextExists(dockerCli, name); err != nil {
+			return err
+		}
+	}
 	return dockerCli.ContextStore().Remove(name)
+}
+
+// checkContextExists returns an error if the context directory does not exist.
+func checkContextExists(dockerCli command.Cli, name string) error {
+	contextDir := dockerCli.ContextStore().GetStorageInfo(name).MetadataPath
+	_, err := os.Stat(contextDir)
+	if os.IsNotExist(err) {
+		return errdefs.NotFound(fmt.Errorf("context %q does not exist", name))
+	}
+	// Ignore other errors; if relevant, they will produce an error when
+	// performing the actual delete.
+	return nil
 }

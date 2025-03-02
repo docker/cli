@@ -1,12 +1,12 @@
 package config
 
 import (
-	"io/ioutil"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -19,12 +19,12 @@ func TestConfigRemoveErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{},
-			expectedError: "requires at least 1 argument.",
+			expectedError: "requires at least 1 argument",
 		},
 		{
 			args: []string{"foo"},
 			configRemoveFunc: func(name string) error {
-				return errors.Errorf("error removing config")
+				return errors.New("error removing config")
 			},
 			expectedError: "error removing config",
 		},
@@ -36,7 +36,8 @@ func TestConfigRemoveErrors(t *testing.T) {
 			}),
 		)
 		cmd.SetArgs(tc.args)
-		cmd.SetOut(ioutil.Discard)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -65,7 +66,7 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 		configRemoveFunc: func(name string) error {
 			removedConfigs = append(removedConfigs, name)
 			if name == "foo" {
-				return errors.Errorf("error removing config: %s", name)
+				return errors.New("error removing config: " + name)
 			}
 			return nil
 		},
@@ -73,7 +74,8 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 
 	cmd := newConfigRemoveCommand(cli)
 	cmd.SetArgs(names)
-	cmd.SetOut(ioutil.Discard)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Error(t, cmd.Execute(), "error removing config: foo")
 	assert.Check(t, is.DeepEqual(names, removedConfigs))
 }

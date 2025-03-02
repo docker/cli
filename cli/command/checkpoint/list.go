@@ -5,8 +5,9 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 	"github.com/spf13/cobra"
 )
 
@@ -23,25 +24,21 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List checkpoints for a container",
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, args[0], opts)
+			return runList(cmd.Context(), dockerCli, args[0], opts)
 		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&opts.checkpointDir, "checkpoint-dir", "", "", "Use a custom checkpoint storage directory")
+	flags.StringVar(&opts.checkpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
 
 	return cmd
-
 }
 
-func runList(dockerCli command.Cli, container string, opts listOptions) error {
-	client := dockerCli.Client()
-
-	listOpts := types.CheckpointListOptions{
+func runList(ctx context.Context, dockerCli command.Cli, container string, opts listOptions) error {
+	checkpoints, err := dockerCli.Client().CheckpointList(ctx, container, checkpoint.ListOptions{
 		CheckpointDir: opts.checkpointDir,
-	}
-
-	checkpoints, err := client.CheckpointList(context.Background(), container, listOpts)
+	})
 	if err != nil {
 		return err
 	}

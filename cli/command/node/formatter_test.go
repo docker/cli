@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package node
 
 import (
@@ -9,8 +12,8 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -59,18 +62,15 @@ func TestNodeContextWrite(t *testing.T) {
 		expected    string
 		clusterInfo swarm.ClusterInfo
 	}{
-
 		// Errors
 		{
-			context: formatter.Context{Format: "{{InvalidFunction}}"},
-			expected: `Template parsing error: template: :1: function "InvalidFunction" not defined
-`,
+			context:     formatter.Context{Format: "{{InvalidFunction}}"},
+			expected:    `template parsing error: template: :1: function "InvalidFunction" not defined`,
 			clusterInfo: swarm.ClusterInfo{TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}},
 		},
 		{
-			context: formatter.Context{Format: "{{nil}}"},
-			expected: `Template parsing error: template: :1:2: executing "" at <nil>: nil is not a command
-`,
+			context:     formatter.Context{Format: "{{nil}}"},
+			expected:    `template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 			clusterInfo: swarm.ClusterInfo{TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}},
 		},
 		// Table format
@@ -202,12 +202,11 @@ foobar_boo  Unknown
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			err := FormatWrite(tc.context, nodes, types.Info{Swarm: swarm.Info{Cluster: &tc.clusterInfo}})
+			err := FormatWrite(tc.context, nodes, system.Info{Swarm: swarm.Info{Cluster: &tc.clusterInfo}})
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -219,24 +218,24 @@ foobar_boo  Unknown
 
 func TestNodeContextWriteJSON(t *testing.T) {
 	cases := []struct {
-		expected []map[string]interface{}
-		info     types.Info
+		expected []map[string]any
+		info     system.Info
 	}{
 		{
-			expected: []map[string]interface{}{
+			expected: []map[string]any{
 				{"Availability": "", "Hostname": "foobar_baz", "ID": "nodeID1", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "1.2.3"},
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
 			},
-			info: types.Info{},
+			info: system.Info{},
 		},
 		{
-			expected: []map[string]interface{}{
+			expected: []map[string]any{
 				{"Availability": "", "Hostname": "foobar_baz", "ID": "nodeID1", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Ready", "EngineVersion": "1.2.3"},
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Needs Rotation", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
 			},
-			info: types.Info{
+			info: system.Info{
 				Swarm: swarm.Info{
 					Cluster: &swarm.ClusterInfo{
 						TLSInfo:                swarm.TLSInfo{TrustRoot: "hi"},
@@ -260,7 +259,7 @@ func TestNodeContextWriteJSON(t *testing.T) {
 		}
 		for i, line := range strings.Split(strings.TrimSpace(out.String()), "\n") {
 			msg := fmt.Sprintf("Output: line %d: %s", i, line)
-			var m map[string]interface{}
+			var m map[string]any
 			err := json.Unmarshal([]byte(line), &m)
 			assert.NilError(t, err, msg)
 			assert.Check(t, is.DeepEqual(testcase.expected[i], m), msg)
@@ -274,7 +273,7 @@ func TestNodeContextWriteJSONField(t *testing.T) {
 		{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar"}},
 	}
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, types.Info{})
+	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, system.Info{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -322,7 +321,7 @@ func TestNodeInspectWriteContext(t *testing.T) {
 		Format: NewFormat("pretty", false),
 		Output: out,
 	}
-	err := InspectFormatWrite(context, []string{"nodeID1"}, func(string) (interface{}, []byte, error) {
+	err := InspectFormatWrite(context, []string{"nodeID1"}, func(string) (any, []byte, error) {
 		return node, nil, nil
 	})
 	if err != nil {

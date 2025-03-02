@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +29,12 @@ func NewTopCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
 			opts.args = args[1:]
-			return runTop(dockerCli, &opts)
+			return runTop(cmd.Context(), dockerCli, &opts)
 		},
+		Annotations: map[string]string{
+			"aliases": "docker container top, docker top",
+		},
+		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
 	}
 
 	flags := cmd.Flags()
@@ -38,9 +43,7 @@ func NewTopCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runTop(dockerCli command.Cli, opts *topOptions) error {
-	ctx := context.Background()
-
+func runTop(ctx context.Context, dockerCli command.Cli, opts *topOptions) error {
 	procList, err := dockerCli.Client().ContainerTop(ctx, opts.container, opts.args)
 	if err != nil {
 		return err

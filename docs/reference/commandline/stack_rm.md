@@ -1,32 +1,26 @@
----
-title: "stack rm"
-description: "The stack rm command description and usage"
-keywords: "stack, rm, remove, down"
----
-
 # stack rm
 
-```markdown
-Usage:  docker stack rm [OPTIONS] STACK [STACK...]
-
+<!---MARKER_GEN_START-->
 Remove one or more stacks
 
-Aliases:
-  rm, remove, down
+### Aliases
 
-Options:
-      --help                  Print usage
-      --kubeconfig string     Kubernetes config file
-      --namespace string      Kubernetes namespace to use
-      --orchestrator string   Orchestrator to use (swarm|kubernetes|all)
-```
+`docker stack rm`, `docker stack remove`, `docker stack down`
+
+### Options
+
+| Name             | Type   | Default | Description                   |
+|:-----------------|:-------|:--------|:------------------------------|
+| `-d`, `--detach` | `bool` | `true`  | Do not wait for stack removal |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Remove the stack from the swarm.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -36,9 +30,10 @@ Remove the stack from the swarm.
 
 ### Remove a stack
 
-This will remove the stack with the name `myapp`. Services, networks, and secrets associated with the stack will be removed.
+This will remove the stack with the name `myapp`. Services, networks, and secrets
+associated with the stack will be removed.
 
-```bash
+```console
 $ docker stack rm myapp
 
 Removing service myapp_redis
@@ -50,9 +45,10 @@ Removing network myapp_frontend
 
 ### Remove multiple stacks
 
-This will remove all the specified stacks, `myapp` and `vossibility`. Services, networks, and secrets associated with all the specified stacks will be removed.
+This will remove all the specified stacks, `myapp` and `vossibility`. Services,
+networks, and secrets associated with all the specified stacks will be removed.
 
-```bash
+```console
 $ docker stack rm myapp vossibility
 
 Removing service myapp_redis

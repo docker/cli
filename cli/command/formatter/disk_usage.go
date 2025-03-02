@@ -3,16 +3,20 @@ package formatter
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"text/template"
 
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/volume"
 	units "github.com/docker/go-units"
 )
 
 const (
-	defaultDiskUsageImageTableFormat      = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.VirtualSize}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
+	defaultDiskUsageImageTableFormat      = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.Size}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
 	defaultDiskUsageContainerTableFormat  = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.LocalVolumes}}\t{{.Size}}\t{{.RunningFor}}\t{{.Status}}\t{{.Names}}"
 	defaultDiskUsageVolumeTableFormat     = "table {{.Name}}\t{{.Links}}\t{{.Size}}"
 	defaultDiskUsageBuildCacheTableFormat = "table {{.ID}}\t{{.CacheType}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}"
@@ -32,9 +36,9 @@ type DiskUsageContext struct {
 	Context
 	Verbose     bool
 	LayersSize  int64
-	Images      []*types.ImageSummary
-	Containers  []*types.Container
-	Volumes     []*types.Volume
+	Images      []*image.Summary
+	Containers  []*container.Summary
+	Volumes     []*volume.Volume
 	BuildCache  []*types.BuildCache
 	BuilderSize int64
 }
@@ -121,7 +125,7 @@ func (ctx *DiskUsageContext) Write() (err error) {
 		return err
 	}
 
-	diskUsageContainersCtx := diskUsageContainersContext{containers: []*types.Container{}}
+	diskUsageContainersCtx := diskUsageContainersContext{containers: []*container.Summary{}}
 	diskUsageContainersCtx.Header = SubHeaderContext{
 		"Type":        typeHeader,
 		"TotalCount":  totalHeader,
@@ -233,7 +237,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 	if err != nil {
 		return err
 	}
-	ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
+	_, _ = ctx.Output.Write([]byte("\nLocal Volumes space usage:\n\n"))
 	for _, v := range duc.Volumes {
 		if err := ctx.contextFormat(tmpl, v); err != nil {
 			return err
@@ -245,7 +249,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
+	_, _ = fmt.Fprintf(ctx.Output, "\nBuild cache usage: %s\n\n", units.HumanSize(float64(ctx.BuilderSize)))
 	for _, v := range duc.BuildCache {
 		if err := ctx.contextFormat(tmpl, v); err != nil {
 			return err
@@ -259,19 +263,19 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 type diskUsageImagesContext struct {
 	HeaderContext
 	totalSize int64
-	images    []*types.ImageSummary
+	images    []*image.Summary
 }
 
 func (c *diskUsageImagesContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageImagesContext) Type() string {
+func (*diskUsageImagesContext) Type() string {
 	return "Images"
 }
 
 func (c *diskUsageImagesContext) TotalCount() string {
-	return fmt.Sprintf("%d", len(c.images))
+	return strconv.Itoa(len(c.images))
 }
 
 func (c *diskUsageImagesContext) Active() string {
@@ -282,12 +286,11 @@ func (c *diskUsageImagesContext) Active() string {
 		}
 	}
 
-	return fmt.Sprintf("%d", used)
+	return strconv.Itoa(used)
 }
 
 func (c *diskUsageImagesContext) Size() string {
 	return units.HumanSize(float64(c.totalSize))
-
 }
 
 func (c *diskUsageImagesContext) Reclaimable() string {
@@ -295,10 +298,10 @@ func (c *diskUsageImagesContext) Reclaimable() string {
 
 	for _, i := range c.images {
 		if i.Containers != 0 {
-			if i.VirtualSize == -1 || i.SharedSize == -1 {
+			if i.Size == -1 || i.SharedSize == -1 {
 				continue
 			}
-			used += i.VirtualSize - i.SharedSize
+			used += i.Size - i.SharedSize
 		}
 	}
 
@@ -311,57 +314,56 @@ func (c *diskUsageImagesContext) Reclaimable() string {
 
 type diskUsageContainersContext struct {
 	HeaderContext
-	containers []*types.Container
+	containers []*container.Summary
 }
 
 func (c *diskUsageContainersContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageContainersContext) Type() string {
+func (*diskUsageContainersContext) Type() string {
 	return "Containers"
 }
 
 func (c *diskUsageContainersContext) TotalCount() string {
-	return fmt.Sprintf("%d", len(c.containers))
+	return strconv.Itoa(len(c.containers))
 }
 
-func (c *diskUsageContainersContext) isActive(container types.Container) bool {
-	return strings.Contains(container.State, "running") ||
-		strings.Contains(container.State, "paused") ||
-		strings.Contains(container.State, "restarting")
+func (*diskUsageContainersContext) isActive(ctr container.Summary) bool {
+	return strings.Contains(ctr.State, "running") ||
+		strings.Contains(ctr.State, "paused") ||
+		strings.Contains(ctr.State, "restarting")
 }
 
 func (c *diskUsageContainersContext) Active() string {
 	used := 0
-	for _, container := range c.containers {
-		if c.isActive(*container) {
+	for _, ctr := range c.containers {
+		if c.isActive(*ctr) {
 			used++
 		}
 	}
 
-	return fmt.Sprintf("%d", used)
+	return strconv.Itoa(used)
 }
 
 func (c *diskUsageContainersContext) Size() string {
 	var size int64
 
-	for _, container := range c.containers {
-		size += container.SizeRw
+	for _, ctr := range c.containers {
+		size += ctr.SizeRw
 	}
 
 	return units.HumanSize(float64(size))
 }
 
 func (c *diskUsageContainersContext) Reclaimable() string {
-	var reclaimable int64
-	var totalSize int64
+	var reclaimable, totalSize int64
 
-	for _, container := range c.containers {
-		if !c.isActive(*container) {
-			reclaimable += container.SizeRw
+	for _, ctr := range c.containers {
+		if !c.isActive(*ctr) {
+			reclaimable += ctr.SizeRw
 		}
-		totalSize += container.SizeRw
+		totalSize += ctr.SizeRw
 	}
 
 	if totalSize > 0 {
@@ -373,23 +375,22 @@ func (c *diskUsageContainersContext) Reclaimable() string {
 
 type diskUsageVolumesContext struct {
 	HeaderContext
-	volumes []*types.Volume
+	volumes []*volume.Volume
 }
 
 func (c *diskUsageVolumesContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageVolumesContext) Type() string {
+func (*diskUsageVolumesContext) Type() string {
 	return "Local Volumes"
 }
 
 func (c *diskUsageVolumesContext) TotalCount() string {
-	return fmt.Sprintf("%d", len(c.volumes))
+	return strconv.Itoa(len(c.volumes))
 }
 
 func (c *diskUsageVolumesContext) Active() string {
-
 	used := 0
 	for _, v := range c.volumes {
 		if v.UsageData.RefCount > 0 {
@@ -397,7 +398,7 @@ func (c *diskUsageVolumesContext) Active() string {
 		}
 	}
 
-	return fmt.Sprintf("%d", used)
+	return strconv.Itoa(used)
 }
 
 func (c *diskUsageVolumesContext) Size() string {
@@ -442,12 +443,12 @@ func (c *diskUsageBuilderContext) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(c)
 }
 
-func (c *diskUsageBuilderContext) Type() string {
+func (*diskUsageBuilderContext) Type() string {
 	return "Build Cache"
 }
 
 func (c *diskUsageBuilderContext) TotalCount() string {
-	return fmt.Sprintf("%d", len(c.buildCache))
+	return strconv.Itoa(len(c.buildCache))
 }
 
 func (c *diskUsageBuilderContext) Active() string {
@@ -457,7 +458,7 @@ func (c *diskUsageBuilderContext) Active() string {
 			numActive++
 		}
 	}
-	return fmt.Sprintf("%d", numActive)
+	return strconv.Itoa(numActive)
 }
 
 func (c *diskUsageBuilderContext) Size() string {

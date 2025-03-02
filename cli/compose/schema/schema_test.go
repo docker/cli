@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package schema
 
 import (
@@ -7,7 +10,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-type dict map[string]interface{}
+type dict map[string]any
 
 func TestValidate(t *testing.T) {
 	config := dict{
@@ -20,6 +23,115 @@ func TestValidate(t *testing.T) {
 	}
 
 	assert.NilError(t, Validate(config, "3.0"))
+	assert.NilError(t, Validate(config, "3"))
+	assert.NilError(t, Validate(config, ""))
+	assert.ErrorContains(t, Validate(config, "1.0"), "unsupported Compose file version: 1.0")
+	assert.ErrorContains(t, Validate(config, "12345"), "unsupported Compose file version: 12345")
+}
+
+func TestValidatePorts(t *testing.T) {
+	testcases := []struct {
+		ports    any
+		hasError bool
+	}{
+		{
+			ports:    []int{8000},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8000:8000"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8001-8005"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8001-8005:8001-8005"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8000"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8000-9000:80"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"[::1]:8080:8000"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"[::1]:8080-8085:8000"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"127.0.0.1:8000:8000"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"127.0.0.1:8000-8005:8000-8005"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"127.0.0.1:8000:8000/udp"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8000:8000/udp"},
+			hasError: false,
+		},
+		{
+			ports:    []string{"8000:8000/http"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"-1"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"65536"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"-1:65536/http"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"invalid"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"12345678:8000:8000/tcp"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"8005-8000:8005-8000"},
+			hasError: true,
+		},
+		{
+			ports:    []string{"8006-8000:8005-8000"},
+			hasError: true,
+		},
+	}
+
+	for _, tc := range testcases {
+		config := dict{
+			"version": "3.0",
+			"services": dict{
+				"foo": dict{
+					"image": "busybox",
+					"ports": tc.ports,
+				},
+			},
+		}
+		if tc.hasError {
+			assert.ErrorContains(t, Validate(config, "3"), "services.foo.ports.0 Does not match format 'ports'")
+		} else {
+			assert.NilError(t, Validate(config, "3"))
+		}
+	}
 }
 
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
@@ -94,10 +206,15 @@ func TestValidateCredentialSpecs(t *testing.T) {
 		{version: "3.7", expectedErr: "config"},
 		{version: "3.8"},
 		{version: "3.9"},
+		{version: "3.10"},
+		{version: "3.11"},
+		{version: "3.12"},
+		{version: "3.13"},
+		{version: "3"},
+		{version: ""},
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.version, func(t *testing.T) {
 			config := dict{
 				"version": "99.99",
@@ -153,7 +270,7 @@ func TestValidateInvalidVersion(t *testing.T) {
 	assert.ErrorContains(t, err, "unsupported Compose file version: 2.1")
 }
 
-type array []interface{}
+type array []any
 
 func TestValidatePlacement(t *testing.T) {
 	config := dict{

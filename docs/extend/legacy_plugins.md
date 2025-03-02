@@ -1,24 +1,14 @@
 ---
-redirect_from:
+title: Use Docker Engine plugins
+aliases:
 - "/engine/extend/plugins/"
 description: "How to add additional functionality to Docker with plugins extensions"
 keywords: "Examples, Usage, plugins, docker, documentation, user guide"
 ---
 
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
-# Use Docker Engine plugins
-
 This document describes the Docker Engine plugins generally available in Docker
 Engine. To view information on plugins managed by Docker,
-refer to [Docker Engine plugin system](index.md).
+refer to [Docker Engine plugin system](_index.md).
 
 You can extend the capabilities of the Docker Engine by loading third-party
 plugins. This page explains the types of plugins and provides links to several
@@ -26,7 +16,7 @@ volume and network plugins for Docker.
 
 ## Types of plugins
 
-Plugins extend Docker's functionality. They come in specific types.  For
+Plugins extend Docker's functionality. They come in specific types. For
 example, a [volume plugin](plugins_volume.md) might enable Docker
 volumes to persist across multiple Docker hosts and a
 [network plugin](plugins_network.md) might provide network plumbing.
@@ -40,19 +30,15 @@ Follow the instructions in the plugin's documentation.
 
 ## Finding a plugin
 
-The sections below provide an inexhaustive overview of available plugins.
-
-<style>
-#DocumentationText  tr td:first-child { white-space: nowrap;}
-</style>
+The sections below provide an overview of available third-party plugins.
 
 ### Network plugins
 
 | Plugin                                                                             | Description                                                                                                                                                                                                                                                                                                                                            |
-|:-----------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Contiv Networking](https://github.com/contiv/netplugin)                           | An open source network plugin to provide infrastructure and security policies for a multi-tenant micro services deployment, while providing an integration to physical network for non-container workload. Contiv Networking implements the remote driver and IPAM APIs available in Docker 1.9 onwards.                                               |
 | [Kuryr Network Plugin](https://github.com/openstack/kuryr)                         | A network plugin is developed as part of the OpenStack Kuryr project and implements the Docker networking (libnetwork) remote driver API by utilizing Neutron, the OpenStack networking service. It includes an IPAM driver as well.                                                                                                                   |
-| [Weave Network Plugin](https://www.weave.works/docs/net/latest/introducing-weave/) | A network plugin that creates a virtual network that connects your Docker containers - across multiple hosts or clouds and enables automatic discovery of applications. Weave networks are resilient, partition tolerant, secure and work in partially connected networks, and other adverse environments - all configured with delightful simplicity. |
+| [Kathará Network Plugin](https://github.com/KatharaFramework/NetworkPlugin)        | Docker Network Plugin used by Kathará, an open source container-based network emulation system for showing interactive demos/lessons, testing production networks in a sandbox environment, or developing new network protocols.                                                                                                                       |
 
 ### Volume plugins
 
@@ -72,15 +58,16 @@ The sections below provide an inexhaustive overview of available plugins.
 | [Horcrux Volume Plugin](https://github.com/muthu-r/horcrux)                                        | A volume plugin that allows on-demand, version controlled access to your data. Horcrux is an open-source plugin, written in Go, and supports SCP, [Minio](https://www.minio.io) and Amazon S3.                                                                                                                |
 | [HPE 3Par Volume Plugin](https://github.com/hpe-storage/python-hpedockerplugin/)                   | A volume plugin that supports HPE 3Par and StoreVirtual iSCSI storage arrays.                                                                                                                                                                                                                                 |
 | [Infinit volume plugin](https://infinit.sh/documentation/docker/volume-plugin)                     | A volume plugin that makes it easy to mount and manage Infinit volumes using Docker.                                                                                                                                                                                                                          |
-| [IPFS Volume Plugin](http://github.com/vdemeester/docker-volume-ipfs)                              | An open source volume plugin that allows using an [ipfs](https://ipfs.io/) filesystem as a volume.                                                                                                                                                                                                            |
+| [IPFS Volume Plugin](https://github.com/vdemeester/docker-volume-ipfs)                              | An open source volume plugin that allows using an [ipfs](https://ipfs.io/) filesystem as a volume.                                                                                                                                                                                                            |
 | [Keywhiz plugin](https://github.com/calavera/docker-volume-keywhiz)                                | A plugin that provides credentials and secret management using Keywhiz as a central repository.                                                                                                                                                                                                               |
+| [Linode Volume Plugin](https://github.com/linode/docker-volume-linode)                             | A plugin that adds the ability to manage Linode Block Storage as Docker Volumes from within a Linode. |
 | [Local Persist Plugin](https://github.com/CWSpear/local-persist)                                   | A volume plugin that extends the default `local` driver's functionality by allowing you specify a mountpoint anywhere on the host, which enables the files to *always persist*, even if the volume is removed via `docker volume rm`.                                                                         |
 | [NetApp Plugin](https://github.com/NetApp/netappdvp) (nDVP)                                        | A volume plugin that provides direct integration with the Docker ecosystem for the NetApp storage portfolio. The nDVP package supports the provisioning and management of storage resources from the storage platform to Docker hosts, with a robust framework for adding additional platforms in the future. |
 | [Netshare plugin](https://github.com/ContainX/docker-volume-netshare)                              | A volume plugin that provides volume management for NFS 3/4, AWS EFS and CIFS file systems.                                                                                                                                                                                                                   |
-| [Nimble Storage Volume Plugin](https://connect.nimblestorage.com/community/app-integration/docker) | A volume plug-in that integrates with Nimble Storage Unified Flash Fabric arrays. The plug-in abstracts array volume capabilities to the Docker administrator to allow self-provisioning of secure multi-tenant volumes and clones.                                                                           |
+| [Nimble Storage Volume Plugin](https://scod.hpedev.io/docker_volume_plugins/hpe_nimble_storage/index.html) | A volume plug-in that integrates with Nimble Storage Unified Flash Fabric arrays. The plug-in abstracts array volume capabilities to the Docker administrator to allow self-provisioning of secure multi-tenant volumes and clones.                                                                           |
 | [OpenStorage Plugin](https://github.com/libopenstorage/openstorage)                                | A cluster-aware volume plugin that provides volume management for file and block storage solutions.  It implements a vendor neutral specification for implementing extensions such as CoS, encryption, and snapshots. It has example drivers based on FUSE, NFS, NBD and EBS to name a few.                   |
 | [Portworx Volume Plugin](https://github.com/portworx/px-dev)                                       | A volume plugin that turns any server into a scale-out converged compute/storage node, providing container granular storage and highly available volumes across any node, using a shared-nothing storage backend that works with any docker scheduler.                                                        |
-| [Quobyte Volume Plugin](https://github.com/quobyte/docker-volume)                                  | A volume plugin that connects Docker to [Quobyte](http://www.quobyte.com/containers)'s data center file system, a general-purpose scalable and fault-tolerant storage platform.                                                                                                                               |
+| [Quobyte Volume Plugin](https://github.com/quobyte/docker-volume)                                  | A volume plugin that connects Docker to [Quobyte](https://www.quobyte.com/containers)'s data center file system, a general-purpose scalable and fault-tolerant storage platform.                                                                                                                               |
 | [REX-Ray plugin](https://github.com/emccode/rexray)                                                | A volume plugin which is written in Go and provides advanced storage functionality for many platforms including VirtualBox, EC2, Google Compute Engine, OpenStack, and EMC.                                                                                                                                   |
 | [Virtuozzo Storage and Ploop plugin](https://github.com/virtuozzo/docker-volume-ploop)             | A volume plugin with support for Virtuozzo Storage distributed cloud file system as well as ploop devices.                                                                                                                                                                                                    |
 | [VMware vSphere Storage Plugin](https://github.com/vmware/docker-volume-vsphere)                   | Docker Volume Driver for vSphere enables customers to address persistent storage requirements for Docker containers in vSphere environments.                                                                                                                                                                  |
@@ -101,4 +88,4 @@ of the plugin for help. The Docker team may not be able to assist you.
 ## Writing a plugin
 
 If you are interested in writing a plugin for Docker, or seeing how they work
-under the hood, see the [docker plugins reference](plugin_api.md).
+under the hood, see the [Docker plugins reference](plugin_api.md).

@@ -1,32 +1,28 @@
----
-title: "system df"
-description: "The system df command description and usage"
-keywords: "system, data, usage, disk"
----
-
 # system df
 
-```markdown
-Usage:  docker system df [OPTIONS]
+<!---MARKER_GEN_START-->
+Show docker disk usage
 
-Show docker filesystem usage
+### Options
 
-Options:
-      --format string   Pretty-print images using a Go template
-      --help            Print usage
-  -v, --verbose         Show detailed information on space usage
-```
+| Name                  | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:----------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`--format`](#format) | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `-v`, `--verbose`     | `bool`   |         | Show detailed information on space usage                                                                                                                                                                                                                                                                                                                                                                                             |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 The `docker system df` command displays information regarding the
-amount of disk space used by the docker daemon.
+amount of disk space used by the Docker daemon.
 
 ## Examples
 
-By default the command will just show a summary of the data used:
+By default the command displays a summary of the data used:
 
-```bash
+```console
 $ docker system df
 
 TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
@@ -35,9 +31,9 @@ Containers          2                   0                   212 B               
 Local Volumes       2                   1                   36 B                0 B (0%)
 ```
 
-A more detailed view can be requested using the `-v, --verbose` flag:
+Use the `-v, --verbose` flag to get more detailed information:
 
-```bash
+```console
 $ docker system df -v
 
 Images space usage:
@@ -63,23 +59,22 @@ my-named-vol                                                       0            
 ```
 
 * `SHARED SIZE` is the amount of space that an image shares with another one (i.e. their common data)
-* `UNIQUE SIZE` is the amount of space that is only used by a given image
-* `SIZE` is the virtual size of the image, it is the sum of `SHARED SIZE` and `UNIQUE SIZE`
+* `UNIQUE SIZE` is the amount of space that's only used by a given image
+* `SIZE` is the virtual size of the image, it's the sum of `SHARED SIZE` and `UNIQUE SIZE`
 
-> **Note**
->
-> Network information is not shown because it does not consume disk space.
+> [!NOTE]
+> Network information isn't shown, because it doesn't consume disk space.
 
 ## Performance
 
-The `system df` command can be very resource-intensive. It traverses the
+Running the `system df` command can be resource-intensive. It traverses the
 filesystem of every image, container, and volume in the system. You should be
 careful running this command in systems with lots of images, containers, or
-volumes or in systems where some images, containers, or volumes have very large
+volumes or in systems where some images, containers, or volumes have large
 filesystems with many files. You should also be careful not to run this command
 in systems where performance is critical.
 
-## Format the output
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints the disk usage output
 using a Go template.
@@ -87,7 +82,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder    | Description                                |
-| -------------- | ------------------------------------------ |
+|----------------|--------------------------------------------|
 | `.Type`        | `Images`, `Containers` and `Local Volumes` |
 | `.TotalCount`  | Total number of items                      |
 | `.Active`      | Number of active items                     |
@@ -96,12 +91,12 @@ Valid placeholders for the Go template are listed below:
 
 When using the `--format` option, the `system df` command outputs
 the data exactly as the template declares or, when using the
-`table` directive, will include column headers as well.
+`table` directive, includes column headers as well.
 
 The following example uses a template without headers and outputs the
 `Type` and `TotalCount` entries separated by a colon (`:`):
 
-```bash
+```console
 $ docker system df --format "{{.Type}}: {{.TotalCount}}"
 
 Images: 2
@@ -112,7 +107,7 @@ Local Volumes: 1
 To list the disk usage with size and reclaimable size in a table format you
 can use:
 
-```bash
+```console
 $ docker system df --format "table {{.Type}}\t{{.Size}}\t{{.Reclaimable}}"
 
 TYPE                SIZE                RECLAIMABLE
@@ -122,7 +117,17 @@ Local Volumes       150.3 MB            150.3 MB (100%)
 <Paste>
 ```
 
-**Note** the format option is meaningless when verbose is true.
+To list all information in JSON format, use the `json` directive:
+
+```console
+$ docker system df --format json
+{"Active":"2","Reclaimable":"2.498GB (94%)","Size":"2.631GB","TotalCount":"6","Type":"Images"}
+{"Active":"1","Reclaimable":"1.114kB (49%)","Size":"2.23kB","TotalCount":"7","Type":"Containers"}
+{"Active":"0","Reclaimable":"256.5MB (100%)","Size":"256.5MB","TotalCount":"1","Type":"Local Volumes"}
+{"Active":"0","Reclaimable":"158B","Size":"158B","TotalCount":"17","Type":"Build Cache"}
+```
+
+The format option has no effect when the `--verbose` option is used.
 
 ## Related commands
 * [system prune](system_prune.md)

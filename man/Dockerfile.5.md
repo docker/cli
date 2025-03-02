@@ -48,7 +48,7 @@ A Dockerfile is similar to a Makefile.
   to a new image if necessary, before finally outputting the ID of the new
   image. The Docker daemon automatically cleans up the context it is given.
 
-  Docker re-uses intermediate images whenever possible. This significantly
+  Docker reuses intermediate images whenever possible. This significantly
   accelerates the *docker build* process.
 
 # FORMAT
@@ -182,6 +182,18 @@ A Dockerfile is similar to a Makefile.
   labels with identical keys.
 
   To display an image's labels, use the `docker inspect` command.
+
+**STOPSIGNAL**
+
+  -- `STOPSIGNAL <signal>`
+  The **STOPSIGNAL** instruction sets the system call signal that will be sent
+  to the container to exit. This signal can be a signal name in the format
+  **SIG<NAME>**, for instance **SIGKILL**, or an unsigned number that matches a
+  position in the kernel's syscall table, for instance **9**. The default is
+  **SIGTERM** if not defined.
+
+  The image's default stopsignal can be overridden per container, using the
+  **--stop-signal** flag on **docker-run(1)** and **docker-create(1)**.
 
 **EXPOSE**
   -- `EXPOSE <port> [<port>...]`
@@ -437,6 +449,8 @@ A Dockerfile is similar to a Makefile.
   * `ftp_proxy`
   * `NO_PROXY`
   * `no_proxy`
+  * `ALL_PROXY`
+  * `all_proxy`
 
   To use these, pass them on the command line using `--build-arg` flag, for
   example:

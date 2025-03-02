@@ -80,7 +80,7 @@ To get information on a container use its ID or instance name:
     "LogPath": "/var/lib/docker/containers/d2cc496561d6d520cbc0236b4ba88c362c446a7619992123f11c809cded25b47/d2cc496561d6d520cbc0236b4ba88c362c446a7619992123f11c809cded25b47-json.log",
     "Name": "/adoring_wozniak",
     "RestartCount": 0,
-    "Driver": "devicemapper",
+    "Driver": "overlay2",
     "MountLabel": "",
     "ProcessLabel": "",
     "Mounts": [
@@ -89,7 +89,7 @@ To get information on a container use its ID or instance name:
         "Destination": "/data",
         "Mode": "ro,Z",
         "RW": false
-	"Propagation": ""
+        "Propagation": ""
       }
     ],
     "AppArmorProfile": "",
@@ -136,12 +136,13 @@ To get information on a container use its ID or instance name:
         "CgroupParent": ""
     },
     "GraphDriver": {
-        "Name": "devicemapper",
         "Data": {
-            "DeviceId": "5",
-            "DeviceName": "docker-253:1-2763198-d2cc496561d6d520cbc0236b4ba88c362c446a7619992123f11c809cded25b47",
-            "DeviceSize": "171798691840"
-        }
+            "LowerDir": "/var/lib/docker/overlay2/44b1d1f04db6b1b73a86f9a62678673bf5d16d9a6b62c13e859aa34a99cce5ea/diff:/var/lib/docker/overlay2/ef637181eb13e30e84b7382183364ed7fd7ff7be22d8bb87049e36b75fb89a86/diff:/var/lib/docker/overlay2/64fb0f850b1289cd09cbc3b077cab2c0f59a4f540c67f997b094fc3652b9b0d6/diff:/var/lib/docker/overlay2/68c4d1411addc2b2bd07e900ca3a059c9c5f9fa2607efd87d8d715a0080ed242/diff",
+            "MergedDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/merged",
+            "UpperDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/diff",
+            "WorkDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/work"
+        },
+        "Name": "overlay2"
     },
     "Config": {
         "Hostname": "d2cc496561d6",
@@ -192,7 +193,7 @@ output:
       80/tcp -> 80
 
 You can get more information about how to write a Go template from:
-https://golang.org/pkg/text/template/.
+https://pkg.go.dev/text/template.
 
 ## Getting size information on a container
 
@@ -275,12 +276,12 @@ about the image:
     "Size": 186507296,
     "VirtualSize": 186507296,
     "GraphDriver": {
-        "Name": "devicemapper",
         "Data": {
-            "DeviceId": "3",
-            "DeviceName": "docker-253:1-2763198-ded7cd95e059788f2586a51c275a4f151653779d6a7f4dad77c2bd34601d94e4",
-            "DeviceSize": "171798691840"
-        }
+            "LowerDir": "/var/lib/docker/overlay2/44b1d1f04db6b1b73a86f9a62678673bf5d16d9a6b62c13e859aa34a99cce5ea/diff:/var/lib/docker/overlay2/ef637181eb13e30e84b7382183364ed7fd7ff7be22d8bb87049e36b75fb89a86/diff:/var/lib/docker/overlay2/64fb0f850b1289cd09cbc3b077cab2c0f59a4f540c67f997b094fc3652b9b0d6/diff:/var/lib/docker/overlay2/68c4d1411addc2b2bd07e900ca3a059c9c5f9fa2607efd87d8d715a0080ed242/diff",
+            "MergedDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/merged",
+            "UpperDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/diff",
+            "WorkDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/work"
+        },
+        "Name": "overlay2"
     }
-    }
-    ]
+    }]

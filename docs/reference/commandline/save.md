@@ -1,61 +1,19 @@
----
-title: "save"
-description: "The save command description and usage"
-keywords: "tarred, repository, backup"
----
+# docker save
 
-# save
-
-```markdown
-Usage:  docker save [OPTIONS] IMAGE [IMAGE...]
-
+<!---MARKER_GEN_START-->
 Save one or more images to a tar archive (streamed to STDOUT by default)
 
-Options:
-      --help            Print usage
-  -o, --output string   Write to a file, instead of STDOUT
-```
+### Aliases
 
-## Description
+`docker image save`, `docker save`
 
-Produces a tarred repository to the standard output stream.
-Contains all parent layers, and all tags + versions, or specified `repo:tag`, for
-each argument provided.
+### Options
 
-## Examples
+| Name             | Type     | Default | Description                                                                                    |
+|:-----------------|:---------|:--------|:-----------------------------------------------------------------------------------------------|
+| `-o`, `--output` | `string` |         | Write to a file, instead of STDOUT                                                             |
+| `--platform`     | `string` |         | Save only the given platform variant. Formatted as `os[/arch[/variant]]` (e.g., `linux/amd64`) |
 
-### Create a backup that can then be used with `docker load`.
 
-```bash
-$ docker save busybox > busybox.tar
+<!---MARKER_GEN_END-->
 
-$ ls -sh busybox.tar
-
-2.7M busybox.tar
-
-$ docker save --output busybox.tar busybox
-
-$ ls -sh busybox.tar
-
-2.7M busybox.tar
-
-$ docker save -o fedora-all.tar fedora
-
-$ docker save -o fedora-latest.tar fedora:latest
-```
-
-### Save an image to a tar.gz file using gzip
-
-You can use gzip to save the image file and make the backup smaller.
-
-```bash
-docker save myimage:latest | gzip > myimage_latest.tar.gz
-```
-
-### Cherry-pick particular tags
-
-You can even cherry-pick particular tags of an image repository.
-
-```bash
-$ docker save -o ubuntu.tar ubuntu:lucid ubuntu:saucy
-```

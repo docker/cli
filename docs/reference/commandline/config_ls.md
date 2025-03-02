@@ -1,42 +1,38 @@
----
-title: "config ls"
-description: "The config ls command description and usage"
-keywords: ["config, ls"]
----
-
 # config ls
 
-```Markdown
-Usage:  docker config ls [OPTIONS]
-
+<!---MARKER_GEN_START-->
 List configs
 
-Aliases:
-  ls, list
+### Aliases
 
-Options:
-  -f, --filter filter   Filter output based on conditions provided
-      --format string   Pretty-print configs using a Go template
-      --help            Print usage
-  -q, --quiet           Only display IDs
-```
+`docker config ls`, `docker config list`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `-q`, `--quiet`                        | `bool`   |         | Only display IDs                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
-Run this command on a manager node to list the configs in the swarm.
+Run this command on a manager node to list the configs in the Swarm.
 
 For detailed information about using configs, refer to [store configuration data using Docker Configs](https://docs.docker.com/engine/swarm/configs/).
 
-> **Note**
->
-> This is a cluster management command, and must be executed on a swarm
+> [!NOTE]
+> This is a cluster management command, and must be executed on a Swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
 > documentation.
 
 ## Examples
 
-```bash
+```console
 $ docker config ls
 
 ID                          NAME                        CREATED             UPDATED
@@ -45,7 +41,7 @@ ID                          NAME                        CREATED             UPDA
 mem02h8n73mybpgqjf0kfi1n0   test_config                 3 seconds ago       3 seconds ago
 ```
 
-### Filtering
+### <a name="filter"></a> Filtering (-f, --filter)
 
 The filtering flag (`-f` or `--filter`) format is a `key=value` pair. If there is more
 than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
@@ -60,7 +56,7 @@ The currently supported filters are:
 
 The `id` filter matches all or prefix of a config's id.
 
-```bash
+```console
 $ docker config ls -f "id=6697bflskwj1998km1gnnjr38"
 
 ID                          NAME                        CREATED             UPDATED
@@ -75,7 +71,7 @@ a `label` and a value.
 The following filter matches all configs with a `project` label regardless of
 its value:
 
-```bash
+```console
 $ docker config ls --filter label=project
 
 ID                          NAME                        CREATED             UPDATED
@@ -85,7 +81,7 @@ mem02h8n73mybpgqjf0kfi1n0   test_config                 About an hour ago   Abou
 The following filter matches only services with the `project` label with the
 `project-a` value.
 
-```bash
+```console
 $ docker service ls --filter label=project=test
 
 ID                          NAME                        CREATED             UPDATED
@@ -98,14 +94,14 @@ The `name` filter matches on all or prefix of a config's name.
 
 The following filter matches config with a name containing a prefix of `test`.
 
-```bash
+```console
 $ docker config ls --filter name=test_config
 
 ID                          NAME                        CREATED             UPDATED
 mem02h8n73mybpgqjf0kfi1n0   test_config                 About an hour ago   About an hour ago
 ```
 
-### Format the output
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints configs output
 using a Go template.
@@ -113,7 +109,7 @@ using a Go template.
 Valid placeholders for the Go template are listed below:
 
 | Placeholder  | Description                                                                          |
-| ------------ | ------------------------------------------------------------------------------------ |
+|--------------|--------------------------------------------------------------------------------------|
 | `.ID`        | Config ID                                                                            |
 | `.Name`      | Config name                                                                          |
 | `.CreatedAt` | Time when the config was created                                                     |
@@ -128,7 +124,7 @@ output the data exactly as the template declares or, when using the
 The following example uses a template without headers and outputs the
 `ID` and `Name` entries separated by a colon (`:`) for all images:
 
-```bash
+```console
 $ docker config ls --format "{{.ID}}: {{.Name}}"
 
 77af4d6b9913: config-1
@@ -139,7 +135,7 @@ b6fa739cedf5: config-2
 To list all configs with their name and created date in a table format you
 can use:
 
-```bash
+```console
 $ docker config ls --format "table {{.ID}}\t{{.Name}}\t{{.CreatedAt}}"
 
 ID                  NAME                      CREATED

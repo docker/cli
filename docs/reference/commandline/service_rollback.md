@@ -1,28 +1,23 @@
----
-title: "service rollback"
-description: "The service rollback command description and usage"
-keywords: "service, rollback"
----
-
 # service rollback
 
-```markdown
-Usage:  docker service rollback SERVICE
-
+<!---MARKER_GEN_START-->
 Revert changes to a service's configuration
 
-Options:
-  -d, --detach       Exit immediately instead of waiting for the service to converge (default true)
-      --help         Print usage
-  -q, --quiet        Suppress progress output
-```
+### Options
+
+| Name             | Type   | Default | Description                                                     |
+|:-----------------|:-------|:--------|:----------------------------------------------------------------|
+| `-d`, `--detach` | `bool` |         | Exit immediately instead of waiting for the service to converge |
+| `-q`, `--quiet`  | `bool` |         | Suppress progress output                                        |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Roll back a specified service to its previous version from the swarm.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -43,13 +38,13 @@ previous version, having one replica.
 
 Create a service with a single replica:
 
-```bash
+```console
 $ docker service create --name my-service -p 8080:80 nginx:alpine
 ```
 
 Confirm that the service is running with a single replica:
 
-```bash
+```console
 $ docker service ls
 
 ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
@@ -58,7 +53,7 @@ xbw728mf6q0d        my-service          replicated          1/1                 
 
 Update the service to use three replicas:
 
-```bash
+```console
 $ docker service update --replicas=3 my-service
 
 $ docker service ls
@@ -70,7 +65,7 @@ xbw728mf6q0d        my-service          replicated          3/3                 
 Now roll back the service to its previous version, and confirm it is
 running a single replica again:
 
-```bash
+```console
 $ docker service rollback my-service
 
 $ docker service ls

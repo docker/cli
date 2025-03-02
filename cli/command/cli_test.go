@@ -3,24 +3,27 @@ package command
 import (
 	"bytes"
 	"context"
-	"crypto/x509"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
+	"time"
 
-	cliconfig "github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
-	"gotest.tools/v3/env"
 	"gotest.tools/v3/fs"
 )
 
@@ -29,73 +32,107 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		host = "npipe://./"
 	}
-	opts := &flags.CommonOptions{Hosts: []string{host}}
-	configFile := &configfile.ConfigFile{
-		HTTPHeaders: map[string]string{
-			"My-Header": "Custom-Value",
-		},
-	}
-	apiclient, err := NewAPIClientFromFlags(opts, configFile)
+	opts := &flags.ClientOptions{Hosts: []string{host}}
+	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal(host, apiclient.DaemonHost()))
-
-	expectedHeaders := map[string]string{
-		"My-Header":  "Custom-Value",
-		"User-Agent": UserAgent(),
-	}
-	assert.Check(t, is.DeepEqual(expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders()))
-	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
-	assert.DeepEqual(t, configFile.HTTPHeaders, map[string]string{"My-Header": "Custom-Value"})
+	assert.Equal(t, apiClient.DaemonHost(), host)
+	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
 }
 
 func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
 	host := ":2375"
-	opts := &flags.CommonOptions{Hosts: []string{host}}
+	slug := "tcp://localhost"
+	if runtime.GOOS == "windows" {
+		slug = "tcp://127.0.0.1"
+	}
+	opts := &flags.ClientOptions{Hosts: []string{host}}
+	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
+	assert.NilError(t, err)
+	assert.Equal(t, apiClient.DaemonHost(), slug+host)
+	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+}
+
+func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
+	var received map[string]string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		received = map[string]string{
+			"My-Header":  r.Header.Get("My-Header"),
+			"User-Agent": r.Header.Get("User-Agent"),
+		}
+		_, _ = w.Write([]byte("OK"))
+	}))
+	defer ts.Close()
+	host := strings.Replace(ts.URL, "http://", "tcp://", 1)
+	opts := &flags.ClientOptions{Hosts: []string{host}}
 	configFile := &configfile.ConfigFile{
 		HTTPHeaders: map[string]string{
 			"My-Header": "Custom-Value",
 		},
 	}
-	apiclient, err := NewAPIClientFromFlags(opts, configFile)
+
+	apiClient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal("tcp://localhost"+host, apiclient.DaemonHost()))
+	assert.Equal(t, apiClient.DaemonHost(), host)
+	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+
+	// verify User-Agent is not appended to the configfile. see https://github.com/docker/cli/pull/2756
+	assert.DeepEqual(t, configFile.HTTPHeaders, map[string]string{"My-Header": "Custom-Value"})
 
 	expectedHeaders := map[string]string{
 		"My-Header":  "Custom-Value",
 		"User-Agent": UserAgent(),
 	}
-	assert.Check(t, is.DeepEqual(expectedHeaders, apiclient.(*client.Client).CustomHTTPHeaders()))
-	assert.Check(t, is.Equal(api.DefaultVersion, apiclient.ClientVersion()))
+	_, err = apiClient.Ping(context.Background())
+	assert.NilError(t, err)
+	assert.DeepEqual(t, received, expectedHeaders)
+}
+
+func TestNewAPIClientFromFlagsWithCustomHeadersFromEnv(t *testing.T) {
+	var received http.Header
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		received = r.Header.Clone()
+		_, _ = w.Write([]byte("OK"))
+	}))
+	defer ts.Close()
+	host := strings.Replace(ts.URL, "http://", "tcp://", 1)
+	opts := &flags.ClientOptions{Hosts: []string{host}}
+	configFile := &configfile.ConfigFile{
+		HTTPHeaders: map[string]string{
+			"My-Header": "Custom-Value from config-file",
+		},
+	}
+
+	// envOverrideHTTPHeaders should override the HTTPHeaders from the config-file,
+	// so "My-Header" should not be present.
+	t.Setenv(envOverrideHTTPHeaders, `one=one-value,"two=two,value",three=,four=four-value,four=four-value-override`)
+	apiClient, err := NewAPIClientFromFlags(opts, configFile)
+	assert.NilError(t, err)
+	assert.Equal(t, apiClient.DaemonHost(), host)
+	assert.Equal(t, apiClient.ClientVersion(), api.DefaultVersion)
+
+	expectedHeaders := http.Header{
+		"One":        []string{"one-value"},
+		"Two":        []string{"two,value"},
+		"Three":      []string{""},
+		"Four":       []string{"four-value-override"},
+		"User-Agent": []string{UserAgent()},
+	}
+	_, err = apiClient.Ping(context.Background())
+	assert.NilError(t, err)
+	assert.DeepEqual(t, received, expectedHeaders)
 }
 
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
-	customVersion := "v3.3.3"
-	defer env.Patch(t, "DOCKER_API_VERSION", customVersion)()
-	defer env.Patch(t, "DOCKER_HOST", ":2375")()
+	const customVersion = "v3.3.3"
+	const expectedVersion = "3.3.3"
+	t.Setenv("DOCKER_API_VERSION", customVersion)
+	t.Setenv("DOCKER_HOST", ":2375")
 
-	opts := &flags.CommonOptions{}
+	opts := &flags.ClientOptions{}
 	configFile := &configfile.ConfigFile{}
 	apiclient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
-	assert.Check(t, is.Equal(customVersion, apiclient.ClientVersion()))
-}
-
-func TestNewAPIClientFromFlagsWithHttpProxyEnv(t *testing.T) {
-	defer env.Patch(t, "HTTP_PROXY", "http://proxy.acme.example.com:1234")()
-	defer env.Patch(t, "DOCKER_HOST", "tcp://docker.acme.example.com:2376")()
-
-	opts := &flags.CommonOptions{}
-	configFile := &configfile.ConfigFile{}
-	apiclient, err := NewAPIClientFromFlags(opts, configFile)
-	assert.NilError(t, err)
-	transport, ok := apiclient.HTTPClient().Transport.(*http.Transport)
-	assert.Assert(t, ok)
-	assert.Assert(t, transport.Proxy != nil)
-	request, err := http.NewRequest(http.MethodGet, "tcp://docker.acme.example.com:2376", nil)
-	assert.NilError(t, err)
-	url, err := transport.Proxy(request)
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal("http://proxy.acme.example.com:1234", url.String()))
+	assert.Equal(t, apiclient.ClientVersion(), expectedVersion)
 }
 
 type fakeClient struct {
@@ -118,9 +155,9 @@ func (c *fakeClient) NegotiateAPIVersionPing(types.Ping) {
 }
 
 func TestInitializeFromClient(t *testing.T) {
-	defaultVersion := "v1.55"
+	const defaultVersion = "v1.55"
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc            string
 		pingFunc       func() (types.Ping, error)
 		expectedServer ServerInfo
@@ -151,19 +188,71 @@ func TestInitializeFromClient(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
 			apiclient := &fakeClient{
-				pingFunc: testcase.pingFunc,
+				pingFunc: tc.pingFunc,
 				version:  defaultVersion,
 			}
 
 			cli := &DockerCli{client: apiclient}
-			cli.initializeFromClient()
-			assert.Check(t, is.DeepEqual(testcase.expectedServer, cli.serverInfo))
-			assert.Check(t, is.Equal(testcase.negotiated, apiclient.negotiated))
+			err := cli.Initialize(flags.NewClientOptions())
+			assert.NilError(t, err)
+			assert.DeepEqual(t, cli.ServerInfo(), tc.expectedServer)
+			assert.Equal(t, apiclient.negotiated, tc.negotiated)
 		})
+	}
+}
+
+// Makes sure we don't hang forever on the initial connection.
+// https://github.com/docker/cli/issues/3652
+func TestInitializeFromClientHangs(t *testing.T) {
+	dir := t.TempDir()
+	socket := filepath.Join(dir, "my.sock")
+	l, err := net.Listen("unix", socket)
+	assert.NilError(t, err)
+
+	receiveReqCh := make(chan bool)
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	// Simulate a server that hangs on connections.
+	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-timeoutCtx.Done():
+		case receiveReqCh <- true: // Blocks until someone receives on the channel.
+		}
+		_, _ = w.Write([]byte("OK"))
+	}))
+	ts.Listener = l
+	ts.Start()
+	defer ts.Close()
+
+	opts := &flags.ClientOptions{Hosts: []string{"unix://" + socket}}
+	configFile := &configfile.ConfigFile{}
+	apiClient, err := NewAPIClientFromFlags(opts, configFile)
+	assert.NilError(t, err)
+
+	initializedCh := make(chan bool)
+
+	go func() {
+		cli := &DockerCli{client: apiClient, initTimeout: time.Millisecond}
+		err := cli.Initialize(flags.NewClientOptions())
+		assert.Check(t, err)
+		cli.CurrentVersion()
+		close(initializedCh)
+	}()
+
+	select {
+	case <-timeoutCtx.Done():
+		t.Fatal("timeout waiting for initialization to complete")
+	case <-initializedCh:
+	}
+
+	select {
+	case <-timeoutCtx.Done():
+		t.Fatal("server never received an init request")
+	case <-receiveReqCh:
 	}
 }
 
@@ -172,7 +261,7 @@ func TestInitializeFromClient(t *testing.T) {
 func TestExperimentalCLI(t *testing.T) {
 	defaultVersion := "v1.55"
 
-	var testcases = []struct {
+	testcases := []struct {
 		doc        string
 		configfile string
 	}{
@@ -188,10 +277,9 @@ func TestExperimentalCLI(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
-			dir := fs.NewDir(t, testcase.doc, fs.WithFile("config.json", testcase.configfile))
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
+			dir := fs.NewDir(t, tc.doc, fs.WithFile("config.json", tc.configfile))
 			defer dir.Remove()
 			apiclient := &fakeClient{
 				version: defaultVersion,
@@ -200,78 +288,9 @@ func TestExperimentalCLI(t *testing.T) {
 				},
 			}
 
-			cli := &DockerCli{client: apiclient, err: os.Stderr}
-			cliconfig.SetDir(dir.Path())
+			cli := &DockerCli{client: apiclient, err: streams.NewOut(os.Stderr)}
+			config.SetDir(dir.Path())
 			err := cli.Initialize(flags.NewClientOptions())
-			assert.NilError(t, err)
-			// For backward-compatibility, HasExperimental will always be "true"
-			assert.Check(t, is.Equal(true, cli.ClientInfo().HasExperimental))
-		})
-	}
-}
-
-func TestGetClientWithPassword(t *testing.T) {
-	expected := "password"
-
-	var testcases = []struct {
-		doc             string
-		password        string
-		retrieverErr    error
-		retrieverGiveup bool
-		newClientErr    error
-		expectedErr     string
-	}{
-		{
-			doc:      "successful connect",
-			password: expected,
-		},
-		{
-			doc:             "password retriever exhausted",
-			retrieverGiveup: true,
-			retrieverErr:    errors.New("failed"),
-			expectedErr:     "private key is encrypted, but could not get passphrase",
-		},
-		{
-			doc:          "password retriever error",
-			retrieverErr: errors.New("failed"),
-			expectedErr:  "failed",
-		},
-		{
-			doc:          "newClient error",
-			newClientErr: errors.New("failed to connect"),
-			expectedErr:  "failed to connect",
-		},
-	}
-
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
-			passRetriever := func(_, _ string, _ bool, attempts int) (passphrase string, giveup bool, err error) {
-				// Always return an invalid pass first to test iteration
-				switch attempts {
-				case 0:
-					return "something else", false, nil
-				default:
-					return testcase.password, testcase.retrieverGiveup, testcase.retrieverErr
-				}
-			}
-
-			newClient := func(currentPassword string) (client.APIClient, error) {
-				if testcase.newClientErr != nil {
-					return nil, testcase.newClientErr
-				}
-				if currentPassword == expected {
-					return &client.Client{}, nil
-				}
-				return &client.Client{}, x509.IncorrectPasswordError
-			}
-
-			_, err := getClientWithPassword(passRetriever, newClient)
-			if testcase.expectedErr != "" {
-				assert.ErrorContains(t, err, testcase.expectedErr)
-				return
-			}
-
 			assert.NilError(t, err)
 		})
 	}
@@ -294,23 +313,23 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	outbuf := bytes.NewBuffer(nil)
 	errbuf := bytes.NewBuffer(nil)
 	err = cli.Apply(
-		WithInputStream(ioutil.NopCloser(inbuf)),
+		WithInputStream(io.NopCloser(inbuf)),
 		WithOutputStream(outbuf),
 		WithErrorStream(errbuf),
 	)
 	assert.NilError(t, err)
 	// Check input stream
-	inputStream, err := ioutil.ReadAll(cli.In())
+	inputStream, err := io.ReadAll(cli.In())
 	assert.NilError(t, err)
 	assert.Equal(t, string(inputStream), "input")
 	// Check output stream
 	fmt.Fprintf(cli.Out(), "output")
-	outputStream, err := ioutil.ReadAll(outbuf)
+	outputStream, err := io.ReadAll(outbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(outputStream), "output")
 	// Check error stream
 	fmt.Fprintf(cli.Err(), "error")
-	errStream, err := ioutil.ReadAll(errbuf)
+	errStream, err := io.ReadAll(errbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(errStream), "error")
 }
@@ -322,4 +341,57 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 		return client.NewClientWithOpts()
 	})))
 	assert.Check(t, cli.ContextStore() != nil)
+}
+
+func TestHooksEnabled(t *testing.T) {
+	t.Run("disabled by default", func(t *testing.T) {
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+
+		assert.Check(t, !cli.HooksEnabled())
+	})
+
+	t.Run("enabled in configFile", func(t *testing.T) {
+		configFile := `{
+    "features": {
+      "hooks": "true"
+    }}`
+		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
+		defer dir.Remove()
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+		config.SetDir(dir.Path())
+
+		assert.Check(t, cli.HooksEnabled())
+	})
+
+	t.Run("env var overrides configFile", func(t *testing.T) {
+		configFile := `{
+    "features": {
+      "hooks": "true"
+    }}`
+		t.Setenv("DOCKER_CLI_HOOKS", "false")
+		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
+		defer dir.Remove()
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+		config.SetDir(dir.Path())
+
+		assert.Check(t, !cli.HooksEnabled())
+	})
+
+	t.Run("legacy env var overrides configFile", func(t *testing.T) {
+		configFile := `{
+    "features": {
+      "hooks": "true"
+    }}`
+		t.Setenv("DOCKER_CLI_HINTS", "false")
+		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
+		defer dir.Remove()
+		cli, err := NewDockerCli()
+		assert.NilError(t, err)
+		config.SetDir(dir.Path())
+
+		assert.Check(t, !cli.HooksEnabled())
+	})
 }

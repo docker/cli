@@ -1,7 +1,11 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package command
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -11,7 +15,11 @@ import (
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/pkg/system"
+	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/errdefs"
+	"github.com/moby/sys/sequential"
+	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
@@ -19,8 +27,8 @@ import (
 // CopyToFile writes the content of the reader to the specified file
 func CopyToFile(outfile string, r io.Reader) error {
 	// We use sequential file access here to avoid depleting the standby list
-	// on Windows. On Linux, this is a call directly to ioutil.TempFile
-	tmpFile, err := system.TempFileSequential(filepath.Dir(outfile), ".docker_temp_")
+	// on Windows. On Linux, this is a call directly to os.CreateTemp
+	tmpFile, err := sequential.CreateTemp(filepath.Dir(outfile), ".docker_temp_")
 	if err != nil {
 		return err
 	}
@@ -56,7 +64,7 @@ func capitalizeFirst(s string) string {
 }
 
 // PrettyPrint outputs arbitrary data for human formatted output by uppercasing the first letter.
-func PrettyPrint(i interface{}) string {
+func PrettyPrint(i any) string {
 	switch t := i.(type) {
 	case nil:
 		return "None"
@@ -67,12 +75,61 @@ func PrettyPrint(i interface{}) string {
 	}
 }
 
-// PromptForConfirmation requests and checks confirmation from user.
-// This will display the provided message followed by ' [y/N] '. If
-// the user input 'y' or 'Y' it returns true other false.  If no
-// message is provided "Are you sure you want to proceed? [y/N] "
-// will be used instead.
-func PromptForConfirmation(ins io.Reader, outs io.Writer, message string) bool {
+var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
+
+// DisableInputEcho disables input echo on the provided streams.In.
+// This is useful when the user provides sensitive information like passwords.
+// The function returns a restore function that should be called to restore the
+// terminal state.
+func DisableInputEcho(ins *streams.In) (restore func() error, err error) {
+	oldState, err := term.SaveState(ins.FD())
+	if err != nil {
+		return nil, err
+	}
+	restore = func() error {
+		return term.RestoreTerminal(ins.FD(), oldState)
+	}
+	return restore, term.DisableEcho(ins.FD(), oldState)
+}
+
+// PromptForInput requests input from the user.
+//
+// If the user terminates the CLI with SIGINT or SIGTERM while the prompt is
+// active, the prompt will return an empty string ("") with an ErrPromptTerminated error.
+// When the prompt returns an error, the caller should propagate the error up
+// the stack and close the io.Reader used for the prompt which will prevent the
+// background goroutine from blocking indefinitely.
+func PromptForInput(ctx context.Context, in io.Reader, out io.Writer, message string) (string, error) {
+	_, _ = fmt.Fprint(out, message)
+
+	result := make(chan string)
+	go func() {
+		scanner := bufio.NewScanner(in)
+		if scanner.Scan() {
+			result <- strings.TrimSpace(scanner.Text())
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		_, _ = fmt.Fprintln(out, "")
+		return "", ErrPromptTerminated
+	case r := <-result:
+		return r, nil
+	}
+}
+
+// PromptForConfirmation requests and checks confirmation from the user.
+// This will display the provided message followed by ' [y/N] '. If the user
+// input 'y' or 'Y' it returns true otherwise false. If no message is provided,
+// "Are you sure you want to proceed? [y/N] " will be used instead.
+//
+// If the user terminates the CLI with SIGINT or SIGTERM while the prompt is
+// active, the prompt will return false with an ErrPromptTerminated error.
+// When the prompt returns an error, the caller should propagate the error up
+// the stack and close the io.Reader used for the prompt which will prevent the
+// background goroutine from blocking indefinitely.
+func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, message string) (bool, error) {
 	if message == "" {
 		message = "Are you sure you want to proceed?"
 	}
@@ -85,9 +142,27 @@ func PromptForConfirmation(ins io.Reader, outs io.Writer, message string) bool {
 		ins = streams.NewIn(os.Stdin)
 	}
 
-	reader := bufio.NewReader(ins)
-	answer, _, _ := reader.ReadLine()
-	return strings.ToLower(string(answer)) == "y"
+	result := make(chan bool)
+
+	go func() {
+		var res bool
+		scanner := bufio.NewScanner(ins)
+		if scanner.Scan() {
+			answer := strings.TrimSpace(scanner.Text())
+			if strings.EqualFold(answer, "y") {
+				res = true
+			}
+		}
+		result <- res
+	}()
+
+	select {
+	case <-ctx.Done():
+		_, _ = fmt.Fprintln(outs, "")
+		return false, ErrPromptTerminated
+	case r := <-result:
+		return r, nil
+	}
 }
 
 // PruneFilters returns consolidated prune filters obtained from config.json and cli
@@ -96,26 +171,26 @@ func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
 		return pruneFilters
 	}
 	for _, f := range dockerCli.ConfigFile().PruneFilters {
-		parts := strings.SplitN(f, "=", 2)
-		if len(parts) != 2 {
+		k, v, ok := strings.Cut(f, "=")
+		if !ok {
 			continue
 		}
-		if parts[0] == "label" {
+		if k == "label" {
 			// CLI label filter supersede config.json.
 			// If CLI label filter conflict with config.json,
 			// skip adding label! filter in config.json.
-			if pruneFilters.Contains("label!") && pruneFilters.ExactMatch("label!", parts[1]) {
+			if pruneFilters.Contains("label!") && pruneFilters.ExactMatch("label!", v) {
 				continue
 			}
-		} else if parts[0] == "label!" {
+		} else if k == "label!" {
 			// CLI label! filter supersede config.json.
 			// If CLI label! filter conflict with config.json,
 			// skip adding label filter in config.json.
-			if pruneFilters.Contains("label") && pruneFilters.ExactMatch("label", parts[1]) {
+			if pruneFilters.Contains("label") && pruneFilters.ExactMatch("label", v) {
 				continue
 			}
 		}
-		pruneFilters.Add(parts[0], parts[1])
+		pruneFilters.Add(k, v)
 	}
 
 	return pruneFilters
@@ -124,7 +199,7 @@ func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
 // AddPlatformFlag adds `platform` to a set of flags for API version 1.32 and later.
 func AddPlatformFlag(flags *pflag.FlagSet, target *string) {
 	flags.StringVar(target, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
-	flags.SetAnnotation("platform", "version", []string{"1.32"})
+	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
 }
 
 // ValidateOutputPath validates the output paths of the `export` and `save` commands.
@@ -147,7 +222,7 @@ func ValidateOutputPath(path string) error {
 		}
 
 		if err := ValidateOutputPathFileMode(fileInfo.Mode()); err != nil {
-			return errors.Wrapf(err, fmt.Sprintf("invalid output path: %q must be a directory or a regular file", path))
+			return errors.Wrapf(err, "invalid output path: %q must be a directory or a regular file", path)
 		}
 	}
 	return nil
@@ -182,16 +257,30 @@ func stringSliceIndex(s, subs []string) int {
 	return -1
 }
 
-// StringSliceReplaceAt replaces the sub-slice old, with the sub-slice new, in the string
+// StringSliceReplaceAt replaces the sub-slice find, with the sub-slice replace, in the string
 // slice s, returning a new slice and a boolean indicating if the replacement happened.
 // requireIdx is the index at which old needs to be found at (or -1 to disregard that).
-func StringSliceReplaceAt(s, old, new []string, requireIndex int) ([]string, bool) {
-	idx := stringSliceIndex(s, old)
+func StringSliceReplaceAt(s, find, replace []string, requireIndex int) ([]string, bool) {
+	idx := stringSliceIndex(s, find)
 	if (requireIndex != -1 && requireIndex != idx) || idx == -1 {
 		return s, false
 	}
 	out := append([]string{}, s[:idx]...)
-	out = append(out, new...)
-	out = append(out, s[idx+len(old):]...)
+	out = append(out, replace...)
+	out = append(out, s[idx+len(find):]...)
 	return out, true
+}
+
+// ValidateMountWithAPIVersion validates a mount with the server API version.
+func ValidateMountWithAPIVersion(m mounttypes.Mount, serverAPIVersion string) error {
+	if m.BindOptions != nil {
+		if m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
+			return errors.Errorf("bind-recursive=disabled requires API v1.40 or later")
+		}
+		// ReadOnlyNonRecursive can be safely ignored when API < 1.44
+		if m.BindOptions.ReadOnlyForceRecursive && versions.LessThan(serverAPIVersion, "1.44") {
+			return errors.Errorf("bind-recursive=readonly requires API v1.44 or later")
+		}
+	}
+	return nil
 }

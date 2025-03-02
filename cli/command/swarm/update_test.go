@@ -1,16 +1,16 @@
 package swarm
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	. "github.com/docker/cli/internal/test/builders" // Import builders to get the builder function as package function
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -36,7 +36,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				flagTaskHistoryLimit: "10",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.Errorf("error inspecting the swarm")
+				return swarm.Swarm{}, errors.New("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
@@ -46,7 +46,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				flagTaskHistoryLimit: "10",
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
-				return errors.Errorf("error updating the swarm")
+				return errors.New("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
 		},
@@ -56,32 +56,39 @@ func TestSwarmUpdateErrors(t *testing.T) {
 				flagAutolock: "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{}, errors.Errorf("error getting unlock key")
+				return types.SwarmUnlockKeyResponse{}, errors.New("error getting unlock key")
 			},
 			expectedError: "error getting unlock key",
 		},
 	}
 	for _, tc := range testCases {
-		cmd := newUpdateCommand(
-			test.NewFakeCli(&fakeClient{
-				swarmInspectFunc:      tc.swarmInspectFunc,
-				swarmUpdateFunc:       tc.swarmUpdateFunc,
-				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-			}))
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		cmd.SetOut(ioutil.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := newUpdateCommand(
+				test.NewFakeCli(&fakeClient{
+					swarmInspectFunc:      tc.swarmInspectFunc,
+					swarmUpdateFunc:       tc.swarmUpdateFunc,
+					swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+				}))
+			if tc.args == nil {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
+			}
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
 func TestSwarmUpdate(t *testing.T) {
-	swarmInfo := Swarm()
+	swarmInfo := builders.Swarm()
 	swarmInfo.ClusterInfo.TLSInfo.TrustRoot = "trustroot"
 
 	testCases := []struct {
@@ -105,40 +112,39 @@ func TestSwarmUpdate(t *testing.T) {
 				flagMaxSnapshots:        "10",
 				flagSnapshotInterval:    "100",
 				flagAutolock:            "true",
-				flagQuiet:               "true",
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
 				return *swarmInfo, nil
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
-					return errors.Errorf("historyLimit not correctly set")
+					return errors.New("historyLimit not correctly set")
 				}
 				heartbeatDuration, err := time.ParseDuration("10s")
 				if err != nil {
 					return err
 				}
 				if swarm.Dispatcher.HeartbeatPeriod != heartbeatDuration {
-					return errors.Errorf("heartbeatPeriodLimit not correctly set")
+					return errors.New("heartbeatPeriodLimit not correctly set")
 				}
 				certExpiryDuration, err := time.ParseDuration("20s")
 				if err != nil {
 					return err
 				}
 				if swarm.CAConfig.NodeCertExpiry != certExpiryDuration {
-					return errors.Errorf("certExpiry not correctly set")
+					return errors.New("certExpiry not correctly set")
 				}
 				if len(swarm.CAConfig.ExternalCAs) != 1 || swarm.CAConfig.ExternalCAs[0].CACert != "trustroot" {
-					return errors.Errorf("externalCA not correctly set")
+					return errors.New("externalCA not correctly set")
 				}
 				if *swarm.Raft.KeepOldSnapshots != 10 {
-					return errors.Errorf("keepOldSnapshots not correctly set")
+					return errors.New("keepOldSnapshots not correctly set")
 				}
 				if swarm.Raft.SnapshotInterval != 100 {
-					return errors.Errorf("snapshotInterval not correctly set")
+					return errors.New("snapshotInterval not correctly set")
 				}
 				if !swarm.EncryptionConfig.AutoLockManagers {
-					return errors.Errorf("autolock not correctly set")
+					return errors.New("autolock not correctly set")
 				}
 				return nil
 			},
@@ -151,12 +157,12 @@ func TestSwarmUpdate(t *testing.T) {
 			},
 			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
-					return errors.Errorf("historyLimit not correctly set")
+					return errors.New("historyLimit not correctly set")
 				}
 				return nil
 			},
 			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *Swarm(), nil
+				return *builders.Swarm(), nil
 			},
 			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
 				return types.SwarmUnlockKeyResponse{
@@ -166,18 +172,24 @@ func TestSwarmUpdate(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			swarmInspectFunc:      tc.swarmInspectFunc,
-			swarmUpdateFunc:       tc.swarmUpdateFunc,
-			swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInspectFunc:      tc.swarmInspectFunc,
+				swarmUpdateFunc:       tc.swarmUpdateFunc,
+				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
+			})
+			cmd := newUpdateCommand(cli)
+			if tc.args == nil {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
+			}
+			for k, v := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(k, v))
+			}
+			cmd.SetOut(cli.OutBuffer())
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 		})
-		cmd := newUpdateCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		cmd.SetOut(cli.OutBuffer())
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("update-%s.golden", tc.name))
 	}
 }

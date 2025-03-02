@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	timetypes "github.com/docker/docker/api/types/time"
 	"github.com/pkg/errors"
 )
@@ -24,7 +24,7 @@ import (
 // multiplexed.
 // The format of the multiplexed stream is as follows:
 //
-//    [8]byte{STREAM_TYPE, 0, 0, 0, SIZE1, SIZE2, SIZE3, SIZE4}[]byte{OUTPUT}
+//	[8]byte{STREAM_TYPE, 0, 0, 0, SIZE1, SIZE2, SIZE3, SIZE4}[]byte{OUTPUT}
 //
 // STREAM_TYPE can be 1 for stdout and 2 for stderr
 //
@@ -33,7 +33,12 @@ import (
 //
 // You can use github.com/docker/docker/pkg/stdcopy.StdCopy to demultiplex this
 // stream.
-func (cli *Client) ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error) {
+func (cli *Client) ContainerLogs(ctx context.Context, containerID string, options container.LogsOptions) (io.ReadCloser, error) {
+	containerID, err := trimID("container", containerID)
+	if err != nil {
+		return nil, err
+	}
+
 	query := url.Values{}
 	if options.ShowStdout {
 		query.Set("stdout", "1")
@@ -72,9 +77,9 @@ func (cli *Client) ContainerLogs(ctx context.Context, container string, options 
 	}
 	query.Set("tail", options.Tail)
 
-	resp, err := cli.get(ctx, "/containers/"+container+"/logs", query, nil)
+	resp, err := cli.get(ctx, "/containers/"+containerID+"/logs", query, nil)
 	if err != nil {
-		return nil, wrapResponseError(err, resp, "container", container)
+		return nil, err
 	}
-	return resp.body, nil
+	return resp.Body, nil
 }

@@ -1,0 +1,82 @@
+name: validate
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.x'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - lint
+          - shellcheck
+          - validate-vendor
+          - update-authors # ensure authors update target runs fine
+    steps:
+      -
+        name: Run
+        uses: docker/bake-action@v6
+        with:
+          targets: ${{ matrix.target }}
+
+  # check that the generated Markdown and the checked-in files match
+  validate-md:
+    runs-on: ubuntu-24.04
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Generate
+        shell: 'script --return --quiet --command "bash {0}"'
+        run: |
+          make -f docker.Makefile mddocs
+      -
+        name: Validate
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            echo 'fail: generated files do not match checked-in files'
+            git --no-pager diff
+            exit 1
+          fi
+
+  validate-make:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - yamldocs # ensure yamldocs target runs fine
+          - manpages # ensure manpages target runs fine
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Run
+        shell: 'script --return --quiet --command "bash {0}"'
+        run: |
+          make -f docker.Makefile ${{ matrix.target }}

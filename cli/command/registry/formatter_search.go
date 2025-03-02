@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	registry "github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/docker/docker/api/types/registry"
 )
 
 const (
-	defaultSearchTableFormat = "table {{.Name}}\t{{.Description}}\t{{.StarCount}}\t{{.IsOfficial}}\t{{.IsAutomated}}"
+	defaultSearchTableFormat = "table {{.Name}}\t{{.Description}}\t{{.StarCount}}\t{{.IsOfficial}}"
 
 	starsHeader     = "STARS"
 	officialHeader  = "OFFICIAL"
@@ -19,16 +19,14 @@ const (
 // NewSearchFormat returns a Format for rendering using a network Context
 func NewSearchFormat(source string) formatter.Format {
 	switch source {
-	case "":
-		return defaultSearchTableFormat
-	case formatter.TableFormatKey:
+	case "", formatter.TableFormatKey:
 		return defaultSearchTableFormat
 	}
 	return formatter.Format(source)
 }
 
 // SearchWrite writes the context
-func SearchWrite(ctx formatter.Context, results []registry.SearchResult) error {
+func SearchWrite(ctx formatter.Context, results []registrytypes.SearchResult) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, result := range results {
 			searchCtx := &searchContext{trunc: ctx.Trunc, s: result}
@@ -53,7 +51,7 @@ type searchContext struct {
 	formatter.HeaderContext
 	trunc bool
 	json  bool
-	s     registry.SearchResult
+	s     registrytypes.SearchResult
 }
 
 func (c *searchContext) MarshalJSON() ([]byte, error) {
@@ -66,8 +64,8 @@ func (c *searchContext) Name() string {
 }
 
 func (c *searchContext) Description() string {
-	desc := strings.Replace(c.s.Description, "\n", " ", -1)
-	desc = strings.Replace(desc, "\r", " ", -1)
+	desc := strings.ReplaceAll(c.s.Description, "\n", " ")
+	desc = strings.ReplaceAll(desc, "\r", " ")
 	if c.trunc {
 		desc = formatter.Ellipsis(desc, 45)
 	}
@@ -95,6 +93,9 @@ func (c *searchContext) IsOfficial() string {
 	return c.formatBool(c.s.IsOfficial)
 }
 
+// IsAutomated formats the IsAutomated field for printing.
+//
+// Deprecated: the "is_automated" field is deprecated and will always be "false" in the future.
 func (c *searchContext) IsAutomated() string {
-	return c.formatBool(c.s.IsAutomated)
+	return c.formatBool(c.s.IsAutomated) //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 }

@@ -1,6 +1,7 @@
 package trust
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sort"
@@ -11,34 +12,34 @@ import (
 	"github.com/theupdateframework/notary/client"
 )
 
-func prettyPrintTrustInfo(cli command.Cli, remote string) error {
-	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(cli, remote)
+func prettyPrintTrustInfo(ctx context.Context, dockerCLI command.Cli, remote string) error {
+	signatureRows, adminRolesWithSigs, delegationRoles, err := lookupTrustInfo(ctx, dockerCLI, remote)
 	if err != nil {
 		return err
 	}
 
 	if len(signatureRows) > 0 {
-		fmt.Fprintf(cli.Out(), "\nSignatures for %s\n\n", remote)
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "\nSignatures for %s\n\n", remote)
 
-		if err := printSignatures(cli.Out(), signatureRows); err != nil {
+		if err := printSignatures(dockerCLI.Out(), signatureRows); err != nil {
 			return err
 		}
 	} else {
-		fmt.Fprintf(cli.Out(), "\nNo signatures for %s\n\n", remote)
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "\nNo signatures for %s\n\n", remote)
 	}
 	signerRoleToKeyIDs := getDelegationRoleToKeyMap(delegationRoles)
 
 	// If we do not have additional signers, do not display
 	if len(signerRoleToKeyIDs) > 0 {
-		fmt.Fprintf(cli.Out(), "\nList of signers and their keys for %s\n\n", remote)
-		if err := printSignerInfo(cli.Out(), signerRoleToKeyIDs); err != nil {
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "\nList of signers and their keys for %s\n\n", remote)
+		if err := printSignerInfo(dockerCLI.Out(), signerRoleToKeyIDs); err != nil {
 			return err
 		}
 	}
 
 	// This will always have the root and targets information
-	fmt.Fprintf(cli.Out(), "\nAdministrative keys for %s\n\n", remote)
-	printSortedAdminKeys(cli.Out(), adminRolesWithSigs)
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "\nAdministrative keys for %s\n\n", remote)
+	printSortedAdminKeys(dockerCLI.Out(), adminRolesWithSigs)
 	return nil
 }
 
@@ -46,7 +47,7 @@ func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures)
 	sort.Slice(adminRoles, func(i, j int) bool { return adminRoles[i].Name > adminRoles[j].Name })
 	for _, adminRole := range adminRoles {
 		if formattedAdminRole := formatAdminRole(adminRole); formattedAdminRole != "" {
-			fmt.Fprintf(out, "  %s", formattedAdminRole)
+			_, _ = fmt.Fprintf(out, "  %s", formattedAdminRole)
 		}
 	}
 }

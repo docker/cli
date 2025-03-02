@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"fmt"
-	"io/ioutil"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -32,7 +32,7 @@ func TestListErrors(t *testing.T) {
 			args:          []string{},
 			expectedError: "error listing plugins",
 			listFunc: func(filter filters.Args) (types.PluginsListResponse, error) {
-				return types.PluginsListResponse{}, fmt.Errorf("error listing plugins")
+				return types.PluginsListResponse{}, errors.New("error listing plugins")
 			},
 		},
 		{
@@ -41,19 +41,22 @@ func TestListErrors(t *testing.T) {
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
-			expectedError: "Template parsing error",
+			expectedError: "template parsing error",
 		},
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
-		cmd := newListCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		cmd.SetOut(ioutil.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
+			cmd := newListCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				cmd.Flags().Set(key, value)
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -162,13 +165,15 @@ func TestList(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
-		cmd := newListCommand(cli)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
-		}
-		assert.NilError(t, cmd.Execute())
-		golden.Assert(t, cli.OutBuffer().String(), tc.golden)
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginListFunc: tc.listFunc})
+			cmd := newListCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				cmd.Flags().Set(key, value)
+			}
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
+		})
 	}
 }

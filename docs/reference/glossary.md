@@ -16,20 +16,9 @@ keywords: "glossary, docker, terms, definitions"
 
 A list of terms used around the Docker project.
 
-## aufs
-
-aufs (advanced multi layered unification filesystem) is a Linux [filesystem](#filesystem) that
-Docker supports as a storage backend. It implements the
-[union mount](http://en.wikipedia.org/wiki/Union_mount) for Linux file systems.
-
 ## base image
 
 An image that has no parent is a **base image**.
-
-## boot2docker
-
-[boot2docker](http://boot2docker.io/) is a lightweight Linux distribution made
-specifically to run Docker containers. The boot2docker management tool for Mac and Windows was deprecated and replaced by [`docker-machine`](#machine) which you can install with the Docker Toolbox.
 
 ## bridge
 
@@ -56,7 +45,7 @@ For more information about Docker networking, see
 ## btrfs
 
 btrfs (B-tree file system) is a Linux [filesystem](#filesystem) that Docker
-supports as a storage backend. It is a [copy-on-write](http://en.wikipedia.org/wiki/Copy-on-write)
+supports as a storage backend. It is a [copy-on-write](https://en.wikipedia.org/wiki/Copy-on-write)
 filesystem.
 
 ## build
@@ -183,7 +172,7 @@ and assign them locations for efficient storage and retrieval.
 
 Examples :
 
-- Linux : ext4, aufs, btrfs, zfs
+- Linux : ext4, btrfs, zfs
 - Windows : NTFS
 - macOS : HFS+
 
@@ -214,15 +203,6 @@ links provide a legacy interface to connect Docker containers running on the
 same host to each other without exposing the hosts' network ports. Use the
 Docker networks feature instead.
 
-## Machine
-
-[Machine](https://github.com/docker/machine) is a Docker tool which
-makes it really easy to create Docker hosts on  your computer, on
-cloud providers and inside your own data center. It creates servers,
-installs Docker on them, then configures the Docker client to talk to them.
-
-*Also known as : docker-machine*
-
 ## node
 
 A [node](https://docs.docker.com/engine/swarm/how-swarm-mode-works/nodes/) is a physical or virtual
@@ -241,7 +221,7 @@ for docker containers in a cluster.
 ## overlay storage driver
 
 OverlayFS is a [filesystem](#filesystem) service for Linux which implements a
-[union mount](http://en.wikipedia.org/wiki/Union_mount) for other file systems.
+[union mount](https://en.wikipedia.org/wiki/Union_mount) for other file systems.
 It is supported by the Docker daemon as a storage driver.
 
 ## registry
@@ -328,38 +308,18 @@ containers.
 
 ![services diagram](https://docs.docker.com/engine/swarm/images/services-diagram.png)
 
-## Toolbox
-
-[Docker Toolbox](https://docs.docker.com/toolbox/overview/) is a legacy
-installer for Mac and Windows users. It uses Oracle VirtualBox for
-virtualization.
-
-For Macs running OS X El Capitan 10.11 and newer macOS releases, [Docker for
-Mac](https://docs.docker.com/docker-for-mac/) is the better solution.
-
-For Windows 10 systems that support Microsoft Hyper-V (Professional, Enterprise
-and Education), [Docker for
-Windows](https://docs.docker.com/docker-for-windows/) is the better solution.
-
 ## Union file system
 
-Union file systems implement a [union
-mount](https://en.wikipedia.org/wiki/Union_mount) and operate by creating
+Union file systems implement a [union mount](https://en.wikipedia.org/wiki/Union_mount) and operate by creating
 layers. Docker uses union file systems in conjunction with
 [copy-on-write](#copy-on-write) techniques to provide the building blocks for
 containers, making them very lightweight and fast.
 
-For more on Docker and union file systems, see [Docker and AUFS in
-practice](https://docs.docker.com/engine/userguide/storagedriver/aufs-driver/),
-[Docker and Btrfs in
-practice](https://docs.docker.com/engine/userguide/storagedriver/btrfs-driver/),
-and [Docker and OverlayFS in
-practice](https://docs.docker.com/engine/userguide/storagedriver/overlayfs-driver/)
+For more on Docker and union file systems, see [OverlayFS storage driver](https://docs.docker.com/storage/storagedriver/overlayfs-driver/),
+and [Btrfs storage driver](https://docs.docker.com/storage/storagedriver/btrfs-driver/).
 
 Example implementations of union file systems are
-[UnionFS](https://en.wikipedia.org/wiki/UnionFS),
-[AUFS](https://en.wikipedia.org/wiki/Aufs), and
-[Btrfs](https://btrfs.wiki.kernel.org/index.php/Main_Page).
+[UnionFS](https://en.wikipedia.org/wiki/UnionFS), and [Btrfs](https://btrfs.wiki.kernel.org/index.php/Main_Page).
 
 ## virtual machine
 

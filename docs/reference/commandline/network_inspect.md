@@ -1,20 +1,17 @@
----
-title: "network inspect"
-description: "The network inspect command description and usage"
-keywords: "network, inspect, user-defined"
----
-
 # network inspect
 
-```markdown
-Usage:  docker network inspect [OPTIONS] NETWORK [NETWORK...]
-
+<!---MARKER_GEN_START-->
 Display detailed information on one or more networks
 
-Options:
-  -f, --format string   Format the output using the given Go template
-      --help            Print usage
-```
+### Options
+
+| Name                                      | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:------------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-f`, `--format`                          | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| [`-v`](#verbose), [`--verbose`](#verbose) | `bool`   |         | Verbose output for diagnostics                                                                                                                                                                                                                                     |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -27,7 +24,7 @@ all results in a JSON object.
 
 Connect two containers to the default `bridge` network:
 
-```bash
+```console
 $ sudo docker run -itd --name=container1 busybox
 f2870c98fd504370fb86e59f32cd0753b1ac9b69b7d80566ffc7192a82b3ed27
 
@@ -44,10 +41,10 @@ node are shown.
 
 You can specify an alternate format to execute a given
 template for each result. Go's
-[text/template](http://golang.org/pkg/text/template/) package describes all the
+[text/template](https://pkg.go.dev/text/template) package describes all the
 details of the format.
 
-```bash
+```console
 $ sudo docker network inspect bridge
 ```
 
@@ -104,13 +101,13 @@ The output is in JSON format, for example:
 
 Create and inspect a user-defined network:
 
-```bash
+```console
 $ docker network create simple-network
 
 69568e6336d8c96bbf57869030919f7c69524f71183b44d80948bd3927c87f6a
 ```
 
-```bash
+```console
 $ docker network inspect simple-network
 ```
 
@@ -146,7 +143,7 @@ For swarm mode overlay networks `network inspect` also shows the IP address and 
 of the peers. Peers are the nodes in the swarm cluster which have at least one task attached
 to the network. Node name is of the format `<hostname>-<unique ID>`.
 
-```bash
+```console
 $ docker network inspect ingress
 ```
 
@@ -204,7 +201,7 @@ The output is in JSON format, for example:
 ]
 ```
 
-### Using `verbose` option for `network inspect`
+### <a name="verbose"></a> View detailed information of a network (--verbose)
 
 `docker network inspect --verbose` for swarm mode overlay networks shows service-specific
 details such as the service's VIP and port mappings. It also shows IPs of service tasks,
@@ -213,7 +210,7 @@ and the IPs of the nodes where the tasks are running.
 Following is an example output for an overlay network `ov1` that has one service `s1`
 attached to. service `s1` in this case has three replicas.
 
-```bash
+```console
 $ docker network inspect --verbose ov1
 ```
 

@@ -101,9 +101,9 @@ func (c *configContext) Labels() string {
 	if mapLabels == nil {
 		return ""
 	}
-	var joinLabels []string
+	joinLabels := make([]string, 0, len(mapLabels))
 	for k, v := range mapLabels {
-		joinLabels = append(joinLabels, fmt.Sprintf("%s=%s", k, v))
+		joinLabels = append(joinLabels, k+"="+v)
 	}
 	return strings.Join(joinLabels, ",")
 }

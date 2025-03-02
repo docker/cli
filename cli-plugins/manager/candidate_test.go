@@ -74,14 +74,15 @@ func TestValidateCandidate(t *testing.T) {
 		{name: "experimental + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p, err := newPlugin(tc.c, fakeroot)
-			if tc.err != "" {
+			p, err := newPlugin(tc.c, fakeroot.Commands())
+			switch {
+			case tc.err != "":
 				assert.ErrorContains(t, err, tc.err)
-			} else if tc.invalid != "" {
+			case tc.invalid != "":
 				assert.NilError(t, err)
 				assert.Assert(t, cmp.ErrorType(p.Err, reflect.TypeOf(&pluginError{})))
 				assert.ErrorContains(t, p.Err, tc.invalid)
-			} else {
+			default:
 				assert.NilError(t, err)
 				assert.Equal(t, NamePrefix+p.Name, goodPluginName)
 				assert.Equal(t, p.SchemaVersion, "0.1.0")

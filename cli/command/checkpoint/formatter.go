@@ -2,29 +2,27 @@ package checkpoint
 
 import (
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/checkpoint"
 )
 
 const (
 	defaultCheckpointFormat = "table {{.Name}}"
-
-	checkpointNameHeader = "CHECKPOINT NAME"
+	checkpointNameHeader    = "CHECKPOINT NAME"
 )
 
 // NewFormat returns a format for use with a checkpoint Context
 func NewFormat(source string) formatter.Format {
-	switch source {
-	case formatter.TableFormatKey:
+	if source == formatter.TableFormatKey {
 		return defaultCheckpointFormat
 	}
 	return formatter.Format(source)
 }
 
 // FormatWrite writes formatted checkpoints using the Context
-func FormatWrite(ctx formatter.Context, checkpoints []types.Checkpoint) error {
+func FormatWrite(ctx formatter.Context, checkpoints []checkpoint.Summary) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, checkpoint := range checkpoints {
-			if err := format(&checkpointContext{c: checkpoint}); err != nil {
+		for _, cp := range checkpoints {
+			if err := format(&checkpointContext{c: cp}); err != nil {
 				return err
 			}
 		}
@@ -35,7 +33,7 @@ func FormatWrite(ctx formatter.Context, checkpoints []types.Checkpoint) error {
 
 type checkpointContext struct {
 	formatter.HeaderContext
-	c types.Checkpoint
+	c checkpoint.Summary
 }
 
 func newCheckpointContext() *checkpointContext {

@@ -3,24 +3,25 @@ package registry
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/cli/internal/oauth/manager"
+	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
-
-const unencryptedWarning = `WARNING! Your password will be stored unencrypted in %s.
-Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credentials-store
-`
 
 type loginOptions struct {
 	serverAddress string
@@ -30,50 +31,38 @@ type loginOptions struct {
 }
 
 // NewLoginCommand creates a new `docker login` command
-func NewLoginCommand(dockerCli command.Cli) *cobra.Command {
+func NewLoginCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts loginOptions
 
 	cmd := &cobra.Command{
 		Use:   "login [OPTIONS] [SERVER]",
-		Short: "Log in to a Docker registry",
-		Long:  "Log in to a Docker registry.\nIf no server is specified, the default is defined by the daemon.",
+		Short: "Authenticate to a registry",
+		Long:  "Authenticate to a registry.\nDefaults to Docker Hub if no server is specified.",
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.serverAddress = args[0]
 			}
-			return runLogin(dockerCli, opts)
+			return runLogin(cmd.Context(), dockerCLI, opts)
 		},
+		Annotations: map[string]string{
+			"category-top": "8",
+		},
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
 
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
-	flags.StringVarP(&opts.password, "password", "p", "", "Password")
-	flags.BoolVarP(&opts.passwordStdin, "password-stdin", "", false, "Take the password from stdin")
+	flags.StringVarP(&opts.password, "password", "p", "", "Password or Personal Access Token (PAT)")
+	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the Password or Personal Access Token (PAT) from stdin")
 
 	return cmd
 }
 
-// displayUnencryptedWarning warns the user when using an insecure credential storage.
-// After a deprecation period, user will get prompted if stdin and stderr are a terminal.
-// Otherwise, we'll assume they want it (sadly), because people may have been scripting
-// insecure logins and we don't want to break them. Maybe they'll see the warning in their
-// logs and fix things.
-func displayUnencryptedWarning(dockerCli command.Streams, filename string) error {
-	_, err := fmt.Fprintln(dockerCli.Err(), fmt.Sprintf(unencryptedWarning, filename))
-
-	return err
-}
-
-type isFileStore interface {
-	IsFileStore() bool
-	GetFilename() string
-}
-
-func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
+func verifyLoginOptions(dockerCLI command.Cli, opts *loginOptions) error {
 	if opts.password != "" {
-		fmt.Fprintln(dockerCli.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 		if opts.passwordStdin {
 			return errors.New("--password and --password-stdin are mutually exclusive")
 		}
@@ -84,7 +73,7 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 			return errors.New("Must provide --username with --password-stdin")
 		}
 
-		contents, err := ioutil.ReadAll(dockerCli.In())
+		contents, err := io.ReadAll(dockerCLI.In())
 		if err != nil {
 			return err
 		}
@@ -95,97 +84,192 @@ func verifyloginOptions(dockerCli command.Cli, opts *loginOptions) error {
 	return nil
 }
 
-func runLogin(dockerCli command.Cli, opts loginOptions) error { //nolint: gocyclo
-	ctx := context.Background()
-	clnt := dockerCli.Client()
-	if err := verifyloginOptions(dockerCli, &opts); err != nil {
+func runLogin(ctx context.Context, dockerCLI command.Cli, opts loginOptions) error {
+	if err := verifyLoginOptions(dockerCLI, &opts); err != nil {
 		return err
 	}
 	var (
 		serverAddress string
-		authServer    = command.ElectAuthServer(ctx, dockerCli)
+		msg           string
 	)
 	if opts.serverAddress != "" && opts.serverAddress != registry.DefaultNamespace {
 		serverAddress = opts.serverAddress
 	} else {
-		serverAddress = authServer
+		serverAddress = registry.IndexServer
 	}
+	isDefaultRegistry := serverAddress == registry.IndexServer
 
-	var response registrytypes.AuthenticateOKBody
-	isDefaultRegistry := serverAddress == authServer
-	authConfig, err := command.GetDefaultAuthConfig(dockerCli, opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
-	if authConfig == nil {
-		authConfig = &types.AuthConfig{}
-	}
+	// attempt login with current (stored) credentials
+	authConfig, err := command.GetDefaultAuthConfig(dockerCLI.ConfigFile(), opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
 	if err == nil && authConfig.Username != "" && authConfig.Password != "" {
-		response, err = loginWithCredStoreCreds(ctx, dockerCli, authConfig)
+		msg, err = loginWithStoredCredentials(ctx, dockerCLI, authConfig)
 	}
-	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
-		err = command.ConfigureAuth(dockerCli, opts.user, opts.password, authConfig, isDefaultRegistry)
-		if err != nil {
-			return err
-		}
 
-		response, err = clnt.RegistryLogin(ctx, *authConfig)
-		if err != nil && client.IsErrConnectionFailed(err) {
-			// If the server isn't responding (yet) attempt to login purely client side
-			response, err = loginClientSide(ctx, *authConfig)
-		}
-		// If we (still) have an error, give up
+	// if we failed to authenticate with stored credentials (or didn't have stored credentials),
+	// prompt the user for new credentials
+	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
+		msg, err = loginUser(ctx, dockerCLI, opts, authConfig.Username, authConfig.ServerAddress)
 		if err != nil {
 			return err
 		}
 	}
+
+	if msg != "" {
+		_, _ = fmt.Fprintln(dockerCLI.Out(), msg)
+	}
+	return nil
+}
+
+func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, authConfig registrytypes.AuthConfig) (msg string, _ error) {
+	_, _ = fmt.Fprintf(dockerCLI.Err(), "Authenticating with existing credentials...")
+	if authConfig.Username != "" {
+		_, _ = fmt.Fprintf(dockerCLI.Err(), " [Username: %s]", authConfig.Username)
+	}
+	_, _ = fmt.Fprint(dockerCLI.Err(), "\n")
+
+	out := tui.NewOutput(dockerCLI.Err())
+	out.PrintNote("To login with a different account, run 'docker logout' followed by 'docker login'")
+
+	_, _ = fmt.Fprint(dockerCLI.Err(), "\n\n")
+
+	response, err := dockerCLI.Client().RegistryLogin(ctx, authConfig)
+	if err != nil {
+		if errdefs.IsUnauthorized(err) {
+			_, _ = fmt.Fprintln(dockerCLI.Err(), "Stored credentials invalid or expired")
+		} else {
+			_, _ = fmt.Fprintln(dockerCLI.Err(), "Login did not succeed, error:", err)
+		}
+	}
+
 	if response.IdentityToken != "" {
 		authConfig.Password = ""
 		authConfig.IdentityToken = response.IdentityToken
 	}
 
-	creds := dockerCli.ConfigFile().GetCredentialsStore(serverAddress)
-
-	store, isDefault := creds.(isFileStore)
-	// Display a warning if we're storing the users password (not a token)
-	if isDefault && authConfig.Password != "" {
-		err = displayUnencryptedWarning(dockerCli, store.GetFilename())
-		if err != nil {
-			return err
-		}
+	if err := storeCredentials(dockerCLI.ConfigFile(), authConfig); err != nil {
+		return "", err
 	}
 
-	if err := creds.Store(configtypes.AuthConfig(*authConfig)); err != nil {
+	return response.Status, err
+}
+
+const OauthLoginEscapeHatchEnvVar = "DOCKER_CLI_DISABLE_OAUTH_LOGIN"
+
+func isOauthLoginDisabled() bool {
+	if v := os.Getenv(OauthLoginEscapeHatchEnvVar); v != "" {
+		enabled, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return enabled
+	}
+	return false
+}
+
+func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, defaultUsername, serverAddress string) (msg string, _ error) {
+	// Some links documenting this:
+	// - https://code.google.com/archive/p/mintty/issues/56
+	// - https://github.com/docker/docker/issues/15272
+	// - https://mintty.github.io/ (compatibility)
+	// Linux will hit this if you attempt `cat | docker login`, and Windows
+	// will hit this if you attempt docker login from mintty where stdin
+	// is a pipe, not a character based console.
+	if (opts.user == "" || opts.password == "") && !dockerCLI.In().IsTerminal() {
+		return "", errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
+	}
+
+	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
+	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" && !isOauthLoginDisabled() {
+		var err error
+		msg, err = loginWithDeviceCodeFlow(ctx, dockerCLI)
+		// if the error represents a failure to initiate the device-code flow,
+		// then we fallback to regular cli credentials login
+		if !errors.Is(err, manager.ErrDeviceLoginStartFail) {
+			return msg, err
+		}
+		_, _ = fmt.Fprint(dockerCLI.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
+	}
+
+	return loginWithUsernameAndPassword(ctx, dockerCLI, opts, defaultUsername, serverAddress)
+}
+
+func loginWithUsernameAndPassword(ctx context.Context, dockerCLI command.Cli, opts loginOptions, defaultUsername, serverAddress string) (msg string, _ error) {
+	// Prompt user for credentials
+	authConfig, err := command.PromptUserForCredentials(ctx, dockerCLI, opts.user, opts.password, defaultUsername, serverAddress)
+	if err != nil {
+		return "", err
+	}
+
+	response, err := loginWithRegistry(ctx, dockerCLI.Client(), authConfig)
+	if err != nil {
+		return "", err
+	}
+
+	if response.IdentityToken != "" {
+		authConfig.Password = ""
+		authConfig.IdentityToken = response.IdentityToken
+	}
+	if err = storeCredentials(dockerCLI.ConfigFile(), authConfig); err != nil {
+		return "", err
+	}
+
+	return response.Status, nil
+}
+
+func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg string, _ error) {
+	store := dockerCLI.ConfigFile().GetCredentialsStore(registry.IndexServer)
+	authConfig, err := manager.NewManager(store).LoginDevice(ctx, dockerCLI.Err())
+	if err != nil {
+		return "", err
+	}
+
+	response, err := loginWithRegistry(ctx, dockerCLI.Client(), registrytypes.AuthConfig(*authConfig))
+	if err != nil {
+		return "", err
+	}
+
+	if err = storeCredentials(dockerCLI.ConfigFile(), registrytypes.AuthConfig(*authConfig)); err != nil {
+		return "", err
+	}
+
+	return response.Status, nil
+}
+
+func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
+	creds := cfg.GetCredentialsStore(authConfig.ServerAddress)
+	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
 		return errors.Errorf("Error saving credentials: %v", err)
 	}
 
-	if response.Status != "" {
-		fmt.Fprintln(dockerCli.Out(), response.Status)
-	}
 	return nil
 }
 
-func loginWithCredStoreCreds(ctx context.Context, dockerCli command.Cli, authConfig *types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
-	fmt.Fprintf(dockerCli.Out(), "Authenticating with existing credentials...\n")
-	cliClient := dockerCli.Client()
-	response, err := cliClient.RegistryLogin(ctx, *authConfig)
+func loginWithRegistry(ctx context.Context, apiClient client.SystemAPIClient, authConfig registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
+	response, err := apiClient.RegistryLogin(ctx, authConfig)
 	if err != nil {
-		if client.IsErrUnauthorized(err) {
-			fmt.Fprintf(dockerCli.Err(), "Stored credentials invalid or expired\n")
-		} else {
-			fmt.Fprintf(dockerCli.Err(), "Login did not succeed, error: %s\n", err)
+		if client.IsErrConnectionFailed(err) {
+			// daemon isn't responding; attempt to login client side.
+			return loginClientSide(ctx, authConfig)
 		}
+		return nil, err
 	}
-	return response, err
+
+	return &response, nil
 }
 
-func loginClientSide(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
 	svc, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
-		return registrytypes.AuthenticateOKBody{}, err
+		return nil, err
 	}
 
 	status, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+	if err != nil {
+		return nil, err
+	}
 
-	return registrytypes.AuthenticateOKBody{
+	return &registrytypes.AuthenticateOKBody{
 		Status:        status,
 		IdentityToken: token,
-	}, err
+	}, nil
 }

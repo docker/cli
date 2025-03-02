@@ -2,26 +2,28 @@ package system
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/docker/api/types"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
-
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 )
 
 func TestVersionWithoutServer(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		serverVersion: func(ctx context.Context) (types.Version, error) {
-			return types.Version{}, fmt.Errorf("no server")
+			return types.Version{}, errors.New("no server")
 		},
 	})
 	cmd := NewVersionCommand(cli)
+	cmd.SetArgs([]string{})
 	cmd.SetOut(cli.Err())
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no server")
 	out := cli.OutBuffer().String()
 	// TODO: use an assertion like e2e/image/build_test.go:assertBuildOutput()
@@ -30,7 +32,7 @@ func TestVersionWithoutServer(t *testing.T) {
 	assert.Assert(t, !strings.Contains(out, "Server:"), "actual: %s", out)
 }
 
-func TestVersionAlign(t *testing.T) {
+func TestVersionFormat(t *testing.T) {
 	vi := versionInfo{
 		Client: clientVersion{
 			Version:           "18.99.5-ce",
@@ -42,7 +44,6 @@ func TestVersionAlign(t *testing.T) {
 			Arch:              "amd64",
 			BuildTime:         "Wed May 30 22:21:05 2018",
 			Context:           "my-context",
-			Experimental:      true,
 		},
 		Server: &types.Version{},
 	}
@@ -105,10 +106,28 @@ func TestVersionAlign(t *testing.T) {
 		},
 	})
 
-	cli := test.NewFakeCli(&fakeClient{})
-	tmpl, err := newVersionTemplate("")
-	assert.NilError(t, err)
-	assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
-	assert.Check(t, golden.String(cli.OutBuffer().String(), "docker-client-version.golden"))
-	assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+	t.Run("default", func(t *testing.T) {
+		cli := test.NewFakeCli(&fakeClient{})
+		tmpl, err := newVersionTemplate("")
+		assert.NilError(t, err)
+		assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
+		assert.Check(t, golden.String(cli.OutBuffer().String(), "docker-client-version.golden"))
+		assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+	})
+	t.Run("json", func(t *testing.T) {
+		cli := test.NewFakeCli(&fakeClient{})
+		tmpl, err := newVersionTemplate("json")
+		assert.NilError(t, err)
+		assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
+		assert.Check(t, golden.String(cli.OutBuffer().String(), "docker-client-version.json.golden"))
+		assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+	})
+	t.Run("json template", func(t *testing.T) {
+		cli := test.NewFakeCli(&fakeClient{})
+		tmpl, err := newVersionTemplate("{{json .}}")
+		assert.NilError(t, err)
+		assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
+		assert.Check(t, golden.String(cli.OutBuffer().String(), "docker-client-version.json.golden"))
+		assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+	})
 }

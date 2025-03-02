@@ -1,18 +1,8 @@
 ---
+title: Docker volume plugins
 description: "How to manage data with external volume plugins"
 keywords: "Examples, Usage, volume, docker, data, volumes, plugin, api"
 ---
-
-<!-- This file is maintained within the docker/cli GitHub
-     repository at https://github.com/docker/cli/. Make all
-     pull requests against that repo. If you see this file in
-     another repository, consider it read-only there, as it will
-     periodically be overwritten by the definitive file. Pull
-     requests which include edits to this file in other repositories
-     will be rejected.
--->
-
-# Docker volume plugins
 
 Docker Engine volume plugins enable Engine deployments to be integrated with
 external storage systems such as Amazon EBS, and enable data volumes to persist
@@ -50,11 +40,11 @@ beyond the lifetime of a single Docker host. See the
 ## Command-line changes
 
 To give a container access to a volume, use the `--volume` and `--volume-driver`
-flags on the `docker container run` command.  The `--volume` (or `-v`) flag
+flags on the `docker container run` command. The `--volume` (or `-v`) flag
 accepts a volume name and path on the host, and the `--volume-driver` flag
 accepts a driver type.
 
-```bash
+```console
 $ docker volume create --driver=flocker volumename
 
 $ docker container run -it --volume volumename:/data busybox sh
@@ -90,15 +80,15 @@ provide the Docker Daemon with writeable paths on the host filesystem. The Docke
 daemon provides these paths to containers to consume. The Docker daemon makes
 the volumes available by bind-mounting the provided paths into the containers.
 
-> **Note**
->
+> [!NOTE]
 > Volume plugins should *not* write data to the `/var/lib/docker/` directory,
 > including `/var/lib/docker/volumes`. The `/var/lib/docker/` directory is
 > reserved for Docker.
 
 ### `/VolumeDriver.Create`
 
-**Request**:
+Request:
+
 ```json
 {
     "Name": "volume_name",
@@ -111,18 +101,20 @@ specified volume name. The plugin does not need to actually manifest the
 volume on the filesystem yet (until `Mount` is called).
 `Opts` is a map of driver specific options passed through from the user request.
 
-**Response**:
+Response:
+
 ```json
 {
     "Err": ""
 }
 ```
 
-Respond with a string error if an error occurred.
+  Respond with a string error if an error occurred.
 
 ### `/VolumeDriver.Remove`
 
-**Request**:
+Request:
+
 ```json
 {
     "Name": "volume_name"
@@ -132,7 +124,8 @@ Respond with a string error if an error occurred.
 Delete the specified volume from disk. This request is issued when a user
 invokes `docker rm -v` to remove volumes associated with a container.
 
-**Response**:
+Response:
+
 ```json
 {
     "Err": ""
@@ -143,7 +136,8 @@ Respond with a string error if an error occurred.
 
 ### `/VolumeDriver.Mount`
 
-**Request**:
+Request:
+
 ```json
 {
     "Name": "volume_name",
@@ -158,9 +152,9 @@ at the first mount request and deprovision at the last corresponding unmount req
 
 `ID` is a unique ID for the caller that is requesting the mount.
 
-**Response**:
+Response:
 
-- **v1**:
+- v1
 
   ```json
   {
@@ -169,7 +163,7 @@ at the first mount request and deprovision at the last corresponding unmount req
   }
   ```
 
-- **v2**:
+- v2
 
   ```json
   {
@@ -185,7 +179,7 @@ has been made available.
 
 ### `/VolumeDriver.Path`
 
-**Request**:
+Request:
 
 ```json
 {
@@ -195,9 +189,9 @@ has been made available.
 
 Request the path to the volume with the given `volume_name`.
 
-**Response**:
+Response:
 
-- **v1**:
+- v1
 
   ```json
   {
@@ -206,7 +200,7 @@ Request the path to the volume with the given `volume_name`.
   }
   ```
 
-- **v2**:
+- v2
 
   ```json
   {
@@ -223,7 +217,8 @@ is not provided.
 
 ### `/VolumeDriver.Unmount`
 
-**Request**:
+Request:
+
 ```json
 {
     "Name": "volume_name",
@@ -237,7 +232,8 @@ this point.
 
 `ID` is a unique ID for the caller that is requesting the mount.
 
-**Response**:
+Response:
+
 ```json
 {
     "Err": ""
@@ -246,10 +242,10 @@ this point.
 
 Respond with a string error if an error occurred.
 
-
 ### `/VolumeDriver.Get`
 
-**Request**:
+Request:
+
 ```json
 {
     "Name": "volume_name"
@@ -258,10 +254,9 @@ Respond with a string error if an error occurred.
 
 Get info about `volume_name`.
 
+Response:
 
-**Response**:
-
-- **v1**:
+- v1
 
   ```json
   {
@@ -274,7 +269,7 @@ Get info about `volume_name`.
   }
   ```
 
-- **v2**:
+- v2
 
   ```json
   {
@@ -293,16 +288,17 @@ optional.
 
 ### /VolumeDriver.List
 
-**Request**:
+Request:
+
 ```json
 {}
 ```
 
 Get the list of volumes registered with the plugin.
 
-**Response**:
+Response:
 
-- **v1**:
+- v1
 
   ```json
   {
@@ -316,7 +312,7 @@ Get the list of volumes registered with the plugin.
   }
   ```
 
-- **v2**:
+- v2
 
   ```json
   {
@@ -330,12 +326,12 @@ Get the list of volumes registered with the plugin.
   }
   ```
 
-
 Respond with a string error if an error occurred. `Mountpoint` is optional.
 
 ### /VolumeDriver.Capabilities
 
-**Request**:
+Request:
+
 ```json
 {}
 ```
@@ -345,7 +341,8 @@ Get the list of capabilities the driver supports.
 The driver is not required to implement `Capabilities`. If it is not
 implemented, the default values are used.
 
-**Response**:
+Response:
+
 ```json
 {
   "Capabilities": {

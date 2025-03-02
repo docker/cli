@@ -1,20 +1,16 @@
----
-title: "trust revoke"
-description: "The revoke command description and usage"
-keywords: "revoke, notary, trust"
----
-
 # trust revoke
 
-```markdown
-Usage:  docker trust revoke [OPTIONS] IMAGE[:TAG]
-
+<!---MARKER_GEN_START-->
 Remove trust for an image
 
-Options:
-      --help   Print usage
-  -y, --yes    Do not prompt for confirmation
-```
+### Options
+
+| Name          | Type   | Default | Description                    |
+|:--------------|:-------|:--------|:-------------------------------|
+| `-y`, `--yes` | `bool` |         | Do not prompt for confirmation |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -24,10 +20,10 @@ Options:
 
 ### Revoke signatures from a signed tag
 
-Here's an example of a repo with two signed tags:
+Here's an example of a repository with two signed tags:
 
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
@@ -46,7 +42,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 When `alice`, one of the signers, runs `docker trust revoke`:
 
-```bash
+```console
 $ docker trust revoke example/trust-demo:red
 Enter passphrase for delegation key with ID 27d42a8:
 Successfully deleted signature for example/trust-demo:red
@@ -54,7 +50,7 @@ Successfully deleted signature for example/trust-demo:red
 
 After revocation, the tag is removed from the list of released tags:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 blue                f1c38dbaeeb473c36716f6494d803fbfbe9d8a76916f7c0093f227821e378197    alice, bob
@@ -74,7 +70,7 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 When no tag is specified, `docker trust` revokes all signatures that you have a signing key for.
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 SIGNED TAG          DIGEST                                                              SIGNERS
 red                 852cc04935f930a857b630edc4ed6131e91b22073bcc216698842e44f64d2943    alice
@@ -93,16 +89,16 @@ Root Key:       3cb2228f6561e58f46dbc4cda4fcaff9d5ef22e865a94636f82450d1d2234949
 
 When `alice`, one of the signers, runs `docker trust revoke`:
 
-```bash
+```console
 $ docker trust revoke example/trust-demo
-Please confirm you would like to delete all signature data for example/trust-demo? [y/N] y
+Confirm you would like to delete all signature data for example/trust-demo? [y/N] y
 Enter passphrase for delegation key with ID 27d42a8:
 Successfully deleted signature for example/trust-demo
 ```
 
 All tags that have `alice`'s signature on them are removed from the list of released tags:
 
-```bash
+```console
 $ docker trust inspect --pretty example/trust-demo
 
 No signatures for example/trust-demo

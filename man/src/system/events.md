@@ -20,11 +20,11 @@ Docker networks report the following events:
 # OPTIONS
 
 The `--since` and `--until` parameters can be Unix timestamps, date formatted
-timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
+timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
 relative to the client machine's time. If you do not provide the `--since` option,
 the command returns only new and/or live events.  Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp.  When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
@@ -62,10 +62,10 @@ The following example outputs all events that were generated in the last 3 minut
 relative to the current time on the client machine:
 
     # docker events --since '3m'
-    2015-05-12T11:51:30.999999999Z07:00  4386fb97867d: (from ubuntu-1:14.04) die
-    2015-05-12T15:52:12.999999999Z07:00  4386fb97867d: (from ubuntu-1:14.04) stop
-    2015-05-12T15:53:45.999999999Z07:00  7805c1d35632: (from redis:2.8) die
-    2015-05-12T15:54:03.999999999Z07:00  7805c1d35632: (from redis:2.8) stop
+    2015-05-12T11:51:30.999999999Z07:00  4386fb97867d: (from ubuntu:24.04) die
+    2015-05-12T15:52:12.999999999Z07:00  4386fb97867d: (from ubuntu:24.04) stop
+    2015-05-12T15:53:45.999999999Z07:00  7805c1d35632: (from redis:7.2) die
+    2015-05-12T15:54:03.999999999Z07:00  7805c1d35632: (from redis:7.2) stop
 
 If you do not provide the --since option, the command returns only new and/or
 live events.
@@ -85,7 +85,7 @@ details of the format.
     Type=container  Status=destroy  ID=2ee349dac409e97974ce8d01b70d250b85e0ba8189299c126a87812311951e26
 
 If a format is set to `{{json .}}`, the events are streamed as valid JSON
-Lines. For information about JSON Lines, please refer to http://jsonlines.org/ .
+Lines. For information about JSON Lines, refer to https://jsonlines.org .
 
     # docker events --format '{{json .}}'
     {"status":"create","id":"196016a57679bf42424484918746a9474cd905dd993c4d0f4..
@@ -97,26 +97,26 @@ Lines. For information about JSON Lines, please refer to http://jsonlines.org/ .
 ## Filters
 
     $ docker events --filter 'event=stop'
-    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu-1:14.04)
-    2014-09-03T17:42:14.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
+    2014-09-03T17:42:14.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
-    $ docker events --filter 'image=ubuntu-1:14.04'
-    2014-05-10T17:42:14.999999999Z07:00 container start 4386fb97867d (image=ubuntu-1:14.04)
-    2014-05-10T17:42:14.999999999Z07:00 container die 4386fb97867d (image=ubuntu-1:14.04)
-    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu-1:14.04)
+    $ docker events --filter 'image=ubuntu:24.04'
+    2014-05-10T17:42:14.999999999Z07:00 container start 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container die 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
 
     $ docker events --filter 'container=7805c1d35632'
-    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:2.8)
-    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image= redis:2.8)
+    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:7.2)
+    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image= redis:7.2)
 
     $ docker events --filter 'container=7805c1d35632' --filter 'container=4386fb97867d'
-    2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu-1:14.04)
-    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu-1:14.04)
-    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:2.8)
-    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+    2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
+    2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (image=redis:7.2)
+    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
     $ docker events --filter 'container=7805c1d35632' --filter 'event=stop'
-    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+    2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
     $ docker events --filter 'type=volume'
     2015-12-23T21:05:28.136212689Z volume create test-event-volume-local (driver=local)

@@ -1,20 +1,16 @@
----
-title: "plugin enable"
-description: "the plugin enable command description and usage"
-keywords: "plugin, enable"
----
-
 # plugin enable
 
-```markdown
-Usage:  docker plugin enable [OPTIONS] PLUGIN
-
+<!---MARKER_GEN_START-->
 Enable a plugin
 
-Options:
-      --help          Print usage
-      --timeout int   HTTP client timeout (in seconds)
-```
+### Options
+
+| Name        | Type  | Default | Description                      |
+|:------------|:------|:--------|:---------------------------------|
+| `--timeout` | `int` | `30`    | HTTP client timeout (in seconds) |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -26,7 +22,7 @@ see [`docker plugin install`](plugin_install.md).
 The following example shows that the `sample-volume-plugin` plugin is installed,
 but disabled:
 
-```bash
+```console
 $ docker plugin ls
 
 ID            NAME                                    DESCRIPTION                ENABLED
@@ -35,7 +31,7 @@ ID            NAME                                    DESCRIPTION               
 
 To enable the plugin, use the following command:
 
-```bash
+```console
 $ docker plugin enable tiborvass/sample-volume-plugin
 
 tiborvass/sample-volume-plugin

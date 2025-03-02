@@ -3,12 +3,12 @@ package trust
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
@@ -19,14 +19,14 @@ type revokeOptions struct {
 	forceYes bool
 }
 
-func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
+func newRevokeCommand(dockerCLI command.Cli) *cobra.Command {
 	options := revokeOptions{}
 	cmd := &cobra.Command{
 		Use:   "revoke [OPTIONS] IMAGE[:TAG]",
 		Short: "Remove trust for an image",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return revokeTrust(dockerCli, args[0], options)
+			return revokeTrust(cmd.Context(), dockerCLI, args[0], options)
 		},
 	}
 	flags := cmd.Flags()
@@ -34,25 +34,26 @@ func newRevokeCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
-	ctx := context.Background()
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, nil, image.AuthResolver(cli), remote)
+func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, options revokeOptions) error {
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), remote)
 	if err != nil {
 		return err
 	}
 	tag := imgRefAndAuth.Tag()
 	if imgRefAndAuth.Tag() == "" && imgRefAndAuth.Digest() != "" {
-		return fmt.Errorf("cannot use a digest reference for IMAGE:TAG")
+		return errors.New("cannot use a digest reference for IMAGE:TAG")
 	}
 	if imgRefAndAuth.Tag() == "" && !options.forceYes {
-		deleteRemote := command.PromptForConfirmation(os.Stdin, cli.Out(), fmt.Sprintf("Please confirm you would like to delete all signature data for %s?", remote))
+		deleteRemote, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), fmt.Sprintf("Confirm you would like to delete all signature data for %s?", remote))
+		if err != nil {
+			return err
+		}
 		if !deleteRemote {
-			fmt.Fprintf(cli.Out(), "\nAborting action.\n")
-			return nil
+			return errdefs.Cancelled(errors.New("trust revoke has been cancelled"))
 		}
 	}
 
-	notaryRepo, err := cli.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
+	notaryRepo, err := dockerCLI.NotaryClient(imgRefAndAuth, trust.ActionsPushAndPull)
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func revokeTrust(cli command.Cli, remote string, options revokeOptions) error {
 	if err := revokeSignature(notaryRepo, tag); err != nil {
 		return errors.Wrapf(err, "could not remove signature for %s", remote)
 	}
-	fmt.Fprintf(cli.Out(), "Successfully deleted signature for %s\n", remote)
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully deleted signature for %s\n", remote)
 	return nil
 }
 
@@ -101,7 +102,7 @@ func revokeAllSigs(notaryRepo client.Repository) error {
 	}
 
 	if len(releasedTargetWithRoleList) == 0 {
-		return fmt.Errorf("no signed tags to remove")
+		return errors.New("no signed tags to remove")
 	}
 
 	// we need all the roles that signed each released target so we can remove from all roles.

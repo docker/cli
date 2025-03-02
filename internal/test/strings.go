@@ -10,20 +10,19 @@ import (
 
 // CompareMultipleValues compares comma-separated values, whatever the order is
 func CompareMultipleValues(t *testing.T, value, expected string) {
+	t.Helper()
 	// comma-separated values means probably a map input, which won't
 	// be guaranteed to have the same order as our expected value
 	// We'll create maps and use reflect.DeepEquals to check instead:
 	entriesMap := make(map[string]string)
-	expMap := make(map[string]string)
-	entries := strings.Split(value, ",")
-	expectedEntries := strings.Split(expected, ",")
-	for _, entry := range entries {
-		keyval := strings.Split(entry, "=")
-		entriesMap[keyval[0]] = keyval[1]
+	for _, entry := range strings.Split(value, ",") {
+		k, v, _ := strings.Cut(entry, "=")
+		entriesMap[k] = v
 	}
-	for _, expected := range expectedEntries {
-		keyval := strings.Split(expected, "=")
-		expMap[keyval[0]] = keyval[1]
+	expMap := make(map[string]string)
+	for _, exp := range strings.Split(expected, ",") {
+		k, v, _ := strings.Cut(exp, "=")
+		expMap[k] = v
 	}
 	assert.Check(t, is.DeepEqual(expMap, entriesMap))
 }

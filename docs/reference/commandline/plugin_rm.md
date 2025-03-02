@@ -1,37 +1,34 @@
----
-title: "plugin rm"
-description: "the plugin rm command description and usage"
-keywords: "plugin, rm"
----
-
 # plugin rm
 
-```markdown
-Usage:  docker plugin rm [OPTIONS] PLUGIN [PLUGIN...]
-
+<!---MARKER_GEN_START-->
 Remove one or more plugins
 
-Aliases:
-  rm, remove
+### Aliases
 
-Options:
-      -f, --force  Force the removal of an active plugin
-          --help   Print usage
-```
+`docker plugin rm`, `docker plugin remove`
+
+### Options
+
+| Name            | Type   | Default | Description                           |
+|:----------------|:-------|:--------|:--------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the removal of an active plugin |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
 Removes a plugin. You cannot remove a plugin if it is enabled, you must disable
 a plugin using the [`docker plugin disable`](plugin_disable.md) before removing
-it (or use --force, use of force is not recommended, since it can affect
-functioning of running containers using the plugin).
+it, or use `--force`. Use of `--force` is not recommended, since it can affect
+functioning of running containers using the plugin.
 
 ## Examples
 
 The following example disables and removes the `sample-volume-plugin:latest`
 plugin:
 
-```bash
+```console
 $ docker plugin disable tiborvass/sample-volume-plugin
 
 tiborvass/sample-volume-plugin
