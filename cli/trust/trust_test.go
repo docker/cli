@@ -6,7 +6,6 @@ import (
 	"github.com/distribution/reference"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
-	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -47,9 +46,9 @@ func TestGetDigest(t *testing.T) {
 }
 
 func TestGetSignableRolesError(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, nil, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
-	target := client.Target{}
-	_, err = GetSignableRoles(notaryRepo, &target)
-	assert.Error(t, err, "client is offline")
+	_, err = GetSignableRoles(notaryRepo, &client.Target{})
+	const expected = "client is offline"
+	assert.Error(t, err, expected)
 }
