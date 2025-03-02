@@ -47,3 +47,9 @@ func getOrGenerateRootKeyAndInitRepo(notaryRepo client.Repository) error {
 	}
 	return notaryRepo.Initialize([]string{rootKey.ID()}, data.CanonicalSnapshotRole)
 }
+
+const testPass = "password"
+
+func testPassRetriever(string, string, bool, int) (string, bool, error) {
+	return testPass, false, nil
+}
