@@ -116,7 +116,7 @@ func signAndPublishToTarget(out io.Writer, imgRefAndAuth trust.ImageRefAndAuth, 
 	if err != nil {
 		return err
 	}
-	err = image.AddTargetToAllSignableRoles(notaryRepo, &target)
+	err = trust.AddToAllSignableRoles(notaryRepo, &target)
 	if err == nil {
 		prettyPrintExistingSignatureInfo(out, existingSigInfo)
 		err = notaryRepo.Publish()

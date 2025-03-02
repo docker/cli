@@ -239,6 +239,20 @@ func NotaryError(repoName string, err error) error {
 	return err
 }
 
+// AddToAllSignableRoles attempts to add the image target to all the top level
+// delegation roles we can (based on whether we have the signing key and whether
+// the role's path allows us to).
+//
+// If there are no delegation roles, we add to the targets role.
+func AddToAllSignableRoles(repo client.Repository, target *client.Target) error {
+	signableRoles, err := GetSignableRoles(repo, target)
+	if err != nil {
+		return err
+	}
+
+	return repo.AddTarget(target, signableRoles...)
+}
+
 // GetSignableRoles returns a list of roles for which we have valid signing
 // keys, given a notary repository and a target
 func GetSignableRoles(repo client.Repository, target *client.Target) ([]data.RoleName, error) {

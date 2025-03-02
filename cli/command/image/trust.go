@@ -137,7 +137,7 @@ func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoIn
 		err = repo.AddTarget(target, data.CanonicalTargetsRole)
 	case nil:
 		// already initialized and we have successfully downloaded the latest metadata
-		err = AddTargetToAllSignableRoles(repo, target)
+		err = trust.AddToAllSignableRoles(repo, target)
 	default:
 		return trust.NotaryError(repoInfo.Name.Name(), err)
 	}
@@ -153,19 +153,6 @@ func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoIn
 
 	_, _ = fmt.Fprintf(ioStreams.Out(), "Successfully signed %s:%s\n", repoInfo.Name.Name(), tag)
 	return nil
-}
-
-// AddTargetToAllSignableRoles attempts to add the image target to all the top level delegation roles we can
-// (based on whether we have the signing key and whether the role's path allows
-// us to).
-// If there are no delegation roles, we add to the targets role.
-func AddTargetToAllSignableRoles(repo client.Repository, target *client.Target) error {
-	signableRoles, err := trust.GetSignableRoles(repo, target)
-	if err != nil {
-		return err
-	}
-
-	return repo.AddTarget(target, signableRoles...)
 }
 
 // trustedPull handles content trust pulling of an image
