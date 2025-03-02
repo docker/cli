@@ -5,10 +5,6 @@ import (
 
 	"github.com/docker/cli/cli/trust"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/theupdateframework/notary/client"
-	"github.com/theupdateframework/notary/passphrase"
-	"github.com/theupdateframework/notary/trustpinning"
-	"gotest.tools/v3/assert"
 	"gotest.tools/v3/env"
 )
 
@@ -46,12 +42,4 @@ func TestNonOfficialTrustServer(t *testing.T) {
 	if err != nil || output != expectedStr {
 		t.Fatalf("Expected server to be %s, got %s", expectedStr, output)
 	}
-}
-
-func TestAddTargetToAllSignableRolesError(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
-	assert.NilError(t, err)
-	target := client.Target{}
-	err = AddTargetToAllSignableRoles(notaryRepo, &target)
-	assert.Error(t, err, "client is offline")
 }
