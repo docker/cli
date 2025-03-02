@@ -58,34 +58,31 @@ func TestENVTrustServer(t *testing.T) {
 	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "https://notary-test.example.com:5000")
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
 	output, err := Server(indexInfo)
-	expectedStr := "https://notary-test.example.com:5000"
-	if err != nil || output != expectedStr {
-		t.Fatalf("Expected server to be %s, got %s", expectedStr, output)
-	}
+	const expected = "https://notary-test.example.com:5000"
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
 }
 
 func TestHTTPENVTrustServer(t *testing.T) {
 	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "http://notary-test.example.com:5000")
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
 	_, err := Server(indexInfo)
-	if err == nil {
-		t.Fatal("Expected error with invalid scheme")
-	}
+	const expected = "valid https URL required for trust server"
+	assert.ErrorContains(t, err, expected, "Expected error with invalid scheme")
 }
 
 func TestOfficialTrustServer(t *testing.T) {
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: true}
 	output, err := Server(indexInfo)
-	if err != nil || output != NotaryServer {
-		t.Fatalf("Expected server to be %s, got %s", NotaryServer, output)
-	}
+	const expected = NotaryServer
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
 }
 
 func TestNonOfficialTrustServer(t *testing.T) {
 	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: false}
 	output, err := Server(indexInfo)
-	expectedStr := "https://" + indexInfo.Name
-	if err != nil || output != expectedStr {
-		t.Fatalf("Expected server to be %s, got %s", expectedStr, output)
-	}
+	const expected = "https://testserver"
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
 }
