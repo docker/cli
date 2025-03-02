@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/distribution/reference"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/trustpinning"
@@ -51,4 +52,40 @@ func TestGetSignableRolesError(t *testing.T) {
 	_, err = GetSignableRoles(notaryRepo, &client.Target{})
 	const expected = "client is offline"
 	assert.Error(t, err, expected)
+}
+
+func TestENVTrustServer(t *testing.T) {
+	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "https://notary-test.example.com:5000")
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
+	output, err := Server(indexInfo)
+	expectedStr := "https://notary-test.example.com:5000"
+	if err != nil || output != expectedStr {
+		t.Fatalf("Expected server to be %s, got %s", expectedStr, output)
+	}
+}
+
+func TestHTTPENVTrustServer(t *testing.T) {
+	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "http://notary-test.example.com:5000")
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
+	_, err := Server(indexInfo)
+	if err == nil {
+		t.Fatal("Expected error with invalid scheme")
+	}
+}
+
+func TestOfficialTrustServer(t *testing.T) {
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: true}
+	output, err := Server(indexInfo)
+	if err != nil || output != NotaryServer {
+		t.Fatalf("Expected server to be %s, got %s", NotaryServer, output)
+	}
+}
+
+func TestNonOfficialTrustServer(t *testing.T) {
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: false}
+	output, err := Server(indexInfo)
+	expectedStr := "https://" + indexInfo.Name
+	if err != nil || output != expectedStr {
+		t.Fatalf("Expected server to be %s, got %s", expectedStr, output)
+	}
 }
