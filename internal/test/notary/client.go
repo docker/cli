@@ -5,7 +5,6 @@ import (
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/client/changelist"
 	"github.com/theupdateframework/notary/cryptoservice"
-	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/storage"
 	"github.com/theupdateframework/notary/trustmanager"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -494,11 +493,17 @@ func (LoadedNotaryRepository) GetDelegationRoles() ([]data.Role, error) {
 	return loadedDelegationRoles, nil
 }
 
+const testPass = "password"
+
+func testPassRetriever(string, string, bool, int) (string, bool, error) {
+	return testPass, false, nil
+}
+
 // GetCryptoService is the getter for the repository's CryptoService
 func (l LoadedNotaryRepository) GetCryptoService() signed.CryptoService {
 	if l.statefulCryptoService == nil {
 		// give it an in-memory cryptoservice with a root key and targets key
-		l.statefulCryptoService = cryptoservice.NewCryptoService(trustmanager.NewKeyMemoryStore(passphrase.ConstantRetriever("password")))
+		l.statefulCryptoService = cryptoservice.NewCryptoService(trustmanager.NewKeyMemoryStore(testPassRetriever))
 		l.statefulCryptoService.AddKey(data.CanonicalRootRole, l.GetGUN(), nil)
 		l.statefulCryptoService.AddKey(data.CanonicalTargetsRole, l.GetGUN(), nil)
 	}
