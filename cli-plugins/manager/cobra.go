@@ -107,9 +107,17 @@ func AddPluginCommandStubs(dockerCli command.Cli, rootCmd *cobra.Command) (err e
 }
 
 const (
-	dockerCliAttributePrefix = command.DockerCliAttributePrefix
+	// resourceAttributesEnvVar is the name of the envvar that includes additional
+	// resource attributes for OTEL as defined in the [OpenTelemetry specification].
+	//
+	// [OpenTelemetry specification]: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration
+	resourceAttributesEnvVar = "OTEL_RESOURCE_ATTRIBUTES"
 
-	cobraCommandPath = attribute.Key("cobra.command_path")
+	// dockerCLIAttributePrefix is the prefix for any docker cli OTEL attributes.
+	//
+	// It is a copy of the const defined in [command.dockerCLIAttributePrefix].
+	dockerCLIAttributePrefix = "docker.cli."
+	cobraCommandPath         = attribute.Key("cobra.command_path")
 )
 
 func getPluginResourceAttributes(cmd *cobra.Command, plugin Plugin) attribute.Set {
@@ -126,7 +134,7 @@ func getPluginResourceAttributes(cmd *cobra.Command, plugin Plugin) attribute.Se
 	for iter := attrSet.Iter(); iter.Next(); {
 		attr := iter.Attribute()
 		kvs = append(kvs, attribute.KeyValue{
-			Key:   dockerCliAttributePrefix + attr.Key,
+			Key:   dockerCLIAttributePrefix + attr.Key,
 			Value: attr.Value,
 		})
 	}
@@ -154,7 +162,7 @@ func appendPluginResourceAttributesEnvvar(env []string, cmd *cobra.Command, plug
 		// conflict. We do not parse the environment variable because we do not want
 		// to handle errors in user configuration.
 		attrsSlice := make([]string, 0, 2)
-		if v := strings.TrimSpace(os.Getenv(ResourceAttributesEnvvar)); v != "" {
+		if v := strings.TrimSpace(os.Getenv(resourceAttributesEnvVar)); v != "" {
 			attrsSlice = append(attrsSlice, v)
 		}
 		if b, err := baggage.New(members...); err != nil {
@@ -164,7 +172,7 @@ func appendPluginResourceAttributesEnvvar(env []string, cmd *cobra.Command, plug
 		}
 
 		if len(attrsSlice) > 0 {
-			env = append(env, ResourceAttributesEnvvar+"="+strings.Join(attrsSlice, ","))
+			env = append(env, resourceAttributesEnvVar+"="+strings.Join(attrsSlice, ","))
 		}
 	}
 	return env
