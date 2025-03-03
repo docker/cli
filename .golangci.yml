@@ -62,6 +62,8 @@ linters-settings:
             desc: The containerd platforms package was migrated to a separate module. Use github.com/containerd/platforms instead.
           - pkg: "github.com/docker/docker/pkg/system"
             desc: This package should not be used unless strictly necessary.
+          - pkg: "github.com/docker/distribution/uuid"
+            desc: Use github.com/google/uuid instead.
           - pkg: "io/ioutil"
             desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
   gocyclo:

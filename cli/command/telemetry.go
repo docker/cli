@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/distribution/uuid"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -142,7 +142,7 @@ func defaultResourceOptions() []resource.Option {
 			// of the CLI is its own instance. Without this, downstream
 			// OTEL processors may think the same process is restarting
 			// continuously.
-			semconv.ServiceInstanceID(uuid.Generate().String()),
+			semconv.ServiceInstanceID(uuid.NewString()),
 		),
 		resource.WithFromEnv(),
 		resource.WithTelemetrySDK(),
