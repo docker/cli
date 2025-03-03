@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/distribution/reference"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
-	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -47,9 +47,42 @@ func TestGetDigest(t *testing.T) {
 }
 
 func TestGetSignableRolesError(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever("password"), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, nil, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
-	target := client.Target{}
-	_, err = GetSignableRoles(notaryRepo, &target)
-	assert.Error(t, err, "client is offline")
+	_, err = GetSignableRoles(notaryRepo, &client.Target{})
+	const expected = "client is offline"
+	assert.Error(t, err, expected)
+}
+
+func TestENVTrustServer(t *testing.T) {
+	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "https://notary-test.example.com:5000")
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
+	output, err := Server(indexInfo)
+	const expected = "https://notary-test.example.com:5000"
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
+}
+
+func TestHTTPENVTrustServer(t *testing.T) {
+	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "http://notary-test.example.com:5000")
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
+	_, err := Server(indexInfo)
+	const expected = "valid https URL required for trust server"
+	assert.ErrorContains(t, err, expected, "Expected error with invalid scheme")
+}
+
+func TestOfficialTrustServer(t *testing.T) {
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: true}
+	output, err := Server(indexInfo)
+	const expected = NotaryServer
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
+}
+
+func TestNonOfficialTrustServer(t *testing.T) {
+	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: false}
+	output, err := Server(indexInfo)
+	const expected = "https://testserver"
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
 }

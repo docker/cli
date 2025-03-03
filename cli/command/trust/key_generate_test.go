@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
 	"github.com/theupdateframework/notary"
-	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustmanager"
 	tufutils "github.com/theupdateframework/notary/tuf/utils"
 	"gotest.tools/v3/assert"
@@ -51,11 +50,9 @@ func TestGenerateKeySuccess(t *testing.T) {
 	pubKeyCWD := t.TempDir()
 	privKeyStorageDir := t.TempDir()
 
-	const testPass = "password"
-	cannedPasswordRetriever := passphrase.ConstantRetriever(testPass)
 	// generate a single key
 	keyName := "alice"
-	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, cannedPasswordRetriever)
+	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, testPassRetriever)
 	assert.NilError(t, err)
 
 	pubKeyPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
