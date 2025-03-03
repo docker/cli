@@ -99,17 +99,10 @@ func buildPushRequest(manifests []types.ImageManifest, targetRef reference.Named
 		return req, err
 	}
 
-	targetRepoName, err := registryclient.RepoNameForReference(targetRef)
-	if err != nil {
-		return req, err
-	}
+	targetRepoName := reference.Path(reference.TrimNamed(targetRef))
 
 	for _, imageManifest := range manifests {
-		manifestRepoName, err := registryclient.RepoNameForReference(imageManifest.Ref)
-		if err != nil {
-			return req, err
-		}
-
+		manifestRepoName := reference.Path(reference.TrimNamed(imageManifest.Ref))
 		repoName, _ := reference.WithName(manifestRepoName)
 		if repoName.Name() != targetRepoName {
 			blobs, err := buildBlobRequestList(imageManifest, repoName)
