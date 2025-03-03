@@ -1,11 +1,14 @@
 package container
 
 import (
+	"archive/tar"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -13,12 +16,15 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	imagetypes "github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/versions"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -34,11 +40,12 @@ const (
 )
 
 type createOptions struct {
-	name      string
-	platform  string
-	untrusted bool
-	pull      string // always, missing, never
-	quiet     bool
+	name            string
+	platform        string
+	untrusted       bool
+	pull            string // always, missing, never
+	quiet           bool
+	useDockerSocket bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -69,6 +76,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
+	flags.BoolVarP(&options.useDockerSocket, "use-docker-socket", "", false, "Bind mount docker socket and required auth")
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -247,6 +255,48 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		return nil
 	}
 
+	if options.useDockerSocket {
+		// We'll create two new mounts to handle this flag:
+		// 1. Mount the actual docker socket.
+		// 2. A synthezised ~/.docker/config.json with resolved tokens.
+
+		socket := dockerCli.DockerEndpoint().Host
+		if !strings.HasPrefix(socket, "unix://") {
+			return "", fmt.Errorf("flag --use-docker-socket can only be used with unix sockets: docker endpoint %s incompatible", socket)
+		}
+		socket = strings.TrimPrefix(socket, "unix://") // should we confirm absolute path?
+
+		containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
+			Type:        mount.TypeBind,
+			Source:      socket,
+			Target:      "/var/run/docker.sock",
+			BindOptions: &mount.BindOptions{},
+		})
+
+		/*
+
+			        Ideally, we'd like to copy the config into a tmpfs but unfortunately,
+			        the mounts won't be in place until we start the container. This can
+			        leave around the config if the container doesn't get deleted.
+
+					// Prepare a tmpfs mount for our credentials so they go away after the
+					// container exits. We'll copy into this mount after the container is
+					// created.
+					containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
+						Type:   mount.TypeTmpfs,
+						Target: "/docker/",
+						TmpfsOptions: &mount.TmpfsOptions{
+							SizeBytes: 1 << 20, // only need a small partition
+							Mode:      0o600,
+						},
+					})
+		*/
+
+		// Set our special little location for the config file.
+		containerCfg.Config.Env = append(containerCfg.Config.Env,
+			"DOCKER_CONFIG=/docker/")
+	}
+
 	var platform *specs.Platform
 	// Engine API version 1.41 first introduced the option to specify platform on
 	// create. It will produce an error if you try to set a platform on older API
@@ -291,11 +341,29 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
+	containerID = response.ID
 	for _, w := range response.Warnings {
 		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
 	}
-	err = containerIDFile.Write(response.ID)
-	return response.ID, err
+	err = containerIDFile.Write(containerID)
+
+	if options.useDockerSocket {
+		creds, err := dockerCli.ConfigFile().GetAllCredentials()
+		if err != nil {
+			return "", fmt.Errorf("resolving credentials failed: %w", err)
+		}
+
+		// Create a new config file with just the auth.
+		newConfig := &configfile.ConfigFile{
+			AuthConfigs: creds,
+		}
+
+		if err := copyDockerConfigIntoContainer(ctx, containerID, "/docker/config.json", newConfig, dockerCli.Client()); err != nil {
+			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
+		}
+	}
+
+	return containerID, err
 }
 
 func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
@@ -341,4 +409,40 @@ func validatePullOpt(val string) error {
 			PullImageNever,
 		)
 	}
+}
+
+// copyDockerConfigIntoContainer takes the client configuration and copies it
+// into the container.
+//
+// The path should be an absolute path in the container, commonly
+// /root/.docker/config.json.
+func copyDockerConfigIntoContainer(ctx context.Context, containerID string, path string, config *configfile.ConfigFile, dockerAPI client.APIClient) error {
+	var configBuf bytes.Buffer
+	if err := config.SaveToWriter(&configBuf); err != nil {
+		return fmt.Errorf("saving creds: %w", err)
+	}
+
+	// We don't need to get super fancy with the tar creation.
+	var tarBuf bytes.Buffer
+	tarWriter := tar.NewWriter(&tarBuf)
+	tarWriter.WriteHeader(&tar.Header{
+		Name: path,
+		Size: int64(configBuf.Len()),
+		Mode: 0o600,
+	})
+
+	if _, err := io.Copy(tarWriter, &configBuf); err != nil {
+		return fmt.Errorf("writing config to tar file for config copy: %w", err)
+	}
+
+	if err := tarWriter.Close(); err != nil {
+		return fmt.Errorf("closing tar for config copy failed: %w", err)
+	}
+
+	if err := dockerAPI.CopyToContainer(ctx, containerID, "/",
+		&tarBuf, container.CopyToContainerOptions{}); err != nil {
+		return fmt.Errorf("copying config.json into container failed: %w", err)
+	}
+
+	return nil
 }
