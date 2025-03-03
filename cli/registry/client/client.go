@@ -37,12 +37,6 @@ func NewRegistryClient(resolver AuthConfigResolver, userAgent string, insecure b
 // AuthConfigResolver returns Auth Configuration for an index
 type AuthConfigResolver func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig
 
-// PutManifestOptions is the data sent to push a manifest
-type PutManifestOptions struct {
-	MediaType string
-	Payload   []byte
-}
-
 type client struct {
 	authConfigResolver AuthConfigResolver
 	insecureRegistry   bool
