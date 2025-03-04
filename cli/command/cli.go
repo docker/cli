@@ -31,7 +31,6 @@ import (
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -344,7 +343,10 @@ func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint,
 
 // Resolve the Docker endpoint for the default context (based on config, env vars and CLI flags)
 func resolveDefaultDockerEndpoint(opts *cliflags.ClientOptions) (docker.Endpoint, error) {
-	host, err := getServerHost(opts.Hosts, opts.TLSOptions)
+	// defaultToTLS determines whether we should use a TLS host as default
+	// if nothing was configured by the user.
+	defaultToTLS := opts.TLSOptions != nil
+	host, err := getServerHost(opts.Hosts, defaultToTLS)
 	if err != nil {
 		return docker.Endpoint{}, err
 	}
@@ -547,18 +549,15 @@ func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 	return cli, nil
 }
 
-func getServerHost(hosts []string, tlsOptions *tlsconfig.Options) (string, error) {
-	var host string
+func getServerHost(hosts []string, defaultToTLS bool) (string, error) {
 	switch len(hosts) {
 	case 0:
-		host = os.Getenv(client.EnvOverrideHost)
+		return dopts.ParseHost(defaultToTLS, os.Getenv(client.EnvOverrideHost))
 	case 1:
-		host = hosts[0]
+		return dopts.ParseHost(defaultToTLS, hosts[0])
 	default:
 		return "", errors.New("Specify only one -H")
 	}
-
-	return dopts.ParseHost(tlsOptions != nil, host)
 }
 
 // UserAgent returns the user agent string used for making API requests
