@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -215,4 +216,50 @@ func (r *cliReader) ForceFlush(ctx context.Context) error {
 // they really shouldn't.
 func deltaTemporality(_ sdkmetric.InstrumentKind) metricdata.Temporality {
 	return metricdata.DeltaTemporality
+}
+
+// resourceAttributesEnvVar is the name of the envvar that includes additional
+// resource attributes for OTEL as defined in the [OpenTelemetry specification].
+//
+// [OpenTelemetry specification]: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration
+const resourceAttributesEnvVar = "OTEL_RESOURCE_ATTRIBUTES"
+
+func filterResourceAttributesEnvvar() {
+	if v := os.Getenv(resourceAttributesEnvVar); v != "" {
+		if filtered := filterResourceAttributes(v); filtered != "" {
+			_ = os.Setenv(resourceAttributesEnvVar, filtered)
+		} else {
+			_ = os.Unsetenv(resourceAttributesEnvVar)
+		}
+	}
+}
+
+// dockerCLIAttributePrefix is the prefix for any docker cli OTEL attributes.
+// When updating, make sure to also update the copy in cli-plugins/manager.
+//
+// TODO(thaJeztah): move telemetry-related code to an (internal) package to reduce dependency on cli/command in cli-plugins, which has too many imports.
+const dockerCLIAttributePrefix = "docker.cli."
+
+func filterResourceAttributes(s string) string {
+	if trimmed := strings.TrimSpace(s); trimmed == "" {
+		return trimmed
+	}
+
+	pairs := strings.Split(s, ",")
+	elems := make([]string, 0, len(pairs))
+	for _, p := range pairs {
+		k, _, found := strings.Cut(p, "=")
+		if !found {
+			// Do not interact with invalid otel resources.
+			elems = append(elems, p)
+			continue
+		}
+
+		// Skip attributes that have our docker.cli prefix.
+		if strings.HasPrefix(k, dockerCLIAttributePrefix) {
+			continue
+		}
+		elems = append(elems, p)
+	}
+	return strings.Join(elems, ",")
 }

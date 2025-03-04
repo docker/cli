@@ -26,7 +26,9 @@ const (
 
 	// ResourceAttributesEnvvar is the name of the envvar that includes additional
 	// resource attributes for OTEL.
-	ResourceAttributesEnvvar = command.ResourceAttributesEnvvar
+	//
+	// Deprecated: The "OTEL_RESOURCE_ATTRIBUTES" env-var is part of the OpenTelemetry specification; users should define their own const for this. This const will be removed in the next release.
+	ResourceAttributesEnvvar = "OTEL_RESOURCE_ATTRIBUTES"
 )
 
 // errPluginNotFound is the error returned when a plugin could not be found.
