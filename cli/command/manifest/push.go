@@ -68,7 +68,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOpts) error {
 		return err
 	}
 
-	manifests, err := dockerCli.ManifestStore().GetList(targetRef)
+	manifests, err := newManifestStore(dockerCli).GetList(targetRef)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOpts) error {
 		return err
 	}
 	if opts.purge {
-		return dockerCli.ManifestStore().Remove(targetRef)
+		return newManifestStore(dockerCli).Remove(targetRef)
 	}
 	return nil
 }
@@ -248,7 +248,7 @@ func buildPutManifestRequest(imageManifest types.ImageManifest, targetRef refere
 }
 
 func pushList(ctx context.Context, dockerCLI command.Cli, req pushRequest) error {
-	rclient := dockerCLI.RegistryClient(req.insecure)
+	rclient := newRegistryClient(dockerCLI, req.insecure)
 
 	if err := mountBlobs(ctx, rclient, req.targetRef, req.manifestBlobs); err != nil {
 		return err

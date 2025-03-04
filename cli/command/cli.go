@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"sync"
@@ -21,14 +20,11 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
-	manifeststore "github.com/docker/cli/cli/manifest/store"
-	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
@@ -54,8 +50,6 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	DefaultVersion() string
 	CurrentVersion() string
-	ManifestStore() manifeststore.Store
-	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
@@ -63,6 +57,7 @@ type Cli interface {
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
 	DeprecatedNotaryClient
+	DeprecatedManifestClient
 }
 
 // DockerCli is an instance the docker command line client.
@@ -225,21 +220,6 @@ func (cli *DockerCli) HooksEnabled() bool {
 	}
 	// default to false
 	return false
-}
-
-// ManifestStore returns a store for local manifests
-func (*DockerCli) ManifestStore() manifeststore.Store {
-	// TODO: support override default location from config file
-	return manifeststore.NewStore(filepath.Join(config.Dir(), "manifests"))
-}
-
-// RegistryClient returns a client for communicating with a Docker distribution
-// registry
-func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
-	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
-		return ResolveAuthConfig(cli.ConfigFile(), index)
-	}
-	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
 }
 
 // WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
