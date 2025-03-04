@@ -248,5 +248,5 @@ func PluginRunCommand(dockerCli config.Provider, name string, rootcmd *cobra.Com
 
 // IsPluginCommand checks if the given cmd is a plugin-stub.
 func IsPluginCommand(cmd *cobra.Command) bool {
-	return cmd.Annotations[CommandAnnotationPlugin] == "true"
+	return cmd.Annotations[metadata.CommandAnnotationPlugin] == "true"
 }
