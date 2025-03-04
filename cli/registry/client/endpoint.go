@@ -103,14 +103,11 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 	return transport.NewTransport(base, modifiers...), nil
 }
 
-// RepoNameForReference returns the repository name from a reference
+// RepoNameForReference returns the repository name from a reference.
+//
+// Deprecated: this function is no longer used and will be removed in the next release.
 func RepoNameForReference(ref reference.Named) (string, error) {
-	// insecure is fine since this only returns the name
-	repo, err := newDefaultRepositoryEndpoint(ref, false)
-	if err != nil {
-		return "", err
-	}
-	return repo.Name(), nil
+	return reference.Path(reference.TrimNamed(ref)), nil
 }
 
 type existingTokenHandler struct {
