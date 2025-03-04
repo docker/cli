@@ -61,7 +61,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 			return err
 		}
 
-		imageManifest, err := dockerCli.ManifestStore().Get(listRef, namedRef)
+		imageManifest, err := newManifestStore(dockerCli).Get(listRef, namedRef)
 		if err != nil {
 			return err
 		}
@@ -69,13 +69,13 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	// Try a local manifest list first
-	localManifestList, err := dockerCli.ManifestStore().GetList(namedRef)
+	localManifestList, err := newManifestStore(dockerCli).GetList(namedRef)
 	if err == nil {
 		return printManifestList(dockerCli, namedRef, localManifestList, opts)
 	}
 
 	// Next try a remote manifest
-	registryClient := dockerCli.RegistryClient(opts.insecure)
+	registryClient := newRegistryClient(dockerCli, opts.insecure)
 	imageManifest, err := registryClient.GetManifest(ctx, namedRef)
 	if err == nil {
 		return printManifest(dockerCli, imageManifest, opts)
