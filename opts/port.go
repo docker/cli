@@ -163,8 +163,8 @@ func ConvertPortToPortConfig(
 			ports = append(ports, swarm.PortConfig{
 				// TODO Name: ?
 				Protocol:      swarm.PortConfigProtocol(strings.ToLower(port.Proto())),
-				TargetPort:    uint32(port.Int()),
-				PublishedPort: uint32(i),
+				TargetPort:    uint32(port.Int()), // #nosec G115 -- ignore "integer overflow conversion int -> uint32" (All known port is in range of uint32, including dynamic port)
+				PublishedPort: uint32(i),          // #nosec G115 -- ignore "integer overflow conversion uint64 -> uint32" (All known port is in range of uint32, including dynamic port)
 				PublishMode:   swarm.PortConfigPublishModeIngress,
 			})
 		}
