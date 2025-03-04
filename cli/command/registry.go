@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 )
@@ -28,13 +27,19 @@ const (
 		"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
 )
 
+const (
+	// IndexHostname is the index hostname, used for authentication and image search.
+	indexHostname = "index.docker.io"
+	// IndexServer is used for user auth and image search
+	indexServer = "https://" + indexHostname + "/v1/"
+)
+
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
 	return func(ctx context.Context) (string, error) {
 		_, _ = fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
-		indexServer := registry.GetAuthConfigKey(index)
-		isDefaultRegistry := indexServer == registry.IndexServer
+		isDefaultRegistry := index.Official || index.Name == indexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
 			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
@@ -63,7 +68,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	configKey := index.Name
 	if index.Official {
-		configKey = registry.IndexServer
+		configKey = indexServer
 	}
 
 	a, _ := cfg.GetAuthConfig(configKey)
@@ -132,7 +137,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 
 	argUser = strings.TrimSpace(argUser)
 	if argUser == "" {
-		if serverAddress == registry.IndexServer {
+		if serverAddress == indexServer {
 			// When signing in to the default (Docker Hub) registry, we display
 			// hints for creating an account, and (if hints are enabled), using
 			// a token instead of a password.
@@ -219,15 +224,58 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 	return encodedAuth, nil
 }
 
+var IndexConfigs = map[string]*registrytypes.IndexInfo{
+	"docker.io": {
+		Name:     "docker.io",
+		Mirrors:  nil,
+		Secure:   true,
+		Official: true,
+	},
+}
+
+// newIndexInfo returns IndexInfo configuration from indexName
+func newIndexInfo(indexName string) (*registrytypes.IndexInfo, error) {
+	var err error
+	indexName, err = validateIndexName(indexName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return any configured index info, first.
+	if index, ok := IndexConfigs[indexName]; ok {
+		return index, nil
+	}
+
+	// Construct a non-configured index info.
+	return &registrytypes.IndexInfo{
+		Name: indexName,
+	}, nil
+}
+
+// validateIndexName validates an index name. It is used by the daemon to
+// validate the daemon configuration.
+func validateIndexName(val string) (string, error) {
+	// TODO: upstream this to check to reference package
+	if val == "index.docker.io" {
+		val = "docker.io"
+	}
+	if strings.HasPrefix(val, "-") || strings.HasSuffix(val, "-") {
+		// return "", errdefs.InvalidParameter(fmt.Errorf("invalid index name (%s). Cannot begin or end with a hyphen", val))
+		return "", fmt.Errorf("invalid index name (%s). Cannot begin or end with a hyphen", val)
+	}
+	return val, nil
+}
+
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
 func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
 	}
-	repoInfo, err := registry.ParseRepositoryInfo(registryRef)
+	domainName := reference.Domain(registryRef)
+	idxInfo, err := newIndexInfo(domainName)
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
 	}
-	return ResolveAuthConfig(cfg, repoInfo.Index), nil
+	return ResolveAuthConfig(cfg, idxInfo), nil
 }

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -22,21 +21,16 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
-	manifeststore "github.com/docker/cli/cli/manifest/store"
-	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	notaryclient "github.com/theupdateframework/notary/client"
 )
 
 const defaultInitTimeout = 2 * time.Second
@@ -56,11 +50,8 @@ type Cli interface {
 	Apply(ops ...CLIOption) error
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 	DefaultVersion() string
 	CurrentVersion() string
-	ManifestStore() manifeststore.Store
-	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
@@ -231,21 +222,6 @@ func (cli *DockerCli) HooksEnabled() bool {
 	return false
 }
 
-// ManifestStore returns a store for local manifests
-func (*DockerCli) ManifestStore() manifeststore.Store {
-	// TODO: support override default location from config file
-	return manifeststore.NewStore(filepath.Join(config.Dir(), "manifests"))
-}
-
-// RegistryClient returns a client for communicating with a Docker distribution
-// registry
-func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
-	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
-		return ResolveAuthConfig(cli.ConfigFile(), index)
-	}
-	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
-}
-
 // WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
 func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) CLIOption {
 	return func(dockerCli *DockerCli) error {
@@ -403,11 +379,6 @@ func (cli *DockerCli) initializeFromClient() {
 		SwarmStatus:     ping.SwarmStatus,
 	}
 	cli.client.NegotiateAPIVersionPing(ping)
-}
-
-// NotaryClient provides a Notary Repository to interact with signed metadata for an image
-func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
 // ContextStore returns the ContextStore

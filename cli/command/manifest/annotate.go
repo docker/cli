@@ -1,11 +1,16 @@
 package manifest
 
 import (
+	"context"
 	"fmt"
+	"path/filepath"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/manifest/store"
+	registryclient "github.com/docker/cli/cli/registry/client"
+	"github.com/docker/docker/api/types/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -19,6 +24,37 @@ type annotateOptions struct {
 	arch       string
 	osFeatures []string
 	osVersion  string
+}
+
+// manifestStoreProvider is used in tests to provide a dummy store.
+type manifestStoreProvider interface {
+	// ManifestStore returns a store for local manifests
+	ManifestStore() store.Store
+	RegistryClient(bool) registryclient.RegistryClient
+}
+
+// newManifestStore returns a store for local manifests
+func newManifestStore(dockerCLI command.Cli) store.Store {
+	if msp, ok := dockerCLI.(manifestStoreProvider); ok {
+		// manifestStoreProvider is used in tests to provide a dummy store.
+		return msp.ManifestStore()
+	}
+
+	// TODO: support override default location from config file
+	return store.NewStore(filepath.Join(config.Dir(), "manifests"))
+}
+
+// newRegistryClient returns a client for communicating with a Docker distribution
+// registry
+func newRegistryClient(dockerCLI command.Cli, allowInsecure bool) registryclient.RegistryClient {
+	if msp, ok := dockerCLI.(manifestStoreProvider); ok {
+		// manifestStoreProvider is used in tests to provide a dummy store.
+		return msp.RegistryClient(allowInsecure)
+	}
+	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
+		return command.ResolveAuthConfig(dockerCLI.ConfigFile(), index)
+	}
+	return registryclient.NewRegistryClient(resolver, command.UserAgent(), allowInsecure)
 }
 
 // NewAnnotateCommand creates a new `docker manifest annotate` command
@@ -47,7 +83,7 @@ func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
+func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
 		return errors.Wrapf(err, "annotate: error parsing name for manifest list %s", opts.target)
@@ -57,7 +93,7 @@ func runManifestAnnotate(dockerCli command.Cli, opts annotateOptions) error {
 		return errors.Wrapf(err, "annotate: error parsing name for manifest %s", opts.image)
 	}
 
-	manifestStore := dockerCli.ManifestStore()
+	manifestStore := newManifestStore(dockerCLI)
 	imageManifest, err := manifestStore.Get(targetRef, imgRef)
 	switch {
 	case store.IsNotFound(err):

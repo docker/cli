@@ -16,7 +16,7 @@ func newRmManifestListCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Delete one or more manifest lists from local storage",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(cmd.Context(), dockerCLI.ManifestStore(), args)
+			return runRemove(cmd.Context(), newManifestStore(dockerCLI), args)
 		},
 	}
 
