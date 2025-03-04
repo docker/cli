@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
@@ -30,10 +31,10 @@ func (c *fakeCandidate) Metadata() ([]byte, error) {
 
 func TestValidateCandidate(t *testing.T) {
 	const (
-		goodPluginName = NamePrefix + "goodplugin"
+		goodPluginName = metadata.NamePrefix + "goodplugin"
 
-		builtinName  = NamePrefix + "builtin"
-		builtinAlias = NamePrefix + "alias"
+		builtinName  = metadata.NamePrefix + "builtin"
+		builtinAlias = metadata.NamePrefix + "alias"
 
 		badPrefixPath    = "/usr/local/libexec/cli-plugins/wobble"
 		badNamePath      = "/usr/local/libexec/cli-plugins/docker-123456"
@@ -43,9 +44,9 @@ func TestValidateCandidate(t *testing.T) {
 
 	fakeroot := &cobra.Command{Use: "docker"}
 	fakeroot.AddCommand(&cobra.Command{
-		Use: strings.TrimPrefix(builtinName, NamePrefix),
+		Use: strings.TrimPrefix(builtinName, metadata.NamePrefix),
 		Aliases: []string{
-			strings.TrimPrefix(builtinAlias, NamePrefix),
+			strings.TrimPrefix(builtinAlias, metadata.NamePrefix),
 		},
 	})
 
@@ -59,7 +60,7 @@ func TestValidateCandidate(t *testing.T) {
 	}{
 		/* Each failing one of the tests */
 		{name: "empty path", c: &fakeCandidate{path: ""}, err: "plugin candidate path cannot be empty"},
-		{name: "bad prefix", c: &fakeCandidate{path: badPrefixPath}, err: fmt.Sprintf("does not have %q prefix", NamePrefix)},
+		{name: "bad prefix", c: &fakeCandidate{path: badPrefixPath}, err: fmt.Sprintf("does not have %q prefix", metadata.NamePrefix)},
 		{name: "bad path", c: &fakeCandidate{path: badNamePath}, invalid: "did not match"},
 		{name: "builtin command", c: &fakeCandidate{path: builtinName}, invalid: `plugin "builtin" duplicates builtin command`},
 		{name: "builtin alias", c: &fakeCandidate{path: builtinAlias}, invalid: `plugin "alias" duplicates an alias of builtin command "builtin"`},
@@ -84,7 +85,7 @@ func TestValidateCandidate(t *testing.T) {
 				assert.ErrorContains(t, p.Err, tc.invalid)
 			default:
 				assert.NilError(t, err)
-				assert.Equal(t, NamePrefix+p.Name, goodPluginName)
+				assert.Equal(t, metadata.NamePrefix+p.Name, goodPluginName)
 				assert.Equal(t, p.SchemaVersion, "0.1.0")
 				assert.Equal(t, p.Vendor, "e2e-testing")
 			}
