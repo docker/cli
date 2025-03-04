@@ -21,13 +21,11 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
-	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
@@ -54,7 +52,6 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	DefaultVersion() string
 	CurrentVersion() string
-	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
@@ -225,15 +222,6 @@ func (cli *DockerCli) HooksEnabled() bool {
 	}
 	// default to false
 	return false
-}
-
-// RegistryClient returns a client for communicating with a Docker distribution
-// registry
-func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
-	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
-		return ResolveAuthConfig(cli.ConfigFile(), index)
-	}
-	return registryclient.NewRegistryClient(resolver, UserAgent(), allowInsecure)
 }
 
 // WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
