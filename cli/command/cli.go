@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -22,7 +21,6 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/debug"
 	cliflags "github.com/docker/cli/cli/flags"
-	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
@@ -56,7 +54,6 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	DefaultVersion() string
 	CurrentVersion() string
-	ManifestStore() manifeststore.Store
 	RegistryClient(bool) registryclient.RegistryClient
 	ContentTrustEnabled() bool
 	BuildKitEnabled() (bool, error)
@@ -65,6 +62,7 @@ type Cli interface {
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
 	DeprecatedNotaryClient
+	DeprecatedManifestClient
 }
 
 // DockerCli is an instance the docker command line client.
@@ -227,12 +225,6 @@ func (cli *DockerCli) HooksEnabled() bool {
 	}
 	// default to false
 	return false
-}
-
-// ManifestStore returns a store for local manifests
-func (*DockerCli) ManifestStore() manifeststore.Store {
-	// TODO: support override default location from config file
-	return manifeststore.NewStore(filepath.Join(config.Dir(), "manifests"))
 }
 
 // RegistryClient returns a client for communicating with a Docker distribution
