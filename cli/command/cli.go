@@ -25,7 +25,6 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
@@ -36,7 +35,6 @@ import (
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	notaryclient "github.com/theupdateframework/notary/client"
 )
 
 const defaultInitTimeout = 2 * time.Second
@@ -56,7 +54,6 @@ type Cli interface {
 	Apply(ops ...CLIOption) error
 	ConfigFile() *configfile.ConfigFile
 	ServerInfo() ServerInfo
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 	DefaultVersion() string
 	CurrentVersion() string
 	ManifestStore() manifeststore.Store
@@ -67,6 +64,7 @@ type Cli interface {
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
+	DeprecatedNotaryClient
 }
 
 // DockerCli is an instance the docker command line client.
@@ -403,11 +401,6 @@ func (cli *DockerCli) initializeFromClient() {
 		SwarmStatus:     ping.SwarmStatus,
 	}
 	cli.client.NegotiateAPIVersionPing(ping)
-}
-
-// NotaryClient provides a Notary Repository to interact with signed metadata for an image
-func (cli *DockerCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
 
 // ContextStore returns the ContextStore
