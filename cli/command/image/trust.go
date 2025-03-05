@@ -41,13 +41,6 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), "pull")
 }
 
-// PushTrustedReference pushes a canonical reference to the trust server.
-//
-// Deprecated: use [trust.PushTrustedReference] instead. this function was only used internally and will be removed in the next release.
-func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
-	return pushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in)
-}
-
 // pushTrustedReference pushes a canonical reference to the trust server.
 func pushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
 	return trust.PushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in, command.UserAgent())
