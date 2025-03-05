@@ -446,7 +446,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
 			if err == nil {
-				if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && ccmd != nil {
+				if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
 					pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args)
 				}
 				return nil
@@ -471,7 +471,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
-	if dockerCli.HooksEnabled() && dockerCli.Out().IsTerminal() && subCommand != nil {
+	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
 		var errMessage string
 		if err != nil {
 			errMessage = err.Error()
