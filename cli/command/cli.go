@@ -46,7 +46,7 @@ type Cli interface {
 	Streams
 	SetIn(in *streams.In)
 	Apply(ops ...CLIOption) error
-	ConfigFile() *configfile.ConfigFile
+	config.Provider
 	ServerInfo() ServerInfo
 	DefaultVersion() string
 	CurrentVersion() string
