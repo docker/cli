@@ -208,15 +208,6 @@ func convertTarget(t client.Target) (target, error) {
 	}, nil
 }
 
-// TagTrusted tags a trusted ref. It is a shallow wrapper around APIClient.ImageTag
-// that updates the given image references to their familiar format for tagging
-// and printing.
-//
-// Deprecated: this function was only used internally, and will be removed in the next release.
-func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
-	return trust.TagTrusted(ctx, cli.Client(), cli.Err(), trustedRef, ref)
-}
-
 // AuthResolver returns an auth resolver function from a command.Cli
 func AuthResolver(cli command.Cli) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
