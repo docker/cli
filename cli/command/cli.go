@@ -194,16 +194,16 @@ func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 
 // HooksEnabled returns whether plugin hooks are enabled.
 func (cli *DockerCli) HooksEnabled() bool {
-	// legacy support DOCKER_CLI_HINTS env var
-	if v := os.Getenv("DOCKER_CLI_HINTS"); v != "" {
+	// use DOCKER_CLI_HOOKS env var value if set and not empty
+	if v := os.Getenv("DOCKER_CLI_HOOKS"); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
 			return false
 		}
 		return enabled
 	}
-	// use DOCKER_CLI_HOOKS env var value if set and not empty
-	if v := os.Getenv("DOCKER_CLI_HOOKS"); v != "" {
+	// legacy support DOCKER_CLI_HINTS env var
+	if v := os.Getenv("DOCKER_CLI_HINTS"); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
 			return false
