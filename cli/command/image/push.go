@@ -139,8 +139,8 @@ To push the complete multi-platform image, remove the --platform flag.
 
 	defer responseBody.Close()
 	if !opts.untrusted {
-		// TODO PushTrustedReference currently doesn't respect `--quiet`
-		return PushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
+		// TODO pushTrustedReference currently doesn't respect `--quiet`
+		return pushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
 	}
 
 	if opts.quiet {

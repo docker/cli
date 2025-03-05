@@ -107,7 +107,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 				return err
 			}
 			defer responseBody.Close()
-			return image.PushTrustedReference(ctx, dockerCLI, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), authConfig, responseBody)
+			return trust.PushTrustedReference(ctx, dockerCLI, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), authConfig, responseBody, command.UserAgent())
 		default:
 			return err
 		}
