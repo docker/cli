@@ -3,12 +3,6 @@
 <!---MARKER_GEN_START-->
 Push a plugin to a registry
 
-### Options
-
-| Name                      | Type   | Default | Description        |
-|:--------------------------|:-------|:--------|:-------------------|
-| `--disable-content-trust` | `bool` | `true`  | Skip image signing |
-
 
 <!---MARKER_GEN_END-->
 

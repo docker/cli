@@ -298,15 +298,12 @@ func TestExperimentalCLI(t *testing.T) {
 
 func TestNewDockerCliAndOperators(t *testing.T) {
 	// Test default operations and also overriding default ones
-	cli, err := NewDockerCli(
-		WithContentTrust(true),
-	)
+	cli, err := NewDockerCli()
 	assert.NilError(t, err)
 	// Check streams are initialized
 	assert.Check(t, cli.In() != nil)
 	assert.Check(t, cli.Out() != nil)
 	assert.Check(t, cli.Err() != nil)
-	assert.Equal(t, cli.ContentTrustEnabled(), true)
 
 	// Apply can modify a dockerCli after construction
 	inbuf := bytes.NewBuffer([]byte("input"))
