@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	imagetypes "github.com/docker/docker/api/types/image"
@@ -242,7 +243,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			return err
 		}
 		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-			return image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef)
+			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
 		}
 		return nil
 	}

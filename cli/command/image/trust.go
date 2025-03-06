@@ -3,17 +3,14 @@ package image
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
@@ -44,7 +41,9 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), "pull")
 }
 
-// TrustedPush handles content trust pushing of an image
+// TrustedPush handles content trust pushing of an image.
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, options image.PushOptions) error {
 	responseBody, err := cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
 	if err != nil {
@@ -53,120 +52,19 @@ func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.Reposi
 
 	defer responseBody.Close()
 
-	return PushTrustedReference(ctx, cli, repoInfo, ref, authConfig, responseBody)
+	return trust.PushTrustedReference(ctx, cli, repoInfo, ref, authConfig, responseBody, command.UserAgent())
 }
 
 // PushTrustedReference pushes a canonical reference to the trust server.
 //
-//nolint:gocyclo
+// Deprecated: use [trust.PushTrustedReference] instead. this function was only used internally and will be removed in the next release.
 func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
-	// If it is a trusted push we would like to find the target entry which match the
-	// tag provided in the function and then do an AddTarget later.
-	notaryTarget := &client.Target{}
-	// Count the times of calling for handleTarget,
-	// if it is called more that once, that should be considered an error in a trusted push.
-	cnt := 0
-	handleTarget := func(msg jsonstream.JSONMessage) {
-		cnt++
-		if cnt > 1 {
-			// handleTarget should only be called once. This will be treated as an error.
-			return
-		}
+	return pushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in)
+}
 
-		var pushResult types.PushResult
-		err := json.Unmarshal(*msg.Aux, &pushResult)
-		if err == nil && pushResult.Tag != "" {
-			if dgst, err := digest.Parse(pushResult.Digest); err == nil {
-				h, err := hex.DecodeString(dgst.Hex())
-				if err != nil {
-					notaryTarget = nil
-					return
-				}
-				notaryTarget.Name = pushResult.Tag
-				notaryTarget.Hashes = data.Hashes{string(dgst.Algorithm()): h}
-				notaryTarget.Length = int64(pushResult.Size)
-			}
-		}
-	}
-
-	var tag string
-	switch x := ref.(type) {
-	case reference.Canonical:
-		return errors.New("cannot push a digest reference")
-	case reference.NamedTagged:
-		tag = x.Tag()
-	default:
-		// We want trust signatures to always take an explicit tag,
-		// otherwise it will act as an untrusted push.
-		if err := jsonstream.Display(ctx, in, ioStreams.Out()); err != nil {
-			return err
-		}
-		_, _ = fmt.Fprintln(ioStreams.Err(), "No tag specified, skipping trust metadata push")
-		return nil
-	}
-
-	if err := jsonstream.Display(ctx, in, ioStreams.Out(), jsonstream.WithAuxCallback(handleTarget)); err != nil {
-		return err
-	}
-
-	if cnt > 1 {
-		return errors.Errorf("internal error: only one call to handleTarget expected")
-	}
-
-	if notaryTarget == nil {
-		return errors.Errorf("no targets found, provide a specific tag in order to sign it")
-	}
-
-	_, _ = fmt.Fprintln(ioStreams.Out(), "Signing and pushing trust metadata")
-
-	repo, err := trust.GetNotaryRepository(ioStreams.In(), ioStreams.Out(), command.UserAgent(), repoInfo, &authConfig, "push", "pull")
-	if err != nil {
-		return errors.Wrap(err, "error establishing connection to trust repository")
-	}
-
-	// get the latest repository metadata so we can figure out which roles to sign
-	_, err = repo.ListTargets()
-
-	switch err.(type) {
-	case client.ErrRepoNotInitialized, client.ErrRepositoryNotExist:
-		keys := repo.GetCryptoService().ListKeys(data.CanonicalRootRole)
-		var rootKeyID string
-		// always select the first root key
-		if len(keys) > 0 {
-			sort.Strings(keys)
-			rootKeyID = keys[0]
-		} else {
-			rootPublicKey, err := repo.GetCryptoService().Create(data.CanonicalRootRole, "", data.ECDSAKey)
-			if err != nil {
-				return err
-			}
-			rootKeyID = rootPublicKey.ID()
-		}
-
-		// Initialize the notary repository with a remotely managed snapshot key
-		if err := repo.Initialize([]string{rootKeyID}, data.CanonicalSnapshotRole); err != nil {
-			return trust.NotaryError(repoInfo.Name.Name(), err)
-		}
-		_, _ = fmt.Fprintf(ioStreams.Out(), "Finished initializing %q\n", repoInfo.Name.Name())
-		err = repo.AddTarget(notaryTarget, data.CanonicalTargetsRole)
-	case nil:
-		// already initialized and we have successfully downloaded the latest metadata
-		err = trust.AddToAllSignableRoles(repo, notaryTarget)
-	default:
-		return trust.NotaryError(repoInfo.Name.Name(), err)
-	}
-
-	if err == nil {
-		err = repo.Publish()
-	}
-
-	if err != nil {
-		err = errors.Wrapf(err, "failed to sign %s:%s", repoInfo.Name.Name(), tag)
-		return trust.NotaryError(repoInfo.Name.Name(), err)
-	}
-
-	_, _ = fmt.Fprintf(ioStreams.Out(), "Successfully signed %s:%s\n", repoInfo.Name.Name(), tag)
-	return nil
+// pushTrustedReference pushes a canonical reference to the trust server.
+func pushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+	return trust.PushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in, command.UserAgent())
 }
 
 // trustedPull handles content trust pulling of an image
@@ -206,7 +104,11 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 			return err
 		}
 
-		if err := TagTrusted(ctx, cli, trustedRef, tagged); err != nil {
+		// Use familiar references when interacting with client and output
+		familiarRef := reference.FamiliarString(tagged)
+		trustedFamiliarRef := reference.FamiliarString(trustedRef)
+		_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
+		if err := cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef); err != nil {
 			return err
 		}
 	}
@@ -327,15 +229,13 @@ func convertTarget(t client.Target) (target, error) {
 	}, nil
 }
 
-// TagTrusted tags a trusted ref
+// TagTrusted tags a trusted ref. It is a shallow wrapper around APIClient.ImageTag
+// that updates the given image references to their familiar format for tagging
+// and printing.
+//
+// Deprecated: this function was only used internally, and will be removed in the next release.
 func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
-	// Use familiar references when interacting with client and output
-	familiarRef := reference.FamiliarString(ref)
-	trustedFamiliarRef := reference.FamiliarString(trustedRef)
-
-	_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
-
-	return cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef)
+	return trust.TagTrusted(ctx, cli.Client(), cli.Err(), trustedRef, ref)
 }
 
 // AuthResolver returns an auth resolver function from a command.Cli

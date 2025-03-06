@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
@@ -98,10 +99,15 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			if err != nil {
 				return err
 			}
-			return image.TrustedPush(ctx, dockerCLI, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), *imgRefAndAuth.AuthConfig(), imagetypes.PushOptions{
+			responseBody, err := dockerCLI.Client().ImagePush(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), imagetypes.PushOptions{
 				RegistryAuth:  encodedAuth,
 				PrivilegeFunc: requestPrivilege,
 			})
+			if err != nil {
+				return err
+			}
+			defer responseBody.Close()
+			return trust.PushTrustedReference(ctx, dockerCLI, imgRefAndAuth.RepoInfo(), imgRefAndAuth.Reference(), authConfig, responseBody, command.UserAgent())
 		default:
 			return err
 		}
