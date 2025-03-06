@@ -211,9 +211,6 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	}
 
 	if flags.Changed("image") {
-		if err := resolveServiceImageDigestContentTrust(dockerCLI, spec); err != nil {
-			return err
-		}
 		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
 			updateOpts.QueryRegistry = true
 		}
