@@ -9,12 +9,11 @@ Download an image from a registry
 
 ### Options
 
-| Name                      | Type     | Default | Description                                      |
-|:--------------------------|:---------|:--------|:-------------------------------------------------|
-| `-a`, `--all-tags`        | `bool`   |         | Download all tagged images in the repository     |
-| `--disable-content-trust` | `bool`   | `true`  | Skip image verification                          |
-| `--platform`              | `string` |         | Set platform if server is multi-platform capable |
-| `-q`, `--quiet`           | `bool`   |         | Suppress verbose output                          |
+| Name               | Type     | Default | Description                                      |
+|:-------------------|:---------|:--------|:-------------------------------------------------|
+| `-a`, `--all-tags` | `bool`   |         | Download all tagged images in the repository     |
+| `--platform`       | `string` |         | Set platform if server is multi-platform capable |
+| `-q`, `--quiet`    | `bool`   |         | Suppress verbose output                          |
 
 
 <!---MARKER_GEN_END-->
