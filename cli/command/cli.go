@@ -50,13 +50,11 @@ type Cli interface {
 	ServerInfo() ServerInfo
 	DefaultVersion() string
 	CurrentVersion() string
-	ContentTrustEnabled() bool
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
-	DeprecatedNotaryClient
 	DeprecatedManifestClient
 }
 
@@ -70,7 +68,6 @@ type DockerCli struct {
 	err                *streams.Out
 	client             client.APIClient
 	serverInfo         ServerInfo
-	contentTrust       bool
 	contextStore       store.Store
 	currentContext     string
 	init               sync.Once
@@ -155,12 +152,6 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 func (cli *DockerCli) ServerInfo() ServerInfo {
 	_ = cli.initialize()
 	return cli.serverInfo
-}
-
-// ContentTrustEnabled returns whether content trust has been enabled by an
-// environment variable.
-func (cli *DockerCli) ContentTrustEnabled() bool {
-	return cli.contentTrust
 }
 
 // BuildKitEnabled returns buildkit is enabled or not.
@@ -516,7 +507,6 @@ type ServerInfo struct {
 // environment.
 func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 	defaultOps := []CLIOption{
-		WithContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
 		WithStandardStreams(),
 	}

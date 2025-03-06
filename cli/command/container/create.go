@@ -12,10 +12,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	imagetypes "github.com/docker/docker/api/types/image"
@@ -35,11 +33,10 @@ const (
 )
 
 type createOptions struct {
-	name      string
-	platform  string
-	untrusted bool
-	pull      string // always, missing, never
-	quiet     bool
+	name     string
+	platform string
+	pull     string // always, missing, never
+	quiet    bool
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
@@ -76,7 +73,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Bool("help", false, "Print usage")
 
 	command.AddPlatformFlag(flags, &options.platform)
-	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
+	// TODO add a (hidden) --disable-content-trust flag that throws a deprecation/removal warning and does nothing
 	copts = addFlags(flags)
 
 	addCompletions(cmd, dockerCli)
@@ -207,11 +204,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
 
-	var (
-		trustedRef reference.Canonical
-		namedRef   reference.Named
-	)
-
 	containerIDFile, err := newCIDFile(hostConfig.ContainerIDFile)
 	if err != nil {
 		return "", err
@@ -222,27 +214,9 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if err != nil {
 		return "", err
 	}
+	var namedRef reference.Named
 	if named, ok := ref.(reference.Named); ok {
 		namedRef = reference.TagNameOnly(named)
-
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && !options.untrusted {
-			var err error
-			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef)
-			if err != nil {
-				return "", err
-			}
-			config.Image = reference.FamiliarString(trustedRef)
-		}
-	}
-
-	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
-			return err
-		}
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
-		}
-		return nil
 	}
 
 	var platform *specs.Platform
@@ -259,7 +233,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	if options.pull == PullImageAlways {
-		if err := pullAndTagImage(); err != nil {
+		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
 			return "", err
 		}
 	}
@@ -275,7 +249,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
-			if err := pullAndTagImage(); err != nil {
+			if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
 				return "", err
 			}
 
