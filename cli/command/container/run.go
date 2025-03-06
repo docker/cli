@@ -67,7 +67,7 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Bool("help", false, "Print usage")
 
 	command.AddPlatformFlag(flags, &options.platform)
-	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
+	// TODO add a (hidden) --disable-content-trust flag that throws a deprecation/removal warning and does nothing
 	copts = addFlags(flags)
 
 	_ = cmd.RegisterFlagCompletionFunc("detach-keys", completeDetachKeys)
