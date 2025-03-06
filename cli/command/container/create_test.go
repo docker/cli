@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/notary"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/image"
@@ -142,10 +141,9 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 			}
 			fakeCLI := test.NewFakeCli(client)
 			id, err := createContainer(context.Background(), fakeCLI, config, &createOptions{
-				name:      "name",
-				platform:  runtime.GOOS,
-				untrusted: true,
-				pull:      tc.PullPolicy,
+				name:     "name",
+				platform: runtime.GOOS,
+				pull:     tc.PullPolicy,
 			})
 
 			if tc.ExpectedErrMsg != "" {
@@ -217,55 +215,6 @@ func TestCreateContainerValidateFlags(t *testing.T) {
 			} else {
 				assert.Check(t, is.Nil(err))
 			}
-		})
-	}
-}
-
-func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
-	testCases := []struct {
-		name          string
-		args          []string
-		expectedError string
-		notaryFunc    test.NotaryClientFuncType
-	}{
-		{
-			name:          "offline-notary-server",
-			notaryFunc:    notary.GetOfflineNotaryRepository,
-			expectedError: "client is offline",
-			args:          []string{"image:tag"},
-		},
-		{
-			name:          "uninitialized-notary-server",
-			notaryFunc:    notary.GetUninitializedNotaryRepository,
-			expectedError: "remote trust data does not exist",
-			args:          []string{"image:tag"},
-		},
-		{
-			name:          "empty-notary-server",
-			notaryFunc:    notary.GetEmptyTargetsNotaryRepository,
-			expectedError: "No valid trust data for tag",
-			args:          []string{"image:tag"},
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			fakeCLI := test.NewFakeCli(&fakeClient{
-				createContainerFunc: func(config *container.Config,
-					hostConfig *container.HostConfig,
-					networkingConfig *network.NetworkingConfig,
-					platform *ocispec.Platform,
-					containerName string,
-				) (container.CreateResponse, error) {
-					return container.CreateResponse{}, errors.New("shouldn't try to pull image")
-				},
-			}, test.EnableContentTrust)
-			fakeCLI.SetNotaryClient(tc.notaryFunc)
-			cmd := NewCreateCommand(fakeCLI)
-			cmd.SetOut(io.Discard)
-			cmd.SetErr(io.Discard)
-			cmd.SetArgs(tc.args)
-			err := cmd.Execute()
-			assert.ErrorContains(t, err, tc.expectedError)
 		})
 	}
 }

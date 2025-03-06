@@ -28,11 +28,10 @@ import (
 )
 
 type pushOptions struct {
-	all       bool
-	remote    string
-	untrusted bool
-	quiet     bool
-	platform  string
+	all      bool
+	remote   string
+	quiet    bool
+	platform string
 }
 
 // NewPushCommand creates a new `docker push` command
@@ -57,7 +56,8 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
-	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+
+	// TODO add a (hidden) --disable-content-trust flag that throws a deprecation/removal warning and does nothing
 
 	// Don't default to DOCKER_DEFAULT_PLATFORM env variable, always default to
 	// pushing the image as-is. This also avoids forcing the platform selection
@@ -132,10 +132,6 @@ To push the complete multi-platform image, remove the --platform flag.
 	}()
 
 	defer responseBody.Close()
-	if !opts.untrusted {
-		// TODO pushTrustedReference currently doesn't respect `--quiet`
-		return pushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
-	}
 
 	if opts.quiet {
 		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux()))

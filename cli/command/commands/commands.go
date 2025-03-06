@@ -20,7 +20,6 @@ import (
 	"github.com/docker/cli/cli/command/stack"
 	"github.com/docker/cli/cli/command/swarm"
 	"github.com/docker/cli/cli/command/system"
-	"github.com/docker/cli/cli/command/trust"
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/spf13/cobra"
 )
@@ -53,7 +52,6 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		network.NewNetworkCommand(dockerCli),
 		plugin.NewPluginCommand(dockerCli),
 		system.NewSystemCommand(dockerCli),
-		trust.NewTrustCommand(dockerCli),
 		volume.NewVolumeCommand(dockerCli),
 
 		// orchestration (swarm) commands

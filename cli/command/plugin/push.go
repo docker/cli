@@ -6,7 +6,6 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/docker/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
@@ -15,8 +14,7 @@ import (
 )
 
 type pushOptions struct {
-	name      string
-	untrusted bool
+	name string
 }
 
 func newPushCommand(dockerCli command.Cli) *cobra.Command {
@@ -33,7 +31,7 @@ func newPushCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	_ = flags // TODO add a (hidden) --disable-content-trust flag that throws a deprecation/removal warning and does nothing
 
 	return cmd
 }
@@ -61,10 +59,6 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 		return err
 	}
 	defer responseBody.Close()
-
-	if !opts.untrusted {
-		return trust.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody, command.UserAgent())
-	}
 
 	return jsonstream.Display(ctx, responseBody, dockerCli.Out())
 }
