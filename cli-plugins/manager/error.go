@@ -4,7 +4,7 @@
 package manager
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // pluginError is set as Plugin.Err by NewPlugin if the plugin
@@ -39,16 +39,16 @@ func (e *pluginError) MarshalText() (text []byte, err error) {
 }
 
 // wrapAsPluginError wraps an error in a pluginError with an
-// additional message, analogous to errors.Wrapf.
+// additional message.
 func wrapAsPluginError(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
-	return &pluginError{cause: errors.Wrap(err, msg)}
+	return &pluginError{cause: fmt.Errorf("%s: %w", msg, err)}
 }
 
 // NewPluginError creates a new pluginError, analogous to
 // errors.Errorf.
 func NewPluginError(msg string, args ...any) error {
-	return &pluginError{cause: errors.Errorf(msg, args...)}
+	return &pluginError{cause: fmt.Errorf(msg, args...)}
 }
