@@ -28,7 +28,7 @@ func notaryRoleToSigner(tufRole data.RoleName) string {
 	return strings.TrimPrefix(tufRole.String(), "targets/")
 }
 
-// clearChangelist clears the notary staging changelist.
+// clearChangeList clears the notary staging changelist.
 func clearChangeList(notaryRepo client.Repository) error {
 	cl, err := notaryRepo.GetChangelist()
 	if err != nil {
