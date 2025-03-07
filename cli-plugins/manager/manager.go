@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/fvbommel/sortorder"
@@ -21,7 +22,7 @@ const (
 	// used to originally invoke the docker CLI when executing a
 	// plugin. Assuming $PATH and $CWD remain unchanged this should allow
 	// the plugin to re-execute the original CLI.
-	ReexecEnvvar = "DOCKER_CLI_PLUGIN_ORIGINAL_CLI_COMMAND"
+	ReexecEnvvar = metadata.ReexecEnvvar
 
 	// ResourceAttributesEnvvar is the name of the envvar that includes additional
 	// resource attributes for OTEL.
@@ -92,10 +93,10 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) {
 			continue
 		}
 		name := dentry.Name()
-		if !strings.HasPrefix(name, NamePrefix) {
+		if !strings.HasPrefix(name, metadata.NamePrefix) {
 			continue
 		}
-		name = strings.TrimPrefix(name, NamePrefix)
+		name = strings.TrimPrefix(name, metadata.NamePrefix)
 		var err error
 		if name, err = trimExeSuffix(name); err != nil {
 			continue
@@ -200,7 +201,7 @@ func PluginRunCommand(dockerCli config.Provider, name string, rootcmd *cobra.Com
 		// fallback to their "invalid" command path.
 		return nil, errPluginNotFound(name)
 	}
-	exename := addExeSuffix(NamePrefix + name)
+	exename := addExeSuffix(metadata.NamePrefix + name)
 	pluginDirs, err := getPluginDirs(dockerCli.ConfigFile())
 	if err != nil {
 		return nil, err
@@ -237,7 +238,7 @@ func PluginRunCommand(dockerCli config.Provider, name string, rootcmd *cobra.Com
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
-		cmd.Env = append(cmd.Environ(), ReexecEnvvar+"="+os.Args[0])
+		cmd.Env = append(cmd.Environ(), metadata.ReexecEnvvar+"="+os.Args[0])
 		cmd.Env = appendPluginResourceAttributesEnvvar(cmd.Env, rootcmd, plugin)
 
 		return cmd, nil
@@ -247,5 +248,5 @@ func PluginRunCommand(dockerCli config.Provider, name string, rootcmd *cobra.Com
 
 // IsPluginCommand checks if the given cmd is a plugin-stub.
 func IsPluginCommand(cmd *cobra.Command) bool {
-	return cmd.Annotations[CommandAnnotationPlugin] == "true"
+	return cmd.Annotations[metadata.CommandAnnotationPlugin] == "true"
 }

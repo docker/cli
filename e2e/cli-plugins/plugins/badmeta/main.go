@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/metadata"
 )
 
 func main() {
-	if len(os.Args) == 2 && os.Args[1] == manager.MetadataSubcommandName {
+	if len(os.Args) == 2 && os.Args[1] == metadata.MetadataSubcommandName {
 		fmt.Println(`{invalid-json}`)
 		os.Exit(0)
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -26,7 +27,7 @@ const (
 )
 
 func getPluginResourceAttributes(cmd *cobra.Command, plugin Plugin) attribute.Set {
-	commandPath := cmd.Annotations[CommandAnnotationPluginCommandPath]
+	commandPath := cmd.Annotations[metadata.CommandAnnotationPluginCommandPath]
 	if commandPath == "" {
 		commandPath = fmt.Sprintf("%s %s", cmd.CommandPath(), plugin.Name)
 	}

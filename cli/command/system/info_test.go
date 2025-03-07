@@ -7,6 +7,7 @@ import (
 	"time"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
@@ -201,7 +202,7 @@ var samplePluginsInfo = []pluginmanager.Plugin{
 	{
 		Name: "goodplugin",
 		Path: "/path/to/docker-goodplugin",
-		Metadata: pluginmanager.Metadata{
+		Metadata: metadata.Metadata{
 			SchemaVersion:    "0.1.0",
 			ShortDescription: "unit test is good",
 			Vendor:           "ACME Corp",
@@ -211,7 +212,7 @@ var samplePluginsInfo = []pluginmanager.Plugin{
 	{
 		Name: "unversionedplugin",
 		Path: "/path/to/docker-unversionedplugin",
-		Metadata: pluginmanager.Metadata{
+		Metadata: metadata.Metadata{
 			SchemaVersion:    "0.1.0",
 			ShortDescription: "this plugin has no version",
 			Vendor:           "ACME Corp",
