@@ -104,11 +104,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 			return err
 		}
 
-		// Use familiar references when interacting with client and output
-		familiarRef := reference.FamiliarString(tagged)
-		trustedFamiliarRef := reference.FamiliarString(trustedRef)
-		_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
-		if err := cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef); err != nil {
+		if err := tagTrusted(ctx, cli, trustedRef, tagged); err != nil {
 			return err
 		}
 	}
@@ -230,12 +226,18 @@ func convertTarget(t client.Target) (target, error) {
 }
 
 // TagTrusted tags a trusted ref. It is a shallow wrapper around APIClient.ImageTag
-// that updates the given image references to their familiar format for tagging
-// and printing.
+// that updates the given image references to their familiar format for printing.
 //
 // Deprecated: this function was only used internally, and will be removed in the next release.
 func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
-	return trust.TagTrusted(ctx, cli.Client(), cli.Err(), trustedRef, ref)
+	return tagTrusted(ctx, cli, trustedRef, ref)
+}
+
+// tagTrusted tags a trusted ref. It is a shallow wrapper around APIClient.ImageTag
+// that updates the given image references to their familiar format for printing.
+func tagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
+	_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", reference.FamiliarString(trustedRef), reference.FamiliarString(ref))
+	return cli.Client().ImageTag(ctx, trustedRef.String(), ref.String())
 }
 
 // AuthResolver returns an auth resolver function from a command.Cli
