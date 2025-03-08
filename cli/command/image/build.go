@@ -242,7 +242,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	if err != nil {
 		if options.quiet && urlutil.IsURL(specifiedContext) {
-			fmt.Fprintln(dockerCli.Err(), progBuff)
+			_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
 		}
 		return errors.Errorf("unable to prepare context: %s", err)
 	}
@@ -346,7 +346,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOpts)
 	if err != nil {
 		if options.quiet {
-			fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
 		}
 		cancel()
 		return err
@@ -357,7 +357,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	aux := func(msg jsonstream.JSONMessage) {
 		var result types.BuildResult
 		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
-			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
 		} else {
 			imageID = result.ID
 		}
@@ -371,7 +371,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 				jerr.Code = 1
 			}
 			if options.quiet {
-				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
+				_, _ = fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
 			}
 			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
 		}
@@ -381,7 +381,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	// Windows: show error message about modified file permissions if the
 	// daemon isn't running Windows.
 	if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
-		fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
+		_, _ = fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
 			"image from Windows against a non-Windows Docker host. All files and "+
 			"directories added to build context will have '-rwxr-xr-x' permissions. "+
 			"It is recommended to double check and reset permissions for sensitive "+
@@ -502,12 +502,12 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 			hdr, err := tarReader.Next()
 			if err == io.EOF {
 				// Signals end of archive.
-				tarWriter.Close()
-				pipeWriter.Close()
+				_ = tarWriter.Close()
+				_ = pipeWriter.Close()
 				return
 			}
 			if err != nil {
-				pipeWriter.CloseWithError(err)
+				_ = pipeWriter.CloseWithError(err)
 				return
 			}
 
@@ -519,7 +519,7 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 				var newDockerfile []byte
 				newDockerfile, *resolvedTags, err = rewriteDockerfileFromForContentTrust(ctx, content, translator)
 				if err != nil {
-					pipeWriter.CloseWithError(err)
+					_ = pipeWriter.CloseWithError(err)
 					return
 				}
 				hdr.Size = int64(len(newDockerfile))
@@ -527,12 +527,12 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 			}
 
 			if err := tarWriter.WriteHeader(hdr); err != nil {
-				pipeWriter.CloseWithError(err)
+				_ = pipeWriter.CloseWithError(err)
 				return
 			}
 
 			if _, err := io.Copy(tarWriter, content); err != nil {
-				pipeWriter.CloseWithError(err)
+				_ = pipeWriter.CloseWithError(err)
 				return
 			}
 		}
