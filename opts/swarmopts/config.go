@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	swarmtypes "github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/swarm"
 )
 
 // ConfigOpt is a Value type for parsing configs
 type ConfigOpt struct {
-	values []*swarmtypes.ConfigReference
+	values []*swarm.ConfigReference
 }
 
 // Set a new config value
@@ -24,8 +24,8 @@ func (o *ConfigOpt) Set(value string) error {
 		return err
 	}
 
-	options := &swarmtypes.ConfigReference{
-		File: &swarmtypes.ConfigReferenceFileTarget{
+	options := &swarm.ConfigReference{
+		File: &swarm.ConfigReferenceFileTarget{
 			UID:  "0",
 			GID:  "0",
 			Mode: 0o444,
@@ -95,6 +95,6 @@ func (o *ConfigOpt) String() string {
 }
 
 // Value returns the config requests
-func (o *ConfigOpt) Value() []*swarmtypes.ConfigReference {
+func (o *ConfigOpt) Value() []*swarm.ConfigReference {
 	return o.values
 }

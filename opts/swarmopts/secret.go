@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	swarmtypes "github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/swarm"
 )
 
 // SecretOpt is a Value type for parsing secrets
 type SecretOpt struct {
-	values []*swarmtypes.SecretReference
+	values []*swarm.SecretReference
 }
 
 // Set a new secret value
@@ -24,8 +24,8 @@ func (o *SecretOpt) Set(value string) error {
 		return err
 	}
 
-	options := &swarmtypes.SecretReference{
-		File: &swarmtypes.SecretReferenceFileTarget{
+	options := &swarm.SecretReference{
+		File: &swarm.SecretReferenceFileTarget{
 			UID:  "0",
 			GID:  "0",
 			Mode: 0o444,
@@ -94,6 +94,6 @@ func (o *SecretOpt) String() string {
 }
 
 // Value returns the secret requests
-func (o *SecretOpt) Value() []*swarmtypes.SecretReference {
+func (o *SecretOpt) Value() []*swarm.SecretReference {
 	return o.values
 }
