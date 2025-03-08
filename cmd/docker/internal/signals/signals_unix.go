@@ -1,5 +1,4 @@
-//go:build unix
-// +build unix
+//go:build !windows
 
 package signals
 
