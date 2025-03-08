@@ -96,11 +96,11 @@ if test -n "${PLATFORM}"; then
     GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
 fi
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
-    GO_LDFLAGS="$GO_LDFLAGS -extldflags -static"
+    GO_LDFLAGS="$GO_LDFLAGS -linkmode external -extldflags -static"
 fi
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ]; then
-    # compiling statically with CGO enabled requires osusergo to be set.
-    GO_BUILDTAGS="$GO_BUILDTAGS osusergo"
+    # compiling statically with CGO enabled requires osusergo and netgo to be set.
+    GO_BUILDTAGS="$GO_BUILDTAGS osusergo netgo"
 fi
 if [ -n "$GO_STRIP" ]; then
     # if stripping enabled and building with llvm < 12 against darwin/amd64
