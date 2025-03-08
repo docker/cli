@@ -1,1 +1,0 @@
-WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.
