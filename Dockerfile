@@ -67,7 +67,7 @@ ARG PACKAGER_NAME
 COPY --link --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
 RUN --mount=type=bind,target=.,ro \
     --mount=type=cache,target=/root/.cache \
-    --mount=type=tmpfs,target=cli/winresources \
+    --mount=type=tmpfs,target=cmd/docker/winresources \
     # override the default behavior of go with xx-go
     xx-go --wrap && \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \

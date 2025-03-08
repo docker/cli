@@ -21,7 +21,7 @@ VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | sed -re 
 # Microsoft Windows Version Information and an icon using goversioninfo.
 # https://docs.microsoft.com/en-us/windows/win32/menurc/stringfileinfo-block
 # https://github.com/josephspurrier/goversioninfo/blob/master/testdata/resource/versioninfo.json
-cat > ./cli/winresources/versioninfo.json <<EOL
+cat > ./cmd/docker/winresources/versioninfo.json <<EOL
 {
   "FixedFileInfo":
   {
@@ -61,9 +61,9 @@ cat > ./cli/winresources/versioninfo.json <<EOL
   }
 }
 EOL
-(set -x ; cat ./cli/winresources/versioninfo.json)
+(set -x ; cat ./cmd/docker/winresources/versioninfo.json)
 
 # Create winresources package stub if removed while using tmpfs in Dockerfile
-if [ ! -f "./cli/winresources/winresources.go" ]; then
-  echo "package winresources" > "./cli/winresources/winresources.go"
+if [ ! -f "./cmd/docker/winresources/winresources.go" ]; then
+  echo "package winresources" > "./cmd/docker/winresources/winresources.go"
 fi

@@ -1,6 +1,6 @@
 /build/
-/cli/winresources/versioninfo.json
-/cli/winresources/*.syso
+/cmd/docker/winresources/versioninfo.json
+/cmd/docker/winresources/*.syso
 /man/man*/
 /man/vendor/
 /man/go.sum
