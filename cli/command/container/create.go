@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/netip"
 	"os"
-	"regexp"
 
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
@@ -207,8 +207,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
 
-	warnOnLocalhostDNS(*hostConfig, dockerCli.Err())
-
 	var (
 		trustedRef reference.Canonical
 		namedRef   reference.Named
@@ -291,6 +289,9 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
+	if warn := localhostDNSWarning(*hostConfig); warn != "" {
+		response.Warnings = append(response.Warnings, warn)
+	}
 	for _, w := range response.Warnings {
 		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
 	}
@@ -299,26 +300,16 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 }
 
 // check the DNS settings passed via --dns against localhost regexp to warn if
-// they are trying to set a DNS to a localhost address
-func warnOnLocalhostDNS(hostConfig container.HostConfig, stderr io.Writer) {
+// they are trying to set a DNS to a localhost address.
+//
+// TODO(thaJeztah): move this to the daemon, which can make a better call if it will work or not (depending on networking mode).
+func localhostDNSWarning(hostConfig container.HostConfig) string {
 	for _, dnsIP := range hostConfig.DNS {
-		if isLocalhost(dnsIP) {
-			_, _ = fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
-			return
+		if addr, err := netip.ParseAddr(dnsIP); err == nil && addr.IsLoopback() {
+			return fmt.Sprintf("Localhost DNS (%s) may fail in containers.", addr)
 		}
 	}
-}
-
-// IPLocalhost is a regex pattern for IPv4 or IPv6 loopback range.
-const ipLocalhost = `((127\.([0-9]{1,3}\.){2}[0-9]{1,3})|(::1)$)`
-
-var localhostIPRegexp = regexp.MustCompile(ipLocalhost)
-
-// IsLocalhost returns true if ip matches the localhost IP regular expression.
-// Used for determining if nameserver settings are being passed which are
-// localhost addresses
-func isLocalhost(ip string) bool {
-	return localhostIPRegexp.MatchString(ip)
+	return ""
 }
 
 func validatePullOpt(val string) error {
