@@ -207,7 +207,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
 
-	warnOnOomKillDisable(*hostConfig, dockerCli.Err())
 	warnOnLocalhostDNS(*hostConfig, dockerCli.Err())
 
 	var (
@@ -297,12 +296,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 	err = containerIDFile.Write(response.ID)
 	return response.ID, err
-}
-
-func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
-	if hostConfig.OomKillDisable != nil && *hostConfig.OomKillDisable && hostConfig.Memory == 0 {
-		_, _ = fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
-	}
 }
 
 // check the DNS settings passed via --dns against localhost regexp to warn if
