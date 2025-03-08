@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -9,8 +10,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/filters"
-	units "github.com/docker/go-units"
-	"github.com/pkg/errors"
+	"github.com/docker/go-units"
 )
 
 var (
