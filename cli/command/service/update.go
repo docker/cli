@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -55,7 +56,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.Var(newListOptsVar(), flagContainerLabelRemove, "Remove a container label by its key")
 	flags.Var(newListOptsVar(), flagMountRemove, "Remove a mount by its target path")
 	// flags.Var(newListOptsVar().WithValidator(validatePublishRemove), flagPublishRemove, "Remove a published port by its target port")
-	flags.Var(&opts.PortOpt{}, flagPublishRemove, "Remove a published port by its target port")
+	flags.Var(&swarmopts.PortOpt{}, flagPublishRemove, "Remove a published port by its target port")
 	flags.Var(newListOptsVar(), flagConstraintRemove, "Remove a constraint")
 	flags.Var(newListOptsVar(), flagDNSRemove, "Remove a custom DNS server")
 	flags.SetAnnotation(flagDNSRemove, "version", []string{"1.25"})
@@ -804,7 +805,7 @@ func getUpdatedSecrets(ctx context.Context, apiClient client.SecretAPIClient, fl
 	}
 
 	if flags.Changed(flagSecretAdd) {
-		values := flags.Lookup(flagSecretAdd).Value.(*opts.SecretOpt).Value()
+		values := flags.Lookup(flagSecretAdd).Value.(*swarmopts.SecretOpt).Value()
 
 		addSecrets, err := ParseSecrets(ctx, apiClient, values)
 		if err != nil {
@@ -852,7 +853,7 @@ func getUpdatedConfigs(ctx context.Context, apiClient client.ConfigAPIClient, fl
 	resolveConfigs := []*swarm.ConfigReference{}
 
 	if flags.Changed(flagConfigAdd) {
-		resolveConfigs = append(resolveConfigs, flags.Lookup(flagConfigAdd).Value.(*opts.ConfigOpt).Value()...)
+		resolveConfigs = append(resolveConfigs, flags.Lookup(flagConfigAdd).Value.(*swarmopts.ConfigOpt).Value()...)
 	}
 
 	// if credSpecConfigNameis non-empty at this point, it means its a new
@@ -1091,7 +1092,7 @@ func updatePorts(flags *pflag.FlagSet, portConfig *[]swarm.PortConfig) error {
 	newPorts := []swarm.PortConfig{}
 
 	// Clean current ports
-	toRemove := flags.Lookup(flagPublishRemove).Value.(*opts.PortOpt).Value()
+	toRemove := flags.Lookup(flagPublishRemove).Value.(*swarmopts.PortOpt).Value()
 portLoop:
 	for _, port := range portSet {
 		for _, pConfig := range toRemove {
@@ -1107,7 +1108,7 @@ portLoop:
 
 	// Check to see if there are any conflict in flags.
 	if flags.Changed(flagPublishAdd) {
-		ports := flags.Lookup(flagPublishAdd).Value.(*opts.PortOpt).Value()
+		ports := flags.Lookup(flagPublishAdd).Value.(*swarmopts.PortOpt).Value()
 
 		for _, port := range ports {
 			if _, ok := portSet[portConfigToString(&port)]; ok {

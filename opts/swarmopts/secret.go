@@ -1,4 +1,4 @@
-package opts
+package swarmopts
 
 import (
 	"encoding/csv"

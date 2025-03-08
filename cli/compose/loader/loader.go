@@ -18,6 +18,7 @@ import (
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/opts"
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-connections/nat"
 	units "github.com/docker/go-units"
@@ -925,7 +926,7 @@ func toServicePortConfigs(value string) ([]any, error) {
 
 	for _, key := range keys {
 		// Reuse ConvertPortToPortConfig so that it is consistent
-		portConfig, err := opts.ConvertPortToPortConfig(nat.Port(key), portBindings)
+		portConfig, err := swarmopts.ConvertPortToPortConfig(nat.Port(key), portBindings)
 		if err != nil {
 			return nil, err
 		}
