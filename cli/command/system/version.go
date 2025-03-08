@@ -16,6 +16,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
+	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -89,20 +90,20 @@ type clientVersion struct {
 // information.
 func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	v := clientVersion{
-		Version:   version.Version,
-		GoVersion: runtime.Version(),
-		GitCommit: version.GitCommit,
-		BuildTime: reformatDate(version.BuildTime),
-		Os:        runtime.GOOS,
-		Arch:      arch(),
-		Context:   contextName,
+		Version:           version.Version,
+		DefaultAPIVersion: api.DefaultVersion,
+		GoVersion:         runtime.Version(),
+		GitCommit:         version.GitCommit,
+		BuildTime:         reformatDate(version.BuildTime),
+		Os:                runtime.GOOS,
+		Arch:              arch(),
+		Context:           contextName,
 	}
 	if version.PlatformName != "" {
 		v.Platform = &platformInfo{Name: version.PlatformName}
 	}
 	if dockerCli != nil {
 		v.APIVersion = dockerCli.CurrentVersion()
-		v.DefaultAPIVersion = dockerCli.DefaultVersion()
 	}
 	return v
 }
