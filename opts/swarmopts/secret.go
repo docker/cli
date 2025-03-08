@@ -1,4 +1,4 @@
-package opts
+package swarmopts
 
 import (
 	"encoding/csv"
@@ -8,34 +8,34 @@ import (
 	"strconv"
 	"strings"
 
-	swarmtypes "github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/api/types/swarm"
 )
 
-// ConfigOpt is a Value type for parsing configs
-type ConfigOpt struct {
-	values []*swarmtypes.ConfigReference
+// SecretOpt is a Value type for parsing secrets
+type SecretOpt struct {
+	values []*swarm.SecretReference
 }
 
-// Set a new config value
-func (o *ConfigOpt) Set(value string) error {
+// Set a new secret value
+func (o *SecretOpt) Set(value string) error {
 	csvReader := csv.NewReader(strings.NewReader(value))
 	fields, err := csvReader.Read()
 	if err != nil {
 		return err
 	}
 
-	options := &swarmtypes.ConfigReference{
-		File: &swarmtypes.ConfigReferenceFileTarget{
+	options := &swarm.SecretReference{
+		File: &swarm.SecretReferenceFileTarget{
 			UID:  "0",
 			GID:  "0",
 			Mode: 0o444,
 		},
 	}
 
-	// support a simple syntax of --config foo
+	// support a simple syntax of --secret foo
 	if len(fields) == 1 && !strings.Contains(fields[0], "=") {
 		options.File.Name = fields[0]
-		options.ConfigName = fields[0]
+		options.SecretName = fields[0]
 		o.values = append(o.values, options)
 		return nil
 	}
@@ -45,11 +45,10 @@ func (o *ConfigOpt) Set(value string) error {
 		if !ok || key == "" {
 			return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
 		}
-
 		// TODO(thaJeztah): these options should not be case-insensitive.
 		switch strings.ToLower(key) {
 		case "source", "src":
-			options.ConfigName = val
+			options.SecretName = val
 		case "target":
 			options.File.Name = val
 		case "uid":
@@ -64,15 +63,15 @@ func (o *ConfigOpt) Set(value string) error {
 
 			options.File.Mode = os.FileMode(m)
 		default:
-			return fmt.Errorf("invalid field in config request: %s", key)
+			return errors.New("invalid field in secret request: " + key)
 		}
 	}
 
-	if options.ConfigName == "" {
+	if options.SecretName == "" {
 		return errors.New("source is required")
 	}
 	if options.File.Name == "" {
-		options.File.Name = options.ConfigName
+		options.File.Name = options.SecretName
 	}
 
 	o.values = append(o.values, options)
@@ -80,21 +79,21 @@ func (o *ConfigOpt) Set(value string) error {
 }
 
 // Type returns the type of this option
-func (*ConfigOpt) Type() string {
-	return "config"
+func (*SecretOpt) Type() string {
+	return "secret"
 }
 
 // String returns a string repr of this option
-func (o *ConfigOpt) String() string {
-	configs := []string{}
-	for _, config := range o.values {
-		repr := fmt.Sprintf("%s -> %s", config.ConfigName, config.File.Name)
-		configs = append(configs, repr)
+func (o *SecretOpt) String() string {
+	secrets := []string{}
+	for _, secret := range o.values {
+		repr := fmt.Sprintf("%s -> %s", secret.SecretName, secret.File.Name)
+		secrets = append(secrets, repr)
 	}
-	return strings.Join(configs, ", ")
+	return strings.Join(secrets, ", ")
 }
 
-// Value returns the config requests
-func (o *ConfigOpt) Value() []*swarmtypes.ConfigReference {
+// Value returns the secret requests
+func (o *SecretOpt) Value() []*swarm.SecretReference {
 	return o.values
 }

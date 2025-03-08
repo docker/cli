@@ -136,10 +136,10 @@ func TestListOptsWithoutValidator(t *testing.T) {
 		t.Errorf("%d != 3", o.Len())
 	}
 	if !o.Get("bar") {
-		t.Error("o.Get(\"bar\") == false")
+		t.Error(`o.Get("bar") == false`)
 	}
 	if o.Get("baz") {
-		t.Error("o.Get(\"baz\") == true")
+		t.Error(`o.Get("baz") == true`)
 	}
 	o.Delete("foo")
 	if o.String() != "[bar bar]" {

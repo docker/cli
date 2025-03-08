@@ -149,6 +149,10 @@ func TestNetworkOptAdvancedSyntaxInvalid(t *testing.T) {
 			value:         "driver-opt=field1=value1,driver-opt=field2=value2",
 			expectedError: "network name/id is not specified",
 		},
+		{
+			value:         "gw-priority=invalid-integer",
+			expectedError: "invalid gw-priority (invalid-integer): invalid syntax",
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.value, func(t *testing.T) {
