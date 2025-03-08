@@ -3,10 +3,9 @@
 package logs
 
 import (
+	"errors"
 	"net/url"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // ParseLogDetails parses a string of key value pairs in the form

@@ -50,7 +50,7 @@ func TestParseLogDetails(t *testing.T) {
 		t.Run(tc.line, func(t *testing.T) {
 			actual, err := ParseLogDetails(tc.line)
 			if tc.expectedErr != "" {
-				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+				assert.Check(t, is.Error(err, tc.expectedErr))
 			} else {
 				assert.Check(t, err)
 			}
