@@ -1,6 +1,3 @@
-//go:build unix
-// +build unix
-
 package signals
 
 import (
