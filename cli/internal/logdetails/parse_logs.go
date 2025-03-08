@@ -1,22 +1,20 @@
-/*Package logs contains tools for parsing docker log lines.
- */
-package logs
+// Package logdetails contains tools for parsing docker log lines.
+package logdetails
 
 import (
+	"errors"
 	"net/url"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
-// ParseLogDetails parses a string of key value pairs in the form
+// Parse parses a string of key value pairs in the form
 // "k=v,l=w", where the keys and values are url query escaped, and each pair
 // is separated by a comma. Returns a map of the key value pairs on success,
 // and an error if the details string is not in a valid format.
 //
 // The details string encoding is implemented in
 // github.com/moby/moby/api/server/httputils/write_log_stream.go
-func ParseLogDetails(details string) (map[string]string, error) {
+func Parse(details string) (map[string]string, error) {
 	pairs := strings.Split(details, ",")
 	detailsMap := make(map[string]string, len(pairs))
 	for _, pair := range pairs {

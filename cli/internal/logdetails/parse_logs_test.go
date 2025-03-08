@@ -1,4 +1,4 @@
-package logs
+package logdetails
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func TestParseLogDetails(t *testing.T) {
+func TestParse(t *testing.T) {
 	testCases := []struct {
 		line        string
 		expected    map[string]string
@@ -48,9 +48,9 @@ func TestParseLogDetails(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.line, func(t *testing.T) {
-			actual, err := ParseLogDetails(tc.line)
+			actual, err := Parse(tc.line)
 			if tc.expectedErr != "" {
-				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+				assert.Check(t, is.Error(err, tc.expectedErr))
 			} else {
 				assert.Check(t, err)
 			}
