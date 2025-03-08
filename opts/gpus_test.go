@@ -16,7 +16,7 @@ func TestGpusOptAll(t *testing.T) {
 		"count=-1",
 	} {
 		var gpus GpuOpts
-		gpus.Set(testcase)
+		assert.Check(t, gpus.Set(testcase))
 		gpuReqs := gpus.Value()
 		assert.Assert(t, is.Len(gpuReqs, 1))
 		assert.Check(t, is.DeepEqual(gpuReqs[0], container.DeviceRequest{
@@ -27,15 +27,21 @@ func TestGpusOptAll(t *testing.T) {
 	}
 }
 
+func TestGpusOptInvalidCount(t *testing.T) {
+	var gpus GpuOpts
+	err := gpus.Set(`count=invalid-integer`)
+	assert.Error(t, err, `invalid count (invalid-integer): value must be either "all" or an integer: invalid syntax`)
+}
+
 func TestGpusOpts(t *testing.T) {
 	for _, testcase := range []string{
-		"driver=nvidia,\"capabilities=compute,utility\",\"options=foo=bar,baz=qux\"",
-		"1,driver=nvidia,\"capabilities=compute,utility\",\"options=foo=bar,baz=qux\"",
-		"count=1,driver=nvidia,\"capabilities=compute,utility\",\"options=foo=bar,baz=qux\"",
-		"driver=nvidia,\"capabilities=compute,utility\",\"options=foo=bar,baz=qux\",count=1",
+		`driver=nvidia,"capabilities=compute,utility","options=foo=bar,baz=qux"`,
+		`1,driver=nvidia,"capabilities=compute,utility","options=foo=bar,baz=qux"`,
+		`count=1,driver=nvidia,"capabilities=compute,utility","options=foo=bar,baz=qux"`,
+		`driver=nvidia,"capabilities=compute,utility","options=foo=bar,baz=qux",count=1`,
 	} {
 		var gpus GpuOpts
-		gpus.Set(testcase)
+		assert.Check(t, gpus.Set(testcase))
 		gpuReqs := gpus.Value()
 		assert.Assert(t, is.Len(gpuReqs, 1))
 		assert.Check(t, is.DeepEqual(gpuReqs[0], container.DeviceRequest{

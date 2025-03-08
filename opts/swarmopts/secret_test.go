@@ -1,4 +1,4 @@
-package opts
+package swarmopts
 
 import (
 	"os"
@@ -8,11 +8,11 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func TestConfigOptions(t *testing.T) {
+func TestSecretOptions(t *testing.T) {
 	testCases := []struct {
 		name       string
 		input      string
-		configName string
+		secretName string
 		fileName   string
 		uid        string
 		gid        string
@@ -20,34 +20,34 @@ func TestConfigOptions(t *testing.T) {
 	}{
 		{
 			name:       "Simple",
-			input:      "app-config",
-			configName: "app-config",
-			fileName:   "app-config",
+			input:      "app-secret",
+			secretName: "app-secret",
+			fileName:   "app-secret",
 			uid:        "0",
 			gid:        "0",
 		},
 		{
 			name:       "Source",
 			input:      "source=foo",
-			configName: "foo",
+			secretName: "foo",
 			fileName:   "foo",
 		},
 		{
 			name:       "SourceTarget",
 			input:      "source=foo,target=testing",
-			configName: "foo",
+			secretName: "foo",
 			fileName:   "testing",
 		},
 		{
 			name:       "Shorthand",
 			input:      "src=foo,target=testing",
-			configName: "foo",
+			secretName: "foo",
 			fileName:   "testing",
 		},
 		{
 			name:       "CustomUidGid",
 			input:      "source=foo,target=testing,uid=1000,gid=1001",
-			configName: "foo",
+			secretName: "foo",
 			fileName:   "testing",
 			uid:        "1000",
 			gid:        "1001",
@@ -55,7 +55,7 @@ func TestConfigOptions(t *testing.T) {
 		{
 			name:       "CustomMode",
 			input:      "source=foo,target=testing,uid=1000,gid=1001,mode=0444",
-			configName: "foo",
+			secretName: "foo",
 			fileName:   "testing",
 			uid:        "1000",
 			gid:        "1001",
@@ -65,12 +65,12 @@ func TestConfigOptions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var opt ConfigOpt
+			var opt SecretOpt
 			assert.NilError(t, opt.Set(tc.input))
 			reqs := opt.Value()
 			assert.Assert(t, is.Len(reqs, 1))
 			req := reqs[0]
-			assert.Check(t, is.Equal(tc.configName, req.ConfigName))
+			assert.Check(t, is.Equal(tc.secretName, req.SecretName))
 			assert.Check(t, is.Equal(tc.fileName, req.File.Name))
 			if tc.uid != "" {
 				assert.Check(t, is.Equal(tc.uid, req.File.UID))

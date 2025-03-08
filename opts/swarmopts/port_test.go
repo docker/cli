@@ -1,4 +1,4 @@
-package opts
+package swarmopts
 
 import (
 	"bytes"
@@ -243,44 +243,46 @@ func TestPortOptInvalidComplexSyntax(t *testing.T) {
 	}{
 		{
 			value:         "invalid,target=80",
-			expectedError: "invalid field",
+			expectedError: "invalid field: invalid",
 		},
 		{
 			value:         "invalid=field",
-			expectedError: "invalid field",
+			expectedError: "invalid field key: invalid",
 		},
 		{
 			value:         "protocol=invalid",
-			expectedError: "invalid protocol value",
+			expectedError: "invalid protocol value 'invalid'",
 		},
 		{
 			value:         "target=invalid",
-			expectedError: "invalid syntax",
+			expectedError: "invalid target port (invalid): value must be an integer: invalid syntax",
 		},
 		{
 			value:         "published=invalid",
-			expectedError: "invalid syntax",
+			expectedError: "invalid published port (invalid): value must be an integer: invalid syntax",
 		},
 		{
 			value:         "mode=invalid",
-			expectedError: "invalid publish mode value",
+			expectedError: "invalid publish mode value (invalid): must be either 'ingress' or 'host'",
 		},
 		{
 			value:         "published=8080,protocol=tcp,mode=ingress",
-			expectedError: "missing mandatory field",
+			expectedError: "missing mandatory field 'target'",
 		},
 		{
 			value:         `target=80,protocol="tcp,mode=ingress"`,
-			expectedError: "non-quoted-field",
+			expectedError: `parse error on line 1, column 20: bare " in non-quoted-field`,
 		},
 		{
 			value:         `target=80,"protocol=tcp,mode=ingress"`,
-			expectedError: "invalid protocol value",
+			expectedError: "invalid protocol value 'tcp,mode=ingress'",
 		},
 	}
 	for _, tc := range testCases {
-		var port PortOpt
-		assert.ErrorContains(t, port.Set(tc.value), tc.expectedError)
+		t.Run(tc.value, func(t *testing.T) {
+			var port PortOpt
+			assert.Error(t, port.Set(tc.value), tc.expectedError)
+		})
 	}
 }
 

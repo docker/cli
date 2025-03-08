@@ -13,6 +13,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
@@ -395,7 +396,7 @@ func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {
 
 type endpointOptions struct {
 	mode         string
-	publishPorts opts.PortOpt
+	publishPorts swarmopts.PortOpt
 }
 
 func (e *endpointOptions) ToEndpointSpec() *swarm.EndpointSpec {
@@ -553,8 +554,8 @@ type serviceOptions struct {
 	logDriver logDriverOptions
 
 	healthcheck healthCheckOptions
-	secrets     opts.SecretOpt
-	configs     opts.ConfigOpt
+	secrets     swarmopts.SecretOpt
+	configs     swarmopts.ConfigOpt
 
 	isolation string
 }

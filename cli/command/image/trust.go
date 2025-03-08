@@ -41,27 +41,6 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), "pull")
 }
 
-// TrustedPush handles content trust pushing of an image.
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func TrustedPush(ctx context.Context, cli command.Cli, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, options image.PushOptions) error {
-	responseBody, err := cli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
-	if err != nil {
-		return err
-	}
-
-	defer responseBody.Close()
-
-	return trust.PushTrustedReference(ctx, cli, repoInfo, ref, authConfig, responseBody, command.UserAgent())
-}
-
-// PushTrustedReference pushes a canonical reference to the trust server.
-//
-// Deprecated: use [trust.PushTrustedReference] instead. this function was only used internally and will be removed in the next release.
-func PushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
-	return pushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in)
-}
-
 // pushTrustedReference pushes a canonical reference to the trust server.
 func pushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
 	return trust.PushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in, command.UserAgent())
@@ -104,11 +83,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 			return err
 		}
 
-		// Use familiar references when interacting with client and output
-		familiarRef := reference.FamiliarString(tagged)
-		trustedFamiliarRef := reference.FamiliarString(trustedRef)
-		_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
-		if err := cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef); err != nil {
+		if err := tagTrusted(ctx, cli, trustedRef, tagged); err != nil {
 			return err
 		}
 	}
@@ -229,13 +204,11 @@ func convertTarget(t client.Target) (target, error) {
 	}, nil
 }
 
-// TagTrusted tags a trusted ref. It is a shallow wrapper around APIClient.ImageTag
-// that updates the given image references to their familiar format for tagging
-// and printing.
-//
-// Deprecated: this function was only used internally, and will be removed in the next release.
-func TagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
-	return trust.TagTrusted(ctx, cli.Client(), cli.Err(), trustedRef, ref)
+// tagTrusted tags a trusted ref. It is a shallow wrapper around APIClient.ImageTag
+// that updates the given image references to their familiar format for printing.
+func tagTrusted(ctx context.Context, cli command.Cli, trustedRef reference.Canonical, ref reference.NamedTagged) error {
+	_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", reference.FamiliarString(trustedRef), reference.FamiliarString(ref))
+	return cli.Client().ImageTag(ctx, trustedRef.String(), ref.String())
 }
 
 // AuthResolver returns an auth resolver function from a command.Cli
