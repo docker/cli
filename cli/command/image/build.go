@@ -337,13 +337,13 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	for k, auth := range creds {
 		authConfigs[k] = registrytypes.AuthConfig(auth)
 	}
-	buildOptions := imageBuildOptions(dockerCli, options)
-	buildOptions.Version = types.BuilderV1
-	buildOptions.Dockerfile = relDockerfile
-	buildOptions.AuthConfigs = authConfigs
-	buildOptions.RemoteContext = remote
+	buildOpts := imageBuildOptions(dockerCli, options)
+	buildOpts.Version = types.BuilderV1
+	buildOpts.Dockerfile = relDockerfile
+	buildOpts.AuthConfigs = authConfigs
+	buildOpts.RemoteContext = remote
 
-	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
+	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOpts)
 	if err != nil {
 		if options.quiet {
 			fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
