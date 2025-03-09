@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/atomicwriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -49,14 +50,6 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunSave performs a save against the engine based on the specified options
 func RunSave(ctx context.Context, dockerCli command.Cli, opts saveOptions) error {
-	if opts.output == "" && dockerCli.Out().IsTerminal() {
-		return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
-	}
-
-	if err := command.ValidateOutputPath(opts.output); err != nil {
-		return errors.Wrap(err, "failed to save image")
-	}
-
 	var options []client.ImageSaveOption
 	if opts.platform != "" {
 		p, err := platforms.Parse(opts.platform)
@@ -67,16 +60,30 @@ func RunSave(ctx context.Context, dockerCli command.Cli, opts saveOptions) error
 		options = append(options, client.ImageSaveWithPlatforms(p))
 	}
 
+	var output io.Writer
+	if opts.output == "" {
+		if dockerCli.Out().IsTerminal() {
+			return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
+		}
+		output = dockerCli.Out()
+	} else {
+		if err := command.ValidateOutputPath(opts.output); err != nil {
+			return errors.Wrap(err, "failed to save image")
+		}
+		writer, err := atomicwriter.New(opts.output, 0o600)
+		if err != nil {
+			return err
+		}
+		defer writer.Close()
+		output = writer
+	}
+
 	responseBody, err := dockerCli.Client().ImageSave(ctx, opts.images, options...)
 	if err != nil {
 		return err
 	}
 	defer responseBody.Close()
 
-	if opts.output == "" {
-		_, err := io.Copy(dockerCli.Out(), responseBody)
-		return err
-	}
-
-	return command.CopyToFile(opts.output, responseBody)
+	_, err = io.Copy(output, responseBody)
+	return err
 }
