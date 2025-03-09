@@ -51,7 +51,16 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 
 func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error {
 	var input io.Reader = dockerCli.In()
-	if opts.input != "" {
+
+	// TODO(thaJeztah): add support for "-" as STDIN to match other commands, possibly making it a required positional argument.
+	switch opts.input {
+	case "":
+		// To avoid getting stuck, verify that a tar file is given either in
+		// the input flag or through stdin and if not display an error message and exit.
+		if dockerCli.In().IsTerminal() {
+			return errors.Errorf("requested load from stdin, but stdin is empty")
+		}
+	default:
 		// We use sequential.Open to use sequential file access on Windows, avoiding
 		// depleting the standby list un-necessarily. On Linux, this equates to a regular os.Open.
 		file, err := sequential.Open(opts.input)
@@ -60,12 +69,6 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		}
 		defer file.Close()
 		input = file
-	}
-
-	// To avoid getting stuck, verify that a tar file is given either in
-	// the input flag or through stdin and if not display an error message and exit.
-	if opts.input == "" && dockerCli.In().IsTerminal() {
-		return errors.Errorf("requested load from stdin, but stdin is empty")
 	}
 
 	var options []client.ImageLoadOption
