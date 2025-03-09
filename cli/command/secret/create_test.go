@@ -56,7 +56,7 @@ func TestSecretCreateErrors(t *testing.T) {
 }
 
 func TestSecretCreateWithName(t *testing.T) {
-	name := "foo"
+	const name = "secret-with-name"
 	data, err := os.ReadFile(filepath.Join("testdata", secretDataFile))
 	assert.NilError(t, err)
 
@@ -89,7 +89,7 @@ func TestSecretCreateWithDriver(t *testing.T) {
 	expectedDriver := &swarm.Driver{
 		Name: "secret-driver",
 	}
-	name := "foo"
+	const name = "secret-with-driver"
 
 	cli := test.NewFakeCli(&fakeClient{
 		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
@@ -118,7 +118,7 @@ func TestSecretCreateWithTemplatingDriver(t *testing.T) {
 	expectedDriver := &swarm.Driver{
 		Name: "template-driver",
 	}
-	const name = "foo"
+	const name = "secret-with-template-driver"
 
 	cli := test.NewFakeCli(&fakeClient{
 		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
@@ -137,7 +137,7 @@ func TestSecretCreateWithTemplatingDriver(t *testing.T) {
 	})
 
 	cmd := newSecretCreateCommand(cli)
-	cmd.SetArgs([]string{name})
+	cmd.SetArgs([]string{name, filepath.Join("testdata", secretDataFile)})
 	assert.Check(t, cmd.Flags().Set("template-driver", expectedDriver.Name))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
@@ -148,7 +148,7 @@ func TestSecretCreateWithLabels(t *testing.T) {
 		"lbl1": "Label-foo",
 		"lbl2": "Label-bar",
 	}
-	const name = "foo"
+	const name = "secret-with-labels"
 
 	cli := test.NewFakeCli(&fakeClient{
 		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (types.SecretCreateResponse, error) {
