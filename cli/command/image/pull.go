@@ -3,24 +3,28 @@ package image
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/cli/streams"
+	"github.com/docker/docker/api/types/image"
+	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 // PullOptions defines what and how to pull
 type PullOptions struct {
-	remote    string
-	all       bool
-	platform  string
-	quiet     bool
-	untrusted bool
+	remote   string
+	all      bool
+	platform string
+	quiet    bool
 }
 
 // NewPullCommand creates a new `docker pull` command
@@ -48,7 +52,8 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 
 	command.AddPlatformFlag(flags, &opts.platform)
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+
+	// TODO add a (hidden) --disable-content-trust flag that throws a deprecation/removal warning and does nothing
 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
@@ -70,24 +75,41 @@ func RunPull(ctx context.Context, dockerCLI command.Cli, opts PullOptions) error
 		}
 	}
 
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(dockerCLI), distributionRef.String())
+	// Resolve the Repository name from fqn to RepositoryInfo
+	repoInfo, err := registry.ParseRepositoryInfo(distributionRef)
 	if err != nil {
 		return err
 	}
 
-	// Check if reference has a digest
-	_, isCanonical := distributionRef.(reference.Canonical)
-	if !opts.untrusted && !isCanonical {
-		err = trustedPull(ctx, dockerCLI, imgRefAndAuth, opts)
-	} else {
-		err = imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth, opts)
+	authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), repoInfo.Index)
+
+	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	if err != nil {
+		return err
 	}
+	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCLI, repoInfo.Index, "pull")
+	responseBody, err := dockerCLI.Client().ImagePull(ctx, reference.FamiliarString(distributionRef), image.PullOptions{
+		RegistryAuth:  encodedAuth,
+		PrivilegeFunc: requestPrivilege,
+		All:           opts.all,
+		Platform:      opts.platform,
+	})
 	if err != nil {
 		if strings.Contains(err.Error(), "when fetching 'plugin'") {
 			return errors.New(err.Error() + " - Use `docker plugin install`")
 		}
 		return err
 	}
-	_, _ = fmt.Fprintln(dockerCLI.Out(), imgRefAndAuth.Reference().String())
+	defer responseBody.Close()
+
+	out := dockerCLI.Out()
+	if opts.quiet {
+		out = streams.NewOut(io.Discard)
+	}
+	if err := jsonstream.Display(ctx, responseBody, out); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintln(dockerCLI.Out(), distributionRef.String())
 	return nil
 }

@@ -14,7 +14,6 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
-	"gotest.tools/v3/skip"
 )
 
 func TestBuildFromContextDirectoryWithTag(t *testing.T) {
@@ -59,68 +58,6 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 		10: output.Suffix("Step 4/4 : COPY data /data"),
 		12: output.Contains("Successfully built "),
 		13: output.Suffix("Successfully tagged myimage:latest"),
-	})
-}
-
-func TestTrustedBuild(t *testing.T) {
-	skip.If(t, environment.RemoteDaemon())
-	t.Setenv("DOCKER_BUILDKIT", "0")
-
-	dir := fixtures.SetupConfigFile(t)
-	defer dir.Remove()
-	image1 := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-build1", "latest")
-	image2 := fixtures.CreateMaskedTrustedRemoteImage(t, registryPrefix, "trust-build2", "latest")
-
-	buildDir := fs.NewDir(t, "test-trusted-build-context-dir",
-		fs.WithFile("Dockerfile", fmt.Sprintf(`
-	FROM %s as build-base
-	RUN echo ok > /foo
-	FROM %s
-	COPY --from=build-base foo bar
-		`, image1, image2)))
-	defer buildDir.Remove()
-
-	result := icmd.RunCmd(
-		icmd.Command("docker", "build", "-t", "myimage", "."),
-		withWorkingDir(buildDir),
-		fixtures.WithConfig(dir.Path()),
-		fixtures.WithTrust,
-		fixtures.WithNotary,
-	)
-
-	result.Assert(t, icmd.Expected{
-		Out: fmt.Sprintf("FROM %s@sha", image1[:len(image1)-7]),
-		Err: fmt.Sprintf("Tagging %s@sha", image1[:len(image1)-7]),
-	})
-	result.Assert(t, icmd.Expected{
-		Out: fmt.Sprintf("FROM %s@sha", image2[:len(image2)-7]),
-	})
-}
-
-func TestTrustedBuildUntrustedImage(t *testing.T) {
-	skip.If(t, environment.RemoteDaemon())
-	t.Setenv("DOCKER_BUILDKIT", "0")
-
-	dir := fixtures.SetupConfigFile(t)
-	defer dir.Remove()
-	buildDir := fs.NewDir(t, "test-trusted-build-context-dir",
-		fs.WithFile("Dockerfile", fmt.Sprintf(`
-	FROM %s
-	RUN []
-		`, fixtures.AlpineImage)))
-	defer buildDir.Remove()
-
-	result := icmd.RunCmd(
-		icmd.Command("docker", "build", "-t", "myimage", "."),
-		withWorkingDir(buildDir),
-		fixtures.WithConfig(dir.Path()),
-		fixtures.WithTrust,
-		fixtures.WithNotary,
-	)
-
-	result.Assert(t, icmd.Expected{
-		ExitCode: 1,
-		Err:      "does not have trust data for",
 	})
 }
 
