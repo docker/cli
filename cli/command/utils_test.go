@@ -21,32 +21,6 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func TestStringSliceReplaceAt(t *testing.T) {
-	out, ok := command.StringSliceReplaceAt([]string{"abc", "foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, -1)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"abc", "baz", "bax"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"foo"}, []string{"foo", "bar"}, []string{"baz"}, -1)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"foo"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"abc", "foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, 0)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"abc", "foo", "bar", "bax"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, 0)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"baz", "bax"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"abc", "foo", "bar", "baz"}, []string{"foo", "bar"}, nil, -1)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"abc", "baz"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"foo"}, nil, []string{"baz"}, -1)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"foo"}, out)
-}
-
 func TestValidateOutputPath(t *testing.T) {
 	basedir := t.TempDir()
 	dir := filepath.Join(basedir, "dir")

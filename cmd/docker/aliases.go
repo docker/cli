@@ -43,9 +43,9 @@ func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 
 	for _, al := range aliases {
 		var didChange bool
-		args, didChange = command.StringSliceReplaceAt(args, al[0], al[1], 0)
+		args, didChange = stringSliceReplaceAt(args, al[0], al[1], 0)
 		if didChange {
-			osArgs, _ = command.StringSliceReplaceAt(osArgs, al[0], al[1], -1)
+			osArgs, _ = stringSliceReplaceAt(osArgs, al[0], al[1], -1)
 			break
 		}
 	}

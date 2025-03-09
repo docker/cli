@@ -152,8 +152,8 @@ func forwardBuilder(alias string, args, osargs []string) ([]string, []string, []
 		},
 	}
 	for _, al := range aliases {
-		if fwargs, changed := command.StringSliceReplaceAt(args, al[0], al[1], 0); changed {
-			fwosargs, _ := command.StringSliceReplaceAt(osargs, al[0], al[1], -1)
+		if fwargs, changed := stringSliceReplaceAt(args, al[0], al[1], 0); changed {
+			fwosargs, _ := stringSliceReplaceAt(osargs, al[0], al[1], -1)
 			fwcmdpath := al[2]
 			return fwargs, fwosargs, fwcmdpath, true
 		}
