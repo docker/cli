@@ -51,17 +51,7 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateOptions) error {
 	apiClient := dockerCLI.Client()
 
-	var in io.Reader = dockerCLI.In()
-	if options.File != "-" {
-		file, err := sequential.Open(options.File)
-		if err != nil {
-			return err
-		}
-		in = file
-		defer file.Close()
-	}
-
-	configData, err := io.ReadAll(in)
+	configData, err := readConfigData(dockerCLI.In(), options.File)
 	if err != nil {
 		return errors.Errorf("Error reading content from %q: %v", options.File, err)
 	}
@@ -83,6 +73,51 @@ func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateO
 		return err
 	}
 
-	fmt.Fprintln(dockerCLI.Out(), r.ID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), r.ID)
 	return nil
+}
+
+// maxConfigSize is the maximum byte length of the [swarm.ConfigSpec.Data] field,
+// as defined by [MaxConfigSize] in SwarmKit.
+//
+// [MaxConfigSize]: https://pkg.go.dev/github.com/moby/swarmkit/v2@v2.0.0-20250103191802-8c1959736554/manager/controlapi#MaxConfigSize
+const maxConfigSize = 1000 * 1024 // 1000KB
+
+// readConfigData reads the config from either stdin or the given fileName.
+//
+// It reads up to twice the maximum size of the config ([maxConfigSize]),
+// just in case swarm's limit changes; this is only a safeguard to prevent
+// reading arbitrary files into memory.
+func readConfigData(in io.Reader, fileName string) (data []byte, retErr error) {
+	if fileName != "" {
+		defer func() {
+			if retErr != nil {
+				retErr = fmt.Errorf("error reading from %s: %w", fileName, retErr)
+			} else if len(data) == 0 {
+				retErr = fmt.Errorf("error reading from %s: data is empty", fileName)
+			}
+		}()
+	}
+
+	switch fileName {
+	case "-":
+		fileName = "STDIN"
+		return io.ReadAll(io.LimitReader(in, 2*maxConfigSize))
+	case "":
+		return nil, errors.New("config file is required")
+	default:
+		// Open file with [FILE_FLAG_SEQUENTIAL_SCAN] on Windows, which
+		// prevents Windows from aggressively caching it. We expect this
+		// file to be only read once. Given that this is expected to be
+		// a small file, this may not be a significant optimization, so
+		// we could choose to omit this, and use a regular [os.Open].
+		//
+		// [FILE_FLAG_SEQUENTIAL_SCAN]: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#FILE_FLAG_SEQUENTIAL_SCAN
+		f, err := sequential.Open(fileName)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		return io.ReadAll(io.LimitReader(f, 2*maxConfigSize))
+	}
 }
