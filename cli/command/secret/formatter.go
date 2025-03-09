@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/swarm"
@@ -171,9 +170,9 @@ func (ctx *secretInspectContext) Driver() string {
 }
 
 func (ctx *secretInspectContext) CreatedAt() string {
-	return command.PrettyPrint(ctx.Secret.CreatedAt)
+	return formatter.PrettyPrint(ctx.Secret.CreatedAt)
 }
 
 func (ctx *secretInspectContext) UpdatedAt() string {
-	return command.PrettyPrint(ctx.Secret.UpdatedAt)
+	return formatter.PrettyPrint(ctx.Secret.UpdatedAt)
 }

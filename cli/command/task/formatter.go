@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
@@ -110,12 +109,12 @@ func (c *taskContext) Node() string {
 }
 
 func (c *taskContext) DesiredState() string {
-	return command.PrettyPrint(c.task.DesiredState)
+	return formatter.PrettyPrint(c.task.DesiredState)
 }
 
 func (c *taskContext) CurrentState() string {
 	return fmt.Sprintf("%s %s ago",
-		command.PrettyPrint(c.task.Status.State),
+		formatter.PrettyPrint(c.task.Status.State),
 		strings.ToLower(units.HumanDuration(time.Since(c.task.Status.Timestamp))),
 	)
 }

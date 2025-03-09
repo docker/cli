@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/swarm"
@@ -157,11 +156,11 @@ func (ctx *configInspectContext) Labels() map[string]string {
 }
 
 func (ctx *configInspectContext) CreatedAt() string {
-	return command.PrettyPrint(ctx.Config.CreatedAt)
+	return formatter.PrettyPrint(ctx.Config.CreatedAt)
 }
 
 func (ctx *configInspectContext) UpdatedAt() string {
-	return command.PrettyPrint(ctx.Config.UpdatedAt)
+	return formatter.PrettyPrint(ctx.Config.UpdatedAt)
 }
 
 func (ctx *configInspectContext) Data() string {
