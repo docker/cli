@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -166,11 +167,12 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 }
 
 // PruneFilters returns consolidated prune filters obtained from config.json and cli
-func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
-	if dockerCli.ConfigFile() == nil {
+func PruneFilters(dockerCLI config.Provider, pruneFilters filters.Args) filters.Args {
+	cfg := dockerCLI.ConfigFile()
+	if cfg == nil {
 		return pruneFilters
 	}
-	for _, f := range dockerCli.ConfigFile().PruneFilters {
+	for _, f := range cfg.PruneFilters {
 		k, v, ok := strings.Cut(f, "=")
 		if !ok {
 			continue
