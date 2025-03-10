@@ -107,12 +107,6 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 			StatusCode: 125,
 		}
 	}
-	if err = validateAPIVersion(containerCfg, dockerCli.CurrentVersion()); err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
-			StatusCode: 125,
-		}
-	}
 	return runContainer(ctx, dockerCli, ropts, copts, containerCfg)
 }
 
