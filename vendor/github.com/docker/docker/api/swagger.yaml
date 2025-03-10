@@ -19,10 +19,10 @@ produces:
 consumes:
   - "application/json"
   - "text/plain"
-basePath: "/v1.48"
+basePath: "/v1.49"
 info:
   title: "Docker Engine API"
-  version: "1.48"
+  version: "1.49"
   x-logo:
     url: "https://docs.docker.com/assets/images/logo-docker-main.png"
   description: |
@@ -55,8 +55,8 @@ info:
     the URL is not supported by the daemon, a HTTP `400 Bad Request` error message
     is returned.
 
-    If you omit the version-prefix, the current version of the API (v1.48) is used.
-    For example, calling `/info` is the same as calling `/v1.48/info`. Using the
+    If you omit the version-prefix, the current version of the API (v1.49) is used.
+    For example, calling `/info` is the same as calling `/v1.49/info`. Using the
     API without a version-prefix is deprecated and will be removed in a future release.
 
     Engine releases in the near future should support this version of the API,
@@ -6856,6 +6856,8 @@ definitions:
               description: "The network pool size"
               type: "integer"
               example: "24"
+      FirewallBackend:
+        $ref: "#/definitions/FirewallInfo"
       Warnings:
         description: |
           List of warnings / informational messages about missing features, or
@@ -6938,6 +6940,37 @@ definitions:
             type: "string"
             default: "plugins.moby"
             example: "plugins.moby"
+
+  FirewallInfo:
+    description: |
+      Information about the daemon's firewalling configuration.
+
+      This field is currently only used on Linux, and omitted on other platforms.
+    type: "object"
+    x-nullable: true
+    properties:
+      Driver:
+        description: |
+          The name of the firewall backend driver.
+        type: "string"
+        example: "nftables"
+      Info:
+        description: |
+          Information about the firewall backend, provided as
+          "label" / "value" pairs.
+
+          <p><br /></p>
+
+          > **Note**: The information returned in this field, including the
+          > formatting of values and labels, should not be considered stable,
+          > and may change without notice.
+        type: "array"
+        items:
+          type: "array"
+          items:
+            type: "string"
+        example:
+          - ["ReloadedAt", "2025-01-01T00:00:00Z"]
 
   # PluginsInfo is a temp struct holding Plugins name
   # registered with docker daemon. It is used by Info struct
@@ -10537,6 +10570,7 @@ paths:
             If not provided, the full multi-platform image will be saved.
 
             Example: `{"os": "linux", "architecture": "arm", "variant": "v5"}`
+      tags: ["Image"]
   /images/get:
     get:
       summary: "Export several images"
@@ -10571,6 +10605,16 @@ paths:
           type: "array"
           items:
             type: "string"
+        - name: "platform"
+          type: "string"
+          in: "query"
+          description: |
+            JSON encoded OCI platform describing a platform which will be used
+            to select a platform-specific image to be saved if the image is
+            multi-platform.
+            If not provided, the full multi-platform image will be saved.
+
+            Example: `{"os": "linux", "architecture": "arm", "variant": "v5"}`
       tags: ["Image"]
   /images/load:
     post:

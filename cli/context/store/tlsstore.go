@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/atomicwriter"
+	"github.com/moby/sys/atomicwriter"
 	"github.com/pkg/errors"
 )
 

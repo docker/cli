@@ -60,7 +60,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v28.0.4+incompatible
+# github.com/docker/docker v28.0.5-0.20250407171702-185651d26bc6+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -90,7 +90,6 @@ github.com/docker/docker/errdefs
 github.com/docker/docker/internal/lazyregexp
 github.com/docker/docker/internal/multierror
 github.com/docker/docker/pkg/archive
-github.com/docker/docker/pkg/atomicwriter
 github.com/docker/docker/pkg/homedir
 github.com/docker/docker/pkg/idtools
 github.com/docker/docker/pkg/ioutils
@@ -212,6 +211,9 @@ github.com/moby/swarmkit/v2/api/defaults
 github.com/moby/swarmkit/v2/api/genericresource
 github.com/moby/swarmkit/v2/manager/raftselector
 github.com/moby/swarmkit/v2/protobuf/plugin
+# github.com/moby/sys/atomicwriter v0.1.0
+## explicit; go 1.18
+github.com/moby/sys/atomicwriter
 # github.com/moby/sys/capability v0.4.0
 ## explicit; go 1.21
 github.com/moby/sys/capability
