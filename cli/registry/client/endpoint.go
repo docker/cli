@@ -14,7 +14,7 @@ import (
 )
 
 type repositoryEndpoint struct {
-	repoName  reference.Named
+	repoName  string
 	indexInfo *registrytypes.IndexInfo
 	endpoint  registry.APIEndpoint
 	actions   []string
@@ -22,7 +22,7 @@ type repositoryEndpoint struct {
 
 // Name returns the repository name
 func (r repositoryEndpoint) Name() string {
-	return reference.Path(r.repoName)
+	return r.repoName
 }
 
 // BaseURL returns the endpoint url
@@ -43,7 +43,7 @@ func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositor
 		endpoint.TLSConfig.InsecureSkipVerify = true
 	}
 	return repositoryEndpoint{
-		repoName:  repoName,
+		repoName:  reference.Path(repoName),
 		indexInfo: indexInfo,
 		endpoint:  endpoint,
 	}, nil
