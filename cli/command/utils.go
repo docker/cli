@@ -19,37 +19,23 @@ import (
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
-	"github.com/moby/sys/sequential"
+	"github.com/docker/docker/pkg/atomicwriter"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
 
 // CopyToFile writes the content of the reader to the specified file
+//
+// Deprecated: use [atomicwriter.New].
 func CopyToFile(outfile string, r io.Reader) error {
-	// We use sequential file access here to avoid depleting the standby list
-	// on Windows. On Linux, this is a call directly to os.CreateTemp
-	tmpFile, err := sequential.CreateTemp(filepath.Dir(outfile), ".docker_temp_")
+	writer, err := atomicwriter.New(outfile, 0o600)
 	if err != nil {
 		return err
 	}
-
-	tmpPath := tmpFile.Name()
-
-	_, err = io.Copy(tmpFile, r)
-	tmpFile.Close()
-
-	if err != nil {
-		os.Remove(tmpPath)
-		return err
-	}
-
-	if err = os.Rename(tmpPath, outfile); err != nil {
-		os.Remove(tmpPath)
-		return err
-	}
-
-	return nil
+	defer writer.Close()
+	_, err = io.Copy(writer, r)
+	return err
 }
 
 var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
