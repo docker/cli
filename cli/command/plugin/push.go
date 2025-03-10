@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/registry"
-	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -49,9 +48,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 
 	named = reference.TagNameOnly(named)
 
-	repoInfo := registry.ParseRepositoryInfo(named)
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), named.String())
 	if err != nil {
 		return err
 	}
@@ -65,6 +62,8 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	}()
 
 	if !opts.untrusted {
+		repoInfo := registry.ParseRepositoryInfo(named)
+		authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 		return trust.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody, command.UserAgent())
 	}
 
