@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
 )
@@ -28,13 +27,15 @@ const (
 		"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
 )
 
+// IndexServer is used for user auth and image search
+const indexServer = "https:/index.docker.io/v1/"
+
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
 	return func(ctx context.Context) (string, error) {
 		_, _ = fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
-		indexServer := registry.GetAuthConfigKey(index)
-		isDefaultRegistry := indexServer == registry.IndexServer
+		isDefaultRegistry := index.Official || index.Name == indexServer
 		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
 		if err != nil {
 			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
@@ -63,7 +64,7 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	configKey := index.Name
 	if index.Official {
-		configKey = registry.IndexServer
+		configKey = indexServer
 	}
 
 	a, _ := cfg.GetAuthConfig(configKey)
@@ -132,7 +133,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 
 	argUser = strings.TrimSpace(argUser)
 	if argUser == "" {
-		if serverAddress == registry.IndexServer {
+		if serverAddress == indexServer {
 			// When signing in to the default (Docker Hub) registry, we display
 			// hints for creating an account, and (if hints are enabled), using
 			// a token instead of a password.
@@ -220,14 +221,22 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 }
 
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
+//
+// TODO(thaJeztah): export this and/or accept an image ref-type, and use instead of ResolveAuthConfig
 func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
 	}
-	repoInfo, err := registry.ParseRepositoryInfo(registryRef)
+	domainName := reference.Domain(registryRef)
+	configKey := domainName
+	if domainName == "docker.io" || domainName == "index.docker.io" {
+		configKey = indexServer
+	}
+
+	a, err := cfg.GetAuthConfig(configKey)
 	if err != nil {
 		return registrytypes.AuthConfig{}, err
 	}
-	return ResolveAuthConfig(cfg, repoInfo.Index), nil
+	return registrytypes.AuthConfig(a), nil
 }

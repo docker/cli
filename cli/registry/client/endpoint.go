@@ -30,10 +30,7 @@ func (r repositoryEndpoint) BaseURL() string {
 }
 
 func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositoryEndpoint, error) {
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return repositoryEndpoint{}, err
-	}
+	repoInfo, _ := registry.ParseRepositoryInfo(ref)
 	endpoint, err := getDefaultEndpointFromRepoInfo(repoInfo)
 	if err != nil {
 		return repositoryEndpoint{}, err

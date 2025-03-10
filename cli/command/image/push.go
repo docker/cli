@@ -74,8 +74,6 @@ Image index won't be pushed, meaning that other manifests, including attestation
 }
 
 // RunPush performs a push against the engine based on the specified options
-//
-//nolint:gocyclo
 func RunPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	var platform *ocispec.Platform
 	out := tui.NewOutput(dockerCli.Out())
@@ -107,10 +105,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return err
-	}
+	repoInfo, _ := registry.ParseRepositoryInfo(ref)
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
