@@ -322,11 +322,7 @@ func GetImageReferencesAndAuth(ctx context.Context,
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return ImageRefAndAuth{}, err
-	}
-
+	repoInfo, _ := registry.ParseRepositoryInfo(ref)
 	authConfig := authResolver(ctx, repoInfo.Index)
 	return ImageRefAndAuth{
 		original:   imgName,

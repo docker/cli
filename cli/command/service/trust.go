@@ -51,11 +51,7 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 }
 
 func trustedResolveDigest(cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return nil, err
-	}
-
+	repoInfo, _ := registry.ParseRepositoryInfo(ref)
 	authConfig := command.ResolveAuthConfig(cli.ConfigFile(), repoInfo.Index)
 
 	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
