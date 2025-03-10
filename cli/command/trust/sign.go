@@ -82,7 +82,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			return trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), err)
 		}
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCLI, imgRefAndAuth.RepoInfo().Index, "push")
+	requestPrivilege := command.NewAuthRequester(dockerCLI, reference.Domain(imgRefAndAuth.Reference()), "Login prior to push:")
 	target, err := createTarget(notaryRepo, imgRefAndAuth.Tag())
 	if err != nil || options.local {
 		switch err := err.(type) {
