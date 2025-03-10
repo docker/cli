@@ -11,9 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/types"
-	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -65,7 +63,11 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		return types.PluginInstallOptions{}, err
 	}
 
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
+	// TODO(thaJeztah): looks like we need to do this here, because "ref" is mutated further below? (because .. docker content trust?)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
+	if err != nil {
+		return types.PluginInstallOptions{}, err
+	}
 
 	remote := ref.String()
 
@@ -82,12 +84,6 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 			return types.PluginInstallOptions{}, err
 		}
 		remote = reference.FamiliarString(trusted)
-	}
-
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
-	if err != nil {
-		return types.PluginInstallOptions{}, err
 	}
 
 	options := types.PluginInstallOptions{
