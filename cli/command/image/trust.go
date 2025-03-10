@@ -166,13 +166,14 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
+	// TODO(thaJeztah): get rid of this trust.ImageRefAndAuth monstrosity; we're wrapping wrappers around wrappers; all we need here is the image ref (or even less: the registry name)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull")
+	requestPrivilege := command.NewAuthRequester(cli, reference.Domain(imgRefAndAuth.Reference()), "Login prior to pull:")
 	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), image.PullOptions{
-		RegistryAuth:  encodedAuth,
+		RegistryAuth:  encodedAuth, // TODO: can we get rid of this one altogether, and always use PrivilegeFunc to lazily fetch creds? (maybe we need a way to tell it to either use "stored", or request login)
 		PrivilegeFunc: requestPrivilege,
 		All:           opts.all,
 		Platform:      opts.platform,

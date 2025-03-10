@@ -19,7 +19,6 @@ import (
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -112,13 +111,15 @@ To push the complete multi-platform image, remove the --platform flag.
 		return err
 	}
 
-	// Resolve the Auth config relevant for this server
+	// FIXME(thaJeztah): this os only needed for docker content trust, which needs the raw, non-encoded authconfig
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+
+	// Resolve the Auth config relevant for this server
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
 	if err != nil {
 		return err
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
+	requestPrivilege := command.NewAuthRequester(dockerCli, reference.Domain(ref), "Login prior to push:")
 	options := image.PushOptions{
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,
