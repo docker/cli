@@ -49,10 +49,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 
 	named = reference.TagNameOnly(named)
 
-	repoInfo, err := registry.ParseRepositoryInfo(named)
-	if err != nil {
-		return err
-	}
+	repoInfo, _ := registry.ParseRepositoryInfo(named)
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
