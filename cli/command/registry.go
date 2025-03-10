@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"net"
 	"os"
 	"runtime"
 	"strings"
@@ -28,12 +27,8 @@ const (
 		"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
 )
 
-const (
-	// IndexHostname is the index hostname, used for authentication and image search.
-	indexHostname = "index.docker.io"
-	// IndexServer is used for user auth and image search
-	indexServer = "https://" + indexHostname + "/v1/"
-)
+// IndexServer is used for user auth and image search
+const indexServer = "https:/index.docker.io/v1/"
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
@@ -225,36 +220,6 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 	return encodedAuth, nil
 }
 
-func normalizeIndexName(val string) string {
-	// TODO(thaJeztah): consider normalizing other known options, such as "(https://)registry-1.docker.io", "https://index.docker.io/v1/".
-	// TODO: upstream this to check to reference package
-	if val == "index.docker.io" {
-		return "docker.io"
-	}
-	return val
-}
-
-// newIndexInfo returns IndexInfo configuration from indexName
-func newIndexInfo(indexName string) *registrytypes.IndexInfo {
-	indexName = normalizeIndexName(indexName)
-
-	// Return any configured index info, first.
-	if indexName == "docker.io" {
-		return &registrytypes.IndexInfo{
-			Name:     "docker.io",
-			Secure:   true,
-			Official: true,
-		}
-	}
-
-	// Construct a non-configured index info.
-	return &registrytypes.IndexInfo{
-		Name:    indexName,
-		Mirrors: []string{},
-		Secure:  !isInsecure(indexName),
-	}
-}
-
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
 func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
@@ -262,44 +227,14 @@ func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (regis
 		return registrytypes.AuthConfig{}, err
 	}
 	domainName := reference.Domain(registryRef)
-	idxInfo := newIndexInfo(domainName)
-	return ResolveAuthConfig(cfg, idxInfo), nil
-}
-
-// isInsecure is used to detect whether a registry domain or IP-address is allowed
-// to use an insecure (non-TLS, or self-signed cert) connection according to the
-// defaults, which allows for insecure connections with registries running on a
-// loopback address ("localhost", "::1/128", "127.0.0.0/8").
-//
-// It is used in situations where we don't have access to the daemon's configuration,
-// for example, when used from the client / CLI.
-func isInsecure(hostNameOrIP string) bool {
-	// Attempt to strip port if present; this also strips brackets for
-	// IPv6 addresses with a port (e.g. "[::1]:5000").
-	//
-	// This is best-effort; we'll continue using the address as-is if it fails.
-	if host, _, err := net.SplitHostPort(hostNameOrIP); err == nil {
-		hostNameOrIP = host
-	}
-	if hostNameOrIP == "127.0.0.1" || hostNameOrIP == "::1" || strings.EqualFold(hostNameOrIP, "localhost") {
-		// Fast path; no need to resolve these, assuming nobody overrides
-		// "localhost" for anything else than a loopback address (sorry, not sorry).
-		return true
+	configKey := domainName
+	if domainName == "docker.io" || domainName == "index.docker.io" {
+		configKey = indexServer
 	}
 
-	var addresses []net.IP
-	if ip := net.ParseIP(hostNameOrIP); ip != nil {
-		addresses = append(addresses, ip)
-	} else {
-		// Try to resolve the host's IP-addresses.
-		addrs, _ := net.LookupIP(hostNameOrIP)
-		addresses = append(addresses, addrs...)
+	a, err := cfg.GetAuthConfig(configKey)
+	if err != nil {
+		return registrytypes.AuthConfig{}, err
 	}
-
-	for _, addr := range addresses {
-		if addr.IsLoopback() {
-			return true
-		}
-	}
-	return false
+	return registrytypes.AuthConfig(a), nil
 }
