@@ -1,3 +1,0 @@
-services:
-  engine:
-      command: ["--insecure-registry=registry:5000", "--experimental"]

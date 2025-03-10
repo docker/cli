@@ -128,17 +128,10 @@ build-e2e-image:
 	IMAGE_NAME=$(E2E_IMAGE_NAME) VERSION=$(VERSION) docker buildx bake e2e-image
 
 .PHONY: test-e2e
-test-e2e: test-e2e-non-experimental test-e2e-experimental test-e2e-connhelper-ssh ## run all e2e tests
+test-e2e: test-e2e-local test-e2e-connhelper-ssh ## run all e2e tests
 
-.PHONY: test-e2e-experimental
-test-e2e-experimental: build-e2e-image # run experimental e2e tests
-	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 \
-		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
-		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
-		$(E2E_IMAGE_NAME)
-
-.PHONY: test-e2e-non-experimental
-test-e2e-non-experimental: build-e2e-image # run non-experimental e2e tests
+.PHONY: test-e2e-local
+test-e2e-local: build-e2e-image # run experimental e2e tests
 	docker run --rm $(ENVVARS) \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
 		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
@@ -146,7 +139,7 @@ test-e2e-non-experimental: build-e2e-image # run non-experimental e2e tests
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build-e2e-image # run experimental SSH-connection helper e2e tests
-	docker run --rm $(ENVVARS) -e DOCKERD_EXPERIMENTAL=1 -e TEST_CONNHELPER=ssh \
+	docker run --rm $(ENVVARS) -e TEST_CONNHELPER=ssh \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
 		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
 		$(E2E_IMAGE_NAME)
