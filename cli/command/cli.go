@@ -88,7 +88,7 @@ type DockerCli struct {
 	enableGlobalMeter, enableGlobalTracer bool
 }
 
-// DefaultVersion returns api.defaultVersion.
+// DefaultVersion returns [api.DefaultVersion].
 func (*DockerCli) DefaultVersion() string {
 	return api.DefaultVersion
 }
