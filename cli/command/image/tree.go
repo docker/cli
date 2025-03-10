@@ -1,8 +1,12 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package image
 
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -37,6 +41,9 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 	})
 	if err != nil {
 		return err
+	}
+	if !opts.all {
+		images = slices.DeleteFunc(images, isDangling)
 	}
 
 	view := treeView{
