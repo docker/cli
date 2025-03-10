@@ -148,6 +148,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
+	// TODO(thaJeztah): get rid of this trust.ImageRefAndAuth monstrosity; we're wrapping wrappers around wrappers; all we need here is the image ref (or even less: the registry name)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err

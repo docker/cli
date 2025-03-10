@@ -8,8 +8,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/cli/internal/registry"
-	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -40,8 +38,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, name string) error {
 	}
 
 	named = reference.TagNameOnly(named)
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), registry.NewIndexInfo(named))
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), named.String())
 	if err != nil {
 		return err
 	}
