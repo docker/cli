@@ -221,6 +221,8 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 }
 
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
+//
+// TODO(thaJeztah): export this and/or accept an image ref-type, and use instead of ResolveAuthConfig
 func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
