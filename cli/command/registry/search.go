@@ -52,6 +52,7 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 	if options.filter.Value().Contains("is-automated") {
 		_, _ = fmt.Fprintln(dockerCli.Err(), `WARNING: the "is-automated" filter is deprecated, and searching for "is-automated=true" will not yield any results in future.`)
 	}
+	// FIXME(thaJeztah): we need some equivalent of "splitReposSearchTerm" to get the registry hostname from the search term.
 	indexInfo, err := registry.ParseSearchIndexInfo(options.term)
 	if err != nil {
 		return err
@@ -65,7 +66,8 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 
 	var requestPrivilege registrytypes.RequestAuthConfig
 	if dockerCli.In().IsTerminal() {
-		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
+		indexServer := indexInfo.Name
+		requestPrivilege = command.NewAuthRequester(dockerCli, indexServer, "Login prior to search:")
 	}
 	results, err := dockerCli.Client().ImageSearch(ctx, options.term, registrytypes.SearchOptions{
 		RegistryAuth:  encodedAuth,
