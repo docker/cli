@@ -1,4 +1,4 @@
-package opts
+package swarmopts
 
 import (
 	"encoding/csv"
@@ -46,42 +46,50 @@ func (p *PortOpt) Set(value string) error {
 			// TODO(thaJeztah): these options should not be case-insensitive.
 			key, val, ok := strings.Cut(strings.ToLower(field), "=")
 			if !ok || key == "" {
-				return fmt.Errorf("invalid field %s", field)
+				return fmt.Errorf("invalid field: %s", field)
 			}
 			switch key {
 			case portOptProtocol:
 				if val != string(swarm.PortConfigProtocolTCP) && val != string(swarm.PortConfigProtocolUDP) && val != string(swarm.PortConfigProtocolSCTP) {
-					return fmt.Errorf("invalid protocol value %s", val)
+					return fmt.Errorf("invalid protocol value '%s'", val)
 				}
 
 				pConfig.Protocol = swarm.PortConfigProtocol(val)
 			case portOptMode:
 				if val != string(swarm.PortConfigPublishModeIngress) && val != string(swarm.PortConfigPublishModeHost) {
-					return fmt.Errorf("invalid publish mode value %s", val)
+					return fmt.Errorf("invalid publish mode value (%s): must be either '%s' or '%s'", val, swarm.PortConfigPublishModeIngress, swarm.PortConfigPublishModeHost)
 				}
 
 				pConfig.PublishMode = swarm.PortConfigPublishMode(val)
 			case portOptTargetPort:
 				tPort, err := strconv.ParseUint(val, 10, 16)
 				if err != nil {
-					return err
+					var numErr *strconv.NumError
+					if errors.As(err, &numErr) {
+						err = numErr.Err
+					}
+					return fmt.Errorf("invalid target port (%s): value must be an integer: %w", val, err)
 				}
 
 				pConfig.TargetPort = uint32(tPort)
 			case portOptPublishedPort:
 				pPort, err := strconv.ParseUint(val, 10, 16)
 				if err != nil {
-					return err
+					var numErr *strconv.NumError
+					if errors.As(err, &numErr) {
+						err = numErr.Err
+					}
+					return fmt.Errorf("invalid published port (%s): value must be an integer: %w", val, err)
 				}
 
 				pConfig.PublishedPort = uint32(pPort)
 			default:
-				return fmt.Errorf("invalid field key %s", key)
+				return fmt.Errorf("invalid field key: %s", key)
 			}
 		}
 
 		if pConfig.TargetPort == 0 {
-			return fmt.Errorf("missing mandatory field %q", portOptTargetPort)
+			return fmt.Errorf("missing mandatory field '%s'", portOptTargetPort)
 		}
 
 		if pConfig.PublishMode == "" {
