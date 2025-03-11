@@ -16,8 +16,6 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
-	mounttypes "github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
 	"github.com/moby/sys/sequential"
 	"github.com/moby/term"
@@ -214,20 +212,6 @@ func ValidateOutputPathFileMode(fileMode os.FileMode) error {
 		return errors.New("got a device")
 	case fileMode&os.ModeIrregular != 0:
 		return errors.New("got an irregular file")
-	}
-	return nil
-}
-
-// ValidateMountWithAPIVersion validates a mount with the server API version.
-func ValidateMountWithAPIVersion(m mounttypes.Mount, serverAPIVersion string) error {
-	if m.BindOptions != nil {
-		if m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
-			return errors.Errorf("bind-recursive=disabled requires API v1.40 or later")
-		}
-		// ReadOnlyNonRecursive can be safely ignored when API < 1.44
-		if m.BindOptions.ReadOnlyForceRecursive && versions.LessThan(serverAPIVersion, "1.44") {
-			return errors.Errorf("bind-recursive=readonly requires API v1.44 or later")
-		}
 	}
 	return nil
 }
