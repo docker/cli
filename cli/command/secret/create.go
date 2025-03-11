@@ -102,21 +102,17 @@ const maxSecretSize = 500 * 1024 // 500KB
 // It reads up to twice the maximum size of the secret ([maxSecretSize]),
 // just in case swarm's limit changes; this is only a safeguard to prevent
 // reading arbitrary files into memory.
-func readSecretData(in io.Reader, fileName string) (data []byte, retErr error) {
-	if fileName != "" {
-		defer func() {
-			if retErr != nil {
-				retErr = fmt.Errorf("error reading from %s: %w", fileName, retErr)
-			} else if len(data) == 0 {
-				retErr = fmt.Errorf("error reading from %s: data is empty", fileName)
-			}
-		}()
-	}
-
+func readSecretData(in io.Reader, fileName string) ([]byte, error) {
 	switch fileName {
 	case "-":
-		fileName = "STDIN"
-		return io.ReadAll(io.LimitReader(in, 2*maxSecretSize))
+		data, err := io.ReadAll(io.LimitReader(in, 2*maxSecretSize))
+		if err != nil {
+			return nil, fmt.Errorf("error reading from STDIN: %w", err)
+		}
+		if len(data) == 0 {
+			return nil, errors.New("error reading from STDIN: data is empty")
+		}
+		return data, nil
 	case "":
 		return nil, errors.New("secret file is required")
 	default:
@@ -129,9 +125,16 @@ func readSecretData(in io.Reader, fileName string) (data []byte, retErr error) {
 		// [FILE_FLAG_SEQUENTIAL_SCAN]: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#FILE_FLAG_SEQUENTIAL_SCAN
 		f, err := sequential.Open(fileName)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error reading from %s: %w", fileName, err)
 		}
 		defer f.Close()
-		return io.ReadAll(io.LimitReader(f, 2*maxSecretSize))
+		data, err := io.ReadAll(io.LimitReader(f, 2*maxSecretSize))
+		if err != nil {
+			return nil, fmt.Errorf("error reading from %s: %w", fileName, err)
+		}
+		if len(data) == 0 {
+			return nil, fmt.Errorf("error reading from %s: data is empty", fileName)
+		}
+		return data, nil
 	}
 }
