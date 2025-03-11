@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -85,9 +86,14 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) {
 		return
 	}
 	for _, dentry := range dentries {
-		switch dentry.Type() & os.ModeType {
-		case 0, os.ModeSymlink:
-			// Regular file or symlink, keep going
+		switch mode := dentry.Type() & os.ModeType; mode {
+		case os.ModeSymlink:
+			if _, err := os.Stat(filepath.Join(d, dentry.Name())); errors.Is(err, os.ErrNotExist) {
+				// Ignore broken symlink
+				continue
+			}
+		case 0:
+			// Regular file, keep going
 		default:
 			// Something else, ignore.
 			continue
