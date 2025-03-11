@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
@@ -1134,13 +1133,4 @@ func validateAttach(val string) (string, error) {
 		}
 	}
 	return val, errors.Errorf("valid streams are STDIN, STDOUT and STDERR")
-}
-
-func validateAPIVersion(c *containerConfig, serverAPIVersion string) error {
-	for _, m := range c.HostConfig.Mounts {
-		if err := command.ValidateMountWithAPIVersion(m, serverAPIVersion); err != nil {
-			return err
-		}
-	}
-	return nil
 }
