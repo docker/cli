@@ -1,6 +1,10 @@
 package manager
 
-import "os/exec"
+import (
+	"os/exec"
+
+	"github.com/docker/cli/cli-plugins/metadata"
+)
 
 // Candidate represents a possible plugin candidate, for mocking purposes
 type Candidate interface {
@@ -17,5 +21,5 @@ func (c *candidate) Path() string {
 }
 
 func (c *candidate) Metadata() ([]byte, error) {
-	return exec.Command(c.path, MetadataSubcommandName).Output() // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
+	return exec.Command(c.path, metadata.MetadataSubcommandName).Output() // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
 }

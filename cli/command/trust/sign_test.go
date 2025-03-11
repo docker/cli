@@ -14,15 +14,12 @@ import (
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/client/changelist"
-	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustpinning"
 	"github.com/theupdateframework/notary/tuf/data"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/skip"
 )
-
-const passwd = "password"
 
 func TestTrustSignCommandErrors(t *testing.T) {
 	testCases := []struct {
@@ -83,7 +80,7 @@ func TestTrustSignCommandOfflineErrors(t *testing.T) {
 }
 
 func TestGetOrGenerateNotaryKey(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, testPassRetriever, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 
 	// repo is empty, try making a root key
@@ -126,7 +123,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 func TestAddStageSigners(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows", "FIXME: not supported currently")
 
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, testPassRetriever, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 
 	// stage targets/user
@@ -207,7 +204,7 @@ func TestAddStageSigners(t *testing.T) {
 }
 
 func TestGetSignedManifestHashAndSize(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, testPassRetriever, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	_, _, err = getSignedManifestHashAndSize(notaryRepo, "test")
 	assert.Error(t, err, "client is offline")
@@ -229,7 +226,7 @@ func TestGetReleasedTargetHashAndSize(t *testing.T) {
 }
 
 func TestCreateTarget(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, testPassRetriever, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	_, err = createTarget(notaryRepo, "")
 	assert.Error(t, err, "no tag specified")
@@ -238,7 +235,7 @@ func TestCreateTarget(t *testing.T) {
 }
 
 func TestGetExistingSignatureInfoForReleasedTag(t *testing.T) {
-	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(t.TempDir(), "gun", "https://localhost", nil, testPassRetriever, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	_, err = getExistingSignatureInfoForReleasedTag(notaryRepo, "test")
 	assert.Error(t, err, "client is offline")
@@ -267,7 +264,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 	err := cmd.Execute()
 	assert.Assert(t, err != nil)
 
-	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, passphrase.ConstantRetriever(passwd), trustpinning.TrustPinConfig{})
+	notaryRepo, err := client.NewFileCachedRepository(tmpDir, "docker.io/library/ubuntu", "https://localhost", nil, testPassRetriever, trustpinning.TrustPinConfig{})
 	assert.NilError(t, err)
 	cl, err := notaryRepo.GetChangelist()
 	assert.NilError(t, err)

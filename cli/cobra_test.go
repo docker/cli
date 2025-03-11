@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -49,9 +49,9 @@ func TestVendorAndVersion(t *testing.T) {
 			cmd := &cobra.Command{
 				Use: "test",
 				Annotations: map[string]string{
-					pluginmanager.CommandAnnotationPlugin:        "true",
-					pluginmanager.CommandAnnotationPluginVendor:  tc.vendor,
-					pluginmanager.CommandAnnotationPluginVersion: tc.version,
+					metadata.CommandAnnotationPlugin:        "true",
+					metadata.CommandAnnotationPluginVendor:  tc.vendor,
+					metadata.CommandAnnotationPluginVersion: tc.version,
 				},
 			}
 			assert.Equal(t, vendorAndVersion(cmd), tc.expected)
@@ -69,8 +69,8 @@ func TestInvalidPlugin(t *testing.T) {
 	assert.Assert(t, is.Len(invalidPlugins(root), 0))
 
 	sub1.Annotations = map[string]string{
-		pluginmanager.CommandAnnotationPlugin:        "true",
-		pluginmanager.CommandAnnotationPluginInvalid: "foo",
+		metadata.CommandAnnotationPlugin:        "true",
+		metadata.CommandAnnotationPluginInvalid: "foo",
 	}
 	root.AddCommand(sub1, sub2)
 	sub1.AddCommand(sub1sub1, sub1sub2)
@@ -100,6 +100,6 @@ func TestDecoratedName(t *testing.T) {
 	topLevelCommand := &cobra.Command{Use: "pluginTopLevelCommand"}
 	root.AddCommand(topLevelCommand)
 	assert.Equal(t, decoratedName(topLevelCommand), "pluginTopLevelCommand ")
-	topLevelCommand.Annotations = map[string]string{pluginmanager.CommandAnnotationPlugin: "true"}
+	topLevelCommand.Annotations = map[string]string{metadata.CommandAnnotationPlugin: "true"}
 	assert.Equal(t, decoratedName(topLevelCommand), "pluginTopLevelCommand*")
 }

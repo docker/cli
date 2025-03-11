@@ -270,31 +270,24 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 
 func TestNewCreateCommandWithWarnings(t *testing.T) {
 	testCases := []struct {
-		name    string
-		args    []string
-		warning bool
+		name     string
+		args     []string
+		warnings []string
+		warning  bool
 	}{
 		{
-			name: "container-create-without-oom-kill-disable",
+			name: "container-create-no-warnings",
 			args: []string{"image:tag"},
 		},
 		{
-			name: "container-create-oom-kill-disable-false",
-			args: []string{"--oom-kill-disable=false", "image:tag"},
+			name:     "container-create-daemon-single-warning",
+			args:     []string{"image:tag"},
+			warnings: []string{"warning from daemon"},
 		},
 		{
-			name:    "container-create-oom-kill-without-memory-limit",
-			args:    []string{"--oom-kill-disable", "image:tag"},
-			warning: true,
-		},
-		{
-			name:    "container-create-oom-kill-true-without-memory-limit",
-			args:    []string{"--oom-kill-disable=true", "image:tag"},
-			warning: true,
-		},
-		{
-			name: "container-create-oom-kill-true-with-memory-limit",
-			args: []string{"--oom-kill-disable=true", "--memory=100M", "image:tag"},
+			name:     "container-create-daemon-multiple-warnings",
+			args:     []string{"image:tag"},
+			warnings: []string{"warning from daemon", "another warning from daemon"},
 		},
 		{
 			name:    "container-create-localhost-dns",
@@ -316,7 +309,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 					platform *specs.Platform,
 					containerName string,
 				) (container.CreateResponse, error) {
-					return container.CreateResponse{}, nil
+					return container.CreateResponse{Warnings: tc.warnings}, nil
 				},
 			})
 			cmd := NewCreateCommand(fakeCLI)
@@ -324,7 +317,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
 			assert.NilError(t, err)
-			if tc.warning {
+			if tc.warning || len(tc.warnings) > 0 {
 				golden.Assert(t, fakeCLI.ErrBuffer().String(), tc.name+".golden")
 			} else {
 				assert.Equal(t, fakeCLI.ErrBuffer().String(), "")

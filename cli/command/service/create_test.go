@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
-
-	cliopts "github.com/docker/cli/opts"
 )
 
 // fakeConfigAPIClientList is used to let us pass a closure as a
@@ -43,8 +42,8 @@ func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm
 func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 	// we can't directly access the internal fields of the ConfigOpt struct, so
 	// we need to let it do the parsing
-	configOpt := &cliopts.ConfigOpt{}
-	configOpt.Set("bar")
+	configOpt := &swarmopts.ConfigOpt{}
+	assert.Check(t, configOpt.Set("bar"))
 	opts := &serviceOptions{
 		credentialSpec: credentialSpecOpt{
 			value: &swarm.CredentialSpec{
@@ -187,8 +186,8 @@ func TestSetConfigsOnlyCredSpec(t *testing.T) {
 // TestSetConfigsOnlyConfigs verifies setConfigs when only configs (and not a
 // CredentialSpec) is needed.
 func TestSetConfigsOnlyConfigs(t *testing.T) {
-	configOpt := &cliopts.ConfigOpt{}
-	configOpt.Set("bar")
+	configOpt := &swarmopts.ConfigOpt{}
+	assert.Check(t, configOpt.Set("bar"))
 	opts := &serviceOptions{
 		configs: *configOpt,
 	}

@@ -8,8 +8,8 @@
 Thumbs.db
 .editorconfig
 /build/
-/cli/winresources/versioninfo.json
-/cli/winresources/*.syso
+/cmd/docker/winresources/versioninfo.json
+/cmd/docker/winresources/*.syso
 profile.out
 
 # top-level go.mod is not meant to be checked in

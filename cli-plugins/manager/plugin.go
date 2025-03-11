@@ -3,13 +3,15 @@ package manager
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +19,7 @@ var pluginNameRe = regexp.MustCompile("^[a-z][a-z0-9]*$")
 
 // Plugin represents a potential plugin with all it's metadata.
 type Plugin struct {
-	Metadata
+	metadata.Metadata
 
 	Name string `json:",omitempty"`
 	Path string `json:",omitempty"`
@@ -44,18 +46,18 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 	// which would fail here, so there are all real errors.
 	fullname := filepath.Base(path)
 	if fullname == "." {
-		return Plugin{}, errors.Errorf("unable to determine basename of plugin candidate %q", path)
+		return Plugin{}, fmt.Errorf("unable to determine basename of plugin candidate %q", path)
 	}
 	var err error
 	if fullname, err = trimExeSuffix(fullname); err != nil {
-		return Plugin{}, errors.Wrapf(err, "plugin candidate %q", path)
+		return Plugin{}, fmt.Errorf("plugin candidate %q: %w", path, err)
 	}
-	if !strings.HasPrefix(fullname, NamePrefix) {
-		return Plugin{}, errors.Errorf("plugin candidate %q: does not have %q prefix", path, NamePrefix)
+	if !strings.HasPrefix(fullname, metadata.NamePrefix) {
+		return Plugin{}, fmt.Errorf("plugin candidate %q: does not have %q prefix", path, metadata.NamePrefix)
 	}
 
 	p := Plugin{
-		Name: strings.TrimPrefix(fullname, NamePrefix),
+		Name: strings.TrimPrefix(fullname, metadata.NamePrefix),
 		Path: path,
 	}
 
@@ -112,9 +114,9 @@ func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, 
 		return nil, wrapAsPluginError(err, "failed to marshall hook data")
 	}
 
-	pCmd := exec.CommandContext(ctx, p.Path, p.Name, HookSubcommandName, string(hDataBytes)) // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
+	pCmd := exec.CommandContext(ctx, p.Path, p.Name, metadata.HookSubcommandName, string(hDataBytes)) // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
 	pCmd.Env = os.Environ()
-	pCmd.Env = append(pCmd.Env, ReexecEnvvar+"="+os.Args[0])
+	pCmd.Env = append(pCmd.Env, metadata.ReexecEnvvar+"="+os.Args[0])
 	hookCmdOutput, err := pCmd.Output()
 	if err != nil {
 		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand")

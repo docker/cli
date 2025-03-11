@@ -4,7 +4,7 @@ ARG BASE_VARIANT=alpine
 ARG ALPINE_VERSION=3.21
 ARG BASE_DEBIAN_DISTRO=bookworm
 
-ARG GO_VERSION=1.23.6
+ARG GO_VERSION=1.23.7
 ARG XX_VERSION=1.6.1
 ARG GOVERSIONINFO_VERSION=v1.4.1
 ARG GOTESTSUM_VERSION=v1.12.0
@@ -67,7 +67,7 @@ ARG PACKAGER_NAME
 COPY --link --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
 RUN --mount=type=bind,target=.,ro \
     --mount=type=cache,target=/root/.cache \
-    --mount=type=tmpfs,target=cli/winresources \
+    --mount=type=tmpfs,target=cmd/docker/winresources \
     # override the default behavior of go with xx-go
     xx-go --wrap && \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \

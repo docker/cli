@@ -28,7 +28,7 @@ func notaryRoleToSigner(tufRole data.RoleName) string {
 	return strings.TrimPrefix(tufRole.String(), "targets/")
 }
 
-// clearChangelist clears the notary staging changelist.
+// clearChangeList clears the notary staging changelist.
 func clearChangeList(notaryRepo client.Repository) error {
 	cl, err := notaryRepo.GetChangelist()
 	if err != nil {
@@ -46,4 +46,10 @@ func getOrGenerateRootKeyAndInitRepo(notaryRepo client.Repository) error {
 		return err
 	}
 	return notaryRepo.Initialize([]string{rootKey.ID()}, data.CanonicalSnapshotRole)
+}
+
+const testPass = "password"
+
+func testPassRetriever(string, string, bool, int) (string, bool, error) {
+	return testPass, false, nil
 }

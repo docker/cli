@@ -22,6 +22,7 @@ import (
 	"github.com/docker/cli/cli/command/image/build"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -241,7 +242,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	if err != nil {
 		if options.quiet && urlutil.IsURL(specifiedContext) {
-			fmt.Fprintln(dockerCli.Err(), progBuff)
+			_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
 		}
 		return errors.Errorf("unable to prepare context: %s", err)
 	}
@@ -336,16 +337,16 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	for k, auth := range creds {
 		authConfigs[k] = registrytypes.AuthConfig(auth)
 	}
-	buildOptions := imageBuildOptions(dockerCli, options)
-	buildOptions.Version = types.BuilderV1
-	buildOptions.Dockerfile = relDockerfile
-	buildOptions.AuthConfigs = authConfigs
-	buildOptions.RemoteContext = remote
+	buildOpts := imageBuildOptions(dockerCli, options)
+	buildOpts.Version = types.BuilderV1
+	buildOpts.Dockerfile = relDockerfile
+	buildOpts.AuthConfigs = authConfigs
+	buildOpts.RemoteContext = remote
 
-	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOptions)
+	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOpts)
 	if err != nil {
 		if options.quiet {
-			fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
 		}
 		cancel()
 		return err
@@ -356,7 +357,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	aux := func(msg jsonstream.JSONMessage) {
 		var result types.BuildResult
 		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
-			fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
 		} else {
 			imageID = result.ID
 		}
@@ -370,7 +371,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 				jerr.Code = 1
 			}
 			if options.quiet {
-				fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
+				_, _ = fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
 			}
 			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
 		}
@@ -380,7 +381,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	// Windows: show error message about modified file permissions if the
 	// daemon isn't running Windows.
 	if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
-		fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
+		_, _ = fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
 			"image from Windows against a non-Windows Docker host. All files and "+
 			"directories added to build context will have '-rwxr-xr-x' permissions. "+
 			"It is recommended to double check and reset permissions for sensitive "+
@@ -406,7 +407,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		// Since the build was successful, now we must tag any of the resolved
 		// images from the above Dockerfile rewrite.
 		for _, resolved := range resolvedTags {
-			if err := TagTrusted(ctx, dockerCli, resolved.digestRef, resolved.tagRef); err != nil {
+			if err := trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), resolved.digestRef, resolved.tagRef); err != nil {
 				return err
 			}
 		}
@@ -501,12 +502,12 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 			hdr, err := tarReader.Next()
 			if err == io.EOF {
 				// Signals end of archive.
-				tarWriter.Close()
-				pipeWriter.Close()
+				_ = tarWriter.Close()
+				_ = pipeWriter.Close()
 				return
 			}
 			if err != nil {
-				pipeWriter.CloseWithError(err)
+				_ = pipeWriter.CloseWithError(err)
 				return
 			}
 
@@ -518,7 +519,7 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 				var newDockerfile []byte
 				newDockerfile, *resolvedTags, err = rewriteDockerfileFromForContentTrust(ctx, content, translator)
 				if err != nil {
-					pipeWriter.CloseWithError(err)
+					_ = pipeWriter.CloseWithError(err)
 					return
 				}
 				hdr.Size = int64(len(newDockerfile))
@@ -526,12 +527,12 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 			}
 
 			if err := tarWriter.WriteHeader(hdr); err != nil {
-				pipeWriter.CloseWithError(err)
+				_ = pipeWriter.CloseWithError(err)
 				return
 			}
 
 			if _, err := io.Copy(tarWriter, content); err != nil {
-				pipeWriter.CloseWithError(err)
+				_ = pipeWriter.CloseWithError(err)
 				return
 			}
 		}

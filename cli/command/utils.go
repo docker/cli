@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
 	mounttypes "github.com/docker/docker/api/types/mount"
@@ -49,30 +50,6 @@ func CopyToFile(outfile string, r io.Reader) error {
 	}
 
 	return nil
-}
-
-// capitalizeFirst capitalizes the first character of string
-func capitalizeFirst(s string) string {
-	switch l := len(s); l {
-	case 0:
-		return s
-	case 1:
-		return strings.ToLower(s)
-	default:
-		return strings.ToUpper(string(s[0])) + strings.ToLower(s[1:])
-	}
-}
-
-// PrettyPrint outputs arbitrary data for human formatted output by uppercasing the first letter.
-func PrettyPrint(i any) string {
-	switch t := i.(type) {
-	case nil:
-		return "None"
-	case string:
-		return capitalizeFirst(t)
-	default:
-		return capitalizeFirst(fmt.Sprintf("%s", t))
-	}
 }
 
 var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
@@ -166,11 +143,12 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 }
 
 // PruneFilters returns consolidated prune filters obtained from config.json and cli
-func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
-	if dockerCli.ConfigFile() == nil {
+func PruneFilters(dockerCLI config.Provider, pruneFilters filters.Args) filters.Args {
+	cfg := dockerCLI.ConfigFile()
+	if cfg == nil {
 		return pruneFilters
 	}
-	for _, f := range dockerCli.ConfigFile().PruneFilters {
+	for _, f := range cfg.PruneFilters {
 		k, v, ok := strings.Cut(f, "=")
 		if !ok {
 			continue
@@ -238,37 +216,6 @@ func ValidateOutputPathFileMode(fileMode os.FileMode) error {
 		return errors.New("got an irregular file")
 	}
 	return nil
-}
-
-func stringSliceIndex(s, subs []string) int {
-	j := 0
-	if len(subs) > 0 {
-		for i, x := range s {
-			if j < len(subs) && subs[j] == x {
-				j++
-			} else {
-				j = 0
-			}
-			if len(subs) == j {
-				return i + 1 - j
-			}
-		}
-	}
-	return -1
-}
-
-// StringSliceReplaceAt replaces the sub-slice find, with the sub-slice replace, in the string
-// slice s, returning a new slice and a boolean indicating if the replacement happened.
-// requireIdx is the index at which old needs to be found at (or -1 to disregard that).
-func StringSliceReplaceAt(s, find, replace []string, requireIndex int) ([]string, bool) {
-	idx := stringSliceIndex(s, find)
-	if (requireIndex != -1 && requireIndex != idx) || idx == -1 {
-		return s, false
-	}
-	out := append([]string{}, s[:idx]...)
-	out = append(out, replace...)
-	out = append(out, s[idx+len(find):]...)
-	return out, true
 }
 
 // ValidateMountWithAPIVersion validates a mount with the server API version.

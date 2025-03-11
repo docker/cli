@@ -89,7 +89,11 @@ func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 			case gwPriorityOpt:
 				netOpt.GwPriority, err = strconv.Atoi(val)
 				if err != nil {
-					return fmt.Errorf("invalid gw-priority: %w", err)
+					var numErr *strconv.NumError
+					if errors.As(err, &numErr) {
+						err = numErr.Err
+					}
+					return fmt.Errorf("invalid gw-priority (%s): %w", val, err)
 				}
 			default:
 				return errors.New("invalid field key " + key)

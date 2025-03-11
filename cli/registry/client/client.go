@@ -8,7 +8,6 @@ import (
 
 	"github.com/distribution/reference"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution"
 	distributionclient "github.com/docker/distribution/registry/client"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -38,12 +37,6 @@ func NewRegistryClient(resolver AuthConfigResolver, userAgent string, insecure b
 // AuthConfigResolver returns Auth Configuration for an index
 type AuthConfigResolver func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig
 
-// PutManifestOptions is the data sent to push a manifest
-type PutManifestOptions struct {
-	MediaType string
-	Payload   []byte
-}
-
 type client struct {
 	authConfigResolver AuthConfigResolver
 	insecureRegistry   bool
@@ -61,13 +54,13 @@ func (err ErrBlobCreated) Error() string {
 		err.From, err.Target)
 }
 
-// ErrHTTPProto returned if attempting to use TLS with a non-TLS registry
-type ErrHTTPProto struct {
-	OrigErr string
+// httpProtoError returned if attempting to use TLS with a non-TLS registry
+type httpProtoError struct {
+	cause error
 }
 
-func (err ErrHTTPProto) Error() string {
-	return err.OrigErr
+func (e httpProtoError) Error() string {
+	return e.cause.Error()
 }
 
 var _ RegistryClient = &client{}
@@ -78,7 +71,7 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 	if err != nil {
 		return err
 	}
-	repoEndpoint.actions = trust.ActionsPushAndPull
+	repoEndpoint.actions = []string{"pull", "push"}
 	repo, err := c.getRepositoryForReference(ctx, targetRef, repoEndpoint)
 	if err != nil {
 		return err
@@ -104,7 +97,7 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 		return "", err
 	}
 
-	repoEndpoint.actions = trust.ActionsPushAndPull
+	repoEndpoint.actions = []string{"pull", "push"}
 	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
 	if err != nil {
 		return "", err
@@ -138,7 +131,7 @@ func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Na
 			return nil, err
 		}
 		if !repoEndpoint.endpoint.TLSConfig.InsecureSkipVerify {
-			return nil, ErrHTTPProto{OrigErr: err.Error()}
+			return nil, httpProtoError{cause: err}
 		}
 		// --insecure was set; fall back to plain HTTP
 		if url := repoEndpoint.endpoint.URL; url != nil && url.Scheme == "https" {

@@ -155,7 +155,7 @@ func resetTimer(t *time.Timer, d time.Duration) {
 	t.Reset(d)
 }
 
-// getToken calls the token endpoint of Auth0 and returns the response.
+// getDeviceToken calls the token endpoint of Auth0 and returns the response.
 func (a API) getDeviceToken(ctx context.Context, state State) (TokenResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
