@@ -88,21 +88,17 @@ const maxConfigSize = 1000 * 1024 // 1000KB
 // It reads up to twice the maximum size of the config ([maxConfigSize]),
 // just in case swarm's limit changes; this is only a safeguard to prevent
 // reading arbitrary files into memory.
-func readConfigData(in io.Reader, fileName string) (data []byte, retErr error) {
-	if fileName != "" {
-		defer func() {
-			if retErr != nil {
-				retErr = fmt.Errorf("error reading from %s: %w", fileName, retErr)
-			} else if len(data) == 0 {
-				retErr = fmt.Errorf("error reading from %s: data is empty", fileName)
-			}
-		}()
-	}
-
+func readConfigData(in io.Reader, fileName string) ([]byte, error) {
 	switch fileName {
 	case "-":
-		fileName = "STDIN"
-		return io.ReadAll(io.LimitReader(in, 2*maxConfigSize))
+		data, err := io.ReadAll(io.LimitReader(in, 2*maxConfigSize))
+		if err != nil {
+			return nil, fmt.Errorf("error reading from STDIN: %w", err)
+		}
+		if len(data) == 0 {
+			return nil, errors.New("error reading from STDIN: data is empty")
+		}
+		return data, nil
 	case "":
 		return nil, errors.New("config file is required")
 	default:
@@ -115,9 +111,16 @@ func readConfigData(in io.Reader, fileName string) (data []byte, retErr error) {
 		// [FILE_FLAG_SEQUENTIAL_SCAN]: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#FILE_FLAG_SEQUENTIAL_SCAN
 		f, err := sequential.Open(fileName)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error reading from %s: %w", fileName, err)
 		}
 		defer f.Close()
-		return io.ReadAll(io.LimitReader(f, 2*maxConfigSize))
+		data, err := io.ReadAll(io.LimitReader(f, 2*maxConfigSize))
+		if err != nil {
+			return nil, fmt.Errorf("error reading from %s: %w", fileName, err)
+		}
+		if len(data) == 0 {
+			return nil, fmt.Errorf("error reading from %s: data is empty", fileName)
+		}
+		return data, nil
 	}
 }
