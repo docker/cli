@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"net"
 	"os"
-	"runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -175,8 +174,6 @@ func TestConnectAndWait(t *testing.T) {
 		}
 	})
 
-	// TODO: this test cannot be executed with `t.Parallel()`, due to
-	// relying on goroutine numbers to ensure correct behaviour
 	t.Run("connect goroutine exits after EOF", func(t *testing.T) {
 		srv, err := NewPluginServer(nil)
 		assert.NilError(t, err, "failed to setup server")
@@ -184,18 +181,18 @@ func TestConnectAndWait(t *testing.T) {
 		defer srv.Close()
 
 		t.Setenv(EnvKey, srv.Addr().String())
-		numGoroutines := runtime.NumGoroutine()
 
-		ConnectAndWait(func() {})
-		assert.Equal(t, runtime.NumGoroutine(), numGoroutines+1)
+		ch := make(chan struct{})
+		ConnectAndWait(func() {
+			close(ch)
+		})
 
 		srv.Close()
 
-		poll.WaitOn(t, func(t poll.LogT) poll.Result {
-			if runtime.NumGoroutine() > numGoroutines+1 {
-				return poll.Continue("waiting for connect goroutine to exit")
-			}
-			return poll.Success()
-		}, poll.WithDelay(1*time.Millisecond), poll.WithTimeout(10*time.Millisecond))
+		select {
+		case <-ch:
+		case <-time.After(1 * time.Second):
+			t.Fatal("callback not called after 1s")
+		}
 	})
 }
