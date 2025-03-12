@@ -147,7 +147,6 @@ func TestRunAttachTermination(t *testing.T) {
 		_ = p.Close()
 	}()
 
-	var conn net.Conn
 	killCh := make(chan struct{})
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
@@ -156,13 +155,14 @@ func TestRunAttachTermination(t *testing.T) {
 				ID: "id",
 			}, nil
 		},
-		containerKillFunc: func(ctx context.Context, containerID, signal string) error {
-			killCh <- struct{}{}
+		containerKillFunc: func(ctx context.Context, containerID, sig string) error {
+			if sig == "TERM" {
+				close(killCh)
+			}
 			return nil
 		},
 		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
 			server, client := net.Pipe()
-			conn = server
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
@@ -172,7 +172,7 @@ func TestRunAttachTermination(t *testing.T) {
 		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
 			responseChan := make(chan container.WaitResponse, 1)
 			errChan := make(chan error)
-
+			<-killCh
 			responseChan <- container.WaitResponse{
 				StatusCode: 130,
 			}
@@ -201,9 +201,7 @@ func TestRunAttachTermination(t *testing.T) {
 	case <-attachCh:
 	}
 
-	assert.NilError(t, syscall.Kill(syscall.Getpid(), syscall.SIGINT))
-	// end stream from "container" so that we'll detach
-	conn.Close()
+	assert.NilError(t, syscall.Kill(syscall.Getpid(), syscall.SIGTERM))
 
 	select {
 	case <-killCh:
