@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/trust"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -53,8 +52,10 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	if err != nil {
 		return err
 	}
+
+	// FIXME(thaJeztah): this is now only used by docker content trust below
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), named.String())
 	if err != nil {
 		return err
 	}

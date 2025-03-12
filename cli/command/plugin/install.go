@@ -11,8 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types"
-	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -64,7 +62,9 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		return types.PluginInstallOptions{}, err
 	}
 
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	// TODO(thaJeztah): looks like we need to do this here, because "ref" is mutated further below? (because .. docker content trust?)
+	privilegeFunc := command.NewAuthRequester(dockerCli, reference.Domain(ref), fmt.Sprintf("Login prior to %s:", cmdName))
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
 	if err != nil {
 		return types.PluginInstallOptions{}, err
 	}
@@ -86,19 +86,13 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		remote = reference.FamiliarString(trusted)
 	}
 
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
-	if err != nil {
-		return types.PluginInstallOptions{}, err
-	}
-
 	options := types.PluginInstallOptions{
 		RegistryAuth:          encodedAuth,
 		RemoteRef:             remote,
 		Disabled:              opts.disable,
 		AcceptAllPermissions:  opts.grantPerms,
 		AcceptPermissionsFunc: acceptPrivileges(dockerCli, opts.remote),
-		PrivilegeFunc:         command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, cmdName),
+		PrivilegeFunc:         privilegeFunc,
 		Args:                  opts.args,
 	}
 	return options, nil

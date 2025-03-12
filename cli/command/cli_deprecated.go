@@ -49,6 +49,7 @@ func (*DockerCli) ManifestStore() manifeststore.Store {
 //
 // Deprecated: use [registryclient.NewRegistryClient]. This method is no longer used and will be removed in the next release.
 func (cli *DockerCli) RegistryClient(allowInsecure bool) registryclient.RegistryClient {
+	// FIXME(thaJezttah); this signature is problematic; we should also use a "resolver" everywhere (instead of passing around the creds?)
 	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
 		return ResolveAuthConfig(cli.ConfigFile(), index)
 	}
