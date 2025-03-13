@@ -22,7 +22,6 @@ import (
 	"github.com/docker/cli/cli/command/image/build"
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -407,7 +406,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		// Since the build was successful, now we must tag any of the resolved
 		// images from the above Dockerfile rewrite.
 		for _, resolved := range resolvedTags {
-			if err := trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), resolved.digestRef, resolved.tagRef); err != nil {
+			if err := tagTrusted(ctx, dockerCli, resolved.digestRef, resolved.tagRef); err != nil {
 				return err
 			}
 		}
