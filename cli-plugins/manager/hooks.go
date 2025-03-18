@@ -69,8 +69,8 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 		return nil
 	}
 	nextSteps := make([]string, 0, len(pluginsCfg))
-	for pluginName, cfg := range pluginsCfg {
-		match, ok := pluginMatch(cfg, subCmdStr)
+	for pluginName, pluginCfg := range pluginsCfg {
+		match, ok := pluginMatch(pluginCfg, subCmdStr)
 		if !ok {
 			continue
 		}
