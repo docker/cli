@@ -173,14 +173,11 @@ func TestErrPluginNotFound(t *testing.T) {
 func TestGetPluginDirs(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 
-	pluginDir, err := config.Path("cli-plugins")
-	assert.NilError(t, err)
+	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	expected := append([]string{pluginDir}, defaultSystemPluginDirs...)
 
-	var pluginDirs []string
-	pluginDirs, err = getPluginDirs(cli.ConfigFile())
+	pluginDirs := getPluginDirs(cli.ConfigFile())
 	assert.Equal(t, strings.Join(expected, ":"), strings.Join(pluginDirs, ":"))
-	assert.NilError(t, err)
 
 	extras := []string{
 		"foo", "bar", "baz",
@@ -189,7 +186,6 @@ func TestGetPluginDirs(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		CLIPluginsExtraDirs: extras,
 	})
-	pluginDirs, err = getPluginDirs(cli.ConfigFile())
+	pluginDirs = getPluginDirs(cli.ConfigFile())
 	assert.DeepEqual(t, expected, pluginDirs)
-	assert.NilError(t, err)
 }

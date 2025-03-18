@@ -64,10 +64,7 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 		return nil
 	}
 
-	pluginDirs, err := getPluginDirs(cfg)
-	if err != nil {
-		return nil
-	}
+	pluginDirs := getPluginDirs(cfg)
 	nextSteps := make([]string, 0, len(pluginsCfg))
 	for pluginName, pluginCfg := range pluginsCfg {
 		match, ok := pluginMatch(pluginCfg, subCmdStr)

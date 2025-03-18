@@ -61,20 +61,16 @@ func IsNotFound(err error) bool {
 // 3. Platform-specific defaultSystemPluginDirs.
 //
 // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
-func getPluginDirs(cfg *configfile.ConfigFile) ([]string, error) {
+func getPluginDirs(cfg *configfile.ConfigFile) []string {
 	var pluginDirs []string
 
 	if cfg != nil {
 		pluginDirs = append(pluginDirs, cfg.CLIPluginsExtraDirs...)
 	}
-	pluginDir, err := config.Path("cli-plugins")
-	if err != nil {
-		return nil, err
-	}
-
+	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	pluginDirs = append(pluginDirs, pluginDir)
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
-	return pluginDirs, nil
+	return pluginDirs
 }
 
 func addPluginCandidatesFromDir(res map[string][]string, d string) {
@@ -116,10 +112,7 @@ func listPluginCandidates(dirs []string) map[string][]string {
 
 // GetPlugin returns a plugin on the system by its name
 func GetPlugin(name string, dockerCLI config.Provider, rootcmd *cobra.Command) (*Plugin, error) {
-	pluginDirs, err := getPluginDirs(dockerCLI.ConfigFile())
-	if err != nil {
-		return nil, err
-	}
+	pluginDirs := getPluginDirs(dockerCLI.ConfigFile())
 	return getPlugin(name, pluginDirs, rootcmd)
 }
 
@@ -145,11 +138,7 @@ func getPlugin(name string, pluginDirs []string, rootcmd *cobra.Command) (*Plugi
 
 // ListPlugins produces a list of the plugins available on the system
 func ListPlugins(dockerCli config.Provider, rootcmd *cobra.Command) ([]Plugin, error) {
-	pluginDirs, err := getPluginDirs(dockerCli.ConfigFile())
-	if err != nil {
-		return nil, err
-	}
-
+	pluginDirs := getPluginDirs(dockerCli.ConfigFile())
 	candidates := listPluginCandidates(pluginDirs)
 	if len(candidates) == 0 {
 		return nil, nil
@@ -210,10 +199,7 @@ func PluginRunCommand(dockerCli config.Provider, name string, rootcmd *cobra.Com
 		return nil, errPluginNotFound(name)
 	}
 	exename := addExeSuffix(metadata.NamePrefix + name)
-	pluginDirs, err := getPluginDirs(dockerCli.ConfigFile())
-	if err != nil {
-		return nil, err
-	}
+	pluginDirs := getPluginDirs(dockerCli.ConfigFile())
 
 	for _, d := range pluginDirs {
 		path := filepath.Join(d, exename)
