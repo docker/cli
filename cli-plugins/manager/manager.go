@@ -154,7 +154,12 @@ func ListPlugins(dockerCli config.Provider, rootcmd *cobra.Command) ([]Plugin, e
 
 	var plugins []Plugin
 	var mu sync.Mutex
-	eg, _ := errgroup.WithContext(context.TODO())
+	ctx := rootcmd.Context()
+	if ctx == nil {
+		// Fallback, mostly for tests that pass a bare cobra.command
+		ctx = context.Background()
+	}
+	eg, _ := errgroup.WithContext(ctx)
 	cmds := rootcmd.Commands()
 	for _, paths := range candidates {
 		func(paths []string) {
