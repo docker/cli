@@ -2,22 +2,9 @@
 
 set -eu
 
-: "${CLI_DOCS_TOOL_VERSION=v0.9.0}"
-
-function clean() {
-	rm -f go.mod
-}
-
-export GO111MODULE=auto
-trap clean EXIT
-
-./scripts/vendor init
-# build docsgen
-go build -mod=vendor -modfile=vendor.mod -tags docsgen -o /tmp/docsgen ./docs/generate/generate.go
-
 (
   set -x
-  /tmp/docsgen --formats md --source "$(pwd)/docs/reference/commandline" --target "$(pwd)/docs/reference/commandline"
+  go run -mod=vendor -modfile=vendor.mod -tags docsgen ./docs/generate/generate.go --formats md --source "./docs/reference/commandline" --target "./docs/reference/commandline"
 )
 
 # remove generated help.md file

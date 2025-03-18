@@ -2,23 +2,21 @@
 
 set -eu
 
-: "${MD2MAN_VERSION=v2.0.6}"
+: "${GO_MD2MAN:=go-md2man}"
 
-function clean() {
-	rm -f go.mod
-}
-
-export GO111MODULE=auto
-trap clean EXIT
-
-./scripts/vendor init
-# build gen-manpages
-go build -mod=vendor -modfile=vendor.mod -tags manpages -o /tmp/gen-manpages ./man/generate.go
-# build go-md2man
-go build -mod=vendor -modfile=vendor.mod -o /tmp/go-md2man ./vendor/github.com/cpuguy83/go-md2man/v2
+if ! command -v "$GO_MD2MAN" > /dev/null; then
+  (
+    set -x
+    go build -mod=vendor -modfile=vendor.mod -o ./build/tools/go-md2man ./vendor/github.com/cpuguy83/go-md2man/v2
+  )
+  GO_MD2MAN=$(realpath ./build/tools/go-md2man)
+fi
 
 mkdir -p man/man1
-(set -x ; /tmp/gen-manpages --root "." --target "$(pwd)/man/man1")
+(
+  set -x
+  go run -mod=vendor -modfile=vendor.mod -tags manpages ./man/generate.go --root "." --target "./man/man1"
+)
 
 (
   cd man
@@ -31,6 +29,9 @@ mkdir -p man/man1
       continue
     fi
     mkdir -p "./man${num}"
-    (set -x ; /tmp/go-md2man -in "$FILE" -out "./man${num}/${name}")
+    (
+      set -x ;
+      "$GO_MD2MAN" -in "$FILE" -out "./man${num}/${name}"
+    )
   done
 )
