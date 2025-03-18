@@ -59,7 +59,7 @@ func TestConfigCreateErrors(t *testing.T) {
 }
 
 func TestConfigCreateWithName(t *testing.T) {
-	name := "foo"
+	const name = "config-with-name"
 	var actual []byte
 	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(_ context.Context, spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
@@ -87,7 +87,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 		"lbl1": "Label-foo",
 		"lbl2": "Label-bar",
 	}
-	name := "foo"
+	const name = "config-with-labels"
 
 	data, err := os.ReadFile(filepath.Join("testdata", configDataFile))
 	assert.NilError(t, err)
@@ -124,7 +124,7 @@ func TestConfigCreateWithTemplatingDriver(t *testing.T) {
 	expectedDriver := &swarm.Driver{
 		Name: "template-driver",
 	}
-	name := "foo"
+	const name = "config-with-template-driver"
 
 	cli := test.NewFakeCli(&fakeClient{
 		configCreateFunc: func(_ context.Context, spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {

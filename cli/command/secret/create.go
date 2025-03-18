@@ -52,14 +52,19 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
 	client := dockerCli.Client()
 
-	if options.driver != "" && options.file != "" {
-		return errors.Errorf("When using secret driver secret data must be empty")
+	var secretData []byte
+	if options.driver != "" {
+		if options.file != "" {
+			return errors.Errorf("When using secret driver secret data must be empty")
+		}
+	} else {
+		var err error
+		secretData, err = readSecretData(dockerCli.In(), options.file)
+		if err != nil {
+			return err
+		}
 	}
 
-	secretData, err := readSecretData(dockerCli.In(), options.file)
-	if err != nil {
-		return errors.Errorf("Error reading content from %q: %v", options.file, err)
-	}
 	spec := swarm.SecretSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
@@ -82,26 +87,54 @@ func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createO
 		return err
 	}
 
-	fmt.Fprintln(dockerCli.Out(), r.ID)
+	_, _ = fmt.Fprintln(dockerCli.Out(), r.ID)
 	return nil
 }
 
-func readSecretData(in io.ReadCloser, file string) ([]byte, error) {
-	// Read secret value from external driver
-	if file == "" {
-		return nil, nil
-	}
-	if file != "-" {
-		var err error
-		in, err = sequential.Open(file)
+// maxSecretSize is the maximum byte length of the [swarm.SecretSpec.Data] field,
+// as defined by [MaxSecretSize] in SwarmKit.
+//
+// [MaxSecretSize]: https://pkg.go.dev/github.com/moby/swarmkit/v2@v2.0.0-20250103191802-8c1959736554/api/validation#MaxSecretSize
+const maxSecretSize = 500 * 1024 // 500KB
+
+// readSecretData reads the secret from either stdin or the given fileName.
+//
+// It reads up to twice the maximum size of the secret ([maxSecretSize]),
+// just in case swarm's limit changes; this is only a safeguard to prevent
+// reading arbitrary files into memory.
+func readSecretData(in io.Reader, fileName string) ([]byte, error) {
+	switch fileName {
+	case "-":
+		data, err := io.ReadAll(io.LimitReader(in, 2*maxSecretSize))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error reading from STDIN: %w", err)
 		}
-		defer in.Close()
+		if len(data) == 0 {
+			return nil, errors.New("error reading from STDIN: data is empty")
+		}
+		return data, nil
+	case "":
+		return nil, errors.New("secret file is required")
+	default:
+		// Open file with [FILE_FLAG_SEQUENTIAL_SCAN] on Windows, which
+		// prevents Windows from aggressively caching it. We expect this
+		// file to be only read once. Given that this is expected to be
+		// a small file, this may not be a significant optimization, so
+		// we could choose to omit this, and use a regular [os.Open].
+		//
+		// [FILE_FLAG_SEQUENTIAL_SCAN]: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#FILE_FLAG_SEQUENTIAL_SCAN
+		f, err := sequential.Open(fileName)
+		if err != nil {
+			return nil, fmt.Errorf("error reading from %s: %w", fileName, err)
+		}
+		defer f.Close()
+		data, err := io.ReadAll(io.LimitReader(f, 2*maxSecretSize))
+		if err != nil {
+			return nil, fmt.Errorf("error reading from %s: %w", fileName, err)
+		}
+		if len(data) == 0 {
+			return nil, fmt.Errorf("error reading from %s: data is empty", fileName)
+		}
+		return data, nil
 	}
-	data, err := io.ReadAll(in)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
 }
