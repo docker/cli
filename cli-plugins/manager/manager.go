@@ -151,6 +151,9 @@ func ListPlugins(dockerCli config.Provider, rootcmd *cobra.Command) ([]Plugin, e
 	}
 
 	candidates := listPluginCandidates(pluginDirs)
+	if len(candidates) == 0 {
+		return nil, nil
+	}
 
 	var plugins []Plugin
 	var mu sync.Mutex
