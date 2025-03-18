@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -79,6 +80,12 @@ func TestListPluginCandidates(t *testing.T) {
 	}
 
 	assert.DeepEqual(t, candidates, exp)
+}
+
+func TestListPluginCandidatesEmpty(t *testing.T) {
+	tmpDir := t.TempDir()
+	candidates := listPluginCandidates([]string{tmpDir, filepath.Join(tmpDir, "no-such-dir")})
+	assert.Assert(t, len(candidates) == 0)
 }
 
 // Regression test for https://github.com/docker/cli/issues/5643.
