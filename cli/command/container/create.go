@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/netip"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/containerd/platforms"
@@ -247,6 +248,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		return nil
 	}
 
+	const dockerConfigPathInContainer = "/run/secrets/docker/config.json"
 	if options.useDockerSocket {
 		// We'll create two new mounts to handle this flag:
 		// 1. Mount the actual docker socket.
@@ -267,26 +269,30 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 		/*
 
-			        Ideally, we'd like to copy the config into a tmpfs but unfortunately,
-			        the mounts won't be in place until we start the container. This can
-			        leave around the config if the container doesn't get deleted.
+		   Ideally, we'd like to copy the config into a tmpfs but unfortunately,
+		   the mounts won't be in place until we start the container. This can
+		   leave around the config if the container doesn't get deleted.
 
-					// Prepare a tmpfs mount for our credentials so they go away after the
-					// container exits. We'll copy into this mount after the container is
-					// created.
-					containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
-						Type:   mount.TypeTmpfs,
-						Target: "/docker/",
-						TmpfsOptions: &mount.TmpfsOptions{
-							SizeBytes: 1 << 20, // only need a small partition
-							Mode:      0o600,
-						},
-					})
+		   We are using the most compose-secret-compatible approach,
+		   which is implemented at
+		   https://github.com/docker/compose/blob/main/pkg/compose/convergence.go#L737
+
+		   // Prepare a tmpfs mount for our credentials so they go away after the
+		   // container exits. We'll copy into this mount after the container is
+		   // created.
+		   containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
+		       Type:   mount.TypeTmpfs,
+		       Target: "/docker/",
+		       TmpfsOptions: &mount.TmpfsOptions{
+		           SizeBytes: 1 << 20, // only need a small partition
+		           Mode:      0o600,
+		       },
+		   })
 		*/
 
 		// Set our special little location for the config file.
 		containerCfg.Config.Env = append(containerCfg.Config.Env,
-			"DOCKER_CONFIG=/docker/")
+			"DOCKER_CONFIG="+path.Dir(dockerConfigPathInContainer))
 	}
 
 	var platform *specs.Platform
@@ -354,7 +360,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			AuthConfigs: creds,
 		}
 
-		if err := copyDockerConfigIntoContainer(ctx, containerID, "/docker/config.json", newConfig, dockerCli.Client()); err != nil {
+		if err := copyDockerConfigIntoContainer(ctx, containerID, dockerConfigPathInContainer, newConfig, dockerCli.Client()); err != nil {
 			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
 		}
 	}
