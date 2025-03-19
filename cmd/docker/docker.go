@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -21,7 +22,6 @@ import (
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -203,7 +203,7 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 				return helpcmd.Run()
 			}
 			if !pluginmanager.IsNotFound(err) {
-				return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
+				return fmt.Errorf("unknown help topic: %v", strings.Join(args, " "))
 			}
 		}
 		if origRunE != nil {
@@ -593,7 +593,7 @@ func isSupported(cmd *cobra.Command, details versionDetails) error {
 }
 
 func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
-	errs := []string{}
+	var errs []error
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		if !f.Changed || len(f.Annotations) == 0 {
@@ -608,11 +608,11 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 		// See commit b39739123b845f872549e91be184cc583f5b387c for details.
 
 		if _, ok := f.Annotations["version"]; ok && !isVersionSupported(f, details.CurrentVersion()) {
-			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.CurrentVersion()))
+			errs = append(errs, fmt.Errorf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.CurrentVersion()))
 			return
 		}
 		if _, ok := f.Annotations["ostype"]; ok && !isOSTypeSupported(f, details.ServerInfo().OSType) {
-			errs = append(errs, fmt.Sprintf(
+			errs = append(errs, fmt.Errorf(
 				`"--%s" is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s`,
 				f.Name,
 				getFlagAnnotation(f, "ostype"), details.ServerInfo().OSType),
@@ -620,14 +620,11 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 			return
 		}
 		if _, ok := f.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
-			errs = append(errs, fmt.Sprintf(`"--%s" is only supported on a Docker daemon with experimental features enabled`, f.Name))
+			errs = append(errs, fmt.Errorf(`"--%s" is only supported on a Docker daemon with experimental features enabled`, f.Name))
 		}
 		// buildkit-specific flags are noop when buildkit is not enabled, so we do not add an error in that case
 	})
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
