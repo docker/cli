@@ -188,20 +188,20 @@ func (cid *cidFile) Write(id string) error {
 	return nil
 }
 
-func newCIDFile(path string) (*cidFile, error) {
-	if path == "" {
+func newCIDFile(cidPath string) (*cidFile, error) {
+	if cidPath == "" {
 		return &cidFile{}, nil
 	}
-	if _, err := os.Stat(path); err == nil {
-		return nil, errors.Errorf("container ID file found, make sure the other container isn't running or delete %s", path)
+	if _, err := os.Stat(cidPath); err == nil {
+		return nil, errors.Errorf("container ID file found, make sure the other container isn't running or delete %s", cidPath)
 	}
 
-	f, err := os.Create(path)
+	f, err := os.Create(cidPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create the container ID file")
 	}
 
-	return &cidFile{path: path, file: f}, nil
+	return &cidFile{path: cidPath, file: f}, nil
 }
 
 //nolint:gocyclo
@@ -360,7 +360,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			AuthConfigs: creds,
 		}
 
-		if err := copyDockerConfigIntoContainer(ctx, containerID, dockerConfigPathInContainer, newConfig, dockerCli.Client()); err != nil {
+		if err := copyDockerConfigIntoContainer(ctx, dockerCli.Client(), containerID, dockerConfigPathInContainer, newConfig); err != nil {
 			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
 		}
 	}
@@ -402,7 +402,7 @@ func validatePullOpt(val string) error {
 //
 // The path should be an absolute path in the container, commonly
 // /root/.docker/config.json.
-func copyDockerConfigIntoContainer(ctx context.Context, containerID string, path string, config *configfile.ConfigFile, dockerAPI client.APIClient) error {
+func copyDockerConfigIntoContainer(ctx context.Context, dockerAPI client.APIClient, containerID string, configPath string, config *configfile.ConfigFile) error {
 	var configBuf bytes.Buffer
 	if err := config.SaveToWriter(&configBuf); err != nil {
 		return fmt.Errorf("saving creds: %w", err)
@@ -412,7 +412,7 @@ func copyDockerConfigIntoContainer(ctx context.Context, containerID string, path
 	var tarBuf bytes.Buffer
 	tarWriter := tar.NewWriter(&tarBuf)
 	tarWriter.WriteHeader(&tar.Header{
-		Name: path,
+		Name: configPath,
 		Size: int64(configBuf.Len()),
 		Mode: 0o600,
 	})
