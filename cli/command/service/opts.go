@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types/container"
@@ -1048,12 +1047,3 @@ const (
 	flagUlimitRemove            = "ulimit-rm"
 	flagOomScoreAdj             = "oom-score-adj"
 )
-
-func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
-	for _, m := range c.TaskTemplate.ContainerSpec.Mounts {
-		if err := command.ValidateMountWithAPIVersion(m, serverAPIVersion); err != nil {
-			return err
-		}
-	}
-	return nil
-}
