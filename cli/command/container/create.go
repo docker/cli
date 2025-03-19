@@ -115,12 +115,6 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 			StatusCode: 125,
 		}
 	}
-	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "create").Error(),
-			StatusCode: 125,
-		}
-	}
 	id, err := createContainer(ctx, dockerCli, containerCfg, options)
 	if err != nil {
 		return err

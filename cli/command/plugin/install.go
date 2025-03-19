@@ -64,10 +64,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		return types.PluginInstallOptions{}, err
 	}
 
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return types.PluginInstallOptions{}, err
-	}
+	repoInfo, _ := registry.ParseRepositoryInfo(ref)
 
 	remote := ref.String()
 
