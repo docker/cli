@@ -62,8 +62,8 @@ func generateManPages(opts *options) error {
 	})
 }
 
-func loadLongDescription(cmd *cobra.Command, path string) error {
-	for _, cmd := range cmd.Commands() {
+func loadLongDescription(parentCommand *cobra.Command, path string) error {
+	for _, cmd := range parentCommand.Commands() {
 		cmd.DisableFlagsInUseLine = true
 		if cmd.Name() == "" {
 			continue
