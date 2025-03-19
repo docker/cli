@@ -1,7 +1,6 @@
 // This file is intended for use with "go run"; it isn't really part of the package.
 
 //go:build manpages
-// +build manpages
 
 package main
 
@@ -63,8 +62,8 @@ func generateManPages(opts *options) error {
 	})
 }
 
-func loadLongDescription(cmd *cobra.Command, path string) error {
-	for _, cmd := range cmd.Commands() {
+func loadLongDescription(parentCommand *cobra.Command, path string) error {
+	for _, cmd := range parentCommand.Commands() {
 		cmd.DisableFlagsInUseLine = true
 		if cmd.Name() == "" {
 			continue
@@ -72,7 +71,9 @@ func loadLongDescription(cmd *cobra.Command, path string) error {
 		fullpath := filepath.Join(path, cmd.Name()+".md")
 
 		if cmd.HasSubCommands() {
-			loadLongDescription(cmd, filepath.Join(path, cmd.Name()))
+			if err := loadLongDescription(cmd, filepath.Join(path, cmd.Name())); err != nil {
+				return err
+			}
 		}
 
 		if _, err := os.Stat(fullpath); err != nil {
