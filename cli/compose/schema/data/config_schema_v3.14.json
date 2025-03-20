@@ -316,6 +316,12 @@
                       "nocopy": {"type": "boolean"}
                     }
                   },
+                  "image": {
+                    "type": "object",
+                    "properties": {
+                      "subpath": {"type": "string"}
+                    }
+                  },
                   "tmpfs": {
                     "type": "object",
                     "properties": {
