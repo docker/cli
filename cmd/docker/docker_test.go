@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"os"
 	"syscall"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/debug"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
