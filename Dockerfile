@@ -117,7 +117,7 @@ COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docke
 COPY --link . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
-CMD ./scripts/test/e2e/entry
+CMD ["./scripts/test/e2e/entry"]
 
 FROM build-base-${BASE_VARIANT} AS dev
 COPY --link . .
