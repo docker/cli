@@ -87,7 +87,7 @@ func TestUserTerminatedError(t *testing.T) {
 	notifyCtx, cancelNotify := notifyContext(ctx, platformsignals.TerminationSignals...)
 	t.Cleanup(cancelNotify)
 
-	syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+	assert.Check(t, syscall.Kill(syscall.Getpid(), syscall.SIGINT))
 
 	<-notifyCtx.Done()
 	assert.ErrorIs(t, context.Cause(notifyCtx), errCtxSignalTerminated{
@@ -99,7 +99,7 @@ func TestUserTerminatedError(t *testing.T) {
 	notifyCtx, cancelNotify = notifyContext(ctx, platformsignals.TerminationSignals...)
 	t.Cleanup(cancelNotify)
 
-	syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+	assert.Check(t, syscall.Kill(syscall.Getpid(), syscall.SIGTERM))
 
 	<-notifyCtx.Done()
 	assert.ErrorIs(t, context.Cause(notifyCtx), errCtxSignalTerminated{
