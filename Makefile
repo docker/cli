@@ -67,20 +67,20 @@ dynbinary: ## build dynamically linked binary
 
 .PHONY: plugins
 plugins: ## build example CLI plugins
-	./scripts/build/plugins
+	scripts/build/plugins
 
 .PHONY: vendor
 vendor: ## update vendor with go modules
 	rm -rf vendor
-	./scripts/vendor update
+	scripts/with-go-mod.sh scripts/vendor update
 
 .PHONY: validate-vendor
 validate-vendor: ## validate vendor
-	./scripts/vendor validate
+	scripts/with-go-mod.sh scripts/vendor validate
 
 .PHONY: mod-outdated
 mod-outdated: ## check outdated dependencies
-	./scripts/vendor outdated
+	scripts/with-go-mod.sh scripts/vendor outdated
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
@@ -115,15 +115,15 @@ shell-completion: ## generate shell-completion scripts
 
 .PHONY: manpages
 manpages: ## generate man pages from go source and markdown
-	scripts/docs/generate-man.sh
+	scripts/with-go-mod.sh scripts/docs/generate-man.sh
 
 .PHONY: mddocs
 mddocs: ## generate markdown files from go source
-	scripts/docs/generate-md.sh
+	scripts/with-go-mod.sh scripts/docs/generate-md.sh
 
 .PHONY: yamldocs
 yamldocs: ## generate documentation YAML files consumed by docs repo
-	scripts/docs/generate-yaml.sh
+	scripts/with-go-mod.sh scripts/docs/generate-yaml.sh
 
 .PHONY: help
 help: ## print this help
