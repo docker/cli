@@ -234,7 +234,11 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		if c.insecureRegistry {
 			endpoint.TLSConfig.InsecureSkipVerify = true
 		}
-		repoEndpoint := repositoryEndpoint{endpoint: endpoint, info: repoInfo}
+		repoEndpoint := repositoryEndpoint{
+			name:      reference.Path(repoInfo.Name),
+			endpoint:  endpoint,
+			indexInfo: repoInfo.Index,
+		}
 		repo, err := c.getRepositoryForReference(ctx, namedRef, repoEndpoint)
 		if err != nil {
 			logrus.Debugf("error %s with repo endpoint %+v", err, repoEndpoint)
