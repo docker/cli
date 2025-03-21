@@ -13,7 +13,7 @@ import (
 // Set DOCKER_COMPLETION_SHOW_NODE_IDS=yes to also complete IDs.
 //
 // TODO(thaJeztah): add support for filters.
-func completeNodeNames(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+func completeNodeNames(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	// https://github.com/docker/cli/blob/f9ced58158d5e0b358052432244b483774a1983d/contrib/completion/bash/docker#L41-L43
 	showIDs := os.Getenv("DOCKER_COMPLETION_SHOW_NODE_IDS") == "yes"
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

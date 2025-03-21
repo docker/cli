@@ -39,7 +39,7 @@ func NewServiceCommand(dockerCli command.Cli) *cobra.Command {
 // CompletionFn offers completion for swarm service names and optional IDs.
 // By default, only names are returned.
 // Set DOCKER_COMPLETION_SHOW_SERVICE_IDS=yes to also complete IDs.
-func CompletionFn(dockerCLI completion.APIClientProvider) completion.ValidArgsFn {
+func CompletionFn(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	// https://github.com/docker/cli/blob/f9ced58158d5e0b358052432244b483774a1983d/contrib/completion/bash/docker#L41-L43
 	showIDs := os.Getenv("DOCKER_COMPLETION_SHOW_SERVICE_IDS") == "yes"
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
