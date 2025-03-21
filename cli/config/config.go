@@ -12,6 +12,7 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/config/server"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/pkg/errors"
 )
@@ -134,6 +135,10 @@ func Load(configDir string) (*configfile.ConfigFile, error) {
 func load(configDir string) (*configfile.ConfigFile, error) {
 	filename := filepath.Join(configDir, ConfigFileName)
 	configFile := configfile.New(filename)
+
+	if addr, err := server.CheckCredentialServer(configDir); err == nil {
+		configFile.SocketCredentialStoreAddr = addr
+	}
 
 	file, err := os.Open(filename)
 	if err != nil {
