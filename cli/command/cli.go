@@ -56,8 +56,6 @@ type Cli interface {
 	CurrentContext() string
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
-	DeprecatedNotaryClient
-	DeprecatedManifestClient
 }
 
 // DockerCli is an instance the docker command line client.
