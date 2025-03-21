@@ -70,6 +70,13 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		builderAlias = v
 	}
 
+	if buildKitDisabled {
+		c, _, err := cmd.Find([]string{"bake"})
+		if err == nil {
+			c.Hidden = true
+		}
+	}
+
 	// is this a build that should be forwarded to the builder?
 	fwargs, fwosargs, fwcmdpath, forwarded := forwardBuilder(builderAlias, args, osargs)
 	if !forwarded {
@@ -135,6 +142,11 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 
 func forwardBuilder(alias string, args, osargs []string) ([]string, []string, []string, bool) {
 	aliases := [][3][]string{
+		{
+			{"bake"},
+			{alias, "bake"},
+			{},
+		},
 		{
 			{"builder"},
 			{alias},
