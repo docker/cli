@@ -109,29 +109,53 @@ func TestConfirm(t *testing.T) {
 		f        func() error
 		expected promptResult
 	}{
-		{"SIGINT", func() error {
-			_ = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
-			return nil
-		}, promptResult{false, prompt.ErrTerminated}},
-		{"no", func() error {
-			_, err := fmt.Fprintln(promptWriter, "n")
-			return err
-		}, promptResult{false, nil}},
-		{"yes", func() error {
-			_, err := fmt.Fprintln(promptWriter, "y")
-			return err
-		}, promptResult{true, nil}},
-		{"any", func() error {
-			_, err := fmt.Fprintln(promptWriter, "a")
-			return err
-		}, promptResult{false, nil}},
-		{"with space", func() error {
-			_, err := fmt.Fprintln(promptWriter, " y")
-			return err
-		}, promptResult{true, nil}},
-		{"reader closed", func() error {
-			return promptReader.Close()
-		}, promptResult{false, nil}},
+		{
+			desc: "SIGINT",
+			f: func() error {
+				_ = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+				return nil
+			},
+			expected: promptResult{false, prompt.ErrTerminated},
+		},
+		{
+			desc: "no",
+			f: func() error {
+				_, err := fmt.Fprintln(promptWriter, "n")
+				return err
+			},
+			expected: promptResult{false, nil},
+		},
+		{
+			desc: "yes",
+			f: func() error {
+				_, err := fmt.Fprintln(promptWriter, "y")
+				return err
+			},
+			expected: promptResult{true, nil},
+		},
+		{
+			desc: "any",
+			f: func() error {
+				_, err := fmt.Fprintln(promptWriter, "a")
+				return err
+			},
+			expected: promptResult{false, nil},
+		},
+		{
+			desc: "with space",
+			f: func() error {
+				_, err := fmt.Fprintln(promptWriter, " y")
+				return err
+			},
+			expected: promptResult{true, nil},
+		},
+		{
+			desc: "reader closed",
+			f: func() error {
+				return promptReader.Close()
+			},
+			expected: promptResult{false, nil},
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			notifyCtx, notifyCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
