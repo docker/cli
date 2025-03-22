@@ -16,7 +16,6 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/errdefs"
 	"github.com/moby/sys/atomicwriter"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
@@ -36,7 +35,15 @@ func CopyToFile(outfile string, r io.Reader) error {
 	return err
 }
 
-var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
+const ErrPromptTerminated cancelledErr = "prompt terminated"
+
+type cancelledErr string
+
+func (e cancelledErr) Error() string {
+	return string(e)
+}
+
+func (cancelledErr) Cancelled() {}
 
 // DisableInputEcho disables input echo on the provided streams.In.
 // This is useful when the user provides sensitive information like passwords.
