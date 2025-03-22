@@ -22,6 +22,7 @@ import (
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
@@ -97,30 +98,46 @@ func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opt
 		info.ClientErrors = append(info.ClientErrors, err.Error())
 	}
 
+	var serverConnErr error
 	if needsServerInfo(opts.format, info) {
-		if dinfo, err := dockerCli.Client().Info(ctx); err == nil {
-			info.Info = &dinfo
-		} else {
-			info.ServerErrors = append(info.ServerErrors, err.Error())
-			if opts.format == "" {
-				// reset the server info to prevent printing "empty" Server info
-				// and warnings, but don't reset it if a custom format was specified
-				// to prevent errors from Go's template parsing during format.
-				info.Info = nil
-			} else {
-				// if a format is provided, print the error, as it may be hidden
-				// otherwise if the template doesn't include the ServerErrors field.
-				fprintln(dockerCli.Err(), err)
-			}
-		}
+		serverConnErr = addServerInfo(ctx, dockerCli, opts.format, &info)
 	}
 
 	if opts.format == "" {
 		info.UserName = dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
 		info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
-		return prettyPrintInfo(dockerCli, info)
+		return errors.Join(prettyPrintInfo(dockerCli, info), serverConnErr)
 	}
-	return formatInfo(dockerCli.Out(), info, opts.format)
+
+	return errors.Join(serverConnErr, formatInfo(dockerCli.Out(), info, opts.format))
+}
+
+// addServerInfo retrieves the server information and adds it to the dockerInfo struct.
+// if a connection error occurs, it will be returned as an error.
+// other errors are appended to the info.ServerErrors field.
+func addServerInfo(ctx context.Context, dockerCli command.Cli, format string, info *dockerInfo) error {
+	dinfo, err := dockerCli.Client().Info(ctx)
+	if err != nil {
+		// if no format is provided and we have an error, don't print the server info
+		if format == "" {
+			info.Info = nil
+		}
+		if !client.IsErrConnectionFailed(err) {
+			info.ServerErrors = append(info.ServerErrors, err.Error())
+			if format != "" {
+				// if a format is provided, print the error, as it may be hidden
+				// if the format template doesn't include the ServerErrors field.
+				fprintln(dockerCli.Err(), err)
+			}
+			return nil
+		}
+		// on a server connection error, we want to return an error
+		return err
+	}
+
+	// only assign the server info if we have no error
+	info.Info = &dinfo
+	return nil
 }
 
 // placeHolders does a rudimentary match for possible placeholders in a
