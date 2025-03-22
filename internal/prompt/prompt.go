@@ -5,7 +5,6 @@ package prompt
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"runtime"
@@ -50,7 +49,7 @@ func DisableInputEcho(ins *streams.In) (restore func() error, _ error) {
 // and propagate the error up the stack to prevent the background goroutine
 // from blocking indefinitely.
 func ReadInput(ctx context.Context, in io.Reader, out io.Writer, message string) (string, error) {
-	_, _ = fmt.Fprint(out, message)
+	_, _ = out.Write([]byte(message))
 
 	result := make(chan string)
 	go func() {
@@ -62,7 +61,7 @@ func ReadInput(ctx context.Context, in io.Reader, out io.Writer, message string)
 
 	select {
 	case <-ctx.Done():
-		_, _ = fmt.Fprintln(out, "")
+		_, _ = out.Write([]byte("\n"))
 		return "", ErrTerminated
 	case r := <-result:
 		return r, nil
@@ -80,24 +79,24 @@ func ReadInput(ctx context.Context, in io.Reader, out io.Writer, message string)
 // returns an error, the caller should close the [io.Reader] used for the prompt
 // and propagate the error up the stack to prevent the background goroutine
 // from blocking indefinitely.
-func Confirm(ctx context.Context, ins io.Reader, outs io.Writer, message string) (bool, error) {
+func Confirm(ctx context.Context, in io.Reader, out io.Writer, message string) (bool, error) {
 	if message == "" {
 		message = "Are you sure you want to proceed?"
 	}
 	message += " [y/N] "
 
-	_, _ = fmt.Fprint(outs, message)
+	_, _ = out.Write([]byte(message))
 
 	// On Windows, force the use of the regular OS stdin stream.
 	if runtime.GOOS == "windows" {
-		ins = streams.NewIn(os.Stdin)
+		in = streams.NewIn(os.Stdin)
 	}
 
 	result := make(chan bool)
 
 	go func() {
 		var res bool
-		scanner := bufio.NewScanner(ins)
+		scanner := bufio.NewScanner(in)
 		if scanner.Scan() {
 			answer := strings.TrimSpace(scanner.Text())
 			if strings.EqualFold(answer, "y") {
@@ -109,7 +108,7 @@ func Confirm(ctx context.Context, ins io.Reader, outs io.Writer, message string)
 
 	select {
 	case <-ctx.Done():
-		_, _ = fmt.Fprintln(outs, "")
+		_, _ = out.Write([]byte("\n"))
 		return false, ErrTerminated
 	case r := <-result:
 		return r, nil
