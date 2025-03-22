@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
@@ -77,7 +78,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		warning = allVolumesWarning
 	}
 	if !options.force {
-		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		r, err := prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), warning)
 		if err != nil {
 			return 0, "", err
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -64,7 +65,7 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 
 	_, _ = fmt.Fprintf(dockerCLI.Out(), "Upgrading plugin %s from %s to %s\n", p.Name, reference.FamiliarString(old), reference.FamiliarString(remote))
 	if !opts.skipRemoteCheck && remote.String() != old.String() {
-		r, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), "Plugin images do not match, are you sure?")
+		r, err := prompt.Confirm(ctx, dockerCLI.In(), dockerCLI.Out(), "Plugin images do not match, are you sure?")
 		if err != nil {
 			return err
 		}
