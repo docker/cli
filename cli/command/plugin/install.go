@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
@@ -133,12 +134,12 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	return nil
 }
 
-func acceptPrivileges(dockerCLI command.Cli, name string) func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
+func acceptPrivileges(dockerCLI command.Streams, name string) func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
 	return func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
 		_, _ = fmt.Fprintf(dockerCLI.Out(), "Plugin %q is requesting the following privileges:\n", name)
 		for _, privilege := range privileges {
 			_, _ = fmt.Fprintf(dockerCLI.Out(), " - %s: %v\n", privilege.Name, privilege.Value)
 		}
-		return command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), "Do you grant the above permissions?")
+		return prompt.Confirm(ctx, dockerCLI.In(), dockerCLI.Out(), "Do you grant the above permissions?")
 	}
 }
