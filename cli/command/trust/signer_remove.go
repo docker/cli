@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
@@ -82,11 +83,7 @@ func maybePromptForSignerRemoval(ctx context.Context, dockerCLI command.Cli, rep
 			"Are you sure you want to continue?",
 			signerName, repoName, repoName,
 		)
-		removeSigner, err := command.PromptForConfirmation(ctx, dockerCLI.In(), dockerCLI.Out(), message)
-		if err != nil {
-			return false, err
-		}
-		return removeSigner, nil
+		return prompt.Confirm(ctx, dockerCLI.In(), dockerCLI.Out(), message)
 	}
 	return false, nil
 }

@@ -13,6 +13,7 @@ import (
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/hints"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/morikuni/aec"
@@ -148,16 +149,16 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 			}
 		}
 
-		var prompt string
+		var msg string
 		defaultUsername = strings.TrimSpace(defaultUsername)
 		if defaultUsername == "" {
-			prompt = "Username: "
+			msg = "Username: "
 		} else {
-			prompt = fmt.Sprintf("Username (%s): ", defaultUsername)
+			msg = fmt.Sprintf("Username (%s): ", defaultUsername)
 		}
 
 		var err error
-		argUser, err = PromptForInput(ctx, cli.In(), cli.Out(), prompt)
+		argUser, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), msg)
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
@@ -171,7 +172,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 
 	argPassword = strings.TrimSpace(argPassword)
 	if argPassword == "" {
-		restoreInput, err := DisableInputEcho(cli.In())
+		restoreInput, err := prompt.DisableInputEcho(cli.In())
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
@@ -188,7 +189,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		out := tui.NewOutput(cli.Err())
 		out.PrintNote("A Personal Access Token (PAT) can be used instead.\n" +
 			"To create a PAT, visit " + aec.Underline.Apply("https://app.docker.com/settings") + "\n\n")
-		argPassword, err = PromptForInput(ctx, cli.In(), cli.Out(), "Password: ")
+		argPassword, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
