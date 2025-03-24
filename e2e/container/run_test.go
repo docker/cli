@@ -3,6 +3,8 @@ package container
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"math/rand"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -279,4 +281,58 @@ func TestProcessTermination(t *testing.T) {
 	icmd.WaitOnCmd(time.Second*10, result).Assert(t, icmd.Expected{
 		ExitCode: 0,
 	})
+}
+
+// Adapted from https://github.com/docker/for-mac/issues/7632#issue-2932169772
+// Thanks [@almet](https://github.com/almet)!
+func TestRunReadAfterContainerExit(t *testing.T) {
+	skip.If(t, environment.RemoteDaemon())
+
+	r := rand.New(rand.NewSource(0x123456))
+
+	const size = 18933764
+	cmd := exec.Command("docker", "run",
+		"--rm", "-i",
+		"alpine",
+		"sh", "-c", "cat -",
+	)
+
+	cmd.Stdin = io.LimitReader(r, size)
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	stdout, err := cmd.StdoutPipe()
+	assert.NilError(t, err)
+
+	err = cmd.Start()
+	assert.NilError(t, err)
+
+	buffer := make([]byte, 1000)
+	counter := 0
+	totalRead := 0
+
+	for {
+		n, err := stdout.Read(buffer)
+		if n > 0 {
+			totalRead += n
+		}
+
+		// Wait 0.1s every megabyte (approx.)
+		if counter%1000 == 0 {
+			time.Sleep(100 * time.Millisecond)
+		}
+
+		if err != nil || n == 0 {
+			break
+		}
+
+		counter++
+	}
+
+	err = cmd.Wait()
+	t.Logf("Error: %v", err)
+	t.Logf("Stderr: %s", stderr.String())
+	assert.Check(t, err == nil)
+	assert.Check(t, is.Equal(totalRead, size))
 }

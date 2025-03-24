@@ -238,10 +238,16 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 			return cli.StatusError{StatusCode: status}
 		}
 	case status := <-statusChan:
-		// notify hijackedIOStreamer that we're exiting and wait
-		// so that the terminal can be restored.
-		cancelFun()
-		<-errCh
+		// If container exits, output stream processing may not be finished yet,
+		// we need to keep the streamer running until all output is read.
+		// However, if stdout or stderr is not attached, we can just exit.
+		if !config.AttachStdout && !config.AttachStderr {
+			// Notify hijackedIOStreamer that we're exiting and wait
+			// so that the terminal can be restored.
+			cancelFun()
+		}
+		<-errCh // Drain channel but don't care about result
+
 		if status != 0 {
 			return cli.StatusError{StatusCode: status}
 		}
