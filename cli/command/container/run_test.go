@@ -147,6 +147,7 @@ func TestRunAttachTermination(t *testing.T) {
 		_ = p.Close()
 	}()
 
+	var conn net.Conn
 	killCh := make(chan struct{})
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
@@ -163,6 +164,7 @@ func TestRunAttachTermination(t *testing.T) {
 		},
 		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
 			server, client := net.Pipe()
+			conn = server
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
@@ -202,6 +204,7 @@ func TestRunAttachTermination(t *testing.T) {
 	}
 
 	assert.NilError(t, syscall.Kill(syscall.Getpid(), syscall.SIGTERM))
+	conn.Close()
 
 	select {
 	case <-killCh:
