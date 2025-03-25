@@ -220,7 +220,9 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		return err
 	}
 
+	repoName := reference.TrimNamed(namedRef)
 	repoInfo, _ := registry.ParseRepositoryInfo(namedRef)
+	indexInfo := repoInfo.Index
 
 	confirmedTLSRegistries := make(map[string]bool)
 	for _, endpoint := range endpoints {
@@ -234,7 +236,11 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		if c.insecureRegistry {
 			endpoint.TLSConfig.InsecureSkipVerify = true
 		}
-		repoEndpoint := repositoryEndpoint{endpoint: endpoint, info: repoInfo}
+		repoEndpoint := repositoryEndpoint{
+			repoName:  repoName,
+			indexInfo: indexInfo,
+			endpoint:  endpoint,
+		}
 		repo, err := c.getRepositoryForReference(ctx, namedRef, repoEndpoint)
 		if err != nil {
 			logrus.Debugf("error %s with repo endpoint %+v", err, repoEndpoint)

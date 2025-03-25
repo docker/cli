@@ -147,7 +147,7 @@ func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Na
 
 func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoint repositoryEndpoint) (http.RoundTripper, error) {
 	httpTransport, err := getHTTPTransport(
-		c.authConfigResolver(ctx, repoEndpoint.info.Index),
+		c.authConfigResolver(ctx, repoEndpoint.indexInfo),
 		repoEndpoint.endpoint,
 		repoEndpoint.Name(),
 		c.userAgent,
