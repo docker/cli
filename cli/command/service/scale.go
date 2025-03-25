@@ -29,9 +29,7 @@ func newScaleCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runScale(cmd.Context(), dockerCli, options, args)
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
-		},
+		ValidArgsFunction: completeScaleArgs(dockerCli),
 	}
 
 	flags := cmd.Flags()
@@ -116,4 +114,20 @@ func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, ser
 		return nil, err
 	}
 	return response.Warnings, nil
+}
+
+// completeScaleArgs returns a completion function for the args of the scale command.
+// It completes service names followed by "=", suppressing the trailing space.
+func completeScaleArgs(dockerCli command.Cli) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		// reuse the existing logic for configurable completion of service names and IDs.
+		completions, directive := CompletionFn(dockerCli)(cmd, args, toComplete)
+		if directive == cobra.ShellCompDirectiveError {
+			return completions, directive
+		}
+		for i, v := range completions {
+			completions[i] = v + "="
+		}
+		return completions, directive | cobra.ShellCompDirectiveNoSpace
+	}
 }
