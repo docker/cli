@@ -31,7 +31,7 @@ const (
 // a copy of [registry.IndexServer].
 //
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker/registry#IndexServer
-const authConfigKey = "https:/index.docker.io/v1/"
+const authConfigKey = "https://index.docker.io/v1/"
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command.
