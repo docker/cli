@@ -43,6 +43,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		system.NewInfoCommand(dockerCli),
 
 		// management commands
+		builder.NewBakeStubComment(dockerCli),
 		builder.NewBuilderCommand(dockerCli),
 		checkpoint.NewCheckpointCommand(dockerCli),
 		container.NewContainerCommand(dockerCli),
