@@ -140,33 +140,42 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 	}
 }
 
-// PruneFilters returns consolidated prune filters obtained from config.json and cli
+// PruneFilters merges prune filters specified in config.json with those specified
+// as command-line flags.
+//
+// CLI label filters have precedence over those specified in config.json. If a
+// label filter specified as flag conflicts with a label defined in config.json
+// (i.e., "label=some-value" conflicts with "label!=some-value", and vice versa),
+// then the filter defined in config.json is omitted.
 func PruneFilters(dockerCLI config.Provider, pruneFilters filters.Args) filters.Args {
 	cfg := dockerCLI.ConfigFile()
 	if cfg == nil {
 		return pruneFilters
 	}
+
+	// Merge filters provided through the CLI with default filters defined
+	// in the CLI-configfile.
 	for _, f := range cfg.PruneFilters {
 		k, v, ok := strings.Cut(f, "=")
 		if !ok {
 			continue
 		}
-		if k == "label" {
-			// CLI label filter supersede config.json.
-			// If CLI label filter conflict with config.json,
-			// skip adding label! filter in config.json.
-			if pruneFilters.Contains("label!") && pruneFilters.ExactMatch("label!", v) {
+		switch k {
+		case "label":
+			// "label != some-value" conflicts with "label = some-value"
+			if pruneFilters.ExactMatch("label!", v) {
 				continue
 			}
-		} else if k == "label!" {
-			// CLI label! filter supersede config.json.
-			// If CLI label! filter conflict with config.json,
-			// skip adding label filter in config.json.
-			if pruneFilters.Contains("label") && pruneFilters.ExactMatch("label", v) {
+			pruneFilters.Add(k, v)
+		case "label!":
+			// "label != some-value" conflicts with "label = some-value"
+			if pruneFilters.ExactMatch("label", v) {
 				continue
 			}
+			pruneFilters.Add(k, v)
+		default:
+			pruneFilters.Add(k, v)
 		}
-		pruneFilters.Add(k, v)
 	}
 
 	return pruneFilters
