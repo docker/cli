@@ -14,14 +14,15 @@ import (
 )
 
 type repositoryEndpoint struct {
-	info     *registry.RepositoryInfo
-	endpoint registry.APIEndpoint
-	actions  []string
+	repoName  reference.Named
+	indexInfo *registrytypes.IndexInfo
+	endpoint  registry.APIEndpoint
+	actions   []string
 }
 
 // Name returns the repository name
 func (r repositoryEndpoint) Name() string {
-	return reference.Path(r.info.Name)
+	return reference.Path(r.repoName)
 }
 
 // BaseURL returns the endpoint url
@@ -30,32 +31,36 @@ func (r repositoryEndpoint) BaseURL() string {
 }
 
 func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositoryEndpoint, error) {
+	repoName := reference.TrimNamed(ref)
 	repoInfo, _ := registry.ParseRepositoryInfo(ref)
-	endpoint, err := getDefaultEndpointFromRepoInfo(repoInfo)
+	indexInfo := repoInfo.Index
+
+	endpoint, err := getDefaultEndpoint(ref, !indexInfo.Secure)
 	if err != nil {
 		return repositoryEndpoint{}, err
 	}
 	if insecure {
 		endpoint.TLSConfig.InsecureSkipVerify = true
 	}
-	return repositoryEndpoint{info: repoInfo, endpoint: endpoint}, nil
+	return repositoryEndpoint{
+		repoName:  repoName,
+		indexInfo: indexInfo,
+		endpoint:  endpoint,
+	}, nil
 }
 
-func getDefaultEndpointFromRepoInfo(repoInfo *registry.RepositoryInfo) (registry.APIEndpoint, error) {
-	var err error
-
-	options := registry.ServiceOptions{}
-	registryService, err := registry.NewService(options)
+func getDefaultEndpoint(repoName reference.Named, insecure bool) (registry.APIEndpoint, error) {
+	registryService, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
-	endpoints, err := registryService.LookupPushEndpoints(reference.Domain(repoInfo.Name))
+	endpoints, err := registryService.LookupPushEndpoints(reference.Domain(repoName))
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
 	// Default to the highest priority endpoint to return
 	endpoint := endpoints[0]
-	if !repoInfo.Index.Secure {
+	if insecure {
 		for _, ep := range endpoints {
 			if ep.URL.Scheme == "http" {
 				endpoint = ep
