@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/docker/cli/cli/command"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/system"
@@ -492,7 +492,7 @@ func TestLoginTermination(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Fatal("timed out after 1 second. `runLogin` did not return")
 	case err := <-runErr:
-		assert.ErrorIs(t, err, command.ErrPromptTerminated)
+		assert.ErrorIs(t, err, prompt.ErrTerminated)
 	}
 }
 
