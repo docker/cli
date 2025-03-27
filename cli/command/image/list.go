@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.22
+
 package image
 
 import (
@@ -5,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -108,6 +112,9 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 	if err != nil {
 		return err
 	}
+	if !options.all {
+		images = slices.DeleteFunc(images, isDangling)
+	}
 
 	format := options.format
 	if len(format) == 0 {
@@ -133,6 +140,14 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		printAmbiguousHint(dockerCLI.Err(), options.matchName)
 	}
 	return nil
+}
+
+// isDangling is a copy of [formatter.isDangling].
+func isDangling(img image.Summary) bool {
+	if len(img.RepoTags) == 0 && len(img.RepoDigests) == 0 {
+		return true
+	}
+	return len(img.RepoTags) == 1 && img.RepoTags[0] == "<none>:<none>" && len(img.RepoDigests) == 1 && img.RepoDigests[0] == "<none>@<none>"
 }
 
 // printAmbiguousHint prints an informational warning if the provided filter
