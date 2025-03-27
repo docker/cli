@@ -51,10 +51,8 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 			opts.target = args[0]
 			return runLogs(cmd.Context(), dockerCli, &opts)
 		},
-		Annotations: map[string]string{"version": "1.29"},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
-		},
+		Annotations:       map[string]string{"version": "1.29"},
+		ValidArgsFunction: completeServiceNames(dockerCli),
 	}
 
 	flags := cmd.Flags()
