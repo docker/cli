@@ -121,7 +121,7 @@ func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, ser
 func completeScaleArgs(dockerCli command.Cli) func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		// reuse the existing logic for configurable completion of service names and IDs.
-		completions, directive := CompletionFn(dockerCli)(cmd, args, toComplete)
+		completions, directive := completeServiceNames(dockerCli)(cmd, args, toComplete)
 		if directive == cobra.ShellCompDirectiveError {
 			return completions, directive
 		}

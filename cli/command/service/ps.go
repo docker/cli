@@ -39,9 +39,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 			options.services = args
 			return runPS(cmd.Context(), dockerCli, options)
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
-		},
+		ValidArgsFunction: completeServiceNames(dockerCli),
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
