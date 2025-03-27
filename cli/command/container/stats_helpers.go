@@ -184,9 +184,13 @@ func calculateCPUPercentUnix(previousCPU, previousSystem uint64, v *container.St
 
 func calculateCPUPercentWindows(v *container.StatsResponse) float64 {
 	// Max number of 100ns intervals between the previous time read and now
-	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds()) // Start with number of ns intervals
-	possIntervals /= 100                                         // Convert to number of 100ns intervals
-	possIntervals *= uint64(v.NumProcs)                          // Multiple by the number of processors
+	preRead := v.Read.Sub(v.PreRead).Nanoseconds()
+	if preRead <= 0 {
+		return 0.00 // Avoid calculation with 0 or negative
+	}
+	possIntervals := uint64(preRead)    // Start with number of ns intervals
+	possIntervals /= 100                // Convert to number of 100ns intervals
+	possIntervals *= uint64(v.NumProcs) // Multiple by the number of processors
 
 	// Intervals used
 	intervalsUsed := v.CPUStats.CPUUsage.TotalUsage - v.PreCPUStats.CPUUsage.TotalUsage
