@@ -15,7 +15,7 @@ fi
 mkdir -p man/man1
 (
   set -x
-  go run -mod=vendor -modfile=vendor.mod -tags manpages ./man/generate.go --root "." --target "./man/man1"
+  go run -mod=vendor -modfile=vendor.mod -tags manpages ./man/generate.go --source "./man/src" --target "./man/man1"
 )
 
 (
