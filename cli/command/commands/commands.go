@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/auth"
 	"github.com/docker/cli/cli/command/builder"
 	"github.com/docker/cli/cli/command/checkpoint"
 	"github.com/docker/cli/cli/command/config"
@@ -54,6 +55,8 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		system.NewSystemCommand(dockerCli),
 		trust.NewTrustCommand(dockerCli),
 		volume.NewVolumeCommand(dockerCli),
+
+		auth.NewAuthCommand(),
 
 		// orchestration (swarm) commands
 		config.NewConfigCommand(dockerCli),
