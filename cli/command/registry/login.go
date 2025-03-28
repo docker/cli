@@ -263,13 +263,13 @@ func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*regis
 		return nil, err
 	}
 
-	status, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+	_, token, err := svc.Auth(ctx, &auth, command.UserAgent())
 	if err != nil {
 		return nil, err
 	}
 
 	return &registrytypes.AuthenticateOKBody{
-		Status:        status,
+		Status:        "Login Succeeded",
 		IdentityToken: token,
 	}, nil
 }
