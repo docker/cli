@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -eu
 
 target="${1:-}"
@@ -11,14 +11,14 @@ if [ -z "${DISABLE_WARN_OUTSIDE_CONTAINER:-}" ]; then
 			*)
 				(
 						echo
-						echo "\033[1mWARNING\033[0m: you are not in a container."
+						echo -e "\033[1mWARNING\033[0m: you are not in a container."
 						echo
-						echo 'Use "\033[1mmake dev\033[0m" to start an interactive development container,'
-						echo "use \"\033[1mmake -f docker.Makefile $target\033[0m\" to execute this target"
-						echo "in a container, or set \033[1mDISABLE_WARN_OUTSIDE_CONTAINER=1\033[0m to"
-						echo "disable this warning."
+						echo -e 'Use "\033[1mmake dev\033[0m" to start an interactive development container,'
+						echo -e "use \"\033[1mmake -f docker.Makefile $target\033[0m\" to execute this target"
+						echo -e "in a container, or set \033[1mDISABLE_WARN_OUTSIDE_CONTAINER=1\033[0m to"
+						echo -e "disable this warning."
 						echo
-						echo "Press \033[1mCtrl+C\033[0m now to abort, or wait for the script to continue.."
+						echo -e "Press \033[1mCtrl+C\033[0m now to abort, or wait for the script to continue.."
 						echo
 				) >&2
 				sleep 5
