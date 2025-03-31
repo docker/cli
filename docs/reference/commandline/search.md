@@ -125,7 +125,6 @@ Valid placeholders for the Go template are:
 | `.Description` | Image description                              |
 | `.StarCount`   | Number of stars for the image                  |
 | `.IsOfficial`  | "OK" if image is official                      |
-| `.IsAutomated` | "OK" if image build was automated (deprecated) |
 
 When you use the `--format` option, the `search` command will
 output the data exactly as the template declares. If you use the
