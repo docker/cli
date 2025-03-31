@@ -28,6 +28,7 @@ type loginOptions struct {
 	user          string
 	password      string
 	passwordStdin bool
+	passwordEnv   string
 }
 
 // NewLoginCommand creates a new `docker login` command
@@ -56,21 +57,26 @@ func NewLoginCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
 	flags.StringVarP(&opts.password, "password", "p", "", "Password or Personal Access Token (PAT)")
 	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the Password or Personal Access Token (PAT) from stdin")
+	flags.StringVar(&opts.passwordEnv, "password-env", "", "Take the Password or Personal Access Token (PAT) from an environment variable")
 
 	return cmd
 }
 
 func verifyLoginOptions(dockerCLI command.Cli, opts *loginOptions) error {
-	if opts.password != "" {
-		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
-		if opts.passwordStdin {
-			return errors.New("--password and --password-stdin are mutually exclusive")
+	switch {
+	case opts.password != "":
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin or --password-env.")
+		if opts.passwordStdin || opts.passwordEnv != "" {
+			return errors.New("--password, --password-stdin, and --password-env are mutually exclusive")
 		}
-	}
 
-	if opts.passwordStdin {
+	case opts.passwordStdin:
 		if opts.user == "" {
 			return errors.New("Must provide --username with --password-stdin")
+		}
+
+		if opts.passwordEnv != "" {
+			return errors.New("--password, --password-stdin, and --password-env are mutually exclusive")
 		}
 
 		contents, err := io.ReadAll(dockerCLI.In())
@@ -80,7 +86,16 @@ func verifyLoginOptions(dockerCLI command.Cli, opts *loginOptions) error {
 
 		opts.password = strings.TrimSuffix(string(contents), "\n")
 		opts.password = strings.TrimSuffix(opts.password, "\r")
+
+	case opts.passwordEnv != "":
+		pw, ok := os.LookupEnv(opts.passwordEnv)
+		if !ok {
+			return fmt.Errorf("the environment variable %q is not defined", opts.passwordEnv)
+		}
+
+		opts.password = pw
 	}
+
 	return nil
 }
 

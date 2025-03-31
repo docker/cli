@@ -91,6 +91,7 @@ func TestRunLogin(t *testing.T) {
 	testCases := []struct {
 		doc                 string
 		priorCredentials    map[string]configtypes.AuthConfig
+		env                 map[string]string
 		input               loginOptions
 		expectedCredentials map[string]configtypes.AuthConfig
 		expectedErr         string
@@ -286,6 +287,39 @@ func TestRunLogin(t *testing.T) {
 				},
 			},
 		},
+		// Password from environment
+		{
+			doc:              "valid password from environment variable",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			env: map[string]string{
+				"TEST_PASSWORD": "pw0",
+			},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				passwordEnv:   "TEST_PASSWORD",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "pw0",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "given environment variable is unset",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			env: map[string]string{
+				"TEST_PASSWORD": "pw0",
+			},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				passwordEnv:   "DOES_NOT_EXIST",
+			},
+			expectedErr: `the environment variable "DOES_NOT_EXIST" is not defined`,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -302,6 +336,10 @@ func TestRunLogin(t *testing.T) {
 			storedCreds, err := configfile.GetAllCredentials()
 			assert.NilError(t, err)
 			assert.DeepEqual(t, storedCreds, tc.priorCredentials)
+
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
 
 			loginErr := runLogin(context.Background(), cli, tc.input)
 			if tc.expectedErr != "" {
