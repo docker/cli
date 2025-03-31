@@ -15,7 +15,10 @@ import (
 )
 
 // PullOptions defines what and how to pull
-type PullOptions struct {
+type PullOptions = pullOptions
+
+// pullOptions defines what and how to pull.
+type pullOptions struct {
 	remote    string
 	all       bool
 	platform  string
@@ -25,7 +28,7 @@ type PullOptions struct {
 
 // NewPullCommand creates a new `docker pull` command
 func NewPullCommand(dockerCli command.Cli) *cobra.Command {
-	var opts PullOptions
+	var opts pullOptions
 
 	cmd := &cobra.Command{
 		Use:   "pull [OPTIONS] NAME[:TAG|@DIGEST]",
@@ -33,7 +36,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return RunPull(cmd.Context(), dockerCli, opts)
+			return runPull(cmd.Context(), dockerCli, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "5",
@@ -57,6 +60,11 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 
 // RunPull performs a pull against the engine based on the specified options
 func RunPull(ctx context.Context, dockerCLI command.Cli, opts PullOptions) error {
+	return runPull(ctx, dockerCLI, opts)
+}
+
+// runPull performs a pull against the engine based on the specified options
+func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error {
 	distributionRef, err := reference.ParseNormalizedNamed(opts.remote)
 	switch {
 	case err != nil:
