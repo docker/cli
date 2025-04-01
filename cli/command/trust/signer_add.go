@@ -11,7 +11,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
@@ -80,7 +79,7 @@ func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOpti
 }
 
 func addSignerToRepo(ctx context.Context, dockerCLI command.Cli, signerName string, repoName string, signerPubKeys []data.PublicKey) error {
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), repoName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(dockerCLI), repoName)
 	if err != nil {
 		return err
 	}

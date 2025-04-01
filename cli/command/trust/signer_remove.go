@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/spf13/cobra"
@@ -91,7 +90,7 @@ func maybePromptForSignerRemoval(ctx context.Context, dockerCLI command.Cli, rep
 // removeSingleSigner attempts to remove a single signer and returns whether signer removal happened.
 // The signer not being removed doesn't necessarily raise an error e.g. user choosing "No" when prompted for confirmation.
 func removeSingleSigner(ctx context.Context, dockerCLI command.Cli, repoName, signerName string, forceYes bool) (bool, error) {
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), repoName)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(dockerCLI), repoName)
 	if err != nil {
 		return false, err
 	}
