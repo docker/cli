@@ -65,7 +65,7 @@ func TestNewPortCommandOutput(t *testing.T) {
 					}
 					return ci, nil
 				},
-			}, test.EnableContentTrust)
+			})
 			cmd := NewPortCommand(cli)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs([]string{"some_container", tc.port})
