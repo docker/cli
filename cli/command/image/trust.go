@@ -47,7 +47,7 @@ func pushTrustedReference(ctx context.Context, ioStreams command.Streams, repoIn
 }
 
 // trustedPull handles content trust pulling of an image
-func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
+func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
 	refs, err := getTrustedPullTargets(cli, imgRefAndAuth)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, PullOptions{
+		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, pullOptions{
 			all:      false,
 			platform: opts.platform,
 			quiet:    opts.quiet,
@@ -144,7 +144,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 }
 
 // imagePullPrivileged pulls the image and displays it to the output
-func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts PullOptions) error {
+func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
 	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err
