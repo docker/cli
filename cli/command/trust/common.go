@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/trust"
+	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/fvbommel/sortorder"
 	"github.com/sirupsen/logrus"
 	"github.com/theupdateframework/notary"
@@ -66,7 +67,7 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth, a
 // lookupTrustInfo returns processed signature and role information about a notary repository.
 // This information is to be pretty printed or serialized into a machine-readable format.
 func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]trustTagRow, []client.RoleWithSignatures, []data.Role, error) {
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(cli), remote)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(cli), remote)
 	if err != nil {
 		return []trustTagRow{}, []client.RoleWithSignatures{}, []data.Role{}, err
 	}
@@ -166,4 +167,11 @@ func matchReleasedSignatures(allTargets []client.TargetSignedStruct) []trustTagR
 		return sortorder.NaturalLess(signatureRows[i].SignedTag, signatureRows[j].SignedTag)
 	})
 	return signatureRows
+}
+
+// authResolver returns an auth resolver function from a [config.Provider].
+func authResolver(dockerCLI config.Provider) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+		return command.ResolveAuthConfig(dockerCLI.ConfigFile(), index)
+	}
 }
