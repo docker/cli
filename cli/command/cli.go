@@ -222,15 +222,6 @@ func (cli *DockerCli) HooksEnabled() bool {
 	return false
 }
 
-// WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
-func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) CLIOption {
-	return func(dockerCli *DockerCli) error {
-		var err error
-		dockerCli.client, err = makeClient(dockerCli)
-		return err
-	}
-}
-
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption) error {
