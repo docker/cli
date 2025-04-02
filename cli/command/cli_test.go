@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -19,7 +18,6 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -253,46 +251,6 @@ func TestInitializeFromClientHangs(t *testing.T) {
 	case <-timeoutCtx.Done():
 		t.Fatal("server never received an init request")
 	case <-receiveReqCh:
-	}
-}
-
-// The CLI no longer disables/hides experimental CLI features, however, we need
-// to verify that existing configuration files do not break
-func TestExperimentalCLI(t *testing.T) {
-	defaultVersion := "v1.55"
-
-	testcases := []struct {
-		doc        string
-		configfile string
-	}{
-		{
-			doc:        "default",
-			configfile: `{}`,
-		},
-		{
-			doc: "experimental",
-			configfile: `{
-	"experimental": "enabled"
-}`,
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.doc, func(t *testing.T) {
-			dir := fs.NewDir(t, tc.doc, fs.WithFile("config.json", tc.configfile))
-			defer dir.Remove()
-			apiclient := &fakeClient{
-				version: defaultVersion,
-				pingFunc: func() (types.Ping, error) {
-					return types.Ping{Experimental: true, OSType: "linux", APIVersion: defaultVersion}, nil
-				},
-			}
-
-			cli := &DockerCli{client: apiclient, err: streams.NewOut(os.Stderr)}
-			config.SetDir(dir.Path())
-			err := cli.Initialize(flags.NewClientOptions())
-			assert.NilError(t, err)
-		})
 	}
 }
 

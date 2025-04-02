@@ -398,6 +398,32 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 	})
 }
 
+// The CLI no longer disables/hides experimental CLI features, however, we need
+// to verify that existing configuration files do not break
+func TestLoadLegacyExperimental(t *testing.T) {
+	tests := []struct {
+		doc        string
+		configfile string
+	}{
+		{
+			doc:        "default",
+			configfile: `{}`,
+		},
+		{
+			doc: "experimental",
+			configfile: `{
+	"experimental": "enabled"
+}`,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			_, err := LoadFromReader(strings.NewReader(tc.configfile))
+			assert.NilError(t, err)
+		})
+	}
+}
+
 func TestConfigPath(t *testing.T) {
 	oldDir := Dir()
 
