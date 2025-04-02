@@ -302,6 +302,8 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 
 func TestHooksEnabled(t *testing.T) {
 	t.Run("disabled by default", func(t *testing.T) {
+		// Make sure we don't depend on any existing ~/.docker/config.json
+		config.SetDir(t.TempDir())
 		cli, err := NewDockerCli()
 		assert.NilError(t, err)
 
