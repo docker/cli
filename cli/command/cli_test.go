@@ -280,12 +280,14 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, string(inputStream), "input")
 	// Check output stream
-	fmt.Fprintf(cli.Out(), "output")
+	_, err = fmt.Fprint(cli.Out(), "output")
+	assert.NilError(t, err)
 	outputStream, err := io.ReadAll(outbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(outputStream), "output")
 	// Check error stream
-	fmt.Fprintf(cli.Err(), "error")
+	_, err = fmt.Fprint(cli.Err(), "error")
+	assert.NilError(t, err)
 	errStream, err := io.ReadAll(errbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(errStream), "error")
