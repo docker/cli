@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -22,7 +23,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/fs"
 )
 
 func TestNewAPIClientFromFlags(t *testing.T) {
@@ -205,8 +205,8 @@ func TestInitializeFromClient(t *testing.T) {
 // Makes sure we don't hang forever on the initial connection.
 // https://github.com/docker/cli/issues/3652
 func TestInitializeFromClientHangs(t *testing.T) {
-	dir := t.TempDir()
-	socket := filepath.Join(dir, "my.sock")
+	tmpDir := t.TempDir()
+	socket := filepath.Join(tmpDir, "my.sock")
 	l, err := net.Listen("unix", socket)
 	assert.NilError(t, err)
 
@@ -280,12 +280,14 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, string(inputStream), "input")
 	// Check output stream
-	fmt.Fprintf(cli.Out(), "output")
+	_, err = fmt.Fprint(cli.Out(), "output")
+	assert.NilError(t, err)
 	outputStream, err := io.ReadAll(outbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(outputStream), "output")
 	// Check error stream
-	fmt.Fprintf(cli.Err(), "error")
+	_, err = fmt.Fprint(cli.Err(), "error")
+	assert.NilError(t, err)
 	errStream, err := io.ReadAll(errbuf)
 	assert.NilError(t, err)
 	assert.Equal(t, string(errStream), "error")
@@ -302,6 +304,8 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 
 func TestHooksEnabled(t *testing.T) {
 	t.Run("disabled by default", func(t *testing.T) {
+		// Make sure we don't depend on any existing ~/.docker/config.json
+		config.SetDir(t.TempDir())
 		cli, err := NewDockerCli()
 		assert.NilError(t, err)
 
@@ -313,12 +317,11 @@ func TestHooksEnabled(t *testing.T) {
     "features": {
       "hooks": "true"
     }}`
-		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
-		defer dir.Remove()
+		config.SetDir(t.TempDir())
+		err := os.WriteFile(filepath.Join(config.Dir(), "config.json"), []byte(configFile), 0o600)
+		assert.NilError(t, err)
 		cli, err := NewDockerCli()
 		assert.NilError(t, err)
-		config.SetDir(dir.Path())
-
 		assert.Check(t, cli.HooksEnabled())
 	})
 
@@ -328,12 +331,11 @@ func TestHooksEnabled(t *testing.T) {
       "hooks": "true"
     }}`
 		t.Setenv("DOCKER_CLI_HOOKS", "false")
-		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
-		defer dir.Remove()
+		config.SetDir(t.TempDir())
+		err := os.WriteFile(filepath.Join(config.Dir(), "config.json"), []byte(configFile), 0o600)
+		assert.NilError(t, err)
 		cli, err := NewDockerCli()
 		assert.NilError(t, err)
-		config.SetDir(dir.Path())
-
 		assert.Check(t, !cli.HooksEnabled())
 	})
 
@@ -343,12 +345,11 @@ func TestHooksEnabled(t *testing.T) {
       "hooks": "true"
     }}`
 		t.Setenv("DOCKER_CLI_HINTS", "false")
-		dir := fs.NewDir(t, "", fs.WithFile("config.json", configFile))
-		defer dir.Remove()
+		config.SetDir(t.TempDir())
+		err := os.WriteFile(filepath.Join(config.Dir(), "config.json"), []byte(configFile), 0o600)
+		assert.NilError(t, err)
 		cli, err := NewDockerCli()
 		assert.NilError(t, err)
-		config.SetDir(dir.Path())
-
 		assert.Check(t, !cli.HooksEnabled())
 	})
 }
