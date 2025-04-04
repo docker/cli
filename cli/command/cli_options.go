@@ -101,7 +101,8 @@ func WithContentTrust(enabled bool) CLIOption {
 // WithDefaultContextStoreConfig configures the cli to use the default context store configuration.
 func WithDefaultContextStoreConfig() CLIOption {
 	return func(cli *DockerCli) error {
-		cli.contextStoreConfig = DefaultContextStoreConfig()
+		cfg := DefaultContextStoreConfig()
+		cli.contextStoreConfig = &cfg
 		return nil
 	}
 }
@@ -111,6 +112,17 @@ func WithAPIClient(c client.APIClient) CLIOption {
 	return func(cli *DockerCli) error {
 		cli.client = c
 		return nil
+	}
+}
+
+// WithInitializeClient is passed to [DockerCli.Initialize] by callers who wish to set a particular API Client for use by the CLI.
+func WithInitializeClient(makeClient func(*DockerCli) (client.APIClient, error)) CLIOption {
+	return func(cli *DockerCli) error {
+		c, err := makeClient(cli)
+		if err != nil {
+			return err
+		}
+		return WithAPIClient(c)(cli)
 	}
 }
 

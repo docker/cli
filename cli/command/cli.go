@@ -59,7 +59,9 @@ type Cli interface {
 }
 
 // DockerCli is an instance the docker command line client.
-// Instances of the client can be returned from NewDockerCli.
+// Instances of the client should be created using the [NewDockerCli]
+// constructor to make sure they are properly initialized with defaults
+// set.
 type DockerCli struct {
 	configFile         *configfile.ConfigFile
 	options            *cliflags.ClientOptions
@@ -74,7 +76,7 @@ type DockerCli struct {
 	init               sync.Once
 	initErr            error
 	dockerEndpoint     docker.Endpoint
-	contextStoreConfig store.Config
+	contextStoreConfig *store.Config
 	initTimeout        time.Duration
 	res                telemetryResource
 
@@ -220,15 +222,6 @@ func (cli *DockerCli) HooksEnabled() bool {
 	return false
 }
 
-// WithInitializeClient is passed to DockerCli.Initialize by callers who wish to set a particular API Client for use by the CLI.
-func WithInitializeClient(makeClient func(dockerCli *DockerCli) (client.APIClient, error)) CLIOption {
-	return func(dockerCli *DockerCli) error {
-		var err error
-		dockerCli.client, err = makeClient(dockerCli)
-		return err
-	}
-}
-
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption) error {
@@ -250,13 +243,33 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 		return errors.New("conflicting options: cannot specify both --host and --context")
 	}
 
+	if cli.contextStoreConfig == nil {
+		// This path can be hit when calling Initialize on a DockerCli that's
+		// not constructed through [NewDockerCli]. Using the default context
+		// store without a config set will result in Endpoints from contexts
+		// not being type-mapped correctly, and used as a generic "map[string]any",
+		// instead of a [docker.EndpointMeta].
+		//
+		// When looking up the API endpoint (using [EndpointFromContext]), no
+		// endpoint will be found, and a default, empty endpoint will be used
+		// instead which in its turn, causes newAPIClientFromEndpoint to
+		// be initialized with the default config instead of settings for
+		// the current context (which may mean; connecting with the wrong
+		// endpoint and/or TLS Config to be missing).
+		//
+		// [EndpointFromContext]: https://github.com/docker/cli/blob/33494921b80fd0b5a06acc3a34fa288de4bb2e6b/cli/context/docker/load.go#L139-L149
+		if err := WithDefaultContextStoreConfig()(cli); err != nil {
+			return err
+		}
+	}
+
 	cli.options = opts
 	cli.configFile = config.LoadDefaultConfigFile(cli.err)
 	cli.currentContext = resolveContextName(cli.options, cli.configFile)
 	cli.contextStore = &ContextStoreWithDefault{
-		Store: store.New(config.ContextStoreDir(), cli.contextStoreConfig),
+		Store: store.New(config.ContextStoreDir(), *cli.contextStoreConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(cli.options, cli.contextStoreConfig)
+			return ResolveDefaultContext(cli.options, *cli.contextStoreConfig)
 		},
 	}
 
