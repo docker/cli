@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.23.0
 
+replace github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250404210700-6422ff2804f9+incompatible
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v1.0.0-rc.1
@@ -28,6 +30,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
+	github.com/moby/sys/atomicwriter v0.0.0-20250404210502-6e2523cbf3a1
 	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.6.0
 	github.com/moby/sys/signal v0.7.1

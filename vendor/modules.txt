@@ -60,7 +60,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v28.0.5-0.20250404181123-d7b743b8569e+incompatible
+# github.com/docker/docker v28.0.5-0.20250404181123-d7b743b8569e+incompatible => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250404210700-6422ff2804f9+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -90,7 +90,6 @@ github.com/docker/docker/errdefs
 github.com/docker/docker/internal/lazyregexp
 github.com/docker/docker/internal/multierror
 github.com/docker/docker/pkg/archive
-github.com/docker/docker/pkg/atomicwriter
 github.com/docker/docker/pkg/homedir
 github.com/docker/docker/pkg/idtools
 github.com/docker/docker/pkg/ioutils
@@ -211,6 +210,9 @@ github.com/moby/swarmkit/v2/api/defaults
 github.com/moby/swarmkit/v2/api/genericresource
 github.com/moby/swarmkit/v2/manager/raftselector
 github.com/moby/swarmkit/v2/protobuf/plugin
+# github.com/moby/sys/atomicwriter v0.0.0-20250404210502-6e2523cbf3a1
+## explicit; go 1.18
+github.com/moby/sys/atomicwriter
 # github.com/moby/sys/capability v0.4.0
 ## explicit; go 1.21
 github.com/moby/sys/capability
@@ -557,3 +559,4 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250404210700-6422ff2804f9+incompatible
