@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.23.0
 
+replace github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250404210700-6422ff2804f9+incompatible
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v1.0.0-rc.1
@@ -14,7 +16,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.9.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.0.4+incompatible
+	github.com/docker/docker v28.0.5-0.20250404181123-d7b743b8569e+incompatible // master / v28.x-dev
 	github.com/docker/docker-credential-helpers v0.9.2
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -28,6 +30,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
+	github.com/moby/sys/atomicwriter v0.0.0-20250404210502-6e2523cbf3a1
 	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.6.0
 	github.com/moby/sys/signal v0.7.1
@@ -81,7 +84,7 @@ require (
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/symlink v0.3.0 // indirect
-	github.com/moby/sys/user v0.3.0 // indirect
+	github.com/moby/sys/user v0.4.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
