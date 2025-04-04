@@ -15,10 +15,10 @@ func TestLimitReaderReadAll(t *testing.T) {
 	assert.NilError(t, err)
 
 	r = strings.NewReader("Test")
-	_, err = io.ReadAll(&LimitedReader{R: r, N: 4})
+	_, err = io.ReadAll(&limitedReader{R: r, N: 4})
 	assert.NilError(t, err)
 
 	r = strings.NewReader("Test")
-	_, err = io.ReadAll(&LimitedReader{R: r, N: 2})
+	_, err = io.ReadAll(&limitedReader{R: r, N: 2})
 	assert.Error(t, err, "read exceeds the defined limit")
 }
