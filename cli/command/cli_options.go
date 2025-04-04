@@ -101,7 +101,8 @@ func WithContentTrust(enabled bool) CLIOption {
 // WithDefaultContextStoreConfig configures the cli to use the default context store configuration.
 func WithDefaultContextStoreConfig() CLIOption {
 	return func(cli *DockerCli) error {
-		cli.contextStoreConfig = DefaultContextStoreConfig()
+		cfg := DefaultContextStoreConfig()
+		cli.contextStoreConfig = &cfg
 		return nil
 	}
 }
