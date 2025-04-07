@@ -29,10 +29,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/builder/remotecontext/urlutil"
-	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
+	"github.com/moby/go-archive"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -269,7 +268,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
 			ExcludePatterns: excludes,
-			ChownOpts:       &idtools.Identity{UID: 0, GID: 0},
+			ChownOpts:       &archive.ChownOpts{UID: 0, GID: 0},
 		})
 		if err != nil {
 			return err
