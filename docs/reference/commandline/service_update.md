@@ -7,6 +7,7 @@ Update a service
 
 | Name                                          | Type              | Default | Description                                                                                         |
 |:----------------------------------------------|:------------------|:--------|:----------------------------------------------------------------------------------------------------|
+| `--apparmor`                                  | `string`          |         | AppArmor mode (`default` or `disabled`                                                              |
 | `--args`                                      | `command`         |         | Service command args                                                                                |
 | `--cap-add`                                   | `list`            |         | Add Linux capabilities                                                                              |
 | `--cap-drop`                                  | `list`            |         | Drop Linux capabilities                                                                             |
@@ -58,6 +59,7 @@ Update a service
 | [`--network-add`](#network-add)               | `network`         |         | Add a network                                                                                       |
 | `--network-rm`                                | `list`            |         | Remove a network                                                                                    |
 | `--no-healthcheck`                            | `bool`            |         | Disable any container-specified HEALTHCHECK                                                         |
+| `--no-new-privileges`                         | `bool`            |         | Disable container processes from gaining new privileges                                             |
 | `--no-resolve-image`                          | `bool`            |         | Do not query the registry to resolve image digest and supported platforms                           |
 | `--oom-score-adj`                             | `int64`           | `0`     | Tune host's OOM preferences (-1000 to 1000)                                                         |
 | `--placement-pref-add`                        | `pref`            |         | Add a placement preference                                                                          |
@@ -81,6 +83,7 @@ Update a service
 | `--rollback-monitor`                          | `duration`        | `0s`    | Duration after each task rollback to monitor for failure (ns\|us\|ms\|s\|m\|h)                      |
 | `--rollback-order`                            | `string`          |         | Rollback order (`start-first`, `stop-first`)                                                        |
 | `--rollback-parallelism`                      | `uint64`          | `0`     | Maximum number of tasks rolled back simultaneously (0 to roll back all at once)                     |
+| `--seccomp`                                   | `string`          |         | Seccomp configuration (`default`, `unconfined`, or a path to a json custom seccomp profile)         |
 | [`--secret-add`](#secret-add)                 | `secret`          |         | Add or update a secret on a service                                                                 |
 | `--secret-rm`                                 | `list`            |         | Remove a secret                                                                                     |
 | `--stop-grace-period`                         | `duration`        |         | Time to wait before force killing a container (ns\|us\|ms\|s\|m\|h)                                 |
