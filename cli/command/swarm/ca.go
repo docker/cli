@@ -96,7 +96,7 @@ func runCA(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opt
 func updateSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, opts caOptions) {
 	caCert := opts.rootCACert.Contents()
 	caKey := opts.rootCAKey.Contents()
-	opts.mergeSwarmSpecCAFlags(spec, flags, caCert)
+	opts.mergeSwarmSpecCAFlags(spec, flags, &caCert)
 
 	spec.CAConfig.SigningCACert = caCert
 	spec.CAConfig.SigningCAKey = caKey

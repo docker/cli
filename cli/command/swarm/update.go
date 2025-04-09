@@ -53,7 +53,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 
 	prevAutoLock := swarmInspect.Spec.EncryptionConfig.AutoLockManagers
 
-	opts.mergeSwarmSpec(&swarmInspect.Spec, flags, swarmInspect.ClusterInfo.TLSInfo.TrustRoot)
+	opts.mergeSwarmSpec(&swarmInspect.Spec, flags, &swarmInspect.ClusterInfo.TLSInfo.TrustRoot)
 
 	curAutoLock := swarmInspect.Spec.EncryptionConfig.AutoLockManagers
 

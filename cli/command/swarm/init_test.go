@@ -150,7 +150,7 @@ func TestSwarmInitWithExternalCA(t *testing.T) {
 
 	tempDir := t.TempDir()
 	certFile := filepath.Join(tempDir, "cert.pem")
-	err := os.WriteFile(certFile, []byte(cert), 0644)
+	err := os.WriteFile(certFile, []byte(cert), 0o644)
 	assert.NilError(t, err)
 
 	cmd := newInitCommand(cli)
