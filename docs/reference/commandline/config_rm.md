@@ -16,8 +16,7 @@ Removes the specified configs from the Swarm.
 
 For detailed information about using configs, refer to [store configuration data using Docker Configs](https://docs.docker.com/engine/swarm/configs/).
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a Swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -32,8 +31,7 @@ $ docker config rm my_config
 sapth4csdo5b6wz2p5uimh5xg
 ```
 
-> **Warning**
->
+> [!WARNING]
 > This command doesn't ask for confirmation before removing a config.
 { .warning }
 

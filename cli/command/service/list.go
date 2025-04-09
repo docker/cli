@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type listOptions struct {
@@ -41,6 +42,12 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 

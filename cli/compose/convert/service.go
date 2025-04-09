@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +28,7 @@ func Services(
 	ctx context.Context,
 	namespace Namespace,
 	config *composetypes.Config,
-	apiClient client.CommonAPIClient,
+	apiClient client.APIClient,
 ) (map[string]swarm.ServiceSpec, error) {
 	result := make(map[string]swarm.ServiceSpec)
 	for _, service := range config.Services {
@@ -149,6 +148,7 @@ func Service(
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         convertUlimits(service.Ulimits),
+				OomScoreAdj:     service.OomScoreAdj,
 			},
 			LogDriver:     logDriver,
 			Resources:     resources,
@@ -215,16 +215,19 @@ func convertServiceNetworks(
 			return nil, errors.Errorf("undefined network %q", networkName)
 		}
 		var aliases []string
+		var driverOpts map[string]string
 		if network != nil {
 			aliases = network.Aliases
+			driverOpts = network.DriverOpts
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.Name != "" {
 			target = networkConfig.Name
 		}
 		netAttachConfig := swarm.NetworkAttachmentConfig{
-			Target:  target,
-			Aliases: aliases,
+			Target:     target,
+			Aliases:    aliases,
+			DriverOpts: driverOpts,
 		}
 		// Only add default aliases to user defined networks. Other networks do
 		// not support aliases.
@@ -281,7 +284,7 @@ func convertServiceSecrets(
 
 // convertServiceConfigObjs takes an API client, a namespace, a ServiceConfig,
 // and a set of compose Config specs, and creates the swarm ConfigReferences
-// required by the serivce. Unlike convertServiceSecrets, this takes the whole
+// required by the service. Unlike convertServiceSecrets, this takes the whole
 // ServiceConfig, because some Configs may be needed as a result of other
 // fields (like CredentialSpecs).
 //
@@ -690,24 +693,24 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 	return &swarmCredSpec, nil
 }
 
-func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*units.Ulimit {
-	newUlimits := make(map[string]*units.Ulimit)
+func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*container.Ulimit {
+	newUlimits := make(map[string]*container.Ulimit)
 	for name, u := range origUlimits {
 		if u.Single != 0 {
-			newUlimits[name] = &units.Ulimit{
+			newUlimits[name] = &container.Ulimit{
 				Name: name,
 				Soft: int64(u.Single),
 				Hard: int64(u.Single),
 			}
 		} else {
-			newUlimits[name] = &units.Ulimit{
+			newUlimits[name] = &container.Ulimit{
 				Name: name,
 				Soft: int64(u.Soft),
 				Hard: int64(u.Hard),
 			}
 		}
 	}
-	ulimits := make([]*units.Ulimit, 0, len(newUlimits))
+	ulimits := make([]*container.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		ulimits = append(ulimits, ulimit)
 	}

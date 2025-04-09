@@ -1,7 +1,6 @@
 package trust
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
@@ -59,15 +58,15 @@ func setupTrustedImagesForRevoke(t *testing.T, dir fs.Dir) {
 func setupTrustedImagesForRevokeRepo(t *testing.T, dir fs.Dir) {
 	t.Helper()
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.AlpineImage)).Assert(t, icmd.Success)
-	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, fmt.Sprintf("%s:v1", revokeRepo)).Assert(t, icmd.Success)
+	icmd.RunCommand("docker", "tag", fixtures.AlpineImage, revokeRepo+":v1").Assert(t, icmd.Success)
 	icmd.RunCmd(
-		icmd.Command("docker", "-D", "trust", "sign", fmt.Sprintf("%s:v1", revokeRepo)),
+		icmd.Command("docker", "-D", "trust", "sign", revokeRepo+":v1"),
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary).Assert(t, icmd.Success)
 	icmd.RunCmd(icmd.Command("docker", "pull", fixtures.BusyboxImage)).Assert(t, icmd.Success)
-	icmd.RunCommand("docker", "tag", fixtures.BusyboxImage, fmt.Sprintf("%s:v2", revokeRepo)).Assert(t, icmd.Success)
+	icmd.RunCommand("docker", "tag", fixtures.BusyboxImage, revokeRepo+":v2").Assert(t, icmd.Success)
 	icmd.RunCmd(
-		icmd.Command("docker", "-D", "trust", "sign", fmt.Sprintf("%s:v2", revokeRepo)),
+		icmd.Command("docker", "-D", "trust", "sign", revokeRepo+":v2"),
 		fixtures.WithPassphrase("root_password", "repo_password"),
 		fixtures.WithConfig(dir.Path()), fixtures.WithNotary).Assert(t, icmd.Success)
 }

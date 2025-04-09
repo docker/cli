@@ -45,7 +45,7 @@ func RunImport(dockerCli command.Cli, name string, source string) error {
 		return err
 	}
 
-	fmt.Fprintln(dockerCli.Out(), name)
-	fmt.Fprintf(dockerCli.Err(), "Successfully imported context %q\n", name)
+	_, _ = fmt.Fprintln(dockerCli.Out(), name)
+	_, _ = fmt.Fprintf(dockerCli.Err(), "Successfully imported context %q\n", name)
 	return nil
 }

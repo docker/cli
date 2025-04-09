@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package main
 
@@ -23,6 +23,9 @@ import (
 var pluginFilename = "docker-buildx"
 
 func TestBuildWithBuilder(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	testcases := []struct {
 		name         string
 		context      string
@@ -61,15 +64,18 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 	)
 	defer dir.Remove()
 
-	for _, tt := range testcases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.builder != "" {
-				t.Setenv("BUILDX_BUILDER", tt.builder)
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx2, cancel2 := context.WithCancel(ctx)
+			defer cancel2()
+
+			if tc.builder != "" {
+				t.Setenv("BUILDX_BUILDER", tc.builder)
 			}
 
 			var b bytes.Buffer
 			dockerCli, err := command.NewDockerCli(
+				command.WithBaseContext(ctx2),
 				command.WithAPIClient(&fakeClient{}),
 				command.WithInputStream(discard),
 				command.WithCombinedStreams(&b),
@@ -77,10 +83,10 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			assert.NilError(t, err)
 			assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
 
-			if tt.context != "" {
-				if tt.context != command.DefaultContextName {
+			if tc.context != "" {
+				if tc.context != command.DefaultContextName {
 					assert.NilError(t, dockerCli.ContextStore().CreateOrUpdate(store.Metadata{
-						Name: tt.context,
+						Name: tc.context,
 						Endpoints: map[string]any{
 							"docker": map[string]any{
 								"host": "unix://" + filepath.Join(t.TempDir(), "docker.sock"),
@@ -89,12 +95,12 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 					}))
 				}
 				opts := flags.NewClientOptions()
-				opts.Context = tt.context
+				opts.Context = tc.context
 				assert.NilError(t, dockerCli.Initialize(opts))
 			}
 
 			dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
-			if tt.alias {
+			if tc.alias {
 				dockerCli.ConfigFile().Aliases = map[string]string{"builder": "buildx"}
 			}
 
@@ -108,8 +114,8 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
 			assert.NilError(t, err)
 			assert.DeepEqual(t, []string{builderDefaultPlugin, "build", "."}, args)
-			if tt.expectedEnvs != nil {
-				assert.DeepEqual(t, tt.expectedEnvs, envs)
+			if tc.expectedEnvs != nil {
+				assert.DeepEqual(t, tc.expectedEnvs, envs)
 			} else {
 				assert.Check(t, len(envs) == 0)
 			}
@@ -121,11 +127,14 @@ type fakeClient struct {
 	client.Client
 }
 
-func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {
+func (*fakeClient) Ping(context.Context) (types.Ping, error) {
 	return types.Ping{OSType: "linux"}, nil
 }
 
 func TestBuildkitDisabled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	dir := fs.NewDir(t, t.Name(),
@@ -136,6 +145,7 @@ func TestBuildkitDisabled(t *testing.T) {
 	b := bytes.NewBuffer(nil)
 
 	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
 		command.WithAPIClient(&fakeClient{}),
 		command.WithInputStream(discard),
 		command.WithCombinedStreams(b),
@@ -163,6 +173,9 @@ func TestBuildkitDisabled(t *testing.T) {
 }
 
 func TestBuilderBroken(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
 	)
@@ -171,6 +184,7 @@ func TestBuilderBroken(t *testing.T) {
 	b := bytes.NewBuffer(nil)
 
 	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
 		command.WithAPIClient(&fakeClient{}),
 		command.WithInputStream(discard),
 		command.WithCombinedStreams(b),
@@ -199,6 +213,8 @@ func TestBuilderBroken(t *testing.T) {
 
 func TestBuilderBrokenEnforced(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "1")
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
@@ -208,6 +224,7 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 	b := bytes.NewBuffer(nil)
 
 	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
 		command.WithAPIClient(&fakeClient{}),
 		command.WithInputStream(discard),
 		command.WithCombinedStreams(b),
@@ -271,10 +288,9 @@ func TestHasBuilderName(t *testing.T) {
 			expected: true,
 		},
 	}
-	for _, tt := range cases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, hasBuilderName(tt.args, tt.envs))
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, hasBuilderName(tc.args, tc.envs))
 		})
 	}
 }

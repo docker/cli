@@ -38,7 +38,7 @@ func waitFn(cid string) (<-chan container.WaitResponse, <-chan error) {
 }
 
 func TestWaitExitOrRemoved(t *testing.T) {
-	testcases := []struct {
+	tests := []struct {
 		cid      string
 		exitCode int
 	}{
@@ -61,9 +61,11 @@ func TestWaitExitOrRemoved(t *testing.T) {
 	}
 
 	client := &fakeClient{waitFunc: waitFn, Version: api.DefaultVersion}
-	for _, testcase := range testcases {
-		statusC := waitExitOrRemoved(context.Background(), client, testcase.cid, true)
-		exitCode := <-statusC
-		assert.Check(t, is.Equal(testcase.exitCode, exitCode))
+	for _, tc := range tests {
+		t.Run(tc.cid, func(t *testing.T) {
+			statusC := waitExitOrRemoved(context.Background(), client, tc.cid, true)
+			exitCode := <-statusC
+			assert.Check(t, is.Equal(tc.exitCode, exitCode))
+		})
 	}
 }

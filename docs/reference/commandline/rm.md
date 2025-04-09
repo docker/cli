@@ -9,11 +9,11 @@ Remove one or more containers
 
 ### Options
 
-| Name              | Type | Default | Description                                             |
-|:------------------|:-----|:--------|:--------------------------------------------------------|
-| `-f`, `--force`   |      |         | Force the removal of a running container (uses SIGKILL) |
-| `-l`, `--link`    |      |         | Remove the specified link                               |
-| `-v`, `--volumes` |      |         | Remove anonymous volumes associated with the container  |
+| Name              | Type   | Default | Description                                             |
+|:------------------|:-------|:--------|:--------------------------------------------------------|
+| `-f`, `--force`   | `bool` |         | Force the removal of a running container (uses SIGKILL) |
+| `-l`, `--link`    | `bool` |         | Remove the specified link                               |
+| `-v`, `--volumes` | `bool` |         | Remove anonymous volumes associated with the container  |
 
 
 <!---MARKER_GEN_END-->

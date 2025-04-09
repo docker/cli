@@ -2,14 +2,13 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -30,8 +29,11 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Stop one or more running containers",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("time") && cmd.Flags().Changed("timeout") {
+				return errors.New("conflicting options: cannot specify both --timeout and --time")
+			}
 			opts.containers = args
-			opts.timeoutChanged = cmd.Flags().Changed("time")
+			opts.timeoutChanged = cmd.Flags().Changed("timeout") || cmd.Flags().Changed("time")
 			return runStop(cmd.Context(), dockerCli, &opts)
 		},
 		Annotations: map[string]string{
@@ -42,32 +44,37 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
-	flags.IntVarP(&opts.timeout, "time", "t", 0, "Seconds to wait before killing the container")
+	flags.IntVarP(&opts.timeout, "timeout", "t", 0, "Seconds to wait before killing the container")
+
+	// The --time option is deprecated, but kept for backward compatibility.
+	flags.IntVar(&opts.timeout, "time", 0, "Seconds to wait before killing the container (deprecated: use --timeout)")
+	_ = flags.MarkDeprecated("time", "use --timeout instead")
+
+	_ = cmd.RegisterFlagCompletionFunc("signal", completeSignals)
+
 	return cmd
 }
 
-func runStop(ctx context.Context, dockerCli command.Cli, opts *stopOptions) error {
+func runStop(ctx context.Context, dockerCLI command.Cli, opts *stopOptions) error {
 	var timeout *int
 	if opts.timeoutChanged {
 		timeout = &opts.timeout
 	}
 
+	apiClient := dockerCLI.Client()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, id string) error {
-		return dockerCli.Client().ContainerStop(ctx, id, container.StopOptions{
+		return apiClient.ContainerStop(ctx, id, container.StopOptions{
 			Signal:  opts.signal,
 			Timeout: timeout,
 		})
 	})
-	var errs []string
+	var errs []error
 	for _, ctr := range opts.containers {
 		if err := <-errChan; err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
-		_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), ctr)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

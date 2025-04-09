@@ -118,7 +118,7 @@ and Docker Engine perform API version negotiation, and select the highest API
 version that is supported by both the Docker CLI and the Docker Engine.
 
 For example, if the CLI is connecting with Docker Engine version 19.03, it downgrades
-to API version 1.40 (refer to the [API version matrix](https://docs.docker.com/engine/api/#api-version-matrix)
+to API version 1.40 (refer to the [API version matrix](https://docs.docker.com/reference/api/engine/#api-version-matrix)
 to learn about the supported API versions for Docker Engine):
 
 ```console

@@ -8,7 +8,7 @@ Return low-level information on Docker objects
 | Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
-| [`-s`](#size), [`--size`](#size)       |          |         | Display total file sizes if the type is container                                                                                                                                                                                                                  |
+| [`-s`](#size), [`--size`](#size)       | `bool`   |         | Display total file sizes if the type is container                                                                                                                                                                                                                  |
 | [`--type`](#type)                      | `string` |         | Return JSON for specified type                                                                                                                                                                                                                                     |
 
 
@@ -29,7 +29,7 @@ all the details of the format.
 
 ### <a name="type"></a> Specify target type (--type)
 
-`--type container|image|node|network|secret|service|volume|task|plugin`
+`--type config|container|image|node|network|secret|service|volume|task|plugin`
 
 The `docker inspect` command matches any type of object by either ID or name. In
 some cases multiple type of objects (for example, a container and a volume)

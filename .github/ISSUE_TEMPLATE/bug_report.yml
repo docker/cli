@@ -8,12 +8,12 @@ body:
     attributes:
       value: |
         Thank you for taking the time to report a bug!
-        If this is a security issue please report it to the [Docker Security team](mailto:security@docker.com).
+        If this is a security issue report it to the [Docker Security team](mailto:security@docker.com).
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: Please give a clear and concise description of the bug
+      description: Give a clear and concise description of the bug
     validations:
       required: true
   - type: textarea

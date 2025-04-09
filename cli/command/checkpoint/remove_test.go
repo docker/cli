@@ -1,12 +1,12 @@
 package checkpoint
 
 import (
+	"errors"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/checkpoint"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -19,16 +19,16 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{"too-few-arguments"},
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires 2 arguments",
 		},
 		{
 			args:          []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 2 arguments",
+			expectedError: "requires 2 arguments",
 		},
 		{
 			args: []string{"foo", "bar"},
 			checkpointDeleteFunc: func(container string, options checkpoint.DeleteOptions) error {
-				return errors.Errorf("error deleting checkpoint")
+				return errors.New("error deleting checkpoint")
 			},
 			expectedError: "error deleting checkpoint",
 		},
@@ -41,6 +41,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 		cmd := newRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

@@ -1,6 +1,7 @@
 package container
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -72,14 +72,75 @@ func mustParse(t *testing.T, args string) (*container.Config, *container.HostCon
 }
 
 func TestParseRunLinks(t *testing.T) {
-	if _, hostConfig, _ := mustParse(t, "--link a:b"); len(hostConfig.Links) == 0 || hostConfig.Links[0] != "a:b" {
-		t.Fatalf("Error parsing links. Expected []string{\"a:b\"}, received: %v", hostConfig.Links)
+	tests := []struct {
+		name               string
+		input              string
+		expHostConfigLinks []string
+		expNetConfigLinks  map[string][]string
+	}{
+		// Default bridge - legacy links ...
+		{
+			name:               "default/onelink",
+			input:              "--link a:b",
+			expHostConfigLinks: []string{"a:b"},
+			expNetConfigLinks:  map[string][]string{"default": nil},
+		},
+		{
+			name:               "default/twolinks",
+			input:              "--link a:b --link c:d",
+			expHostConfigLinks: []string{"a:b", "c:d"},
+			expNetConfigLinks:  map[string][]string{"default": nil},
+		},
+		{
+			name:               "bridge/onelink",
+			input:              "--network bridge --link a:b",
+			expHostConfigLinks: []string{"a:b"},
+			// expNetConfigLinks - no EndpointsConfig is created for a single named network with no options set.
+			// See the "For backward compatibility" comment in parseNetworkOpts().
+		},
+		{
+			name:              "default/nolinks",
+			expNetConfigLinks: map[string][]string{"default": nil},
+		},
+
+		// User-defined bridge - links become DNS aliases ...
+		{
+			name:               "userdefnet/onelink",
+			input:              "--network userdefnet --link a:b",
+			expHostConfigLinks: []string{"a:b"},
+			expNetConfigLinks:  map[string][]string{"userdefnet": {"a:b"}},
+		},
+		{
+			name:               "userdefnet/twolinks",
+			input:              "--network userdefnet --link a:b --link c:d",
+			expHostConfigLinks: []string{"a:b", "c:d"},
+			expNetConfigLinks:  map[string][]string{"userdefnet": {"a:b", "c:d"}},
+		},
+		{
+			name:  "userdefnet/nolinks",
+			input: "--network userdefnet",
+		},
+		{
+			// Link options are applied to the first network (and there's no "advanced syntax"
+			// link key, like "--network name=userdefnet,link=a:b").
+			name:               "links apply to the first network",
+			input:              "--network userdefnet --link a:b --network bar --link c:d",
+			expHostConfigLinks: []string{"a:b", "c:d"},
+			expNetConfigLinks:  map[string][]string{"userdefnet": {"a:b", "c:d"}, "bar": nil},
+		},
 	}
-	if _, hostConfig, _ := mustParse(t, "--link a:b --link c:d"); len(hostConfig.Links) < 2 || hostConfig.Links[0] != "a:b" || hostConfig.Links[1] != "c:d" {
-		t.Fatalf("Error parsing links. Expected []string{\"a:b\", \"c:d\"}, received: %v", hostConfig.Links)
-	}
-	if _, hostConfig, _ := mustParse(t, ""); len(hostConfig.Links) != 0 {
-		t.Fatalf("Error parsing links. No link expected, received: %v", hostConfig.Links)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, hostConfig, netConfig := mustParse(t, tc.input)
+			assert.Check(t, is.DeepEqual(hostConfig.Links, tc.expHostConfigLinks))
+			assert.Check(t, is.Len(netConfig.EndpointsConfig, len(tc.expNetConfigLinks)))
+			for netName, expLinks := range tc.expNetConfigLinks {
+				nc, ok := netConfig.EndpointsConfig[netName]
+				assert.Assert(t, ok)
+				assert.Check(t, is.DeepEqual(nc.Links, expLinks))
+			}
+		})
 	}
 }
 
@@ -126,7 +187,6 @@ func TestParseRunAttach(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			config, _, _ := mustParse(t, tc.input)
 			assert.Equal(t, config.AttachStdin, tc.expected.AttachStdin)
@@ -280,7 +340,7 @@ func compareRandomizedStrings(a, b, c, d string) error {
 	if a == d && b == c {
 		return nil
 	}
-	return errors.Errorf("strings don't match")
+	return errors.New("strings don't match")
 }
 
 // Simple parse with MacAddress validation
@@ -335,7 +395,7 @@ func TestParseHostname(t *testing.T) {
 	hostnameWithDomain := "--hostname=hostname.domainname"
 	hostnameWithDomainTld := "--hostname=hostname.domainname.tld"
 	for hostname, expectedHostname := range validHostnames {
-		if config, _, _ := mustParse(t, fmt.Sprintf("--hostname=%s", hostname)); config.Hostname != expectedHostname {
+		if config, _, _ := mustParse(t, "--hostname="+hostname); config.Hostname != expectedHostname {
 			t.Fatalf("Expected the config to have 'hostname' as %q, got %q", expectedHostname, config.Hostname)
 		}
 	}
@@ -802,7 +862,6 @@ func TestParseRestartPolicy(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			_, hostConfig, _, err := parseRun([]string{"--restart=" + tc.input, "img", "cmd"})
 			if tc.expectedErr != "" {
@@ -817,11 +876,9 @@ func TestParseRestartPolicy(t *testing.T) {
 }
 
 func TestParseRestartPolicyAutoRemove(t *testing.T) {
-	expected := "Conflicting options: --restart and --rm"
 	_, _, _, err := parseRun([]string{"--rm", "--restart=always", "img", "cmd"}) //nolint:dogsled
-	if err == nil || err.Error() != expected {
-		t.Fatalf("Expected error %v, but got none", expected)
-	}
+	const expected = "conflicting options: cannot specify both --restart and --rm"
+	assert.Check(t, is.Error(err, expected))
 }
 
 func TestParseHealth(t *testing.T) {
@@ -921,7 +978,7 @@ func TestParseEnvfileVariablesWithBOMUnicode(t *testing.T) {
 	}
 
 	// UTF16 with BOM
-	e := "contains invalid utf8 bytes at line"
+	e := "invalid utf8 bytes at line"
 	if _, _, _, err := parseRun([]string{"--env-file=testdata/utf16.env", "img", "cmd"}); err == nil || !strings.Contains(err.Error(), e) {
 		t.Fatalf("Expected an error with message '%s', got %v", e, err)
 	}
@@ -959,12 +1016,8 @@ func TestParseLabelfileVariables(t *testing.T) {
 
 func TestParseEntryPoint(t *testing.T) {
 	config, _, _, err := parseRun([]string{"--entrypoint=anything", "cmd", "img"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(config.Entrypoint) != 1 && config.Entrypoint[0] != "anything" {
-		t.Fatalf("Expected entrypoint 'anything', got %v", config.Entrypoint)
-	}
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual([]string(config.Entrypoint), []string{"anything"}))
 }
 
 func TestValidateDevice(t *testing.T) {

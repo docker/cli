@@ -3,16 +3,16 @@ package swarm
 import (
 	"context"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )
 
 // GetStacks lists the swarm stacks.
-func GetStacks(ctx context.Context, dockerCli command.Cli) ([]*formatter.Stack, error) {
-	services, err := dockerCli.Client().ServiceList(
+func GetStacks(ctx context.Context, apiClient client.ServiceAPIClient) ([]*formatter.Stack, error) {
+	services, err := apiClient.ServiceList(
 		ctx,
 		types.ServiceListOptions{Filters: getAllStacksFilter()})
 	if err != nil {

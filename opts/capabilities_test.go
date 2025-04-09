@@ -36,7 +36,6 @@ func TestNormalizeCapability(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.in, func(t *testing.T) {
 			assert.Equal(t, NormalizeCapability(tc.in), tc.out)
 		})
@@ -108,7 +107,6 @@ func TestEffectiveCapAddCapDrop(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		tc := tc
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			add, drop := EffectiveCapAddCapDrop(tc.in.add, tc.in.drop)
 			assert.DeepEqual(t, add, tc.out.add)

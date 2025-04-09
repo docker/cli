@@ -88,7 +88,6 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	ctx := context.Background()
 
 	for _, tc := range testcases {
-		tc := tc
 		t.Run(tc.image, func(t *testing.T) {
 			spec := map[string]swarm.ServiceSpec{
 				"myservice": {

@@ -10,8 +10,7 @@ Promote one or more nodes to manager in the swarm
 
 Promotes a node to manager. This command can only be executed on a manager node.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

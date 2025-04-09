@@ -11,11 +11,11 @@ Fetch the logs of a container
 
 | Name                 | Type     | Default | Description                                                                                        |
 |:---------------------|:---------|:--------|:---------------------------------------------------------------------------------------------------|
-| `--details`          |          |         | Show extra details provided to logs                                                                |
-| `-f`, `--follow`     |          |         | Follow log output                                                                                  |
+| `--details`          | `bool`   |         | Show extra details provided to logs                                                                |
+| `-f`, `--follow`     | `bool`   |         | Follow log output                                                                                  |
 | `--since`            | `string` |         | Show logs since timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes)    |
 | `-n`, `--tail`       | `string` | `all`   | Number of lines to show from the end of the logs                                                   |
-| `-t`, `--timestamps` |          |         | Show timestamps                                                                                    |
+| `-t`, `--timestamps` | `bool`   |         | Show timestamps                                                                                    |
 | [`--until`](#until)  | `string` |         | Show logs before a timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes) |
 
 
@@ -26,7 +26,7 @@ Fetch the logs of a container
 The `docker logs` command batch-retrieves logs present at the time of execution.
 
 For more information about selecting and configuring logging drivers, refer to
-[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
+[Configure logging drivers](https://docs.docker.com/engine/logging/configure/).
 
 The `docker logs --follow` command will continue streaming the new output from
 the container's `STDOUT` and `STDERR`.
@@ -47,7 +47,7 @@ The `--since` option shows only the container logs generated after
 a given date. You can specify the date as an RFC 3339 date, a UNIX
 timestamp, or a Go duration string (e.g. `1m30s`, `3h`). Besides RFC3339 date
 format you may also use RFC3339Nano, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds

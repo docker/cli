@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/manifest/manifestlist"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +61,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 			return err
 		}
 
-		imageManifest, err := dockerCli.ManifestStore().Get(listRef, namedRef)
+		imageManifest, err := newManifestStore(dockerCli).Get(listRef, namedRef)
 		if err != nil {
 			return err
 		}
@@ -70,13 +69,13 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	// Try a local manifest list first
-	localManifestList, err := dockerCli.ManifestStore().GetList(namedRef)
+	localManifestList, err := newManifestStore(dockerCli).GetList(namedRef)
 	if err == nil {
 		return printManifestList(dockerCli, namedRef, localManifestList, opts)
 	}
 
 	// Next try a remote manifest
-	registryClient := dockerCli.RegistryClient(opts.insecure)
+	registryClient := newRegistryClient(dockerCli, opts.insecure)
 	imageManifest, err := registryClient.GetManifest(ctx, namedRef)
 	if err == nil {
 		return printManifest(dockerCli, imageManifest, opts)
@@ -113,10 +112,7 @@ func printManifest(dockerCli command.Cli, manifest types.ImageManifest, opts ins
 
 func printManifestList(dockerCli command.Cli, namedRef reference.Named, list []types.ImageManifest, opts inspectOptions) error {
 	if !opts.verbose {
-		targetRepo, err := registry.ParseRepositoryInfo(namedRef)
-		if err != nil {
-			return err
-		}
+		targetRepo := reference.TrimNamed(namedRef)
 
 		manifests := []manifestlist.ManifestDescriptor{}
 		// More than one response. This is a manifest list.

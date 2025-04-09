@@ -84,7 +84,6 @@ func (s *Service) Search(ctx context.Context, searchFilters filters.Args, term s
 }
 
 func (s *Service) searchUnfiltered(ctx context.Context, term string, limit int, authConfig *registry.AuthConfig, headers http.Header) (*registry.SearchResults, error) {
-	// TODO Use ctx when searching for repositories
 	if hasScheme(term) {
 		return nil, invalidParamf("invalid repository name: repository name (%s) should not have a scheme", term)
 	}
@@ -93,18 +92,14 @@ func (s *Service) searchUnfiltered(ctx context.Context, term string, limit int, 
 
 	// Search is a long-running operation, just lock s.config to avoid block others.
 	s.mu.RLock()
-	index, err := newIndexInfo(s.config, indexName)
+	index := newIndexInfo(s.config, indexName)
 	s.mu.RUnlock()
-
-	if err != nil {
-		return nil, err
-	}
 	if index.Official {
 		// If pull "library/foo", it's stored locally under "foo"
 		remoteName = strings.TrimPrefix(remoteName, "library/")
 	}
 
-	endpoint, err := newV1Endpoint(index, headers)
+	endpoint, err := newV1Endpoint(ctx, index, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -112,16 +107,12 @@ func (s *Service) searchUnfiltered(ctx context.Context, term string, limit int, 
 	var client *http.Client
 	if authConfig != nil && authConfig.IdentityToken != "" && authConfig.Username != "" {
 		creds := NewStaticCredentialStore(authConfig)
-		scopes := []auth.Scope{
-			auth.RegistryScope{
-				Name:    "catalog",
-				Actions: []string{"search"},
-			},
-		}
 
 		// TODO(thaJeztah); is there a reason not to include other headers here? (originally added in 19d48f0b8ba59eea9f2cac4ad1c7977712a6b7ac)
 		modifiers := Headers(headers.Get("User-Agent"), nil)
-		v2Client, err := v2AuthHTTPClient(endpoint.URL, endpoint.client.Transport, modifiers, creds, scopes)
+		v2Client, err := v2AuthHTTPClient(endpoint.URL, endpoint.client.Transport, modifiers, creds, []auth.Scope{
+			auth.RegistryScope{Name: "catalog", Actions: []string{"search"}},
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +130,7 @@ func (s *Service) searchUnfiltered(ctx context.Context, term string, limit int, 
 		}
 	}
 
-	return newSession(client, endpoint).searchRepositories(remoteName, limit)
+	return newSession(client, endpoint).searchRepositories(ctx, remoteName, limit)
 }
 
 // splitReposSearchTerm breaks a search term into an index name and remote name
@@ -162,5 +153,24 @@ func splitReposSearchTerm(reposName string) (string, string) {
 // for that.
 func ParseSearchIndexInfo(reposName string) (*registry.IndexInfo, error) {
 	indexName, _ := splitReposSearchTerm(reposName)
-	return newIndexInfo(emptyServiceConfig, indexName)
+	indexName = normalizeIndexName(indexName)
+	if indexName == IndexName {
+		return &registry.IndexInfo{
+			Name:     IndexName,
+			Mirrors:  []string{},
+			Secure:   true,
+			Official: true,
+		}, nil
+	}
+
+	insecure := false
+	if isInsecure(indexName) {
+		insecure = true
+	}
+
+	return &registry.IndexInfo{
+		Name:    indexName,
+		Mirrors: []string{},
+		Secure:  !insecure,
+	}, nil
 }

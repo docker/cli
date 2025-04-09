@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/config/credentials"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 func setupConfigDir(t *testing.T) string {
@@ -48,6 +50,40 @@ func TestMissingFile(t *testing.T) {
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
 }
 
+// TestLoadDanglingSymlink verifies that we gracefully handle dangling symlinks.
+//
+// TODO(thaJeztah): consider whether we want dangling symlinks to be an error condition instead.
+func TestLoadDanglingSymlink(t *testing.T) {
+	cfgDir := t.TempDir()
+	cfgFile := filepath.Join(cfgDir, ConfigFileName)
+	err := os.Symlink(filepath.Join(cfgDir, "no-such-file"), cfgFile)
+	assert.NilError(t, err)
+
+	config, err := Load(cfgDir)
+	assert.NilError(t, err)
+
+	// Now save it and make sure it shows up in new form
+	saveConfigAndValidateNewFormat(t, config, cfgDir)
+
+	// Make sure we kept the symlink.
+	fi, err := os.Lstat(cfgFile)
+	assert.NilError(t, err)
+	assert.Equal(t, fi.Mode()&os.ModeSymlink, os.ModeSymlink, "expected %v to be a symlink", cfgFile)
+}
+
+func TestLoadNoPermissions(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		skip.If(t, os.Getuid() == 0, "cannot test permission denied when running as root")
+	}
+	cfgDir := t.TempDir()
+	cfgFile := filepath.Join(cfgDir, ConfigFileName)
+	err := os.WriteFile(cfgFile, []byte(`{}`), os.FileMode(0o000))
+	assert.NilError(t, err)
+
+	_, err = Load(cfgDir)
+	assert.ErrorIs(t, err, os.ErrPermission)
+}
+
 func TestSaveFileToDirs(t *testing.T) {
 	tmpHome := filepath.Join(t.TempDir(), ".docker")
 	config, err := Load(tmpHome)
@@ -80,6 +116,17 @@ func TestEmptyJSON(t *testing.T) {
 
 	// Now save it and make sure it shows up in new form
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
+}
+
+func TestMalformedJSON(t *testing.T) {
+	tmpHome := t.TempDir()
+
+	fn := filepath.Join(tmpHome, ConfigFileName)
+	err := os.WriteFile(fn, []byte("{"), 0o600)
+	assert.NilError(t, err)
+
+	_, err = Load(tmpHome)
+	assert.Check(t, is.ErrorContains(err, fmt.Sprintf(`parsing config file (%s):`, fn)))
 }
 
 func TestNewJSON(t *testing.T) {
@@ -324,13 +371,57 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 	err := os.WriteFile(filename, content, 0o644)
 	assert.NilError(t, err)
 
-	configFile := LoadDefaultConfigFile(buffer)
-	credStore := credentials.DetectDefaultStore("")
-	expected := configfile.New(filename)
-	expected.CredentialsStore = credStore
-	expected.PsFormat = "format"
+	t.Run("success", func(t *testing.T) {
+		configFile := LoadDefaultConfigFile(buffer)
+		credStore := credentials.DetectDefaultStore("")
+		expected := configfile.New(filename)
+		expected.CredentialsStore = credStore
+		expected.PsFormat = "format"
 
-	assert.Check(t, is.DeepEqual(expected, configFile))
+		assert.Check(t, is.DeepEqual(expected, configFile))
+		assert.Check(t, is.Equal(buffer.String(), ""))
+	})
+
+	t.Run("permission error", func(t *testing.T) {
+		if runtime.GOOS != "windows" {
+			skip.If(t, os.Getuid() == 0, "cannot test permission denied when running as root")
+		}
+		err = os.Chmod(filename, 0o000)
+		assert.NilError(t, err)
+
+		buffer.Reset()
+		_ = LoadDefaultConfigFile(buffer)
+		warnings := buffer.String()
+
+		assert.Check(t, is.Contains(warnings, "WARNING:"))
+		assert.Check(t, is.Contains(warnings, os.ErrPermission.Error()))
+	})
+}
+
+// The CLI no longer disables/hides experimental CLI features, however, we need
+// to verify that existing configuration files do not break
+func TestLoadLegacyExperimental(t *testing.T) {
+	tests := []struct {
+		doc        string
+		configfile string
+	}{
+		{
+			doc:        "default",
+			configfile: `{}`,
+		},
+		{
+			doc: "experimental",
+			configfile: `{
+	"experimental": "enabled"
+}`,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			_, err := LoadFromReader(strings.NewReader(tc.configfile))
+			assert.NilError(t, err)
+		})
+	}
 }
 
 func TestConfigPath(t *testing.T) {
@@ -368,7 +459,6 @@ func TestConfigPath(t *testing.T) {
 			expectedErr: fmt.Sprintf("is outside of root config directory %q", "dummy"),
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			SetDir(tc.dir)
 			f, err := Path(tc.path...)

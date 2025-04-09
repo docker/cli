@@ -23,22 +23,22 @@ const (
 )
 
 // RunDeploy is the swarm implementation of docker stack deploy
-func RunDeploy(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts *options.Deploy, cfg *composetypes.Config) error {
+func RunDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *options.Deploy, cfg *composetypes.Config) error {
 	if err := validateResolveImageFlag(opts); err != nil {
 		return err
 	}
 	// client side image resolution should not be done when the supported
 	// server version is older than 1.30
-	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.30") {
+	if versions.LessThan(dockerCLI.Client().ClientVersion(), "1.30") {
 		opts.ResolveImage = ResolveImageNever
 	}
 
 	if opts.Detach && !flags.Changed("detach") {
-		fmt.Fprintln(dockerCli.Err(), "Since --detach=false was not specified, tasks will be created in the background.\n"+
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "Since --detach=false was not specified, tasks will be created in the background.\n"+
 			"In a future release, --detach=false will become the default.")
 	}
 
-	return deployCompose(ctx, dockerCli, opts, cfg)
+	return deployCompose(ctx, dockerCLI, opts, cfg)
 }
 
 // validateResolveImageFlag validates the opts.resolveImage command line option
@@ -67,12 +67,12 @@ func checkDaemonIsSwarmManager(ctx context.Context, dockerCli command.Cli) error
 }
 
 // pruneServices removes services that are no longer referenced in the source
-func pruneServices(ctx context.Context, dockerCli command.Cli, namespace convert.Namespace, services map[string]struct{}) {
-	client := dockerCli.Client()
+func pruneServices(ctx context.Context, dockerCCLI command.Cli, namespace convert.Namespace, services map[string]struct{}) {
+	apiClient := dockerCCLI.Client()
 
-	oldServices, err := getStackServices(ctx, client, namespace.Name())
+	oldServices, err := getStackServices(ctx, apiClient, namespace.Name())
 	if err != nil {
-		fmt.Fprintf(dockerCli.Err(), "Failed to list services: %s\n", err)
+		_, _ = fmt.Fprintln(dockerCCLI.Err(), "Failed to list services:", err)
 	}
 
 	pruneServices := []swarm.Service{}
@@ -81,5 +81,5 @@ func pruneServices(ctx context.Context, dockerCli command.Cli, namespace convert
 			pruneServices = append(pruneServices, service)
 		}
 	}
-	removeServices(ctx, dockerCli, pruneServices)
+	removeServices(ctx, dockerCCLI, pruneServices)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestGetNaiveFlags(t *testing.T) {
@@ -106,5 +107,37 @@ func TestPluginMatch(t *testing.T) {
 		match, ok := pluginMatch(tc.pluginConfig, tc.commandString)
 		assert.Equal(t, ok, tc.expectedOk)
 		assert.Equal(t, match, tc.expectedMatch)
+	}
+}
+
+func TestAppendNextSteps(t *testing.T) {
+	testCases := []struct {
+		processed   []string
+		expectedOut []string
+	}{
+		{
+			processed:   []string{},
+			expectedOut: []string{},
+		},
+		{
+			processed:   []string{"", ""},
+			expectedOut: []string{},
+		},
+		{
+			processed:   []string{"Some hint", "", "Some other hint"},
+			expectedOut: []string{"Some hint", "", "Some other hint"},
+		},
+		{
+			processed:   []string{"Hint 1", "Hint 2"},
+			expectedOut: []string{"Hint 1", "Hint 2"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run("", func(t *testing.T) {
+			got, appended := appendNextSteps([]string{}, tc.processed)
+			assert.Check(t, is.DeepEqual(got, tc.expectedOut))
+			assert.Check(t, is.Equal(appended, len(got) > 0))
+		})
 	}
 }

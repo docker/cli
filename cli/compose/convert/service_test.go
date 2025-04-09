@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -240,6 +240,10 @@ func TestConvertServiceNetworks(t *testing.T) {
 	networks := map[string]*composetypes.ServiceNetworkConfig{
 		"front": {
 			Aliases: []string{"something"},
+			DriverOpts: map[string]string{
+				"driver.opt1": "optval1",
+				"driver.opt2": "optval2",
+			},
 		},
 		"back": {
 			Aliases: []string{"other"},
@@ -257,6 +261,10 @@ func TestConvertServiceNetworks(t *testing.T) {
 		{
 			Target:  "fronttier",
 			Aliases: []string{"something", "service"},
+			DriverOpts: map[string]string{
+				"driver.opt1": "optval1",
+				"driver.opt2": "optval2",
+			},
 		},
 	}
 
@@ -401,7 +409,6 @@ func TestConvertCredentialSpec(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			namespace := NewNamespace(tc.name)
 			swarmSpec, err := convertCredentialSpec(namespace, tc.in, tc.configs)
@@ -683,7 +690,6 @@ func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.title, func(t *testing.T) {
 			result, err := Service("1.41", Namespace{name: "foo"}, tc.in, nil, nil, nil, nil)
 			assert.NilError(t, err)

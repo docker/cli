@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/task"
@@ -15,6 +16,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type psOptions struct {
@@ -37,9 +39,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 			options.services = args
 			return runPS(cmd.Context(), dockerCli, options)
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
-		},
+		ValidArgsFunction: completeServiceNames(dockerCli),
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
@@ -48,6 +48,12 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 

@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -70,6 +70,7 @@ func TestInspectCommandLocalManifestNotFound(t *testing.T) {
 
 	cmd := newInspectCommand(cli)
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")
@@ -85,12 +86,13 @@ func TestInspectCommandNotFound(t *testing.T) {
 			return types.ImageManifest{}, errors.New("missing")
 		},
 		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]types.ImageManifest, error) {
-			return nil, errors.Errorf("No such manifest: %s", ref)
+			return nil, errors.New("No such manifest: " + ref.String())
 		},
 	})
 
 	cmd := newInspectCommand(cli)
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"example.com/alpine:3.0"})
 	err := cmd.Execute()
 	assert.Error(t, err, "No such manifest: example.com/alpine:3.0")

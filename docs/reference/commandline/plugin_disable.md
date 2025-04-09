@@ -5,9 +5,9 @@ Disable a plugin
 
 ### Options
 
-| Name            | Type | Default | Description                           |
-|:----------------|:-----|:--------|:--------------------------------------|
-| `-f`, `--force` |      |         | Force the disable of an active plugin |
+| Name            | Type   | Default | Description                           |
+|:----------------|:-------|:--------|:--------------------------------------|
+| `-f`, `--force` | `bool` |         | Force the disable of an active plugin |
 
 
 <!---MARKER_GEN_END-->

@@ -48,7 +48,7 @@ func TestCloseRunningCommand(t *testing.T) {
 	defer close(done)
 
 	go func() {
-		c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
+		c, err := New(ctx, "sh", "-c", "while true; do sleep 1; done")
 		assert.NilError(t, err)
 		cmdConn := c.(*commandConn)
 		assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
@@ -145,7 +145,7 @@ func (mockStdoutEOF) Close() error {
 
 func TestCloseWhileWriting(t *testing.T) {
 	ctx := context.TODO()
-	c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
+	c, err := New(ctx, "sh", "-c", "while true; do sleep 1; done")
 	assert.NilError(t, err)
 	cmdConn := c.(*commandConn)
 	assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))
@@ -173,7 +173,7 @@ func TestCloseWhileWriting(t *testing.T) {
 
 func TestCloseWhileReading(t *testing.T) {
 	ctx := context.TODO()
-	c, err := New(ctx, "sh", "-c", "while true; sleep 1; done")
+	c, err := New(ctx, "sh", "-c", "while true; do sleep 1; done")
 	assert.NilError(t, err)
 	cmdConn := c.(*commandConn)
 	assert.Check(t, process.Alive(cmdConn.cmd.Process.Pid))

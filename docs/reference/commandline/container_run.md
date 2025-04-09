@@ -31,7 +31,7 @@ Create and run a new container from an image
 | `--cpus`                                              | `decimal`     |           | Number of CPUs                                                                                                                                                                                                                                                                                                   |
 | `--cpuset-cpus`                                       | `string`      |           | CPUs in which to allow execution (0-3, 0,1)                                                                                                                                                                                                                                                                      |
 | `--cpuset-mems`                                       | `string`      |           | MEMs in which to allow execution (0-3, 0,1)                                                                                                                                                                                                                                                                      |
-| [`-d`](#detach), [`--detach`](#detach)                |               |           | Run container in background and print container ID                                                                                                                                                                                                                                                               |
+| [`-d`](#detach), [`--detach`](#detach)                | `bool`        |           | Run container in background and print container ID                                                                                                                                                                                                                                                               |
 | [`--detach-keys`](#detach-keys)                       | `string`      |           | Override the key sequence for detaching a container                                                                                                                                                                                                                                                              |
 | [`--device`](#device)                                 | `list`        |           | Add a host device to the container                                                                                                                                                                                                                                                                               |
 | [`--device-cgroup-rule`](#device-cgroup-rule)         | `list`        |           | Add a rule to the cgroup allowed devices list                                                                                                                                                                                                                                                                    |
@@ -56,10 +56,10 @@ Create and run a new container from an image
 | `--health-start-interval`                             | `duration`    | `0s`      | Time between running the check during the start period (ms\|s\|m\|h) (default 0s)                                                                                                                                                                                                                                |
 | `--health-start-period`                               | `duration`    | `0s`      | Start period for the container to initialize before starting health-retries countdown (ms\|s\|m\|h) (default 0s)                                                                                                                                                                                                 |
 | `--health-timeout`                                    | `duration`    | `0s`      | Maximum time to allow one check to run (ms\|s\|m\|h) (default 0s)                                                                                                                                                                                                                                                |
-| `--help`                                              |               |           | Print usage                                                                                                                                                                                                                                                                                                      |
+| `--help`                                              | `bool`        |           | Print usage                                                                                                                                                                                                                                                                                                      |
 | `-h`, `--hostname`                                    | `string`      |           | Container host name                                                                                                                                                                                                                                                                                              |
-| [`--init`](#init)                                     |               |           | Run an init inside the container that forwards signals and reaps processes                                                                                                                                                                                                                                       |
-| [`-i`](#interactive), [`--interactive`](#interactive) |               |           | Keep STDIN open even if not attached                                                                                                                                                                                                                                                                             |
+| [`--init`](#init)                                     | `bool`        |           | Run an init inside the container that forwards signals and reaps processes                                                                                                                                                                                                                                       |
+| [`-i`](#interactive), [`--interactive`](#interactive) | `bool`        |           | Keep STDIN open even if not attached                                                                                                                                                                                                                                                                             |
 | `--io-maxbandwidth`                                   | `bytes`       | `0`       | Maximum IO bandwidth limit for the system drive (Windows only)                                                                                                                                                                                                                                                   |
 | `--io-maxiops`                                        | `uint64`      | `0`       | Maximum IOps limit for the system drive (Windows only)                                                                                                                                                                                                                                                           |
 | `--ip`                                                | `string`      |           | IPv4 address (e.g., 172.30.100.104)                                                                                                                                                                                                                                                                              |
@@ -82,20 +82,20 @@ Create and run a new container from an image
 | [`--name`](#name)                                     | `string`      |           | Assign a name to the container                                                                                                                                                                                                                                                                                   |
 | [`--network`](#network)                               | `network`     |           | Connect a container to a network                                                                                                                                                                                                                                                                                 |
 | `--network-alias`                                     | `list`        |           | Add network-scoped alias for the container                                                                                                                                                                                                                                                                       |
-| `--no-healthcheck`                                    |               |           | Disable any container-specified HEALTHCHECK                                                                                                                                                                                                                                                                      |
-| `--oom-kill-disable`                                  |               |           | Disable OOM Killer                                                                                                                                                                                                                                                                                               |
+| `--no-healthcheck`                                    | `bool`        |           | Disable any container-specified HEALTHCHECK                                                                                                                                                                                                                                                                      |
+| `--oom-kill-disable`                                  | `bool`        |           | Disable OOM Killer                                                                                                                                                                                                                                                                                               |
 | `--oom-score-adj`                                     | `int`         | `0`       | Tune host's OOM preferences (-1000 to 1000)                                                                                                                                                                                                                                                                      |
 | [`--pid`](#pid)                                       | `string`      |           | PID namespace to use                                                                                                                                                                                                                                                                                             |
 | `--pids-limit`                                        | `int64`       | `0`       | Tune container pids limit (set -1 for unlimited)                                                                                                                                                                                                                                                                 |
 | `--platform`                                          | `string`      |           | Set platform if server is multi-platform capable                                                                                                                                                                                                                                                                 |
-| [`--privileged`](#privileged)                         |               |           | Give extended privileges to this container                                                                                                                                                                                                                                                                       |
+| [`--privileged`](#privileged)                         | `bool`        |           | Give extended privileges to this container                                                                                                                                                                                                                                                                       |
 | [`-p`](#publish), [`--publish`](#publish)             | `list`        |           | Publish a container's port(s) to the host                                                                                                                                                                                                                                                                        |
-| [`-P`](#publish-all), [`--publish-all`](#publish-all) |               |           | Publish all exposed ports to random ports                                                                                                                                                                                                                                                                        |
+| [`-P`](#publish-all), [`--publish-all`](#publish-all) | `bool`        |           | Publish all exposed ports to random ports                                                                                                                                                                                                                                                                        |
 | [`--pull`](#pull)                                     | `string`      | `missing` | Pull image before running (`always`, `missing`, `never`)                                                                                                                                                                                                                                                         |
-| `-q`, `--quiet`                                       |               |           | Suppress the pull output                                                                                                                                                                                                                                                                                         |
-| [`--read-only`](#read-only)                           |               |           | Mount the container's root filesystem as read only                                                                                                                                                                                                                                                               |
+| `-q`, `--quiet`                                       | `bool`        |           | Suppress the pull output                                                                                                                                                                                                                                                                                         |
+| [`--read-only`](#read-only)                           | `bool`        |           | Mount the container's root filesystem as read only                                                                                                                                                                                                                                                               |
 | [`--restart`](#restart)                               | `string`      | `no`      | Restart policy to apply when a container exits                                                                                                                                                                                                                                                                   |
-| [`--rm`](#rm)                                         |               |           | Automatically remove the container when it exits                                                                                                                                                                                                                                                                 |
+| [`--rm`](#rm)                                         | `bool`        |           | Automatically remove the container and its associated anonymous volumes when it exits                                                                                                                                                                                                                            |
 | `--runtime`                                           | `string`      |           | Runtime to use for this container                                                                                                                                                                                                                                                                                |
 | [`--security-opt`](#security-opt)                     | `list`        |           | Security Options                                                                                                                                                                                                                                                                                                 |
 | `--shm-size`                                          | `bytes`       | `0`       | Size of /dev/shm                                                                                                                                                                                                                                                                                                 |
@@ -105,7 +105,7 @@ Create and run a new container from an image
 | [`--storage-opt`](#storage-opt)                       | `list`        |           | Storage driver options for the container                                                                                                                                                                                                                                                                         |
 | [`--sysctl`](#sysctl)                                 | `map`         | `map[]`   | Sysctl options                                                                                                                                                                                                                                                                                                   |
 | [`--tmpfs`](#tmpfs)                                   | `list`        |           | Mount a tmpfs directory                                                                                                                                                                                                                                                                                          |
-| [`-t`](#tty), [`--tty`](#tty)                         |               |           | Allocate a pseudo-TTY                                                                                                                                                                                                                                                                                            |
+| [`-t`](#tty), [`--tty`](#tty)                         | `bool`        |           | Allocate a pseudo-TTY                                                                                                                                                                                                                                                                                            |
 | [`--ulimit`](#ulimit)                                 | `ulimit`      |           | Ulimit options                                                                                                                                                                                                                                                                                                   |
 | `-u`, `--user`                                        | `string`      |           | Username or UID (format: <name\|uid>[:<group\|gid>])                                                                                                                                                                                                                                                             |
 | [`--userns`](#userns)                                 | `string`      |           | User namespace to use                                                                                                                                                                                                                                                                                            |
@@ -221,14 +221,7 @@ To run `htop` in a container that shares the process namespac of the host:
 2. Install `htop` in the container:
 
    ```console
-   / # apk add htop
-   fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/main/aarch64/APKINDEX.tar.gz
-   fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/community/aarch64/APKINDEX.tar.gz
-   (1/3) Installing ncurses-terminfo-base (6.4_p20230506-r0)
-   (2/3) Installing libncursesw (6.4_p20230506-r0)
-   (3/3) Installing htop (3.2.2-r1)
-   Executing busybox-1.36.1-r2.trigger
-   OK: 9 MiB in 18 packages
+   / # apk add --quiet htop
    ```
 
 3. Invoke the `htop` command.
@@ -298,8 +291,7 @@ running processes in that namespace. By default, all containers, including
 those with `--network=host`, have their own UTS namespace. Setting `--uts` to
 `host` results in the container using the same UTS namespace as the host.
 
-> **Note**
->
+> [!NOTE]
 > Docker disallows combining the `--hostname` and `--domainname` flags with
 > `--uts=host`. This is to prevent containers running in the host's UTS
 > namespace from attempting to change the hosts' configuration.
@@ -357,8 +349,7 @@ In other words, the container can then do almost everything that the host can
 do. This flag exists to allow special use-cases, like running Docker within
 Docker.
 
-> **Warning**
->
+> [!WARNING]
 > Use the `--privileged` flag with caution.
 > A container with `--privileged` is not a securely sandboxed process.
 > Containers in this mode can get a root shell on the host
@@ -370,7 +361,7 @@ Docker.
 > for example by adding individual kernel capabilities with `--cap-add`.
 >
 > For more information, see
-> [Runtime privilege and Linux capabilities](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities)
+> [Runtime privilege and Linux capabilities](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities)
 { .warning }
 
 The following example doesn't work, because by default, Docker drops most
@@ -540,8 +531,7 @@ host. You can also specify `udp` and `sctp` ports. The [Networking overview
 page](https://docs.docker.com/network/) explains in detail how to publish ports
 with Docker.
 
-> **Note**
->
+> [!NOTE]
 > If you don't specify an IP address (i.e., `-p 80:80` instead of `-p
 > 127.0.0.1:80:80`) when publishing a container's ports, Docker publishes the
 > port on all interfaces (address `0.0.0.0`) by default. These ports are
@@ -714,7 +704,23 @@ For additional information on working with labels, see
 
 To start a container and connect it to a network, use the `--network` option.
 
-The following commands create a network named `my-net` and adds a `busybox` container
+If you want to add a running container to a network use the `docker network connect` subcommand.
+
+You can connect multiple containers to the same network. Once connected, the
+containers can communicate using only another container's IP address
+or name. For `overlay` networks or custom plugins that support multi-host
+connectivity, containers connected to the same multi-host network but launched
+from different Engines can also communicate in this way.
+
+> [!NOTE]
+> The default bridge network only allows containers to communicate with each other using
+> internal IP addresses. User-created bridge networks provide DNS resolution between
+> containers using container names.
+
+You can disconnect a container from a network using the `docker network
+disconnect` command.
+
+The following commands create a network named `my-net` and add a `busybox` container
 to the `my-net` network.
 
 ```console
@@ -731,24 +737,56 @@ $ docker network create --subnet 192.0.2.0/24 my-net
 $ docker run -itd --network=my-net --ip=192.0.2.69 busybox
 ```
 
-If you want to add a running container to a network use the `docker network connect` subcommand.
+To connect the container to more than one network, repeat the `--network` option.
 
-You can connect multiple containers to the same network. Once connected, the
-containers can communicate using only another container's IP address
-or name. For `overlay` networks or custom plugins that support multi-host
-connectivity, containers connected to the same multi-host network but launched
-from different Engines can also communicate in this way.
+```console
+$ docker network create --subnet 192.0.2.0/24 my-net1
+$ docker network create --subnet 192.0.3.0/24 my-net2
+$ docker run -itd --network=my-net1 --network=my-net2 busybox
+```
 
-> **Note**
->
-> The default bridge network only allow containers to communicate with each other using
-> internal IP addresses. User-created bridge networks provide DNS resolution between
-> containers using container names.
+To specify options when connecting to more than one network, use the extended syntax
+for the `--network` flag. Comma-separated options that can be specified in the extended
+`--network` syntax are:
 
-You can disconnect a container from a network using the `docker network
-disconnect` command.
+| Option          | Top-level Equivalent                  | Description                                                                             |
+|-----------------|---------------------------------------|-----------------------------------------------------------------------------------------|
+| `name`          |                                       | The name of the network (mandatory)                                                     |
+| `alias`         | `--network-alias`                     | Add network-scoped alias for the container                                              |
+| `ip`            | `--ip`                                | IPv4 address (e.g., 172.30.100.104)                                                     |
+| `ip6`           | `--ip6`                               | IPv6 address (e.g., 2001:db8::33)                                                       |
+| `mac-address`   | `--mac-address`                       | Container MAC address (e.g., 92:d0:c6:0a:29:33)                                         |
+| `link-local-ip` | `--link-local-ip`                     | Container IPv4/IPv6 link-local addresses                                                |
+| `driver-opt`    | `docker network connect --driver-opt` | Network driver options                                                                  |
+| `gw-priority`   |                                       | Highest gw-priority provides the default gateway. Accepts positive and negative values. |
 
-For more information on connecting a container to a network when using the `run` command, see the ["*Docker network overview*"](https://docs.docker.com/network/).
+```console
+$ docker network create --subnet 192.0.2.0/24 my-net1
+$ docker network create --subnet 192.0.3.0/24 my-net2
+$ docker run -itd --network=name=my-net1,ip=192.0.2.42 --network=name=my-net2,ip=192.0.3.42 busybox
+```
+
+`sysctl` settings that start with `net.ipv4.`, `net.ipv6.` or `net.mpls.` can be
+set per-interface using `driver-opt` label `com.docker.network.endpoint.sysctls`.
+The interface name must be the string `IFNAME`.
+
+To set more than one `sysctl` for an interface, quote the whole `driver-opt` field,
+remembering to escape the quotes for the shell if necessary. For example, if the
+interface to `my-net` is given name `eth0`, the following example sets sysctls
+`net.ipv4.conf.eth0.log_martians=1` and `net.ipv4.conf.eth0.forwarding=0`, and
+assigns the IPv4 address `192.0.2.42`.
+
+```console
+$ docker network create --subnet 192.0.2.0/24 my-net
+$ docker run -itd --network=name=my-net,\"driver-opt=com.docker.network.endpoint.sysctls=net.ipv4.conf.IFNAME.log_martians=1,net.ipv4.conf.IFNAME.forwarding=0\",ip=192.0.2.42 busybox
+```
+
+> [!NOTE]
+> Network drivers may restrict the sysctl settings that can be modified and, to protect
+> the operation of the network, new restrictions may be added in the future.
+
+For more information on connecting a container to a network when using the `run` command,
+see the [Docker network overview](https://docs.docker.com/network/).
 
 ### <a name="volumes-from"></a> Mount volumes from container (--volumes-from)
 
@@ -827,7 +865,7 @@ the following:
 
 These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
 sequences. To configure a different configuration default key sequence for all
-containers, see [**Configuration file** section](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files).
+containers, see [**Configuration file** section](https://docs.docker.com/reference/cli/docker/#configuration-files).
 
 ### <a name="device"></a> Add host device to container (--device)
 
@@ -870,8 +908,7 @@ $ docker run --device=/dev/sda:/dev/xvdc:m --rm -it ubuntu fdisk  /dev/xvdc
 fdisk: unable to open /dev/xvdc: Operation not permitted
 ```
 
-> **Note**
->
+> [!NOTE]
 > The `--device` option cannot be safely used with ephemeral devices. You shouldn't 
 > add block devices that may be removed to untrusted containers with `--device`.
 
@@ -893,26 +930,26 @@ ports on the host visible in the container.
 PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.microsoft.com/windows/servercore:ltsc2019
 ```
 
-> **Note**
->
+> [!NOTE]
 > The `--device` option is only supported on process-isolated Windows containers,
 > and produces an error if the container isolation is `hyperv`.
 
 #### CDI devices
 
-> **Note**
->
-> This is experimental feature and as such doesn't represent a stable API.
+> [!NOTE]
+> The CDI feature is experimental, and potentially subject to change.
+> CDI is currently only supported for Linux containers.
 
-Container Device Interface (CDI) is a
-[standardized](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
-mechanism for container runtimes to create containers which are able to
-interact with third party devices.
+[Container Device Interface
+(CDI)](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
+is a standardized mechanism for container runtimes to create containers which
+are able to interact with third party devices.
 
-With CDI, device configurations are defined using a JSON file. In addition to
-enabling the container to interact with the device node, it also lets you
-specify additional configuration for the device, such as kernel modules, host
-libraries, and environment variables.
+With CDI, device configurations are declaratively defined using a JSON or YAML
+file. In addition to enabling the container to interact with the device node,
+it also lets you specify additional configuration for the device, such as
+environment variables, host mounts (such as shared objects), and executable
+hooks.
 
 You can reference a CDI device with the `--device` flag using the
 fully-qualified name of the device, as shown in the following example:
@@ -924,10 +961,10 @@ $ docker run --device=vendor.com/class=device-name --rm -it ubuntu
 This starts an `ubuntu` container with access to the specified CDI device,
 `vendor.com/class=device-name`, assuming that:
 
-- A valid CDI specification (JSON file) for the requested device is available
-  on the system running the daemon, in one of the configured CDI specification
-  directories.
-- The CDI feature has been enabled on the daemon side, see [Enable CDI
+- A valid CDI specification (JSON or YAML file) for the requested device is
+  available on the system running the daemon, in one of the configured CDI
+  specification directories.
+- The CDI feature has been enabled in the daemon; see [Enable CDI
   devices](https://docs.docker.com/reference/cli/dockerd/#enable-cdi-devices).
 
 ### <a name="attach"></a> Attach to STDIN/STDOUT/STDERR (-a, --attach)
@@ -966,8 +1003,7 @@ ID once the container has finished running.
 $ cat somefile | docker run -i -a stdin mybuilder dobuild
 ```
 
-> **Note**
->
+> [!NOTE]
 > A process running as PID 1 inside a container is treated specially by
 > Linux: it ignores any signal with the default action. So, the process
 > doesn't terminate on `SIGINT` or `SIGTERM` unless it's coded to do so.
@@ -1080,7 +1116,8 @@ $ docker run -d --device-cgroup-rule='c 42:* rmw' --name my-container my-image
 Then, a user could ask `udev` to execute a script that would `docker exec my-container mknod newDevX c 42 <minor>`
 the required device when it is added.
 
-> **Note**: You still need to explicitly add initially present devices to the
+> [!NOTE]
+> You still need to explicitly add initially present devices to the
 > `docker run` / `docker create` command.
 
 ### <a name="gpus"></a> Access an NVIDIA GPU
@@ -1088,8 +1125,7 @@ the required device when it is added.
 The `--gpus` flag allows you to access NVIDIA GPU resources. First you need to
 install the [nvidia-container-runtime](https://nvidia.github.io/nvidia-container-runtime/).
 
-> **Note**
->
+> [!NOTE]
 > You can also specify a GPU as a CDI device with the `--device` flag, see
 > [CDI devices](#cdi-devices).
 
@@ -1122,12 +1158,12 @@ Use the `--restart` flag to specify a container's *restart policy*. A restart
 policy controls whether the Docker daemon restarts a container after exit.
 Docker supports the following restart policies:
 
-| Policy                     | Result                                                                                                                                                                                                                                                           |
-|:---------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `no`                       | Do not automatically restart the container when it exits. This is the default.                                                                                                                                                                                   |
-| `on-failure[:max-retries]` | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts.                                                                                                                     |
-| `unless-stopped`           | Restart the container unless it's explicitly stopped or Docker itself is stopped or restarted.                                                                                                                                                                  |
-| `always`                   | Always restart the container regardless of the exit status. When you specify always, the Docker daemon tries to restart the container indefinitely. The container always starts on daemon startup, regardless of the current state of the container. |
+| Flag                       | Description                                                                                                                                                                                                                                                                                                                                                           |
+| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `no`                       | Don't automatically restart the container. (Default)                                                                                                                                                                                                                                                                                                                  |
+| `on-failure[:max-retries]` | Restart the container if it exits due to an error, which manifests as a non-zero exit code. Optionally, limit the number of times the Docker daemon attempts to restart the container using the `:max-retries` option. The `on-failure` policy only prompts a restart if the container exits with a failure. It doesn't restart the container if the daemon restarts. |
+| `always`                   | Always restart the container if it stops. If it's manually stopped, it's restarted only when Docker daemon restarts or the container itself is manually restarted.                                                                                                                                                                                                    |
+| `unless-stopped`           | Similar to `always`, except that when the container is stopped (manually or otherwise), it isn't restarted even after Docker daemon restarts.                                                                                                                                                                                                                         |
 
 ```console
 $ docker run --restart=always redis
@@ -1199,11 +1235,10 @@ the container and remove the file system when the container exits, use the
 `--rm` flag:
 
 ```text
---rm=false: Automatically remove the container when it exits
+--rm: Automatically remove the container when it exits
 ```
 
-> **Note**
->
+> [!NOTE]
 > If you set the `--rm` flag, Docker also removes the anonymous volumes
 > associated with the container when the container is removed. This is similar
 > to running `docker rm -v my-container`. Only volumes that are specified
@@ -1249,7 +1284,7 @@ connect to services running on the host machine.
 
 It's conventional to use `host.docker.internal` as the hostname referring to
 `host-gateway`. Docker Desktop automatically resolves this hostname, see
-[Explore networking features](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host).
+[Explore networking features](https://docs.docker.com/desktop/features/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host).
 
 The following example shows how the special `host-gateway` value works. The
 example runs an HTTP server that serves a file from host to container over the
@@ -1278,7 +1313,7 @@ the `--log-driver=<DRIVER>` with the `docker run` command to configure the
 container's logging driver.
 
 To learn about the supported logging drivers and how to use them, refer to
-[Configure logging drivers](https://docs.docker.com/config/containers/logging/configure/).
+[Configure logging drivers](https://docs.docker.com/engine/logging/configure/).
 
 To disable logging for a container, set the `--log-driver` flag to `none`:
 
@@ -1301,20 +1336,38 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 1024
 ```
 
-> **Note**
->
+> [!NOTE]
 > If you don't provide a hard limit value, Docker uses the soft limit value
 > for both values. If you don't provide any values, they are inherited from
 > the default `ulimits` set on the daemon.
 
-> **Note**
->
+> [!NOTE]
 > The `as` option is deprecated.
 > In other words, the following script is not supported:
 >
 > ```console
 > $ docker run -it --ulimit as=1024 fedora /bin/bash
 > ```
+
+#### Supported options for `--ulimit`:
+
+| Option       | Description                                               |
+|:-------------|:----------------------------------------------------------|
+| `core`       | Maximum size of core files created (`RLIMIT_CORE`)        |
+| `cpu`        | CPU time limit in seconds (`RLIMIT_CPU`)                  |
+| `data`       | Maximum data segment size (`RLIMIT_DATA`)                 |
+| `fsize`      | Maximum file size (`RLIMIT_FSIZE`)                        |
+| `locks`      | Maximum number of file locks (`RLIMIT_LOCKS`)             |
+| `memlock`    | Maximum locked-in-memory address space (`RLIMIT_MEMLOCK`) |
+| `msgqueue`   | Maximum bytes in POSIX message queues (`RLIMIT_MSGQUEUE`) |
+| `nice`       | Maximum nice priority adjustment (`RLIMIT_NICE`)          |
+| `nofile`     | Maximum number of open file descriptors (`RLIMIT_NOFILE`) |
+| `nproc`      | Maximum number of processes available (`RLIMIT_NPROC`)    |
+| `rss`        | Maximum resident set size (`RLIMIT_RSS`)                  |
+| `rtprio`     | Maximum real-time scheduling priority (`RLIMIT_RTPRIO`)   |
+| `rttime`     | Maximum real-time execution time (`RLIMIT_RTTIME`)        |
+| `sigpending` | Maximum number of pending signals (`RLIMIT_SIGPENDING`)   |
+| `stack`      | Maximum stack size (`RLIMIT_STACK`)                       |
 
 Docker sends the values to the appropriate OS `syscall` and doesn't perform any byte conversion.
 Take this into account when setting the values.
@@ -1373,8 +1426,7 @@ the same content between containers.
 $ docker run --security-opt label=level:s0:c100,c200 -it fedora bash
 ```
 
-> **Note**
->
+> [!NOTE]
 > Automatic translation of MLS labels isn't supported.
 
 To disable the security labeling for a container entirely, you can use
@@ -1392,8 +1444,7 @@ that's only allowed to listen on Apache ports:
 $ docker run --security-opt label=type:svirt_apache_t -it ubuntu bash
 ```
 
-> **Note**
->
+> [!NOTE]
 > You would have to write policy defining a `svirt_apache_t` type.
 
 To prevent your container processes from gaining additional privileges, you can
@@ -1514,8 +1565,7 @@ network namespace, run this command:
 $ docker run --sysctl net.ipv4.ip_forward=1 someimage
 ```
 
-> **Note**
->
+> [!NOTE]
 > Not all sysctls are namespaced. Docker does not support changing sysctls
 > inside of a container that also modify the host system. As the kernel
 > evolves we expect to see more sysctls become namespaced.

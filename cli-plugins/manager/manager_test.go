@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -51,8 +52,7 @@ func TestListPluginCandidates(t *testing.T) {
 		dirs = append(dirs, dir.Join(d))
 	}
 
-	candidates, err := listPluginCandidates(dirs)
-	assert.NilError(t, err)
+	candidates := listPluginCandidates(dirs)
 	exp := map[string][]string{
 		"plugin1": {
 			dir.Join("plugins1", "docker-plugin1"),
@@ -80,6 +80,35 @@ func TestListPluginCandidates(t *testing.T) {
 	}
 
 	assert.DeepEqual(t, candidates, exp)
+}
+
+func TestListPluginCandidatesEmpty(t *testing.T) {
+	tmpDir := t.TempDir()
+	candidates := listPluginCandidates([]string{tmpDir, filepath.Join(tmpDir, "no-such-dir")})
+	assert.Assert(t, len(candidates) == 0)
+}
+
+// Regression test for https://github.com/docker/cli/issues/5643.
+// Check that inaccessible directories that come before accessible ones are ignored
+// and do not prevent the latter from being processed.
+func TestListPluginCandidatesInaccesibleDir(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithDir("no-perm", fs.WithMode(0)),
+		fs.WithDir("plugins",
+			fs.WithFile("docker-buildx", ""),
+		),
+	)
+	defer dir.Remove()
+
+	candidates := listPluginCandidates([]string{
+		dir.Join("no-perm"),
+		dir.Join("plugins"),
+	})
+	assert.DeepEqual(t, candidates, map[string][]string{
+		"buildx": {
+			dir.Join("plugins", "docker-buildx"),
+		},
+	})
 }
 
 func TestGetPlugin(t *testing.T) {
@@ -144,14 +173,11 @@ func TestErrPluginNotFound(t *testing.T) {
 func TestGetPluginDirs(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 
-	pluginDir, err := config.Path("cli-plugins")
-	assert.NilError(t, err)
+	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	expected := append([]string{pluginDir}, defaultSystemPluginDirs...)
 
-	var pluginDirs []string
-	pluginDirs, err = getPluginDirs(cli.ConfigFile())
+	pluginDirs := getPluginDirs(cli.ConfigFile())
 	assert.Equal(t, strings.Join(expected, ":"), strings.Join(pluginDirs, ":"))
-	assert.NilError(t, err)
 
 	extras := []string{
 		"foo", "bar", "baz",
@@ -160,7 +186,6 @@ func TestGetPluginDirs(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		CLIPluginsExtraDirs: extras,
 	})
-	pluginDirs, err = getPluginDirs(cli.ConfigFile())
+	pluginDirs = getPluginDirs(cli.ConfigFile())
 	assert.DeepEqual(t, expected, pluginDirs)
-	assert.NilError(t, err)
 }

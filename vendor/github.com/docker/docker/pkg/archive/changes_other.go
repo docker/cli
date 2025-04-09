@@ -1,6 +1,6 @@
 //go:build !linux
 
-package archive // import "github.com/docker/docker/pkg/archive"
+package archive
 
 import (
 	"fmt"
@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/docker/docker/pkg/system"
 )
 
 func collectFileInfoForChanges(oldDir, newDir string) (*FileInfo, *FileInfo, error) {
@@ -72,19 +70,19 @@ func collectFileInfo(sourceDir string) (*FileInfo, error) {
 			return fmt.Errorf("collectFileInfo: Unexpectedly no parent for %s", relPath)
 		}
 
+		s, err := os.Lstat(path)
+		if err != nil {
+			return err
+		}
+
 		info := &FileInfo{
 			name:     filepath.Base(relPath),
 			children: make(map[string]*FileInfo),
 			parent:   parent,
+			stat:     s,
 		}
 
-		s, err := system.Lstat(path)
-		if err != nil {
-			return err
-		}
-		info.stat = s
-
-		info.capability, _ = system.Lgetxattr(path, "security.capability")
+		info.capability, _ = lgetxattr(path, "security.capability")
 
 		parent.children[info.name] = info
 

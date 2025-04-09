@@ -5,10 +5,10 @@ Manage the unlock key
 
 ### Options
 
-| Name            | Type | Default | Description        |
-|:----------------|:-----|:--------|:-------------------|
-| `-q`, `--quiet` |      |         | Only display token |
-| `--rotate`      |      |         | Rotate unlock key  |
+| Name                                | Type   | Default | Description        |
+|:------------------------------------|:-------|:--------|:-------------------|
+| [`-q`](#quiet), [`--quiet`](#quiet) | `bool` |         | Only display token |
+| [`--rotate`](#rotate)               | `bool` |         | Rotate unlock key  |
 
 
 <!---MARKER_GEN_END-->
@@ -22,8 +22,7 @@ swarm.
 You can view or rotate the unlock key using `swarm unlock-key`. To view the key,
 run the `docker swarm unlock-key` command without any arguments:
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -39,7 +38,7 @@ command and provide the following key:
 
     SWMKEY-1-fySn8TY4w5lKcWcJPIpKufejh9hxx5KYwx6XZigx3Q4
 
-Please remember to store this key in a password manager, since without it you
+Remember to store this key in a password manager, since without it you
 will not be able to restart the manager.
 ```
 
@@ -56,7 +55,7 @@ command and provide the following key:
 
     SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8
 
-Please remember to store this key in a password manager, since without it you
+Remember to store this key in a password manager, since without it you
 will not be able to restart the manager.
 ```
 
@@ -68,12 +67,12 @@ $ docker swarm unlock-key -q
 SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8
 ```
 
-### `--rotate`
+### <a name="rotate"></a> `--rotate`
 
 This flag rotates the unlock key, replacing it with a new randomly-generated
 key. The old unlock key will no longer be accepted.
 
-### `--quiet`
+### <a name="quiet"></a> `--quiet`
 
 Only print the unlock key, without instructions.
 

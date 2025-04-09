@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package formatter
 
@@ -10,29 +10,29 @@ import (
 
 type dummy struct{}
 
-func (d *dummy) Func1() string {
+func (*dummy) Func1() string {
 	return "Func1"
 }
 
-func (d *dummy) func2() string { //nolint:unused
+func (*dummy) func2() string { //nolint:unused
 	return "func2(should not be marshalled)"
 }
 
-func (d *dummy) Func3() (string, int) {
+func (*dummy) Func3() (string, int) {
 	return "Func3(should not be marshalled)", -42
 }
 
-func (d *dummy) Func4() int {
+func (*dummy) Func4() int {
 	return 4
 }
 
 type dummyType string
 
-func (d *dummy) Func5() dummyType {
-	return dummyType("Func5")
+func (*dummy) Func5() dummyType {
+	return "Func5"
 }
 
-func (d *dummy) FullHeader() string {
+func (*dummy) FullHeader() string {
 	return "FullHeader(should not be marshalled)"
 }
 

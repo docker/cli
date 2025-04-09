@@ -182,8 +182,7 @@ func TestPromptExitCode(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		t.Run("case="+tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			buf := new(bytes.Buffer)
@@ -214,7 +213,7 @@ func TestPromptExitCode(t *testing.T) {
 				default:
 
 					if err := bufioWriter.Flush(); err != nil {
-						return poll.Continue(err.Error())
+						return poll.Continue("%v", err)
 					}
 					if strings.Contains(buf.String(), "[y/N]") {
 						return poll.Success()

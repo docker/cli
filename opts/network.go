@@ -2,8 +2,10 @@ package opts
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +17,7 @@ const (
 	networkOptMacAddress  = "mac-address"
 	networkOptLinkLocalIP = "link-local-ip"
 	driverOpt             = "driver-opt"
+	gwPriorityOpt         = "gw-priority"
 )
 
 // NetworkAttachmentOpts represents the network options for endpoint creation
@@ -27,6 +30,7 @@ type NetworkAttachmentOpts struct {
 	IPv6Address  string
 	LinkLocalIPs []string
 	MacAddress   string
+	GwPriority   int
 }
 
 // NetworkOpt represents a network config in swarm mode.
@@ -82,12 +86,21 @@ func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 					netOpt.DriverOpts = make(map[string]string)
 				}
 				netOpt.DriverOpts[key] = val
+			case gwPriorityOpt:
+				netOpt.GwPriority, err = strconv.Atoi(val)
+				if err != nil {
+					var numErr *strconv.NumError
+					if errors.As(err, &numErr) {
+						err = numErr.Err
+					}
+					return fmt.Errorf("invalid gw-priority (%s): %w", val, err)
+				}
 			default:
-				return fmt.Errorf("invalid field key %s", key)
+				return errors.New("invalid field key " + key)
 			}
 		}
 		if len(netOpt.Target) == 0 {
-			return fmt.Errorf("network name/id is not specified")
+			return errors.New("network name/id is not specified")
 		}
 	} else {
 		netOpt.Target = value
@@ -97,7 +110,7 @@ func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 }
 
 // Type returns the type of this option
-func (n *NetworkOpt) Type() string {
+func (*NetworkOpt) Type() string {
 	return "network"
 }
 
@@ -107,7 +120,7 @@ func (n *NetworkOpt) Value() []NetworkAttachmentOpts {
 }
 
 // String returns the network opts as a string
-func (n *NetworkOpt) String() string {
+func (*NetworkOpt) String() string {
 	return ""
 }
 
@@ -126,7 +139,7 @@ func parseDriverOpt(driverOpt string) (string, string, error) {
 	// TODO(thaJeztah): should value be converted to lowercase as well, or only the key?
 	key, value, ok := strings.Cut(strings.ToLower(driverOpt), "=")
 	if !ok || key == "" {
-		return "", "", fmt.Errorf("invalid key value pair format in driver options")
+		return "", "", errors.New("invalid key value pair format in driver options")
 	}
 	key = strings.TrimSpace(key)
 	value = strings.TrimSpace(value)

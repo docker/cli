@@ -116,7 +116,7 @@ COPY data /data
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
 }
 
-// TestRunBuildFromLocalGitHubDirNonExistingRepo tests that build contexts
+// TestRunBuildFromGitHubSpecialCase tests that build contexts
 // starting with `github.com/` are special-cased, and the build command attempts
 // to clone the remote repo.
 // TODO: test "context selection" logic directly when runBuild is refactored
@@ -127,12 +127,13 @@ func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err := cmd.Execute()
 	assert.ErrorContains(t, err, "unable to prepare context")
 	assert.ErrorContains(t, err, "docker-build-git")
 }
 
-// TestRunBuildFromLocalGitHubDirNonExistingRepo tests that a local directory
+// TestRunBuildFromLocalGitHubDir tests that a local directory
 // starting with `github.com` takes precedence over the `github.com` special
 // case.
 func TestRunBuildFromLocalGitHubDir(t *testing.T) {

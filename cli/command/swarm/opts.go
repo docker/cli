@@ -68,7 +68,7 @@ func (a *NodeAddrOption) Set(value string) error {
 }
 
 // Type returns the type of this flag
-func (a *NodeAddrOption) Type() string {
+func (*NodeAddrOption) Type() string {
 	return "node-addr"
 }
 
@@ -104,7 +104,7 @@ func (m *ExternalCAOption) Set(value string) error {
 }
 
 // Type returns the type of this option.
-func (m *ExternalCAOption) Type() string {
+func (*ExternalCAOption) Type() string {
 	return "external-ca"
 }
 
@@ -129,7 +129,7 @@ type PEMFile struct {
 }
 
 // Type returns the type of this option.
-func (p *PEMFile) Type() string {
+func (*PEMFile) Type() string {
 	return "pem-file"
 }
 

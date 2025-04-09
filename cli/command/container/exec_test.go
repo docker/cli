@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"testing"
@@ -10,8 +11,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
+	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -37,10 +37,10 @@ TWO=2
 	testcases := []struct {
 		options    ExecOptions
 		configFile configfile.ConfigFile
-		expected   types.ExecConfig
+		expected   container.ExecOptions
 	}{
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -48,7 +48,7 @@ TWO=2
 			options: withDefaultOpts(ExecOptions{}),
 		},
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command1", "command2"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -63,7 +63,7 @@ TWO=2
 				TTY:         true,
 				User:        "uid",
 			}),
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				User:         "uid",
 				AttachStdin:  true,
 				AttachStdout: true,
@@ -74,7 +74,7 @@ TWO=2
 		},
 		{
 			options: withDefaultOpts(ExecOptions{Detach: true}),
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Detach: true,
 				Cmd:    []string{"command"},
 			},
@@ -85,7 +85,7 @@ TWO=2
 				Interactive: true,
 				Detach:      true,
 			}),
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Detach: true,
 				Tty:    true,
 				Cmd:    []string{"command"},
@@ -94,7 +94,7 @@ TWO=2
 		{
 			options:    withDefaultOpts(ExecOptions{Detach: true}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:        []string{"command"},
 				DetachKeys: "de",
 				Detach:     true,
@@ -106,14 +106,14 @@ TWO=2
 				DetachKeys: "ab",
 			}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:        []string{"command"},
 				DetachKeys: "ab",
 				Detach:     true,
 			},
 		},
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -126,7 +126,7 @@ TWO=2
 			}(),
 		},
 		{
-			expected: types.ExecConfig{
+			expected: container.ExecOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -161,7 +161,7 @@ func TestRunExec(t *testing.T) {
 	testcases := []struct {
 		doc           string
 		options       ExecOptions
-		client        fakeClient
+		client        *fakeClient
 		expectedError string
 		expectedOut   string
 		expectedErr   string
@@ -171,14 +171,14 @@ func TestRunExec(t *testing.T) {
 			options: withDefaultOpts(ExecOptions{
 				Detach: true,
 			}),
-			client: fakeClient{execCreateFunc: execCreateWithID},
+			client: &fakeClient{execCreateFunc: execCreateWithID},
 		},
 		{
 			doc:     "inspect error",
 			options: NewExecOptions(),
-			client: fakeClient{
-				inspectFunc: func(string) (types.ContainerJSON, error) {
-					return types.ContainerJSON{}, errors.New("failed inspect")
+			client: &fakeClient{
+				inspectFunc: func(string) (container.InspectResponse, error) {
+					return container.InspectResponse{}, errors.New("failed inspect")
 				},
 			},
 			expectedError: "failed inspect",
@@ -187,12 +187,13 @@ func TestRunExec(t *testing.T) {
 			doc:           "missing exec ID",
 			options:       NewExecOptions(),
 			expectedError: "exec ID empty",
+			client:        &fakeClient{},
 		},
 	}
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			fakeCLI := test.NewFakeCli(&testcase.client)
+			fakeCLI := test.NewFakeCli(testcase.client)
 
 			err := RunExec(context.TODO(), fakeCLI, "thecontainer", testcase.options)
 			if testcase.expectedError != "" {
@@ -206,8 +207,8 @@ func TestRunExec(t *testing.T) {
 	}
 }
 
-func execCreateWithID(_ string, _ types.ExecConfig) (types.IDResponse, error) {
-	return types.IDResponse{ID: "execid"}, nil
+func execCreateWithID(_ string, _ container.ExecOptions) (container.ExecCreateResponse, error) {
+	return container.ExecCreateResponse{ID: "execid"}, nil
 }
 
 func TestGetExecExitStatus(t *testing.T) {
@@ -235,9 +236,9 @@ func TestGetExecExitStatus(t *testing.T) {
 
 	for _, testcase := range testcases {
 		client := &fakeClient{
-			execInspectFunc: func(id string) (types.ContainerExecInspect, error) {
+			execInspectFunc: func(id string) (container.ExecInspect, error) {
 				assert.Check(t, is.Equal(execID, id))
-				return types.ContainerExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
+				return container.ExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
 			},
 		}
 		err := getExecExitStatus(context.Background(), client, execID)
@@ -250,14 +251,14 @@ func TestNewExecCommandErrors(t *testing.T) {
 		name                 string
 		args                 []string
 		expectedError        string
-		containerInspectFunc func(img string) (types.ContainerJSON, error)
+		containerInspectFunc func(img string) (container.InspectResponse, error)
 	}{
 		{
 			name:          "client-error",
 			args:          []string{"5cb5bb5e4a3b", "-t", "-i", "bash"},
 			expectedError: "something went wrong",
-			containerInspectFunc: func(containerID string) (types.ContainerJSON, error) {
-				return types.ContainerJSON{}, errors.Errorf("something went wrong")
+			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
+				return container.InspectResponse{}, errors.New("something went wrong")
 			},
 		},
 	}

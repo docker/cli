@@ -69,7 +69,6 @@ func TestValidateIPAddress(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			actualOut, actualErr := ValidateIPAddress(tc.input)
 			assert.Check(t, is.Equal(tc.expectedOut, actualOut))
@@ -137,10 +136,10 @@ func TestListOptsWithoutValidator(t *testing.T) {
 		t.Errorf("%d != 3", o.Len())
 	}
 	if !o.Get("bar") {
-		t.Error("o.Get(\"bar\") == false")
+		t.Error(`o.Get("bar") == false`)
 	}
 	if o.Get("baz") {
-		t.Error("o.Get(\"baz\") == true")
+		t.Error(`o.Get("baz") == true`)
 	}
 	o.Delete("foo")
 	if o.String() != "[bar bar]" {
@@ -191,7 +190,6 @@ func TestListOptsWithValidator(t *testing.T) {
 	}
 }
 
-//nolint:lll
 func TestValidateDNSSearch(t *testing.T) {
 	valid := []string{
 		`.`,
@@ -233,7 +231,11 @@ func TestValidateDNSSearch(t *testing.T) {
 		`foo.bar-.baz`,
 		`foo.-bar`,
 		`foo.-bar.baz`,
-		`foo.bar.baz.this.should.fail.on.long.name.because.it.is.longer.thanisshouldbethis.should.fail.on.long.name.because.it.is.longer.thanisshouldbethis.should.fail.on.long.name.because.it.is.longer.thanisshouldbethis.should.fail.on.long.name.because.it.is.longer.thanisshouldbe`,
+		`foo.bar.baz.` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe` +
+			`this.should.fail.on.long.name.because.it.is.longer.thanisshouldbe`,
 	}
 
 	for _, domain := range valid {
@@ -339,7 +341,6 @@ func TestValidateLabel(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			val, err := ValidateLabel(tc.value)
 			if tc.expectedErr != "" {

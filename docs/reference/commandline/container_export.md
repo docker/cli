@@ -23,7 +23,7 @@ with the container. If a volume is mounted on top of an existing directory in
 the container, `docker export` exports the contents of the underlying
 directory, not the contents of the volume.
 
-Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes)
+Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes)
 in the user guide for examples on exporting data in a volume.
 
 ## Examples

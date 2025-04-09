@@ -2,9 +2,9 @@ package container
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
@@ -35,7 +35,10 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 
 	statusC := make(chan int)
 	go func() {
+		defer close(statusC)
 		select {
+		case <-ctx.Done():
+			return
 		case result := <-resultC:
 			if result.Error != nil {
 				logrus.Errorf("Error waiting for container: %v", result.Error.Message)
@@ -44,6 +47,9 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 				statusC <- int(result.StatusCode)
 			}
 		case err := <-errC:
+			if errors.Is(err, context.Canceled) {
+				return
+			}
 			logrus.Errorf("error waiting for container: %v", err)
 			statusC <- 125
 		}
@@ -61,11 +67,11 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 	f := filters.NewArgs()
 	f.Add("type", "container")
 	f.Add("container", containerID)
-	options := types.EventsOptions{
-		Filters: f,
-	}
+
 	eventCtx, cancel := context.WithCancel(ctx)
-	eventq, errq := apiClient.Events(eventCtx, options)
+	eventq, errq := apiClient.Events(eventCtx, events.ListOptions{
+		Filters: f,
+	})
 
 	eventProcessor := func(e events.Message) bool {
 		stopProcessing := false

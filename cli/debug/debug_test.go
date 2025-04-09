@@ -9,9 +9,9 @@ import (
 
 func TestEnable(t *testing.T) {
 	defer func() {
-		os.Setenv("DEBUG", "")
 		logrus.SetLevel(logrus.InfoLevel)
 	}()
+	t.Setenv("DEBUG", "")
 	Enable()
 	if os.Getenv("DEBUG") != "1" {
 		t.Fatalf("expected DEBUG=1, got %s\n", os.Getenv("DEBUG"))
@@ -22,6 +22,7 @@ func TestEnable(t *testing.T) {
 }
 
 func TestDisable(t *testing.T) {
+	t.Setenv("DEBUG", "1")
 	Disable()
 	if os.Getenv("DEBUG") != "" {
 		t.Fatalf("expected DEBUG=\"\", got %s\n", os.Getenv("DEBUG"))
@@ -32,6 +33,7 @@ func TestDisable(t *testing.T) {
 }
 
 func TestEnabled(t *testing.T) {
+	t.Setenv("DEBUG", "")
 	Enable()
 	if !IsEnabled() {
 		t.Fatal("expected debug enabled, got false")

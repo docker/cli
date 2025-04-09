@@ -348,8 +348,6 @@ Linux namespaces. On Microsoft Windows, you can specify these values:
 * `process`: Namespace isolation only.
 * `hyperv`: Hyper-V hypervisor partition-based isolation.
 
-Specifying the `--isolation` flag without a value is the same as setting `--isolation "default"`.
-
 # HISTORY
 March 2014, Originally compiled by William Henry (whenry at redhat dot com)
 based on docker.com source material and internal work.

@@ -9,6 +9,8 @@ import (
 	"os"
 	"runtime"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 // EnvKey represents the well-known environment variable used to pass the
@@ -30,6 +32,7 @@ func NewPluginServer(h func(net.Conn)) (*PluginServer, error) {
 	if err != nil {
 		return nil, err
 	}
+	logrus.Trace("Plugin server listening on ", l.Addr())
 
 	if h == nil {
 		h = func(net.Conn) {}
@@ -92,6 +95,10 @@ func (pl *PluginServer) Addr() net.Addr {
 //
 // The error value is that of the underlying [net.Listner.Close] call.
 func (pl *PluginServer) Close() error {
+	if pl == nil {
+		return nil
+	}
+	logrus.Trace("Closing plugin server")
 	// Close connections first to ensure the connections get io.EOF instead
 	// of a connection reset.
 	pl.closeAllConns()
@@ -106,6 +113,10 @@ func (pl *PluginServer) Close() error {
 func (pl *PluginServer) closeAllConns() {
 	pl.mu.Lock()
 	defer pl.mu.Unlock()
+
+	if pl.closed {
+		return
+	}
 
 	// Prevent new connections from being accepted.
 	pl.closed = true

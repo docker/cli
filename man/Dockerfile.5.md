@@ -48,7 +48,7 @@ A Dockerfile is similar to a Makefile.
   to a new image if necessary, before finally outputting the ID of the new
   image. The Docker daemon automatically cleans up the context it is given.
 
-  Docker re-uses intermediate images whenever possible. This significantly
+  Docker reuses intermediate images whenever possible. This significantly
   accelerates the *docker build* process.
 
 # FORMAT

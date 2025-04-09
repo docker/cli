@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,7 +44,7 @@ func (s *fsStore) Get(listRef reference.Reference, manifest reference.Reference)
 	return s.getFromFilename(manifest, filename)
 }
 
-func (s *fsStore) getFromFilename(ref reference.Reference, filename string) (types.ImageManifest, error) {
+func (*fsStore) getFromFilename(ref reference.Reference, filename string) (types.ImageManifest, error) {
 	bytes, err := os.ReadFile(filename)
 	switch {
 	case os.IsNotExist(err):
@@ -162,11 +161,11 @@ func newNotFoundError(ref string) *notFoundError {
 }
 
 func (n *notFoundError) Error() string {
-	return fmt.Sprintf("No such manifest: %s", n.object)
+	return "No such manifest: " + n.object
 }
 
 // NotFound interface
-func (n *notFoundError) NotFound() {}
+func (*notFoundError) NotFound() {}
 
 // IsNotFound returns true if the error is a not found error
 func IsNotFound(err error) bool {

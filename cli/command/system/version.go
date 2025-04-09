@@ -16,6 +16,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
+	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -89,20 +90,20 @@ type clientVersion struct {
 // information.
 func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	v := clientVersion{
-		Version:   version.Version,
-		GoVersion: runtime.Version(),
-		GitCommit: version.GitCommit,
-		BuildTime: reformatDate(version.BuildTime),
-		Os:        runtime.GOOS,
-		Arch:      arch(),
-		Context:   contextName,
+		Version:           version.Version,
+		DefaultAPIVersion: api.DefaultVersion,
+		GoVersion:         runtime.Version(),
+		GitCommit:         version.GitCommit,
+		BuildTime:         reformatDate(version.BuildTime),
+		Os:                runtime.GOOS,
+		Arch:              arch(),
+		Context:           contextName,
 	}
 	if version.PlatformName != "" {
 		v.Platform = &platformInfo{Name: version.PlatformName}
 	}
 	if dockerCli != nil {
 		v.APIVersion = dockerCli.CurrentVersion()
-		v.DefaultAPIVersion = dockerCli.DefaultVersion()
 	}
 	return v
 }
@@ -196,8 +197,8 @@ func runVersion(ctx context.Context, dockerCli command.Cli, opts *versionOptions
 func prettyPrintVersion(dockerCli command.Cli, vd versionInfo, tmpl *template.Template) error {
 	t := tabwriter.NewWriter(dockerCli.Out(), 20, 1, 1, ' ', 0)
 	err := tmpl.Execute(t, vd)
-	t.Write([]byte("\n"))
-	t.Flush()
+	_, _ = t.Write([]byte("\n"))
+	_ = t.Flush()
 	return err
 }
 
@@ -210,8 +211,10 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	}
 	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
 	tmpl, err := tmpl.Parse(templateFormat)
-
-	return tmpl, errors.Wrap(err, "template parsing error")
+	if err != nil {
+		return nil, errors.Wrap(err, "template parsing error")
+	}
+	return tmpl, nil
 }
 
 func getDetailsOrder(v types.ComponentVersion) []string {

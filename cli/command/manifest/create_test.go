@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/manifest/store"
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -31,11 +31,14 @@ func TestManifestCreateErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(nil)
-		cmd := newCreateListCommand(cli)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cli := test.NewFakeCli(nil)
+			cmd := newCreateListCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -87,6 +90,7 @@ func TestManifestCreateRefuseAmend(t *testing.T) {
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err = cmd.Execute()
 	assert.Error(t, err, "refusing to amend an existing manifest list with no --amend flag")
 }
@@ -99,16 +103,17 @@ func TestManifestCreateNoManifest(t *testing.T) {
 	cli.SetManifestStore(manifestStore)
 	cli.SetRegistryClient(&fakeRegistryClient{
 		getManifestFunc: func(_ context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
-			return manifesttypes.ImageManifest{}, errors.Errorf("No such image: %v", ref)
+			return manifesttypes.ImageManifest{}, errors.New("No such image: " + ref.String())
 		},
 		getManifestListFunc: func(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
-			return nil, errors.Errorf("No such manifest: %s", ref)
+			return nil, errors.New("No such manifest: " + ref.String())
 		},
 	})
 
 	cmd := newCreateListCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	err := cmd.Execute()
 	assert.Error(t, err, "No such image: example.com/alpine:3.0")
 }

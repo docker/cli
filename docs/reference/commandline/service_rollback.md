@@ -5,10 +5,10 @@ Revert changes to a service's configuration
 
 ### Options
 
-| Name             | Type | Default | Description                                                     |
-|:-----------------|:-----|:--------|:----------------------------------------------------------------|
-| `-d`, `--detach` |      |         | Exit immediately instead of waiting for the service to converge |
-| `-q`, `--quiet`  |      |         | Suppress progress output                                        |
+| Name             | Type   | Default | Description                                                     |
+|:-----------------|:-------|:--------|:----------------------------------------------------------------|
+| `-d`, `--detach` | `bool` |         | Exit immediately instead of waiting for the service to converge |
+| `-q`, `--quiet`  | `bool` |         | Suppress progress output                                        |
 
 
 <!---MARKER_GEN_END-->
@@ -17,8 +17,7 @@ Revert changes to a service's configuration
 
 Roll back a specified service to its previous version from the swarm.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

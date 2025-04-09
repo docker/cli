@@ -8,6 +8,7 @@ import (
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 )
@@ -28,7 +29,7 @@ type fakeClient struct {
 	removedConfigs  []string
 
 	serviceListFunc    func(options types.ServiceListOptions) ([]swarm.Service, error)
-	networkListFunc    func(options types.NetworkListOptions) ([]types.NetworkResource, error)
+	networkListFunc    func(options network.ListOptions) ([]network.Summary, error)
 	secretListFunc     func(options types.SecretListOptions) ([]swarm.Secret, error)
 	configListFunc     func(options types.ConfigListOptions) ([]swarm.Config, error)
 	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
@@ -43,7 +44,7 @@ type fakeClient struct {
 	configRemoveFunc  func(configID string) error
 }
 
-func (cli *fakeClient) ServerVersion(context.Context) (types.Version, error) {
+func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
 		APIVersion: api.DefaultVersion,
@@ -69,13 +70,13 @@ func (cli *fakeClient) ServiceList(_ context.Context, options types.ServiceListO
 	return servicesList, nil
 }
 
-func (cli *fakeClient) NetworkList(_ context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error) {
+func (cli *fakeClient) NetworkList(_ context.Context, options network.ListOptions) ([]network.Summary, error) {
 	if cli.networkListFunc != nil {
 		return cli.networkListFunc(options)
 	}
 
 	namespace := namespaceFromFilters(options.Filters)
-	networksList := []types.NetworkResource{}
+	networksList := []network.Summary{}
 	for _, name := range cli.networks {
 		if belongToNamespace(name, namespace) {
 			networksList = append(networksList, networkFromName(name))
@@ -179,7 +180,7 @@ func (cli *fakeClient) ConfigRemove(_ context.Context, configID string) error {
 	return nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (*fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ types.ServiceInspectOptions) (swarm.Service, []byte, error) {
 	return swarm.Service{
 		ID: serviceID,
 		Spec: swarm.ServiceSpec{
@@ -199,8 +200,8 @@ func serviceFromName(name string) swarm.Service {
 	}
 }
 
-func networkFromName(name string) types.NetworkResource {
-	return types.NetworkResource{
+func networkFromName(name string) network.Summary {
+	return network.Summary{
 		ID:   "ID-" + name,
 		Name: name,
 	}

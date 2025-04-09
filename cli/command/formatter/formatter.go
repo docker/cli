@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package formatter
 
@@ -76,9 +76,9 @@ func (c *Context) preFormat() {
 func (c *Context) parseFormat() (*template.Template, error) {
 	tmpl, err := templates.Parse(c.finalFormat)
 	if err != nil {
-		return tmpl, errors.Wrap(err, "template parsing error")
+		return nil, errors.Wrap(err, "template parsing error")
 	}
-	return tmpl, err
+	return tmpl, nil
 }
 
 func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {

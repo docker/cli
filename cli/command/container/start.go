@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
@@ -43,8 +42,8 @@ func NewStartCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container start, docker start",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(container types.Container) bool {
-			return container.State == "exited" || container.State == "created"
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(ctr container.Summary) bool {
+			return ctr.State == "exited" || ctr.State == "created"
 		}),
 	}
 
@@ -87,7 +86,8 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		// We always use c.ID instead of container to maintain consistency during `docker start`
 		if !c.Config.Tty {
 			sigc := notifyAllSignals()
-			go ForwardAllSignals(ctx, dockerCli.Client(), c.ID, sigc)
+			bgCtx := context.WithoutCancel(ctx)
+			go ForwardAllSignals(bgCtx, dockerCli.Client(), c.ID, sigc)
 			defer signal.StopCatch(sigc)
 		}
 

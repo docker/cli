@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG ALPINE_VERSION=3.18
+ARG ALPINE_VERSION=3.21
 
 FROM alpine:${ALPINE_VERSION} AS gen
 RUN apk add --no-cache bash git
@@ -18,7 +18,7 @@ git add -A
 cp -rf /out/* .
 diff=$(git status --porcelain -- AUTHORS)
 if [ -n "$diff" ]; then
-  echo >&2 'ERROR: Authors result differs. Please update with "make -f docker.Makefile authors"'
+  echo >&2 'ERROR: Authors result differs. Update with "make -f docker.Makefile authors"'
   echo "$diff"
   exit 1
 fi

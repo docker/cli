@@ -1,4 +1,4 @@
-version: "3.12"
+version: "3.13"
 
 services:
   foo:
@@ -207,6 +207,9 @@ services:
         aliases:
          - alias1
          - alias3
+        driver_opts:
+          "driveropt1": "optval1"
+          "driveropt2": "optval2"
       other-network:
         ipv4_address: 172.16.238.10
         ipv6_address: 2001:3984:3989::10

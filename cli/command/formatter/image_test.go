@@ -304,7 +304,6 @@ image_id: imageID3
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
@@ -365,7 +364,6 @@ func TestImageContextWriteWithNoImage(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			err := ImageWrite(tc.context, images)
 			assert.NilError(t, err)

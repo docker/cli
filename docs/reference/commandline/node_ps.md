@@ -9,9 +9,9 @@ List tasks running on one or more nodes, defaults to current node
 |:---------------------------------------|:---------|:--------|:-------------------------------------------|
 | [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
 | [`--format`](#format)                  | `string` |         | Pretty-print tasks using a Go template     |
-| `--no-resolve`                         |          |         | Do not map IDs to Names                    |
-| `--no-trunc`                           |          |         | Do not truncate output                     |
-| `-q`, `--quiet`                        |          |         | Only display task IDs                      |
+| `--no-resolve`                         | `bool`   |         | Do not map IDs to Names                    |
+| `--no-trunc`                           | `bool`   |         | Do not truncate output                     |
+| `-q`, `--quiet`                        | `bool`   |         | Only display task IDs                      |
 
 
 <!---MARKER_GEN_END-->
@@ -22,8 +22,7 @@ Lists all the tasks on a Node that Docker knows about. You can filter using the
 `-f` or `--filter` flag. Refer to the [filtering](#filter) section for more
 information about available filter options.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -35,11 +34,11 @@ information about available filter options.
 $ docker node ps swarm-manager1
 
 NAME                                IMAGE        NODE            DESIRED STATE  CURRENT STATE
-redis.1.7q92v0nr1hcgts2amcjyqg3pq   redis:3.0.6  swarm-manager1  Running        Running 5 hours
-redis.6.b465edgho06e318egmgjbqo4o   redis:3.0.6  swarm-manager1  Running        Running 29 seconds
-redis.7.bg8c07zzg87di2mufeq51a2qp   redis:3.0.6  swarm-manager1  Running        Running 5 seconds
-redis.9.dkkual96p4bb3s6b10r7coxxt   redis:3.0.6  swarm-manager1  Running        Running 5 seconds
-redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:3.0.6  swarm-manager1  Running        Running 5 seconds
+redis.1.7q92v0nr1hcgts2amcjyqg3pq   redis:7.4.1  swarm-manager1  Running        Running 5 hours
+redis.6.b465edgho06e318egmgjbqo4o   redis:7.4.1  swarm-manager1  Running        Running 29 seconds
+redis.7.bg8c07zzg87di2mufeq51a2qp   redis:7.4.1  swarm-manager1  Running        Running 5 seconds
+redis.9.dkkual96p4bb3s6b10r7coxxt   redis:7.4.1  swarm-manager1  Running        Running 5 seconds
+redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:7.4.1  swarm-manager1  Running        Running 5 seconds
 ```
 
 ### <a name="filter"></a> Filtering (--filter)
@@ -65,11 +64,11 @@ The following filter matches all tasks with a name containing the `redis` string
 $ docker node ps -f name=redis swarm-manager1
 
 NAME                                IMAGE        NODE            DESIRED STATE  CURRENT STATE
-redis.1.7q92v0nr1hcgts2amcjyqg3pq   redis:3.0.6  swarm-manager1  Running        Running 5 hours
-redis.6.b465edgho06e318egmgjbqo4o   redis:3.0.6  swarm-manager1  Running        Running 29 seconds
-redis.7.bg8c07zzg87di2mufeq51a2qp   redis:3.0.6  swarm-manager1  Running        Running 5 seconds
-redis.9.dkkual96p4bb3s6b10r7coxxt   redis:3.0.6  swarm-manager1  Running        Running 5 seconds
-redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:3.0.6  swarm-manager1  Running        Running 5 seconds
+redis.1.7q92v0nr1hcgts2amcjyqg3pq   redis:7.4.1  swarm-manager1  Running        Running 5 hours
+redis.6.b465edgho06e318egmgjbqo4o   redis:7.4.1  swarm-manager1  Running        Running 29 seconds
+redis.7.bg8c07zzg87di2mufeq51a2qp   redis:7.4.1  swarm-manager1  Running        Running 5 seconds
+redis.9.dkkual96p4bb3s6b10r7coxxt   redis:7.4.1  swarm-manager1  Running        Running 5 seconds
+redis.10.0tgctg8h8cech4w0k0gwrmr23  redis:7.4.1  swarm-manager1  Running        Running 5 seconds
 ```
 
 #### id
@@ -80,7 +79,7 @@ The `id` filter matches a task's id.
 $ docker node ps -f id=bg8c07zzg87di2mufeq51a2qp swarm-manager1
 
 NAME                                IMAGE        NODE            DESIRED STATE  CURRENT STATE
-redis.7.bg8c07zzg87di2mufeq51a2qp   redis:3.0.6  swarm-manager1  Running        Running 5 seconds
+redis.7.bg8c07zzg87di2mufeq51a2qp   redis:7.4.1  swarm-manager1  Running        Running 5 seconds
 ```
 
 #### label
@@ -94,8 +93,8 @@ The following filter matches tasks with the `usage` label regardless of its valu
 $ docker node ps -f "label=usage"
 
 NAME                               IMAGE        NODE            DESIRED STATE  CURRENT STATE
-redis.6.b465edgho06e318egmgjbqo4o  redis:3.0.6  swarm-manager1  Running        Running 10 minutes
-redis.7.bg8c07zzg87di2mufeq51a2qp  redis:3.0.6  swarm-manager1  Running        Running 9 minutes
+redis.6.b465edgho06e318egmgjbqo4o  redis:7.4.1  swarm-manager1  Running        Running 10 minutes
+redis.7.bg8c07zzg87di2mufeq51a2qp  redis:7.4.1  swarm-manager1  Running        Running 9 minutes
 ```
 
 

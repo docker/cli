@@ -6,9 +6,9 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/cli/trust"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -49,10 +49,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 
 	named = reference.TagNameOnly(named)
 
-	repoInfo, err := registry.ParseRepositoryInfo(named)
-	if err != nil {
-		return err
-	}
+	repoInfo, _ := registry.ParseRepositoryInfo(named)
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
@@ -66,8 +63,8 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	defer responseBody.Close()
 
 	if !opts.untrusted {
-		return image.PushTrustedReference(dockerCli, repoInfo, named, authConfig, responseBody)
+		return trust.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody, command.UserAgent())
 	}
 
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	return jsonstream.Display(ctx, responseBody, dockerCli.Out())
 }

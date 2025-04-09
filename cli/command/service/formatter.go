@@ -10,9 +10,9 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
@@ -208,9 +208,9 @@ func NewFormat(source string) formatter.Format {
 
 func resolveNetworks(service swarm.Service, getNetwork inspect.GetRefFunc) map[string]string {
 	networkNames := make(map[string]string)
-	for _, network := range service.Spec.TaskTemplate.Networks {
-		if resolved, _, err := getNetwork(network.Target); err == nil {
-			if resolvedNetwork, ok := resolved.(types.NetworkResource); ok {
+	for _, nw := range service.Spec.TaskTemplate.Networks {
+		if resolved, _, err := getNetwork(nw.Target); err == nil {
+			if resolvedNetwork, ok := resolved.(network.Summary); ok {
 				networkNames[resolvedNetwork.ID] = resolvedNetwork.Name
 			}
 		}
@@ -503,7 +503,8 @@ func (ctx *serviceInspectContext) ResourceReservationNanoCPUs() float64 {
 	if ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs == 0 {
 		return float64(0)
 	}
-	return float64(ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs) / 1e9
+	const nano = 1e9
+	return float64(ctx.Service.Spec.TaskTemplate.Resources.Reservations.NanoCPUs) / nano
 }
 
 func (ctx *serviceInspectContext) ResourceReservationMemory() string {
@@ -521,7 +522,8 @@ func (ctx *serviceInspectContext) HasResourceLimits() bool {
 }
 
 func (ctx *serviceInspectContext) ResourceLimitsNanoCPUs() float64 {
-	return float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs) / 1e9
+	const nano = 1e9
+	return float64(ctx.Service.Spec.TaskTemplate.Resources.Limits.NanoCPUs) / nano
 }
 
 func (ctx *serviceInspectContext) ResourceLimitMemory() string {

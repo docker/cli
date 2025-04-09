@@ -7,10 +7,10 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	dockeropts "github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/spf13/cobra"
 )
 
@@ -48,22 +48,23 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")
 	flags.StringVarP(&options.message, "message", "m", "", "Set commit message for imported image")
 	command.AddPlatformFlag(flags, &options.platform)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
 	return cmd
 }
 
 func runImport(ctx context.Context, dockerCli command.Cli, options importOptions) error {
-	var source types.ImageImportSource
+	var source image.ImportSource
 	switch {
 	case options.source == "-":
 		// import from STDIN
-		source = types.ImageImportSource{
+		source = image.ImportSource{
 			Source:     dockerCli.In(),
 			SourceName: options.source,
 		}
 	case strings.HasPrefix(options.source, "https://"), strings.HasPrefix(options.source, "http://"):
 		// import from a remote source (handled by the daemon)
-		source = types.ImageImportSource{
+		source = image.ImportSource{
 			SourceName: options.source,
 		}
 	default:
@@ -73,7 +74,7 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 			return err
 		}
 		defer file.Close()
-		source = types.ImageImportSource{
+		source = image.ImportSource{
 			Source:     file,
 			SourceName: "-",
 		}
@@ -89,5 +90,5 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 	}
 	defer responseBody.Close()
 
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, dockerCli.Out(), nil)
+	return jsonstream.Display(ctx, responseBody, dockerCli.Out())
 }

@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package store
 
@@ -124,6 +124,9 @@ func (s *ContextStore) List() ([]Metadata, error) {
 
 // Names return Metadata names for a Lister
 func Names(s Lister) ([]string, error) {
+	if s == nil {
+		return nil, errors.New("nil lister")
+	}
 	list, err := s.List()
 	if err != nil {
 		return nil, err
@@ -353,7 +356,7 @@ func isValidFilePath(p string) error {
 }
 
 func importTar(name string, s Writer, reader io.Reader) error {
-	tr := tar.NewReader(&LimitedReader{R: reader, N: maxAllowedFileSizeToImport})
+	tr := tar.NewReader(&limitedReader{R: reader, N: maxAllowedFileSizeToImport})
 	tlsData := ContextTLSData{
 		Endpoints: map[string]EndpointTLSData{},
 	}
@@ -403,7 +406,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 }
 
 func importZip(name string, s Writer, reader io.Reader) error {
-	body, err := io.ReadAll(&LimitedReader{R: reader, N: maxAllowedFileSizeToImport})
+	body, err := io.ReadAll(&limitedReader{R: reader, N: maxAllowedFileSizeToImport})
 	if err != nil {
 		return err
 	}
@@ -431,7 +434,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 				return err
 			}
 
-			data, err := io.ReadAll(&LimitedReader{R: f, N: maxAllowedFileSizeToImport})
+			data, err := io.ReadAll(&limitedReader{R: f, N: maxAllowedFileSizeToImport})
 			defer f.Close()
 			if err != nil {
 				return err

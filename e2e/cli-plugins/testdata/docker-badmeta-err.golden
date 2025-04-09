@@ -1,2 +1,3 @@
-docker: 'badmeta' is not a docker command.
-See 'docker --help'
+docker: unknown command: docker badmeta
+
+Run 'docker --help' for more information

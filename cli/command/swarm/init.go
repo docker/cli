@@ -57,7 +57,7 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.forceNewCluster, "force-new-cluster", false, "Force create a new cluster from current state")
 	flags.BoolVar(&opts.autolock, flagAutolock, false, "Enable manager autolocking (requiring an unlock key to start a stopped manager)")
 	flags.StringVar(&opts.availability, flagAvailability, "active", `Availability of the node ("active", "pause", "drain")`)
-	flags.Var(newIPNetSliceValue([]net.IPNet{}, &opts.defaultAddrPools), flagDefaultAddrPool, "default address pool in CIDR format")
+	flags.IPNetSliceVar(&opts.defaultAddrPools, flagDefaultAddrPool, []net.IPNet{}, "default address pool in CIDR format")
 	flags.SetAnnotation(flagDefaultAddrPool, "version", []string{"1.39"})
 	flags.Uint32Var(&opts.DefaultAddrPoolMaskLength, flagDefaultAddrPoolMaskLength, 24, "default address pool subnet mask length")
 	flags.SetAnnotation(flagDefaultAddrPoolMaskLength, "version", []string{"1.39"})
@@ -65,8 +65,8 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInit(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts initOptions) error {
-	client := dockerCli.Client()
+func runInit(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts initOptions) error {
+	apiClient := dockerCLI.Client()
 
 	defaultAddrPool := make([]string, 0, len(opts.defaultAddrPools))
 	for _, p := range opts.defaultAddrPools {
@@ -93,7 +93,7 @@ func runInit(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, o
 		}
 	}
 
-	nodeID, err := client.SwarmInit(ctx, req)
+	nodeID, err := apiClient.SwarmInit(ctx, req)
 	if err != nil {
 		if strings.Contains(err.Error(), "could not choose an IP address to advertise") || strings.Contains(err.Error(), "could not find the system's IP address") {
 			return errors.New(err.Error() + " - specify one with --advertise-addr")
@@ -101,20 +101,20 @@ func runInit(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, o
 		return err
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "Swarm initialized: current node (%s) is now a manager.\n\n", nodeID)
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "Swarm initialized: current node (%s) is now a manager.\n\n", nodeID)
 
-	if err := printJoinCommand(ctx, dockerCli, nodeID, true, false); err != nil {
+	if err := printJoinCommand(ctx, dockerCLI, nodeID, true, false); err != nil {
 		return err
 	}
 
-	fmt.Fprint(dockerCli.Out(), "To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.\n\n")
+	_, _ = fmt.Fprintln(dockerCLI.Out(), "To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.")
 
 	if req.AutoLockManagers {
-		unlockKeyResp, err := client.SwarmGetUnlockKey(ctx)
+		unlockKeyResp, err := apiClient.SwarmGetUnlockKey(ctx)
 		if err != nil {
 			return errors.Wrap(err, "could not fetch unlock key")
 		}
-		printUnlockCommand(dockerCli.Out(), unlockKeyResp.UnlockKey)
+		printUnlockCommand(dockerCLI.Out(), unlockKeyResp.UnlockKey)
 	}
 
 	return nil

@@ -11,14 +11,14 @@ List containers
 
 | Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`-a`](#all), [`--all`](#all)          |          |         | Show all containers (default shows just running)                                                                                                                                                                                                                                                                                                                                                                                     |
+| [`-a`](#all), [`--all`](#all)          | `bool`   |         | Show all containers (default shows just running)                                                                                                                                                                                                                                                                                                                                                                                     |
 | [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
 | [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
 | `-n`, `--last`                         | `int`    | `-1`    | Show n last created containers (includes all states)                                                                                                                                                                                                                                                                                                                                                                                 |
-| `-l`, `--latest`                       |          |         | Show the latest created container (includes all states)                                                                                                                                                                                                                                                                                                                                                                              |
-| [`--no-trunc`](#no-trunc)              |          |         | Don't truncate output                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `-q`, `--quiet`                        |          |         | Only display container IDs                                                                                                                                                                                                                                                                                                                                                                                                           |
-| [`-s`](#size), [`--size`](#size)       |          |         | Display total file sizes                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `-l`, `--latest`                       | `bool`   |         | Show the latest created container (includes all states)                                                                                                                                                                                                                                                                                                                                                                              |
+| [`--no-trunc`](#no-trunc)              | `bool`   |         | Don't truncate output                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `-q`, `--quiet`                        | `bool`   |         | Only display container IDs                                                                                                                                                                                                                                                                                                                                                                                                           |
+| [`-s`](#size), [`--size`](#size)       | `bool`   |         | Display total file sizes                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 
 <!---MARKER_GEN_END-->
@@ -33,7 +33,7 @@ Running `docker ps --no-trunc` showing 2 linked containers.
 $ docker ps --no-trunc
 
 CONTAINER ID                                                     IMAGE                        COMMAND                CREATED              STATUS              PORTS               NAMES
-ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00 ubuntu:22.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
+ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00 ubuntu:24.04                 bash                   17 seconds ago       Up 16 seconds       3300-3310/tcp       webapp
 9ca9747b233100676a48cc7806131586213fa5dab86dd1972d6a8732e3a84a4d crosbymichael/redis:latest   /redis-server --dir    33 minutes ago       Up 33 minutes       6379/tcp            redis,webapp/db
 ```
 
@@ -64,7 +64,7 @@ e90b8831a4b8   nginx          "/bin/bash -c 'mkdir "   11 weeks ago   Up 4 hours
   * The "size" information shows the amount of data (on disk) that is used for the _writable_ layer of each container
   * The "virtual size" is the total amount of disk-space used for the read-only _image_ data used by the container and the writable layer.
 
-For more information, refer to the [container size on disk](https://docs.docker.com/storage/storagedriver/#container-size-on-disk) section.
+For more information, refer to the [container size on disk](https://docs.docker.com/engine/storage/drivers/#container-size-on-disk) section.
 
 
 ### <a name="filter"></a> Filtering (--filter)
@@ -240,13 +240,13 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 919e1179bdb8        ubuntu-c1           "top"               About a minute ago   Up About a minute                       admiring_lovelace
 ```
 
-Match containers based on the `ubuntu` version `22.04` image:
+Match containers based on the `ubuntu` version `24.04` image:
 
 ```console
-$ docker ps --filter ancestor=ubuntu:22.04
+$ docker ps --filter ancestor=ubuntu:24.04
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-82a598284012        ubuntu:22.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+82a598284012        ubuntu:24.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
 ```
 
 The following matches containers based on the layer `d0e008c6cf02` or an image
@@ -256,7 +256,7 @@ that have this layer in its layer stack.
 $ docker ps --filter ancestor=d0e008c6cf02
 
 CONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS               NAMES
-82a598284012        ubuntu:22.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
+82a598284012        ubuntu:24.04        "top"               3 minutes ago        Up 3 minutes                            sleepy_bose
 ```
 
 #### Create time

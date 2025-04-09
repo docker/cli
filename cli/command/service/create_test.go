@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
-
-	cliopts "github.com/docker/cli/opts"
 )
 
 // fakeConfigAPIClientList is used to let us pass a closure as a
@@ -21,19 +20,19 @@ func (f fakeConfigAPIClientList) ConfigList(ctx context.Context, opts types.Conf
 	return f(ctx, opts)
 }
 
-func (f fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
+func (fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
 	return types.ConfigCreateResponse{}, nil
 }
 
-func (f fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
+func (fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
 	return nil
 }
 
-func (f fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
+func (fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
 	return swarm.Config{}, nil, nil
 }
 
-func (f fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
+func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
 	return nil
 }
 
@@ -43,8 +42,8 @@ func (f fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swa
 func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 	// we can't directly access the internal fields of the ConfigOpt struct, so
 	// we need to let it do the parsing
-	configOpt := &cliopts.ConfigOpt{}
-	configOpt.Set("bar")
+	configOpt := &swarmopts.ConfigOpt{}
+	assert.Check(t, configOpt.Set("bar"))
 	opts := &serviceOptions{
 		credentialSpec: credentialSpecOpt{
 			value: &swarm.CredentialSpec{
@@ -187,8 +186,8 @@ func TestSetConfigsOnlyCredSpec(t *testing.T) {
 // TestSetConfigsOnlyConfigs verifies setConfigs when only configs (and not a
 // CredentialSpec) is needed.
 func TestSetConfigsOnlyConfigs(t *testing.T) {
-	configOpt := &cliopts.ConfigOpt{}
-	configOpt.Set("bar")
+	configOpt := &swarmopts.ConfigOpt{}
+	assert.Check(t, configOpt.Set("bar"))
 	opts := &serviceOptions{
 		configs: *configOpt,
 	}

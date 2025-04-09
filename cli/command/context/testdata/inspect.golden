@@ -2,7 +2,8 @@
     {
         "Name": "current",
         "Metadata": {
-            "Description": "description of current"
+            "Description": "description of current",
+            "MyCustomMetadata": "MyCustomMetadataValue"
         },
         "Endpoints": {
             "docker": {

@@ -1,6 +1,6 @@
 //go:build !windows
 
-package archive // import "github.com/docker/docker/pkg/archive"
+package archive
 
 import (
 	"archive/tar"
@@ -11,9 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/containerd/containerd/pkg/userns"
 	"github.com/docker/docker/pkg/idtools"
-	"github.com/docker/docker/pkg/system"
 	"golang.org/x/sys/unix"
 )
 
@@ -21,9 +19,9 @@ func init() {
 	sysStat = statUnix
 }
 
-// fixVolumePathPrefix does platform specific processing to ensure that if
-// the path being passed in is not in a volume path format, convert it to one.
-func fixVolumePathPrefix(srcPath string) string {
+// addLongPathPrefix adds the Windows long path prefix to the path provided if
+// it does not already have it. It is a no-op on platforms other than Windows.
+func addLongPathPrefix(srcPath string) string {
 	return srcPath
 }
 
@@ -75,14 +73,13 @@ func statUnix(fi os.FileInfo, hdr *tar.Header) error {
 	return nil
 }
 
-func getInodeFromStat(stat interface{}) (inode uint64, err error) {
+func getInodeFromStat(stat interface{}) (uint64, error) {
 	s, ok := stat.(*syscall.Stat_t)
-
-	if ok {
-		inode = s.Ino
+	if !ok {
+		// FIXME(thaJeztah): this should likely return an error; see https://github.com/moby/moby/pull/49493#discussion_r1979152897
+		return 0, nil
 	}
-
-	return
+	return s.Ino, nil
 }
 
 func getFileUIDGID(stat interface{}) (idtools.Identity, error) {
@@ -95,7 +92,10 @@ func getFileUIDGID(stat interface{}) (idtools.Identity, error) {
 }
 
 // handleTarTypeBlockCharFifo is an OS-specific helper function used by
-// createTarFile to handle the following types of header: Block; Char; Fifo
+// createTarFile to handle the following types of header: Block; Char; Fifo.
+//
+// Creating device nodes is not supported when running in a user namespace,
+// produces a [syscall.EPERM] in most cases.
 func handleTarTypeBlockCharFifo(hdr *tar.Header, path string) error {
 	mode := uint32(hdr.Mode & 0o7777)
 	switch hdr.Typeflag {
@@ -107,12 +107,7 @@ func handleTarTypeBlockCharFifo(hdr *tar.Header, path string) error {
 		mode |= unix.S_IFIFO
 	}
 
-	err := system.Mknod(path, mode, int(system.Mkdev(hdr.Devmajor, hdr.Devminor)))
-	if errors.Is(err, syscall.EPERM) && userns.RunningInUserNS() {
-		// In most cases, cannot create a device if running in user namespace
-		err = nil
-	}
-	return err
+	return mknod(path, mode, unix.Mkdev(uint32(hdr.Devmajor), uint32(hdr.Devminor)))
 }
 
 func handleLChmod(hdr *tar.Header, path string, hdrInfo os.FileInfo) error {

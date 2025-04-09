@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"errors"
 	"io"
 	"testing"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -27,7 +27,7 @@ func TestStackServicesErrors(t *testing.T) {
 		{
 			args: []string{"foo"},
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return nil, errors.Errorf("error getting services")
+				return nil, errors.New("error getting services")
 			},
 			expectedError: "error getting services",
 		},
@@ -37,7 +37,7 @@ func TestStackServicesErrors(t *testing.T) {
 				return []swarm.Service{*builders.Service(builders.GlobalService())}, nil
 			},
 			nodeListFunc: func(options types.NodeListOptions) ([]swarm.Node, error) {
-				return nil, errors.Errorf("error getting nodes")
+				return nil, errors.New("error getting nodes")
 			},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task()}, nil
@@ -50,7 +50,7 @@ func TestStackServicesErrors(t *testing.T) {
 				return []swarm.Service{*builders.Service(builders.GlobalService())}, nil
 			},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
-				return nil, errors.Errorf("error getting tasks")
+				return nil, errors.New("error getting tasks")
 			},
 			expectedError: "error getting tasks",
 		},
@@ -67,7 +67,6 @@ func TestStackServicesErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.expectedError, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				serviceListFunc: tc.serviceListFunc,
@@ -80,6 +79,7 @@ func TestStackServicesErrors(t *testing.T) {
 				assert.Check(t, cmd.Flags().Set(key, value))
 			}
 			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -89,6 +89,7 @@ func TestRunServicesWithEmptyName(t *testing.T) {
 	cmd := newServicesCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetArgs([]string{"'   '"})
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), `invalid stack name: "'   '"`)
 }

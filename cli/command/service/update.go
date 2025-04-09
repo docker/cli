@@ -9,21 +9,23 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	units "github.com/docker/go-units"
 	"github.com/moby/swarmkit/v2/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	options := newServiceOptions()
 
 	cmd := &cobra.Command{
@@ -31,11 +33,9 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a service",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), options, args[0])
+			return runUpdate(cmd.Context(), dockerCLI, cmd.Flags(), options, args[0])
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
-		},
+		ValidArgsFunction: completeServiceNames(dockerCLI),
 	}
 
 	flags := cmd.Flags()
@@ -54,7 +54,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Var(newListOptsVar(), flagContainerLabelRemove, "Remove a container label by its key")
 	flags.Var(newListOptsVar(), flagMountRemove, "Remove a mount by its target path")
 	// flags.Var(newListOptsVar().WithValidator(validatePublishRemove), flagPublishRemove, "Remove a published port by its target port")
-	flags.Var(&opts.PortOpt{}, flagPublishRemove, "Remove a published port by its target port")
+	flags.Var(&swarmopts.PortOpt{}, flagPublishRemove, "Remove a published port by its target port")
 	flags.Var(newListOptsVar(), flagConstraintRemove, "Remove a constraint")
 	flags.Var(newListOptsVar(), flagDNSRemove, "Remove a custom DNS server")
 	flags.SetAnnotation(flagDNSRemove, "version", []string{"1.25"})
@@ -108,12 +108,38 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
 	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
 	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
+	flags.Int64Var(&options.oomScoreAdj, flagOomScoreAdj, 0, "Tune host's OOM preferences (-1000 to 1000) ")
+	flags.SetAnnotation(flagOomScoreAdj, "version", []string{"1.46"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
 	flags.Var(newListOptsVarWithValidator(ValidateSingleGenericResource), flagGenericResourcesAdd, "Add a Generic resource")
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
+
+	// TODO(thaJeztah): add completion for capabilities, stop-signal (currently non-exported in container package)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapAdd, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagCapDrop, completeLinuxCapabilityNames)
+	// _ = cmd.RegisterFlagCompletionFunc(flagStopSignal, completeSignals)
+
+	_ = cmd.RegisterFlagCompletionFunc(flagEnvAdd, completion.EnvVarNames)
+	// TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
+	_ = cmd.RegisterFlagCompletionFunc("image", completion.ImageNames(dockerCLI, -1))
+	_ = cmd.RegisterFlagCompletionFunc(flagNetworkAdd, completion.NetworkNames(dockerCLI))
+	// TODO(thaJeztha): flagNetworkRemove (needs to read current list of networks from the service)
+	_ = cmd.RegisterFlagCompletionFunc(flagRestartCondition, completion.FromList("none", "on-failure", "any"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagRollbackFailureAction, completion.FromList("pause", "continue"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateOrder, completion.FromList("start-first", "stop-first"))
+	_ = cmd.RegisterFlagCompletionFunc(flagUpdateFailureAction, completion.FromList("pause", "continue", "rollback"))
+
+	completion.ImageNames(dockerCLI, -1)
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 
 	return cmd
 }
@@ -127,8 +153,8 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 }
 
 //nolint:gocyclo
-func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
-	apiClient := dockerCli.Client()
+func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
+	apiClient := dockerCLI.Client()
 
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	if err != nil {
@@ -186,7 +212,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	}
 
 	if flags.Changed("image") {
-		if err := resolveServiceImageDigestContentTrust(dockerCli, spec); err != nil {
+		if err := resolveServiceImageDigestContentTrust(dockerCLI, spec); err != nil {
 			return err
 		}
 		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
@@ -223,7 +249,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), image)
+		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
 		if err != nil {
 			return err
 		}
@@ -240,16 +266,16 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	}
 
 	for _, warning := range response.Warnings {
-		fmt.Fprintln(dockerCli.Err(), warning)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", serviceID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), serviceID)
 
 	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
 		return nil
 	}
 
-	return WaitOnService(ctx, dockerCli, serviceID, options.quiet)
+	return WaitOnService(ctx, dockerCLI, serviceID, options.quiet)
 }
 
 //nolint:gocyclo
@@ -365,6 +391,10 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		taskResources().Reservations = spec.TaskTemplate.Resources.Reservations
 		updateInt64Value(flagReserveCPU, &task.Resources.Reservations.NanoCPUs)
 		updateInt64Value(flagReserveMemory, &task.Resources.Reservations.MemoryBytes)
+	}
+
+	if anyChanged(flags, flagOomScoreAdj) {
+		updateInt64(flagOomScoreAdj, &task.ContainerSpec.OomScoreAdj)
 	}
 
 	if err := addGenericResources(flags, task); err != nil {
@@ -709,8 +739,8 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 	}
 }
 
-func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimit {
-	newUlimits := make(map[string]*units.Ulimit)
+func updateUlimits(flags *pflag.FlagSet, ulimits []*container.Ulimit) []*container.Ulimit {
+	newUlimits := make(map[string]*container.Ulimit)
 
 	for _, ulimit := range ulimits {
 		newUlimits[ulimit.Name] = ulimit
@@ -730,7 +760,7 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*units.Ulimit) []*units.Ulimi
 	if len(newUlimits) == 0 {
 		return nil
 	}
-	limits := make([]*units.Ulimit, 0, len(newUlimits))
+	limits := make([]*container.Ulimit, 0, len(newUlimits))
 	for _, ulimit := range newUlimits {
 		limits = append(limits, ulimit)
 	}
@@ -773,7 +803,7 @@ func getUpdatedSecrets(ctx context.Context, apiClient client.SecretAPIClient, fl
 	}
 
 	if flags.Changed(flagSecretAdd) {
-		values := flags.Lookup(flagSecretAdd).Value.(*opts.SecretOpt).Value()
+		values := flags.Lookup(flagSecretAdd).Value.(*swarmopts.SecretOpt).Value()
 
 		addSecrets, err := ParseSecrets(ctx, apiClient, values)
 		if err != nil {
@@ -821,7 +851,7 @@ func getUpdatedConfigs(ctx context.Context, apiClient client.ConfigAPIClient, fl
 	resolveConfigs := []*swarm.ConfigReference{}
 
 	if flags.Changed(flagConfigAdd) {
-		resolveConfigs = append(resolveConfigs, flags.Lookup(flagConfigAdd).Value.(*opts.ConfigOpt).Value()...)
+		resolveConfigs = append(resolveConfigs, flags.Lookup(flagConfigAdd).Value.(*swarmopts.ConfigOpt).Value()...)
 	}
 
 	// if credSpecConfigNameis non-empty at this point, it means its a new
@@ -1052,7 +1082,6 @@ func updatePorts(flags *pflag.FlagSet, portConfig *[]swarm.PortConfig) error {
 
 	// Build the current list of portConfig
 	for _, entry := range *portConfig {
-		entry := entry
 		if _, ok := portSet[portConfigToString(&entry)]; !ok {
 			portSet[portConfigToString(&entry)] = entry
 		}
@@ -1061,7 +1090,7 @@ func updatePorts(flags *pflag.FlagSet, portConfig *[]swarm.PortConfig) error {
 	newPorts := []swarm.PortConfig{}
 
 	// Clean current ports
-	toRemove := flags.Lookup(flagPublishRemove).Value.(*opts.PortOpt).Value()
+	toRemove := flags.Lookup(flagPublishRemove).Value.(*swarmopts.PortOpt).Value()
 portLoop:
 	for _, port := range portSet {
 		for _, pConfig := range toRemove {
@@ -1077,10 +1106,9 @@ portLoop:
 
 	// Check to see if there are any conflict in flags.
 	if flags.Changed(flagPublishAdd) {
-		ports := flags.Lookup(flagPublishAdd).Value.(*opts.PortOpt).Value()
+		ports := flags.Lookup(flagPublishAdd).Value.(*swarmopts.PortOpt).Value()
 
 		for _, port := range ports {
-			port := port
 			if _, ok := portSet[portConfigToString(&port)]; ok {
 				continue
 			}
@@ -1301,38 +1329,38 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	toRemove := buildToRemoveSet(flags, flagNetworkRemove)
 	idsToRemove := make(map[string]struct{})
 	for networkIDOrName := range toRemove {
-		network, err := apiClient.NetworkInspect(ctx, networkIDOrName, types.NetworkInspectOptions{Scope: "swarm"})
+		nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, network.InspectOptions{Scope: "swarm"})
 		if err != nil {
 			return err
 		}
-		idsToRemove[network.ID] = struct{}{}
+		idsToRemove[nw.ID] = struct{}{}
 	}
 
 	existingNetworks := make(map[string]struct{})
 	var newNetworks []swarm.NetworkAttachmentConfig //nolint:prealloc
-	for _, network := range specNetworks {
-		if _, exists := idsToRemove[network.Target]; exists {
+	for _, nw := range specNetworks {
+		if _, exists := idsToRemove[nw.Target]; exists {
 			continue
 		}
 
-		newNetworks = append(newNetworks, network)
-		existingNetworks[network.Target] = struct{}{}
+		newNetworks = append(newNetworks, nw)
+		existingNetworks[nw.Target] = struct{}{}
 	}
 
 	if flags.Changed(flagNetworkAdd) {
 		values := flags.Lookup(flagNetworkAdd).Value.(*opts.NetworkOpt)
 		networks := convertNetworks(*values)
-		for _, network := range networks {
-			nwID, err := resolveNetworkID(ctx, apiClient, network.Target)
+		for _, nw := range networks {
+			nwID, err := resolveNetworkID(ctx, apiClient, nw.Target)
 			if err != nil {
 				return err
 			}
 			if _, exists := existingNetworks[nwID]; exists {
-				return errors.Errorf("service is already attached to network %s", network.Target)
+				return errors.Errorf("service is already attached to network %s", nw.Target)
 			}
-			network.Target = nwID
-			newNetworks = append(newNetworks, network)
-			existingNetworks[network.Target] = struct{}{}
+			nw.Target = nwID
+			newNetworks = append(newNetworks, nw)
+			existingNetworks[nw.Target] = struct{}{}
 		}
 	}
 

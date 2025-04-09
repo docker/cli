@@ -2,13 +2,15 @@ package system
 
 import (
 	"context"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/pkg/errors"
+	"github.com/docker/docker/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -17,6 +19,8 @@ func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
 	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "system prune has been cancelled")
 	expected := `WARNING! This will remove:
   - all stopped containers
@@ -34,6 +38,8 @@ func TestPrunePromptFilters(t *testing.T) {
 	})
 	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{"--filter", "until=24h", "--filter", "label=hello-world", "--filter", "label!=foo=bar", "--filter", "label=bar=baz"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 
 	assert.ErrorContains(t, cmd.Execute(), "system prune has been cancelled")
 	expected := `WARNING! This will remove:
@@ -59,14 +65,17 @@ func TestSystemPrunePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (types.ContainersPruneReport, error) {
-			return types.ContainersPruneReport{}, errors.New("fakeClient containerPruneFunc should not be called")
+		containerPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error) {
+			return container.PruneReport{}, errors.New("fakeClient containerPruneFunc should not be called")
 		},
-		networkPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (types.NetworksPruneReport, error) {
-			return types.NetworksPruneReport{}, errors.New("fakeClient networkPruneFunc should not be called")
+		networkPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (network.PruneReport, error) {
+			return network.PruneReport{}, errors.New("fakeClient networkPruneFunc should not be called")
 		},
 	})
 
 	cmd := newPruneCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 }

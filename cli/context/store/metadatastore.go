@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package store
 
@@ -12,8 +12,8 @@ import (
 	"sort"
 
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/ioutils"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/sys/atomicwriter"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +40,7 @@ func (s *metadataStore) createOrUpdate(meta Metadata) error {
 	if err != nil {
 		return err
 	}
-	return ioutils.AtomicWriteFile(filepath.Join(contextDir, metaFile), bytes, 0o644)
+	return atomicwriter.WriteFile(filepath.Join(contextDir, metaFile), bytes, 0o644)
 }
 
 func parseTypedOrMap(payload []byte, getter TypeGetter) (any, error) {

@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package template
 
@@ -277,7 +277,6 @@ func TestExtractVariables(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			actual := ExtractVariables(tc.dict, defaultPattern)
 			assert.Check(t, is.DeepEqual(actual, tc.expected))

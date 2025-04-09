@@ -7,6 +7,7 @@ import (
 	"time"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/swarm"
@@ -53,8 +54,6 @@ var sampleInfoNoSwarm = system.Info{
 	CPUShares:          true,
 	CPUSet:             true,
 	IPv4Forwarding:     true,
-	BridgeNfIptables:   true,
-	BridgeNfIP6tables:  true,
 	Debug:              true,
 	NFd:                33,
 	OomKillDisable:     true,
@@ -70,8 +69,6 @@ var sampleInfoNoSwarm = system.Info{
 	Architecture:       "x86_64",
 	IndexServerAddress: "https://index.docker.io/v1/",
 	RegistryConfig: &registrytypes.ServiceConfig{
-		AllowNondistributableArtifactsCIDRs:     nil,
-		AllowNondistributableArtifactsHostnames: nil,
 		InsecureRegistryCIDRs: []*registrytypes.NetIPNet{
 			{
 				IP:   net.ParseIP("127.0.0.0"),
@@ -205,7 +202,7 @@ var samplePluginsInfo = []pluginmanager.Plugin{
 	{
 		Name: "goodplugin",
 		Path: "/path/to/docker-goodplugin",
-		Metadata: pluginmanager.Metadata{
+		Metadata: metadata.Metadata{
 			SchemaVersion:    "0.1.0",
 			ShortDescription: "unit test is good",
 			Vendor:           "ACME Corp",
@@ -215,7 +212,7 @@ var samplePluginsInfo = []pluginmanager.Plugin{
 	{
 		Name: "unversionedplugin",
 		Path: "/path/to/docker-unversionedplugin",
-		Metadata: pluginmanager.Metadata{
+		Metadata: metadata.Metadata{
 			SchemaVersion:    "0.1.0",
 			ShortDescription: "this plugin has no version",
 			Vendor:           "ACME Corp",
@@ -242,8 +239,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 	infoWithWarningsLinux.CPUShares = false
 	infoWithWarningsLinux.CPUSet = false
 	infoWithWarningsLinux.IPv4Forwarding = false
-	infoWithWarningsLinux.BridgeNfIptables = false
-	infoWithWarningsLinux.BridgeNfIP6tables = false
 
 	sampleInfoDaemonWarnings := sampleInfoNoSwarm
 	sampleInfoDaemonWarnings.Warnings = []string{
@@ -255,8 +250,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 		"WARNING: No cpu shares support",
 		"WARNING: No cpuset support",
 		"WARNING: IPv4 forwarding is disabled",
-		"WARNING: bridge-nf-call-iptables is disabled",
-		"WARNING: bridge-nf-call-ip6tables is disabled",
 	}
 
 	sampleInfoBadSecurity := sampleInfoNoSwarm
@@ -374,7 +367,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 			expectedError:  "errors pretty printing info",
 		},
 	} {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			err := prettyPrintInfo(cli, tc.dockerInfo)
@@ -444,7 +436,7 @@ func TestFormatInfo(t *testing.T) {
 		{
 			doc:           "syntax",
 			template:      "{{}",
-			expectedError: `Status: template parsing error: template: :1: unexpected "}" in command, Code: 64`,
+			expectedError: `template parsing error: template: :1: unexpected "}" in command`,
 		},
 		{
 			doc:           "syntax",
@@ -452,7 +444,6 @@ func TestFormatInfo(t *testing.T) {
 			expectedError: `template: :1:2: executing "" at <.badString>: can't evaluate field badString in type system.dockerInfo`,
 		},
 	} {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			info := dockerInfo{
@@ -518,7 +509,6 @@ func TestNeedsServerInfo(t *testing.T) {
 
 	inf := dockerInfo{ClientInfo: &clientInfo{}}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			assert.Equal(t, needsServerInfo(tc.template, inf), tc.expected)
 		})

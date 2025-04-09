@@ -1,9 +1,12 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.21.9
-ARG ALPINE_VERSION=3.18
+ARG GO_VERSION=1.23.8
+ARG ALPINE_VERSION=3.21
 
-ARG BUILDX_VERSION=0.12.1
+# BUILDX_VERSION sets the version of buildx to install in the dev container.
+# It must be a valid tag in the docker.io/docker/buildx-bin image repository
+# on Docker Hub.
+ARG BUILDX_VERSION=0.20.1
 FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS golang
@@ -11,7 +14,7 @@ ENV GOTOOLCHAIN=local
 ENV CGO_ENABLED=0
 
 FROM golang AS gofumpt
-ARG GOFUMPT_VERSION=v0.6.0
+ARG GOFUMPT_VERSION=v0.7.0
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
@@ -19,14 +22,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     && gofumpt --version
 
 FROM golang AS gotestsum
-ARG GOTESTSUM_VERSION=v1.10.0
+ARG GOTESTSUM_VERSION=v1.12.0
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
     GO111MODULE=on go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
 
 FROM golang AS goversioninfo
-ARG GOVERSIONINFO_VERSION=v1.3.0
+ARG GOVERSIONINFO_VERSION=v1.4.1
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
@@ -35,6 +38,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 FROM golang AS dev
 RUN  apk add --no-cache \
     bash \
+    bash-completion \
     build-base \
     ca-certificates \
     coreutils \
@@ -44,8 +48,9 @@ RUN  apk add --no-cache \
     nano
 
 RUN echo -e "\nYou are now in a development container. Run '\e\033[1mmake help\e\033[0m' to learn about\navailable make targets.\n" > /etc/motd \
- && echo -e "cat /etc/motd\nPS1=\"\e[0;32m\u@docker-cli-dev\\$ \e[0m\"" >> /root/.bashrc
-CMD bash
+ && echo -e "cat /etc/motd\nPS1=\"\e[0;32m\u@docker-cli-dev\\$ \e[0m\"" >> /root/.bashrc \
+ && echo -e "source /etc/bash/bash_completion.sh" >> /root/.bashrc
+CMD ["/bin/bash"]
 ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENV PATH=$PATH:/go/src/github.com/docker/cli/build
 

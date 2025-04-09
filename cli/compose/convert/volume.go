@@ -40,6 +40,9 @@ func handleVolumeToMount(
 ) (mount.Mount, error) {
 	result := createMountFromVolume(volume)
 
+	if volume.Image != nil {
+		return mount.Mount{}, errors.New("images options are incompatible with type volume")
+	}
 	if volume.Tmpfs != nil {
 		return mount.Mount{}, errors.New("tmpfs options are incompatible with type volume")
 	}
@@ -64,6 +67,7 @@ func handleVolumeToMount(
 
 	if volume.Volume != nil {
 		result.VolumeOptions.NoCopy = volume.Volume.NoCopy
+		result.VolumeOptions.Subpath = volume.Volume.Subpath
 	}
 
 	if stackVolume.Name != "" {
@@ -86,6 +90,32 @@ func handleVolumeToMount(
 	return result, nil
 }
 
+func handleImageToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, error) {
+	result := createMountFromVolume(volume)
+
+	if volume.Source == "" {
+		return mount.Mount{}, errors.New("invalid image source, source cannot be empty")
+	}
+	if volume.Volume != nil {
+		return mount.Mount{}, errors.New("volume options are incompatible with type image")
+	}
+	if volume.Bind != nil {
+		return mount.Mount{}, errors.New("bind options are incompatible with type image")
+	}
+	if volume.Tmpfs != nil {
+		return mount.Mount{}, errors.New("tmpfs options are incompatible with type image")
+	}
+	if volume.Cluster != nil {
+		return mount.Mount{}, errors.New("cluster options are incompatible with type image")
+	}
+	if volume.Image != nil {
+		result.ImageOptions = &mount.ImageOptions{
+			Subpath: volume.Image.Subpath,
+		}
+	}
+	return result, nil
+}
+
 func handleBindToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, error) {
 	result := createMountFromVolume(volume)
 
@@ -94,6 +124,9 @@ func handleBindToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, er
 	}
 	if volume.Volume != nil {
 		return mount.Mount{}, errors.New("volume options are incompatible with type bind")
+	}
+	if volume.Image != nil {
+		return mount.Mount{}, errors.New("image options are incompatible with type bind")
 	}
 	if volume.Tmpfs != nil {
 		return mount.Mount{}, errors.New("tmpfs options are incompatible with type bind")
@@ -121,6 +154,9 @@ func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	if volume.Volume != nil {
 		return mount.Mount{}, errors.New("volume options are incompatible with type tmpfs")
 	}
+	if volume.Image != nil {
+		return mount.Mount{}, errors.New("image options are incompatible with type tmpfs")
+	}
 	if volume.Cluster != nil {
 		return mount.Mount{}, errors.New("cluster options are incompatible with type tmpfs")
 	}
@@ -140,6 +176,9 @@ func handleNpipeToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	}
 	if volume.Volume != nil {
 		return mount.Mount{}, errors.New("volume options are incompatible with type npipe")
+	}
+	if volume.Image != nil {
+		return mount.Mount{}, errors.New("image options are incompatible with type npipe")
 	}
 	if volume.Tmpfs != nil {
 		return mount.Mount{}, errors.New("tmpfs options are incompatible with type npipe")
@@ -203,6 +242,8 @@ func convertVolumeToMount(
 	switch volume.Type {
 	case "volume", "":
 		return handleVolumeToMount(volume, stackVolumes, namespace)
+	case "image":
+		return handleImageToMount(volume)
 	case "bind":
 		return handleBindToMount(volume)
 	case "tmpfs":

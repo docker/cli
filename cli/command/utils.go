@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package command
 
@@ -9,18 +9,16 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
-	mounttypes "github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
 	"github.com/moby/sys/sequential"
+	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
@@ -52,31 +50,49 @@ func CopyToFile(outfile string, r io.Reader) error {
 	return nil
 }
 
-// capitalizeFirst capitalizes the first character of string
-func capitalizeFirst(s string) string {
-	switch l := len(s); l {
-	case 0:
-		return s
-	case 1:
-		return strings.ToLower(s)
-	default:
-		return strings.ToUpper(string(s[0])) + strings.ToLower(s[1:])
-	}
-}
-
-// PrettyPrint outputs arbitrary data for human formatted output by uppercasing the first letter.
-func PrettyPrint(i any) string {
-	switch t := i.(type) {
-	case nil:
-		return "None"
-	case string:
-		return capitalizeFirst(t)
-	default:
-		return capitalizeFirst(fmt.Sprintf("%s", t))
-	}
-}
-
 var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
+
+// DisableInputEcho disables input echo on the provided streams.In.
+// This is useful when the user provides sensitive information like passwords.
+// The function returns a restore function that should be called to restore the
+// terminal state.
+func DisableInputEcho(ins *streams.In) (restore func() error, err error) {
+	oldState, err := term.SaveState(ins.FD())
+	if err != nil {
+		return nil, err
+	}
+	restore = func() error {
+		return term.RestoreTerminal(ins.FD(), oldState)
+	}
+	return restore, term.DisableEcho(ins.FD(), oldState)
+}
+
+// PromptForInput requests input from the user.
+//
+// If the user terminates the CLI with SIGINT or SIGTERM while the prompt is
+// active, the prompt will return an empty string ("") with an ErrPromptTerminated error.
+// When the prompt returns an error, the caller should propagate the error up
+// the stack and close the io.Reader used for the prompt which will prevent the
+// background goroutine from blocking indefinitely.
+func PromptForInput(ctx context.Context, in io.Reader, out io.Writer, message string) (string, error) {
+	_, _ = fmt.Fprint(out, message)
+
+	result := make(chan string)
+	go func() {
+		scanner := bufio.NewScanner(in)
+		if scanner.Scan() {
+			result <- strings.TrimSpace(scanner.Text())
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		_, _ = fmt.Fprintln(out, "")
+		return "", ErrPromptTerminated
+	case r := <-result:
+		return r, nil
+	}
+}
 
 // PromptForConfirmation requests and checks confirmation from the user.
 // This will display the provided message followed by ' [y/N] '. If the user
@@ -103,11 +119,6 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 
 	result := make(chan bool)
 
-	// Catch the termination signal and exit the prompt gracefully.
-	// The caller is responsible for properly handling the termination.
-	notifyCtx, notifyCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
-	defer notifyCancel()
-
 	go func() {
 		var res bool
 		scanner := bufio.NewScanner(ins)
@@ -121,8 +132,7 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 	}()
 
 	select {
-	case <-notifyCtx.Done():
-		// print a newline on termination
+	case <-ctx.Done():
 		_, _ = fmt.Fprintln(outs, "")
 		return false, ErrPromptTerminated
 	case r := <-result:
@@ -130,32 +140,42 @@ func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, m
 	}
 }
 
-// PruneFilters returns consolidated prune filters obtained from config.json and cli
-func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
-	if dockerCli.ConfigFile() == nil {
+// PruneFilters merges prune filters specified in config.json with those specified
+// as command-line flags.
+//
+// CLI label filters have precedence over those specified in config.json. If a
+// label filter specified as flag conflicts with a label defined in config.json
+// (i.e., "label=some-value" conflicts with "label!=some-value", and vice versa),
+// then the filter defined in config.json is omitted.
+func PruneFilters(dockerCLI config.Provider, pruneFilters filters.Args) filters.Args {
+	cfg := dockerCLI.ConfigFile()
+	if cfg == nil {
 		return pruneFilters
 	}
-	for _, f := range dockerCli.ConfigFile().PruneFilters {
+
+	// Merge filters provided through the CLI with default filters defined
+	// in the CLI-configfile.
+	for _, f := range cfg.PruneFilters {
 		k, v, ok := strings.Cut(f, "=")
 		if !ok {
 			continue
 		}
-		if k == "label" {
-			// CLI label filter supersede config.json.
-			// If CLI label filter conflict with config.json,
-			// skip adding label! filter in config.json.
-			if pruneFilters.Contains("label!") && pruneFilters.ExactMatch("label!", v) {
+		switch k {
+		case "label":
+			// "label != some-value" conflicts with "label = some-value"
+			if pruneFilters.ExactMatch("label!", v) {
 				continue
 			}
-		} else if k == "label!" {
-			// CLI label! filter supersede config.json.
-			// If CLI label! filter conflict with config.json,
-			// skip adding label filter in config.json.
-			if pruneFilters.Contains("label") && pruneFilters.ExactMatch("label", v) {
+			pruneFilters.Add(k, v)
+		case "label!":
+			// "label != some-value" conflicts with "label = some-value"
+			if pruneFilters.ExactMatch("label", v) {
 				continue
 			}
+			pruneFilters.Add(k, v)
+		default:
+			pruneFilters.Add(k, v)
 		}
-		pruneFilters.Add(k, v)
 	}
 
 	return pruneFilters
@@ -164,7 +184,7 @@ func PruneFilters(dockerCli Cli, pruneFilters filters.Args) filters.Args {
 // AddPlatformFlag adds `platform` to a set of flags for API version 1.32 and later.
 func AddPlatformFlag(flags *pflag.FlagSet, target *string) {
 	flags.StringVar(target, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
-	flags.SetAnnotation("platform", "version", []string{"1.32"})
+	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
 }
 
 // ValidateOutputPath validates the output paths of the `export` and `save` commands.
@@ -187,7 +207,7 @@ func ValidateOutputPath(path string) error {
 		}
 
 		if err := ValidateOutputPathFileMode(fileInfo.Mode()); err != nil {
-			return errors.Wrapf(err, fmt.Sprintf("invalid output path: %q must be a directory or a regular file", path))
+			return errors.Wrapf(err, "invalid output path: %q must be a directory or a regular file", path)
 		}
 	}
 	return nil
@@ -201,51 +221,6 @@ func ValidateOutputPathFileMode(fileMode os.FileMode) error {
 		return errors.New("got a device")
 	case fileMode&os.ModeIrregular != 0:
 		return errors.New("got an irregular file")
-	}
-	return nil
-}
-
-func stringSliceIndex(s, subs []string) int {
-	j := 0
-	if len(subs) > 0 {
-		for i, x := range s {
-			if j < len(subs) && subs[j] == x {
-				j++
-			} else {
-				j = 0
-			}
-			if len(subs) == j {
-				return i + 1 - j
-			}
-		}
-	}
-	return -1
-}
-
-// StringSliceReplaceAt replaces the sub-slice find, with the sub-slice replace, in the string
-// slice s, returning a new slice and a boolean indicating if the replacement happened.
-// requireIdx is the index at which old needs to be found at (or -1 to disregard that).
-func StringSliceReplaceAt(s, find, replace []string, requireIndex int) ([]string, bool) {
-	idx := stringSliceIndex(s, find)
-	if (requireIndex != -1 && requireIndex != idx) || idx == -1 {
-		return s, false
-	}
-	out := append([]string{}, s[:idx]...)
-	out = append(out, replace...)
-	out = append(out, s[idx+len(find):]...)
-	return out, true
-}
-
-// ValidateMountWithAPIVersion validates a mount with the server API version.
-func ValidateMountWithAPIVersion(m mounttypes.Mount, serverAPIVersion string) error {
-	if m.BindOptions != nil {
-		if m.BindOptions.NonRecursive && versions.LessThan(serverAPIVersion, "1.40") {
-			return errors.Errorf("bind-recursive=disabled requires API v1.40 or later")
-		}
-		// ReadOnlyNonRecursive can be safely ignored when API < 1.44
-		if m.BindOptions.ReadOnlyForceRecursive && versions.LessThan(serverAPIVersion, "1.44") {
-			return errors.Errorf("bind-recursive=readonly requires API v1.44 or later")
-		}
 	}
 	return nil
 }

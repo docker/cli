@@ -30,7 +30,7 @@ func NewTagCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker image tag, docker tag",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: completion.ImageNames(dockerCli, 2),
 	}
 
 	flags := cmd.Flags()

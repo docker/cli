@@ -1,17 +1,18 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package formatter
 
 import (
 	"fmt"
+	"net"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 )
@@ -66,10 +67,10 @@ ports: {{- pad .Ports 1 0}}
 }
 
 // ContainerWrite renders the context for a list of containers
-func ContainerWrite(ctx Context, containers []types.Container) error {
+func ContainerWrite(ctx Context, containers []container.Summary) error {
 	render := func(format func(subContext SubContext) error) error {
-		for _, container := range containers {
-			err := format(&ContainerContext{trunc: ctx.Trunc, c: container})
+		for _, ctr := range containers {
+			err := format(&ContainerContext{trunc: ctx.Trunc, c: ctr})
 			if err != nil {
 				return err
 			}
@@ -83,7 +84,7 @@ func ContainerWrite(ctx Context, containers []types.Container) error {
 type ContainerContext struct {
 	HeaderContext
 	trunc bool
-	c     types.Container
+	c     container.Summary
 
 	// FieldsUsed is used in the pre-processing step to detect which fields are
 	// used in the template. It's currently only used to detect use of the .Size
@@ -192,7 +193,9 @@ func (c *ContainerContext) Command() string {
 	return strconv.Quote(command)
 }
 
-// CreatedAt returns the "Created" date/time of the container as a unix timestamp.
+// CreatedAt returns the formatted string representing the container's creation date/time.
+// The format may include nanoseconds if present.
+// e.g. "2006-01-02 15:04:05.999999999 -0700 MST" or "2006-01-02 15:04:05 -0700 MST"
 func (c *ContainerContext) CreatedAt() string {
 	return time.Unix(c.c.Created, 0).String()
 }
@@ -313,7 +316,7 @@ func (c *ContainerContext) Networks() string {
 // DisplayablePorts returns formatted string representing open ports of container
 // e.g. "0.0.0.0:80->9090/tcp, 9988/tcp"
 // it's used by command 'docker ps'
-func DisplayablePorts(ports []types.Port) string {
+func DisplayablePorts(ports []container.Port) string {
 	type portGroup struct {
 		first uint16
 		last  uint16
@@ -331,7 +334,8 @@ func DisplayablePorts(ports []types.Port) string {
 		portKey := port.Type
 		if port.IP != "" {
 			if port.PublicPort != current {
-				hostMappings = append(hostMappings, fmt.Sprintf("%s:%d->%d/%s", port.IP, port.PublicPort, port.PrivatePort, port.Type))
+				hAddrPort := net.JoinHostPort(port.IP, strconv.Itoa(int(port.PublicPort)))
+				hostMappings = append(hostMappings, fmt.Sprintf("%s->%d/%s", hAddrPort, port.PrivatePort, port.Type))
 				continue
 			}
 			portKey = port.IP + "/" + port.Type
@@ -373,12 +377,12 @@ func formGroup(key string, start, last uint16) string {
 		group = fmt.Sprintf("%s-%d", group, last)
 	}
 	if ip != "" {
-		group = fmt.Sprintf("%s:%s->%s", ip, group, group)
+		group = fmt.Sprintf("%s->%s", net.JoinHostPort(ip, group), group)
 	}
 	return group + "/" + groupType
 }
 
-func comparePorts(i, j types.Port) bool {
+func comparePorts(i, j container.Port) bool {
 	if i.PrivatePort != j.PrivatePort {
 		return i.PrivatePort < j.PrivatePort
 	}

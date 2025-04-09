@@ -73,11 +73,11 @@ func (c *fakeClient) PluginInspectWithRaw(_ context.Context, name string) (*type
 	return nil, nil, nil
 }
 
-func (c *fakeClient) Info(context.Context) (system.Info, error) {
+func (*fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (c *fakeClient) PluginUpgrade(ctx context.Context, name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
+func (c *fakeClient) PluginUpgrade(_ context.Context, name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
 	if c.pluginUpgradeFunc != nil {
 		return c.pluginUpgradeFunc(name, options)
 	}

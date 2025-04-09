@@ -78,6 +78,6 @@ func TestGlobalHelp(t *testing.T) {
 		})
 		assert.Assert(t, is.Equal(res2.Stdout(), ""))
 		assert.Assert(t, is.Contains(res2.Stderr(), "unknown flag: --badopt"))
-		assert.Assert(t, is.Contains(res2.Stderr(), "See 'docker --help"))
+		assert.Assert(t, is.Contains(res2.Stderr(), "Run 'docker --help' for more information"))
 	})
 }

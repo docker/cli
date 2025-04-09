@@ -5,9 +5,9 @@ Sign an image
 
 ### Options
 
-| Name      | Type | Default | Description                 |
-|:----------|:-----|:--------|:----------------------------|
-| `--local` |      |         | Sign a locally tagged image |
+| Name      | Type   | Default | Description                 |
+|:----------|:-------|:--------|:----------------------------|
+| `--local` | `bool` |         | Sign a locally tagged image |
 
 
 <!---MARKER_GEN_END-->

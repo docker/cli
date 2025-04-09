@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package store
 
@@ -259,4 +259,10 @@ func TestCorruptMetadata(t *testing.T) {
 	// Assert that the error message gives the user some clue where to look.
 	_, err = s.GetMetadata("source")
 	assert.ErrorContains(t, err, fmt.Sprintf("parsing %s: unexpected end of JSON input", contextFile))
+}
+
+func TestNames(t *testing.T) {
+	names, err := Names(nil)
+	assert.Check(t, is.Error(err, "nil lister"))
+	assert.Check(t, is.Len(names, 0))
 }

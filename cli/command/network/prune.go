@@ -31,7 +31,7 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 				return err
 			}
 			if output != "" {
-				fmt.Fprintln(dockerCli.Out(), output)
+				_, _ = fmt.Fprintln(dockerCli.Out(), output)
 			}
 			return nil
 		},
@@ -57,7 +57,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return "", err
 		}
 		if !r {
-			return "", errdefs.Cancelled(errors.New("network prune cancelled has been cancelled"))
+			return "", errdefs.Cancelled(errors.New("network prune has been cancelled"))
 		}
 	}
 

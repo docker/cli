@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -20,17 +19,17 @@ var logFn = func(expectedOut string) func(string, container.LogsOptions) (io.Rea
 }
 
 func TestRunLogs(t *testing.T) {
-	inspectFn := func(containerID string) (types.ContainerJSON, error) {
-		return types.ContainerJSON{
+	inspectFn := func(containerID string) (container.InspectResponse, error) {
+		return container.InspectResponse{
 			Config:            &container.Config{Tty: true},
-			ContainerJSONBase: &types.ContainerJSONBase{State: &types.ContainerState{Running: false}},
+			ContainerJSONBase: &container.ContainerJSONBase{State: &container.State{Running: false}},
 		}, nil
 	}
 
 	testcases := []struct {
 		doc           string
 		options       *logsOptions
-		client        fakeClient
+		client        *fakeClient
 		expectedError string
 		expectedOut   string
 		expectedErr   string
@@ -39,13 +38,13 @@ func TestRunLogs(t *testing.T) {
 			doc:         "successful logs",
 			expectedOut: "foo",
 			options:     &logsOptions{},
-			client:      fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
+			client:      &fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
 		},
 	}
 
 	for _, testcase := range testcases {
 		t.Run(testcase.doc, func(t *testing.T) {
-			cli := test.NewFakeCli(&testcase.client)
+			cli := test.NewFakeCli(testcase.client)
 
 			err := runLogs(context.TODO(), cli, testcase.options)
 			if testcase.expectedError != "" {

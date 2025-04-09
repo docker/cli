@@ -52,28 +52,28 @@ func RunServices(ctx context.Context, dockerCli command.Cli, opts options.Servic
 	return formatWrite(dockerCli, services, opts)
 }
 
-func formatWrite(dockerCli command.Cli, services []swarmtypes.Service, opts options.Services) error {
+func formatWrite(dockerCLI command.Cli, services []swarmtypes.Service, opts options.Services) error {
 	// if no services in the stack, print message and exit 0
 	if len(services) == 0 {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", opts.Namespace)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "Nothing found in stack:", opts.Namespace)
 		return nil
 	}
 	sort.Slice(services, func(i, j int) bool {
 		return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
 	})
 
-	format := opts.Format
-	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().ServicesFormat) > 0 && !opts.Quiet {
-			format = dockerCli.ConfigFile().ServicesFormat
+	f := opts.Format
+	if len(f) == 0 {
+		if len(dockerCLI.ConfigFile().ServicesFormat) > 0 && !opts.Quiet {
+			f = dockerCLI.ConfigFile().ServicesFormat
 		} else {
-			format = formatter.TableFormatKey
+			f = formatter.TableFormatKey
 		}
 	}
 
 	servicesCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: service.NewListFormat(format, opts.Quiet),
+		Output: dockerCLI.Out(),
+		Format: service.NewListFormat(f, opts.Quiet),
 	}
 	return service.ListFormatWrite(servicesCtx, services)
 }

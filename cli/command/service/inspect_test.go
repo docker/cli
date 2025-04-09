@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package service
 
@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -136,7 +136,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 			return s, nil, nil
 		},
 		func(ref string) (any, []byte, error) {
-			return types.NetworkResource{
+			return network.Inspect{
 				ID:   "5vpyomhb6ievnk0i0o60gcnei",
 				Name: "mynetwork",
 			}, nil, nil

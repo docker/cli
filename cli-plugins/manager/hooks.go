@@ -1,11 +1,14 @@
 package manager
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/hooks"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -27,47 +30,54 @@ type HookPluginData struct {
 // a main CLI command was executed. It calls the hook subcommand for all
 // present CLI plugins that declare support for hooks in their metadata and
 // parses/prints their responses.
-func RunCLICommandHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, cmdErrorMessage string) {
+func RunCLICommandHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, subCommand *cobra.Command, cmdErrorMessage string) {
 	commandName := strings.TrimPrefix(subCommand.CommandPath(), rootCmd.Name()+" ")
 	flags := getCommandFlags(subCommand)
 
-	runHooks(dockerCli, rootCmd, subCommand, commandName, flags, cmdErrorMessage)
+	runHooks(ctx, dockerCLI.ConfigFile(), rootCmd, subCommand, commandName, flags, cmdErrorMessage)
 }
 
 // RunPluginHooks is the entrypoint for the hooks execution flow
 // after a plugin command was just executed by the CLI.
-func RunPluginHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, args []string) {
+func RunPluginHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, subCommand *cobra.Command, args []string) {
 	commandName := strings.Join(args, " ")
 	flags := getNaiveFlags(args)
 
-	runHooks(dockerCli, rootCmd, subCommand, commandName, flags, "")
+	runHooks(ctx, dockerCLI.ConfigFile(), rootCmd, subCommand, commandName, flags, "")
 }
 
-func runHooks(dockerCli command.Cli, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
-	nextSteps := invokeAndCollectHooks(dockerCli, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
-
-	hooks.PrintNextSteps(dockerCli.Err(), nextSteps)
+func runHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
+	nextSteps := invokeAndCollectHooks(ctx, cfg, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
+	hooks.PrintNextSteps(subCommand.ErrOrStderr(), nextSteps)
 }
 
-func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
-	pluginsCfg := dockerCli.ConfigFile().Plugins
+func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
+	// check if the context was cancelled before invoking hooks
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
+
+	pluginsCfg := cfg.Plugins
 	if pluginsCfg == nil {
 		return nil
 	}
 
+	pluginDirs := getPluginDirs(cfg)
 	nextSteps := make([]string, 0, len(pluginsCfg))
-	for pluginName, cfg := range pluginsCfg {
-		match, ok := pluginMatch(cfg, subCmdStr)
+	for pluginName, pluginCfg := range pluginsCfg {
+		match, ok := pluginMatch(pluginCfg, subCmdStr)
 		if !ok {
 			continue
 		}
 
-		p, err := GetPlugin(pluginName, dockerCli, rootCmd)
+		p, err := getPlugin(pluginName, pluginDirs, rootCmd)
 		if err != nil {
 			continue
 		}
 
-		hookReturn, err := p.RunHook(HookPluginData{
+		hookReturn, err := p.RunHook(ctx, HookPluginData{
 			RootCmd:      match,
 			Flags:        flags,
 			CommandError: cmdErrorMessage,
@@ -92,9 +102,33 @@ func invokeAndCollectHooks(dockerCli command.Cli, rootCmd, subCmd *cobra.Command
 		if err != nil {
 			continue
 		}
-		nextSteps = append(nextSteps, processedHook...)
+
+		var appended bool
+		nextSteps, appended = appendNextSteps(nextSteps, processedHook)
+		if !appended {
+			logrus.Debugf("Plugin %s responded with an empty hook message %q. Ignoring.", pluginName, string(hookReturn))
+		}
 	}
 	return nextSteps
+}
+
+// appendNextSteps appends the processed hook output to the nextSteps slice.
+// If the processed hook output is empty, it is not appended.
+// Empty lines are not stripped if there's at least one non-empty line.
+func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
+	empty := true
+	for _, l := range processed {
+		if strings.TrimSpace(l) != "" {
+			empty = false
+			break
+		}
+	}
+
+	if empty {
+		return nextSteps, false
+	}
+
+	return append(nextSteps, processed...), true
 }
 
 // pluginMatch takes a plugin configuration and a string representing the

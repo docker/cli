@@ -1,5 +1,5 @@
 variable "GO_VERSION" {
-    default = "1.21.9"
+    default = "1.23.8"
 }
 variable "VERSION" {
     default = ""
@@ -141,16 +141,19 @@ target "update-authors" {
 }
 
 target "test" {
+    inherits = ["_common"]
     target = "test"
     output = ["type=cacheonly"]
 }
 
 target "test-coverage" {
+    inherits = ["_common"]
     target = "test-coverage"
     output = ["build/coverage"]
 }
 
 target "e2e-image" {
+    inherits = ["_common"]
     target = "e2e"
     output = ["type=docker"]
     tags = ["${IMAGE_NAME}"]
@@ -180,6 +183,8 @@ target "bin-image-cross" {
   inherits = ["bin-image"]
   output = ["type=image"]
   platforms = [
+    "darwin/amd64",
+    "darwin/arm64",
     "linux/amd64",
     "linux/arm/v6",
     "linux/arm/v7",

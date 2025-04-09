@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package loader
 
@@ -11,7 +11,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.12",
+		Version:  "3.13",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
@@ -190,6 +190,10 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 					Aliases:     []string{"alias1", "alias3"},
 					Ipv4Address: "",
 					Ipv6Address: "",
+					DriverOpts: map[string]string{
+						"driveropt1": "optval1",
+						"driveropt2": "optval2",
+					},
 				},
 				"other-network": {
 					Ipv4Address: "172.16.238.10",

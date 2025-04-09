@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -34,32 +33,33 @@ func TestEventsFormat(t *testing.T) {
 		})
 	}
 	tests := []struct {
-		name, format string
+		name string
+		args []string
 	}{
 		{
 			name: "default",
+			args: []string{},
 		},
 		{
-			name:   "json",
-			format: "json",
+			name: "json",
+			args: []string{"--format", "json"},
 		},
 		{
-			name:   "json template",
-			format: "{{ json . }}",
+			name: "json template",
+			args: []string{"--format", "{{ json . }}"},
 		},
 		{
-			name:   "json action",
-			format: "{{ json .Action }}",
+			name: "json action",
+			args: []string{"--format", "{{ json .Action }}"},
 		},
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// Set to UTC timezone as timestamps in output are
 			// printed in the current timezone
 			t.Setenv("TZ", "UTC")
-			cli := test.NewFakeCli(&fakeClient{eventsFn: func(context.Context, types.EventsOptions) (<-chan events.Message, <-chan error) {
+			cli := test.NewFakeCli(&fakeClient{eventsFn: func(context.Context, events.ListOptions) (<-chan events.Message, <-chan error) {
 				messages := make(chan events.Message)
 				errs := make(chan error, 1)
 				go func() {
@@ -71,9 +71,9 @@ func TestEventsFormat(t *testing.T) {
 				return messages, errs
 			}})
 			cmd := NewEventsCommand(cli)
-			if tc.format != "" {
-				cmd.Flags().Set("format", tc.format)
-			}
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.Check(t, cmd.Execute())
 			out := cli.OutBuffer().String()
 			assert.Check(t, golden.String(out, fmt.Sprintf("docker-events-%s.golden", strings.ReplaceAll(tc.name, " ", "-"))))

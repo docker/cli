@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"errors"
 	"io"
 	"testing"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -25,18 +25,21 @@ func TestListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
+			args: []string{},
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
 			expectedError: "template parsing error",
 		},
 		{
+			args: []string{},
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{}, errors.Errorf("error getting services")
+				return []swarm.Service{}, errors.New("error getting services")
 			},
 			expectedError: "error getting services",
 		},
 		{
+			args: []string{},
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 				return []swarm.Service{*builders.Service()}, nil
 			},
@@ -45,15 +48,18 @@ func TestListErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newListCommand(test.NewFakeCli(&fakeClient{
-			serviceListFunc: tc.serviceListFunc,
-		}))
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		for key, value := range tc.flags {
-			assert.Check(t, cmd.Flags().Set(key, value))
-		}
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cmd := newListCommand(test.NewFakeCli(&fakeClient{
+				serviceListFunc: tc.serviceListFunc,
+			}))
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 

@@ -3,7 +3,6 @@ package volume
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
@@ -15,7 +14,7 @@ type fakeClient struct {
 	volumeInspectFunc func(volumeID string) (volume.Volume, error)
 	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
 	volumeRemoveFunc  func(volumeID string, force bool) error
-	volumePruneFunc   func(filter filters.Args) (types.VolumesPruneReport, error)
+	volumePruneFunc   func(filter filters.Args) (volume.PruneReport, error)
 }
 
 func (c *fakeClient) VolumeCreate(_ context.Context, options volume.CreateOptions) (volume.Volume, error) {
@@ -39,11 +38,11 @@ func (c *fakeClient) VolumeList(_ context.Context, options volume.ListOptions) (
 	return volume.ListResponse{}, nil
 }
 
-func (c *fakeClient) VolumesPrune(_ context.Context, filter filters.Args) (types.VolumesPruneReport, error) {
+func (c *fakeClient) VolumesPrune(_ context.Context, filter filters.Args) (volume.PruneReport, error) {
 	if c.volumePruneFunc != nil {
 		return c.volumePruneFunc(filter)
 	}
-	return types.VolumesPruneReport{}, nil
+	return volume.PruneReport{}, nil
 }
 
 func (c *fakeClient) VolumeRemove(_ context.Context, volumeID string, force bool) error {

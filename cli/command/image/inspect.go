@@ -1,15 +1,19 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package image
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +34,7 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.refs = args
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
+		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
 	}
 
 	flags := cmd.Flags()
@@ -37,10 +42,14 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
-	client := dockerCli.Client()
-	getRefFunc := func(ref string) (any, []byte, error) {
-		return client.ImageInspectWithRaw(ctx, ref)
-	}
-	return inspect.Inspect(dockerCli.Out(), opts.refs, opts.format, getRefFunc)
+func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
+	apiClient := dockerCLI.Client()
+	return inspect.Inspect(dockerCLI.Out(), opts.refs, opts.format, func(ref string) (any, []byte, error) {
+		var buf bytes.Buffer
+		resp, err := apiClient.ImageInspect(ctx, ref, client.ImageInspectWithRawResponse(&buf))
+		if err != nil {
+			return image.InspectResponse{}, nil, err
+		}
+		return resp, buf.Bytes(), err
+	})
 }

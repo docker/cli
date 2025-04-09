@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package service
 
@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	gogotypes "github.com/gogo/protobuf/types"
@@ -42,7 +42,7 @@ func (i *Uint64Opt) Set(s string) error {
 }
 
 // Type returns the type of this option, which will be displayed in `--help` output
-func (i *Uint64Opt) Type() string {
+func (*Uint64Opt) Type() string {
 	return "uint"
 }
 
@@ -67,7 +67,7 @@ func (f *floatValue) Set(s string) error {
 	return err
 }
 
-func (f *floatValue) Type() string {
+func (*floatValue) Type() string {
 	return "float"
 }
 
@@ -114,7 +114,7 @@ func (o *placementPrefOpts) Set(value string) error {
 }
 
 // Type returns a string name for this Option type
-func (o *placementPrefOpts) Type() string {
+func (*placementPrefOpts) Type() string {
 	return "pref"
 }
 
@@ -131,8 +131,8 @@ func (s *ShlexOpt) Set(value string) error {
 	return nil
 }
 
-// Type returns the tyep of the value
-func (s *ShlexOpt) Type() string {
+// Type returns the type of the value
+func (*ShlexOpt) Type() string {
 	return "command"
 }
 
@@ -363,7 +363,7 @@ func (c *credentialSpecOpt) Set(value string) error {
 	return nil
 }
 
-func (c *credentialSpecOpt) Type() string {
+func (*credentialSpecOpt) Type() string {
 	return "credential-spec"
 }
 
@@ -376,7 +376,7 @@ func (c *credentialSpecOpt) Value() *swarm.CredentialSpec {
 }
 
 func resolveNetworkID(ctx context.Context, apiClient client.NetworkAPIClient, networkIDOrName string) (string, error) {
-	nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, types.NetworkInspectOptions{Scope: "swarm"})
+	nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, network.InspectOptions{Scope: "swarm"})
 	return nw.ID, err
 }
 
@@ -395,7 +395,7 @@ func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {
 
 type endpointOptions struct {
 	mode         string
-	publishPorts opts.PortOpt
+	publishPorts swarmopts.PortOpt
 }
 
 func (e *endpointOptions) ToEndpointSpec() *swarm.EndpointSpec {
@@ -529,6 +529,7 @@ type serviceOptions struct {
 	capAdd          opts.ListOpts
 	capDrop         opts.ListOpts
 	ulimits         opts.UlimitOpt
+	oomScoreAdj     int64
 
 	resources resourceOptions
 	stopGrace opts.DurationOpt
@@ -552,8 +553,8 @@ type serviceOptions struct {
 	logDriver logDriverOptions
 
 	healthcheck healthCheckOptions
-	secrets     opts.SecretOpt
-	configs     opts.ConfigOpt
+	secrets     swarmopts.SecretOpt
+	configs     swarmopts.ConfigOpt
 
 	isolation string
 }
@@ -747,6 +748,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         options.ulimits.GetList(),
+				OomScoreAdj:     options.oomScoreAdj,
 			},
 			Networks:      networks,
 			Resources:     resources,
@@ -1043,13 +1045,5 @@ const (
 	flagUlimit                  = "ulimit"
 	flagUlimitAdd               = "ulimit-add"
 	flagUlimitRemove            = "ulimit-rm"
+	flagOomScoreAdj             = "oom-score-adj"
 )
-
-func validateAPIVersion(c swarm.ServiceSpec, serverAPIVersion string) error {
-	for _, m := range c.TaskTemplate.ContainerSpec.Mounts {
-		if err := command.ValidateMountWithAPIVersion(m, serverAPIVersion); err != nil {
-			return err
-		}
-	}
-	return nil
-}

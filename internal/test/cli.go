@@ -2,7 +2,7 @@ package test
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"io"
 	"strings"
 
@@ -14,6 +14,7 @@ import (
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/docker/api"
 	"github.com/docker/docker/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
@@ -28,7 +29,8 @@ type FakeCli struct {
 	configfile       *configfile.ConfigFile
 	out              *streams.Out
 	outBuffer        *bytes.Buffer
-	err              *bytes.Buffer
+	err              *streams.Out
+	errBuffer        *bytes.Buffer
 	in               *streams.In
 	server           command.ServerInfo
 	notaryClientFunc NotaryClientFuncType
@@ -48,7 +50,8 @@ func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 		client:    apiClient,
 		out:       streams.NewOut(outBuffer),
 		outBuffer: outBuffer,
-		err:       errBuffer,
+		err:       streams.NewOut(errBuffer),
+		errBuffer: errBuffer,
 		in:        streams.NewIn(io.NopCloser(strings.NewReader(""))),
 		// Use an empty string for filename so that tests don't create configfiles
 		// Set cli.ConfigFile().Filename to a tempfile to support Save.
@@ -67,7 +70,7 @@ func (c *FakeCli) SetIn(in *streams.In) {
 }
 
 // SetErr sets the stderr stream for the cli to the specified io.Writer
-func (c *FakeCli) SetErr(err *bytes.Buffer) {
+func (c *FakeCli) SetErr(err *streams.Out) {
 	c.err = err
 }
 
@@ -102,8 +105,8 @@ func (c *FakeCli) Client() client.APIClient {
 }
 
 // CurrentVersion returns the API version used by FakeCli.
-func (c *FakeCli) CurrentVersion() string {
-	return c.DefaultVersion()
+func (*FakeCli) CurrentVersion() string {
+	return api.DefaultVersion
 }
 
 // Out returns the output stream (stdout) the cli should write on
@@ -112,7 +115,7 @@ func (c *FakeCli) Out() *streams.Out {
 }
 
 // Err returns the output stream (stderr) the cli should write on
-func (c *FakeCli) Err() io.Writer {
+func (c *FakeCli) Err() *streams.Out {
 	return c.err
 }
 
@@ -153,13 +156,13 @@ func (c *FakeCli) OutBuffer() *bytes.Buffer {
 
 // ErrBuffer Buffer returns the stderr buffer
 func (c *FakeCli) ErrBuffer() *bytes.Buffer {
-	return c.err
+	return c.errBuffer
 }
 
 // ResetOutputBuffers resets the .OutBuffer() and.ErrBuffer() back to empty
 func (c *FakeCli) ResetOutputBuffers() {
 	c.outBuffer.Reset()
-	c.err.Reset()
+	c.errBuffer.Reset()
 }
 
 // SetNotaryClient sets the internal getter for retrieving a NotaryClient
@@ -172,7 +175,7 @@ func (c *FakeCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []st
 	if c.notaryClientFunc != nil {
 		return c.notaryClientFunc(imgRefAndAuth, actions)
 	}
-	return nil, fmt.Errorf("no notary client available unless defined")
+	return nil, errors.New("no notary client available unless defined")
 }
 
 // ManifestStore returns a fake store used for testing
@@ -206,6 +209,6 @@ func EnableContentTrust(c *FakeCli) {
 }
 
 // BuildKitEnabled on the fake cli
-func (c *FakeCli) BuildKitEnabled() (bool, error) {
+func (*FakeCli) BuildKitEnabled() (bool, error) {
 	return true, nil
 }

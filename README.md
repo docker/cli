@@ -1,9 +1,10 @@
 # Docker CLI
 
-[![PkgGoDev](https://img.shields.io/badge/go.dev-docs-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/docker/cli)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/docker/cli)](https://pkg.go.dev/github.com/docker/cli)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/docker/cli/build.yml?branch=master&label=build&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Abuild)
 [![Test Status](https://img.shields.io/github/actions/workflow/status/docker/cli/test.yml?branch=master&label=test&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Atest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/docker/cli)](https://goreportcard.com/report/github.com/docker/cli)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/docker/cli/badge)](https://scorecard.dev/viewer/?uri=github.com/docker/cli)
 [![Codecov](https://img.shields.io/codecov/c/github/docker/cli?logo=codecov)](https://codecov.io/gh/docker/cli)
 
 ## About
@@ -67,7 +68,7 @@ make -f docker.Makefile shell
 ## Legal
 
 *Brought to you courtesy of our legal counsel. For more context,
-please see the [NOTICE](https://github.com/docker/cli/blob/master/NOTICE) document in this repo.*
+see the [NOTICE](https://github.com/docker/cli/blob/master/NOTICE) document in this repo.*
 
 Use and transfer of Docker may be subject to certain restrictions by the
 United States and other governments.
@@ -75,7 +76,7 @@ United States and other governments.
 It is your responsibility to ensure that your use and/or transfer does not
 violate applicable laws.
 
-For more information, please see https://www.bis.doc.gov
+For more information, see https://www.bis.doc.gov
 
 ## Licensing
 

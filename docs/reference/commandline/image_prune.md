@@ -7,9 +7,9 @@ Remove unused images
 
 | Name                  | Type     | Default | Description                                      |
 |:----------------------|:---------|:--------|:-------------------------------------------------|
-| `-a`, `--all`         |          |         | Remove all unused images, not just dangling ones |
+| `-a`, `--all`         | `bool`   |         | Remove all unused images, not just dangling ones |
 | [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
-| `-f`, `--force`       |          |         | Do not prompt for confirmation                   |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                   |
 
 
 <!---MARKER_GEN_END-->
@@ -66,10 +66,10 @@ The currently supported filters are:
 * label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove images with (or without, in case `label!=...` is used) the specified labels.
 
 The `until` filter can be Unix timestamps, date formatted
-timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
+timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
 relative to the daemon machine’s time. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the daemon will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp.  When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
@@ -82,6 +82,7 @@ which removes images with the specified labels. The other
 format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
 images without the specified labels.
 
+> [!NOTE]
 > **Predicting what will be removed**
 >
 > If you are using positive filtering (testing for the existence of a label or
@@ -186,8 +187,7 @@ This example removes images which have a maintainer label not set to `john`:
 $ docker image prune --filter="label!=maintainer=john"
 ```
 
-> **Note**
->
+> [!NOTE]
 > You are prompted for confirmation before the `prune` removes
 > anything, but you are not shown a list of what will potentially be removed.
 > In addition, `docker image ls` doesn't support negative filtering, so it

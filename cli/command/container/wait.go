@@ -2,13 +2,12 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -37,20 +36,19 @@ func NewWaitCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runWait(ctx context.Context, dockerCli command.Cli, opts *waitOptions) error {
-	var errs []string
-	for _, container := range opts.containers {
-		resultC, errC := dockerCli.Client().ContainerWait(ctx, container, "")
+func runWait(ctx context.Context, dockerCLI command.Cli, opts *waitOptions) error {
+	apiClient := dockerCLI.Client()
+
+	var errs []error
+	for _, ctr := range opts.containers {
+		resultC, errC := apiClient.ContainerWait(ctx, ctr, "")
 
 		select {
 		case result := <-resultC:
-			fmt.Fprintf(dockerCli.Out(), "%d\n", result.StatusCode)
+			_, _ = fmt.Fprintf(dockerCLI.Out(), "%d\n", result.StatusCode)
 		case err := <-errC:
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 		}
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

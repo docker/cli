@@ -42,7 +42,7 @@ func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {
 	var printDest bool
 	if dest == "-" {
 		if dockerCli.Out().IsTerminal() {
-			return errors.New("cowardly refusing to export to a terminal, please specify a file path")
+			return errors.New("cowardly refusing to export to a terminal, specify a file path")
 		}
 		writer = dockerCli.Out()
 	} else {

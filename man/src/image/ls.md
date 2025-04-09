@@ -10,7 +10,7 @@ The title REPOSITORY for the first title may seem confusing. It is essentially
 the image name. However, because you can tag a specific image, and multiple tags
 (image instances) can be associated with a single name, the name is really a
 repository for all tagged images of the same name. For example consider an image
-called ubuntu. It may be tagged with 20.04 or 22.04, etc. to manage different
+called ubuntu. It may be tagged with 24.04 or 22.04, etc. to manage different
 versions.
 
 ## Filters

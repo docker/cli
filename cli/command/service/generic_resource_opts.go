@@ -43,7 +43,9 @@ func ParseGenericResources(value []string) ([]swarm.GenericResource, error) {
 	swarmResources := genericResourcesFromGRPC(resources)
 	for _, res := range swarmResources {
 		if res.NamedResourceSpec != nil {
-			return nil, fmt.Errorf("invalid generic-resource request `%s=%s`, Named Generic Resources is not supported for service create or update", res.NamedResourceSpec.Kind, res.NamedResourceSpec.Value)
+			return nil, fmt.Errorf("invalid generic-resource request `%s=%s`, Named Generic Resources is not supported for service create or update",
+				res.NamedResourceSpec.Kind, res.NamedResourceSpec.Value,
+			)
 		}
 	}
 

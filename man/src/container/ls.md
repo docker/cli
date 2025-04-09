@@ -48,10 +48,10 @@ Valid placeholders for the Go template are listed below:
 
     $ docker container ls -a
     CONTAINER ID        IMAGE                 COMMAND                CREATED             STATUS      PORTS    NAMES
-    a87ecb4f327c        ubuntu:22.04          /bin/sh -c #(nop) MA   20 minutes ago      Exit 0               desperate_brattain
+    a87ecb4f327c        ubuntu:24.04          /bin/sh -c #(nop) MA   20 minutes ago      Exit 0               desperate_brattain
     01946d9d34d8        busybox               /bin/sh -c #(nop) MA   33 minutes ago      Exit 0               thirsty_bell
     c1d3b0166030        acffc0358b9e          /bin/sh -c yum -y up   2 weeks ago         Exit 1               determined_torvalds
-    41d50ecd2f57        ubuntu:22.04          /bin/sh -c #(nop) MA   2 weeks ago         Exit 0               drunk_pike
+    41d50ecd2f57        ubuntu:24.04          /bin/sh -c #(nop) MA   2 weeks ago         Exit 0               drunk_pike
 
 ## Display only IDs of all containers, including non-running
 

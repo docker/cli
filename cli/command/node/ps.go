@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type psOptions struct {
@@ -41,7 +42,7 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 
 			return runPs(cmd.Context(), dockerCli, options)
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 	flags := cmd.Flags()
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")
@@ -50,6 +51,12 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")
 
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 

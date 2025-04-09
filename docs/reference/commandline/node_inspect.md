@@ -8,7 +8,7 @@ Display detailed information on one or more nodes
 | Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
-| `--pretty`                             |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+| `--pretty`                             | `bool`   |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
 
 
 <!---MARKER_GEN_END-->
@@ -21,8 +21,7 @@ given template for each result. Go's
 [text/template](https://pkg.go.dev/text/template) package describes all the
 details of the format.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

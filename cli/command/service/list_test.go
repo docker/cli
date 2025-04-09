@@ -168,7 +168,6 @@ func TestServiceListServiceStatus(t *testing.T) {
 	}
 
 	for _, tc := range matrix {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			if tc.cluster == nil {
 				tc.cluster = generateCluster(t, tc.opts)

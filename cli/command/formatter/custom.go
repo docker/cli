@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package formatter
 
@@ -32,7 +32,7 @@ type SubContext interface {
 type SubHeaderContext map[string]string
 
 // Label returns the header label for the specified string
-func (c SubHeaderContext) Label(name string) string {
+func (SubHeaderContext) Label(name string) string {
 	n := strings.Split(name, ".")
 	r := strings.NewReplacer("-", " ", "_", " ")
 	h := r.Replace(n[len(n)-1])

@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,9 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container rm, docker container remove, docker rm",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(ctr container.Summary) bool {
+			return opts.force || ctr.State == "exited" || ctr.State == "created"
+		}),
 	}
 
 	flags := cmd.Flags()
@@ -48,33 +50,31 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRm(ctx context.Context, dockerCli command.Cli, opts *rmOptions) error {
-	var errs []string
+func runRm(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) error {
+	apiClient := dockerCLI.Client()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, ctrID string) error {
 		ctrID = strings.Trim(ctrID, "/")
 		if ctrID == "" {
-			return errors.New("Container name cannot be empty")
+			return errors.New("container name cannot be empty")
 		}
-		return dockerCli.Client().ContainerRemove(ctx, ctrID, container.RemoveOptions{
+		return apiClient.ContainerRemove(ctx, ctrID, container.RemoveOptions{
 			RemoveVolumes: opts.rmVolumes,
 			RemoveLinks:   opts.rmLink,
 			Force:         opts.force,
 		})
 	})
 
+	var errs []error
 	for _, name := range opts.containers {
 		if err := <-errChan; err != nil {
 			if opts.force && errdefs.IsNotFound(err) {
-				fmt.Fprintln(dockerCli.Err(), err)
+				_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 				continue
 			}
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

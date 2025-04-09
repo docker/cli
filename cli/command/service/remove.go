@@ -2,12 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -20,29 +19,23 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(cmd.Context(), dockerCli, args)
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return CompletionFn(dockerCli)(cmd, args, toComplete)
-		},
+		ValidArgsFunction: completeServiceNames(dockerCli),
 	}
 	cmd.Flags()
 
 	return cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, sids []string) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, serviceIDs []string) error {
+	apiClient := dockerCLI.Client()
 
-	var errs []string
-	for _, sid := range sids {
-		err := client.ServiceRemove(ctx, sid)
-		if err != nil {
-			errs = append(errs, err.Error())
+	var errs []error
+	for _, id := range serviceIDs {
+		if err := apiClient.ServiceRemove(ctx, id); err != nil {
+			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", sid)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	}
-	if len(errs) > 0 {
-		return errors.Errorf(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }

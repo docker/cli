@@ -3,6 +3,7 @@ package builder
 import (
 	"context"
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -19,5 +20,7 @@ func TestBuilderPromptTermination(t *testing.T) {
 		},
 	})
 	cmd := NewPruneCommand(cli)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 }

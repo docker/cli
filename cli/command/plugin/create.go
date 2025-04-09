@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -35,7 +34,7 @@ func validateConfig(path string) error {
 
 	m := types.PluginConfig{}
 	err = json.NewDecoder(dt).Decode(&m)
-	dt.Close()
+	_ = dt.Close()
 
 	return err
 }
@@ -87,11 +86,6 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateOptions) error {
-	var (
-		createCtx io.ReadCloser
-		err       error
-	)
-
 	if err := validateTag(options.repoName); err != nil {
 		return err
 	}
@@ -111,17 +105,17 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateO
 		compression = archive.Gzip
 	}
 
-	createCtx, err = archive.TarWithOptions(absContextDir, &archive.TarOptions{
+	createCtx, err := archive.TarWithOptions(absContextDir, &archive.TarOptions{
 		Compression: compression,
 	})
 	if err != nil {
 		return err
 	}
 
-	createOptions := types.PluginCreateOptions{RepoName: options.repoName}
-	if err = dockerCli.Client().PluginCreate(ctx, createCtx, createOptions); err != nil {
+	err = dockerCli.Client().PluginCreate(ctx, createCtx, types.PluginCreateOptions{RepoName: options.repoName})
+	if err != nil {
 		return err
 	}
-	fmt.Fprintln(dockerCli.Out(), options.repoName)
+	_, _ = fmt.Fprintln(dockerCli.Out(), options.repoName)
 	return nil
 }

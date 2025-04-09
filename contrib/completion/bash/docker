@@ -43,7 +43,7 @@
 #   "yes" - Show names and ids
 #
 # You can tailor completion for the "events", "history", "inspect", "run",
-# "rmi" and "save" commands by settings the following environment
+# "rmi" and "save" commands by setting the following environment
 # variables:
 #
 # DOCKER_COMPLETION_SHOW_IMAGE_IDS
@@ -63,7 +63,7 @@
 # must have access to the socket for the completions to function correctly
 #
 # Note for developers:
-# Please arrange options sorted alphabetically by long name with the short
+# Arrange options sorted alphabetically by long name with the short
 # options immediately following their corresponding long form.
 # This order should be applied to lists, alternatives and code blocks.
 
@@ -971,7 +971,7 @@ __docker_complete_log_driver_options() {
 			__docker_nospace
 			return
 			;;
-		compress|fluentd-async-connect)
+		compress|fluentd-async)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
 			return
 			;;
@@ -1844,14 +1844,14 @@ _docker_container_rename() {
 
 _docker_container_restart() {
 	case "$prev" in
-		--time|-t)
+		--timeout|--time|-t)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help --timeout -t" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_containers_all
@@ -2256,14 +2256,14 @@ _docker_container_stats() {
 
 _docker_container_stop() {
 	case "$prev" in
-		--time|-t)
+		--timeout|--time|-t)
 			return
 			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--help --timeout -t" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_containers_stoppable
@@ -2551,8 +2551,6 @@ _docker_daemon() {
 	local options_with_args="
 		$global_options_with_args
 		--add-runtime
-		--allow-nondistributable-artifacts
-		--api-cors-header
 		--authorization-plugin
 		--bip
 		--bridge -b
@@ -2591,7 +2589,6 @@ _docker_daemon() {
 		--mtu
 		--network-control-plane-mtu
 		--node-generic-resource
-		--oom-score-adjust
 		--pidfile -p
 		--registry-mirror
 		--seccomp-profile
@@ -5081,7 +5078,7 @@ _docker_system_events() {
 			return
 			;;
 		daemon)
-			local name=$(__docker_q info | sed -n 's/^\(ID\|Name\): //p')
+			local name=$(__docker_q info --format '{{.Info.Name}} {{.Info.ID}}')
 			COMPREPLY=( $( compgen -W "$name" -- "${cur##*=}" ) )
 			return
 			;;

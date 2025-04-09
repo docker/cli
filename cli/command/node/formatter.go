@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/swarm"
@@ -147,11 +146,11 @@ func (c *nodeContext) Hostname() string {
 }
 
 func (c *nodeContext) Status() string {
-	return command.PrettyPrint(string(c.n.Status.State))
+	return formatter.PrettyPrint(string(c.n.Status.State))
 }
 
 func (c *nodeContext) Availability() string {
-	return command.PrettyPrint(string(c.n.Spec.Availability))
+	return formatter.PrettyPrint(string(c.n.Spec.Availability))
 }
 
 func (c *nodeContext) ManagerStatus() string {
@@ -163,7 +162,7 @@ func (c *nodeContext) ManagerStatus() string {
 			reachability = string(c.n.ManagerStatus.Reachability)
 		}
 	}
-	return command.PrettyPrint(reachability)
+	return formatter.PrettyPrint(reachability)
 }
 
 func (c *nodeContext) TLSStatus() string {
@@ -226,11 +225,11 @@ func (ctx *nodeInspectContext) Hostname() string {
 }
 
 func (ctx *nodeInspectContext) CreatedAt() string {
-	return command.PrettyPrint(ctx.Node.CreatedAt)
+	return formatter.PrettyPrint(ctx.Node.CreatedAt)
 }
 
 func (ctx *nodeInspectContext) StatusState() string {
-	return command.PrettyPrint(ctx.Node.Status.State)
+	return formatter.PrettyPrint(ctx.Node.Status.State)
 }
 
 func (ctx *nodeInspectContext) HasStatusMessage() bool {
@@ -238,11 +237,11 @@ func (ctx *nodeInspectContext) HasStatusMessage() bool {
 }
 
 func (ctx *nodeInspectContext) StatusMessage() string {
-	return command.PrettyPrint(ctx.Node.Status.Message)
+	return formatter.PrettyPrint(ctx.Node.Status.Message)
 }
 
 func (ctx *nodeInspectContext) SpecAvailability() string {
-	return command.PrettyPrint(ctx.Node.Spec.Availability)
+	return formatter.PrettyPrint(ctx.Node.Spec.Availability)
 }
 
 func (ctx *nodeInspectContext) HasStatusAddr() bool {
@@ -262,7 +261,7 @@ func (ctx *nodeInspectContext) ManagerStatusAddr() string {
 }
 
 func (ctx *nodeInspectContext) ManagerStatusReachability() string {
-	return command.PrettyPrint(ctx.Node.ManagerStatus.Reachability)
+	return formatter.PrettyPrint(ctx.Node.ManagerStatus.Reachability)
 }
 
 func (ctx *nodeInspectContext) IsManagerStatusLeader() bool {
@@ -281,7 +280,8 @@ func (ctx *nodeInspectContext) ResourceNanoCPUs() int {
 	if ctx.Node.Description.Resources.NanoCPUs == 0 {
 		return int(0)
 	}
-	return int(ctx.Node.Description.Resources.NanoCPUs) / 1e9
+	const nano = 1e9
+	return int(ctx.Node.Description.Resources.NanoCPUs) / nano
 }
 
 func (ctx *nodeInspectContext) ResourceMemory() string {

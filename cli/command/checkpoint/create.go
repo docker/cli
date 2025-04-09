@@ -40,8 +40,8 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(ctx context.Context, dockerCli command.Cli, opts createOptions) error {
-	err := dockerCli.Client().CheckpointCreate(ctx, opts.container, checkpoint.CreateOptions{
+func runCreate(ctx context.Context, dockerCLI command.Cli, opts createOptions) error {
+	err := dockerCLI.Client().CheckpointCreate(ctx, opts.container, checkpoint.CreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
 		Exit:          !opts.leaveRunning,
@@ -50,6 +50,6 @@ func runCreate(ctx context.Context, dockerCli command.Cli, opts createOptions) e
 		return err
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "%s\n", opts.checkpoint)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), opts.checkpoint)
 	return nil
 }

@@ -15,9 +15,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/docker/docker/pkg/system"
 	units "github.com/docker/go-units"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
@@ -130,13 +129,12 @@ func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
 		Use: `cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
 	docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH`,
 		Short: "Copy files/folders between a container and the local filesystem",
-		Long: strings.Join([]string{
-			"Copy files/folders between a container and the local filesystem\n",
-			"\nUse '-' as the source to read a tar archive from stdin\n",
-			"and extract it to a directory destination in a container.\n",
-			"Use '-' as the destination to stream a tar archive of a\n",
-			"container source to stdout.",
-		}, ""),
+		Long: `Copy files/folders between a container and the local filesystem
+
+Use '-' as the source to read a tar archive from stdin
+and extract it to a directory destination in a container.
+Use '-' as the destination to stream a tar archive of a
+container source to stdout.`,
 		Args: cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if args[0] == "" {
@@ -203,14 +201,15 @@ func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error
 	}
 }
 
-func resolveLocalPath(localPath string) (absPath string, err error) {
-	if absPath, err = filepath.Abs(localPath); err != nil {
-		return
+func resolveLocalPath(localPath string) (absPath string, _ error) {
+	absPath, err := filepath.Abs(localPath)
+	if err != nil {
+		return "", err
 	}
 	return archive.PreserveTrailingDotOrSeparator(absPath, localPath), nil
 }
 
-func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpConfig) (err error) {
+func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (err error) {
 	dstPath := copyConfig.destPath
 	srcPath := copyConfig.sourcePath
 
@@ -226,16 +225,16 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		return err
 	}
 
-	client := dockerCli.Client()
+	apiClient := dockerCLI.Client()
 	// if client requests to follow symbol link, then must decide target file to be copied
 	var rebaseName string
 	if copyConfig.followLink {
-		srcStat, err := client.ContainerStatPath(ctx, copyConfig.container, srcPath)
+		srcStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, srcPath)
 
 		// If the destination is a symbolic link, we should follow it.
 		if err == nil && srcStat.Mode&os.ModeSymlink != 0 {
 			linkTarget := srcStat.LinkTarget
-			if !system.IsAbs(linkTarget) {
+			if !isAbs(linkTarget) {
 				// Join with the parent directory.
 				srcParent, _ := archive.SplitPathDirEntry(srcPath)
 				linkTarget = filepath.Join(srcParent, linkTarget)
@@ -249,14 +248,14 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	content, stat, err := client.CopyFromContainer(ctx, copyConfig.container, srcPath)
+	content, stat, err := apiClient.CopyFromContainer(ctx, copyConfig.container, srcPath)
 	if err != nil {
 		return err
 	}
 	defer content.Close()
 
 	if dstPath == "-" {
-		_, err = io.Copy(dockerCli.Out(), content)
+		_, err = io.Copy(dockerCLI.Out(), content)
 		return err
 	}
 
@@ -285,12 +284,12 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 		return archive.CopyTo(preArchive, srcInfo, dstPath)
 	}
 
-	restore, done := copyProgress(ctx, dockerCli.Err(), copyFromContainerHeader, &copiedSize)
+	restore, done := copyProgress(ctx, dockerCLI.Err(), copyFromContainerHeader, &copiedSize)
 	res := archive.CopyTo(preArchive, srcInfo, dstPath)
 	cancel()
 	<-done
 	restore()
-	fmt.Fprintln(dockerCli.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", dstPath)
+	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", dstPath)
 
 	return res
 }
@@ -299,7 +298,7 @@ func copyFromContainer(ctx context.Context, dockerCli command.Cli, copyConfig cp
 // about both the source and destination. The API is a simple tar
 // archive/extract API but we can use the stat info header about the
 // destination to be more informed about exactly what the destination is.
-func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpConfig) (err error) {
+func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (err error) {
 	srcPath := copyConfig.sourcePath
 	dstPath := copyConfig.destPath
 
@@ -311,22 +310,23 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		}
 	}
 
-	client := dockerCli.Client()
+	apiClient := dockerCLI.Client()
 	// Prepare destination copy info by stat-ing the container path.
 	dstInfo := archive.CopyInfo{Path: dstPath}
-	dstStat, err := client.ContainerStatPath(ctx, copyConfig.container, dstPath)
+	dstStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, dstPath)
 
 	// If the destination is a symbolic link, we should evaluate it.
 	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
 		linkTarget := dstStat.LinkTarget
-		if !system.IsAbs(linkTarget) {
+		if !isAbs(linkTarget) {
 			// Join with the parent directory.
 			dstParent, _ := archive.SplitPathDirEntry(dstPath)
 			linkTarget = filepath.Join(dstParent, linkTarget)
 		}
 
 		dstInfo.Path = linkTarget
-		dstStat, err = client.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+		dstStat, err = apiClient.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+		// FIXME(thaJeztah): unhandled error (should this return?)
 	}
 
 	// Validate the destination path
@@ -397,22 +397,22 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 		}
 	}
 
-	options := types.CopyToContainerOptions{
+	options := container.CopyToContainerOptions{
 		AllowOverwriteDirWithFile: false,
 		CopyUIDGID:                copyConfig.copyUIDGID,
 	}
 
 	if copyConfig.quiet {
-		return client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+		return apiClient.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
 	}
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	restore, done := copyProgress(ctx, dockerCli.Err(), copyToContainerHeader, &copiedSize)
-	res := client.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
+	restore, done := copyProgress(ctx, dockerCLI.Err(), copyToContainerHeader, &copiedSize)
+	res := apiClient.CopyToContainer(ctx, copyConfig.container, resolvedDstPath, content, options)
 	cancel()
 	<-done
 	restore()
-	fmt.Fprintln(dockerCli.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+	fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
 	return res
 }
@@ -433,18 +433,30 @@ func copyToContainer(ctx context.Context, dockerCli command.Cli, copyConfig cpCo
 // so we have to check for a `/` or `.` prefix. Also, in the case of a Windows
 // client, a `:` could be part of an absolute Windows path, in which case it
 // is immediately proceeded by a backslash.
-func splitCpArg(arg string) (container, path string) {
-	if system.IsAbs(arg) {
+func splitCpArg(arg string) (ctr, path string) {
+	if isAbs(arg) {
 		// Explicit local absolute path, e.g., `C:\foo` or `/foo`.
 		return "", arg
 	}
 
-	container, path, ok := strings.Cut(arg, ":")
-	if !ok || strings.HasPrefix(container, ".") {
+	ctr, path, ok := strings.Cut(arg, ":")
+	if !ok || strings.HasPrefix(ctr, ".") {
 		// Either there's no `:` in the arg
 		// OR it's an explicit local relative path like `./file:name.txt`.
 		return "", arg
 	}
 
-	return container, path
+	return ctr, path
+}
+
+// IsAbs is a platform-agnostic wrapper for filepath.IsAbs.
+//
+// On Windows, golang filepath.IsAbs does not consider a path \windows\system32
+// as absolute as it doesn't start with a drive-letter/colon combination. However,
+// in docker we need to verify things such as WORKDIR /windows/system32 in
+// a Dockerfile (which gets translated to \windows\system32 when being processed
+// by the daemon). This SHOULD be treated as absolute from a docker processing
+// perspective.
+func isAbs(path string) bool {
+	return filepath.IsAbs(path) || strings.HasPrefix(path, string(os.PathSeparator))
 }

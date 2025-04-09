@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package loader
 
@@ -184,7 +184,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
-	Version: "3.12",
+	Version: "3.13",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
@@ -332,6 +332,8 @@ func TestInvalidTopLevelObjectType(t *testing.T) {
 }
 
 func TestNonStringKeys(t *testing.T) {
+	// FIXME(thaJeztah): opkg.in/yaml.v3, which always unmarshals to a map[string]any, so we cannot produce a customized error for invalid types.
+	t.Skip("not supported by gopkg.in/yaml.v3, which always unmarshals to a map[string]any")
 	_, err := loadYAML(`
 version: "3"
 123:
@@ -969,7 +971,7 @@ func uint32Ptr(value uint32) *uint32 {
 }
 
 func TestFullExample(t *testing.T) {
-	skip.If(t, runtime.GOOS == "windows", "FIXME: TestFullExample substitutes platform-specific HOME-directories and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
+	skip.If(t, runtime.GOOS == "windows", "FIXME: substitutes platform-specific HOME-dirs and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
 
 	data, err := os.ReadFile("full-example.yml")
 	assert.NilError(t, err)
@@ -1626,13 +1628,12 @@ services:
 			init: &booleanFalse,
 		},
 	}
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.doc, func(t *testing.T) {
-			config, err := loadYAML(testcase.yaml)
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
+			config, err := loadYAML(tc.yaml)
 			assert.NilError(t, err)
 			assert.Check(t, is.Len(config.Services, 1))
-			assert.Check(t, is.DeepEqual(testcase.init, config.Services[0].Init))
+			assert.Check(t, is.DeepEqual(tc.init, config.Services[0].Init))
 		})
 	}
 }

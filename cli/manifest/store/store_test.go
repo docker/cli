@@ -81,17 +81,16 @@ func TestStoreSaveAndGet(t *testing.T) {
 		},
 	}
 
-	for _, testcase := range testcases {
-		testcase := testcase
-		t.Run(testcase.manifestRef.String(), func(t *testing.T) {
-			actual, err := store.Get(testcase.listRef, testcase.manifestRef)
-			if testcase.expectedErr != "" {
-				assert.Error(t, err, testcase.expectedErr)
+	for _, tc := range testcases {
+		t.Run(tc.manifestRef.String(), func(t *testing.T) {
+			actual, err := store.Get(tc.listRef, tc.manifestRef)
+			if tc.expectedErr != "" {
+				assert.Error(t, err, tc.expectedErr)
 				assert.Check(t, IsNotFound(err))
 				return
 			}
 			assert.NilError(t, err)
-			assert.DeepEqual(t, testcase.expected, actual, cmpReferenceNamed)
+			assert.DeepEqual(t, tc.expected, actual, cmpReferenceNamed)
 		})
 	}
 }

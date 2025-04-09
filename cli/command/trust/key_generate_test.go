@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/internal/test"
 	"github.com/theupdateframework/notary"
-	"github.com/theupdateframework/notary/passphrase"
 	"github.com/theupdateframework/notary/trustmanager"
 	tufutils "github.com/theupdateframework/notary/tuf/utils"
 	"gotest.tools/v3/assert"
@@ -26,12 +25,12 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 	}{
 		{
 			name:          "not-enough-args",
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			name:          "too-many-args",
 			args:          []string{"key-1", "key-2"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 	}
 
@@ -42,6 +41,7 @@ func TestTrustKeyGenerateErrors(t *testing.T) {
 		cmd := newKeyGenerateCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -50,11 +50,9 @@ func TestGenerateKeySuccess(t *testing.T) {
 	pubKeyCWD := t.TempDir()
 	privKeyStorageDir := t.TempDir()
 
-	passwd := "password"
-	cannedPasswordRetriever := passphrase.ConstantRetriever(passwd)
 	// generate a single key
 	keyName := "alice"
-	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, cannedPasswordRetriever)
+	privKeyFileStore, err := trustmanager.NewKeyFileStore(privKeyStorageDir, testPassRetriever)
 	assert.NilError(t, err)
 
 	pubKeyPEM, err := generateKeyAndOutputPubPEM(keyName, privKeyFileStore)
@@ -87,7 +85,7 @@ func TestGenerateKeySuccess(t *testing.T) {
 	// assert encrypted header
 	assert.Check(t, is.Equal("ENCRYPTED PRIVATE KEY", privKeyPEM.Type))
 	// check that the passphrase matches
-	_, err = tufutils.ParsePKCS8ToTufKey(privKeyPEM.Bytes, []byte(passwd))
+	_, err = tufutils.ParsePKCS8ToTufKey(privKeyPEM.Bytes, []byte(testPass))
 	assert.NilError(t, err)
 
 	// check that the public key exists at the correct path if we use the helper:

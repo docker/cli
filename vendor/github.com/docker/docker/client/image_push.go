@@ -2,7 +2,9 @@ package client // import "github.com/docker/docker/client"
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -27,7 +29,6 @@ func (cli *Client) ImagePush(ctx context.Context, image string, options image.Pu
 		return nil, errors.New("cannot push a digest reference")
 	}
 
-	name := reference.FamiliarName(ref)
 	query := url.Values{}
 	if !options.All {
 		ref = reference.TagNameOnly(ref)
@@ -36,21 +37,35 @@ func (cli *Client) ImagePush(ctx context.Context, image string, options image.Pu
 		}
 	}
 
-	resp, err := cli.tryImagePush(ctx, name, query, options.RegistryAuth)
+	if options.Platform != nil {
+		if err := cli.NewVersionError(ctx, "1.46", "platform"); err != nil {
+			return nil, err
+		}
+
+		p := *options.Platform
+		pJson, err := json.Marshal(p)
+		if err != nil {
+			return nil, fmt.Errorf("invalid platform: %v", err)
+		}
+
+		query.Set("platform", string(pJson))
+	}
+
+	resp, err := cli.tryImagePush(ctx, ref.Name(), query, options.RegistryAuth)
 	if errdefs.IsUnauthorized(err) && options.PrivilegeFunc != nil {
-		newAuthHeader, privilegeErr := options.PrivilegeFunc()
+		newAuthHeader, privilegeErr := options.PrivilegeFunc(ctx)
 		if privilegeErr != nil {
 			return nil, privilegeErr
 		}
-		resp, err = cli.tryImagePush(ctx, name, query, newAuthHeader)
+		resp, err = cli.tryImagePush(ctx, ref.Name(), query, newAuthHeader)
 	}
 	if err != nil {
 		return nil, err
 	}
-	return resp.body, nil
+	return resp.Body, nil
 }
 
-func (cli *Client) tryImagePush(ctx context.Context, imageID string, query url.Values, registryAuth string) (serverResponse, error) {
+func (cli *Client) tryImagePush(ctx context.Context, imageID string, query url.Values, registryAuth string) (*http.Response, error) {
 	return cli.post(ctx, "/images/"+imageID+"/push", query, nil, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})

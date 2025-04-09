@@ -1,29 +1,26 @@
-package archive // import "github.com/docker/docker/pkg/archive"
+package archive
 
 import (
 	"archive/tar"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/docker/pkg/system"
-	"github.com/pkg/errors"
+	"github.com/moby/sys/userns"
 	"golang.org/x/sys/unix"
 )
 
-func getWhiteoutConverter(format WhiteoutFormat, inUserNS bool) (tarWhiteoutConverter, error) {
+func getWhiteoutConverter(format WhiteoutFormat) tarWhiteoutConverter {
 	if format == OverlayWhiteoutFormat {
-		if inUserNS {
-			return nil, errors.New("specifying OverlayWhiteoutFormat is not allowed in userns")
-		}
-		return overlayWhiteoutConverter{}, nil
+		return overlayWhiteoutConverter{}
 	}
-	return nil, nil
+	return nil
 }
 
 type overlayWhiteoutConverter struct{}
 
-func (overlayWhiteoutConverter) ConvertWrite(hdr *tar.Header, path string, fi os.FileInfo) (wo *tar.Header, err error) {
+func (overlayWhiteoutConverter) ConvertWrite(hdr *tar.Header, path string, fi os.FileInfo) (wo *tar.Header, _ error) {
 	// convert whiteouts to AUFS format
 	if fi.Mode()&os.ModeCharDevice != 0 && hdr.Devmajor == 0 && hdr.Devminor == 0 {
 		// we just rename the file and make it normal
@@ -34,33 +31,41 @@ func (overlayWhiteoutConverter) ConvertWrite(hdr *tar.Header, path string, fi os
 		hdr.Size = 0
 	}
 
-	if fi.Mode()&os.ModeDir != 0 {
-		// convert opaque dirs to AUFS format by writing an empty file with the prefix
-		opaque, err := system.Lgetxattr(path, "trusted.overlay.opaque")
-		if err != nil {
-			return nil, err
-		}
-		if len(opaque) == 1 && opaque[0] == 'y' {
-			delete(hdr.PAXRecords, paxSchilyXattr+"trusted.overlay.opaque")
-
-			// create a header for the whiteout file
-			// it should inherit some properties from the parent, but be a regular file
-			wo = &tar.Header{
-				Typeflag:   tar.TypeReg,
-				Mode:       hdr.Mode & int64(os.ModePerm),
-				Name:       filepath.Join(hdr.Name, WhiteoutOpaqueDir),
-				Size:       0,
-				Uid:        hdr.Uid,
-				Uname:      hdr.Uname,
-				Gid:        hdr.Gid,
-				Gname:      hdr.Gname,
-				AccessTime: hdr.AccessTime,
-				ChangeTime: hdr.ChangeTime,
-			} //#nosec G305 -- An archive is being created, not extracted.
-		}
+	if fi.Mode()&os.ModeDir == 0 {
+		// FIXME(thaJeztah): return a sentinel error instead of nil, nil
+		return nil, nil
 	}
 
-	return
+	opaqueXattrName := "trusted.overlay.opaque"
+	if userns.RunningInUserNS() {
+		opaqueXattrName = "user.overlay.opaque"
+	}
+
+	// convert opaque dirs to AUFS format by writing an empty file with the prefix
+	opaque, err := lgetxattr(path, opaqueXattrName)
+	if err != nil {
+		return nil, err
+	}
+	if len(opaque) != 1 || opaque[0] != 'y' {
+		// FIXME(thaJeztah): return a sentinel error instead of nil, nil
+		return nil, nil
+	}
+	delete(hdr.PAXRecords, paxSchilyXattr+opaqueXattrName)
+
+	// create a header for the whiteout file
+	// it should inherit some properties from the parent, but be a regular file
+	return &tar.Header{
+		Typeflag:   tar.TypeReg,
+		Mode:       hdr.Mode & int64(os.ModePerm),
+		Name:       filepath.Join(hdr.Name, WhiteoutOpaqueDir), // #nosec G305 -- An archive is being created, not extracted.
+		Size:       0,
+		Uid:        hdr.Uid,
+		Uname:      hdr.Uname,
+		Gid:        hdr.Gid,
+		Gname:      hdr.Gname,
+		AccessTime: hdr.AccessTime,
+		ChangeTime: hdr.ChangeTime,
+	}, nil
 }
 
 func (c overlayWhiteoutConverter) ConvertRead(hdr *tar.Header, path string) (bool, error) {
@@ -69,9 +74,14 @@ func (c overlayWhiteoutConverter) ConvertRead(hdr *tar.Header, path string) (boo
 
 	// if a directory is marked as opaque by the AUFS special file, we need to translate that to overlay
 	if base == WhiteoutOpaqueDir {
-		err := unix.Setxattr(dir, "trusted.overlay.opaque", []byte{'y'}, 0)
+		opaqueXattrName := "trusted.overlay.opaque"
+		if userns.RunningInUserNS() {
+			opaqueXattrName = "user.overlay.opaque"
+		}
+
+		err := unix.Setxattr(dir, opaqueXattrName, []byte{'y'}, 0)
 		if err != nil {
-			return false, errors.Wrapf(err, "setxattr(%q, trusted.overlay.opaque=y)", dir)
+			return false, fmt.Errorf("setxattr('%s', %s=y): %w", dir, opaqueXattrName, err)
 		}
 		// don't write the file itself
 		return false, err
@@ -83,7 +93,7 @@ func (c overlayWhiteoutConverter) ConvertRead(hdr *tar.Header, path string) (boo
 		originalPath := filepath.Join(dir, originalBase)
 
 		if err := unix.Mknod(originalPath, unix.S_IFCHR, 0); err != nil {
-			return false, errors.Wrapf(err, "failed to mknod(%q, S_IFCHR, 0)", originalPath)
+			return false, fmt.Errorf("failed to mknod('%s', S_IFCHR, 0): %w", originalPath, err)
 		}
 		if err := os.Chown(originalPath, hdr.Uid, hdr.Gid); err != nil {
 			return false, err

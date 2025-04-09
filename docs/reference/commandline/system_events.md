@@ -26,7 +26,7 @@ per Docker object type. Different event types have different scopes. Local
 scoped events are only seen on the node they take place on, and Swarm scoped
 events are seen on all managers.
 
-Only the last 1000 log events are returned. You can use filters to further limit
+Only the last 256 log events are returned. You can use filters to further limit
 the number of events returned.
 
 ### Object types
@@ -144,11 +144,11 @@ Docker configs report the following events:
 #### <a name="since"></a> Limit events by time (--since, --until)
 
 The `--since` and `--until` parameters can be Unix timestamps, date formatted
-timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed
+timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
 relative to the client machine’s time. If you do not provide the `--since` option,
 the command returns only new and/or live events. Supported formats for date
 formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
-`2006-01-02T15:04:05.999999999`, `2006-01-02Z07:00`, and `2006-01-02`. The local
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
 timezone on the client will be used if you do not provide either a `Z` or a
 `+-00:00` timezone offset at the end of the timestamp. When providing Unix
 timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
@@ -156,7 +156,7 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
-Only the last 1000 log events are returned. You can use filters to further limit
+Only the last 256 log events are returned. You can use filters to further limit
 the number of events returned.
 
 #### <a name="filter"></a> Filtering (--filter)
@@ -339,10 +339,10 @@ $ docker events --filter 'type=network'
 
 $ docker events --filter 'container=container_1' --filter 'container=container_2'
 
-2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:22.04)
-2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:22.04)
-2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (imager=redis:2.8)
-2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:2.8)
+2014-09-03T15:49:29.999999999Z07:00 container die 4386fb97867d (image=ubuntu:24.04)
+2014-05-10T17:42:14.999999999Z07:00 container stop 4386fb97867d (image=ubuntu:24.04)
+2014-05-10T17:42:14.999999999Z07:00 container die 7805c1d35632 (imager=redis:7.2)
+2014-09-03T15:49:29.999999999Z07:00 container stop 7805c1d35632 (image=redis:7.2)
 
 $ docker events --filter 'type=volume'
 

@@ -1,13 +1,11 @@
 package client
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -16,19 +14,15 @@ import (
 )
 
 type repositoryEndpoint struct {
-	info     *registry.RepositoryInfo
-	endpoint registry.APIEndpoint
-	actions  []string
+	repoName  reference.Named
+	indexInfo *registrytypes.IndexInfo
+	endpoint  registry.APIEndpoint
+	actions   []string
 }
 
 // Name returns the repository name
 func (r repositoryEndpoint) Name() string {
-	repoName := r.info.Name.Name()
-	// If endpoint does not support CanonicalName, use the RemoteName instead
-	if r.endpoint.TrimHostname {
-		repoName = reference.Path(r.info.Name)
-	}
-	return repoName
+	return reference.Path(r.repoName)
 }
 
 // BaseURL returns the endpoint url
@@ -37,35 +31,36 @@ func (r repositoryEndpoint) BaseURL() string {
 }
 
 func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositoryEndpoint, error) {
-	repoInfo, err := registry.ParseRepositoryInfo(ref)
-	if err != nil {
-		return repositoryEndpoint{}, err
-	}
-	endpoint, err := getDefaultEndpointFromRepoInfo(repoInfo)
+	repoName := reference.TrimNamed(ref)
+	repoInfo, _ := registry.ParseRepositoryInfo(ref)
+	indexInfo := repoInfo.Index
+
+	endpoint, err := getDefaultEndpoint(ref, !indexInfo.Secure)
 	if err != nil {
 		return repositoryEndpoint{}, err
 	}
 	if insecure {
 		endpoint.TLSConfig.InsecureSkipVerify = true
 	}
-	return repositoryEndpoint{info: repoInfo, endpoint: endpoint}, nil
+	return repositoryEndpoint{
+		repoName:  repoName,
+		indexInfo: indexInfo,
+		endpoint:  endpoint,
+	}, nil
 }
 
-func getDefaultEndpointFromRepoInfo(repoInfo *registry.RepositoryInfo) (registry.APIEndpoint, error) {
-	var err error
-
-	options := registry.ServiceOptions{}
-	registryService, err := registry.NewService(options)
+func getDefaultEndpoint(repoName reference.Named, insecure bool) (registry.APIEndpoint, error) {
+	registryService, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
-	endpoints, err := registryService.LookupPushEndpoints(reference.Domain(repoInfo.Name))
+	endpoints, err := registryService.LookupPushEndpoints(reference.Domain(repoName))
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
 	// Default to the highest priority endpoint to return
 	endpoint := endpoints[0]
-	if !repoInfo.Index.Secure {
+	if insecure {
 		for _, ep := range endpoints {
 			if ep.URL.Scheme == "http" {
 				endpoint = ep
@@ -83,7 +78,6 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     endpoint.TLSConfig,
@@ -101,7 +95,7 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, passThruTokenHandler))
 	} else {
 		if len(actions) == 0 {
-			actions = trust.ActionsPullOnly
+			actions = []string{"pull"}
 		}
 		creds := registry.NewStaticCredentialStore(&authConfig)
 		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, actions...)
@@ -111,14 +105,11 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 	return transport.NewTransport(base, modifiers...), nil
 }
 
-// RepoNameForReference returns the repository name from a reference
+// RepoNameForReference returns the repository name from a reference.
+//
+// Deprecated: this function is no longer used and will be removed in the next release.
 func RepoNameForReference(ref reference.Named) (string, error) {
-	// insecure is fine since this only returns the name
-	repo, err := newDefaultRepositoryEndpoint(ref, false)
-	if err != nil {
-		return "", err
-	}
-	return repo.Name(), nil
+	return reference.Path(reference.TrimNamed(ref)), nil
 }
 
 type existingTokenHandler struct {
@@ -126,10 +117,10 @@ type existingTokenHandler struct {
 }
 
 func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string]string) error {
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", th.token))
+	req.Header.Set("Authorization", "Bearer "+th.token)
 	return nil
 }
 
-func (th *existingTokenHandler) Scheme() string {
+func (*existingTokenHandler) Scheme() string {
 	return "bearer"
 }

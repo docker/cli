@@ -227,7 +227,7 @@ __docker_get_log_options() {
     common_options=("max-buffer-size" "mode")
     common_options2=("env" "env-regex" "labels")
     awslogs_options=($common_options "awslogs-create-group" "awslogs-datetime-format" "awslogs-group" "awslogs-multiline-pattern" "awslogs-region" "awslogs-stream" "tag")
-    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async-connect" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "fluentd-sub-second-precision" "tag")
+    fluentd_options=($common_options $common_options2 "fluentd-address" "fluentd-async" "fluentd-buffer-limit" "fluentd-retry-wait" "fluentd-max-retries" "fluentd-sub-second-precision" "tag")
     gcplogs_options=($common_options $common_options2 "gcp-log-cmd" "gcp-meta-id" "gcp-meta-name" "gcp-meta-zone" "gcp-project")
     gelf_options=($common_options $common_options2 "gelf-address" "gelf-compression-level" "gelf-compression-type" "tag")
     journald_options=($common_options $common_options2 "tag")
@@ -836,7 +836,7 @@ __docker_container_subcommand() {
         (restart)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help -t --time)"{-t=,--time=}"[Number of seconds to try to stop for before killing the container]:seconds to before killing:(1 5 10 30 60)" \
+                "($help -t --timeout)"{-t=,--timeout=}"[Number of seconds to try to stop for before killing the container]:seconds to before killing:(1 5 10 30 60)" \
                 "($help -)*:containers:__docker_complete_containers" && ret=0
             ;;
         (rm)
@@ -915,7 +915,7 @@ __docker_container_subcommand() {
         (stop)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help -t --time)"{-t=,--time=}"[Number of seconds to try to stop for before killing the container]:seconds to before killing:(1 5 10 30 60)" \
+                "($help -t --timeout)"{-t=,--timeout=}"[Number of seconds to try to stop for before killing the container]:seconds to before killing:(1 5 10 30 60)" \
                 "($help -)*:containers:__docker_complete_running_containers" && ret=0
             ;;
         (top)
@@ -2726,8 +2726,6 @@ __docker_subcommand() {
             _arguments $(__docker_arguments) \
                 $opts_help \
                 "($help)*--add-runtime=[Register an additional OCI compatible runtime]:runtime:__docker_complete_runtimes" \
-                "($help)*--allow-nondistributable-artifacts=[Push nondistributable artifacts to specified registries]:registry: " \
-                "($help)--api-cors-header=[CORS headers in the Engine API]:CORS headers: " \
                 "($help)*--authorization-plugin=[Authorization plugins to load]" \
                 "($help -b --bridge)"{-b=,--bridge=}"[Attach containers to a network bridge]:bridge:_net_interfaces" \
                 "($help)--bip=[Network bridge IP]:IP address: " \
@@ -2770,7 +2768,6 @@ __docker_subcommand() {
                 "($help)--max-concurrent-uploads[Set the max concurrent uploads]" \
                 "($help)--max-download-attempts[Set the max download attempts for each pull]" \
                 "($help)--mtu=[Network MTU]:mtu:(0 576 1420 1500 9000)" \
-                "($help)--oom-score-adjust=[Set the oom_score_adj for the daemon]:oom-score:(-500)" \
                 "($help -p --pidfile)"{-p=,--pidfile=}"[Path to use for daemon PID file]:PID file:_files" \
                 "($help)--raw-logs[Full timestamps without ANSI coloring]" \
                 "($help)*--registry-mirror=[Preferred registry mirror]:registry mirror: " \

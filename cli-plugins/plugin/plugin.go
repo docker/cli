@@ -3,12 +3,13 @@ package plugin
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
 
 	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/connhelper"
@@ -29,20 +30,14 @@ import (
 var PersistentPreRunE func(*cobra.Command, []string) error
 
 // RunPlugin executes the specified plugin command
-func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) error {
+func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadata.Metadata) error {
 	tcmd := newPluginCommand(dockerCli, plugin, meta)
 
 	var persistentPreRunOnce sync.Once
 	PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
-		var err error
+		var retErr error
 		persistentPreRunOnce.Do(func() {
-			cmdContext := cmd.Context()
-			// TODO: revisit and make sure this check makes sense
-			// see: https://github.com/docker/cli/pull/4599#discussion_r1422487271
-			if cmdContext == nil {
-				cmdContext = context.TODO()
-			}
-			ctx, cancel := context.WithCancel(cmdContext)
+			ctx, cancel := context.WithCancel(cmd.Context())
 			cmd.SetContext(ctx)
 			// Set up the context to cancel based on signalling via CLI socket.
 			socket.ConnectAndWait(cancel)
@@ -51,9 +46,28 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
-			err = tcmd.Initialize(opts...)
+			opts = append(opts, command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider())
+			retErr = tcmd.Initialize(opts...)
+			ogRunE := cmd.RunE
+			if ogRunE == nil {
+				ogRun := cmd.Run
+				// necessary because error will always be nil here
+				// see: https://github.com/golangci/golangci-lint/issues/1379
+				//nolint:unparam
+				ogRunE = func(cmd *cobra.Command, args []string) error {
+					ogRun(cmd, args)
+					return nil
+				}
+				cmd.Run = nil
+			}
+			cmd.RunE = func(cmd *cobra.Command, args []string) error {
+				stopInstrumentation := dockerCli.StartInstrumentation(cmd)
+				err := ogRunE(cmd, args)
+				stopInstrumentation(err)
+				return err
+			}
 		})
-		return err
+		return retErr
 	}
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
@@ -67,7 +81,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager
 }
 
 // Run is the top-level entry point to the CLI plugin framework. It should be called from your plugin's `main()` function.
-func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
+func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata) {
 	otel.SetErrorHandler(debug.OTELErrorHandler)
 
 	dockerCli, err := command.NewDockerCli()
@@ -79,18 +93,17 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 	plugin := makeCmd(dockerCli)
 
 	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
-		if sterr, ok := err.(cli.StatusError); ok {
-			if sterr.Status != "" {
-				fmt.Fprintln(dockerCli.Err(), sterr.Status)
-			}
+		var stErr cli.StatusError
+		if errors.As(err, &stErr) {
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
-			if sterr.StatusCode == 0 {
-				os.Exit(1)
+			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.
+				stErr.StatusCode = 1
 			}
-			os.Exit(sterr.StatusCode)
+			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
+			os.Exit(stErr.StatusCode)
 		}
-		fmt.Fprintln(dockerCli.Err(), err)
+		_, _ = fmt.Fprintln(dockerCli.Err(), err)
 		os.Exit(1)
 	}
 }
@@ -98,7 +111,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta manager.Metadata) {
 func withPluginClientConn(name string) command.CLIOption {
 	return command.WithInitializeClient(func(dockerCli *command.DockerCli) (client.APIClient, error) {
 		cmd := "docker"
-		if x := os.Getenv(manager.ReexecEnvvar); x != "" {
+		if x := os.Getenv(metadata.ReexecEnvvar); x != "" {
 			cmd = x
 		}
 		var flags []string
@@ -127,9 +140,9 @@ func withPluginClientConn(name string) command.CLIOption {
 	})
 }
 
-func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta manager.Metadata) *cli.TopLevelCommand {
+func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadata.Metadata) *cli.TopLevelCommand {
 	name := plugin.Name()
-	fullname := manager.NamePrefix + name
+	fullname := metadata.NamePrefix + name
 
 	cmd := &cobra.Command{
 		Use:           fmt.Sprintf("docker [OPTIONS] %s [ARG...]", name),
@@ -145,7 +158,7 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 		CompletionOptions: cobra.CompletionOptions{
 			DisableDefaultCmd:   false,
 			HiddenDefaultCmd:    true,
-			DisableDescriptions: true,
+			DisableDescriptions: os.Getenv("DOCKER_CLI_DISABLE_COMPLETION_DESCRIPTION") != "",
 		},
 	}
 	opts, _ := cli.SetupPluginRootCommand(cmd)
@@ -164,12 +177,12 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())
 }
 
-func newMetadataSubcommand(plugin *cobra.Command, meta manager.Metadata) *cobra.Command {
+func newMetadataSubcommand(plugin *cobra.Command, meta metadata.Metadata) *cobra.Command {
 	if meta.ShortDescription == "" {
 		meta.ShortDescription = plugin.Short
 	}
 	cmd := &cobra.Command{
-		Use:    manager.MetadataSubcommandName,
+		Use:    metadata.MetadataSubcommandName,
 		Hidden: true,
 		// Suppress the global/parent PersistentPreRunE, which
 		// needlessly initializes the client and tries to
@@ -187,8 +200,8 @@ func newMetadataSubcommand(plugin *cobra.Command, meta manager.Metadata) *cobra.
 
 // RunningStandalone tells a CLI plugin it is run standalone by direct execution
 func RunningStandalone() bool {
-	if os.Getenv(manager.ReexecEnvvar) != "" {
+	if os.Getenv(metadata.ReexecEnvvar) != "" {
 		return false
 	}
-	return len(os.Args) < 2 || os.Args[1] != manager.MetadataSubcommandName
+	return len(os.Args) < 2 || os.Args[1] != metadata.MetadataSubcommandName
 }

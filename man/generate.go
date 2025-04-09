@@ -1,7 +1,6 @@
 // This file is intended for use with "go run"; it isn't really part of the package.
 
 //go:build manpages
-// +build manpages
 
 package main
 
@@ -10,9 +9,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
-	"time"
 
+	clidocstool "github.com/docker/cli-docs-tool"
+	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	"github.com/spf13/cobra"
@@ -20,51 +19,57 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const descriptionSourcePath = "man/src/"
+const defaultSourcePath = "man/src/"
 
-func generateManPages(opts *options) error {
+type options struct {
+	source string
+	target string
+}
+
+func gen(opts *options) error {
 	log.SetFlags(0)
 
-	header := &doc.GenManHeader{
-		Title:   "DOCKER",
-		Section: "1",
-		Source:  "Docker Community",
-		Manual:  "Docker User Manuals",
-	}
-
-	// If SOURCE_DATE_EPOCH is set, in order to allow reproducible package
-	// builds, we explicitly set the build time to SOURCE_DATE_EPOCH.
-	if epoch := os.Getenv("SOURCE_DATE_EPOCH"); epoch != "" {
-		unixEpoch, err := strconv.ParseInt(epoch, 10, 64)
-		if err != nil {
-			return fmt.Errorf("invalid SOURCE_DATE_EPOCH: %v", err)
-		}
-		now := time.Unix(unixEpoch, 0)
-		header.Date = &now
-	}
-
-	dockerCli, err := command.NewDockerCli()
+	dockerCLI, err := command.NewDockerCli()
 	if err != nil {
 		return err
 	}
-	cmd := &cobra.Command{Use: "docker"}
-	commands.AddCommands(cmd, dockerCli)
-	source := filepath.Join(opts.source, descriptionSourcePath)
-	if err := loadLongDescription(cmd, source); err != nil {
+	cmd := &cobra.Command{
+		Use:   "docker [OPTIONS] COMMAND [ARG...]",
+		Short: "The base command for the Docker CLI.",
+	}
+
+	clientOpts, _ := cli.SetupRootCommand(cmd)
+	if err := dockerCLI.Initialize(clientOpts); err != nil {
+		return err
+	}
+	commands.AddCommands(cmd, dockerCLI)
+	// TODO(thaJeztah): cli-docs-tool should already be able to do this, but assumes source-files are not in subdirectories (it looks for `src/docker_command_subcommand.md`)
+	if err := loadLongDescription(cmd, opts.source); err != nil {
 		return err
 	}
 
-	cmd.DisableAutoGenTag = true
-	cmd.DisableFlagsInUseLine = true
-	return doc.GenManTreeFromOpts(cmd, doc.GenManTreeOptions{
-		Header:           header,
-		Path:             opts.target,
-		CommandSeparator: "-",
+	c, err := clidocstool.New(clidocstool.Options{
+		Root:      cmd,
+		SourceDir: opts.source,
+		TargetDir: opts.target,
+		ManHeader: &doc.GenManHeader{
+			Title:   "DOCKER",
+			Section: "1",
+			Source:  "Docker Community",
+			Manual:  "Docker User Manuals",
+		},
+		Plugin: false,
 	})
+	if err != nil {
+		return err
+	}
+	fmt.Println("Manpage source folder:", opts.source)
+	fmt.Println("Generating man pages into", opts.target)
+	return c.GenManTree(cmd)
 }
 
-func loadLongDescription(cmd *cobra.Command, path string) error {
-	for _, cmd := range cmd.Commands() {
+func loadLongDescription(parentCommand *cobra.Command, path string) error {
+	for _, cmd := range parentCommand.Commands() {
 		cmd.DisableFlagsInUseLine = true
 		if cmd.Name() == "" {
 			continue
@@ -72,7 +77,9 @@ func loadLongDescription(cmd *cobra.Command, path string) error {
 		fullpath := filepath.Join(path, cmd.Name()+".md")
 
 		if cmd.HasSubCommands() {
-			loadLongDescription(cmd, filepath.Join(path, cmd.Name()))
+			if err := loadLongDescription(cmd, filepath.Join(path, cmd.Name())); err != nil {
+				return err
+			}
 		}
 
 		if _, err := os.Stat(fullpath); err != nil {
@@ -97,34 +104,24 @@ func loadLongDescription(cmd *cobra.Command, path string) error {
 			return err
 		}
 		cmd.Example = string(content)
-
 	}
 	return nil
 }
 
-type options struct {
-	source string
-	target string
-}
-
-func parseArgs() (*options, error) {
+func run() error {
 	opts := &options{}
-	cwd, _ := os.Getwd()
 	flags := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
-	flags.StringVar(&opts.source, "root", cwd, "Path to project root")
+	flags.StringVar(&opts.source, "source", defaultSourcePath, "Manpage source folder")
 	flags.StringVar(&opts.target, "target", "/tmp", "Target path for generated man pages")
-	err := flags.Parse(os.Args[1:])
-	return opts, err
+	if err := flags.Parse(os.Args[1:]); err != nil {
+		return err
+	}
+	return gen(opts)
 }
 
 func main() {
-	opts, err := parseArgs()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
-	fmt.Printf("Project root: %s\n", opts.source)
-	fmt.Printf("Generating man pages into %s\n", opts.target)
-	if err := generateManPages(opts); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to generate man pages: %s\n", err.Error())
+	if err := run(); err != nil {
+		log.Printf("ERROR: %+v", err)
+		os.Exit(1)
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -8,8 +9,9 @@ import (
 	"strings"
 
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
+	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/command"
-	"github.com/pkg/errors"
+	"github.com/docker/docker/api/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -49,7 +51,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	if v := os.Getenv("DOCKER_BUILDKIT"); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
-			return args, osargs, nil, errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+			return args, osargs, nil, fmt.Errorf("DOCKER_BUILDKIT environment variable expects boolean value: %w", err)
 		}
 		if !enabled {
 			buildKitDisabled = true
@@ -74,14 +76,23 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		return args, osargs, nil, nil
 	}
 
-	// wcow build command must use the legacy builder
-	// if not opt-in through a builder component
-	if !useBuilder && dockerCli.ServerInfo().OSType == "windows" {
-		return args, osargs, nil, nil
+	if !useBuilder {
+		// Builder is not explicitly configured as an alias for buildx.
+		// Detect whether we should use BuildKit, or fallback to the
+		// legacy builder.
+		if si := dockerCli.ServerInfo(); si.BuildkitVersion != types.BuilderBuildKit && si.OSType == "windows" {
+			// The daemon didn't advertise BuildKit as the preferred builder,
+			// so use the legacy builder, which is still the default for
+			// Windows / WCOW.
+			return args, osargs, nil, nil
+		}
 	}
 
 	if buildKitDisabled {
-		// display warning if not wcow and continue
+		// When using a Linux daemon, print a warning that the legacy builder
+		// is deprecated. For Windows / WCOW, BuildKit is still experimental,
+		// so we don't print this warning, even if the daemon advertised that
+		// it supports BuildKit.
 		if dockerCli.ServerInfo().OSType != "windows" {
 			_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n\n", buildkitDisabledWarning)
 		}
@@ -117,7 +128,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	}
 
 	// overwrite the command path for this plugin using the alias name.
-	cmd.Annotations[pluginmanager.CommandAnnotationPluginCommandPath] = strings.Join(append([]string{cmd.CommandPath()}, fwcmdpath...), " ")
+	cmd.Annotations[metadata.CommandAnnotationPluginCommandPath] = strings.Join(append([]string{cmd.CommandPath()}, fwcmdpath...), " ")
 
 	return fwargs, fwosargs, envs, nil
 }
@@ -141,8 +152,8 @@ func forwardBuilder(alias string, args, osargs []string) ([]string, []string, []
 		},
 	}
 	for _, al := range aliases {
-		if fwargs, changed := command.StringSliceReplaceAt(args, al[0], al[1], 0); changed {
-			fwosargs, _ := command.StringSliceReplaceAt(osargs, al[0], al[1], -1)
+		if fwargs, changed := stringSliceReplaceAt(args, al[0], al[1], 0); changed {
+			fwosargs, _ := stringSliceReplaceAt(osargs, al[0], al[1], -1)
 			fwcmdpath := al[2]
 			return fwargs, fwosargs, fwcmdpath, true
 		}

@@ -8,7 +8,7 @@ Display detailed information on one or more services
 | Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
-| [`--pretty`](#pretty)                  |          |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
+| [`--pretty`](#pretty)                  | `bool`   |         | Print the information in a human friendly format                                                                                                                                                                                                                   |
 
 
 <!---MARKER_GEN_END-->
@@ -23,8 +23,7 @@ the given template will be executed for each result.
 Go's [text/template](https://pkg.go.dev/text/template) package
 describes all the details of the format.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -41,7 +40,7 @@ For example, given the following service;
 ```console
 $ docker service ls
 ID            NAME   MODE        REPLICAS  IMAGE
-dmu1ept4cxcf  redis  replicated  3/3       redis:3.0.6
+dmu1ept4cxcf  redis  replicated  3/3       redis:7.4.1
 ```
 
 Both `docker service inspect redis`, and `docker service inspect dmu1ept4cxcf`
@@ -66,7 +65,7 @@ The output is in JSON format, for example:
       "Name": "redis",
       "TaskTemplate": {
         "ContainerSpec": {
-          "Image": "redis:3.0.6"
+          "Image": "redis:7.4.1"
         },
         "Resources": {
           "Limits": {},

@@ -16,9 +16,9 @@ start participating.
 ## Reporting security issues
 
 The Docker maintainers take security seriously. If you discover a security
-issue, please bring it to their attention right away!
+issue, bring it to their attention right away!
 
-Please **DO NOT** file a public issue, instead send your report privately to
+**DO NOT** file a public issue, instead send your report privately to
 [security@docker.com](mailto:security@docker.com).
 
 Security reports are greatly appreciated and we will publicly thank you for it.
@@ -39,7 +39,7 @@ If you find a match, you can use the "subscribe" button to get notified on
 updates. Do *not* leave random "+1" or "I have this too" comments, as they
 only clutter the discussion, and don't help resolving it. However, if you
 have ways to reproduce the issue or have additional information that may help
-resolving the issue, please leave a comment.
+resolving the issue, leave a comment.
 
 When reporting issues, always include:
 
@@ -66,7 +66,7 @@ anybody starts working on it.
 We are always thrilled to receive pull requests. We do our best to process them
 quickly. If your pull request is not accepted on the first try,
 don't get discouraged! Our contributor's guide explains [the review process we
-use for simple changes](https://docs.docker.com/opensource/workflow/make-a-contribution/).
+use for simple changes](https://github.com/docker/docker/blob/master/project/REVIEWING.md).
 
 ### Talking to other Docker users and contributors
 
@@ -124,8 +124,8 @@ submitting a pull request.
 Update the documentation when creating or modifying features. Test your
 documentation changes for clarity, concision, and correctness, as well as a
 clean documentation build. See our contributors guide for [our style
-guide](https://docs.docker.com/opensource/doc-style) and instructions on [building
-the documentation](https://docs.docker.com/opensource/project/test-and-docs/#build-and-test-the-documentation).
+guide](https://docs.docker.com/contribute/style/grammar/) and instructions on [building
+the documentation](https://docs.docker.com/contribute/).
 
 Write clean code. Universally formatted code promotes ease of writing, reading,
 and maintenance. Always run `gofmt -s -w file.go` on each changed file before
@@ -134,9 +134,41 @@ committing your changes. Most editors have plug-ins that do this automatically.
 Pull request descriptions should be as clear as possible and include a reference
 to all the issues that they address.
 
-Commit messages must start with a capitalized and short summary (max. 50 chars)
-written in the imperative, followed by an optional, more detailed explanatory
-text which is separated from the summary by an empty line.
+Commit messages must be written in the imperative mood (max. 72 chars), followed
+by an optional, more detailed explanatory text usually expanding on
+why the work is necessary. The explanatory text should be separated by an
+empty line.
+
+The commit message *could* have a prefix scoping the change, however this is
+not enforced. Common prefixes are `docs: <message>`, `vendor: <message>`,
+`chore: <message>` or the package/area related to the change such as `pkg/foo: <message>`
+or `telemetry: <message>`.
+
+A standard commit.
+```
+Fix the exploding flux capacitor
+
+A call to function A causes the flux capacitor to blow up every time
+the sun and the moon align.
+```
+
+Using a package as prefix.
+```
+pkg/foo: prevent panic in flux capacitor
+
+Calling function A causes the flux capacitor to blow up every time
+the sun and the moon align.
+```
+
+Updating a specific vendored package.
+```
+vendor: github.com/docker/docker 6ac445c42bad (master, v28.0-dev)
+```
+
+Fixing a broken docs link.
+```
+docs: fix style/lint issues in deprecated.md
+```
 
 Code review comments may be added to your pull request. Discuss, then make the
 suggested modifications and push additional commits to your feature branch. Post
@@ -166,10 +198,10 @@ Include an issue reference like `Closes #XXXX` or `Fixes #XXXX` in the pull requ
 description that close an issue. Including references automatically closes the issue
 on a merge.
 
-Please do not add yourself to the `AUTHORS` file, as it is regenerated regularly
+Do not add yourself to the `AUTHORS` file, as it is regenerated regularly
 from the Git history.
 
-Please see the [Coding Style](#coding-style) for further guidelines.
+See the [Coding Style](#coding-style) for further guidelines.
 
 ### Merge approval
 
@@ -269,8 +301,8 @@ guidelines for the community as a whole:
 
 * Stay on topic: Make sure that you are posting to the correct channel and
   avoid off-topic discussions. Remember when you update an issue or respond
-  to an email you are potentially sending to a large number of people. Please
-  consider this before you update. Also remember that nobody likes spam.
+  to an email you are potentially sending to a large number of people. Consider
+  this before you update. Also remember that nobody likes spam.
 
 * Don't send email to the maintainers: There's no need to send email to the
   maintainers to ask them to investigate an issue or to take a look at a

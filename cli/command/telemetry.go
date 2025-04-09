@@ -4,17 +4,18 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/docker/distribution/uuid"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -41,35 +42,25 @@ type TelemetryClient interface {
 	// each time this function is invoked.
 	Resource() *resource.Resource
 
-	// TracerProvider returns a TracerProvider. This TracerProvider will be configured
-	// with the default tracing components for a CLI program along with any options given
-	// for the SDK.
-	TracerProvider(ctx context.Context, opts ...sdktrace.TracerProviderOption) TracerProvider
+	// TracerProvider returns the currently initialized TracerProvider. This TracerProvider will be configured
+	// with the default tracing components for a CLI program
+	TracerProvider() trace.TracerProvider
 
-	// MeterProvider returns a MeterProvider. This MeterProvider will be configured
-	// with the default metric components for a CLI program along with any options given
-	// for the SDK.
-	MeterProvider(ctx context.Context, opts ...sdkmetric.Option) MeterProvider
+	// MeterProvider returns the currently initialized MeterProvider. This MeterProvider will be configured
+	// with the default metric components for a CLI program
+	MeterProvider() metric.MeterProvider
 }
 
 func (cli *DockerCli) Resource() *resource.Resource {
 	return cli.res.Get()
 }
 
-func (cli *DockerCli) TracerProvider(ctx context.Context, opts ...sdktrace.TracerProviderOption) TracerProvider {
-	allOpts := make([]sdktrace.TracerProviderOption, 0, len(opts)+2)
-	allOpts = append(allOpts, sdktrace.WithResource(cli.Resource()))
-	allOpts = append(allOpts, dockerSpanExporter(ctx, cli)...)
-	allOpts = append(allOpts, opts...)
-	return sdktrace.NewTracerProvider(allOpts...)
+func (*DockerCli) TracerProvider() trace.TracerProvider {
+	return otel.GetTracerProvider()
 }
 
-func (cli *DockerCli) MeterProvider(ctx context.Context, opts ...sdkmetric.Option) MeterProvider {
-	allOpts := make([]sdkmetric.Option, 0, len(opts)+2)
-	allOpts = append(allOpts, sdkmetric.WithResource(cli.Resource()))
-	allOpts = append(allOpts, dockerMetricExporter(ctx, cli)...)
-	allOpts = append(allOpts, opts...)
-	return sdkmetric.NewMeterProvider(allOpts...)
+func (*DockerCli) MeterProvider() metric.MeterProvider {
+	return otel.GetMeterProvider()
 }
 
 // WithResourceOptions configures additional options for the default resource. The default
@@ -122,6 +113,28 @@ func (r *telemetryResource) init() {
 	r.opts = nil
 }
 
+// createGlobalMeterProvider creates a new MeterProvider from the initialized DockerCli struct
+// with the given options and sets it as the global meter provider
+func (cli *DockerCli) createGlobalMeterProvider(ctx context.Context, opts ...sdkmetric.Option) {
+	allOpts := make([]sdkmetric.Option, 0, len(opts)+2)
+	allOpts = append(allOpts, sdkmetric.WithResource(cli.Resource()))
+	allOpts = append(allOpts, dockerMetricExporter(ctx, cli)...)
+	allOpts = append(allOpts, opts...)
+	mp := sdkmetric.NewMeterProvider(allOpts...)
+	otel.SetMeterProvider(mp)
+}
+
+// createGlobalTracerProvider creates a new TracerProvider from the initialized DockerCli struct
+// with the given options and sets it as the global tracer provider
+func (cli *DockerCli) createGlobalTracerProvider(ctx context.Context, opts ...sdktrace.TracerProviderOption) {
+	allOpts := make([]sdktrace.TracerProviderOption, 0, len(opts)+2)
+	allOpts = append(allOpts, sdktrace.WithResource(cli.Resource()))
+	allOpts = append(allOpts, dockerSpanExporter(ctx, cli)...)
+	allOpts = append(allOpts, opts...)
+	tp := sdktrace.NewTracerProvider(allOpts...)
+	otel.SetTracerProvider(tp)
+}
+
 func defaultResourceOptions() []resource.Option {
 	return []resource.Option{
 		resource.WithDetectors(serviceNameDetector{}),
@@ -130,7 +143,7 @@ func defaultResourceOptions() []resource.Option {
 			// of the CLI is its own instance. Without this, downstream
 			// OTEL processors may think the same process is restarting
 			// continuously.
-			semconv.ServiceInstanceID(uuid.Generate().String()),
+			semconv.ServiceInstanceID(uuid.NewString()),
 		),
 		resource.WithFromEnv(),
 		resource.WithTelemetrySDK(),
@@ -174,17 +187,21 @@ func newCLIReader(exp sdkmetric.Exporter) sdkmetric.Reader {
 }
 
 func (r *cliReader) Shutdown(ctx context.Context) error {
-	var rm metricdata.ResourceMetrics
-	if err := r.Reader.Collect(ctx, &rm); err != nil {
-		return err
-	}
-
 	// Place a pretty tight constraint on the actual reporting.
 	// We don't want CLI metrics to prevent the CLI from exiting
 	// so if there's some kind of issue we need to abort pretty
 	// quickly.
 	ctx, cancel := context.WithTimeout(ctx, exportTimeout)
 	defer cancel()
+
+	return r.ForceFlush(ctx)
+}
+
+func (r *cliReader) ForceFlush(ctx context.Context) error {
+	var rm metricdata.ResourceMetrics
+	if err := r.Reader.Collect(ctx, &rm); err != nil {
+		return err
+	}
 
 	return r.exporter.Export(ctx, &rm)
 }
@@ -199,4 +216,50 @@ func (r *cliReader) Shutdown(ctx context.Context) error {
 // they really shouldn't.
 func deltaTemporality(_ sdkmetric.InstrumentKind) metricdata.Temporality {
 	return metricdata.DeltaTemporality
+}
+
+// resourceAttributesEnvVar is the name of the envvar that includes additional
+// resource attributes for OTEL as defined in the [OpenTelemetry specification].
+//
+// [OpenTelemetry specification]: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration
+const resourceAttributesEnvVar = "OTEL_RESOURCE_ATTRIBUTES"
+
+func filterResourceAttributesEnvvar() {
+	if v := os.Getenv(resourceAttributesEnvVar); v != "" {
+		if filtered := filterResourceAttributes(v); filtered != "" {
+			_ = os.Setenv(resourceAttributesEnvVar, filtered)
+		} else {
+			_ = os.Unsetenv(resourceAttributesEnvVar)
+		}
+	}
+}
+
+// dockerCLIAttributePrefix is the prefix for any docker cli OTEL attributes.
+// When updating, make sure to also update the copy in cli-plugins/manager.
+//
+// TODO(thaJeztah): move telemetry-related code to an (internal) package to reduce dependency on cli/command in cli-plugins, which has too many imports.
+const dockerCLIAttributePrefix = "docker.cli."
+
+func filterResourceAttributes(s string) string {
+	if trimmed := strings.TrimSpace(s); trimmed == "" {
+		return trimmed
+	}
+
+	pairs := strings.Split(s, ",")
+	elems := make([]string, 0, len(pairs))
+	for _, p := range pairs {
+		k, _, found := strings.Cut(p, "=")
+		if !found {
+			// Do not interact with invalid otel resources.
+			elems = append(elems, p)
+			continue
+		}
+
+		// Skip attributes that have our docker.cli prefix.
+		if strings.HasPrefix(k, dockerCLIAttributePrefix) {
+			continue
+		}
+		elems = append(elems, p)
+	}
+	return strings.Join(elems, ",")
 }

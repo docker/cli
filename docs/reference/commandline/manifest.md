@@ -284,8 +284,7 @@ $ docker manifest create --insecure myprivateregistry.mycompany.com/repo/image:1
 $ docker manifest push --insecure myprivateregistry.mycompany.com/repo/image:tag
 ```
 
-> **Note**
->
+> [!NOTE]
 > The `--insecure` flag is not required to annotate a manifest list,
 > since annotations are to a locally-stored copy of a manifest list. You may also
 > skip the `--insecure` flag if you are performing a `docker manifest inspect`

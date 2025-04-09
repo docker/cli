@@ -2,7 +2,8 @@ package system
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -16,11 +17,13 @@ import (
 func TestVersionWithoutServer(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		serverVersion: func(ctx context.Context) (types.Version, error) {
-			return types.Version{}, fmt.Errorf("no server")
+			return types.Version{}, errors.New("no server")
 		},
 	})
 	cmd := NewVersionCommand(cli)
+	cmd.SetArgs([]string{})
 	cmd.SetOut(cli.Err())
+	cmd.SetErr(io.Discard)
 	assert.ErrorContains(t, cmd.Execute(), "no server")
 	out := cli.OutBuffer().String()
 	// TODO: use an assertion like e2e/image/build_test.go:assertBuildOutput()

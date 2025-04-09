@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -35,19 +34,14 @@ func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func createManifestList(ctx context.Context, dockerCli command.Cli, args []string, opts createOpts) error {
+func createManifestList(ctx context.Context, dockerCLI command.Cli, args []string, opts createOpts) error {
 	newRef := args[0]
 	targetRef, err := normalizeReference(newRef)
 	if err != nil {
 		return errors.Wrapf(err, "error parsing name for manifest list %s", newRef)
 	}
 
-	_, err = registry.ParseRepositoryInfo(targetRef)
-	if err != nil {
-		return errors.Wrapf(err, "error parsing repository name for manifest list %s", newRef)
-	}
-
-	manifestStore := dockerCli.ManifestStore()
+	manifestStore := newManifestStore(dockerCLI)
 	_, err = manifestStore.GetList(targetRef)
 	switch {
 	case store.IsNotFound(err):
@@ -68,7 +62,7 @@ func createManifestList(ctx context.Context, dockerCli command.Cli, args []strin
 			return err
 		}
 
-		manifest, err := getManifest(ctx, dockerCli, targetRef, namedRef, opts.insecure)
+		manifest, err := getManifest(ctx, dockerCLI, targetRef, namedRef, opts.insecure)
 		if err != nil {
 			return err
 		}
@@ -76,6 +70,6 @@ func createManifestList(ctx context.Context, dockerCli command.Cli, args []strin
 			return err
 		}
 	}
-	fmt.Fprintf(dockerCli.Out(), "Created manifest list %s\n", targetRef.String())
+	_, _ = fmt.Fprintln(dockerCLI.Out(), "Created manifest list", targetRef.String())
 	return nil
 }

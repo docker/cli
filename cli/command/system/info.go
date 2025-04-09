@@ -1,10 +1,11 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -187,7 +188,7 @@ func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 	}
 
 	if len(info.ServerErrors) > 0 || len(info.ClientErrors) > 0 {
-		return fmt.Errorf("errors pretty printing info")
+		return errors.New("errors pretty printing info")
 	}
 	return nil
 }
@@ -272,21 +273,9 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 
 	if info.OSType == "linux" {
 		fprintln(output, " Init Binary:", info.InitBinary)
-
-		for _, ci := range []struct {
-			Name   string
-			Commit system.Commit
-		}{
-			{"containerd", info.ContainerdCommit},
-			{"runc", info.RuncCommit},
-			{"init", info.InitCommit},
-		} {
-			fprintf(output, " %s version: %s", ci.Name, ci.Commit.ID)
-			if ci.Commit.ID != ci.Commit.Expected {
-				fprintf(output, " (expected: %s)", ci.Commit.Expected)
-			}
-			fprintln(output)
-		}
+		fprintln(output, " containerd version:", info.ContainerdCommit.ID)
+		fprintln(output, " runc version:", info.RuncCommit.ID)
+		fprintln(output, " init version:", info.InitCommit.ID)
 		if len(info.SecurityOptions) != 0 {
 			if kvs, err := system.DecodeSecurityOptions(info.SecurityOptions); err != nil {
 				errs = append(errs, err)
@@ -371,7 +360,7 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 		fprintln(output, " Product License:", info.ProductLicense)
 	}
 
-	if info.DefaultAddressPools != nil && len(info.DefaultAddressPools) > 0 {
+	if len(info.DefaultAddressPools) > 0 {
 		fprintln(output, " Default Address Pools:")
 		for _, pool := range info.DefaultAddressPools {
 			fprintf(output, "   Base: %s, Size: %d\n", pool.Base, pool.Size)

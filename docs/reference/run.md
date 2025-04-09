@@ -35,7 +35,7 @@ reference to create or run a container based on an image.
 
 An image tag is the image version, which defaults to `latest` when omitted. Use
 the tag to run a container from specific version of an image. For example, to
-run version `23.10` of the `ubuntu` image: `docker run ubuntu:23.10`.
+run version `24.04` of the `ubuntu` image: `docker run ubuntu:24.04`.
 
 #### Image digests
 
@@ -69,8 +69,7 @@ to start an interactive shell in the container (if the image you select has an
 $ docker run -it IMAGE sh
 ```
 
-> **Note**
->
+> [!NOTE]
 > Depending on your Docker system configuration, you may be
 > required to preface the `docker run` command with `sudo`. To avoid
 > having to use `sudo` with the `docker` command, your system
@@ -135,7 +134,7 @@ You can identify a container in three ways:
 The UUID identifier is a random ID assigned to the container by the daemon.
 
 The daemon generates a random string name for containers automatically. You can
-also defined a custom name using [the `--name` flag](https://docs.docker.com/reference/cli/docker/container/run/#name).
+also define a custom name using [the `--name` flag](https://docs.docker.com/reference/cli/docker/container/run/#name).
 Defining a `name` can be a handy way to add meaning to a container. If you
 specify a `name`, you can use it when referring to the container in a
 user-defined network. This works for both background and foreground Docker
@@ -286,7 +285,7 @@ See 'docker run --help'.
 ### 126
 
 Exit code `126` indicates that the specified contained command can't be invoked.
-The container command in the following example is: `/etc; echo $?`.
+The container command in the following example is: `/etc`.
 
 ```console
 $ docker run busybox /etc; echo $?
@@ -400,14 +399,14 @@ We have four ways to set user memory usage:
 Examples:
 
 ```console
-$ docker run -it ubuntu:22.04 /bin/bash
+$ docker run -it ubuntu:24.04 /bin/bash
 ```
 
 We set nothing about memory, this means the processes in the container can use
 as much memory and swap memory as they need.
 
 ```console
-$ docker run -it -m 300M --memory-swap -1 ubuntu:22.04 /bin/bash
+$ docker run -it -m 300M --memory-swap -1 ubuntu:24.04 /bin/bash
 ```
 
 We set memory limit and disabled swap memory limit, this means the processes in
@@ -415,7 +414,7 @@ the container can use 300M memory and as much swap memory as they need (if the
 host supports swap memory).
 
 ```console
-$ docker run -it -m 300M ubuntu:22.04 /bin/bash
+$ docker run -it -m 300M ubuntu:24.04 /bin/bash
 ```
 
 We set memory limit only, this means the processes in the container can use
@@ -424,7 +423,7 @@ We set memory limit only, this means the processes in the container can use
 would be 2*300M, so processes can use 300M swap memory as well.
 
 ```console
-$ docker run -it -m 300M --memory-swap 1G ubuntu:22.04 /bin/bash
+$ docker run -it -m 300M --memory-swap 1G ubuntu:24.04 /bin/bash
 ```
 
 We set both memory and swap memory, so the processes in the container can use
@@ -450,7 +449,7 @@ The following example limits the memory (`-m`) to 500M and sets the memory
 reservation to 200M.
 
 ```console
-$ docker run -it -m 500M --memory-reservation 200M ubuntu:22.04 /bin/bash
+$ docker run -it -m 500M --memory-reservation 200M ubuntu:24.04 /bin/bash
 ```
 
 Under this configuration, when the container consumes memory more than 200M and
@@ -460,7 +459,7 @@ memory below 200M.
 The following example set memory reservation to 1G without a hard memory limit.
 
 ```console
-$ docker run -it --memory-reservation 1G ubuntu:22.04 /bin/bash
+$ docker run -it --memory-reservation 1G ubuntu:24.04 /bin/bash
 ```
 
 The container can use as much memory as it needs. The memory reservation setting
@@ -478,13 +477,13 @@ The following example limits the memory to 100M and disables the OOM killer for
 this container:
 
 ```console
-$ docker run -it -m 100M --oom-kill-disable ubuntu:22.04 /bin/bash
+$ docker run -it -m 100M --oom-kill-disable ubuntu:24.04 /bin/bash
 ```
 
 The following example, illustrates a dangerous way to use the flag:
 
 ```console
-$ docker run -it --oom-kill-disable ubuntu:22.04 /bin/bash
+$ docker run -it --oom-kill-disable ubuntu:24.04 /bin/bash
 ```
 
 The container has unlimited memory which can cause the host to run out memory
@@ -554,14 +553,14 @@ limit and "K" the kernel limit. There are three possible ways to set limits:
 Examples:
 
 ```console
-$ docker run -it -m 500M --kernel-memory 50M ubuntu:22.04 /bin/bash
+$ docker run -it -m 500M --kernel-memory 50M ubuntu:24.04 /bin/bash
 ```
 
 We set memory and kernel memory, so the processes in the container can use
 500M memory in total, in this 500M memory, it can be 50M kernel memory tops.
 
 ```console
-$ docker run -it --kernel-memory 50M ubuntu:22.04 /bin/bash
+$ docker run -it --kernel-memory 50M ubuntu:24.04 /bin/bash
 ```
 
 We set kernel memory without **-m**, so the processes in the container can
@@ -578,7 +577,7 @@ between 0 and 100. A value of 0 turns off anonymous page swapping. A value of
 For example, you can set:
 
 ```console
-$ docker run -it --memory-swappiness=0 ubuntu:22.04 /bin/bash
+$ docker run -it --memory-swappiness=0 ubuntu:24.04 /bin/bash
 ```
 
 Setting the `--memory-swappiness` option is helpful when you want to retain the
@@ -629,7 +628,7 @@ And usually `--cpu-period` should work with `--cpu-quota`.
 Examples:
 
 ```console
-$ docker run -it --cpu-period=50000 --cpu-quota=25000 ubuntu:22.04 /bin/bash
+$ docker run -it --cpu-period=50000 --cpu-quota=25000 ubuntu:24.04 /bin/bash
 ```
 
 If there is 1 CPU, this means the container can get 50% CPU worth of run-time every 50ms.
@@ -650,13 +649,13 @@ We can set cpus in which to allow execution for containers.
 Examples:
 
 ```console
-$ docker run -it --cpuset-cpus="1,3" ubuntu:22.04 /bin/bash
+$ docker run -it --cpuset-cpus="1,3" ubuntu:24.04 /bin/bash
 ```
 
 This means processes in container can be executed on cpu 1 and cpu 3.
 
 ```console
-$ docker run -it --cpuset-cpus="0-2" ubuntu:22.04 /bin/bash
+$ docker run -it --cpuset-cpus="0-2" ubuntu:24.04 /bin/bash
 ```
 
 This means processes in container can be executed on cpu 0, cpu 1 and cpu 2.
@@ -667,14 +666,14 @@ on NUMA systems.
 Examples:
 
 ```console
-$ docker run -it --cpuset-mems="1,3" ubuntu:22.04 /bin/bash
+$ docker run -it --cpuset-mems="1,3" ubuntu:24.04 /bin/bash
 ```
 
 This example restricts the processes in the container to only use memory from
 memory nodes 1 and 3.
 
 ```console
-$ docker run -it --cpuset-mems="0-2" ubuntu:22.04 /bin/bash
+$ docker run -it --cpuset-mems="0-2" ubuntu:24.04 /bin/bash
 ```
 
 This example restricts the processes in the container to only use memory from
@@ -696,8 +695,7 @@ By default, all containers get the same proportion of block IO bandwidth
 container's blkio weight relative to the weighting of all other running
 containers using the `--blkio-weight` flag.
 
-> **Note:**
->
+> [!NOTE]
 > The blkio weight setting is only available for direct IO. Buffered IO is not
 > currently supported.
 
@@ -706,8 +704,8 @@ For example, the commands below create two containers with different blkio
 weight:
 
 ```console
-$ docker run -it --name c1 --blkio-weight 300 ubuntu:22.04 /bin/bash
-$ docker run -it --name c2 --blkio-weight 600 ubuntu:22.04 /bin/bash
+$ docker run -it --name c1 --blkio-weight 300 ubuntu:24.04 /bin/bash
+$ docker run -it --name c2 --blkio-weight 600 ubuntu:24.04 /bin/bash
 ```
 
 If you do block IO in the two containers at the same time, by, for example:
@@ -923,11 +921,11 @@ For interacting with the network stack, instead of using `--privileged` they
 should use `--cap-add=NET_ADMIN` to modify the network interfaces.
 
 ```console
-$ docker run -it --rm  ubuntu:22.04 ip link add dummy0 type dummy
+$ docker run -it --rm  ubuntu:24.04 ip link add dummy0 type dummy
 
 RTNETLINK answers: Operation not permitted
 
-$ docker run -it --rm --cap-add=NET_ADMIN ubuntu:22.04 ip link add dummy0 type dummy
+$ docker run -it --rm --cap-add=NET_ADMIN ubuntu:24.04 ip link add dummy0 type dummy
 ```
 
 To mount a FUSE based filesystem, you need to combine both `--cap-add` and
@@ -1039,8 +1037,7 @@ You can reset a containers entrypoint by passing an empty string, for example:
 $ docker run -it --entrypoint="" mysql bash
 ```
 
-> **Note**
->
+> [!NOTE]
 > Passing `--entrypoint` clears out any default command set on the image. That
 > is, any `CMD` instruction in the Dockerfile used to build it.
 
@@ -1223,8 +1220,7 @@ The followings examples are all valid:
 --user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
 ```
 
-> **Note**
->
+> [!NOTE]
 > If you pass a numeric user ID, it must be in the range of 0-2147483647. If
 > you pass a username, the user must exist in the container.
 

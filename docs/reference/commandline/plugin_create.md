@@ -5,9 +5,9 @@ Create a plugin from a rootfs and configuration. Plugin data directory must cont
 
 ### Options
 
-| Name         | Type | Default | Description                     |
-|:-------------|:-----|:--------|:--------------------------------|
-| `--compress` |      |         | Compress the context using gzip |
+| Name         | Type   | Default | Description                     |
+|:-------------|:-------|:--------|:--------------------------------|
+| `--compress` | `bool` |         | Compress the context using gzip |
 
 
 <!---MARKER_GEN_END-->

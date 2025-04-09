@@ -8,7 +8,7 @@ aliases:
 
 This document describes the Docker Engine plugins available in Docker
 Engine. To view information on plugins managed by Docker Engine,
-refer to [Docker Engine plugin system](index.md).
+refer to [Docker Engine plugin system](_index.md).
 
 Docker's out-of-the-box authorization model is all or nothing. Any user with
 permission to access the Docker daemon can run any Docker client command. The
@@ -43,8 +43,7 @@ Authorization plugins must follow the rules described in [Docker Plugin API](plu
 Each plugin must reside within directories described under the
 [Plugin discovery](plugin_api.md#plugin-discovery) section.
 
-> **Note**
->
+> [!NOTE]
 > The abbreviations `AuthZ` and `AuthN` mean authorization and authentication
 > respectively.
 

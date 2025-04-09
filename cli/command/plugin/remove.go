@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -35,18 +36,16 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, opts *rmOptions) error {
-	var errs cli.Errors
+func runRemove(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) error {
+	apiClient := dockerCLI.Client()
+
+	var errs []error
 	for _, name := range opts.plugins {
-		if err := dockerCli.Client().PluginRemove(ctx, name, types.PluginRemoveOptions{Force: opts.force}); err != nil {
+		if err := apiClient.PluginRemove(ctx, name, types.PluginRemoveOptions{Force: opts.force}); err != nil {
 			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), name)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 	}
-	// Do not simplify to `return errs` because even if errs == nil, it is not a nil-error interface value.
-	if errs != nil {
-		return errs
-	}
-	return nil
+	return errors.Join(errs...)
 }

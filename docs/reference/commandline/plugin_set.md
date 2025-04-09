@@ -100,8 +100,7 @@ $ docker plugin inspect -f '{{with $mount := index .Settings.Mounts 0}}{{$mount.
 /bar
 ```
 
-> **Note**
->
+> [!NOTE]
 > Since only `source` is settable in `mymount`,
 > `docker plugins set mymount=/bar myplugin` would work too.
 
@@ -122,8 +121,7 @@ $ docker plugin inspect -f '{{with $device := index .Settings.Devices 0}}{{$devi
 /dev/bar
 ```
 
-> **Note**
->
+> [!NOTE]
 > Since only `path` is settable in `mydevice`,
 > `docker plugins set mydevice=/dev/bar myplugin` would work too.
 

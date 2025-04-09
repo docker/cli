@@ -10,7 +10,9 @@ import (
 
 func TestInspect(t *testing.T) {
 	cli := makeFakeCli(t)
-	createTestContext(t, cli, "current")
+	createTestContext(t, cli, "current", map[string]any{
+		"MyCustomMetadata": "MyCustomMetadataValue",
+	})
 	cli.OutBuffer().Reset()
 	assert.NilError(t, runInspect(cli, inspectOptions{
 		refs: []string{"current"},

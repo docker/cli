@@ -7,9 +7,9 @@ Remove unused local volumes
 
 | Name                          | Type     | Default | Description                                        |
 |:------------------------------|:---------|:--------|:---------------------------------------------------|
-| [`-a`](#all), [`--all`](#all) |          |         | Remove all unused volumes, not just anonymous ones |
+| [`-a`](#all), [`--all`](#all) | `bool`   |         | Remove all unused volumes, not just anonymous ones |
 | [`--filter`](#filter)         | `filter` |         | Provide filter values (e.g. `label=<label>`)       |
-| `-f`, `--force`               |          |         | Do not prompt for confirmation                     |
+| `-f`, `--force`               | `bool`   |         | Do not prompt for confirmation                     |
 
 
 <!---MARKER_GEN_END-->

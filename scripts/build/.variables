@@ -44,6 +44,16 @@ if [ "${GOOS}" = "windows" ]; then
 fi
 export TARGET
 
+# No CGO when cross building to darwin
+if [ "$(go env GOOS)" = "darwin" ] && [ "$(uname)" != "Darwin" ]; then
+    if [ -z "$CGO_ENABLED" ]; then
+        CGO_ENABLED=0
+    elif [ "$CGO_ENABLED" = "1" ]; then
+        echo "CGO_ENABLED=1 not supported when cross-compiling for Darwin"
+        exit 1
+    fi
+fi
+
 if [ -z "$CGO_ENABLED" ]; then
     case "$(go env GOOS)" in
         linux)

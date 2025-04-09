@@ -54,7 +54,7 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 	}
 	privKeyImporters := []trustmanager.Importer{keyFileStore}
 
-	fmt.Fprintf(streams.Out(), "Loading key from \"%s\"...\n", keyPath)
+	_, _ = fmt.Fprintf(streams.Out(), "Loading key from \"%s\"...\n", keyPath)
 
 	// Always use a fresh passphrase retriever for each import
 	passRet := trust.GetPassphraseRetriever(streams.In(), streams.Out())
@@ -65,7 +65,7 @@ func loadPrivKey(streams command.Streams, keyPath string, options keyLoadOptions
 	if err := loadPrivKeyBytesToStore(keyBytes, privKeyImporters, keyPath, options.keyName, passRet); err != nil {
 		return errors.Wrapf(err, "error importing key from %s", keyPath)
 	}
-	fmt.Fprintf(streams.Out(), "Successfully imported key from %s\n", keyPath)
+	_, _ = fmt.Fprintln(streams.Out(), "Successfully imported key from", keyPath)
 	return nil
 }
 
@@ -109,7 +109,7 @@ func decodePrivKeyIfNecessary(privPemBytes []byte, passRet notary.PassRetriever)
 		if _, ok := pemBlock.Headers["path"]; !ok {
 			privKey, _, err := trustmanager.GetPasswdDecryptBytes(passRet, privPemBytes, "", "encrypted")
 			if err != nil {
-				return []byte{}, fmt.Errorf("could not decrypt key")
+				return []byte{}, errors.New("could not decrypt key")
 			}
 			privPemBytes = privKey.Private()
 		}

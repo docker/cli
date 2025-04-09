@@ -1,12 +1,12 @@
 package checkpoint
 
 import (
+	"errors"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/checkpoint"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -20,16 +20,16 @@ func TestCheckpointListErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"too", "many", "arguments"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args: []string{"foo"},
 			checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
-				return []checkpoint.Summary{}, errors.Errorf("error getting checkpoints for container foo")
+				return []checkpoint.Summary{}, errors.New("error getting checkpoints for container foo")
 			},
 			expectedError: "error getting checkpoints for container foo",
 		},
@@ -42,6 +42,7 @@ func TestCheckpointListErrors(t *testing.T) {
 		cmd := newListCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }

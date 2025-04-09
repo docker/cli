@@ -34,7 +34,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		{
 			name:          "reserved-releases-signer-add",
 			args:          []string{"releases", "my-image", "--key", "/path/to/key"},
-			expectedError: "releases is a reserved keyword, please use a different signer name",
+			expectedError: "releases is a reserved keyword, use a different signer name",
 		},
 		{
 			name:          "disallowed-chars",
@@ -60,6 +60,7 @@ func TestTrustSignerAddErrors(t *testing.T) {
 		cmd := newSignerAddCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -67,18 +68,19 @@ func TestTrustSignerAddErrors(t *testing.T) {
 func TestSignerAddCommandNoTargetsKey(t *testing.T) {
 	config.SetDir(t.TempDir())
 
-	tmpfile, err := os.CreateTemp("", "pemfile")
+	tmpDir := t.TempDir()
+	tmpFile, err := os.CreateTemp(tmpDir, "pemfile")
 	assert.NilError(t, err)
-	tmpfile.Close()
-	defer os.Remove(tmpfile.Name())
+	assert.Check(t, tmpFile.Close())
 
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignerAddCommand(cli)
-	cmd.SetArgs([]string{"--key", tmpfile.Name(), "alice", "alpine", "linuxkit/alpine"})
+	cmd.SetArgs([]string{"--key", tmpFile.Name(), "alice", "alpine", "linuxkit/alpine"})
 
 	cmd.SetOut(io.Discard)
-	assert.Error(t, cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
+	cmd.SetErr(io.Discard)
+	assert.Error(t, cmd.Execute(), fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpFile.Name()))
 }
 
 func TestSignerAddCommandBadKeyPath(t *testing.T) {
@@ -90,6 +92,7 @@ func TestSignerAddCommandBadKeyPath(t *testing.T) {
 	cmd.SetArgs([]string{"--key", "/path/to/key.pem", "alice", "alpine"})
 
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	expectedError := "unable to read public key from file: open /path/to/key.pem: no such file or directory"
 	if runtime.GOOS == "windows" {
 		expectedError = "unable to read public key from file: open /path/to/key.pem: The system cannot find the path specified."
@@ -111,6 +114,7 @@ func TestSignerAddCommandInvalidRepoName(t *testing.T) {
 	cmd.SetArgs([]string{"--key", pubKeyFilepath, "alice", imageName})
 
 	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	assert.Error(t, cmd.Execute(), "failed to add signer to: 870d292919d01a0af7e7f056271dc78792c05f55f49b9b9012b6d89725bd9abd")
 	expectedErr := fmt.Sprintf("invalid repository name (%s), cannot specify 64-byte hexadecimal strings\n\n", imageName)
 
@@ -126,10 +130,10 @@ func TestIngestPublicKeys(t *testing.T) {
 	}
 	assert.Error(t, err, expectedError)
 	// Call with real file path
-	tmpfile, err := os.CreateTemp("", "pemfile")
+	tmpDir := t.TempDir()
+	tmpFile, err := os.CreateTemp(tmpDir, "pemfile")
 	assert.NilError(t, err)
-	tmpfile.Close()
-	defer os.Remove(tmpfile.Name())
-	_, err = ingestPublicKeys([]string{tmpfile.Name()})
-	assert.Error(t, err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpfile.Name()))
+	assert.Check(t, tmpFile.Close())
+	_, err = ingestPublicKeys([]string{tmpFile.Name()})
+	assert.Error(t, err, fmt.Sprintf("could not parse public key from file: %s: no valid public key found", tmpFile.Name()))
 }

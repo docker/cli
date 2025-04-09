@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package context
 
@@ -59,43 +59,87 @@ func TestCreate(t *testing.T) {
 	cli := makeFakeCli(t)
 	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
+		doc         string
 		options     CreateOptions
 		expecterErr string
 	}{
 		{
+			doc:         "empty name",
 			expecterErr: `context name cannot be empty`,
 		},
 		{
+			doc: "reserved name",
 			options: CreateOptions{
 				Name: "default",
 			},
 			expecterErr: `"default" is a reserved context name`,
 		},
 		{
+			doc: "whitespace-only name",
 			options: CreateOptions{
 				Name: " ",
 			},
 			expecterErr: `context name " " is invalid`,
 		},
 		{
+			doc: "existing context",
 			options: CreateOptions{
 				Name: "existing-context",
 			},
 			expecterErr: `context "existing-context" already exists`,
 		},
 		{
+			doc: "invalid docker host",
 			options: CreateOptions{
 				Name: "invalid-docker-host",
 				Docker: map[string]string{
-					keyHost: "some///invalid/host",
+					"host": "some///invalid/host",
 				},
 			},
 			expecterErr: `unable to parse docker host`,
 		},
+		{
+			doc: "ssh host with skip-tls-verify=false",
+			options: CreateOptions{
+				Name: "skip-tls-verify-false",
+				Docker: map[string]string{
+					"host": "ssh://example.com,skip-tls-verify=false",
+				},
+			},
+		},
+		{
+			doc: "ssh host with skip-tls-verify=true",
+			options: CreateOptions{
+				Name: "skip-tls-verify-true",
+				Docker: map[string]string{
+					"host": "ssh://example.com,skip-tls-verify=true",
+				},
+			},
+		},
+		{
+			doc: "ssh host with skip-tls-verify=INVALID",
+			options: CreateOptions{
+				Name: "skip-tls-verify-invalid",
+				Docker: map[string]string{
+					"host":            "ssh://example.com",
+					"skip-tls-verify": "INVALID",
+				},
+			},
+			expecterErr: `unable to create docker endpoint config: skip-tls-verify: parsing "INVALID": invalid syntax`,
+		},
+		{
+			doc: "unknown option",
+			options: CreateOptions{
+				Name: "unknown-option",
+				Docker: map[string]string{
+					"UNKNOWN": "value",
+				},
+			},
+			expecterErr: `unable to create docker endpoint config: unrecognized config key: UNKNOWN`,
+		},
 	}
 	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.options.Name, func(t *testing.T) {
+		t.Run(tc.doc, func(t *testing.T) {
 			err := RunCreate(cli, &tc.options)
 			if tc.expecterErr == "" {
 				assert.NilError(t, err)
@@ -164,25 +208,24 @@ func TestCreateFromContext(t *testing.T) {
 
 	cli.SetCurrentContext("dummy")
 
-	for _, c := range cases {
-		c := c
-		t.Run(c.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
 				From:        "original",
-				Name:        c.name,
-				Description: c.description,
-				Docker:      c.docker,
+				Name:        tc.name,
+				Description: tc.description,
+				Docker:      tc.docker,
 			})
 			assert.NilError(t, err)
-			assertContextCreateLogging(t, cli, c.name)
-			newContext, err := cli.ContextStore().GetMetadata(c.name)
+			assertContextCreateLogging(t, cli, tc.name)
+			newContext, err := cli.ContextStore().GetMetadata(tc.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
 			dockerEndpoint, err := docker.EndpointFromContext(newContext)
 			assert.NilError(t, err)
-			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
+			assert.Equal(t, newContextTyped.Description, tc.expectedDescription)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
 		})
 	}
@@ -219,23 +262,22 @@ func TestCreateFromCurrent(t *testing.T) {
 
 	cli.SetCurrentContext("original")
 
-	for _, c := range cases {
-		c := c
-		t.Run(c.name, func(t *testing.T) {
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
 			err := RunCreate(cli, &CreateOptions{
-				Name:        c.name,
-				Description: c.description,
+				Name:        tc.name,
+				Description: tc.description,
 			})
 			assert.NilError(t, err)
-			assertContextCreateLogging(t, cli, c.name)
-			newContext, err := cli.ContextStore().GetMetadata(c.name)
+			assertContextCreateLogging(t, cli, tc.name)
+			newContext, err := cli.ContextStore().GetMetadata(tc.name)
 			assert.NilError(t, err)
 			newContextTyped, err := command.GetDockerContext(newContext)
 			assert.NilError(t, err)
 			dockerEndpoint, err := docker.EndpointFromContext(newContext)
 			assert.NilError(t, err)
-			assert.Equal(t, newContextTyped.Description, c.expectedDescription)
+			assert.Equal(t, newContextTyped.Description, tc.expectedDescription)
 			assert.Equal(t, dockerEndpoint.Host, "tcp://42.42.42.42:2375")
 		})
 	}

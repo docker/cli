@@ -1,12 +1,12 @@
 linters:
   enable:
     - bodyclose
+    - copyloopvar   # Detects places where loop variables are copied.
     - depguard
     - dogsled
     - dupword       # Detects duplicate words.
     - durationcheck
     - errchkjson
-    - exportloopref # Detects pointers to enclosing loop variables.
     - gocritic      # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
     - gofumpt       # Detects whether code was gofumpt-ed.
@@ -15,10 +15,8 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - lll
-    - megacheck
     - misspell      # Detects commonly misspelled English words in comments.
-    - nakedret
+    - nakedret      # Detects uses of naked returns.
     - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
     - nolintlint    # Detects ill-formed or insufficient nolint directives.
     - perfsprint    # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
@@ -28,7 +26,6 @@ linters:
     - revive        # Metalinter; drop-in replacement for golint.
     - staticcheck
     - stylecheck    # Replacement for golint
-    - tenv          # Detects using os.Setenv instead of t.Setenv.
     - thelper       # Detects test helpers without t.Helper().
     - tparallel     # Detects inappropriate usage of t.Parallel().
     - typecheck
@@ -36,44 +33,63 @@ linters:
     - unparam
     - unused
     - usestdlibvars
-    - vet
+    - usetesting    # Reports uses of functions with replacement inside the testing package.
     - wastedassign
 
   disable:
     - errcheck
 
 run:
+  # prevent golangci-lint from deducting the go version to lint for through go.mod,
+  # which causes it to fallback to go1.17 semantics.
+  #
+  # TODO(thaJeztah): update "usetesting" settings to enable go1.24 features once our minimum version is go1.24
+  go: "1.23.8"
   timeout: 5m
-  skip-files:
-    - cli/compose/schema/bindata.go
-    - .*generated.*
 
 linters-settings:
   depguard:
     rules:
       main:
         deny:
-          - pkg: io/ioutil
+          - pkg: "github.com/containerd/containerd/errdefs"
+            desc: The containerd errdefs package was migrated to a separate module. Use github.com/containerd/errdefs instead.
+          - pkg: "github.com/containerd/containerd/log"
+            desc: The containerd log package was migrated to a separate module. Use github.com/containerd/log instead.
+          - pkg: "github.com/containerd/containerd/pkg/userns"
+            desc: Use github.com/moby/sys/userns instead.
+          - pkg: "github.com/containerd/containerd/platforms"
+            desc: The containerd platforms package was migrated to a separate module. Use github.com/containerd/platforms instead.
+          - pkg: "github.com/docker/docker/pkg/system"
+            desc: This package should not be used unless strictly necessary.
+          - pkg: "github.com/docker/distribution/uuid"
+            desc: Use github.com/google/uuid instead.
+          - pkg: "io/ioutil"
             desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
   gocyclo:
     min-complexity: 16
+  gosec:
+    excludes:
+      - G104 # G104: Errors unhandled; (TODO: reduce unhandled errors, or explicitly ignore)
+      - G113 # G113: Potential uncontrolled memory consumption in Rat.SetString (CVE-2022-23772); (only affects go < 1.16.14. and go < 1.17.7)
+      - G115 # G115: integer overflow conversion; (TODO: verify these: https://github.com/docker/cli/issues/5584)
+      - G306 # G306: Expect WriteFile permissions to be 0600 or less (too restrictive; also flags "0o644" permissions)
+      - G307 # G307: Deferring unsafe method "*os.File" on type "Close" (also EXC0008); (TODO: evaluate these and fix where needed: G307: Deferring unsafe method "*os.File" on type "Close")
   govet:
-    check-shadowing: true
+    enable:
+      - shadow
     settings:
       shadow:
         strict: true
   lll:
     line-length: 200
   nakedret:
-    command: nakedret
-    pattern: ^(?P<path>.*?\\.go):(?P<line>\\d+)\\s*(?P<message>.*)$
+    # Disallow naked returns if func has more lines of code than this setting.
+    # Default: 30
+    max-func-lines: 0
 
   revive:
     rules:
-      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
-      - name: import-shadowing
-        severity: warning
-        disabled: false
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-block
       - name: empty-block
         severity: warning
@@ -82,17 +98,46 @@ linters-settings:
       - name: empty-lines
         severity: warning
         disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
+      - name: import-shadowing
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
+      - name: line-length-limit
+        severity: warning
+        disabled: false
+        arguments: [200]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
+      - name: unused-receiver
+        severity: warning
+        disabled: false
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
       - name: use-any
         severity: warning
         disabled: false
 
+  usetesting:
+    # FIXME(thaJeztah): Disable `os.Chdir()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
+    os-chdir: false
+    # FIXME(thaJeztah): Disable `context.Background()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
+    context-background: false
+    # FIXME(thaJeztah): Disable `context.TODO()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
+    context-todo: false
+
 issues:
   # The default exclusion rules are a bit too permissive, so copying the relevant ones below
   exclude-use-default: false
 
+  # This option has been defined when Go modules was not existed and when the
+  # golangci-lint core was different, this is not something we still recommend.
+  exclude-dirs-use-default: false
+
   exclude:
     - parameter .* always receives
+
+  exclude-files:
+    - cli/compose/schema/bindata.go
+    - .*generated.*
 
   exclude-rules:
     # We prefer to use an "exclude-list" so that new "default" exclusions are not
@@ -104,6 +149,9 @@ issues:
     #
     # These exclusion patterns are copied from the default excluses at:
     # https://github.com/golangci/golangci-lint/blob/v1.44.0/pkg/config/issues.go#L10-L104
+    #
+    # The default list of exclusions can be found at:
+    # https://golangci-lint.run/usage/false-positives/#default-exclusions
 
     # EXC0001
     - text: "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*print(f|ln)?|os\\.(Un)?Setenv). is not checked"
@@ -121,11 +169,6 @@ issues:
     - text: "Subprocess launch(ed with variable|ing should be audited)"
       linters:
         - gosec
-    # EXC0008
-    # TODO: evaluate these and fix where needed: G307: Deferring unsafe method "*os.File" on type "Close" (gosec)
-    - text: "G307"
-      linters:
-        - gosec
     # EXC0009
     - text: "(Expect directory permissions to be 0750 or less|Expect file permissions to be 0600 or less)"
       linters:
@@ -135,34 +178,11 @@ issues:
       linters:
         - gosec
 
-    # G113 Potential uncontrolled memory consumption in Rat.SetString (CVE-2022-23772)
-    # only affects gp < 1.16.14. and go < 1.17.7
-    - text: "G113"
-      linters:
-        - gosec
-    # TODO: G104: Errors unhandled. (gosec)
-    - text: "G104"
-      linters:
-        - gosec
-    # Looks like the match in "EXC0007" above doesn't catch this one
-    # TODO: consider upstreaming this to golangci-lint's default exclusion rules
-    - text: "G204: Subprocess launched with a potential tainted input or cmd arguments"
-      linters:
-        - gosec
-    # Looks like the match in "EXC0009" above doesn't catch this one
-    # TODO: consider upstreaming this to golangci-lint's default exclusion rules
-    - text: "G306: Expect WriteFile permissions to be 0600 or less"
-      linters:
-        - gosec
-
     # TODO: make sure all packages have a description. Currently, there's 67 packages without.
     - text: "package-comments: should have a package comment"
       linters:
         - revive
-    # FIXME temporarily suppress these (see https://github.com/gotestyourself/gotest.tools/issues/272)
-    - text: "SA1019: (assert|cmp|is)\\.ErrorType is deprecated"
-      linters:
-        - staticcheck
+
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:

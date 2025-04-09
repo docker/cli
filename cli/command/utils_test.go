@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -14,36 +16,10 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
-
-func TestStringSliceReplaceAt(t *testing.T) {
-	out, ok := command.StringSliceReplaceAt([]string{"abc", "foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, -1)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"abc", "baz", "bax"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"foo"}, []string{"foo", "bar"}, []string{"baz"}, -1)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"foo"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"abc", "foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, 0)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"abc", "foo", "bar", "bax"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, 0)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"baz", "bax"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"abc", "foo", "bar", "baz"}, []string{"foo", "bar"}, nil, -1)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"abc", "baz"}, out)
-
-	out, ok = command.StringSliceReplaceAt([]string{"foo"}, nil, []string{"baz"}, -1)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"foo"}, out)
-}
 
 func TestValidateOutputPath(t *testing.T) {
 	basedir := t.TempDir()
@@ -77,6 +53,66 @@ func TestValidateOutputPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPromptForInput(t *testing.T) {
+	t.Run("cancelling the context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		t.Cleanup(cancel)
+		reader, _ := io.Pipe()
+
+		buf := new(bytes.Buffer)
+		bufioWriter := bufio.NewWriter(buf)
+
+		wroteHook := make(chan struct{}, 1)
+		promptOut := test.NewWriterWithHook(bufioWriter, func(p []byte) {
+			wroteHook <- struct{}{}
+		})
+
+		promptErr := make(chan error, 1)
+		go func() {
+			_, err := command.PromptForInput(ctx, streams.NewIn(reader), streams.NewOut(promptOut), "Enter something")
+			promptErr <- err
+		}()
+
+		select {
+		case <-time.After(1 * time.Second):
+			t.Fatal("timeout waiting for prompt to write to buffer")
+		case <-wroteHook:
+			cancel()
+		}
+
+		select {
+		case <-time.After(1 * time.Second):
+			t.Fatal("timeout waiting for prompt to be canceled")
+		case err := <-promptErr:
+			assert.ErrorIs(t, err, command.ErrPromptTerminated)
+		}
+	})
+
+	t.Run("user input should be properly trimmed", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		t.Cleanup(cancel)
+
+		reader, writer := io.Pipe()
+
+		buf := new(bytes.Buffer)
+		bufioWriter := bufio.NewWriter(buf)
+
+		wroteHook := make(chan struct{}, 1)
+		promptOut := test.NewWriterWithHook(bufioWriter, func(p []byte) {
+			wroteHook <- struct{}{}
+		})
+
+		go func() {
+			<-wroteHook
+			writer.Write([]byte("  foo  \n"))
+		}()
+
+		answer, err := command.PromptForInput(ctx, streams.NewIn(reader), streams.NewOut(promptOut), "Enter something")
+		assert.NilError(t, err)
+		assert.Equal(t, answer, "foo")
+	})
 }
 
 func TestPromptForConfirmation(t *testing.T) {
@@ -115,26 +151,29 @@ func TestPromptForConfirmation(t *testing.T) {
 			return nil
 		}, promptResult{false, command.ErrPromptTerminated}},
 		{"no", func() error {
-			_, err := fmt.Fprint(promptWriter, "n\n")
+			_, err := fmt.Fprintln(promptWriter, "n")
 			return err
 		}, promptResult{false, nil}},
 		{"yes", func() error {
-			_, err := fmt.Fprint(promptWriter, "y\n")
+			_, err := fmt.Fprintln(promptWriter, "y")
 			return err
 		}, promptResult{true, nil}},
 		{"any", func() error {
-			_, err := fmt.Fprint(promptWriter, "a\n")
+			_, err := fmt.Fprintln(promptWriter, "a")
 			return err
 		}, promptResult{false, nil}},
 		{"with space", func() error {
-			_, err := fmt.Fprint(promptWriter, " y\n")
+			_, err := fmt.Fprintln(promptWriter, " y")
 			return err
 		}, promptResult{true, nil}},
 		{"reader closed", func() error {
 			return promptReader.Close()
 		}, promptResult{false, nil}},
 	} {
-		t.Run("case="+tc.desc, func(t *testing.T) {
+		t.Run(tc.desc, func(t *testing.T) {
+			notifyCtx, notifyCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+			t.Cleanup(notifyCancel)
+
 			buf.Reset()
 			promptReader, promptWriter = io.Pipe()
 
@@ -145,7 +184,7 @@ func TestPromptForConfirmation(t *testing.T) {
 
 			result := make(chan promptResult, 1)
 			go func() {
-				r, err := command.PromptForConfirmation(ctx, promptReader, promptOut, "")
+				r, err := command.PromptForConfirmation(notifyCtx, promptReader, promptOut, "")
 				result <- promptResult{r, err}
 			}()
 

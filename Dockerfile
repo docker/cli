@@ -1,15 +1,19 @@
 # syntax=docker/dockerfile:1
 
 ARG BASE_VARIANT=alpine
-ARG ALPINE_VERSION=3.18
+ARG ALPINE_VERSION=3.21
 ARG BASE_DEBIAN_DISTRO=bookworm
 
-ARG GO_VERSION=1.21.9
-ARG XX_VERSION=1.4.0
-ARG GOVERSIONINFO_VERSION=v1.3.0
-ARG GOTESTSUM_VERSION=v1.10.0
-ARG BUILDX_VERSION=0.12.1
-ARG COMPOSE_VERSION=v2.24.3
+ARG GO_VERSION=1.23.8
+ARG XX_VERSION=1.6.1
+ARG GOVERSIONINFO_VERSION=v1.4.1
+ARG GOTESTSUM_VERSION=v1.12.0
+
+# BUILDX_VERSION sets the version of buildx to use for the e2e tests.
+# It must be a tag in the docker.io/docker/buildx-bin image repository
+# on Docker Hub.
+ARG BUILDX_VERSION=0.20.1
+ARG COMPOSE_VERSION=v2.32.4
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
@@ -63,8 +67,7 @@ ARG PACKAGER_NAME
 COPY --link --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
 RUN --mount=type=bind,target=.,ro \
     --mount=type=cache,target=/root/.cache \
-    --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
-    --mount=type=tmpfs,target=cli/winresources \
+    --mount=type=tmpfs,target=cmd/docker/winresources \
     # override the default behavior of go with xx-go
     xx-go --wrap && \
     # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \
@@ -89,7 +92,6 @@ ARG GO_STRIP
 ARG CGO_ENABLED
 ARG VERSION
 RUN --mount=ro --mount=type=cache,target=/root/.cache \
-    --mount=from=dockercore/golang-cross:xx-sdk-extras,target=/xx-sdk,src=/xx-sdk \
     xx-go --wrap && \
     TARGET=/out ./scripts/build/plugins e2e/cli-plugins/plugins/*
 
@@ -115,7 +117,7 @@ COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docke
 COPY --link . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
-CMD ./scripts/test/e2e/entry
+CMD ["./scripts/test/e2e/entry"]
 
 FROM build-base-${BASE_VARIANT} AS dev
 COPY --link . .

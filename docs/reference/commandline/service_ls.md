@@ -13,7 +13,7 @@ List services
 |:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided                                                                                                                                                                                                                                                                                                                                                                                           |
 | [`--format`](#format)                  | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
-| `-q`, `--quiet`                        |          |         | Only display IDs                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `-q`, `--quiet`                        | `bool`   |         | Only display IDs                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 
 <!---MARKER_GEN_END-->
@@ -22,8 +22,7 @@ List services
 
 This command lists services that are running in the swarm.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
@@ -38,7 +37,7 @@ $ docker service ls
 
 ID            NAME      MODE            REPLICAS             IMAGE
 c8wgl7q4ndfd  frontend  replicated      5/5                  nginx:alpine
-dmu1ept4cxcf  redis     replicated      3/3                  redis:3.0.6
+dmu1ept4cxcf  redis     replicated      3/3                  redis:7.4.1
 iwe3278osahj  mongo     global          7/7                  mongo:3.3
 hh08h9uu8uwr  job       replicated-job  1/1 (3/5 completed)  nginx:latest
 ```
@@ -69,7 +68,7 @@ The following filter matches services with an ID starting with `0bcjw`:
 ```console
 $ docker service ls -f "id=0bcjw"
 ID            NAME   MODE        REPLICAS  IMAGE
-0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
+0bcjwfh8ychr  redis  replicated  1/1       redis:7.4.1
 ```
 
 #### label
@@ -85,7 +84,7 @@ $ docker service ls --filter label=project
 ID            NAME       MODE        REPLICAS  IMAGE
 01sl1rp6nj5u  frontend2  replicated  1/1       nginx:alpine
 36xvvwwauej0  frontend   replicated  5/5       nginx:alpine
-74nzcxxjv6fq  backend    replicated  3/3       redis:3.0.6
+74nzcxxjv6fq  backend    replicated  3/3       redis:7.4.1
 ```
 
 The following filter matches only services with the `project` label with the
@@ -95,7 +94,7 @@ The following filter matches only services with the `project` label with the
 $ docker service ls --filter label=project=project-a
 ID            NAME      MODE        REPLICAS  IMAGE
 36xvvwwauej0  frontend  replicated  5/5       nginx:alpine
-74nzcxxjv6fq  backend   replicated  3/3       redis:3.0.6
+74nzcxxjv6fq  backend   replicated  3/3       redis:7.4.1
 ```
 
 #### mode
@@ -119,7 +118,7 @@ The following filter matches services with a name starting with `redis`.
 ```console
 $ docker service ls --filter name=redis
 ID            NAME   MODE        REPLICAS  IMAGE
-0bcjwfh8ychr  redis  replicated  1/1       redis:3.0.6
+0bcjwfh8ychr  redis  replicated  1/1       redis:7.4.1
 ```
 
 ### <a name="format"></a> Format the output (--format)

@@ -9,9 +9,9 @@ Remove one or more nodes from the swarm
 
 ### Options
 
-| Name                                | Type | Default | Description                        |
-|:------------------------------------|:-----|:--------|:-----------------------------------|
-| [`-f`](#force), [`--force`](#force) |      |         | Force remove a node from the swarm |
+| Name                                | Type   | Default | Description                        |
+|:------------------------------------|:-------|:--------|:-----------------------------------|
+| [`-f`](#force), [`--force`](#force) | `bool` |         | Force remove a node from the swarm |
 
 
 <!---MARKER_GEN_END-->
@@ -20,8 +20,7 @@ Remove one or more nodes from the swarm
 
 Removes the specified nodes from a swarm.
 
-> **Note**
->
+> [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the

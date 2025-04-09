@@ -39,6 +39,7 @@ func TestTrustInspectCommandErrors(t *testing.T) {
 		cmd.Flags().Set("pretty", "true")
 		cmd.SetArgs(tc.args)
 		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
 		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
@@ -86,6 +87,7 @@ func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
 			cmd := newInspectCommand(cli)
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.err)
 			if tc.golden != "" {
 				golden.Assert(t, cli.OutBuffer().String(), tc.golden)

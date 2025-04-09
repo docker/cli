@@ -1,5 +1,14 @@
 name: build
 
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -13,13 +22,14 @@ on:
     branches:
       - 'master'
       - '[0-9]+.[0-9]+'
+      - '[0-9]+.x'
     tags:
       - 'v*'
   pull_request:
 
 jobs:
   prepare:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
@@ -37,7 +47,7 @@ jobs:
           echo ${{ steps.platforms.outputs.matrix }}
 
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - prepare
     strategy:
@@ -52,16 +62,11 @@ jobs:
           - glibc
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
         name: Build
-        uses: docker/bake-action@v4
+        uses: docker/bake-action@v6
         with:
           targets: ${{ matrix.target }}
           set: |
@@ -77,25 +82,29 @@ jobs:
           platformPair=${platform//\//-}
           tar -cvzf "/tmp/out/docker-${platformPair}.tar.gz" .
           if [ -z "${{ matrix.use_glibc }}" ]; then
-            echo "ARTIFACT_NAME=${{ matrix.target }}" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}" >> $GITHUB_ENV
           else
-            echo "ARTIFACT_NAME=${{ matrix.target }}-glibc" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}-glibc" >> $GITHUB_ENV
           fi
       -
         name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: /tmp/out/*
           if-no-files-found: error
 
   bin-image:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_CLIBIN_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_CLIBIN_TOKEN }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -114,19 +123,12 @@ jobs:
             type=ref,event=pr
             type=sha
       -
-        name: Login to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_CLIBIN_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_CLIBIN_TOKEN }}
-      -
         name: Build and push image
-        uses: docker/bake-action@v4
+        uses: docker/bake-action@v6
         with:
           files: |
             ./docker-bake.hcl
-            ${{ steps.meta.outputs.bake-file }}
+            cwd://${{ steps.meta.outputs.bake-file }}
           targets: bin-image-cross
           push: ${{ github.event_name != 'pull_request' }}
           set: |
@@ -134,7 +136,7 @@ jobs:
             *.cache-to=type=gha,scope=bin-image,mode=max
 
   prepare-plugins:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
@@ -152,7 +154,7 @@ jobs:
           echo ${{ steps.platforms.outputs.matrix }}
 
   plugins:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - prepare-plugins
     strategy:
@@ -161,14 +163,11 @@ jobs:
         platform: ${{ fromJson(needs.prepare-plugins.outputs.matrix) }}
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v4
-      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
         name: Build
-        uses: docker/bake-action@v4
+        uses: docker/bake-action@v6
         with:
           targets: plugins-cross
           set: |

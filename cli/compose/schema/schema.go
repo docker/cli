@@ -1,33 +1,44 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package schema
 
 import (
 	"embed"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
+	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/xeipuuv/gojsonschema"
 )
 
 const (
-	defaultVersion = "3.12"
+	defaultVersion = "3.13"
 	versionField   = "version"
 )
 
 type portsFormatChecker struct{}
 
-func (checker portsFormatChecker) IsFormat(_ any) bool {
-	// TODO: implement this
-	return true
+func (portsFormatChecker) IsFormat(input any) bool {
+	var portSpec string
+
+	switch p := input.(type) {
+	case string:
+		portSpec = p
+	case *big.Rat:
+		portSpec = strings.Split(p.String(), "/")[0]
+	}
+
+	_, err := nat.ParsePortSpec(portSpec)
+	return err == nil
 }
 
 type durationFormatChecker struct{}
 
-func (checker durationFormatChecker) IsFormat(input any) bool {
+func (durationFormatChecker) IsFormat(input any) bool {
 	value, ok := input.(string)
 	if !ok {
 		return false
@@ -37,13 +48,12 @@ func (checker durationFormatChecker) IsFormat(input any) bool {
 }
 
 func init() {
-	gojsonschema.FormatCheckers.Add("expose", portsFormatChecker{})
 	gojsonschema.FormatCheckers.Add("ports", portsFormatChecker{})
 	gojsonschema.FormatCheckers.Add("duration", durationFormatChecker{})
 }
 
 // Version returns the version of the config, defaulting to the latest "3.x"
-// version (3.12). If only the major version "3" is specified, it is used as
+// version (3.13). If only the major version "3" is specified, it is used as
 // version "3.x" and returns the default version (latest 3.x).
 func Version(config map[string]any) string {
 	version, ok := config[versionField]
@@ -102,7 +112,7 @@ func getDescription(err validationError) string {
 	switch err.parent.Type() {
 	case "invalid_type":
 		if expectedType, ok := err.parent.Details()["expected"].(string); ok {
-			return fmt.Sprintf("must be a %s", humanReadableType(expectedType))
+			return "must be a " + humanReadableType(expectedType)
 		}
 	case jsonschemaOneOf, jsonschemaAnyOf:
 		if err.child == nil {

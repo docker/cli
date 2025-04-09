@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"errors"
 	"io"
 	"testing"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -24,28 +24,31 @@ func TestStackPsErrors(t *testing.T) {
 	}{
 		{
 			args:          []string{},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args:          []string{"foo", "bar"},
-			expectedError: "requires exactly 1 argument",
+			expectedError: "requires 1 argument",
 		},
 		{
 			args: []string{"foo"},
 			taskListFunc: func(options types.TaskListOptions) ([]swarm.Task, error) {
-				return nil, errors.Errorf("error getting tasks")
+				return nil, errors.New("error getting tasks")
 			},
 			expectedError: "error getting tasks",
 		},
 	}
 
 	for _, tc := range testCases {
-		cmd := newPsCommand(test.NewFakeCli(&fakeClient{
-			taskListFunc: tc.taskListFunc,
-		}))
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.expectedError, func(t *testing.T) {
+			cmd := newPsCommand(test.NewFakeCli(&fakeClient{
+				taskListFunc: tc.taskListFunc,
+			}))
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -169,6 +172,7 @@ func TestStackPs(t *testing.T) {
 				assert.Check(t, cmd.Flags().Set(key, value))
 			}
 			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, cmd.Execute(), tc.expectedErr)

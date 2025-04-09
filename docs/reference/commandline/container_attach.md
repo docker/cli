@@ -12,7 +12,7 @@ Attach local standard input, output, and error streams to a running container
 | Name                            | Type     | Default | Description                                         |
 |:--------------------------------|:---------|:--------|:----------------------------------------------------|
 | [`--detach-keys`](#detach-keys) | `string` |         | Override the key sequence for detaching a container |
-| `--no-stdin`                    |          |         | Do not attach STDIN                                 |
+| `--no-stdin`                    | `bool`   |         | Do not attach STDIN                                 |
 | `--sig-proxy`                   | `bool`   | `true`  | Proxy all received signals to the process           |
 
 
@@ -25,8 +25,7 @@ Use `docker attach` to attach your terminal's standard input, output, and error
 ID or name. This lets you view its output or control it interactively, as
 though the commands were running directly in your terminal.
 
-> **Note**
->
+> [!NOTE]
 > The `attach` command displays the output of the container's `ENTRYPOINT` and
 > `CMD` process. This can appear as if the attach command is hung when in fact
 > the process may simply not be writing any output at that time.
@@ -39,8 +38,7 @@ container. If `--sig-proxy` is true (the default),`CTRL-c` sends a `SIGINT` to
 the container. If the container was run with `-i` and `-t`, you can detach from
 a container and leave it running using the `CTRL-p CTRL-q` key sequence.
 
-> **Note**
->
+> [!NOTE]
 > A process running as PID 1 inside a container is treated specially by
 > Linux: it ignores any signal with the default action. So, the process
 > doesn't terminate on `SIGINT` or `SIGTERM` unless it's coded to do so.
@@ -97,7 +95,7 @@ CONTAINER ID   IMAGE     COMMAND    CREATED          STATUS                     
 Repeating the example above, but this time with the `-i` and `-t` options set;
 
 ```console
-$ docker run -dit --name topdemo2 ubuntu:22.04 /usr/bin/top -b
+$ docker run -dit --name topdemo2 alpine /usr/bin/top -b
 ```
 
 Now, when attaching to the container, and pressing the `CTRL-p CTRL-q` ("read
@@ -164,4 +162,4 @@ the following:
 
 These `a`, `ctrl-a`, `X`, or `ctrl-\\` values are all examples of valid key
 sequences. To configure a different configuration default key sequence for all
-containers, see [**Configuration file** section](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files).
+containers, see [**Configuration file** section](https://docs.docker.com/reference/cli/docker/#configuration-files).

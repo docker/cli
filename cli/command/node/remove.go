@@ -2,13 +2,12 @@ package node
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -27,29 +26,23 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(cmd.Context(), dockerCli, args, opts)
 		},
+		ValidArgsFunction: completeNodeNames(dockerCli),
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.force, "force", "f", false, "Force remove a node from the swarm")
 	return cmd
 }
 
-func runRemove(ctx context.Context, dockerCli command.Cli, args []string, opts removeOptions) error {
-	client := dockerCli.Client()
+func runRemove(ctx context.Context, dockerCLI command.Cli, nodeIDs []string, opts removeOptions) error {
+	apiClient := dockerCLI.Client()
 
-	var errs []string
-
-	for _, nodeID := range args {
-		err := client.NodeRemove(ctx, nodeID, types.NodeRemoveOptions{Force: opts.force})
-		if err != nil {
-			errs = append(errs, err.Error())
+	var errs []error
+	for _, id := range nodeIDs {
+		if err := apiClient.NodeRemove(ctx, id, types.NodeRemoveOptions{Force: opts.force}); err != nil {
+			errs = append(errs, err)
 			continue
 		}
-		fmt.Fprintf(dockerCli.Out(), "%s\n", nodeID)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	}
-
-	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
-	}
-
-	return nil
+	return errors.Join(errs...)
 }

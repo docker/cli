@@ -2,12 +2,12 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"github.com/pkg/errors"
 	"gotest.tools/v3/golden"
 )
 
@@ -32,6 +32,8 @@ func TestUpgradePromptTermination(t *testing.T) {
 	// need to set a remote address that does not match the plugin
 	// reference sent by the `pluginInspectFunc`
 	cmd.SetArgs([]string{"foo/bar", "localhost:5000/foo/bar:v1.0.0"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
 	golden.Assert(t, cli.OutBuffer().String(), "plugin-upgrade-terminate.golden")
 }

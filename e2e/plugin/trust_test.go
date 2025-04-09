@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/docker/cli/e2e/internal/fixtures"
@@ -19,8 +18,9 @@ func TestInstallWithContentTrust(t *testing.T) {
 	// TODO(krissetto): remove this skip once the fix (see https://github.com/moby/moby/pull/47299) is deployed to moby versions < 25
 	skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 	skip.If(t, environment.SkipPluginTests())
+	t.Skip("flaky")
 
-	pluginName := fmt.Sprintf("%s/plugin-content-trust", registryPrefix)
+	const pluginName = registryPrefix + "/plugin-content-trust"
 
 	dir := fixtures.SetupConfigFile(t)
 	defer dir.Remove()
@@ -50,7 +50,7 @@ func TestInstallWithContentTrust(t *testing.T) {
 		fixtures.WithNotary,
 	)
 	result.Assert(t, icmd.Expected{
-		Out: fmt.Sprintf("Installed plugin %s", pluginName),
+		Out: "Installed plugin " + pluginName,
 	})
 }
 

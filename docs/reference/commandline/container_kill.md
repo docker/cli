@@ -33,8 +33,7 @@ set through `--signal` may be non-terminal, depending on the container's main
 process. For example, the `SIGHUP` signal in most cases will be non-terminal,
 and the container will continue running after receiving the signal.
 
-> **Note**
->
+> [!NOTE]
 > `ENTRYPOINT` and `CMD` in the *shell* form run as a child process of
 > `/bin/sh -c`, which does not pass signals. This means that the executable is
 > not the container’s PID 1 and does not receive Unix signals.

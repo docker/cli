@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -38,9 +38,9 @@ func TestInstallErrors(t *testing.T) {
 		{
 			description:   "installation error",
 			args:          []string{"foo"},
-			expectedError: "Error installing plugin",
+			expectedError: "error installing plugin",
 			installFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, fmt.Errorf("Error installing plugin")
+				return nil, errors.New("error installing plugin")
 			},
 		},
 		{
@@ -48,17 +48,20 @@ func TestInstallErrors(t *testing.T) {
 			args:          []string{"foo"},
 			expectedError: "docker image pull",
 			installFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, fmt.Errorf("(image) when fetching")
+				return nil, errors.New("(image) when fetching")
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
-		cmd := newInstallCommand(cli)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
+			cmd := newInstallCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -90,16 +93,19 @@ func TestInstallContentTrustErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{
-			pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, fmt.Errorf("should not try to install plugin")
-			},
-		}, test.EnableContentTrust)
-		cli.SetNotaryClient(tc.notaryFunc)
-		cmd := newInstallCommand(cli)
-		cmd.SetArgs(tc.args)
-		cmd.SetOut(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
+					return nil, errors.New("should not try to install plugin")
+				},
+			}, test.EnableContentTrust)
+			cli.SetNotaryClient(tc.notaryFunc)
+			cmd := newInstallCommand(cli)
+			cmd.SetArgs(tc.args)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
@@ -130,10 +136,12 @@ func TestInstall(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
-		cmd := newInstallCommand(cli)
-		cmd.SetArgs(tc.args)
-		assert.NilError(t, cmd.Execute())
-		assert.Check(t, strings.Contains(cli.OutBuffer().String(), tc.expectedOutput))
+		t.Run(tc.description, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
+			cmd := newInstallCommand(cli)
+			cmd.SetArgs(tc.args)
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, strings.Contains(cli.OutBuffer().String(), tc.expectedOutput))
+		})
 	}
 }

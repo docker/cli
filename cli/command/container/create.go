@@ -4,22 +4,23 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/netip"
 	"os"
-	"regexp"
 
-	"github.com/containerd/containerd/platforms"
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
-	"github.com/docker/docker/pkg/jsonmessage"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -61,7 +62,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container create, docker create",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli),
+		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
 	}
 
 	flags := cmd.Flags()
@@ -79,13 +80,25 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	command.AddPlatformFlag(flags, &options.platform)
 	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
 	copts = addFlags(flags)
+
+	addCompletions(cmd, dockerCli)
+
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
+
 	return cmd
 }
 
 func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetAll()))
 	newEnv := []string{}
@@ -99,12 +112,10 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
 	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
 	if err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
-	}
-	if err = validateAPIVersion(containerCfg, dockerCli.Client().ClientVersion()); err != nil {
-		reportError(dockerCli.Err(), "create", err.Error(), true)
-		return cli.StatusError{StatusCode: 125}
+		return cli.StatusError{
+			Status:     withHelp(err, "create").Error(),
+			StatusCode: 125,
+		}
 	}
 	id, err := createContainer(ctx, dockerCli, containerCfg, options)
 	if err != nil {
@@ -132,9 +143,9 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 
 	out := dockerCli.Err()
 	if options.quiet {
-		out = io.Discard
+		out = streams.NewOut(io.Discard)
 	}
-	return jsonmessage.DisplayJSONMessagesToStream(responseBody, streams.NewOut(out), nil)
+	return jsonstream.Display(ctx, responseBody, out)
 }
 
 type cidFile struct {
@@ -192,9 +203,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
 
-	warnOnOomKillDisable(*hostConfig, dockerCli.Err())
-	warnOnLocalhostDNS(*hostConfig, dockerCli.Err())
-
 	var (
 		trustedRef reference.Canonical
 		namedRef   reference.Named
@@ -228,7 +236,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			return err
 		}
 		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-			return image.TagTrusted(ctx, dockerCli, trustedRef, taggedRef)
+			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
 		}
 		return nil
 	}
@@ -241,7 +249,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
 		p, err := platforms.Parse(options.platform)
 		if err != nil {
-			return "", errors.Wrap(err, "error parsing specified platform")
+			return "", errors.Wrap(errdefs.InvalidParameter(err), "error parsing specified platform")
 		}
 		platform = &p
 	}
@@ -272,7 +280,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
 			if !options.quiet {
 				// we don't want to write to stdout anything apart from container.ID
-				fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
 			if err := pullAndTagImage(); err != nil {
@@ -289,40 +297,27 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
+	if warn := localhostDNSWarning(*hostConfig); warn != "" {
+		response.Warnings = append(response.Warnings, warn)
+	}
 	for _, w := range response.Warnings {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "WARNING: %s\n", w)
+		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
 	}
 	err = containerIDFile.Write(response.ID)
 	return response.ID, err
 }
 
-func warnOnOomKillDisable(hostConfig container.HostConfig, stderr io.Writer) {
-	if hostConfig.OomKillDisable != nil && *hostConfig.OomKillDisable && hostConfig.Memory == 0 {
-		fmt.Fprintln(stderr, "WARNING: Disabling the OOM killer on containers without setting a '-m/--memory' limit may be dangerous.")
-	}
-}
-
 // check the DNS settings passed via --dns against localhost regexp to warn if
-// they are trying to set a DNS to a localhost address
-func warnOnLocalhostDNS(hostConfig container.HostConfig, stderr io.Writer) {
+// they are trying to set a DNS to a localhost address.
+//
+// TODO(thaJeztah): move this to the daemon, which can make a better call if it will work or not (depending on networking mode).
+func localhostDNSWarning(hostConfig container.HostConfig) string {
 	for _, dnsIP := range hostConfig.DNS {
-		if isLocalhost(dnsIP) {
-			fmt.Fprintf(stderr, "WARNING: Localhost DNS setting (--dns=%s) may fail in containers.\n", dnsIP)
-			return
+		if addr, err := netip.ParseAddr(dnsIP); err == nil && addr.IsLoopback() {
+			return fmt.Sprintf("Localhost DNS (%s) may fail in containers.", addr)
 		}
 	}
-}
-
-// IPLocalhost is a regex pattern for IPv4 or IPv6 loopback range.
-const ipLocalhost = `((127\.([0-9]{1,3}\.){2}[0-9]{1,3})|(::1)$)`
-
-var localhostIPRegexp = regexp.MustCompile(ipLocalhost)
-
-// IsLocalhost returns true if ip matches the localhost IP regular expression.
-// Used for determining if nameserver settings are being passed which are
-// localhost addresses
-func isLocalhost(ip string) bool {
-	return localhostIPRegexp.MatchString(ip)
+	return ""
 }
 
 func validatePullOpt(val string) error {

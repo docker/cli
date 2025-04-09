@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.19
+//go:build go1.22
 
 package loader
 
@@ -40,13 +40,13 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 
 	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
 	if len(unsupportedProperties) > 0 {
-		fmt.Fprintf(dockerCli.Err(), "Ignoring unsupported options: %s\n\n",
+		_, _ = fmt.Fprintf(dockerCli.Err(), "Ignoring unsupported options: %s\n\n",
 			strings.Join(unsupportedProperties, ", "))
 	}
 
 	deprecatedProperties := loader.GetDeprecatedProperties(dicts...)
 	if len(deprecatedProperties) > 0 {
-		fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
+		_, _ = fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
 			propertyWarnings(deprecatedProperties))
 	}
 	return config, nil
@@ -76,7 +76,7 @@ func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 	var details composetypes.ConfigDetails
 
 	if len(composefiles) == 0 {
-		return details, errors.New("Please specify a Compose file (with --compose-file)")
+		return details, errors.New("Specify a Compose file (with --compose-file)")
 	}
 
 	if composefiles[0] == "-" && len(composefiles) == 1 {

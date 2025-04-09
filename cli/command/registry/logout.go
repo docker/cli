@@ -6,6 +6,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/internal/oauth/manager"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +35,7 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLogout(_ context.Context, dockerCli command.Cli, serverAddress string) error {
+func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string) error {
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
@@ -46,25 +48,32 @@ func runLogout(_ context.Context, dockerCli command.Cli, serverAddress string) e
 		hostnameAddress = serverAddress
 	)
 	if !isDefaultRegistry {
-		hostnameAddress = registry.ConvertToHostname(serverAddress)
+		hostnameAddress = credentials.ConvertToHostname(serverAddress)
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
 		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
 	}
 
-	fmt.Fprintf(dockerCli.Out(), "Removing login credentials for %s\n", hostnameAddress)
+	if isDefaultRegistry {
+		store := dockerCLI.ConfigFile().GetCredentialsStore(registry.IndexServer)
+		if err := manager.NewManager(store).Logout(ctx); err != nil {
+			_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING:", err)
+		}
+	}
+
+	_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing login credentials for", hostnameAddress)
 	errs := make(map[string]error)
 	for _, r := range regsToLogout {
-		if err := dockerCli.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
+		if err := dockerCLI.ConfigFile().GetCredentialsStore(r).Erase(r); err != nil {
 			errs[r] = err
 		}
 	}
 
 	// if at least one removal succeeded, report success. Otherwise report errors
 	if len(errs) == len(regsToLogout) {
-		fmt.Fprintln(dockerCli.Err(), "WARNING: could not erase credentials:")
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: could not erase credentials:")
 		for k, v := range errs {
-			fmt.Fprintf(dockerCli.Err(), "%s: %s\n", k, v)
+			_, _ = fmt.Fprintf(dockerCLI.Err(), "%s: %s\n", k, v)
 		}
 	}
 

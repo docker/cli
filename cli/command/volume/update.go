@@ -18,7 +18,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] [VOLUME]",
 		Short: "Update a volume (cluster volumes only)",
-		Args:  cli.RequiresMaxArgs(1),
+		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(cmd.Context(), dockerCli, args[0], availability, cmd.Flags())
 		},

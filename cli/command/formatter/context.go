@@ -1,5 +1,7 @@
 package formatter
 
+import "encoding/json"
+
 const (
 	// ClientContextTableFormat is the default client context format.
 	ClientContextTableFormat = "table {{.Name}}{{if .Current}} *{{end}}\t{{.Description}}\t{{.DockerEndpoint}}\t{{.Error}}"
@@ -28,6 +30,13 @@ type ClientContext struct {
 	DockerEndpoint string
 	Current        bool
 	Error          string
+
+	// ContextType is a temporary field for compatibility with
+	// Visual Studio, which depends on this from the "cloud integration"
+	// wrapper.
+	//
+	// Deprecated: this type is only for backward-compatibility. Do not use.
+	ContextType string `json:"ContextType,omitempty"`
 }
 
 // ClientContextWrite writes formatted contexts using the Context
@@ -60,6 +69,13 @@ func newClientContextContext() *clientContextContext {
 }
 
 func (c *clientContextContext) MarshalJSON() ([]byte, error) {
+	if c.c.ContextType != "" {
+		// We only have ContextType set for plain "json" or "{{json .}}" formatting,
+		// so we should be able to just use the default json.Marshal with no
+		// special handling.
+		return json.Marshal(c.c)
+	}
+	// FIXME(thaJeztah): why do we need a special marshal function here?
 	return MarshalJSON(c)
 }
 

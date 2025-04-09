@@ -203,7 +203,6 @@ result2 5
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.doc, func(t *testing.T) {
 			var out bytes.Buffer
 			err := SearchWrite(formatter.Context{Format: tc.format, Output: &out}, results)
