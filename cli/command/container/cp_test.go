@@ -10,7 +10,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/archive"
+	"github.com/moby/go-archive"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"

@@ -15,11 +15,11 @@ import (
 	"time"
 
 	"github.com/docker/docker/builder/remotecontext/git"
-	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/moby/go-archive"
 	"github.com/moby/patternmatcher"
 	"github.com/pkg/errors"
 )

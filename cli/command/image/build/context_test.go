@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/archive"
+	"github.com/moby/go-archive"
 	"github.com/moby/patternmatcher"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
