@@ -42,7 +42,8 @@ func TestGlobalHelp(t *testing.T) {
 		`Invalid Plugins:`,
 		`\s+badmeta\s+invalid metadata: invalid character 'i' looking for beginning of object key string`,
 	} {
-		expected := regexp.MustCompile(`(?m)^` + s + `$`)
+		expected, err := regexp.Compile(`(?m)^` + s + `$`)
+		assert.NilError(t, err)
 		matches := expected.FindAllString(output, -1)
 		assert.Equal(t, len(matches), 1, "Did not find expected number of matches for %q in `docker help` output", expected)
 	}
