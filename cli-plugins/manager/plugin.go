@@ -8,14 +8,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/metadata"
+	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/spf13/cobra"
 )
 
-var pluginNameRe = regexp.MustCompile("^[a-z][a-z0-9]*$")
+var pluginNameRe = lazyregexp.New("^[a-z][a-z0-9]*$")
 
 // Plugin represents a potential plugin with all it's metadata.
 type Plugin struct {
