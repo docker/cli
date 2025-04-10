@@ -169,15 +169,15 @@ func TestSubstituteWithCustomFunc(t *testing.T) {
 		return value, true, nil
 	}
 
-	result, err := SubstituteWith("ok ${FOO}", defaultMapping, defaultPattern, errIsMissing)
+	result, err := substituteWith("ok ${FOO}", defaultMapping, defaultPattern, errIsMissing)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("ok first", result))
 
-	result, err = SubstituteWith("ok ${BAR}", defaultMapping, defaultPattern, errIsMissing)
+	result, err = substituteWith("ok ${BAR}", defaultMapping, defaultPattern, errIsMissing)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal("ok ", result))
 
-	_, err = SubstituteWith("ok ${NOTHERE}", defaultMapping, defaultPattern, errIsMissing)
+	_, err = substituteWith("ok ${NOTHERE}", defaultMapping, defaultPattern, errIsMissing)
 	assert.Check(t, is.ErrorContains(err, "required variable"))
 }
 
@@ -278,7 +278,7 @@ func TestExtractVariables(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := ExtractVariables(tc.dict, defaultPattern)
+			actual := extractVariables(tc.dict, defaultPattern)
 			assert.Check(t, is.DeepEqual(actual, tc.expected))
 		})
 	}
