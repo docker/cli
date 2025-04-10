@@ -14,9 +14,9 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strings"
 
+	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/docker/errdefs"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -24,7 +24,7 @@ import (
 
 const restrictedNamePattern = "^[a-zA-Z0-9][a-zA-Z0-9_.+-]+$"
 
-var restrictedNameRegEx = regexp.MustCompile(restrictedNamePattern)
+var restrictedNameRegEx = lazyregexp.New(restrictedNamePattern)
 
 // Store provides a context store for easily remembering endpoints configuration
 type Store interface {
