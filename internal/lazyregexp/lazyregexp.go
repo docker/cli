@@ -71,6 +71,10 @@ func (r *Regexp) ReplaceAllStringFunc(src string, repl func(string) string) stri
 	return r.re().ReplaceAllStringFunc(src, repl)
 }
 
+func (r *Regexp) ReplaceAllLiteralString(src, repl string) string {
+	return r.re().ReplaceAllLiteralString(src, repl)
+}
+
 func (r *Regexp) SubexpNames() []string {
 	return r.re().SubexpNames()
 }
