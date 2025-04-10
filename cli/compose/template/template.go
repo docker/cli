@@ -108,23 +108,23 @@ func ExtractVariables(configDict map[string]any, pattern *regexp.Regexp) map[str
 func recurseExtract(value any, pattern *regexp.Regexp) map[string]string {
 	m := map[string]string{}
 
-	switch value := value.(type) {
+	switch val := value.(type) {
 	case string:
-		if values, is := extractVariable(value, pattern); is {
+		if values, is := extractVariable(val, pattern); is {
 			for _, v := range values {
 				m[v.name] = v.value
 			}
 		}
 	case map[string]any:
-		for _, elem := range value {
+		for _, elem := range val {
 			submap := recurseExtract(elem, pattern)
-			for key, value := range submap {
-				m[key] = value
+			for k, v := range submap {
+				m[k] = v
 			}
 		}
 
 	case []any:
-		for _, elem := range value {
+		for _, elem := range val {
 			if values, is := extractVariable(elem, pattern); is {
 				for _, v := range values {
 					m[v.name] = v.value
