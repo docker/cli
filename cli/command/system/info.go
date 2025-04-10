@@ -149,11 +149,16 @@ var placeHolders = regexp.MustCompile(`\.[a-zA-Z]`)
 // connecting to the daemon. This allows (e.g.) to only get cli-plugin
 // information, without also making a (potentially expensive) API call.
 func needsServerInfo(template string, info dockerInfo) bool {
-	if len(template) == 0 || placeHolders.FindString(template) == "" {
-		// The template is empty, or does not contain formatting fields
-		// (e.g. `table` or `raw` or `{{ json .}}`). Assume we need server-side
-		// information to render it.
+	switch template {
+	case "", formatter.JSONFormat, formatter.JSONFormatKey:
+		// No format (default) and full JSON output need server-side info.
 		return true
+	default:
+		if placeHolders.FindString(template) == "" {
+			// The template does not contain formatting fields; assume we
+			// need server-side information to render it, and return early.
+			return true
+		}
 	}
 
 	// A template is provided and has at least one field set.
