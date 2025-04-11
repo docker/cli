@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
@@ -35,6 +36,39 @@ func ImageNames(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
 			names = append(names, img.RepoTags...)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+// ImageNamesWithBase offers completion for images present within the local store,
+// including both full image names with tags and base image names (repository names only)
+// when multiple tags exist for the same base name
+func ImageNamesWithBase(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if limit > 0 && len(args) >= limit {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+		list, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		var names []string
+		baseNameCounts := make(map[string]int)
+		for _, img := range list {
+			names = append(names, img.RepoTags...)
+			for _, tag := range img.RepoTags {
+				ref, err := reference.ParseNormalizedNamed(tag)
+				if err != nil {
+					continue
+				}
+				baseNameCounts[reference.FamiliarName(ref)]++
+			}
+		}
+		for baseName, count := range baseNameCounts {
+			if count > 1 {
+				names = append(names, baseName)
+			}
+		}
+		return names, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
 	}
 }
 
