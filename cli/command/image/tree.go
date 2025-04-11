@@ -54,6 +54,8 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		var totalContent int64
 		children := make([]subImage, 0, len(img.Manifests))
 		for _, im := range img.Manifests {
+			totalContent += im.Size.Content
+
 			if im.Kind == imagetypes.ManifestKindAttestation {
 				attested[im.AttestationData.For] = true
 				continue
@@ -78,7 +80,6 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				details.InUse = true
 			}
 
-			totalContent += im.Size.Content
 			children = append(children, sub)
 
 			// Add extra spacing between images if there's at least one entry with children.
