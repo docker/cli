@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
@@ -52,7 +53,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force {
-		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		r, err := prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), warning)
 		if err != nil {
 			return "", err
 		}

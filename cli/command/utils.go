@@ -4,21 +4,17 @@
 package command
 
 import (
-	"bufio"
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/errdefs"
 	"github.com/moby/sys/atomicwriter"
-	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
@@ -36,21 +32,14 @@ func CopyToFile(outfile string, r io.Reader) error {
 	return err
 }
 
-var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
+const ErrPromptTerminated = prompt.ErrTerminated
 
 // DisableInputEcho disables input echo on the provided streams.In.
 // This is useful when the user provides sensitive information like passwords.
 // The function returns a restore function that should be called to restore the
 // terminal state.
 func DisableInputEcho(ins *streams.In) (restore func() error, err error) {
-	oldState, err := term.SaveState(ins.FD())
-	if err != nil {
-		return nil, err
-	}
-	restore = func() error {
-		return term.RestoreTerminal(ins.FD(), oldState)
-	}
-	return restore, term.DisableEcho(ins.FD(), oldState)
+	return prompt.DisableInputEcho(ins)
 }
 
 // PromptForInput requests input from the user.
@@ -61,23 +50,7 @@ func DisableInputEcho(ins *streams.In) (restore func() error, err error) {
 // the stack and close the io.Reader used for the prompt which will prevent the
 // background goroutine from blocking indefinitely.
 func PromptForInput(ctx context.Context, in io.Reader, out io.Writer, message string) (string, error) {
-	_, _ = fmt.Fprint(out, message)
-
-	result := make(chan string)
-	go func() {
-		scanner := bufio.NewScanner(in)
-		if scanner.Scan() {
-			result <- strings.TrimSpace(scanner.Text())
-		}
-	}()
-
-	select {
-	case <-ctx.Done():
-		_, _ = fmt.Fprintln(out, "")
-		return "", ErrPromptTerminated
-	case r := <-result:
-		return r, nil
-	}
+	return prompt.ReadInput(ctx, in, out, message)
 }
 
 // PromptForConfirmation requests and checks confirmation from the user.
@@ -91,39 +64,7 @@ func PromptForInput(ctx context.Context, in io.Reader, out io.Writer, message st
 // the stack and close the io.Reader used for the prompt which will prevent the
 // background goroutine from blocking indefinitely.
 func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, message string) (bool, error) {
-	if message == "" {
-		message = "Are you sure you want to proceed?"
-	}
-	message += " [y/N] "
-
-	_, _ = fmt.Fprint(outs, message)
-
-	// On Windows, force the use of the regular OS stdin stream.
-	if runtime.GOOS == "windows" {
-		ins = streams.NewIn(os.Stdin)
-	}
-
-	result := make(chan bool)
-
-	go func() {
-		var res bool
-		scanner := bufio.NewScanner(ins)
-		if scanner.Scan() {
-			answer := strings.TrimSpace(scanner.Text())
-			if strings.EqualFold(answer, "y") {
-				res = true
-			}
-		}
-		result <- res
-	}()
-
-	select {
-	case <-ctx.Done():
-		_, _ = fmt.Fprintln(outs, "")
-		return false, ErrPromptTerminated
-	case r := <-result:
-		return r, nil
-	}
+	return prompt.Confirm(ctx, ins, outs, message)
 }
 
 // PruneFilters merges prune filters specified in config.json with those specified

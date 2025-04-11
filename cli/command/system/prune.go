@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/volume"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/errdefs"
@@ -77,7 +78,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		return errors.New(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
 	if !options.force {
-		r, err := command.PromptForConfirmation(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options))
+		r, err := prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options))
 		if err != nil {
 			return err
 		}

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 )
@@ -76,6 +76,6 @@ func TerminatePrompt(ctx context.Context, t *testing.T, cmd *cobra.Command, cli 
 		t.Logf("command stderr:\n%s\n", cli.ErrBuffer().String())
 		t.Fatalf("command %s did not return after SIGINT", cmd.Name())
 	case err := <-errChan:
-		assert.ErrorIs(t, err, command.ErrPromptTerminated)
+		assert.ErrorIs(t, err, prompt.ErrTerminated)
 	}
 }
