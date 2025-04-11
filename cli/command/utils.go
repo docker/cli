@@ -17,37 +17,23 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/errdefs"
-	"github.com/moby/sys/sequential"
+	"github.com/moby/sys/atomicwriter"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
 
 // CopyToFile writes the content of the reader to the specified file
+//
+// Deprecated: use [atomicwriter.New].
 func CopyToFile(outfile string, r io.Reader) error {
-	// We use sequential file access here to avoid depleting the standby list
-	// on Windows. On Linux, this is a call directly to os.CreateTemp
-	tmpFile, err := sequential.CreateTemp(filepath.Dir(outfile), ".docker_temp_")
+	writer, err := atomicwriter.New(outfile, 0o600)
 	if err != nil {
 		return err
 	}
-
-	tmpPath := tmpFile.Name()
-
-	_, err = io.Copy(tmpFile, r)
-	tmpFile.Close()
-
-	if err != nil {
-		os.Remove(tmpPath)
-		return err
-	}
-
-	if err = os.Rename(tmpPath, outfile); err != nil {
-		os.Remove(tmpPath)
-		return err
-	}
-
-	return nil
+	defer writer.Close()
+	_, err = io.Copy(writer, r)
+	return err
 }
 
 var ErrPromptTerminated = errdefs.Cancelled(errors.New("prompt terminated"))
@@ -187,7 +173,7 @@ func AddPlatformFlag(flags *pflag.FlagSet, target *string) {
 	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
 }
 
-// ValidateOutputPath validates the output paths of the `export` and `save` commands.
+// ValidateOutputPath validates the output paths of the "docker cp" command.
 func ValidateOutputPath(path string) error {
 	dir := filepath.Dir(filepath.Clean(path))
 	if dir != "" && dir != "." {
@@ -213,8 +199,8 @@ func ValidateOutputPath(path string) error {
 	return nil
 }
 
-// ValidateOutputPathFileMode validates the output paths of the `cp` command and serves as a
-// helper to `ValidateOutputPath`
+// ValidateOutputPathFileMode validates the output paths of the "docker cp" command
+// and serves as a helper to [ValidateOutputPath]
 func ValidateOutputPathFileMode(fileMode os.FileMode) error {
 	switch {
 	case fileMode&os.ModeDevice != 0:
