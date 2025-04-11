@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 
@@ -23,6 +22,7 @@ import (
 	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
@@ -432,7 +432,7 @@ func validateTag(rawRepo string) (string, error) {
 	return rawRepo, nil
 }
 
-var dockerfileFromLinePattern = regexp.MustCompile(`(?i)^[\s]*FROM[ \f\r\t\v]+(?P<image>[^ \f\r\t\v\n#]+)`)
+var dockerfileFromLinePattern = lazyregexp.New(`(?i)^[\s]*FROM[ \f\r\t\v]+(?P<image>[^ \f\r\t\v\n#]+)`)
 
 // resolvedTag records the repository, tag, and resolved digest reference
 // from a Dockerfile rewrite.

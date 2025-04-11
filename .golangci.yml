@@ -7,6 +7,7 @@ linters:
     - dupword       # Detects duplicate words.
     - durationcheck
     - errchkjson
+    - forbidigo
     - gocritic      # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
     - gofumpt       # Detects whether code was gofumpt-ed.
@@ -66,6 +67,11 @@ linters-settings:
             desc: Use github.com/google/uuid instead.
           - pkg: "io/ioutil"
             desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
+  forbidigo:
+    forbid:
+      - pkg: ^regexp$
+        p: ^regexp\.MustCompile
+        msg: Use internal/lazyregexp.New instead.
   gocyclo:
     min-complexity: 16
   gosec:

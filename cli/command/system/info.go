@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/debug"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/templates"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
@@ -142,7 +142,7 @@ func addServerInfo(ctx context.Context, dockerCli command.Cli, format string, in
 
 // placeHolders does a rudimentary match for possible placeholders in a
 // template, matching a '.', followed by an letter (a-z/A-Z).
-var placeHolders = regexp.MustCompile(`\.[a-zA-Z]`)
+var placeHolders = lazyregexp.New(`\.[a-zA-Z]`)
 
 // needsServerInfo detects if the given template uses any server information.
 // If only client-side information is used in the template, we can skip
