@@ -29,6 +29,10 @@ const (
 	buildxMissingError = `ERROR: BuildKit is enabled but the buildx component is missing or broken.
        Install the buildx component to build images with BuildKit:
        https://docs.docker.com/go/buildx/`
+
+	bakeMissingError = `ERROR: docker bake requires the buildx component but it is missing or broken.
+       Install the buildx component to use bake:
+       https://docs.docker.com/go/buildx/`
 )
 
 func newBuilderError(errorMsg string, pluginLoadErr error) error {
@@ -58,6 +62,10 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		} else {
 			useBuilder = true
 		}
+	}
+	// docker bake always requires buildkit; ignore "DOCKER_BUILDKIT=0".
+	if buildKitDisabled && len(args) > 0 && args[0] == "bake" {
+		buildKitDisabled = false
 	}
 
 	// if a builder alias is defined, use it instead
@@ -105,6 +113,10 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		perr = plugin.Err
 	}
 	if perr != nil {
+		// Using bake without buildx installed is always an error.
+		if len(args) > 0 && args[0] == "bake" {
+			return args, osargs, nil, newBuilderError(bakeMissingError, perr)
+		}
 		// if builder is enforced with DOCKER_BUILDKIT=1, cmd must fail
 		// if the plugin is missing or broken.
 		if useBuilder {
@@ -135,6 +147,11 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 
 func forwardBuilder(alias string, args, osargs []string) ([]string, []string, []string, bool) {
 	aliases := [][3][]string{
+		{
+			{"bake"},
+			{alias, "bake"},
+			{},
+		},
 		{
 			{"builder"},
 			{alias},

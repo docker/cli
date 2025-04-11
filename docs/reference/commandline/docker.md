@@ -8,6 +8,7 @@ The base command for the Docker CLI.
 | Name                          | Description                                                                   |
 |:------------------------------|:------------------------------------------------------------------------------|
 | [`attach`](attach.md)         | Attach local standard input, output, and error streams to a running container |
+| [`bake`](bake.md)             | Build from a file                                                             |
 | [`build`](build.md)           | Build an image from a Dockerfile                                              |
 | [`builder`](builder.md)       | Manage builds                                                                 |
 | [`checkpoint`](checkpoint.md) | Manage checkpoints                                                            |

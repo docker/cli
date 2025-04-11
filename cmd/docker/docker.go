@@ -247,6 +247,12 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 			}
 		}
 
+		// FIXME(thaJeztah): need a better way for this; hiding the command here, so that it's present" by default for generating docs etc.
+		if c, _, err := ccmd.Find([]string{"buildx"}); c == nil || err != nil {
+			if b, _, _ := ccmd.Find([]string{"bake"}); b != nil {
+				b.Hidden = true
+			}
+		}
 		if err := isSupported(ccmd, dockerCli); err != nil {
 			ccmd.Println(err)
 			return
