@@ -39,10 +39,21 @@ func TestMountRelative(t *testing.T) {
 			name: "Current path",
 			path: ".",
 			bind: "type=bind,source=.,target=/target",
-		}, {
+		},
+		{
 			name: "Current path with slash",
 			path: "./",
 			bind: "type=bind,source=./,target=/target",
+		},
+		{
+			name: "Parent path with slash",
+			path: "../",
+			bind: "type=bind,source=../,target=/target",
+		},
+		{
+			name: "Parent path",
+			path: "..",
+			bind: "type=bind,source=..,target=/target",
 		},
 	} {
 		t.Run(testcase.name, func(t *testing.T) {
