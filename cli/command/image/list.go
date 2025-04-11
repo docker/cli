@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
@@ -52,6 +53,7 @@ func newImagesCommand(dockerCLI command.Cli) *cobra.Command {
 			"aliases":      "docker image ls, docker image list, docker images",
 		},
 		DisableFlagsInUseLine: true,
+		ValidArgsFunction:     completion.ImageNamesWithBase(dockerCLI, 1),
 	}
 
 	flags := cmd.Flags()
