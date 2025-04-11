@@ -7017,32 +7017,6 @@ definitions:
     type: "object"
     x-nullable: true
     properties:
-      AllowNondistributableArtifactsCIDRs:
-        description: |
-          List of IP ranges to which nondistributable artifacts can be pushed,
-          using the CIDR syntax [RFC 4632](https://tools.ietf.org/html/4632).
-
-          <p><br /></p>
-
-          > **Deprecated**: Pushing nondistributable artifacts is now always enabled
-          > and this field is always `null`. This field will be removed in a API v1.49.
-        type: "array"
-        items:
-          type: "string"
-        example: []
-      AllowNondistributableArtifactsHostnames:
-        description: |
-          List of registry hostnames to which nondistributable artifacts can be
-          pushed, using the format `<hostname>[:<port>]` or `<IP address>[:<port>]`.
-
-          <p><br /></p>
-
-          > **Deprecated**: Pushing nondistributable artifacts is now always enabled
-          > and this field is always `null`. This field will be removed in a API v1.49.
-        type: "array"
-        items:
-          type: "string"
-        example: []
       InsecureRegistryCIDRs:
         description: |
           List of IP ranges of insecure registries, using the CIDR syntax
@@ -7212,13 +7186,6 @@ definitions:
         description: "Actual commit ID of external tool."
         type: "string"
         example: "cfb82a876ecc11b5ca0977d1733adbe58599088a"
-      Expected:
-        description: |
-          Commit ID of external tool expected by dockerd as set at build time.
-
-          **Deprecated**: This field is deprecated and will be omitted in a API v1.49.
-        type: "string"
-        example: "2d41c047c83e09a6d61d464906feb2a2f3c52aa4"
 
   SwarmInfo:
     description: |
