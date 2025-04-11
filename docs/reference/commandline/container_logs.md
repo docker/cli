@@ -11,6 +11,7 @@ Fetch the logs of a container
 
 | Name                 | Type     | Default | Description                                                                                        |
 |:---------------------|:---------|:--------|:---------------------------------------------------------------------------------------------------|
+| `-d`, `--delay`      | `int`    | `0`     | Number of seconds to wait for container restart before exiting                                     |
 | `--details`          | `bool`   |         | Show extra details provided to logs                                                                |
 | `-f`, `--follow`     | `bool`   |         | Follow log output                                                                                  |
 | `--since`            | `string` |         | Show logs since timestamp (e.g. `2013-01-02T13:23:37Z`) or relative (e.g. `42m` for 42 minutes)    |
