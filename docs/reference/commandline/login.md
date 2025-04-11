@@ -6,11 +6,12 @@ Defaults to Docker Hub if no server is specified.
 
 ### Options
 
-| Name                                         | Type     | Default | Description                                                 |
-|:---------------------------------------------|:---------|:--------|:------------------------------------------------------------|
-| `-p`, `--password`                           | `string` |         | Password or Personal Access Token (PAT)                     |
-| [`--password-stdin`](#password-stdin)        | `bool`   |         | Take the Password or Personal Access Token (PAT) from stdin |
-| [`-u`](#username), [`--username`](#username) | `string` |         | Username                                                    |
+| Name                                         | Type     | Default | Description                                                                   |
+|:---------------------------------------------|:---------|:--------|:------------------------------------------------------------------------------|
+| `-p`, `--password`                           | `string` |         | Password or Personal Access Token (PAT)                                       |
+| [`--password-stdin`](#password-stdin)        | `bool`   |         | Take the Password or Personal Access Token (PAT) from stdin                   |
+| [`--password-env`](#password-env)            | `string` |         | Take the Password or Personal Access Token (PAT) from an environment variable |
+| [`-u`](#username), [`--username`](#username) | `string` |         | Username                                                                      |
 
 
 <!---MARKER_GEN_END-->
@@ -242,6 +243,21 @@ The following example reads a password from a file, and passes it to the
 
 ```console
 $ cat ~/my_password.txt | docker login --username foo --password-stdin
+```
+
+### <a name="password-env"></a> Provide a password using an environment variable (--password-env)
+
+To avoid providing a password or access token on the command line, you can set
+the `--password-env` flag to provide a password through an environment
+variable. Using an environment variable prevents the password from ending up in
+the shell's history, or log-files. This is particularly useful for CI
+pipelines, that often get access to secrets through environment variables.
+
+The following example authenticates to a registry using an access token stored
+in the `DOCKER_TOKEN` environment variable:
+
+```console
+$ docker login --username foo --password-env "DOCKER_TOKEN"
 ```
 
 ## Related commands
