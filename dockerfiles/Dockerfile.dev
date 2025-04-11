@@ -47,9 +47,28 @@ RUN  apk add --no-cache \
     jq \
     nano
 
-RUN echo -e "\nYou are now in a development container. Run '\e\033[1mmake help\e\033[0m' to learn about\navailable make targets.\n" > /etc/motd \
- && echo -e "cat /etc/motd\nPS1=\"\e[0;32m\u@docker-cli-dev\\$ \e[0m\"" >> /root/.bashrc \
- && echo -e "source /etc/bash/bash_completion.sh" >> /root/.bashrc
+RUN <<-'EOF'
+	cat > /etc/motd <<-'EOM'
+		\e[1;32mYou are now in a development container.\e[0m
+
+		Run \e[1;36mmake help\e[0m to see available targets.
+	EOM
+
+	cat >> /root/.bashrc <<-'EOB'
+		# print the MOTD when opening the dev-container (interactive shell only).
+		if [[ $- == *i* ]] && [[ -z "$MOTD_SHOWN" ]]; then
+			printf "%b\n" "$(cat /etc/motd)"
+			export MOTD_SHOWN=1
+		fi
+
+		# set a custom prompt to make it more visible when inside the dev-container.
+		PS1='\[\e[0;32m\]\u@docker-cli-dev\$ \[\e[0m\]'
+
+		# set-up bash completion for testing.
+		source /etc/bash/bash_completion.sh
+	EOB
+EOF
+
 CMD ["/bin/bash"]
 ENV DISABLE_WARN_OUTSIDE_CONTAINER=1
 ENV PATH=$PATH:/go/src/github.com/docker/cli/build
