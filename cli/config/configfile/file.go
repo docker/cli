@@ -262,10 +262,20 @@ func decodeAuth(authStr string) (string, string, error) {
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
 func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
+	store := credentials.NewFileStore(configFile)
+
 	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
-		return newNativeStore(configFile, helper)
+		store = newNativeStore(configFile, helper)
 	}
-	return credentials.NewFileStore(configFile)
+
+	// if DOCKER_AUTH_CONFIG is set, we need to use the env store instead
+	// it falls back to native or file store if a value is not found
+	// in the environment
+	if os.Getenv("DOCKER_AUTH_CONFIG") != "" {
+		return credentials.NewEnvStore(store)
+	}
+
+	return store
 }
 
 // var for unit testing.
