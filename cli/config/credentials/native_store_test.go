@@ -99,7 +99,6 @@ func TestNativeStoreAddCredentials(t *testing.T) {
 	auth := types.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
-		Email:         "foo@example.com",
 		ServerAddress: validServerAddress,
 	}
 	err := s.Store(auth)
@@ -109,7 +108,6 @@ func TestNativeStoreAddCredentials(t *testing.T) {
 	actual, ok := f.GetAuthConfigs()[validServerAddress]
 	assert.Check(t, ok)
 	expected := types.AuthConfig{
-		Email:         auth.Email,
 		ServerAddress: auth.ServerAddress,
 	}
 	assert.Check(t, is.DeepEqual(expected, actual))
@@ -124,7 +122,6 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 	err := s.Store(types.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
-		Email:         "foo@example.com",
 		ServerAddress: invalidServerAddress,
 	})
 	assert.ErrorContains(t, err, "program failed")
@@ -134,7 +131,7 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 func TestNativeStoreGet(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
 		validServerAddress: {
-			Email: "foo@example.com",
+			Username: "foo@example.com",
 		},
 	}}
 	s := &nativeStore{
@@ -147,7 +144,6 @@ func TestNativeStoreGet(t *testing.T) {
 	expected := types.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
-		Email:         "foo@example.com",
 		ServerAddress: validServerAddress,
 	}
 	assert.Check(t, is.DeepEqual(expected, actual))
@@ -155,9 +151,7 @@ func TestNativeStoreGet(t *testing.T) {
 
 func TestNativeStoreGetIdentityToken(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
-		validServerAddress2: {
-			Email: "foo@example2.com",
-		},
+		validServerAddress2: {},
 	}}
 
 	s := &nativeStore{
@@ -169,7 +163,6 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 
 	expected := types.AuthConfig{
 		IdentityToken: "abcd1234",
-		Email:         "foo@example2.com",
 		ServerAddress: validServerAddress2,
 	}
 	assert.Check(t, is.DeepEqual(expected, actual))
@@ -177,9 +170,7 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 
 func TestNativeStoreGetAll(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
-		validServerAddress: {
-			Email: "foo@example.com",
-		},
+		validServerAddress: {},
 	}}
 
 	s := &nativeStore{
@@ -189,38 +180,20 @@ func TestNativeStoreGetAll(t *testing.T) {
 	as, err := s.GetAll()
 	assert.NilError(t, err)
 	assert.Check(t, is.Len(as, 2))
-
-	if as[validServerAddress].Username != "foo" {
-		t.Fatalf("expected username `foo` for %s, got %s", validServerAddress, as[validServerAddress].Username)
+	expected := types.AuthConfig{
+		Username:      "foo",
+		Password:      "bar",
+		ServerAddress: "https://index.docker.io/v1",
+		IdentityToken: "",
 	}
-	if as[validServerAddress].Password != "bar" {
-		t.Fatalf("expected password `bar` for %s, got %s", validServerAddress, as[validServerAddress].Password)
-	}
-	if as[validServerAddress].IdentityToken != "" {
-		t.Fatalf("expected identity to be empty for %s, got %s", validServerAddress, as[validServerAddress].IdentityToken)
-	}
-	if as[validServerAddress].Email != "foo@example.com" {
-		t.Fatalf("expected email `foo@example.com` for %s, got %s", validServerAddress, as[validServerAddress].Email)
-	}
-	if as[validServerAddress2].Username != "" {
-		t.Fatalf("expected username to be empty for %s, got %s", validServerAddress2, as[validServerAddress2].Username)
-	}
-	if as[validServerAddress2].Password != "" {
-		t.Fatalf("expected password to be empty for %s, got %s", validServerAddress2, as[validServerAddress2].Password)
-	}
-	if as[validServerAddress2].IdentityToken != "abcd1234" {
-		t.Fatalf("expected identity token `abcd1324` for %s, got %s", validServerAddress2, as[validServerAddress2].IdentityToken)
-	}
-	if as[validServerAddress2].Email != "" {
-		t.Fatalf("expected no email for %s, got %s", validServerAddress2, as[validServerAddress2].Email)
-	}
+	actual, ok := as[validServerAddress]
+	assert.Check(t, ok)
+	assert.Check(t, is.DeepEqual(expected, actual))
 }
 
 func TestNativeStoreGetMissingCredentials(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
-		validServerAddress: {
-			Email: "foo@example.com",
-		},
+		validServerAddress: {},
 	}}
 
 	s := &nativeStore{
@@ -233,9 +206,7 @@ func TestNativeStoreGetMissingCredentials(t *testing.T) {
 
 func TestNativeStoreGetInvalidAddress(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
-		validServerAddress: {
-			Email: "foo@example.com",
-		},
+		validServerAddress: {},
 	}}
 
 	s := &nativeStore{
@@ -248,9 +219,7 @@ func TestNativeStoreGetInvalidAddress(t *testing.T) {
 
 func TestNativeStoreErase(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
-		validServerAddress: {
-			Email: "foo@example.com",
-		},
+		validServerAddress: {},
 	}}
 
 	s := &nativeStore{
@@ -264,9 +233,7 @@ func TestNativeStoreErase(t *testing.T) {
 
 func TestNativeStoreEraseInvalidAddress(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
-		validServerAddress: {
-			Email: "foo@example.com",
-		},
+		validServerAddress: {},
 	}}
 
 	s := &nativeStore{

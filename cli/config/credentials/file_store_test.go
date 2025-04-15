@@ -43,13 +43,13 @@ func TestFileStoreIdempotent(t *testing.T) {
 		},
 	})
 	authOne := types.AuthConfig{
+		Username:      "foo@example.com",
 		Auth:          "super_secret_token",
-		Email:         "foo@example.com",
 		ServerAddress: "https://example.com",
 	}
 	authTwo := types.AuthConfig{
+		Username:      "bar@example.com",
 		Auth:          "also_super_secret_token",
-		Email:         "bar@example.com",
 		ServerAddress: "https://other.example.com",
 	}
 
@@ -106,8 +106,8 @@ func TestFileStoreAddCredentials(t *testing.T) {
 
 	s := NewFileStore(f)
 	auth := types.AuthConfig{
+		Username:      "foo@example.com",
 		Auth:          "super_secret_token",
-		Email:         "foo@example.com",
 		ServerAddress: "https://example.com",
 	}
 	err := s.Store(auth)
@@ -122,8 +122,8 @@ func TestFileStoreAddCredentials(t *testing.T) {
 func TestFileStoreGet(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
 		"https://example.com": {
+			Username:      "foo@example.com",
 			Auth:          "super_secret_token",
-			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
 	}}
@@ -136,8 +136,8 @@ func TestFileStoreGet(t *testing.T) {
 	if a.Auth != "super_secret_token" {
 		t.Fatalf("expected auth `super_secret_token`, got %s", a.Auth)
 	}
-	if a.Email != "foo@example.com" {
-		t.Fatalf("expected email `foo@example.com`, got %s", a.Email)
+	if a.Username != "foo@example.com" {
+		t.Fatalf("expected username `foo@example.com`, got %s", a.Username)
 	}
 }
 
@@ -146,13 +146,13 @@ func TestFileStoreGetAll(t *testing.T) {
 	s2 := "https://example2.example.com"
 	f := &fakeStore{configs: map[string]types.AuthConfig{
 		s1: {
+			Username:      "foo@example.com",
 			Auth:          "super_secret_token",
-			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
 		s2: {
+			Username:      "foo@example2.com",
 			Auth:          "super_secret_token2",
-			Email:         "foo@example2.com",
 			ServerAddress: "https://example2.example.com",
 		},
 	}}
@@ -168,22 +168,22 @@ func TestFileStoreGetAll(t *testing.T) {
 	if as[s1].Auth != "super_secret_token" {
 		t.Fatalf("expected auth `super_secret_token`, got %s", as[s1].Auth)
 	}
-	if as[s1].Email != "foo@example.com" {
-		t.Fatalf("expected email `foo@example.com`, got %s", as[s1].Email)
+	if as[s1].Username != "foo@example.com" {
+		t.Fatalf("expected username `foo@example.com`, got %s", as[s1].Username)
 	}
 	if as[s2].Auth != "super_secret_token2" {
 		t.Fatalf("expected auth `super_secret_token2`, got %s", as[s2].Auth)
 	}
-	if as[s2].Email != "foo@example2.com" {
-		t.Fatalf("expected email `foo@example2.com`, got %s", as[s2].Email)
+	if as[s2].Username != "foo@example2.com" {
+		t.Fatalf("expected username `foo@example2.com`, got %s", as[s2].Username)
 	}
 }
 
 func TestFileStoreErase(t *testing.T) {
 	f := &fakeStore{configs: map[string]types.AuthConfig{
 		"https://example.com": {
+			Username:      "foo@example.com",
 			Auth:          "super_secret_token",
-			Email:         "foo@example.com",
 			ServerAddress: "https://example.com",
 		},
 	}}
@@ -202,9 +202,6 @@ func TestFileStoreErase(t *testing.T) {
 
 	if a.Auth != "" {
 		t.Fatalf("expected empty auth token, got %s", a.Auth)
-	}
-	if a.Email != "" {
-		t.Fatalf("expected empty email, got %s", a.Email)
 	}
 }
 
