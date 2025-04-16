@@ -33,7 +33,7 @@ func longUpdateDescription() string {
 	return buf.String()
 }
 
-func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := &UpdateOptions{}
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] CONTEXT",
@@ -41,9 +41,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Name = args[0]
-			return RunUpdate(dockerCli, opts)
+			return RunUpdate(dockerCLI, opts)
 		},
-		Long: longUpdateDescription(),
+		Long:              longUpdateDescription(),
+		ValidArgsFunction: completeContextNames(dockerCLI, 1, false),
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")

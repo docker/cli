@@ -16,7 +16,7 @@ type RemoveOptions struct {
 	Force bool
 }
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts RemoveOptions
 	cmd := &cobra.Command{
 		Use:     "rm CONTEXT [CONTEXT...]",
@@ -24,8 +24,9 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more contexts",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunRemove(dockerCli, opts, args)
+			return RunRemove(dockerCLI, opts, args)
 		},
+		ValidArgsFunction: completeContextNames(dockerCLI, -1, false),
 	}
 	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Force the removal of a context in use")
 	return cmd
