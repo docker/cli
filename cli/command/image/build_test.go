@@ -15,7 +15,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/google/go-cmp/cmp"
-	"github.com/moby/go-archive"
+	"github.com/moby/go-archive/compression"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/skip"
@@ -54,7 +54,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	assert.DeepEqual(t, expected, fakeBuild.filenames(t))
 
 	header := buffer.Bytes()[:10]
-	assert.Equal(t, archive.Gzip, archive.DetectCompression(header))
+	assert.Equal(t, compression.Gzip, compression.Detect(header))
 }
 
 func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
