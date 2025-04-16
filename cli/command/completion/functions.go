@@ -152,7 +152,6 @@ func NoComplete(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCo
 }
 
 var commonPlatforms = []string{
-	"linux",
 	"linux/386",
 	"linux/amd64",
 	"linux/arm",
@@ -169,10 +168,8 @@ var commonPlatforms = []string{
 	// Not yet supported
 	"linux/riscv64",
 
-	"windows",
 	"windows/amd64",
 
-	"wasip1",
 	"wasip1/wasm",
 }
 
