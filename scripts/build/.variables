@@ -58,7 +58,7 @@ if [ -z "$CGO_ENABLED" ]; then
     case "$(go env GOOS)" in
         linux)
             case "$(go env GOARCH)" in
-                amd64|arm64|arm|s390x|riscv64)
+                amd64|arm64|arm|s390x|riscv64|loong64)
                     CGO_ENABLED=1
                 ;;
                 *)
