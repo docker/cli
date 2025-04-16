@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/moby/go-archive"
+	"github.com/moby/go-archive/compression"
 	"github.com/moby/patternmatcher"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -165,7 +166,7 @@ func TestGetContextFromReaderTar(t *testing.T) {
 	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
 
-	tarStream, err := archive.Tar(contextDir, archive.Uncompressed)
+	tarStream, err := archive.Tar(contextDir, compression.None)
 	assert.NilError(t, err)
 
 	tarArchive, relDockerfile, err := GetContextFromReader(tarStream, DefaultDockerfileName)

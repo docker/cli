@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types"
 	"github.com/moby/go-archive"
+	"github.com/moby/go-archive/compression"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -99,14 +100,14 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateO
 		return err
 	}
 
-	compression := archive.Uncompressed
+	comp := compression.None
 	if options.compress {
 		logrus.Debugf("compression enabled")
-		compression = archive.Gzip
+		comp = compression.Gzip
 	}
 
 	createCtx, err := archive.TarWithOptions(absContextDir, &archive.TarOptions{
-		Compression: compression,
+		Compression: comp,
 	})
 	if err != nil {
 		return err

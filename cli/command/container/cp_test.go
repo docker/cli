@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
 	"github.com/moby/go-archive"
+	"github.com/moby/go-archive/compression"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -74,7 +75,7 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
 			assert.Check(t, is.Equal("container", ctr))
-			readCloser, err := archive.Tar(srcDir.Path(), archive.Uncompressed)
+			readCloser, err := archive.Tar(srcDir.Path(), compression.None)
 			return readCloser, container.PathStat{}, err
 		},
 	})

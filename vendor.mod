@@ -26,7 +26,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.16
-	github.com/moby/go-archive v0.0.0-20250404171912-21f3f3385ab7
+	github.com/moby/go-archive v0.1.0
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
 	github.com/moby/sys/atomicwriter v0.1.0
