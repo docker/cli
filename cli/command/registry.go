@@ -186,9 +186,12 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 			}
 		}()
 
-		out := tui.NewOutput(cli.Err())
-		out.PrintNote("A Personal Access Token (PAT) can be used instead.\n" +
-			"To create a PAT, visit " + aec.Underline.Apply("https://app.docker.com/settings") + "\n\n")
+		if serverAddress == authConfigKey {
+			out := tui.NewOutput(cli.Err())
+			out.PrintNote("A Personal Access Token (PAT) can be used instead.\n" +
+				"To create a PAT, visit " + aec.Underline.Apply("https://app.docker.com/settings") + "\n\n")
+		}
+
 		argPassword, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
