@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/config/memory"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -265,8 +266,16 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 	// if DOCKER_AUTH_CONFIG is set, we need to use the env store instead
 	// it falls back to native or file store if a value is not found
 	// in the environment
-	if os.Getenv("DOCKER_AUTH_CONFIG") != "" {
-		return credentials.NewEnvStore(store)
+	if v, ok := os.LookupEnv("DOCKER_AUTH_CONFIG"); ok {
+		var credentials map[string]map[string]types.AuthConfig
+		if err := json.Unmarshal([]byte(v), &credentials); err != nil {
+			return store
+		}
+		auth, ok := credentials["auth"]
+		if !ok {
+			return store
+		}
+		return memory.NewInMemoryStore(auth, memory.WithFallbackStore(store))
 	}
 
 	return store
