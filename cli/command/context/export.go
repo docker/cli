@@ -18,7 +18,7 @@ type ExportOptions struct {
 	Dest        string
 }
 
-func newExportCommand(dockerCli command.Cli) *cobra.Command {
+func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:   "export [OPTIONS] CONTEXT [FILE|-]",
 		Short: "Export a context to a tar archive FILE or a tar stream on STDOUT.",
@@ -32,8 +32,9 @@ func newExportCommand(dockerCli command.Cli) *cobra.Command {
 			} else {
 				opts.Dest = opts.ContextName + ".dockercontext"
 			}
-			return RunExport(dockerCli, opts)
+			return RunExport(dockerCLI, opts)
 		},
+		ValidArgsFunction: completeContextNames(dockerCLI, 1, true),
 	}
 }
 

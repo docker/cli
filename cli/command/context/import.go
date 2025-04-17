@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +20,8 @@ func newImportCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return RunImport(dockerCli, args[0], args[1])
 		},
+		// TODO(thaJeztah): this should also include "-"
+		ValidArgsFunction: completion.FileNames,
 	}
 	return cmd
 }

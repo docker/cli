@@ -19,7 +19,7 @@ type inspectOptions struct {
 }
 
 // newInspectCommand creates a new cobra.Command for `docker context inspect`
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -28,13 +28,14 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.refs = args
 			if len(opts.refs) == 0 {
-				if dockerCli.CurrentContext() == "" {
+				if dockerCLI.CurrentContext() == "" {
 					return errors.New("no context specified")
 				}
-				opts.refs = []string{dockerCli.CurrentContext()}
+				opts.refs = []string{dockerCLI.CurrentContext()}
 			}
-			return runInspect(dockerCli, opts)
+			return runInspect(dockerCLI, opts)
 		},
+		ValidArgsFunction: completeContextNames(dockerCLI, -1, false),
 	}
 
 	flags := cmd.Flags()

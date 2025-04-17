@@ -10,15 +10,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newUseCommand(dockerCli command.Cli) *cobra.Command {
+func newUseCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "use CONTEXT",
 		Short: "Set the current docker context",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			return RunUse(dockerCli, name)
+			return RunUse(dockerCLI, name)
 		},
+		ValidArgsFunction: completeContextNames(dockerCLI, 1, false),
 	}
 	return cmd
 }
