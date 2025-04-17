@@ -240,16 +240,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
-	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
-			return err
-		}
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
-		}
-		return nil
-	}
-
 	const dockerConfigPathInContainer = "/run/secrets/docker/config.json"
 	var apiSocketCreds map[string]types.AuthConfig
 
@@ -329,6 +319,16 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			return "", errors.Wrap(errdefs.InvalidParameter(err), "error parsing specified platform")
 		}
 		platform = &p
+	}
+
+	pullAndTagImage := func() error {
+		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
+			return err
+		}
+		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
+			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
+		}
+		return nil
 	}
 
 	if options.pull == PullImageAlways {
