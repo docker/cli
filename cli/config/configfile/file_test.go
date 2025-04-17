@@ -538,6 +538,34 @@ func TestSaveWithSymlink(t *testing.T) {
 	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
 }
 
+func TestSaveWithRelativeSymlink(t *testing.T) {
+	dir := fs.NewDir(t, t.Name(), fs.WithFile("real-config.json", `{}`))
+	defer dir.Remove()
+
+	symLink := dir.Join("config.json")
+	relativeRealFile := "real-config.json"
+	realFile := dir.Join(relativeRealFile)
+	err := os.Symlink(relativeRealFile, symLink)
+	assert.NilError(t, err)
+
+	configFile := New(symLink)
+
+	err = configFile.Save()
+	assert.NilError(t, err)
+
+	fi, err := os.Lstat(symLink)
+	assert.NilError(t, err)
+	assert.Assert(t, fi.Mode()&os.ModeSymlink != 0, "expected %s to be a symlink", symLink)
+
+	cfg, err := os.ReadFile(symLink)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+
+	cfg, err = os.ReadFile(realFile)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(string(cfg), "{\n	\"auths\": {}\n}"))
+}
+
 func TestPluginConfig(t *testing.T) {
 	configFile := New("test-plugin")
 	defer os.Remove("test-plugin")
