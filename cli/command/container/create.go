@@ -295,7 +295,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		// what they're doing and don't inject the creds.
 		if !envvarPresent {
 			// Resolve this here for later, ensuring we error our before we create the container.
-			creds, err := dockerCli.ConfigFile().GetAllCredentials()
+			creds, err := readCredentials(dockerCli)
 			if err != nil {
 				return "", fmt.Errorf("resolving credentials failed: %w", err)
 			}
