@@ -304,16 +304,17 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		// If the DOCKER_CONFIG env var is already present, we assume the client knows
 		// what they're doing and don't inject the creds.
 		if !envvarPresent {
-			// Set our special little location for the config file.
-			containerCfg.Config.Env = append(containerCfg.Config.Env,
-				"DOCKER_CONFIG="+path.Dir(dockerConfigPathInContainer))
-
 			// Resolve this here for later, ensuring we error our before we create the container.
 			creds, err := dockerCli.ConfigFile().GetAllCredentials()
 			if err != nil {
 				return "", fmt.Errorf("resolving credentials failed: %w", err)
 			}
-			apiSocketCreds = creds // inject these after container creation.
+			if len(creds) > 0 {
+				// Set our special little location for the config file.
+				containerCfg.Config.Env = append(containerCfg.Config.Env, "DOCKER_CONFIG="+path.Dir(dockerConfigPathInContainer))
+
+				apiSocketCreds = creds // inject these after container creation.
+			}
 		}
 	}
 
@@ -371,7 +372,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 	err = containerIDFile.Write(containerID)
 
-	if options.useAPISocket && apiSocketCreds != nil {
+	if options.useAPISocket && len(apiSocketCreds) > 0 {
 		// Create a new config file with just the auth.
 		newConfig := &configfile.ConfigFile{
 			AuthConfigs: apiSocketCreds,
