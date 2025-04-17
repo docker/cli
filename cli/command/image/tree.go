@@ -201,7 +201,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 
 	out.PrintlnWithColor(tui.ColorWarning, "WARNING: This is an experimental feature. The output may change and shouldn't be depended on.")
 
-	out.Println(generateLegend(out, width))
+	out.Println(generateLegend(out, int(width))) // #nosec G115 -- ignore "overflow conversion uint -> int", int expansion won't cause lost of value
 	out.Println()
 
 	possibleChips := getPossibleChips(view)
@@ -267,7 +267,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 		},
 	}
 
-	columns = adjustColumns(width, columns, view.images)
+	columns = adjustColumns(int(width), columns, view.images) // #nosec G115 -- ignore "overflow conversion uint -> int", int expansion won't cause lost of value
 
 	// Print columns
 	for i, h := range columns {
@@ -297,8 +297,8 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 // adjustColumns adjusts the width of the first column to maximize the space
 // available for image names and removes any columns that would be too narrow
 // to display their content.
-func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColumn {
-	nameWidth := int(width)
+func adjustColumns(width int, columns []imgColumn, images []topImage) []imgColumn {
+	nameWidth := width
 	for idx, h := range columns {
 		if h.Width == 0 {
 			continue
@@ -324,7 +324,7 @@ func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColu
 	return columns
 }
 
-func generateLegend(out tui.Output, width uint) string {
+func generateLegend(out tui.Output, width int) string {
 	var legend string
 	legend += out.Sprint(tui.InfoHeader)
 	for idx, chip := range allChips {
@@ -335,7 +335,7 @@ func generateLegend(out tui.Output, width uint) string {
 	}
 	legend += " "
 
-	r := int(width) - tui.Width(legend)
+	r := width - tui.Width(legend)
 	if r < 0 {
 		r = 0
 	}
@@ -396,7 +396,7 @@ func printNames(out tui.Output, headers []imgColumn, img topImage, color, untagg
 		// name will be printed alongside other columns.
 		if nameIdx < len(img.Names)-1 {
 			_, fullWidth := out.GetTtySize()
-			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth))))
+			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth)))) // #nosec G115 -- ignore "overflow conversion uint -> int", int expansion won't cause lost of value
 		} else {
 			_, _ = fmt.Fprint(out, headers[0].Print(color, name))
 		}
