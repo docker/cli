@@ -5,7 +5,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -531,6 +534,10 @@ type serviceOptions struct {
 	ulimits         opts.UlimitOpt
 	oomScoreAdj     int64
 
+	seccomp         string
+	appArmor        string
+	noNewPrivileges bool
+
 	resources resourceOptions
 	stopGrace opts.DurationOpt
 
@@ -660,6 +667,109 @@ func (options *serviceOptions) makeEnv() ([]string, error) {
 	return currentEnv, nil
 }
 
+func (options *serviceOptions) ToPrivileges(flags *pflag.FlagSet) (*swarm.Privileges, error) {
+	// we're going to go through several possible uses of the Privileges
+	// struct, which may or may not be used. If some stage uses it (after the
+	// first), we'll check if it's nil and create it if it hasn't been created
+	// yet.
+	var privileges *swarm.Privileges
+	if options.credentialSpec.String() != "" && options.credentialSpec.Value() != nil {
+		privileges = &swarm.Privileges{
+			CredentialSpec: options.credentialSpec.Value(),
+		}
+	}
+
+	if flags.Changed(flagNoNewPrivileges) {
+		if privileges == nil {
+			privileges = &swarm.Privileges{}
+		}
+		privileges.NoNewPrivileges = options.noNewPrivileges
+	}
+
+	if flags.Changed(flagAppArmor) {
+		if privileges == nil {
+			privileges = &swarm.Privileges{}
+		}
+		switch options.appArmor {
+		case "default":
+			privileges.AppArmor = &swarm.AppArmorOpts{
+				Mode: swarm.AppArmorModeDefault,
+			}
+		case "disabled":
+			privileges.AppArmor = &swarm.AppArmorOpts{
+				Mode: swarm.AppArmorModeDisabled,
+			}
+		default:
+			return nil, errors.Errorf(
+				"unknown AppArmor mode %q. Supported modes are %q and %q",
+				options.appArmor,
+				swarm.AppArmorModeDefault,
+				swarm.AppArmorModeDisabled,
+			)
+		}
+	}
+
+	if flags.Changed(flagSeccomp) {
+		if privileges == nil {
+			privileges = &swarm.Privileges{}
+		}
+		seccomp, err := options.ToSeccompOpts()
+		if err != nil {
+			return nil, err
+		}
+		privileges.Seccomp = seccomp
+	}
+
+	return privileges, nil
+}
+
+func (options *serviceOptions) ToSeccompOpts() (*swarm.SeccompOpts, error) {
+	switch arg := options.seccomp; arg {
+	case "default":
+		return &swarm.SeccompOpts{
+			Mode: swarm.SeccompModeDefault,
+		}, nil
+	case "unconfined":
+		return &swarm.SeccompOpts{
+			Mode: swarm.SeccompModeUnconfined,
+		}, nil
+	default:
+		dir, _ := filepath.Split(arg)
+		// if the directory is empty, this isn't a file path. Even though
+		// the user may be referring to a file in the local directory, for
+		// disambiguation's sake, we require a custom profile file to be
+		// given as a path.
+		if dir == "" {
+			// check if the file exists locally
+			if _, err := os.Stat(arg); errors.Is(err, os.ErrNotExist) {
+				return nil, errors.Errorf("unknown seccomp mode %q.", arg)
+			}
+			return nil, errors.Errorf(
+				"unknown seccomp mode %q. (did you mean custom a seccomp profile \"./%s\"?)",
+				arg, arg,
+			)
+		}
+		data, err := os.ReadFile(options.seccomp)
+		if err != nil {
+			// TODO(dperny): return this, or return "unrecognized option" or some such?
+			return nil, errors.Wrap(err, "unable to read seccomp custom profile file")
+		}
+		// we're doing the user a favor here by refusing to pass garbage if
+		// they give invalid json.
+		if !json.Valid(data) {
+			return nil, errors.Errorf(
+				"unable to read seccomp custom profile file %q: not valid json",
+				options.seccomp,
+			)
+		}
+
+		return &swarm.SeccompOpts{
+			Mode:    swarm.SeccompModeCustom,
+			Profile: data,
+		}, nil
+	}
+}
+
 // ToService takes the set of flags passed to the command and converts them
 // into a service spec.
 //
@@ -712,6 +822,11 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
+	privileges, err := options.ToPrivileges(flags)
+	if err != nil {
+		return service, err
+	}
+
 	capAdd, capDrop := opts.EffectiveCapAddCapDrop(options.capAdd.GetAll(), options.capDrop.GetAll())
 
 	service = swarm.ServiceSpec{
@@ -730,6 +845,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Dir:        options.workdir,
 				User:       options.user,
 				Groups:     options.groups.GetAll(),
+				Privileges: privileges,
 				StopSignal: options.stopSignal,
 				TTY:        options.tty,
 				ReadOnly:   options.readOnly,
@@ -764,12 +880,6 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		UpdateConfig:   updateConfig,
 		RollbackConfig: rollbackConfig,
 		EndpointSpec:   options.endpoint.ToEndpointSpec(),
-	}
-
-	if options.credentialSpec.String() != "" && options.credentialSpec.Value() != nil {
-		service.TaskTemplate.ContainerSpec.Privileges = &swarm.Privileges{
-			CredentialSpec: options.credentialSpec.Value(),
-		}
 	}
 
 	return service, nil
@@ -886,6 +996,10 @@ func addServiceFlags(flags *pflag.FlagSet, options *serviceOptions, defaultFlagV
 	flags.StringVar(&options.update.order, flagUpdateOrder, "", flagDesc(flagUpdateOrder, `Update order ("start-first", "stop-first")`))
 	flags.SetAnnotation(flagUpdateOrder, "version", []string{"1.29"})
 
+	flags.StringVar(&options.seccomp, flagSeccomp, "", flagDesc(flagSeccomp, `Seccomp configuration ("default", "unconfined", or a path to a json custom seccomp profile)`))
+	flags.StringVar(&options.appArmor, flagAppArmor, "", flagDesc(flagAppArmor, `AppArmor mode ("default" or "disabled"`))
+	flags.BoolVar(&options.noNewPrivileges, flagNoNewPrivileges, false, flagDesc(flagNoNewPrivileges, "Disable container processes from gaining new privileges"))
+
 	flags.Uint64Var(&options.rollback.parallelism, flagRollbackParallelism, defaultFlagValues.getUint64(flagRollbackParallelism),
 		"Maximum number of tasks rolled back simultaneously (0 to roll back all at once)")
 	flags.SetAnnotation(flagRollbackParallelism, "version", []string{"1.28"})
@@ -937,6 +1051,7 @@ func addServiceFlags(flags *pflag.FlagSet, options *serviceOptions, defaultFlagV
 }
 
 const (
+	flagAppArmor                = "apparmor"
 	flagCredentialSpec          = "credential-spec" //nolint:gosec // ignore G101: Potential hardcoded credentials
 	flagPlacementPref           = "placement-pref"
 	flagPlacementPrefAdd        = "placement-pref-add"
@@ -1008,6 +1123,7 @@ const (
 	flagRollbackOrder           = "rollback-order"
 	flagRollbackParallelism     = "rollback-parallelism"
 	flagInit                    = "init"
+	flagSeccomp                 = "seccomp"
 	flagSysCtl                  = "sysctl"
 	flagSysCtlAdd               = "sysctl-add"
 	flagSysCtlRemove            = "sysctl-rm"
@@ -1023,6 +1139,7 @@ const (
 	flagUser                    = "user"
 	flagWorkdir                 = "workdir"
 	flagRegistryAuth            = "with-registry-auth"
+	flagNoNewPrivileges         = "no-new-privileges"
 	flagNoResolveImage          = "no-resolve-image"
 	flagLogDriver               = "log-driver"
 	flagLogOpt                  = "log-opt"
