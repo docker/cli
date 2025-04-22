@@ -101,19 +101,24 @@ Now we are going to look at a new garbage collection config that is not the defa
 
 ```bash
 "gc": {
-      "enabled": true,
-      "policy": [
-            {"keepStorage": "10GB", "filter": ["unused-for=2200h"]},
-            {"keepStorage": "50GB", "filter": {"unused-for": {"3300h": true}}},
-            {"keepStorage": "100GB", "all": true}
-        ]
-    }
+  "enabled": true,
+  "policy": [
+    {"keepStorage": "10GB", "filter": ["unused-for=2200h"]},
+    {"keepStorage": "50GB", "filter": {"unused-for": {"3300h": true}}},
+    {"keepStorage": "100GB", "all": true}
+  ]
+}
 ```
-The configuration above shows that the garbage collection is on, and it follows three rules.
-First rule state that, if the build cache is more than 10GB delete every unused build cache that are more than 92 days old 
-(converted to days), if the first rule is not enough to bring the cache down to 10GB it jumps to the next rule, stating that it 
-should remove every cache that are more than 136 days old, if the second rule is not enough to bring the cache down to 50GB, then
-it would apply the third rule that state that, it should remove all the build cache data until it the keep storage reaches 100GB.
-For every state once the condition is meant, it will terminate and not move to the other condition.
+The configuration above enables Docker CLI garbage collection and defines a tiered cleanup policy with three rules:
+
+1. First rule: If the total build cache exceeds 10GB, delete any unused build cache entries that are older than 2200 hours (~92 days).
+
+2. Second rule: If the first rule does not reduce the cache size below 10GB, the system moves on. Now, if the total cache size exceeds 50GB, it deletes entries that are unused and older than 3300 hours (~137 days).
+
+3. Third rule: If the cache is still larger than 50GB, the last rule applies. It deletes any build cache (regardless of usage or age) until the cache is brought below 100GB.
+
+Each rule is evaluated in order, and once a rule successfully reduces the cache size to the defined keepStorage threshold, garbage collection stops and the following rules are not evaluated.
+
+This configuration ensures the system aggressively prunes older and unused cache layers first, and only performs more general deletions if absolutely necessary.
 
 Go on to configure your gabage collection for a better build.

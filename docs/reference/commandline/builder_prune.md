@@ -50,7 +50,7 @@ effective.
 So docker try to remove the cache that is less likely to be used in future builds to keep builds as fast as possible while maintaining cache size under control.
 
 **Note**
->Pruning does not works if the Total is below what you specified as keep storage option to prune. It needs to go above, we are
+>Pruning does not work if the Total is below what you specified as keep storage option to prune. It needs to go above, we are
 >going to see how to use the `--keep-storage` option as part of our examples in this topic.
 
 # builder prune
@@ -277,7 +277,7 @@ rx58kxz9kmlg        regular             540MB               22 hours ago        
 08unho1rnguz        regular             2.38MB              13 days ago         13 days ago         1                   false
 i8nfk2fvpyyi        regular             0B                  2 weeks ago         13 days ago         2                   false
 
-$ docker builder prune --filter until=24h # to remove builder cache with a filter or 24 hours
+$ docker builder prune --filter until=24h # to remove builder cache with a filter of 24 hours
 
 WARNING! This will remove all dangling build cache. Are you sure you want to continue? [y/N] y
 
