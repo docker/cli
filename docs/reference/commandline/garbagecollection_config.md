@@ -122,20 +122,3 @@ Each rule is evaluated in order, and once a rule successfully reduces the cache 
 This configuration ensures the system aggressively prunes older and unused cache layers first, and only performs more general deletions if absolutely necessary.
 
 Go on to configure your gabage collection for a better build.
-
-### builder prune
-
-<!---MARKER_GEN_START-->
-Remove build cache
-
-### Options
-
-| Name             | Type     | Default | Description                                           |
-|:-----------------|:---------|:--------|:------------------------------------------------------|
-| `-a`, `--all`    | `bool`   |         | Remove all unused build cache, not just dangling ones |
-| `--filter`       | `filter` |         | Provide filter values (e.g. `until=24h`)              |
-| `-f`, `--force`  | `bool`   |         | Do not prompt for confirmation                        |
-| `--keep-storage` | `bytes`  | `0`     | Amount of disk space to keep for cache                |
-
-
-<!---MARKER_GEN_END-->
