@@ -84,6 +84,16 @@ func (opts *ListOpts) GetAll() []string {
 	return *opts.values
 }
 
+// GetSlice returns the values of slice.
+//
+// It implements [cobra.SliceValue] to allow shell completion to be provided
+// multiple times.
+//
+// [cobra.SliceValue]: https://pkg.go.dev/github.com/spf13/cobra@v1.9.1#SliceValue
+func (opts *ListOpts) GetSlice() []string {
+	return *opts.values
+}
+
 // GetAllOrEmpty returns the values of the slice
 // or an empty slice when there are no values.
 func (opts *ListOpts) GetAllOrEmpty() []string {
