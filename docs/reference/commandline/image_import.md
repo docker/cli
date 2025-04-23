@@ -79,7 +79,7 @@ the ownership of the files (especially root ownership) during the
 archiving with tar. If you are not root (or the sudo command) when you
 tar, then the ownerships might not get preserved.
 
-## When the daemon supports multiple operating systems
+### When the daemon supports multiple operating systems
 
 If the daemon supports multiple operating systems, and the image being imported
 does not match the default operating system, it may be necessary to add
