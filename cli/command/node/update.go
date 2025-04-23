@@ -101,13 +101,13 @@ func mergeNodeUpdate(flags *pflag.FlagSet) func(*swarm.Node) error {
 			spec.Annotations.Labels = make(map[string]string)
 		}
 		if flags.Changed(flagLabelAdd) {
-			labels := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
+			labels := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetSlice()
 			for k, v := range opts.ConvertKVStringsToMap(labels) {
 				spec.Annotations.Labels[k] = v
 			}
 		}
 		if flags.Changed(flagLabelRemove) {
-			keys := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
+			keys := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetSlice()
 			for _, k := range keys {
 				// if a key doesn't exist, fail the command explicitly
 				if _, exists := spec.Annotations.Labels[k]; !exists {

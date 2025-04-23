@@ -422,7 +422,7 @@ func (ldo *logDriverOptions) toLogDriver() *swarm.Driver {
 	// set the log driver only if specified.
 	return &swarm.Driver{
 		Name:    ldo.name,
-		Options: opts.ConvertKVStringsToMap(ldo.opts.GetAll()),
+		Options: opts.ConvertKVStringsToMap(ldo.opts.GetSlice()),
 	}
 }
 
@@ -639,7 +639,7 @@ func (options *serviceOptions) ToStopGracePeriod(flags *pflag.FlagSet) *time.Dur
 // makeEnv gets the environment variables from the command line options and
 // returns a slice of strings to use in the service spec when doing ToService
 func (options *serviceOptions) makeEnv() ([]string, error) {
-	envVariables, err := opts.ReadKVEnvStrings(options.envFile.GetAll(), options.env.GetAll())
+	envVariables, err := opts.ReadKVEnvStrings(options.envFile.GetSlice(), options.env.GetSlice())
 	if err != nil {
 		return nil, err
 	}
@@ -712,12 +712,12 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return service, err
 	}
 
-	capAdd, capDrop := opts.EffectiveCapAddCapDrop(options.capAdd.GetAll(), options.capDrop.GetAll())
+	capAdd, capDrop := opts.EffectiveCapAddCapDrop(options.capAdd.GetSlice(), options.capDrop.GetSlice())
 
 	service = swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
-			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
+			Labels: opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 		},
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{
@@ -726,25 +726,25 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Command:    options.entrypoint.Value(),
 				Env:        currentEnv,
 				Hostname:   options.hostname,
-				Labels:     opts.ConvertKVStringsToMap(options.containerLabels.GetAll()),
+				Labels:     opts.ConvertKVStringsToMap(options.containerLabels.GetSlice()),
 				Dir:        options.workdir,
 				User:       options.user,
-				Groups:     options.groups.GetAll(),
+				Groups:     options.groups.GetSlice(),
 				StopSignal: options.stopSignal,
 				TTY:        options.tty,
 				ReadOnly:   options.readOnly,
 				Mounts:     options.mounts.Value(),
 				Init:       &options.init,
 				DNSConfig: &swarm.DNSConfig{
-					Nameservers: options.dns.GetAll(),
-					Search:      options.dnsSearch.GetAll(),
-					Options:     options.dnsOption.GetAll(),
+					Nameservers: options.dns.GetSlice(),
+					Search:      options.dnsSearch.GetSlice(),
+					Options:     options.dnsOption.GetSlice(),
 				},
-				Hosts:           convertExtraHostsToSwarmHosts(options.hosts.GetAll()),
+				Hosts:           convertExtraHostsToSwarmHosts(options.hosts.GetSlice()),
 				StopGracePeriod: options.ToStopGracePeriod(flags),
 				Healthcheck:     healthConfig,
 				Isolation:       container.Isolation(options.isolation),
-				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetAll()),
+				Sysctls:         opts.ConvertKVStringsToMap(options.sysctls.GetSlice()),
 				CapabilityAdd:   capAdd,
 				CapabilityDrop:  capDrop,
 				Ulimits:         options.ulimits.GetList(),
@@ -754,7 +754,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 			Resources:     resources,
 			RestartPolicy: options.restartPolicy.ToRestartPolicy(flags),
 			Placement: &swarm.Placement{
-				Constraints: options.constraints.GetAll(),
+				Constraints: options.constraints.GetSlice(),
 				Preferences: options.placementPrefs.prefs,
 				MaxReplicas: options.maxReplicas,
 			},

@@ -229,7 +229,7 @@ func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*contai
 
 	// collect all the environment variables for the container
 	var err error
-	if execOptions.Env, err = opts.ReadKVEnvStrings(execOpts.EnvFile.GetAll(), execOpts.Env.GetAll()); err != nil {
+	if execOptions.Env, err = opts.ReadKVEnvStrings(execOpts.EnvFile.GetSlice(), execOpts.Env.GetSlice()); err != nil {
 		return nil, err
 	}
 

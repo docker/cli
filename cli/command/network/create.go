@@ -125,7 +125,7 @@ func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io
 		Scope:      options.scope,
 		ConfigOnly: options.configOnly,
 		ConfigFrom: configFrom,
-		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
+		Labels:     opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 	})
 	if err != nil {
 		return err

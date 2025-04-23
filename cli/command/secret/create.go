@@ -68,7 +68,7 @@ func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createO
 	spec := swarm.SecretSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.name,
-			Labels: opts.ConvertKVStringsToMap(options.labels.GetAll()),
+			Labels: opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 		},
 		Data: secretData,
 	}

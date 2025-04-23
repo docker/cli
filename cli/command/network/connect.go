@@ -72,7 +72,7 @@ func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options 
 			IPv6Address:  options.ipv6address,
 			LinkLocalIPs: options.linklocalips,
 		},
-		Links:      options.links.GetAll(),
+		Links:      options.links.GetSlice(),
 		Aliases:    options.aliases,
 		DriverOpts: driverOpts,
 		GwPriority: options.gwPriority,

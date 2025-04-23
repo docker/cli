@@ -117,7 +117,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 		Driver:     options.driver,
 		DriverOpts: options.driverOpts.GetAll(),
 		Name:       options.name,
-		Labels:     opts.ConvertKVStringsToMap(options.labels.GetAll()),
+		Labels:     opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 	}
 	if options.cluster {
 		volOpts.ClusterVolumeSpec = &volume.ClusterVolumeSpec{
@@ -160,7 +160,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 
 		// TODO(dperny): ignore if no topology specified
 		topology := &volume.TopologyRequirement{}
-		for _, top := range options.requisiteTopology.GetAll() {
+		for _, top := range options.requisiteTopology.GetSlice() {
 			// each topology takes the form segment=value,segment=value
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
@@ -175,7 +175,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			)
 		}
 
-		for _, top := range options.preferredTopology.GetAll() {
+		for _, top := range options.preferredTopology.GetSlice() {
 			// each topology takes the form segment=value,segment=value
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}

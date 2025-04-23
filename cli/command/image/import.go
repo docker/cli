@@ -82,7 +82,7 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 
 	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, image.ImportOptions{
 		Message:  options.message,
-		Changes:  options.changes.GetAll(),
+		Changes:  options.changes.GetSlice(),
 		Platform: options.platform,
 	})
 	if err != nil {

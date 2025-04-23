@@ -59,7 +59,7 @@ func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOpti
 	if options.keys.Len() == 0 {
 		return errors.New("path to a public key must be provided using the `--key` flag")
 	}
-	signerPubKeys, err := ingestPublicKeys(options.keys.GetAll())
+	signerPubKeys, err := ingestPublicKeys(options.keys.GetSlice())
 	if err != nil {
 		return err
 	}
