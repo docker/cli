@@ -80,6 +80,8 @@ func (opts *ListOpts) GetMap() map[string]struct{} {
 }
 
 // GetAll returns the values of slice.
+//
+// Deprecated: use [ListOpts.GetSlice] instead. This method will be removed in a future release.
 func (opts *ListOpts) GetAll() []string {
 	return *opts.values
 }
