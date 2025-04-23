@@ -345,15 +345,25 @@ func (o *FilterOpt) Set(value string) error {
 	if value == "" {
 		return nil
 	}
-	if !strings.Contains(value, "=") {
-		return errors.New("bad format of filter (expected name=value)")
+
+	var isEqualOp bool
+	// isEqualOp determines the comparison type:
+	// true  => use ="
+	// false => use "!="
+	var sep string
+	if strings.Contains(value, "!=") {
+		isEqualOp, sep = false, "!="
+	} else if strings.Contains(value, "=") {
+		isEqualOp, sep = true, "="
+	} else {
+		return errors.New("bad format of filter (expected name=value or name!=value)")
 	}
-	name, val, _ := strings.Cut(value, "=")
+	name, val, _ := strings.Cut(value, sep)
 
 	// TODO(thaJeztah): these options should not be case-insensitive.
 	name = strings.ToLower(strings.TrimSpace(name))
 	val = strings.TrimSpace(val)
-	o.filter.Add(name, val)
+	o.filter.Add(name, val, isEqualOp)
 	return nil
 }
 
