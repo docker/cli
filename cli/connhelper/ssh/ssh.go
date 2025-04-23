@@ -17,11 +17,11 @@ func ParseURL(daemonURL string) (*Spec, error) {
 		if errors.As(err, &urlErr) {
 			err = urlErr.Unwrap()
 		}
-		return nil, fmt.Errorf("invalid ssh URL: %w", err)
+		return nil, fmt.Errorf("invalid SSH URL: %w", err)
 	}
 	s, err := newSpec(u)
 	if err != nil {
-		return nil, fmt.Errorf("invalid ssh URL: %w", err)
+		return nil, fmt.Errorf("invalid SSH URL: %w", err)
 	}
 	return s, nil
 }
