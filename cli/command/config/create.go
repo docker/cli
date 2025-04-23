@@ -59,7 +59,7 @@ func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateO
 	spec := swarm.ConfigSpec{
 		Annotations: swarm.Annotations{
 			Name:   options.Name,
-			Labels: opts.ConvertKVStringsToMap(options.Labels.GetAll()),
+			Labels: opts.ConvertKVStringsToMap(options.Labels.GetSlice()),
 		},
 		Data: configData,
 	}

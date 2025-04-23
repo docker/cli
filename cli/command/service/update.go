@@ -582,7 +582,7 @@ func addGenericResources(flags *pflag.FlagSet, spec *swarm.TaskSpec) error {
 		spec.Resources.Reservations = &swarm.Resources{}
 	}
 
-	values := flags.Lookup(flagGenericResourcesAdd).Value.(*opts.ListOpts).GetAll()
+	values := flags.Lookup(flagGenericResourcesAdd).Value.(*opts.ListOpts).GetSlice()
 	generic, err := ParseGenericResources(values)
 	if err != nil {
 		return err
@@ -616,7 +616,7 @@ func removeGenericResources(flags *pflag.FlagSet, spec *swarm.TaskSpec) error {
 		spec.Resources.Reservations = &swarm.Resources{}
 	}
 
-	values := flags.Lookup(flagGenericResourcesRemove).Value.(*opts.ListOpts).GetAll()
+	values := flags.Lookup(flagGenericResourcesRemove).Value.(*opts.ListOpts).GetSlice()
 
 	m, err := buildGenericResourceMap(spec.Resources.Reservations.GenericResources)
 	if err != nil {
@@ -637,7 +637,7 @@ func removeGenericResources(flags *pflag.FlagSet, spec *swarm.TaskSpec) error {
 
 func updatePlacementConstraints(flags *pflag.FlagSet, placement *swarm.Placement) {
 	if flags.Changed(flagConstraintAdd) {
-		values := flags.Lookup(flagConstraintAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagConstraintAdd).Value.(*opts.ListOpts).GetSlice()
 		placement.Constraints = append(placement.Constraints, values...)
 	}
 	toRemove := buildToRemoveSet(flags, flagConstraintRemove)
@@ -684,7 +684,7 @@ func updatePlacementPreferences(flags *pflag.FlagSet, placement *swarm.Placement
 
 func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 	if *field != nil && flags.Changed(flagContainerLabelRemove) {
-		toRemove := flags.Lookup(flagContainerLabelRemove).Value.(*opts.ListOpts).GetAll()
+		toRemove := flags.Lookup(flagContainerLabelRemove).Value.(*opts.ListOpts).GetSlice()
 		for _, label := range toRemove {
 			delete(*field, label)
 		}
@@ -694,7 +694,7 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 			*field = map[string]string{}
 		}
 
-		values := flags.Lookup(flagContainerLabelAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagContainerLabelAdd).Value.(*opts.ListOpts).GetSlice()
 		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
@@ -703,7 +703,7 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 
 func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 	if *field != nil && flags.Changed(flagLabelRemove) {
-		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetAll()
+		toRemove := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetSlice()
 		for _, label := range toRemove {
 			delete(*field, label)
 		}
@@ -713,7 +713,7 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 			*field = map[string]string{}
 		}
 
-		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetSlice()
 		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
@@ -722,7 +722,7 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 
 func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 	if *field != nil && flags.Changed(flagSysCtlRemove) {
-		values := flags.Lookup(flagSysCtlRemove).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagSysCtlRemove).Value.(*opts.ListOpts).GetSlice()
 		for key := range opts.ConvertKVStringsToMap(values) {
 			delete(*field, key)
 		}
@@ -732,7 +732,7 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 			*field = map[string]string{}
 		}
 
-		values := flags.Lookup(flagSysCtlAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagSysCtlAdd).Value.(*opts.ListOpts).GetSlice()
 		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
@@ -746,7 +746,7 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*container.Ulimit) []*contain
 		newUlimits[ulimit.Name] = ulimit
 	}
 	if flags.Changed(flagUlimitRemove) {
-		values := flags.Lookup(flagUlimitRemove).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagUlimitRemove).Value.(*opts.ListOpts).GetSlice()
 		for key := range opts.ConvertKVStringsToMap(values) {
 			delete(newUlimits, key)
 		}
@@ -781,7 +781,7 @@ func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
 		}
 
 		value := flags.Lookup(flagEnvAdd).Value.(*opts.ListOpts)
-		for _, v := range value.GetAll() {
+		for _, v := range value.GetSlice() {
 			envSet[envKey(v)] = v
 		}
 
@@ -923,7 +923,7 @@ func buildToRemoveSet(flags *pflag.FlagSet, flag string) map[string]struct{} {
 		return toRemove
 	}
 
-	toRemoveSlice := flags.Lookup(flag).Value.(*opts.ListOpts).GetAll()
+	toRemoveSlice := flags.Lookup(flag).Value.(*opts.ListOpts).GetSlice()
 	for _, key := range toRemoveSlice {
 		toRemove[key] = empty
 	}
@@ -988,7 +988,7 @@ func updateMounts(flags *pflag.FlagSet, mounts *[]mounttypes.Mount) error {
 
 func updateGroups(flags *pflag.FlagSet, groups *[]string) error {
 	if flags.Changed(flagGroupAdd) {
-		values := flags.Lookup(flagGroupAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagGroupAdd).Value.(*opts.ListOpts).GetSlice()
 		*groups = append(*groups, values...)
 	}
 	toRemove := buildToRemoveSet(flags, flagGroupRemove)
@@ -1023,7 +1023,7 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 
 	nameservers := (*config).Nameservers
 	if flags.Changed(flagDNSAdd) {
-		values := flags.Lookup(flagDNSAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagDNSAdd).Value.(*opts.ListOpts).GetSlice()
 		nameservers = append(nameservers, values...)
 	}
 	nameservers = removeDuplicates(nameservers)
@@ -1038,7 +1038,7 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 
 	search := (*config).Search
 	if flags.Changed(flagDNSSearchAdd) {
-		values := flags.Lookup(flagDNSSearchAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagDNSSearchAdd).Value.(*opts.ListOpts).GetSlice()
 		search = append(search, values...)
 	}
 	search = removeDuplicates(search)
@@ -1053,7 +1053,7 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 
 	options := (*config).Options
 	if flags.Changed(flagDNSOptionAdd) {
-		values := flags.Lookup(flagDNSOptionAdd).Value.(*opts.ListOpts).GetAll()
+		values := flags.Lookup(flagDNSOptionAdd).Value.(*opts.ListOpts).GetSlice()
 		options = append(options, values...)
 	}
 	options = removeDuplicates(options)
@@ -1202,7 +1202,7 @@ type hostMapping struct {
 func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 	var toRemove []hostMapping
 	if flags.Changed(flagHostRemove) {
-		extraHostsToRemove := flags.Lookup(flagHostRemove).Value.(*opts.ListOpts).GetAll()
+		extraHostsToRemove := flags.Lookup(flagHostRemove).Value.(*opts.ListOpts).GetSlice()
 		for _, entry := range extraHostsToRemove {
 			hostName, ipAddr, _ := strings.Cut(entry, ":")
 			toRemove = append(toRemove, hostMapping{IPAddr: ipAddr, Host: hostName})
@@ -1236,7 +1236,7 @@ func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 
 	// Append new hosts (in SwarmKit format)
 	if flags.Changed(flagHostAdd) {
-		values := convertExtraHostsToSwarmHosts(flags.Lookup(flagHostAdd).Value.(*opts.ListOpts).GetAll())
+		values := convertExtraHostsToSwarmHosts(flags.Lookup(flagHostAdd).Value.(*opts.ListOpts).GetSlice())
 		newHosts = append(newHosts, values...)
 	}
 	*hosts = removeDuplicates(newHosts)
@@ -1261,7 +1261,7 @@ func updateLogDriver(flags *pflag.FlagSet, taskTemplate *swarm.TaskSpec) error {
 
 	taskTemplate.LogDriver = &swarm.Driver{
 		Name:    name,
-		Options: opts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetAll()),
+		Options: opts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetSlice()),
 	}
 
 	return nil
@@ -1470,14 +1470,14 @@ func updateCapabilities(flags *pflag.FlagSet, containerSpec *swarm.ContainerSpec
 		capAdd  = opts.CapabilitiesMap(containerSpec.CapabilityAdd)
 	)
 	if flags.Changed(flagCapAdd) {
-		toAdd = opts.CapabilitiesMap(flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetAll())
+		toAdd = opts.CapabilitiesMap(flags.Lookup(flagCapAdd).Value.(*opts.ListOpts).GetSlice())
 		if toAdd[opts.ResetCapabilities] {
 			capAdd = make(map[string]bool)
 			delete(toAdd, opts.ResetCapabilities)
 		}
 	}
 	if flags.Changed(flagCapDrop) {
-		toDrop = opts.CapabilitiesMap(flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetAll())
+		toDrop = opts.CapabilitiesMap(flags.Lookup(flagCapDrop).Value.(*opts.ListOpts).GetSlice())
 		if toDrop[opts.ResetCapabilities] {
 			capDrop = make(map[string]bool)
 			delete(toDrop, opts.ResetCapabilities)
