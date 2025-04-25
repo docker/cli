@@ -14,7 +14,7 @@ if [ -z "$TYP" ]; then
 fi
 
 update() {
-  (set -x ; go mod tidy -modfile=vendor.mod; go mod vendor -modfile=vendor.mod)
+  (set -x ; go mod tidy; go mod vendor)
 }
 
 validate() {
@@ -31,7 +31,7 @@ outdated() {
     echo "go-mod-outdated not found. Install with 'go install github.com/psampaz/go-mod-outdated@v0.8.0'"
     exit 1
   fi
-  (set -x ; go list -mod=vendor -mod=readonly -modfile=vendor.mod -u -m -json all | go-mod-outdated -update -direct)
+  (set -x ; go list -mod=readonly -u -m -json all | go-mod-outdated -update -direct)
 }
 
 case $TYP in
