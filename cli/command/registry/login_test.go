@@ -550,12 +550,17 @@ func TestLoginValidateFlags(t *testing.T) {
 		{
 			name:        "--password-stdin without --username",
 			args:        []string{"--password-stdin"},
-			expectedErr: `Must provide --username with --password-stdin`,
+			expectedErr: `the --password-stdin option requires --username to be set`,
 		},
 		{
 			name:        "--password-stdin with empty --username",
 			args:        []string{"--password-stdin", "--username", ""},
-			expectedErr: `Must provide --username with --password-stdin`,
+			expectedErr: `username is empty`,
+		},
+		{
+			name:        "empty --username",
+			args:        []string{"--username", ""},
+			expectedErr: `username is empty`,
 		},
 		{
 			name:        "--username without value",
@@ -565,7 +570,12 @@ func TestLoginValidateFlags(t *testing.T) {
 		{
 			name:        "conflicting options --password-stdin and --password",
 			args:        []string{"--password-stdin", "--password", ""},
-			expectedErr: `Must provide --username with --password-stdin`,
+			expectedErr: `conflicting options: cannot specify both --password and --password-stdin`,
+		},
+		{
+			name:        "empty --password",
+			args:        []string{"--password", ""},
+			expectedErr: `password is empty`,
 		},
 		{
 			name:        "--password without value",

@@ -21,6 +21,7 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type loginOptions struct {
@@ -43,6 +44,9 @@ func NewLoginCommand(dockerCLI command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				opts.serverAddress = args[0]
 			}
+			if err := verifyLoginFlags(cmd.Flags(), opts); err != nil {
+				return err
+			}
 			return runLogin(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
@@ -60,17 +64,35 @@ func NewLoginCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func verifyLoginOptions(dockerCLI command.Cli, opts *loginOptions) error {
+// verifyLoginFlags validates flags set on the command.
+//
+// TODO(thaJeztah); combine with verifyLoginOptions, but this requires rewrites of many tests.
+func verifyLoginFlags(flags *pflag.FlagSet, opts loginOptions) error {
+	if flags.Changed("password-stdin") {
+		if flags.Changed("password") {
+			return errors.New("conflicting options: cannot specify both --password and --password-stdin")
+		}
+		if !flags.Changed("username") {
+			return errors.New("the --password-stdin option requires --username to be set")
+		}
+	}
+	if flags.Changed("username") && opts.user == "" {
+		return errors.New("username is empty")
+	}
+	if flags.Changed("password") && opts.password == "" {
+		return errors.New("password is empty")
+	}
+	return nil
+}
+
+func verifyLoginOptions(dockerCLI command.Streams, opts *loginOptions) error {
 	if opts.password != "" {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
-		if opts.passwordStdin {
-			return errors.New("--password and --password-stdin are mutually exclusive")
-		}
 	}
 
 	if opts.passwordStdin {
 		if opts.user == "" {
-			return errors.New("Must provide --username with --password-stdin")
+			return errors.New("username is empty")
 		}
 
 		contents, err := io.ReadAll(dockerCLI.In())
