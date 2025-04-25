@@ -17,14 +17,12 @@ create_symlink() {
 	local target="$1"
 	local link="$2"
 
-	if [ -L "$link" ] && [ "$(readlink "$link")" = "$target" ]; then
-		# symlink already present; we're done
-		return
-	fi
-
 	if [ -e "$link" ]; then
-		echo "$(basename "$0"): WARN: $link exists but is not the expected symlink!" >&2
-		echo "$(basename "$0"): WARN: Using your version instead of our generated version -- this may misbehave!" >&2
+		# see https://superuser.com/a/196698
+		if ! [ "$link" -ef "${ROOTDIR}/${target}" ]; then
+			echo "$(basename "$0"): WARN: $link exists but is not the expected symlink!" >&2
+			echo "$(basename "$0"): WARN: Using your version instead of our generated version -- this may misbehave!" >&2
+		fi
 		return
 	fi
 
