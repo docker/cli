@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"testing"
 	"time"
@@ -537,5 +538,53 @@ func TestIsOauthLoginDisabled(t *testing.T) {
 		disabled := isOauthLoginDisabled()
 
 		assert.Equal(t, disabled, tc.disabled)
+	}
+}
+
+func TestLoginValidateFlags(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		args        []string
+		expectedErr string
+	}{
+		{
+			name:        "--password-stdin without --username",
+			args:        []string{"--password-stdin"},
+			expectedErr: `Must provide --username with --password-stdin`,
+		},
+		{
+			name:        "--password-stdin with empty --username",
+			args:        []string{"--password-stdin", "--username", ""},
+			expectedErr: `Must provide --username with --password-stdin`,
+		},
+		{
+			name:        "--username without value",
+			args:        []string{"--username"},
+			expectedErr: `flag needs an argument: --username`,
+		},
+		{
+			name:        "conflicting options --password-stdin and --password",
+			args:        []string{"--password-stdin", "--password", ""},
+			expectedErr: `Must provide --username with --password-stdin`,
+		},
+		{
+			name:        "--password without value",
+			args:        []string{"--password"},
+			expectedErr: `flag needs an argument: --password`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := NewLoginCommand(test.NewFakeCli(&fakeClient{}))
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs(tc.args)
+
+			err := cmd.Execute()
+			if tc.expectedErr != "" {
+				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+			} else {
+				assert.Check(t, is.Nil(err))
+			}
+		})
 	}
 }
