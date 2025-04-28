@@ -116,10 +116,9 @@ linters:
     staticcheck:
       checks:
         - all
-        - -QF1003 # FIXME Convert if/else-if chain to tagged switch
-        - -QF1008 # FIXME Omit embedded fields from selector expression
-        - -ST1020 # FIXME The documentation of an exported function should start with the function’s name
-        - -ST1022 # FIXME The documentation of an exported variable or constant should start with variable’s name
+        - -QF1008 # Omit embedded fields from selector expression
+        - -ST1020 # The documentation of an exported function should start with the function’s name
+        - -ST1022 # The documentation of an exported variable or constant should start with variable’s name
 
     revive:
       rules:
