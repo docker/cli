@@ -129,9 +129,10 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			Availability: volume.Availability(options.availability),
 		}
 
-		if options.accessType == "mount" {
+		switch options.accessType {
+		case "mount":
 			volOpts.ClusterVolumeSpec.AccessMode.MountVolume = &volume.TypeMount{}
-		} else if options.accessType == "block" {
+		case "block":
 			volOpts.ClusterVolumeSpec.AccessMode.BlockVolume = &volume.TypeBlock{}
 		}
 
