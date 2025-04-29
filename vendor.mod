@@ -9,7 +9,7 @@ go 1.23.0
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/platforms v1.0.0-rc.1
-	github.com/cpuguy83/go-md2man/v2 v2.0.6
+	github.com/cpuguy83/go-md2man/v2 v2.0.7
 	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.9.0
