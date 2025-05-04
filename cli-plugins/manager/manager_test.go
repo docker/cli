@@ -37,7 +37,7 @@ func TestListPluginCandidates(t *testing.T) {
 			"plugins3-target", // Will be referenced as a symlink from below
 			fs.WithFile("docker-plugin1", ""),
 			fs.WithDir("ignored3"),
-			fs.WithSymlink("docker-brokensymlink", "broken"),           // A broken symlink is still a candidate (but would fail tests later)
+			fs.WithSymlink("docker-brokensymlink", "broken"),           // A broken symlink is ignored
 			fs.WithFile("non-plugin-symlinked", ""),                    // This shouldn't appear, but ...
 			fs.WithSymlink("docker-symlinked", "non-plugin-symlinked"), // ... this link to it should.
 		),
@@ -70,9 +70,6 @@ func TestListPluginCandidates(t *testing.T) {
 		},
 		"hardlink2": {
 			dir.Join("plugins2", "docker-hardlink2"),
-		},
-		"brokensymlink": {
-			dir.Join("plugins3", "docker-brokensymlink"),
 		},
 		"symlinked": {
 			dir.Join("plugins3", "docker-symlinked"),
