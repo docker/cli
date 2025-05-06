@@ -89,6 +89,19 @@ and sets the `DEBUG` environment-variable in the resulting image:
 $ docker import --change "ENV DEBUG=true" ./rootfs.tgz exampleimagedir
 ```
 
+The `--change` option can be set multiple times to apply multiple `Dockerfile`
+instructions. The example below sets the `LABEL1` and `LABEL2` labels on
+the imported image, in addition to the `DEBUG` environment variable from
+the previous example:
+
+```console
+$ docker import \
+    --change "ENV DEBUG=true" \
+    --change "LABEL LABEL1=hello" \
+    --change "LABEL LABEL2=world" \
+    ./rootfs.tgz exampleimagedir
+```
+
 ### <a name="message"></a> Import with a commit message (-m, --message)
 
 The `--message`  (or `-m`) option allows you to set a custom comment in
