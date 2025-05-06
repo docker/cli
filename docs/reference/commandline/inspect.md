@@ -20,6 +20,8 @@ Docker inspect provides detailed information on constructs controlled by Docker.
 
 By default, `docker inspect` will render results in a JSON array.
 
+## Examples
+
 ### <a name="format"></a> Format the output (--format)
 
 If a format is specified, the given template will be executed for each result.
@@ -72,8 +74,6 @@ $ docker exec database fallocate -l 1000 /newfile
 $ docker inspect --size database -f '{{ .SizeRw }}'
 12288
 ```
-
-## Examples
 
 ### Get an instance's IP address
 
