@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
@@ -20,6 +21,7 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type objectType = string
@@ -56,6 +58,8 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 			opts.ids = args
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
+		// TODO(thaJeztah): should we consider adding completion for common object-types? (images, containers?)
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
@@ -63,6 +67,12 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&opts.objectType, "type", "", "Return JSON for specified type")
 	flags.BoolVarP(&opts.size, "size", "s", false, "Display total file sizes if the type is container")
 
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 
