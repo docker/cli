@@ -9,11 +9,11 @@ Import the contents from a tarball to create a filesystem image
 
 ### Options
 
-| Name              | Type     | Default | Description                                       |
-|:------------------|:---------|:--------|:--------------------------------------------------|
-| `-c`, `--change`  | `list`   |         | Apply Dockerfile instruction to the created image |
-| `-m`, `--message` | `string` |         | Set commit message for imported image             |
-| `--platform`      | `string` |         | Set platform if server is multi-platform capable  |
+| Name                                      | Type     | Default | Description                                       |
+|:------------------------------------------|:---------|:--------|:--------------------------------------------------|
+| [`-c`](#change), [`--change`](#change)    | `list`   |         | Apply Dockerfile instruction to the created image |
+| [`-m`](#message), [`--message`](#message) | `string` |         | Set commit message for imported image             |
+| `--platform`                              | `string` |         | Set platform if server is multi-platform capable  |
 
 
 <!---MARKER_GEN_END-->
@@ -27,10 +27,6 @@ specify an archive, Docker untars it in the container relative to the `/`
 (root). If you specify an individual file, you must specify the full path within
 the host. To import from a remote location, specify a `URI` that begins with the
 `http://` or `https://` protocol.
-
-The `--change` option applies `Dockerfile` instructions to the image that is
-created. Supported `Dockerfile` instructions:
-`CMD`|`ENTRYPOINT`|`ENV`|`EXPOSE`|`ONBUILD`|`USER`|`VOLUME`|`WORKDIR`
 
 ## Examples
 
@@ -50,12 +46,6 @@ Import to docker via pipe and `STDIN`.
 $ cat exampleimage.tgz | docker import - exampleimagelocal:new
 ```
 
-Import with a commit message.
-
-```console
-$ cat exampleimage.tgz | docker import --message "New image imported from tarball" - exampleimagelocal:new
-```
-
 Import to docker from a local archive.
 
 ```console
@@ -68,16 +58,54 @@ $ docker import /path/to/exampleimage.tgz
 $ sudo tar -c . | docker import - exampleimagedir
 ```
 
-### Import from a local directory with new configurations
-
-```console
-$ sudo tar -c . | docker import --change "ENV DEBUG=true" - exampleimagedir
-```
-
 Note the `sudo` in this example – you must preserve
 the ownership of the files (especially root ownership) during the
 archiving with tar. If you are not root (or the sudo command) when you
 tar, then the ownerships might not get preserved.
+
+### <a name="change"></a> Import with new configurations (-c, --change)
+
+The `--change` option applies `Dockerfile` instructions to the image that is
+created. Not all `Dockerfile` instructions are supported; the list of instructions
+is limited to metadata (configuration) changes. The following `Dockerfile`
+instructions are supported:
+
+- [`CMD`](https://docs.docker.com/reference/dockerfile/#cmd)
+- [`ENTRYPOINT`](https://docs.docker.com/reference/dockerfile/#entrypoint)
+- [`ENV`](https://docs.docker.com/reference/dockerfile/#env)
+- [`EXPOSE`](https://docs.docker.com/reference/dockerfile/#expose)
+- [`ONBUILD`](https://docs.docker.com/reference/dockerfile/#onbuild)
+- [`USER`](https://docs.docker.com/reference/dockerfile/#user)
+- [`VOLUME`](https://docs.docker.com/reference/dockerfile/#volume)
+- [`WORKDIR`](https://docs.docker.com/reference/dockerfile/#workdir)
+
+The following example imports an image from a TAR-file containing a root-filesystem,
+and sets the `DEBUG` environment-variable in the resulting image:
+
+```console
+$ docker import --change "ENV DEBUG=true" ./rootfs.tgz exampleimagedir
+```
+
+### <a name="message"></a> Import with a commit message (-m, --message)
+
+The `--message`  (or `-m`) option allows you to set a custom comment in
+the image's metadata. The following example imports an image from a local
+archive and sets a custom message.
+
+```console
+$ docker import --message "New image imported from tarball" ./rootfs.tgz exampleimagelocal:new
+sha256:25e54c0df7dc49da9093d50541e0ed4508a6b78705057f1a9bebf1d564e2cb00
+```
+
+After importing, the message is set in the "Comment" field of the image's
+configuration, which is shown when viewing the image's history:
+
+```console
+$ docker image history exampleimagelocal:new
+
+IMAGE          CREATED         CREATED BY   SIZE      COMMENT
+25e54c0df7dc   2 minutes ago                53.6MB    New image imported from tarball
+```
 
 ### When the daemon supports multiple operating systems
 
