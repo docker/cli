@@ -13,7 +13,7 @@ Import the contents from a tarball to create a filesystem image
 |:------------------------------------------|:---------|:--------|:--------------------------------------------------|
 | [`-c`](#change), [`--change`](#change)    | `list`   |         | Apply Dockerfile instruction to the created image |
 | [`-m`](#message), [`--message`](#message) | `string` |         | Set commit message for imported image             |
-| `--platform`                              | `string` |         | Set platform if server is multi-platform capable  |
+| [`--platform`](#platform)                 | `string` |         | Set platform if server is multi-platform capable  |
 
 
 <!---MARKER_GEN_END-->
@@ -119,4 +119,32 @@ daemon.
 
 ```console
 $ docker import --platform=linux .\linuximage.tar
+```
+
+### <a name="platform"></a> Set the platform for the imported image (--platform)
+
+The `--platform` option allows you to specify the platform for the imported
+image. By default, the daemon's native platform is used as platform, but
+the `--platform` option allows you to override the default, for example, in
+situations where the imported root filesystem is for a different architecture
+or operating system.
+
+The platform option takes the `os[/arch[/variant]]` format; for example,
+`linux/amd64` or `linux/arm64/v8`. Architecture and variant are optional,
+and default to the daemon's native architecture if omitted.
+
+The following example imports an image from a root-filesystem in `rootfs.tgz`,
+and sets the image's platform to `linux/amd64`;
+
+```console
+$ docker image import --platform=linux/amd64  ./rootfs.tgz imported:latest
+sha256:44a8b44157dad5edcff85f0c93a3e455f3b20a046d025af4ec50ed990d7ebc09
+```
+
+After importing the image, the image's platform is set in the image's
+configuration;
+
+```console
+$ docker image inspect --format '{{.Os}}/{{.Architecture}}' imported:latest
+linux/amd64
 ```
