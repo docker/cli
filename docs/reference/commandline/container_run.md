@@ -388,7 +388,7 @@ none            1.9G     0  1.9G   0% /mnt
 ### <a name="workdir"></a> Set working directory (-w, --workdir)
 
 ```console
-$ docker run -w /path/to/dir/ -i -t ubuntu pwd
+$ docker run -w /path/to/dir/ ubuntu pwd
 ```
 
 The `-w` option runs the command executed inside the directory specified, in this example,
