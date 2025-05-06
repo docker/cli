@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
@@ -20,13 +21,42 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
+type objectType = string
+
+const (
+	typeConfig    objectType = "config"
+	typeContainer objectType = "container"
+	typeImage     objectType = "image"
+	typeNetwork   objectType = "network"
+	typeNode      objectType = "node"
+	typePlugin    objectType = "plugin"
+	typeSecret    objectType = "secret"
+	typeService   objectType = "service"
+	typeTask      objectType = "task"
+	typeVolume    objectType = "volume"
+)
+
+var allTypes = []objectType{
+	typeConfig,
+	typeContainer,
+	typeImage,
+	typeNetwork,
+	typeNode,
+	typePlugin,
+	typeSecret,
+	typeService,
+	typeTask,
+	typeVolume,
+}
+
 type inspectOptions struct {
-	format      string
-	inspectType string
-	size        bool
-	ids         []string
+	format     string
+	objectType objectType
+	size       bool
+	ids        []string
 }
 
 // NewInspectCommand creates a new cobra.Command for `docker inspect`
@@ -39,25 +69,38 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ids = args
+			if cmd.Flags().Changed("type") && opts.objectType == "" {
+				return fmt.Errorf(`type is empty: must be one of "%s"`, strings.Join(allTypes, `", "`))
+			}
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
+		// TODO(thaJeztah): should we consider adding completion for common object-types? (images, containers?)
+		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
-	flags.StringVar(&opts.inspectType, "type", "", "Return JSON for specified type")
+	flags.StringVar(&opts.objectType, "type", "", "Only inspect objects of the given type")
 	flags.BoolVarP(&opts.size, "size", "s", false, "Display total file sizes if the type is container")
 
+	_ = cmd.RegisterFlagCompletionFunc("type", completion.FromList(allTypes...))
+	flags.VisitAll(func(flag *pflag.Flag) {
+		// Set a default completion function if none was set. We don't look
+		// up if it does already have one set, because Cobra does this for
+		// us, and returns an error (which we ignore for this reason).
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+	})
 	return cmd
 }
 
 func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
 	var elementSearcher inspect.GetRefFunc
-	switch opts.inspectType {
-	case "", "config", "container", "image", "network", "node", "plugin", "secret", "service", "task", "volume":
-		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.inspectType)
+	switch opts.objectType {
+	case "", typeConfig, typeContainer, typeImage, typeNetwork, typeNode,
+		typePlugin, typeSecret, typeService, typeTask, typeVolume:
+		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.objectType)
 	default:
-		return errors.Errorf("%q is not a valid value for --type", opts.inspectType)
+		return errors.Errorf(`unknown type: %q: must be one of "%s"`, opts.objectType, strings.Join(allTypes, `", "`))
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.ids, opts.format, elementSearcher)
 }
@@ -128,56 +171,56 @@ func inspectConfig(ctx context.Context, dockerCLI command.Cli) inspect.GetRefFun
 	}
 }
 
-func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeConstraint string) inspect.GetRefFunc {
+func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeConstraint objectType) inspect.GetRefFunc {
 	inspectAutodetect := []struct {
-		objectType      string
+		objectType      objectType
 		isSizeSupported bool
 		isSwarmObject   bool
 		objectInspector func(string) (any, []byte, error)
 	}{
 		{
-			objectType:      "container",
+			objectType:      typeContainer,
 			isSizeSupported: true,
 			objectInspector: inspectContainers(ctx, dockerCLI, getSize),
 		},
 		{
-			objectType:      "image",
+			objectType:      typeImage,
 			objectInspector: inspectImages(ctx, dockerCLI),
 		},
 		{
-			objectType:      "network",
+			objectType:      typeNetwork,
 			objectInspector: inspectNetwork(ctx, dockerCLI),
 		},
 		{
-			objectType:      "volume",
+			objectType:      typeVolume,
 			objectInspector: inspectVolume(ctx, dockerCLI),
 		},
 		{
-			objectType:      "service",
+			objectType:      typeService,
 			isSwarmObject:   true,
 			objectInspector: inspectService(ctx, dockerCLI),
 		},
 		{
-			objectType:      "task",
+			objectType:      typeTask,
 			isSwarmObject:   true,
 			objectInspector: inspectTasks(ctx, dockerCLI),
 		},
 		{
-			objectType:      "node",
+			objectType:      typeNode,
 			isSwarmObject:   true,
 			objectInspector: inspectNode(ctx, dockerCLI),
 		},
 		{
-			objectType:      "plugin",
+			objectType:      typePlugin,
 			objectInspector: inspectPlugin(ctx, dockerCLI),
 		},
 		{
-			objectType:      "secret",
+			objectType:      typeSecret,
 			isSwarmObject:   true,
 			objectInspector: inspectSecret(ctx, dockerCLI),
 		},
 		{
-			objectType:      "config",
+			objectType:      typeConfig,
 			isSwarmObject:   true,
 			objectInspector: inspectConfig(ctx, dockerCLI),
 		},
