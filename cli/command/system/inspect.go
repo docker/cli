@@ -69,6 +69,9 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.ids = args
+			if cmd.Flags().Changed("type") && opts.objectType == "" {
+				return fmt.Errorf(`type is empty: must be one of "%s"`, strings.Join(allTypes, `", "`))
+			}
 			return runInspect(cmd.Context(), dockerCli, opts)
 		},
 		// TODO(thaJeztah): should we consider adding completion for common object-types? (images, containers?)
@@ -97,7 +100,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 		typePlugin, typeSecret, typeService, typeTask, typeVolume:
 		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.objectType)
 	default:
-		return errors.Errorf("%q is not a valid value for --type", opts.objectType)
+		return errors.Errorf(`unknown type: %q: must be one of "%s"`, opts.objectType, strings.Join(allTypes, `", "`))
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.ids, opts.format, elementSearcher)
 }
