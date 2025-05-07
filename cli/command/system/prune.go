@@ -144,9 +144,14 @@ func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 	if pruneFilters.Len() > 0 {
 		// TODO remove fixed list of filters, and print all filters instead,
 		// because the list of filters that is supported by the engine may evolve over time.
+
 		for _, name := range []string{"label", "label!", "until"} {
-			for _, v := range pruneFilters.Get(name) {
-				filters = append(filters, name+"="+v)
+			for v, isEqualOp := range options.filter.Value().GetPair(name) {
+				op := "="
+				if !isEqualOp {
+					op = "!="
+				}
+				filters = append(filters, name+op+v)
 			}
 		}
 		sort.Slice(filters, func(i, j int) bool {
