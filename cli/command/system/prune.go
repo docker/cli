@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"sync"
+	"sync/atomic"
 	"text/template"
 
 	"github.com/docker/cli/cli"
@@ -72,8 +74,13 @@ const confirmationTemplate = `WARNING! This will remove:
 {{end}}
 Are you sure you want to continue?`
 
+type pruneResult struct {
+	spaceReclaimed uint64
+	output         string
+	err            error
+}
+
 func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) error {
-	// TODO version this once "until" filter is supported for volumes
 	if options.pruneVolumes && options.filter.Value().Contains("until") {
 		return errors.New(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
@@ -99,19 +106,46 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	}
 
 	var spaceReclaimed uint64
+	
+	var mu sync.Mutex
+	var outputs []string
+	var errs []error
+	
+	var wg sync.WaitGroup
+	wg.Add(len(pruneFuncs))
+	
 	for _, pruneFn := range pruneFuncs {
-		spc, output, err := pruneFn(ctx, dockerCli, options.all, options.filter)
-		if err != nil {
-			return err
-		}
-		spaceReclaimed += spc
-		if output != "" {
-			_, _ = fmt.Fprintln(dockerCli.Out(), output)
-		}
+		go func(pruneFn func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error)) {
+			defer wg.Done()
+			
+			spc, output, err := pruneFn(ctx, dockerCli, options.all, options.filter)
+			
+			atomic.AddUint64(&spaceReclaimed, spc)
+			
+			mu.Lock()
+			defer mu.Unlock()
+			
+			if err != nil {
+				errs = append(errs, err)
+			}
+			if output != "" {
+				outputs = append(outputs, output)
+			}
+		}(pruneFn)
 	}
-
+	
+	wg.Wait()
+	
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	
+	for _, output := range outputs {
+		_, _ = fmt.Fprintln(dockerCli.Out(), output)
+	}
+	
 	_, _ = fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
-
+	
 	return nil
 }
 
