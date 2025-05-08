@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stringid"
@@ -26,6 +27,7 @@ const (
 	mountsHeader     = "MOUNTS"
 	localVolumes     = "LOCAL VOLUMES"
 	networksHeader   = "NETWORKS"
+	platformHeader   = "PLATFORM"
 )
 
 // NewContainerFormat returns a Format for rendering using a Context
@@ -111,6 +113,7 @@ func NewContainerContext() *ContainerContext {
 		"Mounts":       mountsHeader,
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
+		"Platform":     platformHeader,
 	}
 	return &containerCtx
 }
@@ -208,6 +211,17 @@ func (c *ContainerContext) CreatedAt() string {
 func (c *ContainerContext) RunningFor() string {
 	createdAt := time.Unix(c.c.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
+}
+
+// Platform returns a human-readable representation of the platform
+// of the container if it is available.
+//
+// TODO(thaJeztah): should this take arguments to control "how" it's formatted?
+func (c *ContainerContext) Platform() string {
+	if c.c.ImageManifestDescriptor != nil && c.c.ImageManifestDescriptor.Platform != nil {
+		return platforms.FormatAll(*c.c.ImageManifestDescriptor.Platform)
+	}
+	return ""
 }
 
 // Ports returns a comma-separated string representing open ports of the container
