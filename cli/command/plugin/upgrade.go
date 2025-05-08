@@ -8,7 +8,7 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"

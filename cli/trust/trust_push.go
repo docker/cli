@@ -9,8 +9,8 @@ import (
 	"sort"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/internal/jsonstream"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
