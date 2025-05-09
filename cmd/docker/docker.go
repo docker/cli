@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -341,6 +340,9 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 		if force {
 			_ = plugincmd.Process.Kill()
 			_, _ = fmt.Fprint(dockerCli.Err(), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
+
+			// Restore terminal in case it was in raw mode.
+			restoreTerminal(dockerCli)
 			os.Exit(1)
 		}
 	}
@@ -388,7 +390,7 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 // to be caught and the context to be marked as done, then registers a new
 // signal handler for subsequent signals. It forces the process to exit
 // after 3 SIGTERM/SIGINT signals.
-func forceExitAfter3TerminationSignals(ctx context.Context, w io.Writer) {
+func forceExitAfter3TerminationSignals(ctx context.Context, streams command.Streams) {
 	// wait for the first signal to be caught and the context to be marked as done
 	<-ctx.Done()
 	// register a new signal handler for subsequent signals
@@ -399,8 +401,20 @@ func forceExitAfter3TerminationSignals(ctx context.Context, w io.Writer) {
 	for i := 0; i < 2; i++ {
 		<-sig
 	}
-	_, _ = fmt.Fprint(w, "\ngot 3 SIGTERM/SIGINTs, forcefully exiting\n")
+	_, _ = fmt.Fprint(streams.Err(), "\ngot 3 SIGTERM/SIGINTs, forcefully exiting\n")
+
+	// Restore terminal in case it was in raw mode.
+	restoreTerminal(streams)
 	os.Exit(1)
+}
+
+// restoreTerminal restores the terminal if it was in raw mode; this prevents
+// local echo from being disabled for the current terminal after forceful
+// termination. It's a no-op if there's no prior state to restore.
+func restoreTerminal(streams command.Streams) {
+	streams.In().RestoreTerminal()
+	streams.Out().RestoreTerminal()
+	streams.Err().RestoreTerminal()
 }
 
 //nolint:gocyclo
@@ -468,7 +482,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 
 	// This is a fallback for the case where the command does not exit
 	// based on context cancellation.
-	go forceExitAfter3TerminationSignals(ctx, dockerCli.Err())
+	go forceExitAfter3TerminationSignals(ctx, dockerCli)
 
 	// We've parsed global args already, so reset args to those
 	// which remain.
