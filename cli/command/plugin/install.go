@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
-	"github.com/docker/cli/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"

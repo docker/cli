@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
-	"github.com/docker/cli/cli/internal/oauth/api"
+	"github.com/docker/cli/internal/oauth/api"
 	"gotest.tools/v3/assert"
 )
 
