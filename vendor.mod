@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.23.0
 
+replace github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250516102317-0a7f459dc462+incompatible
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/errdefs v1.0.0

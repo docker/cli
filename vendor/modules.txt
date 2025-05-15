@@ -61,7 +61,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v28.1.2-0.20250515215111-fd1a78e0a388+incompatible
+# github.com/docker/docker v28.1.2-0.20250515215111-fd1a78e0a388+incompatible => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250516102317-0a7f459dc462+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -565,3 +565,4 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250516102317-0a7f459dc462+incompatible

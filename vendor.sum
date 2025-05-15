@@ -55,8 +55,6 @@ github.com/docker/cli-docs-tool v0.9.0/go.mod h1:ClrwlNW+UioiRyH9GiAOe1o3J/TsY3T
 github.com/docker/distribution v2.7.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/distribution v2.8.3+incompatible h1:AtKxIZ36LoNK51+Z6RpzLpddBirtxJnzDrHLEKxTAYk=
 github.com/docker/distribution v2.8.3+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
-github.com/docker/docker v28.1.2-0.20250515215111-fd1a78e0a388+incompatible h1:t6fp4pyFO9bUagzR2mxee6JdTAv5SJmqwMGUlllS7Hc=
-github.com/docker/docker v28.1.2-0.20250515215111-fd1a78e0a388+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker-credential-helpers v0.9.3 h1:gAm/VtF9wgqJMoxzT3Gj5p4AqIjCBS4wrsOh9yRqcz8=
 github.com/docker/docker-credential-helpers v0.9.3/go.mod h1:x+4Gbw9aGmChi3qTLZj8Dfn0TD20M/fuWy0E5+WDeCo=
 github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c h1:lzqkGL9b3znc+ZUgi7FlLnqjQhcXxkNM/quxIjBVMD0=
@@ -273,6 +271,8 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
+github.com/thaJeztah/docker v24.0.0-rc.1.0.20250516102317-0a7f459dc462+incompatible h1:ul4mC/sedWi5H2gVX0jxJF2CBP2vYEsBekL5iaL8m2s=
+github.com/thaJeztah/docker v24.0.0-rc.1.0.20250516102317-0a7f459dc462+incompatible/go.mod h1:eZ6Ef2GDr/8h8se23uenzFTrBHwc9jBEEnfrxqOb0Ss=
 github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a h1:tlJ7tGUHvcvL1v3yR6NcCc9nOqh2L+CG6HWrYQtwzQ0=
 github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a/go.mod h1:Y94A6rPp2OwNfP/7vmf8O2xx2IykP8pPXQ1DLouGnEw=
 github.com/tonistiigi/go-rosetta v0.0.0-20220804170347-3f4430f2d346 h1:TvtdmeYsYEij78hS4oxnwikoiLdIrgav3BA+CbhaDAI=
