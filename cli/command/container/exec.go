@@ -53,7 +53,7 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 			return RunExec(cmd.Context(), dockerCli, containerIDorName, options)
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
-			return ctr.State != "paused"
+			return ctr.State != container.StatePaused
 		}),
 		Annotations: map[string]string{
 			"category-top": "2",
