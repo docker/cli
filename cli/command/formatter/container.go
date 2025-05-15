@@ -218,7 +218,8 @@ func (c *ContainerContext) Ports() string {
 	return DisplayablePorts(c.c.Ports)
 }
 
-// State returns the container's current state (e.g. "running" or "paused")
+// State returns the container's current state (e.g. "running" or "paused").
+// Refer to [container.ContainerState] for possible states.
 func (c *ContainerContext) State() string {
 	return c.c.State
 }
