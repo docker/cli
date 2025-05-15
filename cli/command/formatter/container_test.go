@@ -106,10 +106,16 @@ func TestContainerPsContext(t *testing.T) {
 			call:      ctx.Ports,
 		},
 		{
-			container: container.Summary{Status: "RUNNING"},
+			container: container.Summary{Status: "Up 123 seconds"},
 			trunc:     true,
-			expValue:  "RUNNING",
+			expValue:  "Up 123 seconds",
 			call:      ctx.Status,
+		},
+		{
+			container: container.Summary{State: container.StateRunning},
+			trunc:     true,
+			expValue:  container.StateRunning,
+			call:      ctx.State,
 		},
 		{
 			container: container.Summary{SizeRw: 10},
