@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 	"text/template"
 
 	"github.com/distribution/reference"
@@ -330,9 +329,15 @@ func (c *diskUsageContainersContext) TotalCount() string {
 }
 
 func (*diskUsageContainersContext) isActive(ctr container.Summary) bool {
-	return strings.Contains(ctr.State, "running") ||
-		strings.Contains(ctr.State, "paused") ||
-		strings.Contains(ctr.State, "restarting")
+	switch ctr.State {
+	case container.StateRunning, container.StatePaused, container.StateRestarting:
+		return true
+	case container.StateCreated, container.StateRemoving, container.StateExited, container.StateDead:
+		return false
+	default:
+		// Unknown state (should never happen).
+		return false
+	}
 }
 
 func (c *diskUsageContainersContext) Active() string {

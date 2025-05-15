@@ -352,8 +352,8 @@ size: 0B
 	}
 
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: "running"},
-		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: "running"},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
+		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
 	}
 
 	for _, tc := range cases {
@@ -434,8 +434,8 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 func TestContainerContextWriteJSON(t *testing.T) {
 	unix := time.Now().Add(-65 * time.Second).Unix()
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: "running"},
-		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: "running"},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: container.StateRunning},
+		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: container.StateRunning},
 	}
 	expectedCreated := time.Unix(unix, 0).String()
 	expectedJSONs := []map[string]any{
