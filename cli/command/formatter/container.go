@@ -254,6 +254,7 @@ func (c *ContainerContext) Labels() string {
 	for k, v := range c.c.Labels {
 		joinLabels = append(joinLabels, k+"="+v)
 	}
+	sort.Strings(joinLabels)
 	return strings.Join(joinLabels, ",")
 }
 
