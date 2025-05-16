@@ -371,9 +371,6 @@ size: 0B
 }
 
 func TestContainerContextWriteWithNoContainers(t *testing.T) {
-	out := bytes.NewBufferString("")
-	containers := []container.Summary{}
-
 	cases := []struct {
 		context  Context
 		expected string
@@ -381,40 +378,34 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 		{
 			context: Context{
 				Format: "{{.Image}}",
-				Output: out,
 			},
 		},
 		{
 			context: Context{
 				Format: "table {{.Image}}",
-				Output: out,
 			},
 			expected: "IMAGE\n",
 		},
 		{
 			context: Context{
 				Format: NewContainerFormat("{{.Image}}", false, true),
-				Output: out,
 			},
 		},
 		{
 			context: Context{
 				Format: NewContainerFormat("table {{.Image}}", false, true),
-				Output: out,
 			},
 			expected: "IMAGE\n",
 		},
 		{
 			context: Context{
 				Format: "table {{.Image}}\t{{.Size}}",
-				Output: out,
 			},
 			expected: "IMAGE     SIZE\n",
 		},
 		{
 			context: Context{
 				Format: NewContainerFormat("table {{.Image}}\t{{.Size}}", false, true),
-				Output: out,
 			},
 			expected: "IMAGE     SIZE\n",
 		},
@@ -422,11 +413,11 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(string(tc.context.Format), func(t *testing.T) {
-			err := ContainerWrite(tc.context, containers)
+			out := new(bytes.Buffer)
+			tc.context.Output = out
+			err := ContainerWrite(tc.context, nil)
 			assert.NilError(t, err)
 			assert.Equal(t, out.String(), tc.expected)
-			// Clean buffer
-			out.Reset()
 		})
 	}
 }
@@ -506,28 +497,59 @@ func TestContainerContextWriteJSONField(t *testing.T) {
 }
 
 func TestContainerBackCompat(t *testing.T) {
-	containers := []container.Summary{{ID: "brewhaha"}}
-	cases := []string{
-		"ID",
-		"Names",
-		"Image",
-		"Command",
-		"CreatedAt",
-		"RunningFor",
-		"Ports",
-		"Status",
-		"Size",
-		"Labels",
-		"Mounts",
+	createdAtTime := time.Now().AddDate(-1, 0, 0) // 1 year ago
+
+	ctrContext := container.Summary{
+		ID:                      "aabbccddeeff",
+		Names:                   []string{"/foobar_baz"},
+		Image:                   "docker.io/library/ubuntu",                                                // should this have canonical format or not?
+		ImageID:                 "sha256:a5a665ff33eced1e0803148700880edab4269067ed77e27737a708d0d293fbf5", // should this have algo-prefix or not?
+		ImageManifestDescriptor: nil,
+		Command:                 "/bin/sh",
+		Created:                 createdAtTime.UTC().Unix(),
+		Ports:                   []container.Port{{PrivatePort: 8080, PublicPort: 8080, Type: "tcp"}},
+		SizeRw:                  123,
+		SizeRootFs:              12345,
+		Labels:                  map[string]string{"label1": "value1", "label2": "value2"},
+		State:                   "running",
+		Status:                  "running",
+		HostConfig: struct {
+			NetworkMode string            `json:",omitempty"`
+			Annotations map[string]string `json:",omitempty"`
+		}{
+			NetworkMode: "bridge",
+			Annotations: map[string]string{
+				"com.example.annotation": "hello",
+			},
+		},
+		NetworkSettings: nil,
+		Mounts:          nil,
 	}
-	buf := bytes.NewBuffer(nil)
-	for _, c := range cases {
-		ctx := Context{Format: Format(fmt.Sprintf("{{ .%s }}", c)), Output: buf}
-		if err := ContainerWrite(ctx, containers); err != nil {
-			t.Logf("could not render template for field '%s': %v", c, err)
-			t.Fail()
-		}
-		buf.Reset()
+
+	tests := []struct {
+		field    string
+		expected string
+	}{
+		{field: "ID", expected: "aabbccddeeff"},
+		{field: "Names", expected: "foobar_baz"},
+		{field: "Image", expected: "docker.io/library/ubuntu"},
+		{field: "Command", expected: `"/bin/sh"`},
+		{field: "CreatedAt", expected: time.Unix(createdAtTime.Unix(), 0).String()},
+		{field: "RunningFor", expected: "12 months ago"},
+		{field: "Ports", expected: "8080/tcp"},
+		{field: "Status", expected: "running"},
+		{field: "Size", expected: "123B (virtual 12.3kB)"},
+		{field: "Labels", expected: "label1=value1,label2=value2"},
+		{field: "Mounts", expected: ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.field, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+			ctx := Context{Format: Format(fmt.Sprintf("{{ .%s }}", tc.field)), Output: buf}
+			assert.NilError(t, ContainerWrite(ctx, []container.Summary{ctrContext}))
+			assert.Check(t, is.Equal(strings.TrimSpace(buf.String()), tc.expected))
+		})
 	}
 }
 
