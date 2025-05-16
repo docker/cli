@@ -2,14 +2,13 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/errdefs"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +57,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return "", err
 		}
 		if !r {
-			return "", errdefs.Cancelled(errors.New("network prune has been cancelled"))
+			return "", cancelledErr{errors.New("network prune has been cancelled")}
 		}
 	}
 
@@ -76,6 +75,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 
 	return output, nil
 }
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
 
 // RunPrune calls the Network Prune API
 // This returns the amount of space reclaimed and a detailed output string
