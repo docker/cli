@@ -12,8 +12,7 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/build"
-	"github.com/docker/docker/errdefs"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
 
@@ -75,7 +74,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return 0, "", err
 		}
 		if !r {
-			return 0, "", errdefs.Cancelled(errors.New("builder prune has been cancelled"))
+			return 0, "", cancelledErr{errors.New("builder prune has been cancelled")}
 		}
 	}
 
@@ -100,6 +99,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 
 	return report.SpaceReclaimed, output, nil
 }
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
 
 // CachePrune executes a prune command for build cache
 func CachePrune(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
