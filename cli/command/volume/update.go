@@ -2,12 +2,12 @@ package volume
 
 import (
 	"context"
+	"errors"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -50,7 +50,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, volumeID, availabilit
 	}
 
 	if vol.ClusterVolume == nil {
-		return errors.New("Can only update cluster volumes")
+		return errors.New("can only update cluster volumes")
 	}
 
 	if flags.Changed("availability") {
