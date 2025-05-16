@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -66,7 +65,7 @@ func TestRestart(t *testing.T) {
 				containerRestartFunc: func(ctx context.Context, containerID string, options container.StopOptions) error {
 					assert.Check(t, is.DeepEqual(options, tc.expectedOpts))
 					if containerID == "nosuchcontainer" {
-						return errdefs.NotFound(errors.New("Error: no such container: " + containerID))
+						return notFound(errors.New("Error: no such container: " + containerID))
 					}
 
 					// TODO(thaJeztah): consider using parallelOperation for restart, similar to "stop" and "remove"

@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/errdefs"
 	units "github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -62,7 +61,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return 0, "", err
 		}
 		if !r {
-			return 0, "", errdefs.Cancelled(errors.New("container prune has been cancelled"))
+			return 0, "", cancelledErr{errors.New("container prune has been cancelled")}
 		}
 	}
 
@@ -81,6 +80,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 
 	return spaceReclaimed, output, nil
 }
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
 
 // RunPrune calls the Container Prune API
 // This returns the amount of space reclaimed and a detailed output string
