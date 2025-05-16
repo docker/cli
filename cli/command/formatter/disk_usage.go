@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/distribution/reference"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/volume"
@@ -38,7 +38,7 @@ type DiskUsageContext struct {
 	Images      []*image.Summary
 	Containers  []*container.Summary
 	Volumes     []*volume.Volume
-	BuildCache  []*types.BuildCache
+	BuildCache  []*build.CacheRecord
 	BuilderSize int64
 }
 
@@ -441,7 +441,7 @@ func (c *diskUsageVolumesContext) Reclaimable() string {
 type diskUsageBuilderContext struct {
 	HeaderContext
 	builderSize int64
-	buildCache  []*types.BuildCache
+	buildCache  []*build.CacheRecord
 }
 
 func (c *diskUsageBuilderContext) MarshalJSON() ([]byte, error) {

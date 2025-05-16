@@ -81,7 +81,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 
 	report, err := dockerCli.Client().BuildCachePrune(ctx, types.BuildCachePruneOptions{
 		All:         options.all,
-		KeepStorage: options.keepStorage.Value(),
+		KeepStorage: options.keepStorage.Value(), // FIXME(thaJeztah): rewrite to use new options; see https://github.com/moby/moby/pull/48720
 		Filters:     pruneFilters,
 	})
 	if err != nil {

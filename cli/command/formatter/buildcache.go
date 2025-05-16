@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 )
@@ -52,7 +52,7 @@ shared: {{.Shared}}
 	return Format(source)
 }
 
-func buildCacheSort(buildCache []*types.BuildCache) {
+func buildCacheSort(buildCache []*build.CacheRecord) {
 	sort.Slice(buildCache, func(i, j int) bool {
 		lui, luj := buildCache[i].LastUsedAt, buildCache[j].LastUsedAt
 		switch {
@@ -71,7 +71,7 @@ func buildCacheSort(buildCache []*types.BuildCache) {
 }
 
 // BuildCacheWrite renders the context for a list of containers
-func BuildCacheWrite(ctx Context, buildCaches []*types.BuildCache) error {
+func BuildCacheWrite(ctx Context, buildCaches []*build.CacheRecord) error {
 	render := func(format func(subContext SubContext) error) error {
 		buildCacheSort(buildCaches)
 		for _, bc := range buildCaches {
@@ -88,7 +88,7 @@ func BuildCacheWrite(ctx Context, buildCaches []*types.BuildCache) error {
 type buildCacheContext struct {
 	HeaderContext
 	trunc bool
-	v     *types.BuildCache
+	v     *build.CacheRecord
 }
 
 func newBuildCacheContext() *buildCacheContext {
