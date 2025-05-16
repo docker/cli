@@ -464,7 +464,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Mounts":       "",
 			"Names":        "foobar_baz",
 			"Networks":     "",
-			"Platform":     map[string]any{"architecture": "", "os": ""},
+			"Platform":     nil,
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
 			"Size":         "0B",

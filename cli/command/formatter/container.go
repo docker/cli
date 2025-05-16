@@ -223,11 +223,13 @@ func (c *ContainerContext) RunningFor() string {
 
 // Platform returns a human-readable representation of the container's
 // platform if it is available.
-func (c *ContainerContext) Platform() Platform {
-	if c.c.ImageManifestDescriptor != nil && c.c.ImageManifestDescriptor.Platform != nil {
-		return Platform{*c.c.ImageManifestDescriptor.Platform}
+func (c *ContainerContext) Platform() *Platform {
+	p := c.c.ImageManifestDescriptor
+	// if p == nil || p.Platform == nil || (p.Platform.OS == "" && p.Platform.Architecture == "") {
+	if p == nil || p.Platform == nil {
+		return nil
 	}
-	return Platform{}
+	return &Platform{*p.Platform}
 }
 
 // Ports returns a comma-separated string representing open ports of the container
