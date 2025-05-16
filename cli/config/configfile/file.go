@@ -169,10 +169,13 @@ func (configFile *ConfigFile) Save() (retErr error) {
 		return errors.Wrap(err, "error closing temp file")
 	}
 
-	// Handle situation where the configfile is a symlink
+	// Handle situation where the configfile is a symlink, and allow for dangling symlinks
 	cfgFile := configFile.Filename
-	if f, err := os.Readlink(cfgFile); err == nil {
+	if f, err := filepath.EvalSymlinks(cfgFile); err == nil {
 		cfgFile = f
+	} else if os.IsNotExist(err) {
+		// extract the path from the error if the configfile does not exist or is a dangling symlink
+		cfgFile = err.(*os.PathError).Path
 	}
 
 	// Try copying the current config file (if any) ownership and permissions
