@@ -2,6 +2,7 @@ package volume
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -10,9 +11,7 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/errdefs"
-	units "github.com/docker/go-units"
-	"github.com/pkg/errors"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
 
@@ -68,7 +67,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	if versions.GreaterThanOrEqualTo(dockerCli.CurrentVersion(), "1.42") {
 		if options.all {
 			if pruneFilters.Contains("all") {
-				return 0, "", errdefs.InvalidParameter(errors.New("conflicting options: cannot specify both --all and --filter all=1"))
+				return 0, "", invalidParamErr{errors.New("conflicting options: cannot specify both --all and --filter all=1")}
 			}
 			pruneFilters.Add("all", "true")
 			warning = allVolumesWarning
@@ -83,7 +82,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return 0, "", err
 		}
 		if !r {
-			return 0, "", errdefs.Cancelled(errors.New("volume prune has been cancelled"))
+			return 0, "", cancelledErr{errors.New("volume prune has been cancelled")}
 		}
 	}
 
@@ -102,6 +101,14 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 
 	return spaceReclaimed, output, nil
 }
+
+type invalidParamErr struct{ error }
+
+func (invalidParamErr) InvalidParameter() {}
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
 
 // RunPrune calls the Volume Prune API
 // This returns the amount of space reclaimed and a detailed output string

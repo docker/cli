@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
@@ -50,7 +49,7 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 			return err
 		}
 		if !deleteRemote {
-			return errdefs.Cancelled(errors.New("trust revoke has been cancelled"))
+			return cancelledErr{errors.New("trust revoke has been cancelled")}
 		}
 	}
 
@@ -69,6 +68,10 @@ func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, opti
 	_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully deleted signature for %s\n", remote)
 	return nil
 }
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
 
 func revokeSignature(notaryRepo client.Repository, tag string) error {
 	if tag != "" {

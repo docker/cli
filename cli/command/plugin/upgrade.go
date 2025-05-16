@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -70,7 +69,7 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 			return err
 		}
 		if !r {
-			return errdefs.Cancelled(errors.New("plugin upgrade has been cancelled"))
+			return cancelledErr{errors.New("plugin upgrade has been cancelled")}
 		}
 	}
 
@@ -93,3 +92,7 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	_, _ = fmt.Fprintf(dockerCLI.Out(), "Upgraded plugin %s to %s\n", opts.localName, opts.remote) // todo: return proper values from the API for this result
 	return nil
 }
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}

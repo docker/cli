@@ -5,6 +5,7 @@ package context
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	cerrdefs "github.com/containerd/errdefs"
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -91,7 +91,7 @@ func createNewContext(contextStore store.ReaderWriter, o *CreateOptions) error {
 	}
 	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(contextStore, o.Docker)
 	if err != nil {
-		return errors.Wrap(err, "unable to create docker endpoint config")
+		return fmt.Errorf("unable to create docker endpoint config: %w", err)
 	}
 	contextMetadata := store.Metadata{
 		Endpoints: map[string]any{
@@ -124,9 +124,9 @@ func checkContextNameForCreation(s store.Reader, name string) error {
 	}
 	if _, err := s.GetMetadata(name); !cerrdefs.IsNotFound(err) {
 		if err != nil {
-			return errors.Wrap(err, "error while getting existing contexts")
+			return fmt.Errorf("error while getting existing contexts: %w", err)
 		}
-		return errors.Errorf("context %q already exists", name)
+		return fmt.Errorf("context %q already exists", name)
 	}
 	return nil
 }

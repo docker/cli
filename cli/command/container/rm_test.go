@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
 )
 
@@ -36,7 +35,7 @@ func TestRemoveForce(t *testing.T) {
 					mutex.Unlock()
 
 					if container == "nosuchcontainer" {
-						return errdefs.NotFound(errors.New("Error: no such container: " + container))
+						return notFound(errors.New("Error: no such container: " + container))
 					}
 					return nil
 				},
