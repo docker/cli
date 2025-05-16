@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/errdefs"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
@@ -79,7 +79,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().BuildCachePrune(ctx, types.BuildCachePruneOptions{
+	report, err := dockerCli.Client().BuildCachePrune(ctx, build.CachePruneOptions{
 		All:         options.all,
 		KeepStorage: options.keepStorage.Value(), // FIXME(thaJeztah): rewrite to use new options; see https://github.com/moby/moby/pull/48720
 		Filters:     pruneFilters,

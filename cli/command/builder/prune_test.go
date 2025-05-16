@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 )
 
 func TestBuilderPromptTermination(t *testing.T) {
@@ -15,7 +15,7 @@ func TestBuilderPromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		builderPruneFunc: func(ctx context.Context, opts types.BuildCachePruneOptions) (*types.BuildCachePruneReport, error) {
+		builderPruneFunc: func(ctx context.Context, opts build.CachePruneOptions) (*build.CachePruneReport, error) {
 			return nil, errors.New("fakeClient builderPruneFunc should not be called")
 		},
 	})
