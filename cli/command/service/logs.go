@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -18,7 +19,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/pkg/errors"
@@ -94,12 +94,12 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, types.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
-		if !errdefs.IsNotFound(err) {
+		if !cerrdefs.IsNotFound(err) {
 			return err
 		}
 		task, _, err := apiClient.TaskInspectWithRaw(ctx, opts.target)
 		if err != nil {
-			if errdefs.IsNotFound(err) {
+			if cerrdefs.IsNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
 				// that we looked for services AND tasks and found none
 				err = fmt.Errorf("no such task or service: %v", opts.target)

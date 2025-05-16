@@ -7,13 +7,13 @@ import (
 	"bytes"
 	"fmt"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
-	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -122,7 +122,7 @@ func checkContextNameForCreation(s store.Reader, name string) error {
 	if err := store.ValidateContextName(name); err != nil {
 		return err
 	}
-	if _, err := s.GetMetadata(name); !errdefs.IsNotFound(err) {
+	if _, err := s.GetMetadata(name); !cerrdefs.IsNotFound(err) {
 		if err != nil {
 			return errors.Wrap(err, "error while getting existing contexts")
 		}

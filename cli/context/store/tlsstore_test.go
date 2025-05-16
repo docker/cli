@@ -3,7 +3,7 @@ package store
 import (
 	"testing"
 
-	"github.com/docker/docker/errdefs"
+	cerrdefs "github.com/containerd/errdefs"
 	"gotest.tools/v3/assert"
 )
 
@@ -13,7 +13,7 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	const contextName = "test-ctx"
 
 	_, err := testee.getData(contextName, "test-ep", "test-data")
-	assert.ErrorType(t, err, errdefs.IsNotFound)
+	assert.ErrorType(t, err, cerrdefs.IsNotFound)
 
 	err = testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data"))
 	assert.NilError(t, err)
@@ -29,7 +29,7 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	err = testee.removeEndpoint(contextName, "test-ep")
 	assert.NilError(t, err)
 	_, err = testee.getData(contextName, "test-ep", "test-data")
-	assert.ErrorType(t, err, errdefs.IsNotFound)
+	assert.ErrorType(t, err, cerrdefs.IsNotFound)
 }
 
 func TestTlsListAndBatchRemove(t *testing.T) {

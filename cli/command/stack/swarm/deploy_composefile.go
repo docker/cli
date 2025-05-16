@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/command"
 	servicecli "github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/options"
@@ -15,7 +16,6 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/errdefs"
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts *options.Deploy, config *composetypes.Config) error {
@@ -98,7 +98,7 @@ func validateExternalNetworks(ctx context.Context, apiClient client.NetworkAPICl
 		}
 		nw, err := apiClient.NetworkInspect(ctx, networkName, network.InspectOptions{})
 		switch {
-		case errdefs.IsNotFound(err):
+		case cerrdefs.IsNotFound(err):
 			return fmt.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 		case err != nil:
 			return err
@@ -120,7 +120,7 @@ func createSecrets(ctx context.Context, dockerCLI command.Cli, secrets []swarm.S
 			if err := apiClient.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
 				return fmt.Errorf("failed to update secret %s: %w", secretSpec.Name, err)
 			}
-		case errdefs.IsNotFound(err):
+		case cerrdefs.IsNotFound(err):
 			// secret does not exist, then we create a new one.
 			_, _ = fmt.Fprintln(dockerCLI.Out(), "Creating secret", secretSpec.Name)
 			if _, err := apiClient.SecretCreate(ctx, secretSpec); err != nil {
@@ -144,7 +144,7 @@ func createConfigs(ctx context.Context, dockerCLI command.Cli, configs []swarm.C
 			if err := apiClient.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
 				return fmt.Errorf("failed to update config %s: %w", configSpec.Name, err)
 			}
-		case errdefs.IsNotFound(err):
+		case cerrdefs.IsNotFound(err):
 			// config does not exist, then we create a new one.
 			_, _ = fmt.Fprintln(dockerCLI.Out(), "Creating config", configSpec.Name)
 			if _, err := apiClient.ConfigCreate(ctx, configSpec); err != nil {

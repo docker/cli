@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strconv"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/errdefs"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, networks []string, op
 			}
 		}
 		if err := apiClient.NetworkRemove(ctx, name); err != nil {
-			if opts.force && errdefs.IsNotFound(err) {
+			if opts.force && cerrdefs.IsNotFound(err) {
 				continue
 			}
 			_, _ = fmt.Fprintln(dockerCLI.Err(), err)
