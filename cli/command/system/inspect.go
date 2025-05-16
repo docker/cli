@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -18,7 +19,6 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -279,7 +279,7 @@ func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeCo
 }
 
 func isErrSkippable(err error) bool {
-	return errdefs.IsNotFound(err) ||
+	return cerrdefs.IsNotFound(err) ||
 		strings.Contains(err.Error(), "not supported") ||
 		strings.Contains(err.Error(), "invalid reference format")
 }

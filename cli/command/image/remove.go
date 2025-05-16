@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/errdefs"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +64,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 	for _, img := range images {
 		dels, err := apiClient.ImageRemove(ctx, img, options)
 		if err != nil {
-			if !errdefs.IsNotFound(err) {
+			if !cerrdefs.IsNotFound(err) {
 				fatalErr = true
 			}
 			errs = append(errs, err)

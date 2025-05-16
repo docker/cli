@@ -7,11 +7,11 @@ import (
 	"crypto/rand"
 	"testing"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/tlsconfig"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -158,7 +158,7 @@ func TestErrCreateDefault(t *testing.T) {
 		Metadata: testContext{Bar: "baz"},
 		Name:     "default",
 	})
-	assert.Check(t, is.ErrorType(err, errdefs.IsInvalidParameter))
+	assert.Check(t, is.ErrorType(err, cerrdefs.IsInvalidArgument))
 	assert.Error(t, err, "default context cannot be created nor updated")
 }
 
@@ -166,7 +166,7 @@ func TestErrRemoveDefault(t *testing.T) {
 	meta := testDefaultMetadata()
 	s := testStore(t, meta, store.ContextTLSData{})
 	err := s.Remove("default")
-	assert.Check(t, is.ErrorType(err, errdefs.IsInvalidParameter))
+	assert.Check(t, is.ErrorType(err, cerrdefs.IsInvalidArgument))
 	assert.Error(t, err, "default context cannot be removed")
 }
 
@@ -174,5 +174,5 @@ func TestErrTLSDataError(t *testing.T) {
 	meta := testDefaultMetadata()
 	s := testStore(t, meta, store.ContextTLSData{})
 	_, err := s.GetTLSData("default", "noop", "noop")
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, is.ErrorType(err, cerrdefs.IsNotFound))
 }

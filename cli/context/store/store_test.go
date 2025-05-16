@@ -17,7 +17,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/docker/errdefs"
+	cerrdefs "github.com/containerd/errdefs"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -107,7 +107,7 @@ func TestRemove(t *testing.T) {
 	}))
 	assert.NilError(t, s.Remove("source"))
 	_, err = s.GetMetadata("source")
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, is.ErrorType(err, cerrdefs.IsNotFound))
 	f, err := s.ListTLSFiles("source")
 	assert.NilError(t, err)
 	assert.Equal(t, 0, len(f))
@@ -122,7 +122,7 @@ func TestListEmptyStore(t *testing.T) {
 func TestErrHasCorrectContext(t *testing.T) {
 	_, err := New(t.TempDir(), testCfg).GetMetadata("no-exists")
 	assert.ErrorContains(t, err, "no-exists")
-	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
+	assert.Check(t, is.ErrorType(err, cerrdefs.IsNotFound))
 }
 
 func TestDetectImportContentType(t *testing.T) {
