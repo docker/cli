@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/assert/cmp"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 type fakeCandidate struct {
@@ -81,7 +81,7 @@ func TestValidateCandidate(t *testing.T) {
 				assert.ErrorContains(t, err, tc.err)
 			case tc.invalid != "":
 				assert.NilError(t, err)
-				assert.Assert(t, cmp.ErrorType(p.Err, reflect.TypeOf(&pluginError{})))
+				assert.Assert(t, is.ErrorType(p.Err, reflect.TypeOf(&pluginError{})))
 				assert.ErrorContains(t, p.Err, tc.invalid)
 			default:
 				assert.NilError(t, err)

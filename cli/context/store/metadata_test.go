@@ -10,7 +10,7 @@ import (
 
 	"github.com/docker/docker/errdefs"
 	"gotest.tools/v3/assert"
-	"gotest.tools/v3/assert/cmp"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func testMetadata(name string) Metadata {
@@ -69,8 +69,8 @@ func TestMetadataRespectJsonAnnotation(t *testing.T) {
 	assert.NilError(t, testee.createOrUpdate(testMetadata("test")))
 	bytes, err := os.ReadFile(filepath.Join(testDir, string(contextdirOf("test")), "meta.json"))
 	assert.NilError(t, err)
-	assert.Assert(t, cmp.Contains(string(bytes), "a_very_recognizable_field_name"))
-	assert.Assert(t, cmp.Contains(string(bytes), "another_very_recognizable_field_name"))
+	assert.Assert(t, is.Contains(string(bytes), "a_very_recognizable_field_name"))
+	assert.Assert(t, is.Contains(string(bytes), "another_very_recognizable_field_name"))
 }
 
 func TestMetadataList(t *testing.T) {
