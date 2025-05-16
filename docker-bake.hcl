@@ -163,12 +163,6 @@ target "e2e-image" {
     }
 }
 
-target "e2e-gencerts" {
-    inherits = ["_common"]
-    dockerfile = "./e2e/testdata/Dockerfile.gencerts"
-    output = ["./e2e/testdata"]
-}
-
 target "docker-metadata-action" {
   tags = ["cli-bin:local"]
 }
