@@ -56,7 +56,7 @@ var logDriverOptions = map[string][]string{
 	"fluentd": {
 		"max-buffer-size", "mode", "env", "env-regex", "labels", "fluentd-address", "fluentd-async",
 		"fluentd-buffer-limit", "fluentd-request-ack", "fluentd-retry-wait", "fluentd-max-retries",
-		"fluentd-sub-second-precision", "tag",
+		"fluentd-sub-second-precision", "fluentd-write-timeout", "tag",
 	},
 	"gcplogs": {
 		"max-buffer-size", "mode", "env", "env-regex", "labels", "gcp-log-cmd", "gcp-meta-id", "gcp-meta-name",
