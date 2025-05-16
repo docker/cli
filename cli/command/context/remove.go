@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/errdefs"
 	"github.com/spf13/cobra"
 )
 
@@ -75,9 +74,13 @@ func checkContextExists(dockerCli command.Cli, name string) error {
 	contextDir := dockerCli.ContextStore().GetStorageInfo(name).MetadataPath
 	_, err := os.Stat(contextDir)
 	if os.IsNotExist(err) {
-		return errdefs.NotFound(fmt.Errorf("context %q does not exist", name))
+		return notFoundErr{fmt.Errorf("context %q does not exist", name)}
 	}
 	// Ignore other errors; if relevant, they will produce an error when
 	// performing the actual delete.
 	return nil
 }
+
+type notFoundErr struct{ error }
+
+func (notFoundErr) NotFound() {}
