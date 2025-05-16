@@ -18,7 +18,6 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
@@ -83,7 +82,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return err
 		}
 		if !r {
-			return errdefs.Cancelled(errors.New("system prune has been cancelled"))
+			return cancelledErr{errors.New("system prune has been cancelled")}
 		}
 	}
 	pruneFuncs := []func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
@@ -114,6 +113,10 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 
 	return nil
 }
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
 
 // confirmationMessage constructs a confirmation message that depends on the cli options.
 func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
