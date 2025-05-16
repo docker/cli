@@ -68,7 +68,7 @@ func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) erro
 			return errors.Wrapf(err, "Error: invalid port (%s)", port)
 		}
 		frontends, exists := c.NetworkSettings.Ports[nat.Port(port+"/"+proto)]
-		if !exists || frontends == nil {
+		if !exists || len(frontends) == 0 {
 			return errors.Errorf("Error: No public port '%s' published for %s", opts.port, opts.container)
 		}
 		for _, frontend := range frontends {
