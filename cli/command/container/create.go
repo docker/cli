@@ -29,7 +29,7 @@ import (
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
-	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -308,7 +308,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
-	var platform *specs.Platform
+	var platform *ocispec.Platform
 	// Engine API version 1.41 first introduced the option to specify platform on
 	// create. It will produce an error if you try to set a platform on older API
 	// versions, so check the API version here to maintain backwards

@@ -21,7 +21,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/pkg/jsonmessage"
-	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -57,7 +57,7 @@ func TestRunValidateFlags(t *testing.T) {
 
 func TestRunLabel(t *testing.T) {
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *ocispec.Platform, _ string) (container.CreateResponse, error) {
 			return container.CreateResponse{
 				ID: "id",
 			}, nil
@@ -80,7 +80,7 @@ func TestRunAttach(t *testing.T) {
 	var conn net.Conn
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *ocispec.Platform, _ string) (container.CreateResponse, error) {
 			return container.CreateResponse{
 				ID: "id",
 			}, nil
@@ -151,7 +151,7 @@ func TestRunAttachTermination(t *testing.T) {
 	killCh := make(chan struct{})
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *specs.Platform, _ string) (container.CreateResponse, error) {
+		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *ocispec.Platform, _ string) (container.CreateResponse, error) {
 			return container.CreateResponse{
 				ID: "id",
 			}, nil
@@ -229,7 +229,7 @@ func TestRunPullTermination(t *testing.T) {
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig,
-			platform *specs.Platform, containerName string,
+			platform *ocispec.Platform, containerName string,
 		) (container.CreateResponse, error) {
 			return container.CreateResponse{}, errors.New("shouldn't try to create a container")
 		},
@@ -332,7 +332,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 				createContainerFunc: func(config *container.Config,
 					hostConfig *container.HostConfig,
 					networkingConfig *network.NetworkingConfig,
-					platform *specs.Platform,
+					platform *ocispec.Platform,
 					containerName string,
 				) (container.CreateResponse, error) {
 					return container.CreateResponse{}, errors.New("shouldn't try to pull image")

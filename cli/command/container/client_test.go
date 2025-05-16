@@ -11,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
-	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type fakeClient struct {
@@ -22,7 +22,7 @@ type fakeClient struct {
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
-		platform *specs.Platform,
+		platform *ocispec.Platform,
 		containerName string) (container.CreateResponse, error)
 	containerStartFunc      func(containerID string, options container.StartOptions) error
 	imageCreateFunc         func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error)
@@ -84,7 +84,7 @@ func (f *fakeClient) ContainerCreate(
 	config *container.Config,
 	hostConfig *container.HostConfig,
 	networkingConfig *network.NetworkingConfig,
-	platform *specs.Platform,
+	platform *ocispec.Platform,
 	containerName string,
 ) (container.CreateResponse, error) {
 	if f.createContainerFunc != nil {
