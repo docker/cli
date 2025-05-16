@@ -281,6 +281,13 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 		}
 	}
 
+	if len(info.DiscoveredDevices) > 0 {
+		fprintln(output, " Discovered Devices:")
+		for _, device := range info.DiscoveredDevices {
+			fprintf(output, "  %s: %s\n", device.Source, device.ID)
+		}
+	}
+
 	fprintln(output, " Swarm:", info.Swarm.LocalNodeState)
 	printSwarmInfo(output, *info.Info)
 

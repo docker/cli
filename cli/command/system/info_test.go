@@ -260,6 +260,12 @@ func TestPrettyPrintInfo(t *testing.T) {
 	sampleInfoLabelsEmpty := sampleInfoNoSwarm
 	sampleInfoLabelsEmpty.Labels = []string{}
 
+	sampleInfoWithDevices := sampleInfoNoSwarm
+	sampleInfoWithDevices.DiscoveredDevices = []system.DeviceInfo{
+		{Source: "cdi", ID: "com.example.device1"},
+		{Source: "cdi", ID: "nvidia.com/gpu=gpu0"},
+	}
+
 	for _, tc := range []struct {
 		doc        string
 		dockerInfo dockerInfo
@@ -365,6 +371,14 @@ func TestPrettyPrintInfo(t *testing.T) {
 			jsonGolden:     "docker-info-badsec",
 			warningsGolden: "docker-info-badsec-stderr",
 			expectedError:  "errors pretty printing info",
+		},
+		{
+			doc: "info with devices",
+			dockerInfo: dockerInfo{
+				Info: &sampleInfoWithDevices,
+			},
+			prettyGolden: "docker-info-with-devices",
+			jsonGolden:   "docker-info-with-devices",
 		},
 	} {
 		t.Run(tc.doc, func(t *testing.T) {
