@@ -118,9 +118,11 @@ func WithAPIClient(c client.APIClient) CLIOption {
 // an API Client for use by the CLI.
 func WithInitializeClient(makeClient func(*DockerCli) (client.APIClient, error)) CLIOption {
 	return func(cli *DockerCli) error {
-		var err error
-		cli.client, err = makeClient(cli)
-		return err
+		c, err := makeClient(cli)
+		if err != nil {
+			return err
+		}
+		return WithAPIClient(c)(cli)
 	}
 }
 
