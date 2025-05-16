@@ -371,9 +371,6 @@ size: 0B
 }
 
 func TestContainerContextWriteWithNoContainers(t *testing.T) {
-	out := bytes.NewBufferString("")
-	containers := []container.Summary{}
-
 	cases := []struct {
 		context  Context
 		expected string
@@ -381,40 +378,34 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 		{
 			context: Context{
 				Format: "{{.Image}}",
-				Output: out,
 			},
 		},
 		{
 			context: Context{
 				Format: "table {{.Image}}",
-				Output: out,
 			},
 			expected: "IMAGE\n",
 		},
 		{
 			context: Context{
 				Format: NewContainerFormat("{{.Image}}", false, true),
-				Output: out,
 			},
 		},
 		{
 			context: Context{
 				Format: NewContainerFormat("table {{.Image}}", false, true),
-				Output: out,
 			},
 			expected: "IMAGE\n",
 		},
 		{
 			context: Context{
 				Format: "table {{.Image}}\t{{.Size}}",
-				Output: out,
 			},
 			expected: "IMAGE     SIZE\n",
 		},
 		{
 			context: Context{
 				Format: NewContainerFormat("table {{.Image}}\t{{.Size}}", false, true),
-				Output: out,
 			},
 			expected: "IMAGE     SIZE\n",
 		},
@@ -422,11 +413,11 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(string(tc.context.Format), func(t *testing.T) {
-			err := ContainerWrite(tc.context, containers)
+			out := new(bytes.Buffer)
+			tc.context.Output = out
+			err := ContainerWrite(tc.context, nil)
 			assert.NilError(t, err)
 			assert.Equal(t, out.String(), tc.expected)
-			// Clean buffer
-			out.Reset()
 		})
 	}
 }

@@ -43,7 +43,7 @@ type DiskUsageContext struct {
 }
 
 func (ctx *DiskUsageContext) startSubsection(format string) (*template.Template, error) {
-	ctx.buffer = bytes.NewBufferString("")
+	ctx.buffer = &bytes.Buffer{}
 	ctx.header = ""
 	ctx.Format = Format(format)
 	ctx.preFormat()
@@ -87,7 +87,7 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	if ctx.Verbose {
 		return ctx.verboseWrite()
 	}
-	ctx.buffer = bytes.NewBufferString("")
+	ctx.buffer = &bytes.Buffer{}
 	ctx.preFormat()
 
 	tmpl, err := ctx.parseFormat()

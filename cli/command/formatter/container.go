@@ -68,16 +68,14 @@ ports: {{- pad .Ports 1 0}}
 
 // ContainerWrite renders the context for a list of containers
 func ContainerWrite(ctx Context, containers []container.Summary) error {
-	render := func(format func(subContext SubContext) error) error {
+	return ctx.Write(NewContainerContext(), func(format func(subContext SubContext) error) error {
 		for _, ctr := range containers {
-			err := format(&ContainerContext{trunc: ctx.Trunc, c: ctr})
-			if err != nil {
+			if err := format(&ContainerContext{trunc: ctx.Trunc, c: ctr}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	return ctx.Write(NewContainerContext(), render)
+	})
 }
 
 // ContainerContext is a struct used for rendering a list of containers in a Go template.
