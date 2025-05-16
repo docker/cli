@@ -19,7 +19,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/system"
 	"github.com/google/go-cmp/cmp"
-	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -121,7 +121,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 					config *container.Config,
 					hostConfig *container.HostConfig,
 					networkingConfig *network.NetworkingConfig,
-					platform *specs.Platform,
+					platform *ocispec.Platform,
 					containerName string,
 				) (container.CreateResponse, error) {
 					defer func() { tc.ResponseCounter++ }()
@@ -253,7 +253,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 				createContainerFunc: func(config *container.Config,
 					hostConfig *container.HostConfig,
 					networkingConfig *network.NetworkingConfig,
-					platform *specs.Platform,
+					platform *ocispec.Platform,
 					containerName string,
 				) (container.CreateResponse, error) {
 					return container.CreateResponse{}, errors.New("shouldn't try to pull image")
@@ -308,7 +308,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 				createContainerFunc: func(config *container.Config,
 					hostConfig *container.HostConfig,
 					networkingConfig *network.NetworkingConfig,
-					platform *specs.Platform,
+					platform *ocispec.Platform,
 					containerName string,
 				) (container.CreateResponse, error) {
 					return container.CreateResponse{Warnings: tc.warnings}, nil
@@ -347,7 +347,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		createContainerFunc: func(config *container.Config,
 			hostConfig *container.HostConfig,
 			networkingConfig *network.NetworkingConfig,
-			platform *specs.Platform,
+			platform *ocispec.Platform,
 			containerName string,
 		) (container.CreateResponse, error) {
 			sort.Strings(config.Env)

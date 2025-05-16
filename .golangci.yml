@@ -40,6 +40,7 @@ linters:
     - gosec         # Detects security problems.
     - govet
     - ineffassign
+    - importas      # Enforces consistent import aliases.
     - misspell      # Detects commonly misspelled English words in comments.
     - nakedret      # Detects uses of naked returns.
     - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
@@ -107,6 +108,21 @@ linters:
 
     lll:
       line-length: 200
+
+    importas:
+      # Do not allow unaliased imports of aliased packages.
+      no-unaliased: true
+
+      alias:
+        # Enforce alias to prevent it accidentally being used instead of our
+        # own errdefs package (or vice-versa).
+        - pkg: github.com/containerd/errdefs
+          alias: cerrdefs
+        - pkg: github.com/opencontainers/image-spec/specs-go/v1
+          alias: ocispec
+          # Enforce that gotest.tools/v3/assert/cmp is always aliased as "is"
+        - pkg: gotest.tools/v3/assert/cmp
+          alias: is
 
     nakedret:
       # Disallow naked returns if func has more lines of code than this setting.
