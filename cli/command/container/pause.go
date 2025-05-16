@@ -32,7 +32,7 @@ func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
 			"aliases": "docker container pause, docker pause",
 		},
 		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
-			return ctr.State != "paused"
+			return ctr.State != container.StatePaused
 		}),
 	}
 }

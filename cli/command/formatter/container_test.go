@@ -106,10 +106,16 @@ func TestContainerPsContext(t *testing.T) {
 			call:      ctx.Ports,
 		},
 		{
-			container: container.Summary{Status: "RUNNING"},
+			container: container.Summary{Status: "Up 123 seconds"},
 			trunc:     true,
-			expValue:  "RUNNING",
+			expValue:  "Up 123 seconds",
 			call:      ctx.Status,
+		},
+		{
+			container: container.Summary{State: container.StateRunning},
+			trunc:     true,
+			expValue:  container.StateRunning,
+			call:      ctx.State,
 		},
 		{
 			container: container.Summary{SizeRw: 10},
@@ -346,8 +352,8 @@ size: 0B
 	}
 
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: "running"},
-		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: "running"},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
+		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
 	}
 
 	for _, tc := range cases {
@@ -428,8 +434,8 @@ func TestContainerContextWriteWithNoContainers(t *testing.T) {
 func TestContainerContextWriteJSON(t *testing.T) {
 	unix := time.Now().Add(-65 * time.Second).Unix()
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: "running"},
-		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: "running"},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unix, State: container.StateRunning},
+		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unix, State: container.StateRunning},
 	}
 	expectedCreated := time.Unix(unix, 0).String()
 	expectedJSONs := []map[string]any{
