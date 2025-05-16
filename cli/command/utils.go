@@ -151,3 +151,22 @@ func ValidateOutputPathFileMode(fileMode os.FileMode) error {
 	}
 	return nil
 }
+
+func invalidParameter(err error) error {
+	return invalidParameterErr{err}
+}
+
+type invalidParameterErr struct{ error }
+
+func (invalidParameterErr) InvalidParameter() {}
+
+func notFound(err error) error {
+	return notFoundErr{err}
+}
+
+type notFoundErr struct{ error }
+
+func (notFoundErr) NotFound() {}
+func (e notFoundErr) Unwrap() error {
+	return e.error
+}
