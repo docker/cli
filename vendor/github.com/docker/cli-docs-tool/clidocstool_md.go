@@ -53,10 +53,12 @@ func (c *Client) GenMarkdownTree(cmd *cobra.Command) error {
 		return nil
 	}
 
-	// Skip hidden command
-	if cmd.Hidden {
-		log.Printf("INFO: Skipping Markdown for %q (hidden command)", cmd.CommandPath())
-		return nil
+	// Skip hidden command recursively
+	for curr := cmd; curr != nil; curr = curr.Parent() {
+		if curr.Hidden {
+			log.Printf("INFO: Skipping Markdown for %q (hidden command)", curr.CommandPath())
+			return nil
+		}
 	}
 
 	log.Printf("INFO: Generating Markdown for %q", cmd.CommandPath())

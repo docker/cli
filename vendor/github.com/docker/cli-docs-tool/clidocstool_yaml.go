@@ -169,6 +169,9 @@ func (c *Client) genYamlCustom(cmd *cobra.Command, w io.Writer) error {
 
 	// check recursively to handle inherited annotations
 	for curr := cmd; curr != nil; curr = curr.Parent() {
+		if curr.Hidden {
+			cliDoc.Hidden = true
+		}
 		if v, ok := curr.Annotations["version"]; ok && cliDoc.MinAPIVersion == "" {
 			cliDoc.MinAPIVersion = v
 		}
@@ -349,9 +352,9 @@ func genFlagResult(cmd *cobra.Command, flags *pflag.FlagSet, anchors map[string]
 //
 // This makes the generated YAML more readable, and easier to review changes.
 // max can be used to customize the width to keep the whole line < 80 chars.
-func forceMultiLine(s string, max int) string {
+func forceMultiLine(s string, maxWidth int) string {
 	s = strings.TrimSpace(s)
-	if len(s) > max && !strings.Contains(s, "\n") {
+	if len(s) > maxWidth && !strings.Contains(s, "\n") {
 		s = s + "\n"
 	}
 	return s
