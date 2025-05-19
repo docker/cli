@@ -81,7 +81,7 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) {
 		return
 	}
 	for _, dentry := range dentries {
-		switch dentry.Type() & os.ModeType {
+		switch dentry.Type() & os.ModeType { //nolint:exhaustive,nolintlint // no need to include all possible file-modes in this list
 		case 0, os.ModeSymlink:
 			// Regular file or symlink, keep going
 		default:

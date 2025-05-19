@@ -34,6 +34,7 @@ linters:
     - durationcheck             # Detect cases where two time.Duration values are being multiplied in possibly erroneous ways.
     - errcheck
     - errchkjson                # Detects unsupported types passed to json encoding functions and reports if checks for the returned error can be omitted.
+    - exhaustive                # Detects missing options in enum switch statements.
     - forbidigo
     - gocritic                  # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
