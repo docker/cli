@@ -27,38 +27,38 @@ formatters:
 linters:
   enable:
     - bodyclose
-    - copyloopvar   # Detects places where loop variables are copied.
+    - copyloopvar               # Detects places where loop variables are copied.
     - depguard
-    - dogsled
-    - dupword       # Detects duplicate words.
-    - durationcheck
+    - dogsled                   # Detects assignments with too many blank identifiers.
+    - dupword                   # Detects duplicate words.
+    - durationcheck             # Detect cases where two time.Duration values are being multiplied in possibly erroneous ways.
     - errcheck
-    - errchkjson
+    - errchkjson                # Detects unsupported types passed to json encoding functions and reports if checks for the returned error can be omitted.
     - forbidigo
-    - gocritic      # Metalinter; detects bugs, performance, and styling issues.
+    - gocritic                  # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
-    - gosec         # Detects security problems.
+    - gosec                     # Detects security problems.
     - govet
+    - importas                  # Enforces consistent import aliases.
     - ineffassign
-    - importas      # Enforces consistent import aliases.
-    - misspell      # Detects commonly misspelled English words in comments.
-    - nakedret      # Detects uses of naked returns.
-    - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
-    - nolintlint    # Detects ill-formed or insufficient nolint directives.
-    - perfsprint    # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
-    - prealloc      # Detects slice declarations that could potentially be pre-allocated.
-    - predeclared   # Detects code that shadows one of Go's predeclared identifiers
-    - reassign
-    - revive        # Metalinter; drop-in replacement for golint.
+    - misspell                  # Detects commonly misspelled English words in comments.
+    - nakedret                  # Detects uses of naked returns.
+    - nilerr                    # Detects code that returns nil even if it checks that the error is not nil.
+    - nolintlint                # Detects ill-formed or insufficient nolint directives.
+    - perfsprint                # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
+    - prealloc                  # Detects slice declarations that could potentially be pre-allocated.
+    - predeclared               # Detects code that shadows one of Go's predeclared identifiers
+    - reassign                  # Detects reassigning a top-level variable in another package.
+    - revive                    # Metalinter; drop-in replacement for golint.
     - staticcheck
-    - thelper       # Detects test helpers without t.Helper().
-    - tparallel     # Detects inappropriate usage of t.Parallel().
-    - unconvert     # Detects unnecessary type conversions.
+    - thelper                   # Detects test helpers without t.Helper().
+    - tparallel                 # Detects inappropriate usage of t.Parallel().
+    - unconvert                 # Detects unnecessary type conversions.
     - unparam
     - unused
-    - usestdlibvars
-    - usetesting    # Reports uses of functions with replacement inside the testing package.
-    - wastedassign
+    - usestdlibvars             # Detects the possibility to use variables/constants from the Go standard library.
+    - usetesting                # Reports uses of functions with replacement inside the testing package.
+    - wastedassign              # Detects wasted assignment statements.
 
   disable:
     - errcheck
@@ -132,7 +132,7 @@ linters:
     staticcheck:
       checks:
         - all
-        - -QF1008 # Omit embedded fields from selector expression
+        - -QF1008 # Omit embedded fields from selector expression; https://staticcheck.dev/docs/checks/#QF1008
 
     revive:
       rules:
@@ -157,8 +157,8 @@ linters:
     # (unlike the "include" option), the "exclude" option does not take exclusion
     # ID's.
     #
-    # These exclusion patterns are copied from the default excluses at:
-    # https://github.com/golangci/golangci-lint/blob/v1.44.0/pkg/config/issues.go#L10-L104
+    # These exclusion patterns are copied from the default excludes at:
+    # https://github.com/golangci/golangci-lint/blob/v1.61.0/pkg/config/issues.go#L11-L104
     #
     # The default list of exclusions can be found at:
     # https://golangci-lint.run/usage/false-positives/#default-exclusions
