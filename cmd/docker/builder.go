@@ -11,7 +11,7 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -88,7 +88,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		// Builder is not explicitly configured as an alias for buildx.
 		// Detect whether we should use BuildKit, or fallback to the
 		// legacy builder.
-		if si := dockerCli.ServerInfo(); si.BuildkitVersion != types.BuilderBuildKit && si.OSType == "windows" {
+		if si := dockerCli.ServerInfo(); si.BuildkitVersion != build.BuilderBuildKit && si.OSType == "windows" {
 			// The daemon didn't advertise BuildKit as the preferred builder,
 			// so use the legacy builder, which is still the default for
 			// Windows / WCOW.

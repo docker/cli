@@ -24,7 +24,7 @@ import (
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
@@ -180,7 +180,7 @@ func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 	}
 
 	si := cli.ServerInfo()
-	if si.BuildkitVersion == types.BuilderBuildKit {
+	if si.BuildkitVersion == build.BuilderBuildKit {
 		// The daemon advertised BuildKit as the preferred builder; this may
 		// be either a Linux daemon or a Windows daemon with experimental
 		// BuildKit support enabled.
@@ -510,7 +510,7 @@ func (cli *DockerCli) Apply(ops ...CLIOption) error {
 type ServerInfo struct {
 	HasExperimental bool
 	OSType          string
-	BuildkitVersion types.BuilderVersion
+	BuildkitVersion build.BuilderVersion
 
 	// SwarmStatus provides information about the current swarm status of the
 	// engine, obtained from the "Swarm" header in the API response.

@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +48,7 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 func RunConfigList(ctx context.Context, dockerCLI command.Cli, options ListOptions) error {
 	apiClient := dockerCLI.Client()
 
-	configs, err := apiClient.ConfigList(ctx, types.ConfigListOptions{Filters: options.Filter.Value()})
+	configs, err := apiClient.ConfigList(ctx, swarm.ConfigListOptions{Filters: options.Filter.Value()})
 	if err != nil {
 		return err
 	}

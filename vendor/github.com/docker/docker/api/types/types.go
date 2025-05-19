@@ -3,7 +3,6 @@ package types // import "github.com/docker/docker/api/types"
 import (
 	"github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/volume"
@@ -23,7 +22,7 @@ type Ping struct {
 	APIVersion     string
 	OSType         string
 	Experimental   bool
-	BuilderVersion BuilderVersion
+	BuilderVersion build.BuilderVersion
 
 	// SwarmStatus provides information about the current swarm status of the
 	// engine, obtained from the "Swarm" header in the API response.
@@ -94,30 +93,6 @@ type DiskUsage struct {
 	BuilderSize int64 `json:",omitempty"` // Deprecated: deprecated in API 1.38, and no longer used since API 1.40.
 }
 
-// SecretCreateResponse contains the information returned to a client
-// on the creation of a new secret.
-type SecretCreateResponse struct {
-	// ID is the id of the created secret.
-	ID string
-}
-
-// SecretListOptions holds parameters to list secrets
-type SecretListOptions struct {
-	Filters filters.Args
-}
-
-// ConfigCreateResponse contains the information returned to a client
-// on the creation of a new config.
-type ConfigCreateResponse struct {
-	// ID is the id of the created config.
-	ID string
-}
-
-// ConfigListOptions holds parameters to list configs
-type ConfigListOptions struct {
-	Filters filters.Args
-}
-
 // PushResult contains the tag, manifest digest, and manifest size from the
 // push. It's used to signal this information to the trust code in the client
 // so it can sign the manifest if necessary.
@@ -125,9 +100,4 @@ type PushResult struct {
 	Tag    string
 	Digest string
 	Size   int
-}
-
-// BuildResult contains the image id of a successful build
-type BuildResult struct {
-	ID string
 }

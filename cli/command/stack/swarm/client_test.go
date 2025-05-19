@@ -30,8 +30,8 @@ type fakeClient struct {
 
 	serviceListFunc    func(options types.ServiceListOptions) ([]swarm.Service, error)
 	networkListFunc    func(options network.ListOptions) ([]network.Summary, error)
-	secretListFunc     func(options types.SecretListOptions) ([]swarm.Secret, error)
-	configListFunc     func(options types.ConfigListOptions) ([]swarm.Config, error)
+	secretListFunc     func(options swarm.SecretListOptions) ([]swarm.Secret, error)
+	configListFunc     func(options swarm.ConfigListOptions) ([]swarm.Config, error)
 	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
 	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
 	nodeInspectWithRaw func(ref string) (swarm.Node, []byte, error)
@@ -85,7 +85,7 @@ func (cli *fakeClient) NetworkList(_ context.Context, options network.ListOption
 	return networksList, nil
 }
 
-func (cli *fakeClient) SecretList(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+func (cli *fakeClient) SecretList(_ context.Context, options swarm.SecretListOptions) ([]swarm.Secret, error) {
 	if cli.secretListFunc != nil {
 		return cli.secretListFunc(options)
 	}
@@ -100,7 +100,7 @@ func (cli *fakeClient) SecretList(_ context.Context, options types.SecretListOpt
 	return secretsList, nil
 }
 
-func (cli *fakeClient) ConfigList(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+func (cli *fakeClient) ConfigList(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 	if cli.configListFunc != nil {
 		return cli.configListFunc(options)
 	}

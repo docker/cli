@@ -9,7 +9,6 @@ import (
 	"time"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
@@ -514,7 +513,7 @@ func TestConvertServiceSecrets(t *testing.T) {
 		},
 	}
 	apiClient := &fakeClient{
-		secretListFunc: func(opts types.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(opts swarm.SecretListOptions) ([]swarm.Secret, error) {
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_secret"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_secret"))
 			return []swarm.Secret{
@@ -572,7 +571,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 		},
 	}
 	apiClient := &fakeClient{
-		configListFunc: func(opts types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(opts swarm.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_config"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_config"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "baz_config"))
@@ -615,18 +614,18 @@ func TestConvertServiceConfigs(t *testing.T) {
 
 type fakeClient struct {
 	client.Client
-	secretListFunc func(types.SecretListOptions) ([]swarm.Secret, error)
-	configListFunc func(types.ConfigListOptions) ([]swarm.Config, error)
+	secretListFunc func(swarm.SecretListOptions) ([]swarm.Secret, error)
+	configListFunc func(swarm.ConfigListOptions) ([]swarm.Config, error)
 }
 
-func (c *fakeClient) SecretList(_ context.Context, options types.SecretListOptions) ([]swarm.Secret, error) {
+func (c *fakeClient) SecretList(_ context.Context, options swarm.SecretListOptions) ([]swarm.Secret, error) {
 	if c.secretListFunc != nil {
 		return c.secretListFunc(options)
 	}
 	return []swarm.Secret{}, nil
 }
 
-func (c *fakeClient) ConfigList(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+func (c *fakeClient) ConfigList(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 	if c.configListFunc != nil {
 		return c.configListFunc(options)
 	}

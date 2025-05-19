@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/system"
@@ -27,7 +27,7 @@ type fakeClient struct {
 	imageInspectFunc func(img string) (image.InspectResponse, error)
 	imageImportFunc  func(source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
 	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
-	imageBuildFunc   func(context.Context, io.Reader, types.ImageBuildOptions) (types.ImageBuildResponse, error)
+	imageBuildFunc   func(context.Context, io.Reader, build.ImageBuildOptions) (build.ImageBuildResponse, error)
 }
 
 func (cli *fakeClient) ImageTag(_ context.Context, img, ref string) error {
@@ -118,9 +118,9 @@ func (cli *fakeClient) ImageHistory(_ context.Context, img string, options ...cl
 	return []image.HistoryResponseItem{{ID: img, Created: time.Now().Unix()}}, nil
 }
 
-func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
 	if cli.imageBuildFunc != nil {
 		return cli.imageBuildFunc(ctx, buildContext, options)
 	}
-	return types.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
+	return build.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
 }
