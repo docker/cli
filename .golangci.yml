@@ -26,6 +26,7 @@ formatters:
 
 linters:
   enable:
+    - asasalint                 # Detects "[]any" used as argument for variadic "func(...any)".
     - bodyclose
     - copyloopvar               # Detects places where loop variables are copied.
     - depguard
@@ -35,11 +36,15 @@ linters:
     - errcheck
     - errchkjson                # Detects unsupported types passed to json encoding functions and reports if checks for the returned error can be omitted.
     - exhaustive                # Detects missing options in enum switch statements.
+    - exptostd                  # Detects functions from golang.org/x/exp/ that can be replaced by std functions.
+    - fatcontext                # Detects nested contexts in loops and function literals.
     - forbidigo
+    - gocheckcompilerdirectives # Detects invalid go compiler directive comments (//go:).
     - gocritic                  # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
     - gosec                     # Detects security problems.
     - govet
+    - iface                     # Detects incorrect use of interfaces. Currently only used for "identical" interfaces in the same package.
     - importas                  # Enforces consistent import aliases.
     - ineffassign
     - makezero                  # Finds slice declarations with non-zero initial length.
@@ -54,6 +59,7 @@ linters:
     - predeclared               # Detects code that shadows one of Go's predeclared identifiers
     - reassign                  # Detects reassigning a top-level variable in another package.
     - revive                    # Metalinter; drop-in replacement for golint.
+    - spancheck                 # Detects mistakes with OpenTelemetry/Census spans.
     - staticcheck
     - thelper                   # Detects test helpers without t.Helper().
     - tparallel                 # Detects inappropriate usage of t.Parallel().
