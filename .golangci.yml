@@ -133,8 +133,6 @@ linters:
       checks:
         - all
         - -QF1008 # Omit embedded fields from selector expression
-        - -ST1020 # The documentation of an exported function should start with the function’s name
-        - -ST1022 # The documentation of an exported variable or constant should start with variable’s name
 
     revive:
       rules:
@@ -206,6 +204,12 @@ linters:
       - text: '^shadow: declaration of "(err|ok)" shadows declaration'
         linters:
           - govet
+
+      # Ignore for cli/command/formatter/tabwriter, which is forked from go stdlib, so we want to align with it.
+      - text: '^(ST1020|ST1022): comment on exported'
+        path: "cli/command/formatter/tabwriter"
+        linters:
+          - staticcheck
 
     # Log a warning if an exclusion rule is unused.
     # Default: false
