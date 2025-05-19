@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -68,7 +68,7 @@ func runPS(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 		return err
 	}
 
-	tasks, err := apiClient.TaskList(ctx, types.TaskListOptions{Filters: filter})
+	tasks, err := apiClient.TaskList(ctx, swarm.TaskListOptions{Filters: filter})
 	if err != nil {
 		return err
 	}
@@ -98,11 +98,11 @@ func createFilter(ctx context.Context, apiClient client.APIClient, options psOpt
 		serviceIDFilter.Add("id", service)
 		serviceNameFilter.Add("name", service)
 	}
-	serviceByIDList, err := apiClient.ServiceList(ctx, types.ServiceListOptions{Filters: serviceIDFilter})
+	serviceByIDList, err := apiClient.ServiceList(ctx, swarm.ServiceListOptions{Filters: serviceIDFilter})
 	if err != nil {
 		return filter, nil, err
 	}
-	serviceByNameList, err := apiClient.ServiceList(ctx, types.ServiceListOptions{Filters: serviceNameFilter})
+	serviceByNameList, err := apiClient.ServiceList(ctx, swarm.ServiceListOptions{Filters: serviceNameFilter})
 	if err != nil {
 		return filter, nil, err
 	}

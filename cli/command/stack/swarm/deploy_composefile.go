@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
@@ -221,7 +220,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 		if service, exists := existingServiceMap[name]; exists {
 			_, _ = fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
 
-			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
+			updateOpts := swarm.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
 			switch resolveImage {
 			case ResolveImageAlways:
@@ -266,7 +265,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 		} else {
 			_, _ = fmt.Fprintln(out, "Creating service", name)
 
-			createOpts := types.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
+			createOpts := swarm.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
 
 			// query registry if flag disabling it was not set
 			if resolveImage == ResolveImageAlways || resolveImage == ResolveImageChanged {

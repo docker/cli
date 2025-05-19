@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
@@ -111,7 +110,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				nodeListFunc: func(_ context.Context, _ types.NodeListOptions) ([]swarm.Node, error) {
+				nodeListFunc: func(_ context.Context, _ swarm.NodeListOptions) ([]swarm.Node, error) {
 					return []swarm.Node{
 						*builders.Node(builders.Hostname("n1")),
 					}, nil
@@ -122,7 +121,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				nodeListFunc: func(_ context.Context, _ types.NodeListOptions) ([]swarm.Node, error) {
+				nodeListFunc: func(_ context.Context, _ swarm.NodeListOptions) ([]swarm.Node, error) {
 					return []swarm.Node{}, errors.New("API error")
 				},
 			},

@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
@@ -55,7 +55,7 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 
 	nodes, err := client.NodeList(
 		ctx,
-		types.NodeListOptions{Filters: options.filter.Value()})
+		swarm.NodeListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}

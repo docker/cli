@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, nodeIDs []string, opt
 
 	var errs []error
 	for _, id := range nodeIDs {
-		if err := apiClient.NodeRemove(ctx, id, types.NodeRemoveOptions{Force: opts.force}); err != nil {
+		if err := apiClient.NodeRemove(ctx, id, swarm.NodeRemoveOptions{Force: opts.force}); err != nil {
 			errs = append(errs, err)
 			continue
 		}

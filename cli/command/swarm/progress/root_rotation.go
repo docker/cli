@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/progress"
@@ -52,7 +51,7 @@ func RootRotationProgress(ctx context.Context, dclient client.APIClient, progres
 			return nil
 		}
 
-		nodes, err := dclient.NodeList(ctx, types.NodeListOptions{})
+		nodes, err := dclient.NodeList(ctx, swarm.NodeListOptions{})
 		if err != nil {
 			return err
 		}

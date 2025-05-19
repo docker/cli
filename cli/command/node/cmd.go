@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
@@ -48,7 +48,7 @@ func Reference(ctx context.Context, apiClient client.APIClient, ref string) (str
 			// If there's no node ID in /info, the node probably
 			// isn't a manager. Call a swarm-specific endpoint to
 			// get a more specific error message.
-			_, err = apiClient.NodeList(ctx, types.NodeListOptions{})
+			_, err = apiClient.NodeList(ctx, swarm.NodeListOptions{})
 			if err != nil {
 				return "", err
 			}

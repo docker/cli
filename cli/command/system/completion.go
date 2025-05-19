@@ -4,10 +4,10 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/spf13/cobra"
 )
@@ -211,7 +211,7 @@ func networkNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []
 // nodeNames contacts the API to get a list of node names.
 // In case of an error, an empty list is returned.
 func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().NodeList(cmd.Context(), types.NodeListOptions{})
+	list, err := dockerCLI.Client().NodeList(cmd.Context(), swarm.NodeListOptions{})
 	if err != nil {
 		return []string{}
 	}

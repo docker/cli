@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -33,12 +32,12 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	namespace := convert.NewNamespace("mystack")
 
 	var (
-		receivedOptions types.ServiceUpdateOptions
+		receivedOptions swarm.ServiceUpdateOptions
 		receivedService swarm.ServiceSpec
 	)
 
 	client := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{
 					Spec: swarm.ServiceSpec{
@@ -56,7 +55,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
+		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 			receivedOptions = options
 			receivedService = service
 			return swarm.ServiceUpdateResponse{}, nil
@@ -105,7 +104,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 			assert.Check(t, is.Equal(receivedService.TaskTemplate.ForceUpdate, tc.expectedForceUpdate))
 
 			receivedService = swarm.ServiceSpec{}
-			receivedOptions = types.ServiceUpdateOptions{}
+			receivedOptions = swarm.ServiceUpdateOptions{}
 		})
 	}
 }

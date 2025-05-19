@@ -3,7 +3,6 @@ package node
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
@@ -17,8 +16,8 @@ type fakeClient struct {
 	nodeRemoveFunc     func() error
 	nodeUpdateFunc     func(nodeID string, version swarm.Version, node swarm.NodeSpec) error
 	taskInspectFunc    func(taskID string) (swarm.Task, []byte, error)
-	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
-	serviceInspectFunc func(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error)
+	taskListFunc       func(options swarm.TaskListOptions) ([]swarm.Task, error)
+	serviceInspectFunc func(ctx context.Context, serviceID string, opts swarm.ServiceInspectOptions) (swarm.Service, []byte, error)
 }
 
 func (cli *fakeClient) NodeInspectWithRaw(context.Context, string) (swarm.Node, []byte, error) {
@@ -28,14 +27,14 @@ func (cli *fakeClient) NodeInspectWithRaw(context.Context, string) (swarm.Node, 
 	return swarm.Node{}, []byte{}, nil
 }
 
-func (cli *fakeClient) NodeList(context.Context, types.NodeListOptions) ([]swarm.Node, error) {
+func (cli *fakeClient) NodeList(context.Context, swarm.NodeListOptions) ([]swarm.Node, error) {
 	if cli.nodeListFunc != nil {
 		return cli.nodeListFunc()
 	}
 	return []swarm.Node{}, nil
 }
 
-func (cli *fakeClient) NodeRemove(context.Context, string, types.NodeRemoveOptions) error {
+func (cli *fakeClient) NodeRemove(context.Context, string, swarm.NodeRemoveOptions) error {
 	if cli.nodeRemoveFunc != nil {
 		return cli.nodeRemoveFunc()
 	}
@@ -63,14 +62,14 @@ func (cli *fakeClient) TaskInspectWithRaw(_ context.Context, taskID string) (swa
 	return swarm.Task{}, []byte{}, nil
 }
 
-func (cli *fakeClient) TaskList(_ context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+func (cli *fakeClient) TaskList(_ context.Context, options swarm.TaskListOptions) ([]swarm.Task, error) {
 	if cli.taskListFunc != nil {
 		return cli.taskListFunc(options)
 	}
 	return []swarm.Task{}, nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID string, opts types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (cli *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID string, opts swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
 	if cli.serviceInspectFunc != nil {
 		return cli.serviceInspectFunc(ctx, serviceID, opts)
 	}

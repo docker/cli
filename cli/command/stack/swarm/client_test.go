@@ -28,15 +28,15 @@ type fakeClient struct {
 	removedSecrets  []string
 	removedConfigs  []string
 
-	serviceListFunc    func(options types.ServiceListOptions) ([]swarm.Service, error)
+	serviceListFunc    func(options swarm.ServiceListOptions) ([]swarm.Service, error)
 	networkListFunc    func(options network.ListOptions) ([]network.Summary, error)
 	secretListFunc     func(options swarm.SecretListOptions) ([]swarm.Secret, error)
 	configListFunc     func(options swarm.ConfigListOptions) ([]swarm.Config, error)
-	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
-	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
+	nodeListFunc       func(options swarm.NodeListOptions) ([]swarm.Node, error)
+	taskListFunc       func(options swarm.TaskListOptions) ([]swarm.Task, error)
 	nodeInspectWithRaw func(ref string) (swarm.Node, []byte, error)
 
-	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
+	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
 
 	serviceRemoveFunc func(serviceID string) error
 	networkRemoveFunc func(networkID string) error
@@ -55,7 +55,7 @@ func (cli *fakeClient) ClientVersion() string {
 	return cli.version
 }
 
-func (cli *fakeClient) ServiceList(_ context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+func (cli *fakeClient) ServiceList(_ context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 	if cli.serviceListFunc != nil {
 		return cli.serviceListFunc(options)
 	}
@@ -115,14 +115,14 @@ func (cli *fakeClient) ConfigList(_ context.Context, options swarm.ConfigListOpt
 	return configsList, nil
 }
 
-func (cli *fakeClient) TaskList(_ context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+func (cli *fakeClient) TaskList(_ context.Context, options swarm.TaskListOptions) ([]swarm.Task, error) {
 	if cli.taskListFunc != nil {
 		return cli.taskListFunc(options)
 	}
 	return []swarm.Task{}, nil
 }
 
-func (cli *fakeClient) NodeList(_ context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
+func (cli *fakeClient) NodeList(_ context.Context, options swarm.NodeListOptions) ([]swarm.Node, error) {
 	if cli.nodeListFunc != nil {
 		return cli.nodeListFunc(options)
 	}
@@ -136,7 +136,7 @@ func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, ref string) (swarm.
 	return swarm.Node{}, nil, nil
 }
 
-func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options types.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
+func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 	if cli.serviceUpdateFunc != nil {
 		return cli.serviceUpdateFunc(serviceID, version, service, options)
 	}

@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 )
@@ -11,7 +10,7 @@ import (
 type fakeClient struct {
 	client.APIClient
 	nodeInspectWithRaw    func(ref string) (swarm.Node, []byte, error)
-	serviceInspectWithRaw func(ref string, options types.ServiceInspectOptions) (swarm.Service, []byte, error)
+	serviceInspectWithRaw func(ref string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error)
 }
 
 func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, ref string) (swarm.Node, []byte, error) {
@@ -21,7 +20,7 @@ func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, ref string) (swarm.
 	return swarm.Node{}, nil, nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, ref string, options types.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, ref string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
 	if cli.serviceInspectWithRaw != nil {
 		return cli.serviceInspectWithRaw(ref, options)
 	}
