@@ -3,24 +3,23 @@ package config
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 )
 
 type fakeClient struct {
 	client.Client
-	configCreateFunc  func(context.Context, swarm.ConfigSpec) (types.ConfigCreateResponse, error)
+	configCreateFunc  func(context.Context, swarm.ConfigSpec) (swarm.ConfigCreateResponse, error)
 	configInspectFunc func(context.Context, string) (swarm.Config, []byte, error)
-	configListFunc    func(context.Context, types.ConfigListOptions) ([]swarm.Config, error)
+	configListFunc    func(context.Context, swarm.ConfigListOptions) ([]swarm.Config, error)
 	configRemoveFunc  func(string) error
 }
 
-func (c *fakeClient) ConfigCreate(ctx context.Context, spec swarm.ConfigSpec) (types.ConfigCreateResponse, error) {
+func (c *fakeClient) ConfigCreate(ctx context.Context, spec swarm.ConfigSpec) (swarm.ConfigCreateResponse, error) {
 	if c.configCreateFunc != nil {
 		return c.configCreateFunc(ctx, spec)
 	}
-	return types.ConfigCreateResponse{}, nil
+	return swarm.ConfigCreateResponse{}, nil
 }
 
 func (c *fakeClient) ConfigInspectWithRaw(ctx context.Context, id string) (swarm.Config, []byte, error) {
@@ -30,7 +29,7 @@ func (c *fakeClient) ConfigInspectWithRaw(ctx context.Context, id string) (swarm
 	return swarm.Config{}, nil, nil
 }
 
-func (c *fakeClient) ConfigList(ctx context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+func (c *fakeClient) ConfigList(ctx context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 	if c.configListFunc != nil {
 		return c.configListFunc(ctx, options)
 	}

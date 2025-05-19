@@ -13,7 +13,7 @@ import (
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/build"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/go-archive/compression"
 	"gotest.tools/v3/assert"
@@ -25,7 +25,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 	buffer := new(bytes.Buffer)
 	fakeBuild := newFakeBuild()
-	fakeImageBuild := func(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+	fakeImageBuild := func(ctx context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
 		tee := io.TeeReader(buildContext, buffer)
 		gzipReader, err := gzip.NewReader(tee)
 		assert.NilError(t, err)
@@ -178,18 +178,18 @@ RUN echo hello world
 
 type fakeBuild struct {
 	context *tar.Reader
-	options types.ImageBuildOptions
+	options build.ImageBuildOptions
 }
 
 func newFakeBuild() *fakeBuild {
 	return &fakeBuild{}
 }
 
-func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error) {
+func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
 	f.context = tar.NewReader(buildContext)
 	f.options = options
 	body := new(bytes.Buffer)
-	return types.ImageBuildResponse{Body: io.NopCloser(body)}, nil
+	return build.ImageBuildResponse{Body: io.NopCloser(body)}, nil
 }
 
 func (f *fakeBuild) headers(t *testing.T) []*tar.Header {

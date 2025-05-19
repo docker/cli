@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
@@ -33,7 +32,7 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 		args.Add("name", s.SecretName)
 	}
 
-	secrets, err := apiClient.SecretList(ctx, types.SecretListOptions{
+	secrets, err := apiClient.SecretList(ctx, swarmtypes.SecretListOptions{
 		Filters: args,
 	})
 	if err != nil {
@@ -113,7 +112,7 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 		args.Add("name", s.ConfigName)
 	}
 
-	configs, err := apiClient.ConfigList(ctx, types.ConfigListOptions{
+	configs, err := apiClient.ConfigList(ctx, swarmtypes.ConfigListOptions{
 		Filters: args,
 	})
 	if err != nil {

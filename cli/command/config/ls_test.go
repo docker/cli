@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -20,7 +19,7 @@ import (
 func TestConfigListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
-		configListFunc func(context.Context, types.ConfigListOptions) ([]swarm.Config, error)
+		configListFunc func(context.Context, swarm.ConfigListOptions) ([]swarm.Config, error)
 		expectedError  string
 	}{
 		{
@@ -28,7 +27,7 @@ func TestConfigListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+			configListFunc: func(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 				return []swarm.Config{}, errors.New("error listing configs")
 			},
 			expectedError: "error listing configs",
@@ -49,7 +48,7 @@ func TestConfigListErrors(t *testing.T) {
 
 func TestConfigList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*builders.Config(builders.ConfigID("ID-1-foo"),
 					builders.ConfigName("1-foo"),
@@ -79,7 +78,7 @@ func TestConfigList(t *testing.T) {
 
 func TestConfigListWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
 				*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
@@ -96,7 +95,7 @@ func TestConfigListWithQuietOption(t *testing.T) {
 
 func TestConfigListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
 				*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
@@ -115,7 +114,7 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 
 func TestConfigListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 			return []swarm.Config{
 				*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
 				*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
@@ -132,7 +131,7 @@ func TestConfigListWithFormat(t *testing.T) {
 
 func TestConfigListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options types.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Check(t, is.Equal("foo", options.Filters.Get("name")[0]))
 			assert.Check(t, is.Equal("lbl1=Label-bar", options.Filters.Get("label")[0]))
 			return []swarm.Config{

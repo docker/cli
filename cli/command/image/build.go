@@ -25,7 +25,7 @@ import (
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/types"
+	buildtypes "github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/container"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/builder/remotecontext/urlutil"
@@ -337,7 +337,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		authConfigs[k] = registrytypes.AuthConfig(auth)
 	}
 	buildOpts := imageBuildOptions(dockerCli, options)
-	buildOpts.Version = types.BuilderV1
+	buildOpts.Version = buildtypes.BuilderV1
 	buildOpts.Dockerfile = relDockerfile
 	buildOpts.AuthConfigs = authConfigs
 	buildOpts.RemoteContext = remote
@@ -354,7 +354,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	imageID := ""
 	aux := func(msg jsonstream.JSONMessage) {
-		var result types.BuildResult
+		var result buildtypes.Result
 		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
 			_, _ = fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
 		} else {
@@ -540,9 +540,9 @@ func replaceDockerfileForContentTrust(ctx context.Context, inputTarStream io.Rea
 	return pipeReader
 }
 
-func imageBuildOptions(dockerCli command.Cli, options buildOptions) types.ImageBuildOptions {
+func imageBuildOptions(dockerCli command.Cli, options buildOptions) buildtypes.ImageBuildOptions {
 	configFile := dockerCli.ConfigFile()
-	return types.ImageBuildOptions{
+	return buildtypes.ImageBuildOptions{
 		Memory:         options.memory.Value(),
 		MemorySwap:     options.memorySwap.Value(),
 		Tags:           options.tags.GetSlice(),

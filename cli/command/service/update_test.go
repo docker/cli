@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -504,12 +503,12 @@ type secretAPIClientMock struct {
 	listResult []swarm.Secret
 }
 
-func (s secretAPIClientMock) SecretList(context.Context, types.SecretListOptions) ([]swarm.Secret, error) {
+func (s secretAPIClientMock) SecretList(context.Context, swarm.SecretListOptions) ([]swarm.Secret, error) {
 	return s.listResult, nil
 }
 
-func (secretAPIClientMock) SecretCreate(context.Context, swarm.SecretSpec) (types.SecretCreateResponse, error) {
-	return types.SecretCreateResponse{}, nil
+func (secretAPIClientMock) SecretCreate(context.Context, swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
+	return swarm.SecretCreateResponse{}, nil
 }
 
 func (secretAPIClientMock) SecretRemove(context.Context, string) error {
@@ -1203,7 +1202,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 
 			// fakeConfigAPIClientList is actually defined in create_test.go,
 			// but we'll use it here as well
-			var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts types.ConfigListOptions) ([]swarm.Config, error) {
+			var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts swarm.ConfigListOptions) ([]swarm.Config, error) {
 				names := opts.Filters.Get("name")
 				assert.Equal(t, len(names), len(tc.lookupConfigs))
 
