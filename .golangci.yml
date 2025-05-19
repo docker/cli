@@ -44,7 +44,7 @@ linters:
     - mirror                    # Detects wrong mirror patterns of bytes/strings usage.
     - misspell                  # Detects commonly misspelled English words in comments.
     - nakedret                  # Detects uses of naked returns.
-    - nilerr                    # Detects code that returns nil even if it checks that the error is not nil.
+    - nilnesserr                # Detects returning nil errors. It combines the features of nilness and nilerr,
     - nolintlint                # Detects ill-formed or insufficient nolint directives.
     - perfsprint                # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
     - prealloc                  # Detects slice declarations that could potentially be pre-allocated.
