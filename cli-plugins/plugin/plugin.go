@@ -109,7 +109,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata) {
 }
 
 func withPluginClientConn(name string) command.CLIOption {
-	return command.WithInitializeClient(func(dockerCli *command.DockerCli) (client.APIClient, error) {
+	return func(cli *command.DockerCli) error {
 		cmd := "docker"
 		if x := os.Getenv(metadata.ReexecEnvvar); x != "" {
 			cmd = x
@@ -133,11 +133,14 @@ func withPluginClientConn(name string) command.CLIOption {
 
 		helper, err := connhelper.GetCommandConnectionHelper(cmd, flags...)
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		return client.NewClientWithOpts(client.WithDialContext(helper.Dialer))
-	})
+		apiClient, err := client.NewClientWithOpts(client.WithDialContext(helper.Dialer))
+		if err != nil {
+			return err
+		}
+		return command.WithAPIClient(apiClient)(cli)
+	}
 }
 
 func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadata.Metadata) *cli.TopLevelCommand {
