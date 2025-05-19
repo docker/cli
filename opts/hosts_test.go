@@ -1,7 +1,7 @@
 package opts
 
 import (
-	"fmt"
+	"net"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -25,13 +25,13 @@ func TestParseHost(t *testing.T) {
 		"fd://something":           "fd://something",
 		"tcp://host:":              "tcp://host:" + defaultHTTPPort,
 		"tcp://":                   defaultTCPHost,
-		"tcp://:2375":              fmt.Sprintf("tcp://%s:%s", defaultHTTPHost, defaultHTTPPort),
-		"tcp://:2376":              fmt.Sprintf("tcp://%s:%s", defaultHTTPHost, defaultTLSHTTPPort),
+		"tcp://:2375":              "tcp://" + net.JoinHostPort(defaultHTTPHost, defaultHTTPPort),
+		"tcp://:2376":              "tcp://" + net.JoinHostPort(defaultHTTPHost, defaultTLSHTTPPort),
 		"tcp://0.0.0.0:8080":       "tcp://0.0.0.0:8080",
 		"tcp://192.168.0.0:12000":  "tcp://192.168.0.0:12000",
 		"tcp://192.168:8080":       "tcp://192.168:8080",
 		"tcp://0.0.0.0:1234567890": "tcp://0.0.0.0:1234567890", // yeah it's valid :P
-		" tcp://:7777/path ":       fmt.Sprintf("tcp://%s:7777/path", defaultHTTPHost),
+		" tcp://:7777/path ":       "tcp://" + net.JoinHostPort(defaultHTTPHost, "7777") + "/path",
 		"tcp://docker.com:2375":    "tcp://docker.com:2375",
 		"unix://":                  "unix://" + defaultUnixSocket,
 		"unix://path/to/socket":    "unix://path/to/socket",
@@ -70,11 +70,11 @@ func TestParseDockerDaemonHost(t *testing.T) {
 		"[::1]:5555/path":             "tcp://[::1]:5555/path",
 		"[0:0:0:0:0:0:0:1]:":          "tcp://[0:0:0:0:0:0:0:1]:2375",
 		"[0:0:0:0:0:0:0:1]:5555/path": "tcp://[0:0:0:0:0:0:0:1]:5555/path",
-		":6666":                       fmt.Sprintf("tcp://%s:6666", defaultHTTPHost),
-		":6666/path":                  fmt.Sprintf("tcp://%s:6666/path", defaultHTTPHost),
+		":6666":                       "tcp://" + net.JoinHostPort(defaultHTTPHost, "6666"),
+		":6666/path":                  "tcp://" + net.JoinHostPort(defaultHTTPHost, "6666") + "/path",
 		"tcp://":                      defaultTCPHost,
-		"tcp://:7777":                 fmt.Sprintf("tcp://%s:7777", defaultHTTPHost),
-		"tcp://:7777/path":            fmt.Sprintf("tcp://%s:7777/path", defaultHTTPHost),
+		"tcp://:7777":                 "tcp://" + net.JoinHostPort(defaultHTTPHost, "7777"),
+		"tcp://:7777/path":            "tcp://" + net.JoinHostPort(defaultHTTPHost, "7777") + "/path",
 		"unix:///run/docker.sock":     "unix:///run/docker.sock",
 		"unix://":                     "unix://" + defaultUnixSocket,
 		"fd://":                       "fd://",
@@ -96,7 +96,7 @@ func TestParseDockerDaemonHost(t *testing.T) {
 }
 
 func TestParseTCP(t *testing.T) {
-	defaultHTTPHost := "tcp://127.0.0.1:2376"
+	const defaultHost = "tcp://127.0.0.1:2376"
 	invalids := map[string]string{
 		"tcp:a.b.c.d":          "",
 		"tcp:a.b.c.d/path":     "",
@@ -104,8 +104,8 @@ func TestParseTCP(t *testing.T) {
 		"udp://127.0.0.1:2375": "invalid proto, expected tcp: udp://127.0.0.1:2375",
 	}
 	valids := map[string]string{
-		"":                            defaultHTTPHost,
-		"tcp://":                      defaultHTTPHost,
+		"":                            defaultHost,
+		"tcp://":                      defaultHost,
 		"0.0.0.1:":                    "tcp://0.0.0.1:2376",
 		"0.0.0.1:5555":                "tcp://0.0.0.1:5555",
 		"0.0.0.1:5555/path":           "tcp://0.0.0.1:5555/path",
@@ -124,12 +124,12 @@ func TestParseTCP(t *testing.T) {
 		"localhost:5555/path":         "tcp://localhost:5555/path",
 	}
 	for invalidAddr, expectedError := range invalids {
-		if addr, err := ParseTCPAddr(invalidAddr, defaultHTTPHost); err == nil || expectedError != "" && err.Error() != expectedError {
+		if addr, err := ParseTCPAddr(invalidAddr, defaultHost); err == nil || expectedError != "" && err.Error() != expectedError {
 			t.Errorf("tcp %v address expected error %v return, got %s and addr %v", invalidAddr, expectedError, err, addr)
 		}
 	}
 	for validAddr, expectedAddr := range valids {
-		if addr, err := ParseTCPAddr(validAddr, defaultHTTPHost); err != nil || addr != expectedAddr {
+		if addr, err := ParseTCPAddr(validAddr, defaultHost); err != nil || addr != expectedAddr {
 			t.Errorf("%v -> expected %v, got %v and addr %v", validAddr, expectedAddr, err, addr)
 		}
 	}
