@@ -42,6 +42,7 @@ linters:
     - govet
     - importas                  # Enforces consistent import aliases.
     - ineffassign
+    - makezero                  # Finds slice declarations with non-zero initial length.
     - mirror                    # Detects wrong mirror patterns of bytes/strings usage.
     - misspell                  # Detects commonly misspelled English words in comments.
     - nakedret                  # Detects uses of naked returns.

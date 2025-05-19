@@ -148,7 +148,7 @@ container2  --  --
 `,
 		},
 	}
-	stats := []StatsEntry{
+	entries := []StatsEntry{
 		{
 			Container:        "container1",
 			CPUPercentage:    20,
@@ -181,7 +181,7 @@ container2  --  --
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
-			err := statsFormatWrite(tc.context, stats, "windows", false)
+			err := statsFormatWrite(tc.context, entries, "windows", false)
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -309,10 +309,10 @@ func TestContainerStatsContextWriteTrunc(t *testing.T) {
 
 func BenchmarkStatsFormat(b *testing.B) {
 	b.ReportAllocs()
-	stats := genStats()
+	entries := genStats()
 
 	for i := 0; i < b.N; i++ {
-		for _, s := range stats {
+		for _, s := range entries {
 			_ = s.CPUPerc()
 			_ = s.MemUsage()
 			_ = s.MemPerc()
@@ -335,9 +335,9 @@ func genStats() []statsContext {
 		NetworkTx:        987.654321,
 		PidsCurrent:      123456789,
 	}}
-	stats := make([]statsContext, 100)
-	for i := 0; i < 100; i++ {
-		stats = append(stats, entry)
+	entries := make([]statsContext, 0, 100)
+	for range 100 {
+		entries = append(entries, entry)
 	}
-	return stats
+	return entries
 }
