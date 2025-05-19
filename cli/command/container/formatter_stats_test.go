@@ -273,36 +273,37 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 }
 
 func TestContainerStatsContextWriteTrunc(t *testing.T) {
-	var out bytes.Buffer
-
-	contexts := []struct {
+	tests := []struct {
+		doc      string
 		context  formatter.Context
 		trunc    bool
 		expected string
 	}{
 		{
-			formatter.Context{
+			doc: "non-truncated",
+			context: formatter.Context{
 				Format: "{{.ID}}",
-				Output: &out,
 			},
-			false,
-			"b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc\n",
+			expected: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc\n",
 		},
 		{
-			formatter.Context{
+			doc: "truncated",
+			context: formatter.Context{
 				Format: "{{.ID}}",
-				Output: &out,
 			},
-			true,
-			"b95a83497c91\n",
+			trunc:    true,
+			expected: "b95a83497c91\n",
 		},
 	}
 
-	for _, context := range contexts {
-		statsFormatWrite(context.context, []StatsEntry{{ID: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc"}}, "linux", context.trunc)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := statsFormatWrite(tc.context, []StatsEntry{{ID: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc"}}, "linux", tc.trunc)
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(tc.expected, out.String()))
+		})
 	}
 }
 
