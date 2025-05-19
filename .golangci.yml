@@ -41,6 +41,7 @@ linters:
     - govet
     - importas                  # Enforces consistent import aliases.
     - ineffassign
+    - mirror                    # Detects wrong mirror patterns of bytes/strings usage.
     - misspell                  # Detects commonly misspelled English words in comments.
     - nakedret                  # Detects uses of naked returns.
     - nilerr                    # Detects code that returns nil even if it checks that the error is not nil.

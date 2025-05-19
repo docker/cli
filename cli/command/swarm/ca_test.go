@@ -69,7 +69,7 @@ func writeFile(data string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	_, err = tmpfile.Write([]byte(data))
+	_, err = tmpfile.WriteString(data)
 	if err != nil {
 		return "", err
 	}
