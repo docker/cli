@@ -64,6 +64,14 @@ func (c *Client) genManTreeCustom(cmd *cobra.Command) error {
 		return nil
 	}
 
+	// Skip hidden command recursively
+	for curr := cmd; curr != nil; curr = curr.Parent() {
+		if curr.Hidden {
+			log.Printf("INFO: Skipping Man for %q (hidden command)", curr.CommandPath())
+			return nil
+		}
+	}
+
 	log.Printf("INFO: Generating Man for %q", cmd.CommandPath())
 
 	return doc.GenManTreeFromOpts(cmd, doc.GenManTreeOptions{

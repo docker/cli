@@ -13,7 +13,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.7
 	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
-	github.com/docker/cli-docs-tool v0.9.0
+	github.com/docker/cli-docs-tool v0.10.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v28.1.2-0.20250519114040-7937f0846c13+incompatible // master, v28.x dev
 	github.com/docker/docker-credential-helpers v0.9.3
