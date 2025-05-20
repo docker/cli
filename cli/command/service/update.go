@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/opts/swarmopts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -156,7 +155,7 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCLI.Client()
 
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, swarm.ServiceInspectOptions{})
 	if err != nil {
 		return err
 	}
@@ -201,7 +200,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		}
 	}
 
-	updateOpts := types.ServiceUpdateOptions{}
+	updateOpts := swarm.ServiceUpdateOptions{}
 	if serverSideRollback {
 		updateOpts.Rollback = "previous"
 	}
@@ -255,9 +254,9 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
 	case clientSideRollback:
-		updateOpts.RegistryAuthFrom = types.RegistryAuthFromPreviousSpec
+		updateOpts.RegistryAuthFrom = swarm.RegistryAuthFromPreviousSpec
 	default:
-		updateOpts.RegistryAuthFrom = types.RegistryAuthFromSpec
+		updateOpts.RegistryAuthFrom = swarm.RegistryAuthFromSpec
 	}
 
 	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, *spec, updateOpts)

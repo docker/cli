@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -21,7 +20,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
 		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
-		swarmGetUnlockKeyFunc func() (types.SwarmUnlockKeyResponse, error)
+		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 		expectedError         string
 	}{
 		{
@@ -64,17 +63,15 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 		},
 		{
 			name: "swarm-get-unlock-key-failed",
-			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{}, errors.New("error getting unlock key")
+			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
+				return swarm.UnlockKeyResponse{}, errors.New("error getting unlock key")
 			},
 			expectedError: "error getting unlock key",
 		},
 		{
 			name: "swarm-no-unlock-key-failed",
-			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{
-					UnlockKey: "",
-				}, nil
+			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
+				return swarm.UnlockKeyResponse{}, nil
 			},
 			expectedError: "no unlock key is set",
 		},
@@ -108,12 +105,12 @@ func TestSwarmUnlockKey(t *testing.T) {
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
 		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
-		swarmGetUnlockKeyFunc func() (types.SwarmUnlockKeyResponse, error)
+		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 	}{
 		{
 			name: "unlock-key",
-			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{
+			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
+				return swarm.UnlockKeyResponse{
 					UnlockKey: "unlock-key",
 				}, nil
 			},
@@ -123,8 +120,8 @@ func TestSwarmUnlockKey(t *testing.T) {
 			flags: map[string]string{
 				flagQuiet: "true",
 			},
-			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{
+			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
+				return swarm.UnlockKeyResponse{
 					UnlockKey: "unlock-key",
 				}, nil
 			},
@@ -137,8 +134,8 @@ func TestSwarmUnlockKey(t *testing.T) {
 			swarmInspectFunc: func() (swarm.Swarm, error) {
 				return *builders.Swarm(builders.Autolock()), nil
 			},
-			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{
+			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
+				return swarm.UnlockKeyResponse{
 					UnlockKey: "unlock-key",
 				}, nil
 			},
@@ -152,8 +149,8 @@ func TestSwarmUnlockKey(t *testing.T) {
 			swarmInspectFunc: func() (swarm.Swarm, error) {
 				return *builders.Swarm(builders.Autolock()), nil
 			},
-			swarmGetUnlockKeyFunc: func() (types.SwarmUnlockKeyResponse, error) {
-				return types.SwarmUnlockKeyResponse{
+			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
+				return swarm.UnlockKeyResponse{
 					UnlockKey: "unlock-key",
 				}, nil
 			},

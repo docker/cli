@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"gotest.tools/v3/assert"
@@ -19,7 +18,7 @@ import (
 
 func TestServiceListOrder(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				newService("a57dbe8", "service-1-foo"),
 				newService("a57dbdd", "service-10-foo"),
@@ -173,7 +172,7 @@ func TestServiceListServiceStatus(t *testing.T) {
 				tc.cluster = generateCluster(t, tc.opts)
 			}
 			cli := test.NewFakeCli(&fakeClient{
-				serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+				serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 					if !options.Status || versions.LessThan(tc.opts.apiVersion, "1.41") {
 						// Don't return "ServiceStatus" if not requested, or on older API versions
 						for i := range tc.cluster.services {
@@ -182,10 +181,10 @@ func TestServiceListServiceStatus(t *testing.T) {
 					}
 					return tc.cluster.services, nil
 				},
-				taskListFunc: func(context.Context, types.TaskListOptions) ([]swarm.Task, error) {
+				taskListFunc: func(context.Context, swarm.TaskListOptions) ([]swarm.Task, error) {
 					return tc.cluster.tasks, nil
 				},
-				nodeListFunc: func(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
+				nodeListFunc: func(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error) {
 					return tc.cluster.nodes, nil
 				},
 			})

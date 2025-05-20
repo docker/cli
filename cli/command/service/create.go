@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	cliopts "github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
@@ -102,7 +101,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
 	apiClient := dockerCLI.Client()
-	createOpts := types.ServiceCreateOptions{}
+	createOpts := swarm.ServiceCreateOptions{}
 
 	service, err := opts.ToService(ctx, apiClient, flags)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/docker/cli/cli/command/stack/formatter"
 	"github.com/docker/cli/cli/compose/convert"
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )
@@ -14,7 +14,7 @@ import (
 func GetStacks(ctx context.Context, apiClient client.ServiceAPIClient) ([]*formatter.Stack, error) {
 	services, err := apiClient.ServiceList(
 		ctx,
-		types.ServiceListOptions{Filters: getAllStacksFilter()})
+		swarm.ServiceListOptions{Filters: getAllStacksFilter()})
 	if err != nil {
 		return nil, err
 	}

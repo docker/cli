@@ -6,7 +6,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 )
 
@@ -17,7 +16,7 @@ func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Servic
 		client = dockerCli.Client()
 	)
 
-	listOpts := types.ServiceListOptions{
+	listOpts := swarm.ServiceListOptions{
 		Filters: getStackFilterFromOpt(opts.Namespace, opts.Filter),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and

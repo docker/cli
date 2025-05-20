@@ -26,7 +26,7 @@ type fakeClient struct {
 	infoFunc           func(ctx context.Context) (system.Info, error)
 	networkListFunc    func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
 	networkPruneFunc   func(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
-	nodeListFunc       func(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error)
+	nodeListFunc       func(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error)
 	serverVersion      func(ctx context.Context) (types.Version, error)
 	volumeListFunc     func(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error)
 }
@@ -81,7 +81,7 @@ func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Ar
 	return network.PruneReport{}, nil
 }
 
-func (cli *fakeClient) NodeList(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
+func (cli *fakeClient) NodeList(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error) {
 	if cli.nodeListFunc != nil {
 		return cli.nodeListFunc(ctx, options)
 	}

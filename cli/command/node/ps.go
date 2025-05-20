@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -84,7 +83,7 @@ func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 		filter := options.filter.Value()
 		filter.Add("node", node.ID)
 
-		nodeTasks, err := client.TaskList(ctx, types.TaskListOptions{Filters: filter})
+		nodeTasks, err := client.TaskList(ctx, swarm.TaskListOptions{Filters: filter})
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue

@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
@@ -17,7 +16,7 @@ import (
 
 func TestCreateFilter(t *testing.T) {
 	client := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "idmatch"},
 				{ID: "idprefixmatch"},
@@ -49,7 +48,7 @@ func TestCreateFilter(t *testing.T) {
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
 	client := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "aaaone"},
 				{ID: "aaatwo"},
@@ -76,7 +75,7 @@ func TestCreateFilterNoneFound(t *testing.T) {
 
 func TestRunPSWarnsOnNotFound(t *testing.T) {
 	client := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "foo"},
 			}, nil
@@ -97,10 +96,10 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 
 func TestRunPSQuiet(t *testing.T) {
 	client := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{{ID: "foo"}}, nil
 		},
-		taskListFunc: func(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+		taskListFunc: func(ctx context.Context, options swarm.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{{ID: "sxabyp0obqokwekpun4rjo0b3"}}, nil
 		},
 	}

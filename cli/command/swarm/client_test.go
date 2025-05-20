@@ -3,7 +3,6 @@ package swarm
 import (
 	"context"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
@@ -15,7 +14,7 @@ type fakeClient struct {
 	swarmInitFunc         func() (string, error)
 	swarmInspectFunc      func() (swarm.Swarm, error)
 	nodeInspectFunc       func() (swarm.Node, []byte, error)
-	swarmGetUnlockKeyFunc func() (types.SwarmUnlockKeyResponse, error)
+	swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 	swarmJoinFunc         func() error
 	swarmLeaveFunc        func() error
 	swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
@@ -50,11 +49,11 @@ func (cli *fakeClient) SwarmInspect(context.Context) (swarm.Swarm, error) {
 	return swarm.Swarm{}, nil
 }
 
-func (cli *fakeClient) SwarmGetUnlockKey(context.Context) (types.SwarmUnlockKeyResponse, error) {
+func (cli *fakeClient) SwarmGetUnlockKey(context.Context) (swarm.UnlockKeyResponse, error) {
 	if cli.swarmGetUnlockKeyFunc != nil {
 		return cli.swarmGetUnlockKeyFunc()
 	}
-	return types.SwarmUnlockKeyResponse{}, nil
+	return swarm.UnlockKeyResponse{}, nil
 }
 
 func (cli *fakeClient) SwarmJoin(context.Context, swarm.JoinRequest) error {

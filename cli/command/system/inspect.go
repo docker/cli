@@ -15,9 +15,9 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -137,7 +137,7 @@ func inspectNode(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc 
 func inspectService(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, types.ServiceInspectOptions{InsertDefaults: true})
+		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, swarm.ServiceInspectOptions{InsertDefaults: true})
 	}
 }
 

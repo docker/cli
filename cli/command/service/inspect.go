@@ -13,8 +13,8 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -66,7 +66,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 
 	getRef := func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		service, _, err := client.ServiceInspectWithRaw(ctx, ref, types.ServiceInspectOptions{InsertDefaults: true})
+		service, _, err := client.ServiceInspectWithRaw(ctx, ref, swarm.ServiceInspectOptions{InsertDefaults: true})
 		if err == nil || !cerrdefs.IsNotFound(err) {
 			return service, nil, err
 		}
