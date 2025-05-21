@@ -42,7 +42,6 @@ func SearchWrite(ctx formatter.Context, results []registrytypes.SearchResult) er
 		"Description": formatter.DescriptionHeader,
 		"StarCount":   starsHeader,
 		"IsOfficial":  officialHeader,
-		"IsAutomated": automatedHeader,
 	}
 	return ctx.Write(&searchCtx, render)
 }
@@ -91,11 +90,4 @@ func (c *searchContext) formatBool(value bool) string {
 
 func (c *searchContext) IsOfficial() string {
 	return c.formatBool(c.s.IsOfficial)
-}
-
-// IsAutomated formats the IsAutomated field for printing.
-//
-// Deprecated: the "is_automated" field is deprecated and will always be "false" in the future.
-func (c *searchContext) IsAutomated() string {
-	return c.formatBool(c.s.IsAutomated) //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
 }

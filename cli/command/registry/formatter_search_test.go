@@ -45,19 +45,6 @@ func TestSearchContext(t *testing.T) {
 			},
 			call: ctx.IsOfficial,
 		},
-		{
-			searchCtx: searchContext{
-				s: registrytypes.SearchResult{IsAutomated: true}, //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
-			},
-			expValue: "[OK]",
-			call:     ctx.IsAutomated, //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
-		},
-		{
-			searchCtx: searchContext{
-				s: registrytypes.SearchResult{},
-			},
-			call: ctx.IsAutomated, //nolint:nolintlint,staticcheck // ignore SA1019 (IsAutomated is deprecated).
-		},
 	}
 
 	for _, c := range cases {
@@ -157,8 +144,8 @@ func TestSearchContextWrite(t *testing.T) {
 		{
 			doc:    "JSON format",
 			format: "{{json .}}",
-			expected: `{"Description":"Official build","IsAutomated":"false","IsOfficial":"true","Name":"result1","StarCount":"5000"}
-{"Description":"Not official","IsAutomated":"true","IsOfficial":"false","Name":"result2","StarCount":"5"}
+			expected: `{"Description":"Official build","IsOfficial":"true","Name":"result1","StarCount":"5000"}
+{"Description":"Not official","IsOfficial":"false","Name":"result2","StarCount":"5"}
 `,
 		},
 		{
@@ -199,7 +186,7 @@ result2 5
 
 	results := []registrytypes.SearchResult{
 		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
-		{Name: "result2", Description: "Not official", StarCount: 5, IsAutomated: true},
+		{Name: "result2", Description: "Not official", StarCount: 5},
 	}
 
 	for _, tc := range cases {
