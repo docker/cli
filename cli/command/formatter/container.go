@@ -11,10 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 const (
@@ -26,7 +28,17 @@ const (
 	mountsHeader     = "MOUNTS"
 	localVolumes     = "LOCAL VOLUMES"
 	networksHeader   = "NETWORKS"
+	platformHeader   = "PLATFORM"
 )
+
+// Platform wraps a [ocispec.Platform] to implement the stringer interface.
+type Platform struct {
+	ocispec.Platform
+}
+
+func (p Platform) String() string {
+	return platforms.FormatAll(p.Platform)
+}
 
 // NewContainerFormat returns a Format for rendering using a Context
 func NewContainerFormat(source string, quiet bool, size bool) Format {
@@ -109,6 +121,7 @@ func NewContainerContext() *ContainerContext {
 		"Mounts":       mountsHeader,
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
+		"Platform":     platformHeader,
 	}
 	return &containerCtx
 }
@@ -206,6 +219,16 @@ func (c *ContainerContext) CreatedAt() string {
 func (c *ContainerContext) RunningFor() string {
 	createdAt := time.Unix(c.c.Created, 0)
 	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
+}
+
+// Platform returns a human-readable representation of the container's
+// platform if it is available.
+func (c *ContainerContext) Platform() *Platform {
+	p := c.c.ImageManifestDescriptor
+	if p == nil || p.Platform == nil {
+		return nil
+	}
+	return &Platform{*p.Platform}
 }
 
 // Ports returns a comma-separated string representing open ports of the container
