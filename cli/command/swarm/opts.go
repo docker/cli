@@ -231,7 +231,7 @@ func addSwarmFlags(flags *pflag.FlagSet, options *swarmOptions) {
 	addSwarmCAFlags(flags, &options.swarmCAOptions)
 }
 
-func (o *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
+func (o *swarmOptions) mergeSwarmSpec(spec *swarm.Spec, flags *pflag.FlagSet, caCert *string) {
 	if flags.Changed(flagTaskHistoryLimit) {
 		spec.Orchestration.TaskHistoryRetentionLimit = &o.taskHistoryLimit
 	}
@@ -255,20 +255,24 @@ type swarmCAOptions struct {
 	externalCA     ExternalCAOption
 }
 
-func (o *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet, caCert string) {
+func (o *swarmCAOptions) mergeSwarmSpecCAFlags(spec *swarm.Spec, flags *pflag.FlagSet, caCert *string) {
 	if flags.Changed(flagCertExpiry) {
 		spec.CAConfig.NodeCertExpiry = o.nodeCertExpiry
 	}
 	if flags.Changed(flagExternalCA) {
 		spec.CAConfig.ExternalCAs = o.externalCA.Value()
-		for _, ca := range spec.CAConfig.ExternalCAs {
-			ca.CACert = caCert
+		if caCert != nil {
+			for _, ca := range spec.CAConfig.ExternalCAs {
+				if ca.CACert == "" {
+					ca.CACert = *caCert
+				}
+			}
 		}
 	}
 }
 
 func (o *swarmOptions) ToSpec(flags *pflag.FlagSet) swarm.Spec {
 	var spec swarm.Spec
-	o.mergeSwarmSpec(&spec, flags, "")
+	o.mergeSwarmSpec(&spec, flags, nil)
 	return spec
 }

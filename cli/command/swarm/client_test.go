@@ -11,7 +11,7 @@ import (
 type fakeClient struct {
 	client.Client
 	infoFunc              func() (system.Info, error)
-	swarmInitFunc         func() (string, error)
+	swarmInitFunc         func(req swarm.InitRequest) (string, error)
 	swarmInspectFunc      func() (swarm.Swarm, error)
 	nodeInspectFunc       func() (swarm.Node, []byte, error)
 	swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
@@ -35,9 +35,9 @@ func (cli *fakeClient) NodeInspectWithRaw(context.Context, string) (swarm.Node, 
 	return swarm.Node{}, []byte{}, nil
 }
 
-func (cli *fakeClient) SwarmInit(context.Context, swarm.InitRequest) (string, error) {
+func (cli *fakeClient) SwarmInit(_ context.Context, req swarm.InitRequest) (string, error) {
 	if cli.swarmInitFunc != nil {
-		return cli.swarmInitFunc()
+		return cli.swarmInitFunc(req)
 	}
 	return "", nil
 }
