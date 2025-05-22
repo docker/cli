@@ -84,12 +84,9 @@ func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
 
 	// Use sync.Once so we may call restore multiple times but ensure we
 	// only restore the terminal once.
-	var restoreOnce sync.Once
-	restore = func() {
-		restoreOnce.Do(func() {
-			_ = restoreTerminal(h.streams, h.inputStream)
-		})
-	}
+	restore = sync.OnceFunc(func() {
+		_ = restoreTerminal(h.streams, h.inputStream)
+	})
 
 	// Wrap the input to detect detach escape sequence.
 	// Use default escape keys if an invalid sequence is given.
