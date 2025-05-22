@@ -375,7 +375,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 
 			if parsed.Type == string(mounttypes.TypeBind) {
 				if hostPart, targetPath, ok := strings.Cut(bind, ":"); ok {
-					if strings.HasPrefix(hostPart, "."+string(filepath.Separator)) || hostPart == "." {
+					if !filepath.IsAbs(hostPart) && strings.HasPrefix(hostPart, ".") {
 						if absHostPart, err := filepath.Abs(hostPart); err == nil {
 							hostPart = absHostPart
 						}
