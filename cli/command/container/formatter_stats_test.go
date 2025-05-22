@@ -148,7 +148,7 @@ container2  --  --
 `,
 		},
 	}
-	stats := []StatsEntry{
+	entries := []StatsEntry{
 		{
 			Container:        "container1",
 			CPUPercentage:    20,
@@ -181,7 +181,7 @@ container2  --  --
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
-			err := statsFormatWrite(tc.context, stats, "windows", false)
+			err := statsFormatWrite(tc.context, entries, "windows", false)
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -273,45 +273,46 @@ func TestContainerStatsContextWriteWithNoStatsWindows(t *testing.T) {
 }
 
 func TestContainerStatsContextWriteTrunc(t *testing.T) {
-	var out bytes.Buffer
-
-	contexts := []struct {
+	tests := []struct {
+		doc      string
 		context  formatter.Context
 		trunc    bool
 		expected string
 	}{
 		{
-			formatter.Context{
+			doc: "non-truncated",
+			context: formatter.Context{
 				Format: "{{.ID}}",
-				Output: &out,
 			},
-			false,
-			"b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc\n",
+			expected: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc\n",
 		},
 		{
-			formatter.Context{
+			doc: "truncated",
+			context: formatter.Context{
 				Format: "{{.ID}}",
-				Output: &out,
 			},
-			true,
-			"b95a83497c91\n",
+			trunc:    true,
+			expected: "b95a83497c91\n",
 		},
 	}
 
-	for _, context := range contexts {
-		statsFormatWrite(context.context, []StatsEntry{{ID: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc"}}, "linux", context.trunc)
-		assert.Check(t, is.Equal(context.expected, out.String()))
-		// Clean buffer
-		out.Reset()
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			var out bytes.Buffer
+			tc.context.Output = &out
+			err := statsFormatWrite(tc.context, []StatsEntry{{ID: "b95a83497c9161c9b444e3d70e1a9dfba0c1840d41720e146a95a08ebf938afc"}}, "linux", tc.trunc)
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(tc.expected, out.String()))
+		})
 	}
 }
 
 func BenchmarkStatsFormat(b *testing.B) {
 	b.ReportAllocs()
-	stats := genStats()
+	entries := genStats()
 
 	for i := 0; i < b.N; i++ {
-		for _, s := range stats {
+		for _, s := range entries {
 			_ = s.CPUPerc()
 			_ = s.MemUsage()
 			_ = s.MemPerc()
@@ -334,9 +335,9 @@ func genStats() []statsContext {
 		NetworkTx:        987.654321,
 		PidsCurrent:      123456789,
 	}}
-	stats := make([]statsContext, 100)
-	for i := 0; i < 100; i++ {
-		stats = append(stats, entry)
+	entries := make([]statsContext, 0, 100)
+	for range 100 {
+		entries = append(entries, entry)
 	}
-	return stats
+	return entries
 }

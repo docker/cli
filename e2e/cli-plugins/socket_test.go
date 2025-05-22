@@ -58,7 +58,7 @@ func TestPluginSocketBackwardsCompatible(t *testing.T) {
 
 			ptmx, err := pty.Start(command)
 			assert.NilError(t, err, "failed to launch command with fake TTY")
-			_, _ = ptmx.Write([]byte("hello!"))
+			_, _ = ptmx.WriteString("hello!")
 
 			done := make(chan error)
 			go func() {

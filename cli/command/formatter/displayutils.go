@@ -20,6 +20,8 @@ func charWidth(r rune) int {
 	switch width.LookupRune(r).Kind() {
 	case width.EastAsianWide, width.EastAsianFullwidth:
 		return 2
+	case width.Neutral, width.EastAsianAmbiguous, width.EastAsianNarrow, width.EastAsianHalfwidth:
+		return 1
 	default:
 		return 1
 	}

@@ -50,7 +50,7 @@ func runUnlock(ctx context.Context, dockerCli command.Cli) error {
 		return errors.New("Error: This node is not part of a swarm")
 	case swarm.LocalNodeStateLocked:
 		break
-	default:
+	case swarm.LocalNodeStatePending, swarm.LocalNodeStateActive, swarm.LocalNodeStateError:
 		return errors.New("Error: swarm is not locked")
 	}
 
@@ -58,11 +58,10 @@ func runUnlock(ctx context.Context, dockerCli command.Cli) error {
 	if err != nil {
 		return err
 	}
-	req := swarm.UnlockRequest{
-		UnlockKey: key,
-	}
 
-	return client.SwarmUnlock(ctx, req)
+	return client.SwarmUnlock(ctx, swarm.UnlockRequest{
+		UnlockKey: key,
+	})
 }
 
 func readKey(in *streams.In, prompt string) (string, error) {

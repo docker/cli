@@ -26,39 +26,49 @@ formatters:
 
 linters:
   enable:
+    - asasalint                 # Detects "[]any" used as argument for variadic "func(...any)".
     - bodyclose
-    - copyloopvar   # Detects places where loop variables are copied.
+    - copyloopvar               # Detects places where loop variables are copied.
     - depguard
-    - dogsled
-    - dupword       # Detects duplicate words.
-    - durationcheck
+    - dogsled                   # Detects assignments with too many blank identifiers.
+    - dupword                   # Detects duplicate words.
+    - durationcheck             # Detect cases where two time.Duration values are being multiplied in possibly erroneous ways.
     - errcheck
-    - errchkjson
+    - errchkjson                # Detects unsupported types passed to json encoding functions and reports if checks for the returned error can be omitted.
+    - exhaustive                # Detects missing options in enum switch statements.
+    - exptostd                  # Detects functions from golang.org/x/exp/ that can be replaced by std functions.
+    - fatcontext                # Detects nested contexts in loops and function literals.
     - forbidigo
-    - gocritic      # Metalinter; detects bugs, performance, and styling issues.
+    - gocheckcompilerdirectives # Detects invalid go compiler directive comments (//go:).
+    - gocritic                  # Metalinter; detects bugs, performance, and styling issues.
     - gocyclo
-    - gosec         # Detects security problems.
+    - gosec                     # Detects security problems.
     - govet
+    - iface                     # Detects incorrect use of interfaces. Currently only used for "identical" interfaces in the same package.
+    - importas                  # Enforces consistent import aliases.
     - ineffassign
-    - importas      # Enforces consistent import aliases.
-    - misspell      # Detects commonly misspelled English words in comments.
-    - nakedret      # Detects uses of naked returns.
-    - nilerr        # Detects code that returns nil even if it checks that the error is not nil.
-    - nolintlint    # Detects ill-formed or insufficient nolint directives.
-    - perfsprint    # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
-    - prealloc      # Detects slice declarations that could potentially be pre-allocated.
-    - predeclared   # Detects code that shadows one of Go's predeclared identifiers
-    - reassign
-    - revive        # Metalinter; drop-in replacement for golint.
+    - makezero                  # Finds slice declarations with non-zero initial length.
+    - mirror                    # Detects wrong mirror patterns of bytes/strings usage.
+    - misspell                  # Detects commonly misspelled English words in comments.
+    - nakedret                  # Detects uses of naked returns.
+    - nilnesserr                # Detects returning nil errors. It combines the features of nilness and nilerr,
+    - nosprintfhostport         # Detects misuse of Sprintf to construct a host with port in a URL.
+    - nolintlint                # Detects ill-formed or insufficient nolint directives.
+    - perfsprint                # Detects fmt.Sprintf uses that can be replaced with a faster alternative.
+    - prealloc                  # Detects slice declarations that could potentially be pre-allocated.
+    - predeclared               # Detects code that shadows one of Go's predeclared identifiers
+    - reassign                  # Detects reassigning a top-level variable in another package.
+    - revive                    # Metalinter; drop-in replacement for golint.
+    - spancheck                 # Detects mistakes with OpenTelemetry/Census spans.
     - staticcheck
-    - thelper       # Detects test helpers without t.Helper().
-    - tparallel     # Detects inappropriate usage of t.Parallel().
-    - unconvert     # Detects unnecessary type conversions.
+    - thelper                   # Detects test helpers without t.Helper().
+    - tparallel                 # Detects inappropriate usage of t.Parallel().
+    - unconvert                 # Detects unnecessary type conversions.
     - unparam
     - unused
-    - usestdlibvars
-    - usetesting    # Reports uses of functions with replacement inside the testing package.
-    - wastedassign
+    - usestdlibvars             # Detects the possibility to use variables/constants from the Go standard library.
+    - usetesting                # Reports uses of functions with replacement inside the testing package.
+    - wastedassign              # Detects wasted assignment statements.
 
   disable:
     - errcheck
@@ -132,9 +142,7 @@ linters:
     staticcheck:
       checks:
         - all
-        - -QF1008 # Omit embedded fields from selector expression
-        - -ST1020 # The documentation of an exported function should start with the function’s name
-        - -ST1022 # The documentation of an exported variable or constant should start with variable’s name
+        - -QF1008 # Omit embedded fields from selector expression; https://staticcheck.dev/docs/checks/#QF1008
 
     revive:
       rules:
@@ -159,8 +167,8 @@ linters:
     # (unlike the "include" option), the "exclude" option does not take exclusion
     # ID's.
     #
-    # These exclusion patterns are copied from the default excluses at:
-    # https://github.com/golangci/golangci-lint/blob/v1.44.0/pkg/config/issues.go#L10-L104
+    # These exclusion patterns are copied from the default excludes at:
+    # https://github.com/golangci/golangci-lint/blob/v1.61.0/pkg/config/issues.go#L11-L104
     #
     # The default list of exclusions can be found at:
     # https://golangci-lint.run/usage/false-positives/#default-exclusions
@@ -206,6 +214,12 @@ linters:
       - text: '^shadow: declaration of "(err|ok)" shadows declaration'
         linters:
           - govet
+
+      # Ignore for cli/command/formatter/tabwriter, which is forked from go stdlib, so we want to align with it.
+      - text: '^(ST1020|ST1022): comment on exported'
+        path: "cli/command/formatter/tabwriter"
+        linters:
+          - staticcheck
 
     # Log a warning if an exclusion rule is unused.
     # Default: false
