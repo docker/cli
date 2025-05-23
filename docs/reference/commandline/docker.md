@@ -59,7 +59,6 @@ The base command for the Docker CLI.
 | [`system`](system.md)         | Manage Docker                                                                 |
 | [`tag`](tag.md)               | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                         |
 | [`top`](top.md)               | Display the running processes of a container                                  |
-| [`trust`](trust.md)           | Manage trust on Docker images                                                 |
 | [`unpause`](unpause.md)       | Unpause all processes within one or more containers                           |
 | [`update`](update.md)         | Update configuration of one or more containers                                |
 | [`version`](version.md)       | Show the Docker version information                                           |
@@ -123,8 +122,6 @@ line:
 | `DOCKER_API_VERSION`          | Override the negotiated API version to use for debugging (e.g. `1.19`)                                                                                                                                                                                            |
 | `DOCKER_CERT_PATH`            | Location of your authentication keys. This variable is used both by the `docker` CLI and the [`dockerd` daemon](https://docs.docker.com/reference/cli/dockerd/)                                                                                                   |
 | `DOCKER_CONFIG`               | The location of your client configuration files.                                                                                                                                                                                                                  |
-| `DOCKER_CONTENT_TRUST_SERVER` | The URL of the Notary server to use. Defaults to the same URL as the registry.                                                                                                                                                                                    |
-| `DOCKER_CONTENT_TRUST`        | When set Docker uses notary to sign and verify images. Equates to `--disable-content-trust=false` for build, create, pull, push, run.                                                                                                                             |
 | `DOCKER_CONTEXT`              | Name of the `docker context` to use (overrides `DOCKER_HOST` env var and default context set with `docker context use`)                                                                                                                                           |
 | `DOCKER_CUSTOM_HEADERS`       | (Experimental) Configure [custom HTTP headers](#custom-http-headers) to be sent by the client. Headers must be provided as a comma-separated list of `name=value` pairs. This is the equivalent to the `HttpHeaders` field in the configuration file.             |
 | `DOCKER_DEFAULT_PLATFORM`     | Default platform for commands that take the `--platform` flag.                                                                                                                                                                                                    |
@@ -414,15 +411,6 @@ between releases without warning or can be removed from a future release.
 
 Starting with Docker 20.10, experimental CLI features are enabled by default,
 and require no configuration to enable them.
-
-#### Notary
-
-If using your own notary server and a self-signed certificate or an internal
-Certificate Authority, you need to place the certificate at
-`tls/<registry_url>/ca.crt` in your Docker config directory.
-
-Alternatively you can trust the certificate globally by adding it to your system's
-list of root Certificate Authorities.
 
 ## Examples
 
