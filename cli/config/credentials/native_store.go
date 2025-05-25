@@ -23,11 +23,9 @@ type nativeStore struct {
 // NewNativeStore creates a new native store that
 // uses a remote helper program to manage credentials.
 func NewNativeStore(file store, helperSuffix string) Store {
-	var name string
-	if filepath.IsAbs(helperSuffix) {
-		name = helperSuffix
-	} else {
-		name = remoteCredentialsPrefix + helperSuffix
+	name := helperSuffix
+	if !filepath.IsAbs(name) {
+		name = remoteCredentialsPrefix + name
 	}
 	return &nativeStore{
 		programFunc: client.NewShellProgramFunc(name),
