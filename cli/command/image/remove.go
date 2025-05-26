@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -14,22 +15,23 @@ import (
 )
 
 type removeOptions struct {
-	force   bool
-	noPrune bool
+	force     bool
+	noPrune   bool
+	platforms []string
 }
 
 // NewRemoveCommand creates a new `docker remove` command
-func NewRemoveCommand(dockerCli command.Cli) *cobra.Command {
-	var opts removeOptions
+func NewRemoveCommand(dockerCLI command.Cli) *cobra.Command {
+	var options removeOptions
 
 	cmd := &cobra.Command{
 		Use:   "rmi [OPTIONS] IMAGE [IMAGE...]",
 		Short: "Remove one or more images",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(cmd.Context(), dockerCli, opts, args)
+			return runRemove(cmd.Context(), dockerCLI, options, args)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
+		ValidArgsFunction: completion.ImageNames(dockerCLI, -1),
 		Annotations: map[string]string{
 			"aliases": "docker image rm, docker image remove, docker rmi",
 		},
@@ -37,9 +39,14 @@ func NewRemoveCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	flags.BoolVarP(&opts.force, "force", "f", false, "Force removal of the image")
-	flags.BoolVar(&opts.noPrune, "no-prune", false, "Do not delete untagged parents")
+	flags.BoolVarP(&options.force, "force", "f", false, "Force removal of the image")
+	flags.BoolVar(&options.noPrune, "no-prune", false, "Do not delete untagged parents")
 
+	// TODO(thaJeztah): create a "platforms" option for this (including validation / parsing).
+	flags.StringSliceVar(&options.platforms, "platform", nil, `Remove only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
+	_ = flags.SetAnnotation("platform", "version", []string{"1.50"})
+
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 	return cmd
 }
 
@@ -56,6 +63,14 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 	options := image.RemoveOptions{
 		Force:         opts.force,
 		PruneChildren: !opts.noPrune,
+	}
+
+	for _, v := range opts.platforms {
+		p, err := platforms.Parse(v)
+		if err != nil {
+			return err
+		}
+		options.Platforms = append(options.Platforms, p)
 	}
 
 	// TODO(thaJeztah): this logic can likely be simplified: do we want to print "not found" errors at all when using "force"?
