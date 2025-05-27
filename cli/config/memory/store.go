@@ -43,18 +43,17 @@ func (e *memoryStore) Get(serverAddress string) (types.AuthConfig, error) {
 }
 
 func (e *memoryStore) GetAll() (map[string]types.AuthConfig, error) {
-	credentials := make(map[string]types.AuthConfig)
+	creds := make(map[string]types.AuthConfig)
 
 	if e.fallbackStore != nil {
 		fileCredentials, err := e.fallbackStore.GetAll()
 		if err == nil {
-			credentials = fileCredentials
+			creds = fileCredentials
 		}
 	}
 
-	// override the file credentials with the env credentials
-	maps.Copy(credentials, e.memoryCredentials)
-	return credentials, nil
+	maps.Copy(creds, e.memoryCredentials)
+	return creds, nil
 }
 
 func (e *memoryStore) Store(authConfig types.AuthConfig) error {
