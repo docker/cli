@@ -65,23 +65,33 @@ func (e *memoryStore) Store(authConfig types.AuthConfig) error {
 	return nil
 }
 
+// WithFallbackStore sets a fallback store.
+//
+// Write opterations will be performed on both the memory store and the
+// fallback store.
+//
+// Read operations will first check the memory store, and if the credential
+// is not found, it will then check the fallback store.
+//
+// Retrieving all credentials will return from both the memory store and the
+// fallback store, merging the results from both stores into a single map.
+//
+// Data stored in the memory store will take precedence over data in the
+// fallback store.
 func WithFallbackStore(store credentials.Store) func(*memoryStore) {
 	return func(s *memoryStore) {
 		s.fallbackStore = store
 	}
 }
 
+// WithAuthConfig allows to set the initial credentials in the memory store.
 func WithAuthConfig(config map[string]types.AuthConfig) func(*memoryStore) {
 	return func(s *memoryStore) {
 		s.memoryCredentials = config
 	}
 }
 
-// New creates a new credentials store
-// from config with an optional fallback store.
-//
-// Using the `WithFallbackStore` option, it can be configured to
-// use a fallback store to retrieve credentials.
+// New creates a new in memory credential store
 func New(opts ...func(*memoryStore)) credentials.Store {
 	m := &memoryStore{
 		memoryCredentials: make(map[string]types.AuthConfig),
