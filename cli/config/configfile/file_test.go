@@ -481,6 +481,57 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	}
 }
 
+func TestGetAllCredentialsFromEnvironment(t *testing.T) {
+	t.Run("case=can fetch credentials from DOCKER_AUTH_CONFIG and underlying store", func(t *testing.T) {
+		configFile := New("filename")
+		exampleAuth := types.AuthConfig{
+			Username: "user",
+			Password: "pass",
+		}
+		configFile.AuthConfigs["example.com/foo"] = exampleAuth
+
+		envConfig := &ConfigFile{
+			AuthConfigs: map[string]types.AuthConfig{
+				"example.com/foo/env": {
+					Username:      "env_user",
+					Password:      "env_pass",
+					ServerAddress: "example.com/foo/env",
+				},
+			},
+		}
+		data, err := json.Marshal(envConfig)
+		assert.NilError(t, err)
+
+		t.Setenv("DOCKER_AUTH_CONFIG", string(data))
+
+		authConfigs, err := configFile.GetAllCredentials()
+		assert.NilError(t, err)
+
+		expected := make(map[string]types.AuthConfig)
+		expected["example.com/foo"] = exampleAuth
+		expected["example.com/foo/env"] = envConfig.AuthConfigs["example.com/foo/env"]
+		assert.Check(t, is.DeepEqual(expected, authConfigs))
+
+		got, err := configFile.GetAuthConfig("example.com/foo")
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(exampleAuth, got))
+
+		envGot, err := configFile.GetAuthConfig("example.com/foo/env")
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(envConfig.AuthConfigs["example.com/foo/env"], envGot))
+	})
+
+	t.Run("case=env is ignored when empty", func(t *testing.T) {
+		configFile := New("filename")
+
+		t.Setenv("DOCKER_AUTH_CONFIG", "")
+
+		authConfigs, err := configFile.GetAllCredentials()
+		assert.NilError(t, err)
+		assert.Check(t, is.Len(authConfigs, 0))
+	})
+}
+
 func TestSave(t *testing.T) {
 	configFile := New("test-save")
 	defer os.Remove("test-save")
