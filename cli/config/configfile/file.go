@@ -272,16 +272,14 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 	// if DOCKER_AUTH_CONFIG is set, we need to use the env store instead
 	// it falls back to native or file store if a value is not found
 	// in the environment
-	if v, ok := os.LookupEnv("DOCKER_AUTH_CONFIG"); ok {
-		var credentials map[string]map[string]types.AuthConfig
-		if err := json.Unmarshal([]byte(v), &credentials); err != nil {
+	if v, ok := os.LookupEnv("DOCKER_AUTH_CONFIG"); ok && v != "" {
+		envConfig := &ConfigFile{
+			AuthConfigs: make(map[string]types.AuthConfig),
+		}
+		if err := envConfig.LoadFromReader(strings.NewReader(v)); err != nil {
 			return store
 		}
-		auth, ok := credentials["auth"]
-		if !ok {
-			return store
-		}
-		return memory.NewInMemoryStore(auth, memory.WithFallbackStore(store))
+		return memory.NewInMemoryStore(envConfig.AuthConfigs, memory.WithFallbackStore(store))
 	}
 
 	return store
