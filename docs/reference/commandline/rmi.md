@@ -9,10 +9,11 @@ Remove one or more images
 
 ### Options
 
-| Name            | Type   | Default | Description                    |
-|:----------------|:-------|:--------|:-------------------------------|
-| `-f`, `--force` | `bool` |         | Force removal of the image     |
-| `--no-prune`    | `bool` |         | Do not delete untagged parents |
+| Name            | Type          | Default | Description                                                                                      |
+|:----------------|:--------------|:--------|:-------------------------------------------------------------------------------------------------|
+| `-f`, `--force` | `bool`        |         | Force removal of the image                                                                       |
+| `--no-prune`    | `bool`        |         | Do not delete untagged parents                                                                   |
+| `--platform`    | `stringSlice` |         | Remove only the given platform variant. Formatted as `os[/arch[/variant]]` (e.g., `linux/amd64`) |
 
 
 <!---MARKER_GEN_END-->
