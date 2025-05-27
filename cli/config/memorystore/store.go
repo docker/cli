@@ -23,9 +23,7 @@ func (e *memoryStore) Erase(serverAddress string) error {
 	delete(e.memoryCredentials, serverAddress)
 
 	if e.fallbackStore != nil {
-		if err := e.fallbackStore.Erase(serverAddress); err != nil {
-			return err
-		}
+		_ = e.fallbackStore.Erase(serverAddress)
 	}
 
 	return nil
