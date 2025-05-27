@@ -1,4 +1,4 @@
-package memory
+package memorystore
 
 import (
 	"errors"
@@ -71,14 +71,20 @@ func WithFallbackStore(store credentials.Store) func(*memoryStore) {
 	}
 }
 
-// NewInMemoryStore creates a new credentials store
+func WithAuthConfig(config map[string]types.AuthConfig) func(*memoryStore) {
+	return func(s *memoryStore) {
+		s.memoryCredentials = config
+	}
+}
+
+// New creates a new credentials store
 // from config with an optional fallback store.
 //
 // Using the `WithFallbackStore` option, it can be configured to
 // use a fallback store to retrieve credentials.
-func NewInMemoryStore(config map[string]types.AuthConfig, opts ...func(*memoryStore)) credentials.Store {
+func New(opts ...func(*memoryStore)) credentials.Store {
 	m := &memoryStore{
-		memoryCredentials: config,
+		memoryCredentials: make(map[string]types.AuthConfig),
 	}
 	for _, opt := range opts {
 		opt(m)

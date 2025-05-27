@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/memory"
+	"github.com/docker/cli/cli/config/memorystore"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -279,7 +279,7 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 		if err := envConfig.LoadFromReader(strings.NewReader(v)); err != nil {
 			return store
 		}
-		return memory.NewInMemoryStore(envConfig.AuthConfigs, memory.WithFallbackStore(store))
+		return memorystore.New(memorystore.WithAuthConfig(envConfig.AuthConfigs), memorystore.WithFallbackStore(store))
 	}
 
 	return store

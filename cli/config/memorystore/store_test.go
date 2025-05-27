@@ -1,4 +1,4 @@
-package memory
+package memorystore
 
 import (
 	"testing"
@@ -24,9 +24,9 @@ func TestMemoryStore(t *testing.T) {
 		},
 	}
 
-	fallbackStore := NewInMemoryStore(fallbackConfig)
+	fallbackStore := New(WithAuthConfig(fallbackConfig))
 
-	memoryStore := NewInMemoryStore(config, WithFallbackStore(fallbackStore))
+	memoryStore := New(WithAuthConfig(config), WithFallbackStore(fallbackStore))
 
 	t.Run("case=get credentials from memory store", func(t *testing.T) {
 		c, err := memoryStore.Get("https://example.com")
@@ -85,7 +85,7 @@ func TestMemoryStoreWithoutFallback(t *testing.T) {
 		},
 	}
 
-	memoryStore := NewInMemoryStore(config)
+	memoryStore := New(WithAuthConfig(config))
 
 	t.Run("case=get credentials from memory store without fallback", func(t *testing.T) {
 		c, err := memoryStore.Get("https://example.com")
