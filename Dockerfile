@@ -12,7 +12,7 @@ ARG GOTESTSUM_VERSION=v1.12.0
 # BUILDX_VERSION sets the version of buildx to use for the e2e tests.
 # It must be a tag in the docker.io/docker/buildx-bin image repository
 # on Docker Hub.
-ARG BUILDX_VERSION=0.23.0
+ARG BUILDX_VERSION=0.24.0
 ARG COMPOSE_VERSION=v2.35.1
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
