@@ -72,7 +72,7 @@ func WithFallbackStore(store credentials.Store) func(*memoryStore) {
 }
 
 // NewInMemoryStore creates a new credentials store
-// from config.
+// from config with an optional fallback store.
 //
 // Using the `WithFallbackStore` option, it can be configured to
 // use a fallback store to retrieve credentials.
