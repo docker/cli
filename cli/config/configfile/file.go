@@ -152,7 +152,8 @@ func (configFile *ConfigFile) Save() (retErr error) {
 		return err
 	}
 	defer func() {
-		temp.Close()
+		// ignore error as the file may already be closed when we reach this.
+		_ = temp.Close()
 		if retErr != nil {
 			if err := os.Remove(temp.Name()); err != nil {
 				logrus.WithError(err).WithField("file", temp.Name()).Debug("Error cleaning up temp file")
