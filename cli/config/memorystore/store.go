@@ -2,7 +2,9 @@ package memorystore
 
 import (
 	"errors"
+	"fmt"
 	"maps"
+	"os"
 	"sync"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -27,7 +29,10 @@ func (e *memoryStore) Erase(serverAddress string) error {
 	delete(e.memoryCredentials, serverAddress)
 
 	if e.fallbackStore != nil {
-		_ = e.fallbackStore.Erase(serverAddress)
+		err := e.fallbackStore.Erase(serverAddress)
+		if err != nil {
+			_, _ = fmt.Fprint(os.Stderr, "memorystore: "+err.Error())
+		}
 	}
 
 	return nil
@@ -53,7 +58,9 @@ func (e *memoryStore) GetAll() (map[string]types.AuthConfig, error) {
 
 	if e.fallbackStore != nil {
 		fileCredentials, err := e.fallbackStore.GetAll()
-		if err == nil {
+		if err != nil {
+			_, _ = fmt.Fprint(os.Stderr, "memorystore: "+err.Error())
+		} else {
 			creds = fileCredentials
 		}
 	}
