@@ -4,6 +4,7 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
+	"path/filepath"
 )
 
 const (
@@ -22,7 +23,10 @@ type nativeStore struct {
 // NewNativeStore creates a new native store that
 // uses a remote helper program to manage credentials.
 func NewNativeStore(file store, helperSuffix string) Store {
-	name := remoteCredentialsPrefix + helperSuffix
+	name := helperSuffix
+	if !filepath.IsAbs(name) {
+		name = remoteCredentialsPrefix + name
+	}
 	return &nativeStore{
 		programFunc: client.NewShellProgramFunc(name),
 		fileStore:   NewFileStore(file),
