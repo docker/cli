@@ -3,6 +3,7 @@ package memorystore
 import (
 	"errors"
 	"maps"
+	"sync"
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
@@ -15,11 +16,14 @@ func IsErrValueNotFound(err error) bool {
 }
 
 type memoryStore struct {
+	lock              sync.RWMutex
 	memoryCredentials map[string]types.AuthConfig
 	fallbackStore     credentials.Store
 }
 
 func (e *memoryStore) Erase(serverAddress string) error {
+	e.lock.Lock()
+	defer e.lock.Unlock()
 	delete(e.memoryCredentials, serverAddress)
 
 	if e.fallbackStore != nil {
@@ -30,6 +34,8 @@ func (e *memoryStore) Erase(serverAddress string) error {
 }
 
 func (e *memoryStore) Get(serverAddress string) (types.AuthConfig, error) {
+	e.lock.RLock()
+	defer e.lock.RUnlock()
 	authConfig, ok := e.memoryCredentials[serverAddress]
 	if !ok {
 		if e.fallbackStore != nil {
@@ -41,6 +47,8 @@ func (e *memoryStore) Get(serverAddress string) (types.AuthConfig, error) {
 }
 
 func (e *memoryStore) GetAll() (map[string]types.AuthConfig, error) {
+	e.lock.RLock()
+	defer e.lock.RUnlock()
 	creds := make(map[string]types.AuthConfig)
 
 	if e.fallbackStore != nil {
@@ -55,6 +63,8 @@ func (e *memoryStore) GetAll() (map[string]types.AuthConfig, error) {
 }
 
 func (e *memoryStore) Store(authConfig types.AuthConfig) error {
+	e.lock.Lock()
+	defer e.lock.Unlock()
 	e.memoryCredentials[authConfig.ServerAddress] = authConfig
 
 	if e.fallbackStore != nil {
