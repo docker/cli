@@ -121,7 +121,6 @@ jobs:
             type=semver,pattern={{version}}
             type=ref,event=branch
             type=ref,event=pr
-            type=sha
       -
         name: Build and push image
         uses: docker/bake-action@v6
