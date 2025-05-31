@@ -1010,6 +1010,11 @@ func parseLinuxDevice(device string) (container.DeviceMapping, error) {
 		fallthrough
 	case 1:
 		src = arr[0]
+		if strings.HasSuffix(src, "*") {
+			if dst != "" {
+				return container.DeviceMapping{}, errors.Errorf("device with * suffix can't have dst: %s", device)
+			}
+		}
 	default:
 		return container.DeviceMapping{}, errors.Errorf("invalid device specification: %s", device)
 	}
