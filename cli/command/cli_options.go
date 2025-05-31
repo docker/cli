@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli/streams"
@@ -71,28 +70,6 @@ func WithOutputStream(out io.Writer) CLIOption {
 func WithErrorStream(err io.Writer) CLIOption {
 	return func(cli *DockerCli) error {
 		cli.err = streams.NewOut(err)
-		return nil
-	}
-}
-
-// WithContentTrustFromEnv enables content trust on a cli from environment variable DOCKER_CONTENT_TRUST value.
-func WithContentTrustFromEnv() CLIOption {
-	return func(cli *DockerCli) error {
-		cli.contentTrust = false
-		if e := os.Getenv("DOCKER_CONTENT_TRUST"); e != "" {
-			if t, err := strconv.ParseBool(e); t || err != nil {
-				// treat any other value as true
-				cli.contentTrust = true
-			}
-		}
-		return nil
-	}
-}
-
-// WithContentTrust enables content trust on a cli.
-func WithContentTrust(enabled bool) CLIOption {
-	return func(cli *DockerCli) error {
-		cli.contentTrust = enabled
 		return nil
 	}
 }
