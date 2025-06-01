@@ -91,6 +91,7 @@ type clientVersion struct {
 func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	v := clientVersion{
 		Version:           version.Version,
+		APIVersion:        api.DefaultVersion,
 		DefaultAPIVersion: api.DefaultVersion,
 		GoVersion:         runtime.Version(),
 		GitCommit:         version.GitCommit,
