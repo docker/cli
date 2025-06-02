@@ -11,7 +11,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/cmd/docker-trust/internal/trust"
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"

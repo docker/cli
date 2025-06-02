@@ -69,6 +69,15 @@ dynbinary: ## build dynamically linked binary
 plugins: ## build example CLI plugins
 	scripts/build/plugins
 
+.PHONY: trust-plugin
+trust-plugin: ## build docker-trust CLI plugins
+	scripts/build/trust-plugin
+
+.PHONY: install-trust-plugin
+install-trust-plugin: trust-plugin
+install-trust-plugin: ## install docker-trust CLI plugins
+	install -D -m 0755 "$$(readlink -f build/docker-trust)" /usr/libexec/docker/cli-plugins/docker-trust
+
 .PHONY: vendor
 vendor: ## update vendor with go modules
 	rm -rf vendor

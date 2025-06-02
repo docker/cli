@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/cmd/docker-trust/internal/test"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

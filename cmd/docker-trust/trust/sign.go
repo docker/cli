@@ -12,7 +12,7 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/cmd/docker-trust/internal/trust"
 	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"

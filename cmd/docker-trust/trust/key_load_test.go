@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/cmd/docker-trust/internal/test"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/storage"
 	"github.com/theupdateframework/notary/trustmanager"

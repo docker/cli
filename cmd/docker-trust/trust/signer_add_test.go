@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/internal/test"
-	notaryfake "github.com/docker/cli/internal/test/notary"
+	"github.com/docker/cli/cmd/docker-trust/internal/test"
+	notaryfake "github.com/docker/cli/cmd/docker-trust/internal/test/notary"
 	"github.com/theupdateframework/notary"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

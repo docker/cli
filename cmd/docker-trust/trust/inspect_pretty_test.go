@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/docker/cli/cli/trust"
-	"github.com/docker/cli/internal/test"
-	notaryfake "github.com/docker/cli/internal/test/notary"
+	"github.com/docker/cli/cmd/docker-trust/internal/test"
+	notaryfake "github.com/docker/cli/cmd/docker-trust/internal/test/notary"
+	"github.com/docker/cli/cmd/docker-trust/internal/trust"
 	"github.com/moby/moby/client"
 	"github.com/theupdateframework/notary"
 	notaryclient "github.com/theupdateframework/notary/client"
