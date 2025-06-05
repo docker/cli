@@ -20,6 +20,7 @@ type Store interface {
 	Get(listRef reference.Reference, manifest reference.Reference) (types.ImageManifest, error)
 	GetList(listRef reference.Reference) ([]types.ImageManifest, error)
 	Save(listRef reference.Reference, manifest reference.Reference, image types.ImageManifest) error
+	List() ([]reference.Reference, error)
 }
 
 // fsStore manages manifest files stored on the local filesystem
@@ -85,6 +86,26 @@ func (*fsStore) getFromFilename(ref reference.Reference, filename string) (types
 	return manifestInfo.ImageManifest, nil
 }
 
+// List returns the local manifest lists for a transaction
+func (s *fsStore) List() ([]reference.Reference, error) {
+	fileInfos, err := os.ReadDir(s.root)
+	switch {
+	case os.IsNotExist(err):
+		return nil, nil
+	case err != nil:
+		return nil, err
+	}
+
+	listRefs := make([]reference.Reference, 0, len(fileInfos))
+	for _, info := range fileInfos {
+		refString := filenameToRefString(info.Name())
+		if listRef, err := reference.Parse(refString); err == nil {
+			listRefs = append(listRefs, listRef)
+		}
+	}
+	return listRefs, nil
+}
+
 // GetList returns all the local manifests for a transaction
 func (s *fsStore) GetList(listRef reference.Reference) ([]types.ImageManifest, error) {
 	filenames, err := s.listManifests(listRef.String())
@@ -148,8 +169,13 @@ func manifestToFilename(root, manifestList, manifest string) string {
 }
 
 func makeFilesafeName(ref string) string {
-	fileName := strings.ReplaceAll(ref, ":", "-")
-	return strings.ReplaceAll(fileName, "/", "_")
+	fileName := strings.ReplaceAll(ref, ":", "%")
+	return strings.ReplaceAll(fileName, "/", "#")
+}
+
+func filenameToRefString(filename string) string {
+	refString := strings.ReplaceAll(filename, "%", ":")
+	return strings.ReplaceAll(refString, "#", "/")
 }
 
 type notFoundError struct {

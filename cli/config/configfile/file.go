@@ -24,6 +24,7 @@ type ConfigFile struct {
 	PluginsFormat        string                       `json:"pluginsFormat,omitempty"`
 	VolumesFormat        string                       `json:"volumesFormat,omitempty"`
 	StatsFormat          string                       `json:"statsFormat,omitempty"`
+	ManifestListsFormat  string                       `json:"manifestListsFormat,omitempty"`
 	DetachKeys           string                       `json:"detachKeys,omitempty"`
 	CredentialsStore     string                       `json:"credsStore,omitempty"`
 	CredentialHelpers    map[string]string            `json:"credHelpers,omitempty"`
