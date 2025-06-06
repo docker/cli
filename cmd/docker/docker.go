@@ -302,12 +302,12 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 	srv, err := socket.NewPluginServer(nil)
 	if err == nil {
 		plugincmd.Env = append(plugincmd.Env, socket.EnvKey+"="+srv.Addr().String())
+		defer func() {
+			// Close the server when plugin execution is over, so that in case
+			// it's still open, any sockets on the filesystem are cleaned up.
+			_ = srv.Close()
+		}()
 	}
-	defer func() {
-		// Close the server when plugin execution is over, so that in case
-		// it's still open, any sockets on the filesystem are cleaned up.
-		_ = srv.Close()
-	}()
 
 	// Set additional environment variables specified by the caller.
 	plugincmd.Env = append(plugincmd.Env, envs...)
