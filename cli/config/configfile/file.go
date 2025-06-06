@@ -3,12 +3,14 @@ package configfile
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/config/memorystore"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -44,6 +46,49 @@ type ConfigFile struct {
 
 	// Deprecated: experimental CLI features are always enabled and this field is no longer used. Use [Features] instead for optional features. This field will be removed in a future release.
 	Experimental string `json:"experimental,omitempty"`
+}
+
+type configEnvAuth struct {
+	Auth string `json:"auth"`
+}
+
+type configEnv struct {
+	AuthConfigs map[string]configEnvAuth `json:"auths"`
+}
+
+var errDockerAuthConfigNotSet = errors.New("DOCKER_AUTH_CONFIG environment variable is not set")
+
+func (c *configEnv) LoadFromEnv() error {
+	v := os.Getenv("DOCKER_AUTH_CONFIG")
+	if v == "" {
+		return errDockerAuthConfigNotSet
+	}
+	if c.AuthConfigs == nil {
+		c.AuthConfigs = make(map[string]configEnvAuth)
+	}
+	if err := json.NewDecoder(strings.NewReader(v)).Decode(c); err != nil && !errors.Is(err, io.EOF) {
+		return err
+	}
+	return nil
+}
+
+func (c *configEnv) GetAuthConfigs() (map[string]types.AuthConfig, error) {
+	authConfigs := make(map[string]types.AuthConfig)
+	for addr, envAuth := range c.AuthConfigs {
+		if envAuth.Auth == "" {
+			return authConfigs, fmt.Errorf("DOCKER_AUTH_CONFIG environment variable is missing auth for %s", addr)
+		}
+		username, password, err := decodeAuth(envAuth.Auth)
+		if err != nil {
+			return nil, err
+		}
+		authConfigs[addr] = types.AuthConfig{
+			Username:      username,
+			Password:      password,
+			ServerAddress: addr,
+		}
+	}
+	return authConfigs, nil
 }
 
 // ProxyConfig contains proxy configuration settings
@@ -263,10 +308,45 @@ func decodeAuth(authStr string) (string, string, error) {
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
 func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
+	store := credentials.NewFileStore(configFile)
+
 	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
-		return newNativeStore(configFile, helper)
+		store = newNativeStore(configFile, helper)
 	}
-	return credentials.NewFileStore(configFile)
+
+	// use DOCKER_AUTH_CONFIG if set
+	// if a parse error occurs it falls back to the native or file store
+	envStore, err := memorystore.New(
+		withEnvConfig(),
+		memorystore.WithFallbackStore(store),
+	)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to create credential store from DOCKER_AUTH_CONFIG: ", err)
+		return store
+	}
+
+	return envStore
+}
+
+func withEnvConfig() memorystore.Options {
+	return func(c *memorystore.Config) error {
+		envConfig := &configEnv{}
+		err := envConfig.LoadFromEnv()
+		if err != nil {
+			// ignore if DOCKER_AUTH_CONFIG is not set
+			if errors.Is(err, errDockerAuthConfigNotSet) {
+				return nil
+			}
+			return err
+		}
+
+		authConfigs, err := envConfig.GetAuthConfigs()
+		if err != nil {
+			return err
+		}
+
+		return memorystore.WithAuthConfig(authConfigs)(c)
+	}
 }
 
 // var for unit testing.
