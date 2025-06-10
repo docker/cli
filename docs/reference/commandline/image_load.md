@@ -9,11 +9,11 @@ Load an image from a tar archive or STDIN
 
 ### Options
 
-| Name                                | Type     | Default | Description                                                                                    |
-|:------------------------------------|:---------|:--------|:-----------------------------------------------------------------------------------------------|
-| [`-i`](#input), [`--input`](#input) | `string` |         | Read from tar archive file, instead of STDIN                                                   |
-| [`--platform`](#platform)           | `string` |         | Load only the given platform variant. Formatted as `os[/arch[/variant]]` (e.g., `linux/amd64`) |
-| `-q`, `--quiet`                     | `bool`   |         | Suppress the load output                                                                       |
+| Name                                | Type          | Default | Description                                                                                                                         |
+|:------------------------------------|:--------------|:--------|:------------------------------------------------------------------------------------------------------------------------------------|
+| [`-i`](#input), [`--input`](#input) | `string`      |         | Read from tar archive file, instead of STDIN                                                                                        |
+| [`--platform`](#platform)           | `stringSlice` |         | Load only the given platform(s). Formatted as a comma-separated list of `os[/arch[/variant]]` (e.g., `linux/amd64,linux/arm64/v8`). |
+| `-q`, `--quiet`                     | `bool`        |         | Suppress the load output                                                                                                            |
 
 
 <!---MARKER_GEN_END-->
