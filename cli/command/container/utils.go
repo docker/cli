@@ -75,8 +75,8 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 
 	eventProcessor := func(e events.Message) bool {
 		stopProcessing := false
-		switch e.Status {
-		case "die":
+		switch e.Action { //nolint:exhaustive // TODO(thaJeztah): make exhaustive
+		case events.ActionDie:
 			if v, ok := e.Actor.Attributes["exitCode"]; ok {
 				code, cerr := strconv.Atoi(v)
 				if cerr != nil {
@@ -98,10 +98,10 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 					}
 				}()
 			}
-		case "detach":
+		case events.ActionDetach:
 			exitCode = 0
 			stopProcessing = true
-		case "destroy":
+		case events.ActionDestroy:
 			stopProcessing = true
 		}
 		return stopProcessing
