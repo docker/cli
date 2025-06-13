@@ -6,10 +6,17 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/docker/cli/cli/connhelper/commandconn"
 	"github.com/docker/cli/cli/connhelper/ssh"
+)
+
+const (
+	// DockerSSHRemoteBinaryEnv is the environment variable that can be used to
+	// override the default Docker binary called over SSH
+	DockerSSHRemoteBinaryEnv = "DOCKER_SSH_REMOTE_BINARY"
 )
 
 // ConnectionHelper allows to connect to a remote host with custom stream provider binary.
@@ -47,9 +54,10 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 		}
 		sshFlags = addSSHTimeout(sshFlags)
 		sshFlags = disablePseudoTerminalAllocation(sshFlags)
+		remoteDockerBinary := dockerSSHRemoteBinary()
 		return &ConnectionHelper{
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				args := []string{"docker"}
+				args := []string{remoteDockerBinary}
 				if sp.Path != "" {
 					args = append(args, "--host", "unix://"+sp.Path)
 				}
@@ -90,4 +98,16 @@ func disablePseudoTerminalAllocation(sshFlags []string) []string {
 		}
 	}
 	return append(sshFlags, "-T")
+}
+
+// dockerSSHRemoteBinary returns the binary to use when executing Docker
+// commands over SSH. It defaults to "docker" if the DOCKER_SSH_REMOTE_BINARY
+// environment variable is not set.
+func dockerSSHRemoteBinary() string {
+	value := os.Getenv(DockerSSHRemoteBinaryEnv)
+	if value == "" {
+		return "docker"
+	}
+
+	return value
 }
