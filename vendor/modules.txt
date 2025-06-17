@@ -211,7 +211,7 @@ github.com/moby/go-archive/tarheader
 ## explicit; go 1.19
 github.com/moby/patternmatcher
 github.com/moby/patternmatcher/ignorefile
-# github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
+# github.com/moby/swarmkit/v2 v2.0.0
 ## explicit; go 1.18
 github.com/moby/swarmkit/v2/api
 github.com/moby/swarmkit/v2/api/deepcopy

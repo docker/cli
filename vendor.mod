@@ -29,7 +29,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/moby/go-archive v0.1.0
 	github.com/moby/patternmatcher v0.6.0
-	github.com/moby/swarmkit/v2 v2.0.0-20250103191802-8c1959736554
+	github.com/moby/swarmkit/v2 v2.0.0
 	github.com/moby/sys/atomicwriter v0.1.0
 	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.6.0
