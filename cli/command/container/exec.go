@@ -99,7 +99,7 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	if _, err := apiClient.ContainerInspect(ctx, containerIDorName); err != nil {
 		return err
 	}
-	if !execOptions.Detach {
+	if !options.Detach {
 		if err := dockerCLI.In().CheckTty(execOptions.AttachStdin, execOptions.Tty); err != nil {
 			return err
 		}
@@ -117,9 +117,9 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 		return errors.New("exec ID empty")
 	}
 
-	if execOptions.Detach {
+	if options.Detach {
 		return apiClient.ContainerExecStart(ctx, execID, container.ExecStartOptions{
-			Detach:      execOptions.Detach,
+			Detach:      options.Detach,
 			Tty:         execOptions.Tty,
 			ConsoleSize: execOptions.ConsoleSize,
 		})
@@ -223,7 +223,6 @@ func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*contai
 		Privileged: execOpts.Privileged,
 		Tty:        execOpts.TTY,
 		Cmd:        execOpts.Command,
-		Detach:     execOpts.Detach,
 		WorkingDir: execOpts.Workdir,
 	}
 
