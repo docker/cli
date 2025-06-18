@@ -481,6 +481,133 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	}
 }
 
+const envTestUserPassConfig = `{
+	"auths": {
+		"env.example.test": {
+			"username": "env_user",
+			"password": "env_pass",
+			"serveraddress": "env.example.test"
+		}
+	}
+}`
+
+const envTestAuthConfig = `{
+	"auths": {
+		"env.example.test": {
+			"auth": "ZW52X3VzZXI6ZW52X3Bhc3M="
+		}
+	}
+}`
+
+func TestGetAllCredentialsFromEnvironment(t *testing.T) {
+	t.Run("can parse DOCKER_AUTH_CONFIG auth field", func(t *testing.T) {
+		config := &ConfigFile{}
+
+		t.Setenv("DOCKER_AUTH_CONFIG", envTestAuthConfig)
+
+		authConfigs, err := config.GetAllCredentials()
+		assert.NilError(t, err)
+
+		expected := map[string]types.AuthConfig{
+			"env.example.test": {
+				Username:      "env_user",
+				Password:      "env_pass",
+				ServerAddress: "env.example.test",
+			},
+		}
+		assert.Check(t, is.DeepEqual(authConfigs, expected))
+	})
+
+	t.Run("malformed DOCKER_AUTH_CONFIG should fallback to underlying store", func(t *testing.T) {
+		fallbackStore := map[string]types.AuthConfig{
+			"fallback.example.test": {
+				Username:      "fallback_user",
+				Password:      "fallback_pass",
+				ServerAddress: "fallback.example.test",
+			},
+		}
+		config := &ConfigFile{
+			AuthConfigs: fallbackStore,
+		}
+
+		t.Setenv("DOCKER_AUTH_CONFIG", envTestUserPassConfig)
+
+		authConfigs, err := config.GetAllCredentials()
+		assert.NilError(t, err)
+
+		expected := fallbackStore
+		assert.Check(t, is.DeepEqual(authConfigs, expected))
+	})
+
+	t.Run("can fetch credentials from DOCKER_AUTH_CONFIG and underlying store", func(t *testing.T) {
+		configFile := New("filename")
+		exampleAuth := types.AuthConfig{
+			Username: "user",
+			Password: "pass",
+		}
+		configFile.AuthConfigs["foo.example.test"] = exampleAuth
+
+		t.Setenv("DOCKER_AUTH_CONFIG", envTestAuthConfig)
+
+		authConfigs, err := configFile.GetAllCredentials()
+		assert.NilError(t, err)
+
+		expected := map[string]types.AuthConfig{
+			"foo.example.test": exampleAuth,
+			"env.example.test": {
+				Username:      "env_user",
+				Password:      "env_pass",
+				ServerAddress: "env.example.test",
+			},
+		}
+		assert.Check(t, is.DeepEqual(authConfigs, expected))
+
+		fooConfig, err := configFile.GetAuthConfig("foo.example.test")
+		assert.NilError(t, err)
+		expectedAuth := expected["foo.example.test"]
+		assert.Check(t, is.DeepEqual(fooConfig, expectedAuth))
+
+		envConfig, err := configFile.GetAuthConfig("env.example.test")
+		assert.NilError(t, err)
+		expectedAuth = expected["env.example.test"]
+		assert.Check(t, is.DeepEqual(envConfig, expectedAuth))
+	})
+
+	t.Run("env is ignored when empty", func(t *testing.T) {
+		configFile := New("filename")
+
+		t.Setenv("DOCKER_AUTH_CONFIG", "")
+
+		authConfigs, err := configFile.GetAllCredentials()
+		assert.NilError(t, err)
+		assert.Check(t, is.Len(authConfigs, 0))
+	})
+}
+
+func TestParseEnvConfig(t *testing.T) {
+	t.Run("should error on unexpected fields", func(t *testing.T) {
+		_, err := parseEnvConfig(envTestUserPassConfig)
+		assert.ErrorContains(t, err, "json: unknown field \"username\"")
+	})
+	t.Run("should be able to load env credentials", func(t *testing.T) {
+		got, err := parseEnvConfig(envTestAuthConfig)
+		assert.NilError(t, err)
+		expected := map[string]types.AuthConfig{
+			"env.example.test": {
+				Username:      "env_user",
+				Password:      "env_pass",
+				ServerAddress: "env.example.test",
+			},
+		}
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(got, expected))
+	})
+	t.Run("should not support multiple JSON objects", func(t *testing.T) {
+		_, err := parseEnvConfig(`{"auths":{"env.example.test":{"auth":"something"}}}{}`)
+		assert.ErrorContains(t, err, "does not support more than one JSON object")
+	})
+}
+
 func TestSave(t *testing.T) {
 	configFile := New("test-save")
 	defer os.Remove("test-save")
