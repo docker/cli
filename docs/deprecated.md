@@ -53,9 +53,10 @@ The following table provides an overview of the current status of deprecated fea
 
 | Status     | Feature                                                                                                                            | Deprecated | Remove |
 |------------|------------------------------------------------------------------------------------------------------------------------------------|------------|--------|
+| Deprecated | [Empty/nil fields in image Config from inspect API](#emptynil-fields-in-image-config-from-inspect-api)                             | v28.3      | v29.0  |
 | Deprecated | [Configuration for pushing  non-distributable artifacts](#configuration-for-pushing-non-distributable-artifacts)                   | v28.0      | v29.0  |
 | Deprecated | [`--time` option on `docker stop` and `docker restart`](#--time-option-on-docker-stop-and-docker-restart)                          | v28.0      | -      |
-| Deprecated | [Non-standard fields in image inspect](#non-standard-fields-in-image-inspect)                                                      | v27.0      | v28.0  |
+| Removed    | [Non-standard fields in image inspect](#non-standard-fields-in-image-inspect)                                                      | v27.0      | v28.2  |
 | Removed    | [API CORS headers](#api-cors-headers)                                                                                              | v27.0      | v28.0  |
 | Removed    | [Graphdriver plugins (experimental)](#graphdriver-plugins-experimental)                                                            | v27.0      | v28.0  |
 | Deprecated | [Unauthenticated TCP connections](#unauthenticated-tcp-connections)                                                                | v26.0      | v28.0  |
@@ -71,7 +72,7 @@ The following table provides an overview of the current status of deprecated fea
 | Removed    | [Btrfs storage driver on CentOS 7 and RHEL 7](#btrfs-storage-driver-on-centos-7-and-rhel-7)                                        | v20.10     | v23.0  |
 | Removed    | [Support for encrypted TLS private keys](#support-for-encrypted-tls-private-keys)                                                  | v20.10     | v23.0  |
 | Removed    | [Kubernetes stack and context support](#kubernetes-stack-and-context-support)                                                      | v20.10     | v23.0  |
-| Deprecated | [Pulling images from non-compliant image registries](#pulling-images-from-non-compliant-image-registries)                          | v20.10     | -      |
+| Removed    | [Pulling images from non-compliant image registries](#pulling-images-from-non-compliant-image-registries)                          | v20.10     | v28.2  |
 | Removed    | [Linux containers on Windows (LCOW)](#linux-containers-on-windows-lcow-experimental)                                               | v20.10     | v23.0  |
 | Deprecated | [BLKIO weight options with cgroups v1](#blkio-weight-options-with-cgroups-v1)                                                      | v20.10     | -      |
 | Removed    | [Kernel memory limit](#kernel-memory-limit)                                                                                        | v20.10     | v23.0  |
@@ -120,7 +121,34 @@ The following table provides an overview of the current status of deprecated fea
 | Removed    | [`--run` flag on `docker commit`](#--run-flag-on-docker-commit)                                                                    | v0.10      | v1.13  |
 | Removed    | [Three arguments form in `docker import`](#three-arguments-form-in-docker-import)                                                  | v0.6.7     | v1.12  |
 
-## Configuration for pushing non-distributable artifacts
+### Empty/nil fields in image Config from inspect API
+
+**Deprecated in Release: v28.3**
+**Target For Removal In Release: v29.0**
+
+The `Config` field returned by `docker image inspect` (and the `GET /images/{name}/json`
+API endpoint) currently includes certain fields even when they are empty or nil.
+Starting in Docker v29.0, the following fields will be omitted from the API response
+when they contain empty or default values:
+
+- `Cmd`
+- `Entrypoint`
+- `Env`
+- `Labels`
+- `OnBuild`
+- `User`
+- `Volumes`
+- `WorkingDir`
+
+Applications consuming the image inspect API should be updated to handle the
+absence of these fields gracefully, treating missing fields as having their
+default/empty values.
+
+For API version corresponding to Docker v29.0, these fields will be omitted when
+empty. They will continue to be included when using clients that request an older
+API version for backward compatibility.
+
+### Configuration for pushing non-distributable artifacts
 
 **Deprecated in Release: v28.0**
 **Target For Removal In Release: v29.0**
@@ -172,7 +200,7 @@ Users are encouraged to migrate to using the `--timeout` option instead.
 ### Non-standard fields in image inspect
 
 **Deprecated in Release: v27.0**
-**Target For Removal In Release: v28.0**
+**Removed In Release: v28.2**
 
 The `Config` field returned shown in `docker image inspect` (and as returned by
 the `GET /images/{name}/json` API endpoint) returns additional fields that are
@@ -184,8 +212,9 @@ but are not omitted in the response when left empty. As these fields were not
 intended to be part of the image configuration response, they are deprecated,
 and will be removed from the API in thee next release.
 
-The following fields are currently included in the API response, but are not
-part of the underlying image's `Config` field, and deprecated:
+The following fields are not part of the underlying image's `Config` field, and
+removed in the API response for API v1.50 and newer, corresponding with v28.2.
+They continue to be included when using clients that use an older API version:
 
 - `Hostname`
 - `Domainname`
@@ -196,9 +225,9 @@ part of the underlying image's `Config` field, and deprecated:
 - `OpenStdin`
 - `StdinOnce`
 - `Image`
-- `NetworkDisabled` (already omitted unless set)
-- `MacAddress` (already omitted unless set)
-- `StopTimeout` (already omitted unless set)
+- `NetworkDisabled` (omitted unless set on older API versions)
+- `MacAddress` (omitted unless set on older API versions)
+- `StopTimeout` (omitted unless set on older API versions)
 
 [Docker image specification]: https://github.com/moby/docker-image-spec/blob/v1.3.1/specs-go/v1/image.go#L19-L32
 [OCI image specification]: https://github.com/opencontainers/image-spec/blob/v1.1.0/specs-go/v1/config.go#L24-L62
@@ -546,6 +575,7 @@ CLI configuration file are no longer used, and ignored.
 ### Pulling images from non-compliant image registries
 
 **Deprecated in Release: v20.10**
+**Removed in Release: v28.2**
 
 Docker Engine v20.10 and up includes optimizations to verify if images in the
 local image cache need updating before pulling, preventing the Docker Engine
@@ -555,7 +585,7 @@ image registry to conform to the [Open Container Initiative Distribution Specifi
 While most registries conform to the specification, we encountered some registries
 to be non-compliant, resulting in `docker pull` to fail.
 
-As a temporary solution, Docker Engine v20.10 includes a fallback mechanism to
+As a temporary solution, Docker Engine v20.10 added a fallback mechanism to
 allow `docker pull` to be functional when using a non-compliant registry. A
 warning message is printed in this situation:
 
@@ -564,16 +594,13 @@ warning message is printed in this situation:
             pull by tag. This fallback is DEPRECATED, and will be removed in a future
             release.
 
-The fallback is added to allow users to either migrate their images to a compliant
-registry, or for these registries to become compliant.
+The fallback was added to allow users to either migrate their images to a
+compliant registry, or for these registries to become compliant.
 
-Note that this fallback only addresses failures on `docker pull`. Other commands,
-such as `docker stack deploy`, or pulling images with `containerd` will continue
-to fail.
-
-Given that other functionality is still broken with these registries, we consider
-this fallback a _temporary_ solution, and will remove the fallback in an upcoming
-major release.
+GitHub deprecated the legacy `docker.pkg.github.com` registry, and it was
+[sunset on Feb 24th, 2025](https://github.blog/changelog/2025-01-23-legacy-docker-registry-closing-down/)
+in favor of GitHub Container Registry (GHCR, ghcr.io), making this fallback
+no longer needed.
 
 ### Linux containers on Windows (LCOW) (experimental)
 

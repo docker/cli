@@ -1,4 +1,4 @@
-package registry // import "github.com/docker/docker/registry"
+package registry
 
 import (
 	// this is required for some certificates
@@ -15,7 +15,6 @@ import (
 
 	"github.com/containerd/log"
 	"github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/errdefs"
 	"github.com/pkg/errors"
 )
 
@@ -132,7 +131,7 @@ func (tr *authTransport) RoundTrip(orig *http.Request) (*http.Response, error) {
 
 	// Don't override
 	if req.Header.Get("Authorization") == "" {
-		if req.Header.Get("X-Docker-Token") == "true" && tr.authConfig != nil && len(tr.authConfig.Username) > 0 {
+		if req.Header.Get("X-Docker-Token") == "true" && tr.authConfig != nil && tr.authConfig.Username != "" {
 			req.SetBasicAuth(tr.authConfig.Username, tr.authConfig.Password)
 		} else if len(tr.token) > 0 {
 			req.Header.Set("Authorization", "Token "+strings.Join(tr.token, ","))
@@ -195,7 +194,7 @@ func authorizeClient(ctx context.Context, client *http.Client, authConfig *regis
 
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return errdefs.System(errors.New("cookiejar.New is not supposed to return an error"))
+		return systemErr{errors.New("cookiejar.New is not supposed to return an error")}
 	}
 	client.Jar = jar
 
@@ -223,7 +222,7 @@ func (r *session) searchRepositories(ctx context.Context, term string, limit int
 	u := r.indexEndpoint.String() + "search?q=" + url.QueryEscape(term) + "&n=" + url.QueryEscape(fmt.Sprintf("%d", limit))
 	log.G(ctx).WithField("url", u).Debug("searchRepositories")
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, http.NoBody)
 	if err != nil {
 		return nil, invalidParamWrapf(err, "error building request")
 	}
@@ -231,17 +230,18 @@ func (r *session) searchRepositories(ctx context.Context, term string, limit int
 	req.Header.Set("X-Docker-Token", "true")
 	res, err := r.client.Do(req)
 	if err != nil {
-		return nil, errdefs.System(err)
+		return nil, systemErr{err}
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		// TODO(thaJeztah): return upstream response body for errors (see https://github.com/moby/moby/issues/27286).
-		return nil, errdefs.Unknown(fmt.Errorf("Unexpected status code %d", res.StatusCode))
+		// TODO(thaJeztah): handle other status-codes to return correct error-type
+		return nil, errUnknown{fmt.Errorf("Unexpected status code %d", res.StatusCode)}
 	}
 	result := &registry.SearchResults{}
 	err = json.NewDecoder(res.Body).Decode(result)
 	if err != nil {
-		return nil, errdefs.System(errors.Wrap(err, "error decoding registry search results"))
+		return nil, systemErr{errors.Wrap(err, "error decoding registry search results")}
 	}
 	return result, nil
 }

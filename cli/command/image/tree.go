@@ -170,10 +170,16 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 
 	var possible []imageChip
 	for _, img := range view.images {
+		details := []imageDetails{img.Details}
+
 		for _, c := range img.Children {
+			details = append(details, c.Details)
+		}
+
+		for _, d := range details {
 			for idx := len(remaining) - 1; idx >= 0; idx-- {
 				chip := remaining[idx]
-				if chip.check(&c.Details) {
+				if chip.check(&d) {
 					possible = append(possible, chip)
 					remaining = append(remaining[:idx], remaining[idx+1:]...)
 				}
