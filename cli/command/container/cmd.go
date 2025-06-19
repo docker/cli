@@ -28,7 +28,7 @@ func NewContainerCommand(dockerCli command.Cli) *cobra.Command {
 		NewPortCommand(dockerCli),
 		NewRenameCommand(dockerCli),
 		NewRestartCommand(dockerCli),
-		NewRmCommand(dockerCli),
+		newRemoveCommand(dockerCli),
 		NewRunCommand(dockerCli),
 		NewStartCommand(dockerCli),
 		NewStatsCommand(dockerCli),
