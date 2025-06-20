@@ -123,12 +123,23 @@ func (args Args) Get(key string) []string {
 	return slice
 }
 
+// Get returns the list of children key/value pairs associated with the key
+func (args Args) GetPair(key string) map[string]bool {
+	values := args.fields[key]
+	return values
+}
+
 // Add a new value to the set of values
-func (args Args) Add(key, value string) {
+func (args Args) Add(key, value string, isEqualOps ...bool) {
+	isEqualOp := true
+	if len(isEqualOps) > 0 {
+		isEqualOp = isEqualOps[0]
+	}
+
 	if _, ok := args.fields[key]; ok {
-		args.fields[key][value] = true
+		args.fields[key][value] = isEqualOp
 	} else {
-		args.fields[key] = map[string]bool{value: true}
+		args.fields[key] = map[string]bool{value: isEqualOp}
 	}
 }
 
