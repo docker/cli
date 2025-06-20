@@ -74,6 +74,8 @@ Image index won't be pushed, meaning that other manifests, including attestation
 }
 
 // runPush performs a push against the engine based on the specified options.
+//
+//nolint:gocyclo // ignore cyclomatic complexity 17 of func `runPush` is high (> 16) for now.
 func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
 	var platform *ocispec.Platform
 	out := tui.NewOutput(dockerCli.Out())
@@ -113,7 +115,10 @@ To push the complete multi-platform image, remove the --platform flag.
 	if err != nil {
 		return err
 	}
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
+	var requestPrivilege registrytypes.RequestAuthConfig
+	if dockerCli.In().IsTerminal() {
+		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
+	}
 	options := image.PushOptions{
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,

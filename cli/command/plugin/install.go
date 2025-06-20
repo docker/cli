@@ -90,13 +90,18 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		return types.PluginInstallOptions{}, err
 	}
 
+	var requestPrivilege registrytypes.RequestAuthConfig
+	if dockerCli.In().IsTerminal() {
+		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, cmdName)
+	}
+
 	options := types.PluginInstallOptions{
 		RegistryAuth:          encodedAuth,
 		RemoteRef:             remote,
 		Disabled:              opts.disable,
 		AcceptAllPermissions:  opts.grantPerms,
 		AcceptPermissionsFunc: acceptPrivileges(dockerCli, opts.remote),
-		PrivilegeFunc:         command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, cmdName),
+		PrivilegeFunc:         requestPrivilege,
 		Args:                  opts.args,
 	}
 	return options, nil

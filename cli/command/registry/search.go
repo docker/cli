@@ -63,7 +63,10 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 		return err
 	}
 
-	requestPrivilege := command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
+	var requestPrivilege registrytypes.RequestAuthConfig
+	if dockerCli.In().IsTerminal() {
+		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, indexInfo, "search")
+	}
 	results, err := dockerCli.Client().ImageSearch(ctx, options.term, registrytypes.SearchOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: requestPrivilege,

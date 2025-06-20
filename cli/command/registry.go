@@ -35,7 +35,7 @@ const (
 const authConfigKey = "https://index.docker.io/v1/"
 
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
-// for the given command.
+// for the given command to prompt the user for username and password.
 func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
 	configKey := getAuthConfigKey(index.Name)
 	isDefaultRegistry := configKey == authConfigKey || index.Official
