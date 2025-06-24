@@ -45,6 +45,8 @@ const (
 //
 // Some strings do not require any quoting and are returned unchanged.
 // Those strings can be directly surrounded in single quotes as well.
+//
+//nolint:gocyclo // ignore "cyclomatic complexity 35 of func `Quote` is high (> 16) (gocyclo)"
 func Quote(s string, lang LangVariant) (string, error) {
 	if s == "" {
 		// Special case; an empty string must always be quoted,
@@ -100,7 +102,7 @@ func Quote(s string, lang LangVariant) (string, error) {
 	if nonPrintable {
 		b.WriteString("$'")
 		lastRequoteIfHex := false
-		offs := 0
+		offs = 0
 		for rem := s; len(rem) > 0; {
 			nextRequoteIfHex := false
 			r, size := utf8.DecodeRuneInString(rem)
