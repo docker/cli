@@ -248,15 +248,14 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		// 1. Mount the actual docker socket.
 		// 2. A synthezised ~/.docker/config.json with resolved tokens.
 
-		socket := dockerCli.DockerEndpoint().Host
-		if !strings.HasPrefix(socket, "unix://") {
-			return "", fmt.Errorf("flag --use-api-socket can only be used with unix sockets: docker endpoint %s incompatible", socket)
+		if dockerCli.ServerInfo().OSType == "windows" {
+			return "", errors.New("flag --use-api-socket can't be used with a Windows Docker Engine")
 		}
-		socket = strings.TrimPrefix(socket, "unix://") // should we confirm absolute path?
 
+		// hard-code engine socket path until https://github.com/moby/moby/pull/43459 gives us a discovery mechanism
 		containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
 			Type:        mount.TypeBind,
-			Source:      socket,
+			Source:      "/var/run/docker.sock",
 			Target:      "/var/run/docker.sock",
 			BindOptions: &mount.BindOptions{},
 		})
