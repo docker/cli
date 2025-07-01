@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/docker/client"
 	"github.com/moby/sys/atomicwriter"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,7 @@ import (
 type saveOptions struct {
 	images   []string
 	output   string
-	platform string
+	platform []string
 }
 
 // NewSaveCommand creates a new `docker save` command
@@ -41,7 +42,7 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.StringVarP(&opts.output, "output", "o", "", "Write to a file, instead of STDOUT")
-	flags.StringVar(&opts.platform, "platform", "", `Save only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
+	flags.StringSliceVar(&opts.platform, "platform", []string{}, `Save only the given platform(s). Formatted as a comma-separated list of "os[/arch[/variant]]" (e.g., "linux/amd64,linux/arm64/v8")`)
 	_ = flags.SetAnnotation("platform", "version", []string{"1.48"})
 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
@@ -51,13 +52,17 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 // runSave performs a save against the engine based on the specified options
 func runSave(ctx context.Context, dockerCLI command.Cli, opts saveOptions) error {
 	var options []client.ImageSaveOption
-	if opts.platform != "" {
-		p, err := platforms.Parse(opts.platform)
+
+	platformList := []ocispec.Platform{}
+	for _, p := range opts.platform {
+		pp, err := platforms.Parse(p)
 		if err != nil {
 			return errors.Wrap(err, "invalid platform")
 		}
-		// TODO(thaJeztah): change flag-type to support multiple platforms.
-		options = append(options, client.ImageSaveWithPlatforms(p))
+		platformList = append(platformList, pp)
+	}
+	if len(platformList) > 0 {
+		options = append(options, client.ImageSaveWithPlatforms(platformList...))
 	}
 
 	var output io.Writer
