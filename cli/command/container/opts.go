@@ -18,7 +18,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -400,17 +399,14 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		tmpfs[k] = v
 	}
 
-	var (
-		runCmd     strslice.StrSlice
-		entrypoint strslice.StrSlice
-	)
+	var runCmd, entrypoint []string
 
 	if len(copts.Args) > 0 {
 		runCmd = copts.Args
 	}
 
 	if copts.entrypoint != "" {
-		entrypoint = strslice.StrSlice{copts.entrypoint}
+		entrypoint = []string{copts.entrypoint}
 	} else if flags.Changed("entrypoint") {
 		// if `--entrypoint=` is parsed then Entrypoint is reset
 		entrypoint = []string{""}
@@ -551,9 +547,9 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if haveHealthSettings {
 			return nil, errors.Errorf("--no-healthcheck conflicts with --health-* options")
 		}
-		healthConfig = &container.HealthConfig{Test: strslice.StrSlice{"NONE"}}
+		healthConfig = &container.HealthConfig{Test: []string{"NONE"}}
 	} else if haveHealthSettings {
-		var probe strslice.StrSlice
+		var probe []string
 		if copts.healthCmd != "" {
 			probe = []string{"CMD-SHELL", copts.healthCmd}
 		}
@@ -675,8 +671,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		UTSMode:        utsMode,
 		UsernsMode:     usernsMode,
 		CgroupnsMode:   cgroupnsMode,
-		CapAdd:         strslice.StrSlice(copts.capAdd.GetSlice()),
-		CapDrop:        strslice.StrSlice(copts.capDrop.GetSlice()),
+		CapAdd:         copts.capAdd.GetSlice(),
+		CapDrop:        copts.capDrop.GetSlice(),
 		GroupAdd:       copts.groupAdd.GetSlice(),
 		RestartPolicy:  restartPolicy,
 		SecurityOpt:    securityOpts,
