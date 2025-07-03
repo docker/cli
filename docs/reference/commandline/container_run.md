@@ -937,14 +937,13 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 
 #### CDI devices
 
-> [!NOTE]
-> The CDI feature is experimental, and potentially subject to change.
-> CDI is currently only supported for Linux containers.
-
 [Container Device Interface
 (CDI)](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
 is a standardized mechanism for container runtimes to create containers which
 are able to interact with third party devices.
+
+CDI is currently only supported for Linux containers and is enabled by default
+since Docker Engine 28.3.0.
 
 With CDI, device configurations are declaratively defined using a JSON or YAML
 file. In addition to enabling the container to interact with the device node,
