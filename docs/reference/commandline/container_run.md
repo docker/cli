@@ -938,8 +938,7 @@ PS C:\> docker run --device=class/86E0D1E0-8089-11D0-9CE4-08003E301F73 mcr.micro
 #### CDI devices
 
 > [!NOTE]
-> The CDI feature is experimental, and potentially subject to change.
-> CDI is currently only supported for Linux containers.
+> CDI is currently only supported for Linux containers and is enabled by default.
 
 [Container Device Interface
 (CDI)](https://github.com/cncf-tags/container-device-interface/blob/main/SPEC.md)
