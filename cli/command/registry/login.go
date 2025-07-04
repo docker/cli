@@ -121,6 +121,14 @@ func runLogin(ctx context.Context, dockerCLI command.Cli, opts loginOptions) err
 	}
 	isDefaultRegistry := serverAddress == registry.IndexServer
 
+	if os.Getenv(configfile.DockerEnvConfigKey) != "" {
+		out := tui.NewOutput(dockerCLI.Err())
+		out.PrintlnWithColor(tui.ColorWarning, "WARNING: using DOCKER_AUTH_CONFIG as the registry credential store")
+		out.PrintlnWithColor(tui.ColorWarning, "Unset DOCKER_AUTH_CONFIG to restore the CLI behavior")
+		out.PrintlnWithColor(tui.ColorWarning, "Login will still persist your credentials to disk")
+		out.Println()
+	}
+
 	// attempt login with current (stored) credentials
 	authConfig, err := command.GetDefaultAuthConfig(dockerCLI.ConfigFile(), opts.user == "" && opts.password == "", serverAddress, isDefaultRegistry)
 	if err == nil && authConfig.Username != "" && authConfig.Password != "" {

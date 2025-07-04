@@ -3,11 +3,14 @@ package registry
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/internal/oauth/manager"
+	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/registry"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +39,14 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string) error {
+	if os.Getenv(configfile.DockerEnvConfigKey) != "" {
+		out := tui.NewOutput(dockerCLI.Err())
+		out.PrintlnWithColor(tui.ColorWarning, "WARNING: using DOCKER_AUTH_CONFIG as the registry credential store")
+		out.PrintlnWithColor(tui.ColorWarning, "Unset DOCKER_AUTH_CONFIG to restore the CLI behavior")
+		out.PrintlnWithColor(tui.ColorWarning, "Logout will still remove your credentials from disk")
+		out.Println()
+	}
+
 	var isDefaultRegistry bool
 
 	if serverAddress == "" {
