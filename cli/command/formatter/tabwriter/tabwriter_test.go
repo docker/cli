@@ -23,13 +23,12 @@ func (b *buffer) clear() { b.a = b.a[0:0] }
 func (b *buffer) Write(buf []byte) (written int, err error) {
 	n := len(b.a)
 	m := len(buf)
-	if n+m <= cap(b.a) {
-		b.a = b.a[0 : n+m]
-		for i := 0; i < m; i++ {
-			b.a[n+i] = buf[i]
-		}
-	} else {
+	if n+m > cap(b.a) {
 		panic("buffer.Write: buffer too small")
+	}
+	b.a = b.a[0 : n+m]
+	for i := 0; i < m; i++ {
+		b.a[n+i] = buf[i]
 	}
 	return len(buf), nil
 }
