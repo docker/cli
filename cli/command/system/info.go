@@ -101,11 +101,14 @@ func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opt
 	var serverConnErr error
 	if needsServerInfo(opts.format, info) {
 		serverConnErr = addServerInfo(ctx, dockerCli, opts.format, &info)
+		if serverConnErr == nil {
+			// Update client API version after it was negotiated.
+			info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
+		}
 	}
 
 	if opts.format == "" {
 		info.UserName = dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
-		info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
 		return errors.Join(prettyPrintInfo(dockerCli, info), serverConnErr)
 	}
 
