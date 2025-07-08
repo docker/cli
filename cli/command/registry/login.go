@@ -110,6 +110,9 @@ func runLogin(ctx context.Context, dockerCLI command.Cli, opts loginOptions) err
 	if err := verifyLoginOptions(dockerCLI, &opts); err != nil {
 		return err
 	}
+
+	maybePrintEnvAuthWarning(dockerCLI)
+
 	var (
 		serverAddress string
 		msg           string
