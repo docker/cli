@@ -59,7 +59,6 @@ The base command for the Docker CLI.
 | [`system`](system.md)         | Manage Docker                                                                 |
 | [`tag`](tag.md)               | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                         |
 | [`top`](top.md)               | Display the running processes of a container                                  |
-| [`trust`](trust.md)           | Manage trust on Docker images                                                 |
 | [`unpause`](unpause.md)       | Unpause all processes within one or more containers                           |
 | [`update`](update.md)         | Update configuration of one or more containers                                |
 | [`version`](version.md)       | Show the Docker version information                                           |

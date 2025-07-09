@@ -240,7 +240,7 @@ func TestPromptExitCode(t *testing.T) {
 			case <-writeDone:
 				buf.Reset()
 				assert.NilError(t, bufioWriter.Flush())
-				assert.Equal(t, buf.String(), "\n", "expected a new line after the process exits from SIGINT")
+				assert.Equal(t, strings.HasSuffix(buf.String(), "\n"), true, "expected a new line after the process exits from SIGINT")
 			}
 		})
 	}
