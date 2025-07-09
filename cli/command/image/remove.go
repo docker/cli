@@ -6,18 +6,19 @@ import (
 	"fmt"
 
 	cerrdefs "github.com/containerd/errdefs"
-	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/image"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
 type removeOptions struct {
 	force     bool
 	noPrune   bool
-	platforms []string
+	platforms []ocispec.Platform
 }
 
 // NewRemoveCommand creates a new `docker remove` command
@@ -42,8 +43,7 @@ func NewRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.force, "force", "f", false, "Force removal of the image")
 	flags.BoolVar(&options.noPrune, "no-prune", false, "Do not delete untagged parents")
 
-	// TODO(thaJeztah): create a "platforms" option for this (including validation / parsing).
-	flags.StringSliceVar(&options.platforms, "platform", nil, `Remove only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
+	flags.Var(opts.NewPlatformSlice(&options.platforms), "platform", `Remove only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
 	_ = flags.SetAnnotation("platform", "version", []string{"1.50"})
 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
@@ -57,27 +57,18 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, images []string) error {
+func runRemove(ctx context.Context, dockerCLI command.Cli, options removeOptions, images []string) error {
 	apiClient := dockerCLI.Client()
-
-	options := image.RemoveOptions{
-		Force:         opts.force,
-		PruneChildren: !opts.noPrune,
-	}
-
-	for _, v := range opts.platforms {
-		p, err := platforms.Parse(v)
-		if err != nil {
-			return err
-		}
-		options.Platforms = append(options.Platforms, p)
-	}
 
 	// TODO(thaJeztah): this logic can likely be simplified: do we want to print "not found" errors at all when using "force"?
 	fatalErr := false
 	var errs []error
 	for _, img := range images {
-		dels, err := apiClient.ImageRemove(ctx, img, options)
+		dels, err := apiClient.ImageRemove(ctx, img, image.RemoveOptions{
+			Force:         options.force,
+			PruneChildren: !options.noPrune,
+			Platforms:     options.platforms,
+		})
 		if err != nil {
 			if !cerrdefs.IsNotFound(err) {
 				fatalErr = true
@@ -95,7 +86,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 	}
 
 	if err := errors.Join(errs...); err != nil {
-		if !opts.force || fatalErr {
+		if !options.force || fatalErr {
 			return err
 		}
 		_, _ = fmt.Fprintln(dockerCLI.Err(), err)
