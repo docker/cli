@@ -82,10 +82,6 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			return trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), err)
 		}
 	}
-	var requestPrivilege registrytypes.RequestAuthConfig
-	if dockerCLI.In().IsTerminal() {
-		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCLI, imgRefAndAuth.RepoInfo().Index, "push")
-	}
 	target, err := createTarget(notaryRepo, imgRefAndAuth.Tag())
 	if err != nil || options.local {
 		switch err := err.(type) {
@@ -104,7 +100,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			}
 			responseBody, err := dockerCLI.Client().ImagePush(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), imagetypes.PushOptions{
 				RegistryAuth:  encodedAuth,
-				PrivilegeFunc: requestPrivilege,
+				PrivilegeFunc: nil,
 			})
 			if err != nil {
 				return err

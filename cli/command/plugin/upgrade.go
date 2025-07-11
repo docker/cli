@@ -73,7 +73,7 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 		}
 	}
 
-	options, err := buildPullConfig(ctx, dockerCLI, opts, "plugin upgrade")
+	options, err := buildPullConfig(ctx, dockerCLI, opts)
 	if err != nil {
 		return err
 	}
