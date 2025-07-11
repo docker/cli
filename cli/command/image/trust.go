@@ -8,16 +8,18 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/theupdateframework/notary/client"
+	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
@@ -29,11 +31,11 @@ type target struct {
 
 // notaryClientProvider is used in tests to provide a dummy notary client.
 type notaryClientProvider interface {
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error)
+	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 }
 
 // newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
-func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (client.Repository, error) {
+func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (notaryclient.Repository, error) {
 	if ncp, ok := cli.(notaryClientProvider); ok {
 		// notaryClientProvider is used in tests to provide a dummy notary client.
 		return ncp.NotaryClient(imgRefAndAuth, []string{"pull"})
@@ -145,17 +147,24 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
-	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
+	hostname := command.GetRegistryHostname(imgRefAndAuth.RepoInfo().Index)
+
+	privilegeFuncs := configfile.RegistryAuthPrivilegeFunc(cli.ConfigFile(), hostname)
+	if cli.In().IsTerminal() {
+		privilegeFuncs = client.ChainPrivilegeFuncs(privilegeFuncs, command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull"))
+	}
+
+	encoded, err := registrytypes.EncodeAuthConfig(registrytypes.AuthConfig{
+		Username: "test",
+		Password: "test",
+	})
 	if err != nil {
 		return err
 	}
-	var requestPrivilege registrytypes.RequestAuthConfig
-	if cli.In().IsTerminal() {
-		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(cli, imgRefAndAuth.RepoInfo().Index, "pull")
-	}
+
 	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), image.PullOptions{
-		RegistryAuth:  encodedAuth,
-		PrivilegeFunc: requestPrivilege,
+		RegistryAuth:  encoded, // we already have credentials resolved by privilegeFuncs
+		PrivilegeFunc: privilegeFuncs,
 		All:           opts.all,
 		Platform:      opts.platform,
 	})
@@ -190,7 +199,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	// Only list tags in the top level targets role or the releases delegation role - ignore
 	// all other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), client.ErrNoSuchTarget(ref.Tag()))
+		return nil, trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), notaryclient.ErrNoSuchTarget(ref.Tag()))
 	}
 	r, err := convertTarget(t.Target)
 	if err != nil {
@@ -199,7 +208,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	return reference.WithDigest(reference.TrimNamed(ref), r.digest)
 }
 
-func convertTarget(t client.Target) (target, error) {
+func convertTarget(t notaryclient.Target) (target, error) {
 	h, ok := t.Hashes["sha256"]
 	if !ok {
 		return target{}, errors.New("no valid hash, expecting sha256")

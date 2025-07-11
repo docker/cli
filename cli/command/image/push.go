@@ -14,12 +14,14 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -111,18 +113,26 @@ To push the complete multi-platform image, remove the --platform flag.
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+
+	hostname := command.GetRegistryHostname(repoInfo.Index)
+
+	privilegeFuncs := configfile.RegistryAuthPrivilegeFunc(dockerCli.ConfigFile(), hostname)
+	if dockerCli.In().IsTerminal() {
+		privilegeFuncs = client.ChainPrivilegeFuncs(privilegeFuncs, command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push"))
+	}
+
+	encoded, err := registrytypes.EncodeAuthConfig(registrytypes.AuthConfig{
+		Username: "test",
+		Password: "test",
+	})
 	if err != nil {
 		return err
 	}
-	var requestPrivilege registrytypes.RequestAuthConfig
-	if dockerCli.In().IsTerminal() {
-		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
-	}
+
 	options := image.PushOptions{
 		All:           opts.all,
-		RegistryAuth:  encodedAuth,
-		PrivilegeFunc: requestPrivilege,
+		RegistryAuth:  encoded, // we already pass all configs from privilegeFuncs
+		PrivilegeFunc: privilegeFuncs,
 		Platform:      platform,
 	}
 
