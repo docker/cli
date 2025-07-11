@@ -56,7 +56,7 @@ func newInstallCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOptions, cmdName string) (types.PluginInstallOptions, error) {
+func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOptions) (types.PluginInstallOptions, error) {
 	// Names with both tag and digest will be treated by the daemon
 	// as a pull by digest with a local name for the tag
 	// (if no local name is provided).
@@ -90,18 +90,13 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		return types.PluginInstallOptions{}, err
 	}
 
-	var requestPrivilege registrytypes.RequestAuthConfig
-	if dockerCli.In().IsTerminal() {
-		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, cmdName)
-	}
-
 	options := types.PluginInstallOptions{
 		RegistryAuth:          encodedAuth,
 		RemoteRef:             remote,
 		Disabled:              opts.disable,
 		AcceptAllPermissions:  opts.grantPerms,
 		AcceptPermissionsFunc: acceptPrivileges(dockerCli, opts.remote),
-		PrivilegeFunc:         requestPrivilege,
+		PrivilegeFunc:         nil,
 		Args:                  opts.args,
 	}
 	return options, nil
@@ -120,7 +115,7 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 		localName = reference.FamiliarString(reference.TagNameOnly(aref))
 	}
 
-	options, err := buildPullConfig(ctx, dockerCLI, opts, "plugin install")
+	options, err := buildPullConfig(ctx, dockerCLI, opts)
 	if err != nil {
 		return err
 	}
