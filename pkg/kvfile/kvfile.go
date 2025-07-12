@@ -15,8 +15,8 @@
 //
 // # Interpolation, substitution, and escaping
 //
-// Both keys and values are used as-is; no interpolation, substitution or
-// escaping is supported, and quotes are considered part of the key or value.
+// Both keys and values are used as-is; no interpolation or substitution is supported.
+// Quotes around values are removed if the value starts and ends with the same quote character.
 // Whitespace in values (including leading and trailing) is preserved. Given
 // that the file format is line-delimited, neither key, nor value, can contain
 // newlines.
@@ -78,6 +78,20 @@ func ParseFromReader(r io.Reader, lookupFn func(key string) (value string, found
 
 const whiteSpaces = " \t"
 
+// trimQuotes removes the quotes from a string if the string starts and ends with the same quote character.
+func trimQuotes(value string) string {
+	if len(value) < 2 {
+		return value
+	}
+	lastIndex := len(value) - 1
+	for _, char := range []byte{'\'', '"'} {
+		if value[0] == char && value[lastIndex] == char {
+			return value[1:lastIndex]
+		}
+	}
+	return value
+}
+
 func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]string, error) {
 	lines := []string{}
 	scanner := bufio.NewScanner(r)
@@ -113,8 +127,13 @@ func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]str
 		}
 
 		if hasValue {
-			// key/value pair is valid and has a value; add the line as-is.
-			lines = append(lines, line)
+			// key/value pair is valid and has a value
+			// Split the line to get the key and value
+			key, value, _ := strings.Cut(line, "=")
+			// Trim quotes from the value
+			value = trimQuotes(value)
+			// Reconstruct the line with the trimmed value
+			lines = append(lines, key+"="+value)
 			continue
 		}
 
@@ -122,6 +141,8 @@ func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]str
 			// No value given; try to look up the value. The value may be
 			// empty but if no value is found, the key is omitted.
 			if value, found := lookupFn(line); found {
+				// Trim quotes from the value
+				value = trimQuotes(value)
 				lines = append(lines, key+"="+value)
 			}
 		}
