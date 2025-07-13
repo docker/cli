@@ -13,7 +13,11 @@ ARG GOTESTSUM_VERSION=v1.12.0
 # It must be a tag in the docker.io/docker/buildx-bin image repository
 # on Docker Hub.
 ARG BUILDX_VERSION=0.24.0
-ARG COMPOSE_VERSION=v2.36.2
+
+# COMPOSE_VERSION is the version of compose to install in the dev container.
+# It must be a tag in the docker.io/docker/compose-bin image repository
+# on Docker Hub.
+ARG COMPOSE_VERSION=v2.38.2
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
