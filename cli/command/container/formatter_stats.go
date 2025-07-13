@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/docker/cli/cli/command/formatter"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 )
 
 const (

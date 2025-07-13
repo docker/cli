@@ -21,7 +21,7 @@ import (
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-connections/nat"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/shlex"
 	"github.com/pkg/errors"

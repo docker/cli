@@ -14,7 +14,7 @@ import (
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
 )
