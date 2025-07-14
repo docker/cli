@@ -12,13 +12,12 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestPluginContext(t *testing.T) {
-	pluginID := stringid.GenerateRandomID()
+	pluginID := test.RandomID()
 
 	var ctx pluginContext
 	cases := []struct {

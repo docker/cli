@@ -14,13 +14,12 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNodeContext(t *testing.T) {
-	nodeID := stringid.GenerateRandomID()
+	nodeID := test.RandomID()
 
 	var ctx nodeContext
 	cases := []struct {

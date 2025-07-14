@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 )
 
@@ -21,7 +20,7 @@ type historyCase struct {
 }
 
 func TestHistoryContext_ID(t *testing.T) {
-	id := stringid.GenerateRandomID()
+	id := test.RandomID()
 
 	var ctx historyContext
 	cases := []historyCase{
