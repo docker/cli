@@ -6,7 +6,6 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 )
 
@@ -216,7 +215,7 @@ func (c *imageContext) MarshalJSON() ([]byte, error) {
 
 func (c *imageContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.i.ID)
+		return TruncateID(c.i.ID)
 	}
 	return c.i.ID
 }

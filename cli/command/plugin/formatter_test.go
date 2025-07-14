@@ -33,7 +33,7 @@ func TestPluginContext(t *testing.T) {
 		{pluginContext{
 			p:     types.Plugin{ID: pluginID},
 			trunc: true,
-		}, stringid.TruncateID(pluginID), ctx.ID},
+		}, formatter.TruncateID(pluginID), ctx.ID},
 		{pluginContext{
 			p: types.Plugin{Name: "plugin_name"},
 		}, "plugin_name", ctx.Name},

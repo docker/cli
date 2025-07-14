@@ -35,7 +35,7 @@ func TestNetworkContext(t *testing.T) {
 		{networkContext{
 			n:     network.Summary{ID: networkID},
 			trunc: true,
-		}, stringid.TruncateID(networkID), ctx.ID},
+		}, formatter.TruncateID(networkID), ctx.ID},
 		{networkContext{
 			n: network.Summary{Name: "network_name"},
 		}, "network_name", ctx.Name},

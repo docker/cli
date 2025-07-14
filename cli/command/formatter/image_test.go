@@ -27,7 +27,7 @@ func TestImageContext(t *testing.T) {
 	}{
 		{
 			imageCtx: imageContext{i: image.Summary{ID: imageID}, trunc: true},
-			expValue: stringid.TruncateID(imageID),
+			expValue: TruncateID(imageID),
 			call:     ctx.ID,
 		},
 		{

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/build"
-	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 )
 
@@ -115,7 +114,7 @@ func (c *buildCacheContext) MarshalJSON() ([]byte, error) {
 func (c *buildCacheContext) ID() string {
 	id := c.v.ID
 	if c.trunc {
-		id = stringid.TruncateID(c.v.ID)
+		id = TruncateID(c.v.ID)
 	}
 	if c.v.InUse {
 		return id + "*"
@@ -131,7 +130,7 @@ func (c *buildCacheContext) Parent() string {
 		parent = c.v.Parent //nolint:staticcheck // Ignore SA1019: Field was deprecated in API v1.42, but kept for backward compatibility
 	}
 	if c.trunc {
-		return stringid.TruncateID(parent)
+		return TruncateID(parent)
 	}
 	return parent
 }

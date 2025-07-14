@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/stringid"
 	units "github.com/docker/go-units"
 )
 
@@ -72,7 +71,7 @@ func (c *historyContext) MarshalJSON() ([]byte, error) {
 
 func (c *historyContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.h.ID)
+		return formatter.TruncateID(c.h.ID)
 	}
 	return c.h.ID
 }

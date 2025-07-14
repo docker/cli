@@ -35,7 +35,7 @@ func TestHistoryContext_ID(t *testing.T) {
 			historyContext{
 				h:     image.HistoryResponseItem{ID: id},
 				trunc: true,
-			}, stringid.TruncateID(id), ctx.ID,
+			}, formatter.TruncateID(id), ctx.ID,
 		},
 	}
 

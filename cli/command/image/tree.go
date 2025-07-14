@@ -12,10 +12,10 @@ import (
 
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/api/types/filters"
 	imagetypes "github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 	"github.com/morikuni/aec"
 	"github.com/opencontainers/go-digest"
@@ -222,7 +222,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 			Align: alignLeft,
 			Width: 12,
 			DetailsValue: func(d *imageDetails) string {
-				return stringid.TruncateID(d.ID)
+				return formatter.TruncateID(d.ID)
 			},
 		},
 		{

@@ -34,7 +34,7 @@ func TestContainerPsContext(t *testing.T) {
 		{
 			container: container.Summary{ID: containerID},
 			trunc:     true,
-			expValue:  stringid.TruncateID(containerID),
+			expValue:  TruncateID(containerID),
 			call:      ctx.ID,
 		},
 		{
