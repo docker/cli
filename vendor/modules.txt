@@ -95,7 +95,6 @@ github.com/docker/docker/client
 github.com/docker/docker/internal/lazyregexp
 github.com/docker/docker/internal/multierror
 github.com/docker/docker/pkg/homedir
-github.com/docker/docker/pkg/ioutils
 github.com/docker/docker/pkg/jsonmessage
 github.com/docker/docker/pkg/longpath
 github.com/docker/docker/pkg/process
