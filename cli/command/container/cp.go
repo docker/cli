@@ -398,8 +398,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	}
 
 	options := container.CopyToContainerOptions{
-		AllowOverwriteDirWithFile: false,
-		CopyUIDGID:                copyConfig.copyUIDGID,
+		CopyUIDGID: copyConfig.copyUIDGID,
 	}
 
 	if copyConfig.quiet {
