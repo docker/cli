@@ -106,18 +106,14 @@ To push the complete multi-platform image, remove the --platform flag.
 		}
 	}
 
-	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
-
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
 	if err != nil {
 		return err
 	}
 	var requestPrivilege registrytypes.RequestAuthConfig
 	if dockerCli.In().IsTerminal() {
-		requestPrivilege = command.RegistryAuthenticationPrivilegedFunc(dockerCli, repoInfo.Index, "push")
+		requestPrivilege = command.NewAuthRequester(dockerCli, reference.Domain(ref), "Login prior to push:")
 	}
 	options := image.PushOptions{
 		All:           opts.all,
@@ -139,6 +135,9 @@ To push the complete multi-platform image, remove the --platform flag.
 
 	defer responseBody.Close()
 	if !opts.untrusted {
+		repoInfo, _ := registry.ParseRepositoryInfo(ref)
+		authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
+
 		// TODO pushTrustedReference currently doesn't respect `--quiet`
 		return pushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
 	}
