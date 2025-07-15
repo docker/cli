@@ -3,6 +3,7 @@ package container
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -19,7 +20,6 @@ import (
 	"github.com/moby/go-archive"
 	"github.com/moby/moby/api/types/container"
 	"github.com/morikuni/aec"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -331,7 +331,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 
 	// Validate the destination path
 	if err := command.ValidateOutputPathFileMode(dstStat.Mode); err != nil {
-		return errors.Wrapf(err, `destination "%s:%s" must be a directory or a regular file`, copyConfig.container, dstPath)
+		return fmt.Errorf(`destination "%s:%s" must be a directory or a regular file: %w`, copyConfig.container, dstPath, err)
 	}
 
 	// Ignore any error and assume that the parent directory of the destination
@@ -354,7 +354,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		content = os.Stdin
 		resolvedDstPath = dstInfo.Path
 		if !dstInfo.IsDir {
-			return errors.Errorf("destination \"%s:%s\" must be a directory", copyConfig.container, dstPath)
+			return fmt.Errorf(`destination "%s:%s" must be a directory`, copyConfig.container, dstPath)
 		}
 	} else {
 		// Prepare source copy info.

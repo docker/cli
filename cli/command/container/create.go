@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/netip"
@@ -30,7 +31,6 @@ import (
 	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -80,7 +80,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 	flags.BoolVarP(&options.useAPISocket, "use-api-socket", "", false, "Bind mount Docker API socket and required auth")
-	flags.SetAnnotation("use-api-socket", "experimentalCLI", nil) // Marks flag as experimental for now.
+	_ = flags.SetAnnotation("use-api-socket", "experimentalCLI", nil) // Mark flag as experimental for now.
 
 	// Add an explicit help that doesn't have a `-h` to prevent the conflict
 	// with hostname
@@ -113,7 +113,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		}
 	}
 	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
-	newEnv := []string{}
+	newEnv := make([]string, 0, len(proxyConfig))
 	for k, v := range proxyConfig {
 		if v == nil {
 			newEnv = append(newEnv, k)
@@ -151,7 +151,9 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 	if err != nil {
 		return err
 	}
-	defer responseBody.Close()
+	defer func() {
+		_ = responseBody.Close()
+	}()
 
 	out := dockerCli.Err()
 	if options.quiet {
@@ -170,13 +172,13 @@ func (cid *cidFile) Close() error {
 	if cid.file == nil {
 		return nil
 	}
-	cid.file.Close()
+	_ = cid.file.Close()
 
 	if cid.written {
 		return nil
 	}
 	if err := os.Remove(cid.path); err != nil {
-		return errors.Wrapf(err, "failed to remove the CID file '%s'", cid.path)
+		return fmt.Errorf("failed to remove the CID file '%s': %w", cid.path, err)
 	}
 
 	return nil
@@ -187,7 +189,7 @@ func (cid *cidFile) Write(id string) error {
 		return nil
 	}
 	if _, err := cid.file.Write([]byte(id)); err != nil {
-		return errors.Wrap(err, "failed to write the container ID to the file")
+		return fmt.Errorf("failed to write the container ID to the file: %w", err)
 	}
 	cid.written = true
 	return nil
@@ -198,12 +200,12 @@ func newCIDFile(cidPath string) (*cidFile, error) {
 		return &cidFile{}, nil
 	}
 	if _, err := os.Stat(cidPath); err == nil {
-		return nil, errors.Errorf("container ID file found, make sure the other container isn't running or delete %s", cidPath)
+		return nil, errors.New("container ID file found, make sure the other container isn't running or delete " + cidPath)
 	}
 
 	f, err := os.Create(cidPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create the container ID file")
+		return nil, fmt.Errorf("failed to create the container ID file: %w", err)
 	}
 
 	return &cidFile{path: cidPath, file: f}, nil
@@ -224,7 +226,9 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if err != nil {
 		return "", err
 	}
-	defer containerIDFile.Close()
+	defer func() {
+		_ = containerIDFile.Close()
+	}()
 
 	ref, err := reference.ParseAnyReference(config.Image)
 	if err != nil {
@@ -318,7 +322,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
 		p, err := platforms.Parse(options.platform)
 		if err != nil {
-			return "", errors.Wrap(invalidParameter(err), "error parsing specified platform")
+			return "", invalidParameter(fmt.Errorf("error parsing specified platform: %w", err))
 		}
 		platform = &p
 	}
@@ -431,7 +435,7 @@ func copyDockerConfigIntoContainer(ctx context.Context, dockerAPI client.APIClie
 	// We don't need to get super fancy with the tar creation.
 	var tarBuf bytes.Buffer
 	tarWriter := tar.NewWriter(&tarBuf)
-	tarWriter.WriteHeader(&tar.Header{
+	_ = tarWriter.WriteHeader(&tar.Header{
 		Name: configPath,
 		Size: int64(configBuf.Len()),
 		Mode: 0o600,

@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/docker/cli/cli"
@@ -10,7 +11,6 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -28,13 +28,13 @@ func inspectContainerAndCheckState(ctx context.Context, apiClient client.APIClie
 		return nil, err
 	}
 	if !c.State.Running {
-		return nil, errors.New("You cannot attach to a stopped container, start it first")
+		return nil, errors.New("cannot attach to a stopped container, start it first")
 	}
 	if c.State.Paused {
-		return nil, errors.New("You cannot attach to a paused container, unpause it first")
+		return nil, errors.New("cannot attach to a paused container, unpause it first")
 	}
 	if c.State.Restarting {
-		return nil, errors.New("You cannot attach to a restarting container, wait until it is running")
+		return nil, errors.New("cannot attach to a restarting container, wait until it is running")
 	}
 
 	return &c, nil
