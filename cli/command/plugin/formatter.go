@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/stringid"
 )
 
 const (
@@ -66,7 +65,7 @@ func (c *pluginContext) MarshalJSON() ([]byte, error) {
 
 func (c *pluginContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.p.ID)
+		return formatter.TruncateID(c.p.ID)
 	}
 	return c.p.ID
 }

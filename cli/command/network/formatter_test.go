@@ -14,13 +14,12 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestNetworkContext(t *testing.T) {
-	networkID := stringid.GenerateRandomID()
+	networkID := test.RandomID()
 
 	var ctx networkContext
 	cases := []struct {
@@ -35,7 +34,7 @@ func TestNetworkContext(t *testing.T) {
 		{networkContext{
 			n:     network.Summary{ID: networkID},
 			trunc: true,
-		}, stringid.TruncateID(networkID), ctx.ID},
+		}, formatter.TruncateID(networkID), ctx.ID},
 		{networkContext{
 			n: network.Summary{Name: "network_name"},
 		}, "network_name", ctx.Name},

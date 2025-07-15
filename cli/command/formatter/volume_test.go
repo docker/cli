@@ -12,13 +12,12 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestVolumeContext(t *testing.T) {
-	volumeName := stringid.GenerateRandomID()
+	volumeName := test.RandomID()
 
 	var ctx volumeContext
 	cases := []struct {

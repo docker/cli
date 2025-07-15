@@ -9,13 +9,12 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/pkg/stringid"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestImageContext(t *testing.T) {
-	imageID := stringid.GenerateRandomID()
+	imageID := test.RandomID()
 	unix := time.Now().Unix()
 	zeroTime := int64(-62135596800)
 
@@ -27,7 +26,7 @@ func TestImageContext(t *testing.T) {
 	}{
 		{
 			imageCtx: imageContext{i: image.Summary{ID: imageID}, trunc: true},
-			expValue: stringid.TruncateID(imageID),
+			expValue: TruncateID(imageID),
 			call:     ctx.ID,
 		},
 		{

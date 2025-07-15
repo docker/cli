@@ -8,7 +8,6 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 )
 
@@ -79,7 +78,7 @@ func (c *taskContext) MarshalJSON() ([]byte, error) {
 
 func (c *taskContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.task.ID)
+		return formatter.TruncateID(c.task.ID)
 	}
 	return c.task.ID
 }

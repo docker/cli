@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/stringid"
 )
 
 const (
@@ -73,7 +72,7 @@ func (c *networkContext) MarshalJSON() ([]byte, error) {
 
 func (c *networkContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.n.ID)
+		return formatter.TruncateID(c.n.ID)
 	}
 	return c.n.ID
 }

@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"bufio"
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,7 +20,6 @@ import (
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/pkg/stringid"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/patternmatcher"
@@ -379,7 +380,7 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 		return nil, "", err
 	}
 	now := time.Now()
-	randomName := ".dockerfile." + stringid.GenerateRandomID()[:20]
+	randomName := ".dockerfile." + randomSuffix()
 
 	buildCtx = archive.ReplaceFileTarWrapper(buildCtx, map[string]archive.TarModifierFunc{
 		// Add the dockerfile with a random filename
@@ -420,6 +421,15 @@ func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCl
 		},
 	})
 	return buildCtx, randomName, nil
+}
+
+// randomSuffix returns a unique, 20-character ID consisting of a-z, 0-9.
+func randomSuffix() string {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		panic(err) // This shouldn't happen
+	}
+	return hex.EncodeToString(b)[:20]
 }
 
 // Compress the build context for sending to the API
