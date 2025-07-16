@@ -16,8 +16,8 @@ import (
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
-	mounttypes "github.com/docker/docker/api/types/mount"
-	networktypes "github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -323,7 +323,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 type containerConfig struct {
 	Config           *container.Config
 	HostConfig       *container.HostConfig
-	NetworkingConfig *networktypes.NetworkingConfig
+	NetworkingConfig *network.NetworkingConfig
 }
 
 // parse parses the args for the specified command and generates a Config,
@@ -372,7 +372,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		if parsed.Source != "" {
 			toBind := bind
 
-			if parsed.Type == string(mounttypes.TypeBind) {
+			if parsed.Type == string(mount.TypeBind) {
 				if hostPart, targetPath, ok := strings.Cut(bind, ":"); ok {
 					if !filepath.IsAbs(hostPart) && strings.HasPrefix(hostPart, ".") {
 						if absHostPart, err := filepath.Abs(hostPart); err == nil {
@@ -706,8 +706,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		config.StdinOnce = true
 	}
 
-	networkingConfig := &networktypes.NetworkingConfig{
-		EndpointsConfig: make(map[string]*networktypes.EndpointSettings),
+	networkingConfig := &network.NetworkingConfig{
+		EndpointsConfig: make(map[string]*network.EndpointSettings),
 	}
 
 	networkingConfig.EndpointsConfig, err = parseNetworkOpts(copts)
@@ -735,9 +735,9 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 // this function may return _multiple_ endpoints, which is not currently supported
 // by the daemon, but may be in future; it's up to the daemon to produce an error
 // in case that is not supported.
-func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.EndpointSettings, error) {
+func parseNetworkOpts(copts *containerOptions) (map[string]*network.EndpointSettings, error) {
 	var (
-		endpoints                         = make(map[string]*networktypes.EndpointSettings, len(copts.netMode.Value()))
+		endpoints                         = make(map[string]*network.EndpointSettings, len(copts.netMode.Value()))
 		hasUserDefined, hasNonUserDefined bool
 	)
 
@@ -783,7 +783,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*networktypes.Endpoin
 		// and only a single network is specified, omit the endpoint-configuration
 		// on the client (the daemon will still create it when creating the container)
 		if i == 0 && len(copts.netMode.Value()) == 1 {
-			if ep == nil || reflect.DeepEqual(*ep, networktypes.EndpointSettings{}) {
+			if ep == nil || reflect.DeepEqual(*ep, network.EndpointSettings{}) {
 				continue
 			}
 		}
@@ -841,7 +841,7 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	return nil
 }
 
-func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.EndpointSettings, error) {
+func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*network.EndpointSettings, error) {
 	if strings.TrimSpace(ep.Target) == "" {
 		return nil, errors.New("no name set for network")
 	}
@@ -854,7 +854,7 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 		}
 	}
 
-	epConfig := &networktypes.EndpointSettings{
+	epConfig := &network.EndpointSettings{
 		GwPriority: ep.GwPriority,
 	}
 	epConfig.Aliases = append(epConfig.Aliases, ep.Aliases...)
@@ -866,7 +866,7 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 		epConfig.Links = ep.Links
 	}
 	if ep.IPv4Address != "" || ep.IPv6Address != "" || len(ep.LinkLocalIPs) > 0 {
-		epConfig.IPAMConfig = &networktypes.EndpointIPAMConfig{
+		epConfig.IPAMConfig = &network.EndpointIPAMConfig{
 			IPv4Address:  ep.IPv4Address,
 			IPv6Address:  ep.IPv6Address,
 			LinkLocalIPs: ep.LinkLocalIPs,

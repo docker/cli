@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/container"
-	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"gotest.tools/v3/assert"
@@ -237,9 +237,9 @@ func TestUpdateMounts(t *testing.T) {
 	flags.Set("mount-add", "type=volume,source=vol2,target=/toadd")
 	flags.Set("mount-rm", "/toremove")
 
-	mounts := []mounttypes.Mount{
-		{Target: "/toremove", Source: "vol1", Type: mounttypes.TypeBind},
-		{Target: "/tokeep", Source: "vol3", Type: mounttypes.TypeBind},
+	mounts := []mount.Mount{
+		{Target: "/toremove", Source: "vol1", Type: mount.TypeBind},
+		{Target: "/tokeep", Source: "vol3", Type: mount.TypeBind},
 	}
 
 	updateMounts(flags, &mounts)
@@ -252,10 +252,10 @@ func TestUpdateMountsWithDuplicateMounts(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("mount-add", "type=volume,source=vol4,target=/toadd")
 
-	mounts := []mounttypes.Mount{
-		{Target: "/tokeep1", Source: "vol1", Type: mounttypes.TypeBind},
-		{Target: "/toadd", Source: "vol2", Type: mounttypes.TypeBind},
-		{Target: "/tokeep2", Source: "vol3", Type: mounttypes.TypeBind},
+	mounts := []mount.Mount{
+		{Target: "/tokeep1", Source: "vol1", Type: mount.TypeBind},
+		{Target: "/toadd", Source: "vol2", Type: mount.TypeBind},
+		{Target: "/tokeep2", Source: "vol3", Type: mount.TypeBind},
 	}
 
 	updateMounts(flags, &mounts)

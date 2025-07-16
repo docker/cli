@@ -13,7 +13,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/docker/api/types/container"
-	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
@@ -943,33 +943,33 @@ func removeItems(
 	return newSeq
 }
 
-func updateMounts(flags *pflag.FlagSet, mounts *[]mounttypes.Mount) error {
-	mountsByTarget := map[string]mounttypes.Mount{}
+func updateMounts(flags *pflag.FlagSet, mounts *[]mount.Mount) error {
+	mountsByTarget := map[string]mount.Mount{}
 
 	if flags.Changed(flagMountAdd) {
 		values := flags.Lookup(flagMountAdd).Value.(*opts.MountOpt).Value()
-		for _, mount := range values {
-			if _, ok := mountsByTarget[mount.Target]; ok {
+		for _, mnt := range values {
+			if _, ok := mountsByTarget[mnt.Target]; ok {
 				return errors.Errorf("duplicate mount target")
 			}
-			mountsByTarget[mount.Target] = mount
+			mountsByTarget[mnt.Target] = mnt
 		}
 	}
 
 	// Add old list of mount points minus updated one.
-	for _, mount := range *mounts {
-		if _, ok := mountsByTarget[mount.Target]; !ok {
-			mountsByTarget[mount.Target] = mount
+	for _, mnt := range *mounts {
+		if _, ok := mountsByTarget[mnt.Target]; !ok {
+			mountsByTarget[mnt.Target] = mnt
 		}
 	}
 
-	newMounts := []mounttypes.Mount{}
+	newMounts := make([]mount.Mount, 0, len(mountsByTarget))
 
 	toRemove := buildToRemoveSet(flags, flagMountRemove)
 
-	for _, mount := range mountsByTarget {
-		if _, exists := toRemove[mount.Target]; !exists {
-			newMounts = append(newMounts, mount)
+	for _, mnt := range mountsByTarget {
+		if _, exists := toRemove[mnt.Target]; !exists {
+			newMounts = append(newMounts, mnt)
 		}
 	}
 	sort.Slice(newMounts, func(i, j int) bool {
