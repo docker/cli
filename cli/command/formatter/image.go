@@ -6,7 +6,7 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/image"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 )
 
 const (
