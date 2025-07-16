@@ -45,12 +45,14 @@ type diffContext struct {
 }
 
 func newDiffContext() *diffContext {
-	diffCtx := diffContext{}
-	diffCtx.Header = formatter.SubHeaderContext{
-		"Type": changeTypeHeader,
-		"Path": pathHeader,
+	return &diffContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"Type": changeTypeHeader,
+				"Path": pathHeader,
+			},
+		},
 	}
-	return &diffCtx
 }
 
 func (d *diffContext) MarshalJSON() ([]byte, error) {
