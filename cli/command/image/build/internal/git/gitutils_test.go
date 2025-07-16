@@ -124,7 +124,8 @@ func TestParseRemoteURL(t *testing.T) {
 func TestCloneArgsSmartHttp(t *testing.T) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	serverURL, _ := url.Parse(server.URL)
+	serverURL, err := url.Parse(server.URL)
+	assert.NilError(t, err)
 
 	serverURL.Path = "/repo.git"
 
