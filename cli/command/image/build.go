@@ -28,7 +28,6 @@ import (
 	buildtypes "github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/container"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/builder/remotecontext/urlutil"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/moby/go-archive"
@@ -74,12 +73,6 @@ type buildOptions struct {
 // should be read from stdin instead of a file
 func (o buildOptions) dockerfileFromStdin() bool {
 	return o.dockerfileName == "-"
-}
-
-// contextFromStdin returns true when the user specified that the build context
-// should be read from stdin
-func (o buildOptions) contextFromStdin() bool {
-	return o.context == "-"
 }
 
 func newBuildOptions() buildOptions {
@@ -189,21 +182,24 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
 		contextDir    string
-		tempDir       string
 		relDockerfile string
 		progBuff      io.Writer
 		buildBuff     io.Writer
 		remote        string
 	)
 
+	contextType, err := build.DetectContextType(options.context)
+	if err != nil {
+		return err
+	}
+
 	if options.dockerfileFromStdin() {
-		if options.contextFromStdin() {
+		if contextType == build.ContextTypeStdin {
 			return errors.New("invalid argument: can't use stdin for both build context and dockerfile")
 		}
 		dockerfileCtx = dockerCli.In()
 	}
 
-	specifiedContext := options.context
 	progBuff = dockerCli.Out()
 	buildBuff = dockerCli.Out()
 	if options.quiet {
@@ -217,13 +213,19 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		}
 	}
 
-	switch {
-	case options.contextFromStdin():
+	switch contextType {
+	case build.ContextTypeStdin:
 		// buildCtx is tar archive. if stdin was dockerfile then it is wrapped
 		buildCtx, relDockerfile, err = build.GetContextFromReader(dockerCli.In(), options.dockerfileName)
-	case isLocalDir(specifiedContext):
-		contextDir, relDockerfile, err = build.GetContextFromLocalDir(specifiedContext, options.dockerfileName)
-		if err == nil && strings.HasPrefix(relDockerfile, ".."+string(filepath.Separator)) {
+		if err != nil {
+			return fmt.Errorf("unable to prepare context from STDIN: %w", err)
+		}
+	case build.ContextTypeLocal:
+		contextDir, relDockerfile, err = build.GetContextFromLocalDir(options.context, options.dockerfileName)
+		if err != nil {
+			return errors.Errorf("unable to prepare context: %s", err)
+		}
+		if strings.HasPrefix(relDockerfile, ".."+string(filepath.Separator)) {
 			// Dockerfile is outside of build-context; read the Dockerfile and pass it as dockerfileCtx
 			dockerfileCtx, err = os.Open(options.dockerfileName)
 			if err != nil {
@@ -231,24 +233,23 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			}
 			defer dockerfileCtx.Close()
 		}
-	case urlutil.IsGitURL(specifiedContext):
-		tempDir, relDockerfile, err = build.GetContextFromGitURL(specifiedContext, options.dockerfileName)
-	case urlutil.IsURL(specifiedContext):
-		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, specifiedContext, options.dockerfileName)
-	default:
-		return errors.Errorf("unable to prepare context: path %q not found", specifiedContext)
-	}
-
-	if err != nil {
-		if options.quiet && urlutil.IsURL(specifiedContext) {
+	case build.ContextTypeGit:
+		var tempDir string
+		tempDir, relDockerfile, err = build.GetContextFromGitURL(options.context, options.dockerfileName)
+		if err != nil {
+			return errors.Errorf("unable to prepare context: %s", err)
+		}
+		defer func() {
+			_ = os.RemoveAll(tempDir)
+		}()
+		contextDir = tempDir
+	case build.ContextTypeRemote:
+		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, options.context, options.dockerfileName)
+		if err != nil && options.quiet {
 			_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
 		}
-		return errors.Errorf("unable to prepare context: %s", err)
-	}
-
-	if tempDir != "" {
-		defer os.RemoveAll(tempDir)
-		contextDir = tempDir
+	default:
+		return errors.Errorf("unable to prepare context: path %q not found", options.context)
 	}
 
 	// read from a directory into tar archive
@@ -413,11 +414,6 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	}
 
 	return nil
-}
-
-func isLocalDir(c string) bool {
-	_, err := os.Stat(c)
-	return err == nil
 }
 
 type translatorFunc func(context.Context, reference.NamedTagged) (reference.Canonical, error)
