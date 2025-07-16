@@ -50,6 +50,7 @@ RUN  apk add --no-cache \
     coreutils \
     curl \
     git \
+    git-daemon \
     jq \
     nano
 

@@ -31,7 +31,7 @@ FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build-base-alpine
 ENV GOTOOLCHAIN=local
 COPY --link --from=xx / /
-RUN apk add --no-cache bash clang lld llvm file git
+RUN apk add --no-cache bash clang lld llvm file git git-daemon
 WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-alpine AS build-alpine
