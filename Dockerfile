@@ -11,7 +11,10 @@ ARG BASE_DEBIAN_DISTRO=bookworm
 ARG GO_VERSION=1.24.5
 ARG XX_VERSION=1.6.1
 ARG GOVERSIONINFO_VERSION=v1.4.1
-ARG GOTESTSUM_VERSION=v1.12.0
+
+# GOTESTSUM_VERSION sets the version of gotestsum to install in the dev container.
+# It must be a valid tag in the https://github.com/gotestyourself/gotestsum repository.
+ARG GOTESTSUM_VERSION=v1.12.3
 
 # BUILDX_VERSION sets the version of buildx to use for the e2e tests.
 # It must be a tag in the docker.io/docker/buildx-bin image repository
