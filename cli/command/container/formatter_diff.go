@@ -28,16 +28,15 @@ func newDiffFormat(source string) formatter.Format {
 }
 
 // DiffFormatWrite writes formatted diff using the Context
-func DiffFormatWrite(ctx formatter.Context, changes []container.FilesystemChange) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+func DiffFormatWrite(fmtCtx formatter.Context, changes []container.FilesystemChange) error {
+	return fmtCtx.Write(newDiffContext(), func(format func(subContext formatter.SubContext) error) error {
 		for _, change := range changes {
 			if err := format(&diffContext{c: change}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	return ctx.Write(newDiffContext(), render)
+	})
 }
 
 type diffContext struct {
