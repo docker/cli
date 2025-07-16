@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/docker/docker/builder/remotecontext/git"
-	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/moby/go-archive"
@@ -109,7 +108,7 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool,
 		return nil, false, errors.Errorf("failed to peek context header from STDIN: %v", err)
 	}
 
-	return ioutils.NewReadCloserWrapper(buf, func() error { return input.Close() }), IsArchive(magic), nil
+	return newReadCloserWrapper(buf, func() error { return input.Close() }), IsArchive(magic), nil
 }
 
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
@@ -170,7 +169,7 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		return nil, "", err
 	}
 
-	return ioutils.NewReadCloserWrapper(tarArchive, func() error {
+	return newReadCloserWrapper(tarArchive, func() error {
 		err := tarArchive.Close()
 		os.RemoveAll(dockerfileDir)
 		return err
@@ -228,7 +227,7 @@ func GetContextFromURL(out io.Writer, remoteURL, dockerfileName string) (io.Read
 	// Pass the response body through a progress reader.
 	progReader := progress.NewProgressReader(response.Body, progressOutput, response.ContentLength, "", "Downloading build context from remote url: "+remoteURL)
 
-	return GetContextFromReader(ioutils.NewReadCloserWrapper(progReader, func() error { return response.Body.Close() }), dockerfileName)
+	return GetContextFromReader(newReadCloserWrapper(progReader, func() error { return response.Body.Close() }), dockerfileName)
 }
 
 // getWithStatusError does an http.Get() and returns an error if the
@@ -453,4 +452,26 @@ func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
 	}()
 
 	return pipeReader, nil
+}
+
+// readCloserWrapper wraps an io.Reader, and implements an io.ReadCloser
+// It calls the given callback function when closed. It should be constructed
+// with [newReadCloserWrapper].
+type readCloserWrapper struct {
+	io.Reader
+	closer func() error
+}
+
+// Close calls back the passed closer function
+func (r *readCloserWrapper) Close() error {
+	return r.closer()
+}
+
+// newReadCloserWrapper wraps an io.Reader, and implements an io.ReadCloser.
+// It calls the given callback function when closed.
+func newReadCloserWrapper(r io.Reader, closer func() error) io.ReadCloser {
+	return &readCloserWrapper{
+		Reader: r,
+		closer: closer,
+	}
 }
