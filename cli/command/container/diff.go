@@ -39,7 +39,7 @@ func runDiff(ctx context.Context, dockerCLI command.Cli, containerID string) err
 	}
 	diffCtx := formatter.Context{
 		Output: dockerCLI.Out(),
-		Format: NewDiffFormat("{{.Type}} {{.Path}}"),
+		Format: newDiffFormat("{{.Type}} {{.Path}}"),
 	}
 	return DiffFormatWrite(diffCtx, changes)
 }
