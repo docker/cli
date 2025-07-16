@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/docker/docker/builder/remotecontext/urlutil"
+	"github.com/docker/cli/cli/command/image/build/internal/urlutil"
 )
 
 // ContextType describes the type (source) of build-context specified.
