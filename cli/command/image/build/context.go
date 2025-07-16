@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/builder/remotecontext/git"
+	"github.com/docker/cli/cli/command/image/build/internal/git"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/moby/go-archive"
