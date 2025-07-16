@@ -13,7 +13,14 @@ const (
 )
 
 // NewDiffFormat returns a format for use with a diff Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewDiffFormat(source string) formatter.Format {
+	return newDiffFormat(source)
+}
+
+// newDiffFormat returns a format for use with a diff [formatter.Context].
+func newDiffFormat(source string) formatter.Format {
 	if source == formatter.TableFormatKey {
 		return defaultDiffTableFormat
 	}
