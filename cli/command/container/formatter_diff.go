@@ -28,7 +28,14 @@ func newDiffFormat(source string) formatter.Format {
 }
 
 // DiffFormatWrite writes formatted diff using the Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func DiffFormatWrite(fmtCtx formatter.Context, changes []container.FilesystemChange) error {
+	return diffFormatWrite(fmtCtx, changes)
+}
+
+// diffFormatWrite writes formatted diff using the [formatter.Context].
+func diffFormatWrite(fmtCtx formatter.Context, changes []container.FilesystemChange) error {
 	return fmtCtx.Write(newDiffContext(), func(format func(subContext formatter.SubContext) error) error {
 		for _, change := range changes {
 			if err := format(&diffContext{c: change}); err != nil {
