@@ -16,7 +16,7 @@ func TestDiffContextFormatWrite(t *testing.T) {
 		expected string
 	}{
 		{
-			formatter.Context{Format: NewDiffFormat("table")},
+			formatter.Context{Format: newDiffFormat("table")},
 			`CHANGE TYPE   PATH
 C             /var/log/app.log
 A             /usr/app/app.js
@@ -24,7 +24,7 @@ D             /usr/app/old_app.js
 `,
 		},
 		{
-			formatter.Context{Format: NewDiffFormat("table {{.Path}}")},
+			formatter.Context{Format: newDiffFormat("table {{.Path}}")},
 			`PATH
 /var/log/app.log
 /usr/app/app.js
@@ -32,7 +32,7 @@ D             /usr/app/old_app.js
 `,
 		},
 		{
-			formatter.Context{Format: NewDiffFormat("{{.Type}}: {{.Path}}")},
+			formatter.Context{Format: newDiffFormat("{{.Type}}: {{.Path}}")},
 			`C: /var/log/app.log
 A: /usr/app/app.js
 D: /usr/app/old_app.js
@@ -50,7 +50,7 @@ D: /usr/app/old_app.js
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			out := bytes.NewBufferString("")
 			tc.context.Output = out
-			err := DiffFormatWrite(tc.context, diffs)
+			err := diffFormatWrite(tc.context, diffs)
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
