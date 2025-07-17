@@ -10,8 +10,8 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/volume"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/api/types/volume"
 	"github.com/spf13/cobra"
 )
 

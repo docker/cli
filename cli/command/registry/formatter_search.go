@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	registrytypes "github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/moby/moby/api/types/registry"
 )
 
 const (

@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/volume"
+	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/api/types/volume"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

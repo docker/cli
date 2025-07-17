@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/network"
+	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/api/types/network"
 )
 
 func TestNetworkPrunePromptTermination(t *testing.T) {

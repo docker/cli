@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command/formatter"
-	registrytypes "github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"

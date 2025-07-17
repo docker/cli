@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types/events"
+	"github.com/moby/moby/api/types/events"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

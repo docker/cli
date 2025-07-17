@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types/mount"
+	"github.com/moby/moby/api/types/mount"
 	"github.com/pkg/errors"
 )
 

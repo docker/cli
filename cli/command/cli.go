@@ -23,10 +23,9 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/types/build"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/build"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -88,9 +87,9 @@ type DockerCli struct {
 	enableGlobalMeter, enableGlobalTracer bool
 }
 
-// DefaultVersion returns [api.DefaultVersion].
+// DefaultVersion returns [client.DefaultAPIVersion].
 func (*DockerCli) DefaultVersion() string {
-	return api.DefaultVersion
+	return client.DefaultAPIVersion
 }
 
 // CurrentVersion returns the API version currently negotiated, or the default
@@ -98,7 +97,7 @@ func (*DockerCli) DefaultVersion() string {
 func (cli *DockerCli) CurrentVersion() string {
 	_ = cli.initialize()
 	if cli.client == nil {
-		return api.DefaultVersion
+		return client.DefaultAPIVersion
 	}
 	return cli.client.ClientVersion()
 }

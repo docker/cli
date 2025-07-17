@@ -14,8 +14,7 @@ import (
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
 
@@ -106,7 +105,7 @@ func (c *FakeCli) Client() client.APIClient {
 
 // CurrentVersion returns the API version used by FakeCli.
 func (*FakeCli) CurrentVersion() string {
-	return api.DefaultVersion
+	return client.DefaultAPIVersion
 }
 
 // Out returns the output stream (stdout) the cli should write on

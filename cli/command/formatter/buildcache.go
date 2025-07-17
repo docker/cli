@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types/build"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/build"
 )
 
 const (

@@ -3,8 +3,8 @@ package builder
 import (
 	"context"
 
-	"github.com/docker/docker/api/types/build"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/build"
+	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {

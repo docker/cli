@@ -8,8 +8,8 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
+	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/pkg/errors"
 )
 

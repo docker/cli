@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/api/types/swarm"
 	"github.com/sirupsen/logrus"
 )
 

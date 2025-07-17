@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/distribution/reference"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 )
 
 // TagTrusted tags a trusted ref. It is a shallow wrapper around [client.Client.ImageTag]
