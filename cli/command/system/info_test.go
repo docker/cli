@@ -127,6 +127,12 @@ var sampleInfoNoSwarm = system.Info{
 			Size: 24,
 		},
 	},
+	FirewallBackend: &system.FirewallInfo{
+		Driver: "nftables+firewalld",
+		Info: [][2]string{
+			{"ReloadedAt", "2025-07-16T16:59:14Z"},
+		},
+	},
 	CDISpecDirs: []string{"/etc/cdi", "/var/run/cdi"},
 }
 
