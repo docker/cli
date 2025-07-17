@@ -24,7 +24,6 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api"
 	buildtypes "github.com/docker/docker/api/types/build"
 	"github.com/docker/docker/api/types/container"
 	registrytypes "github.com/docker/docker/api/types/registry"
@@ -437,6 +436,10 @@ type resolvedTag struct {
 	tagRef    reference.NamedTagged
 }
 
+// noBaseImageSpecifier is the symbol used by the FROM
+// command to specify that no base image is to be used.
+const noBaseImageSpecifier = "scratch"
+
 // rewriteDockerfileFromForContentTrust rewrites the given Dockerfile by resolving images in
 // "FROM <image>" instructions to a digest reference. `translator` is a
 // function that takes a repository name and tag reference and returns a
@@ -451,7 +454,7 @@ func rewriteDockerfileFromForContentTrust(ctx context.Context, dockerfile io.Rea
 		line := scanner.Text()
 
 		matches := dockerfileFromLinePattern.FindStringSubmatch(line)
-		if matches != nil && matches[1] != api.NoBaseImageSpecifier {
+		if matches != nil && matches[1] != noBaseImageSpecifier {
 			// Replace the line with a resolved "FROM repo@digest"
 			var ref reference.Named
 			ref, err = reference.ParseNormalizedNamed(matches[1])
