@@ -53,7 +53,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-connections/sockets"
@@ -90,6 +89,16 @@ import (
 // [RFC 7230, Section 5.4]: https://datatracker.ietf.org/doc/html/rfc7230#section-5.4
 // [Go stdlib]: https://github.com/golang/go/blob/6244b1946bc2101b01955468f1be502dbadd6807/src/net/http/transport.go#L558-L569
 const DummyHost = "api.moby.localhost"
+
+// DefaultAPIVersion is the highest REST API version supported by the client.
+// If API-version negotiation is enabled (see [WithAPIVersionNegotiation],
+// [Client.NegotiateAPIVersion]), the client may downgrade its API version.
+// Similarly, the [WithVersion] and [WithVersionFromEnv] allow overriding
+// the version.
+//
+// This version may be lower than the [api.DefaultVersion], which is the default
+// (and highest supported) version of the api library module used.
+const DefaultAPIVersion = "1.52"
 
 // fallbackAPIVersion is the version to fallback to if API-version negotiation
 // fails. This version is the highest version of the API before API-version
@@ -198,7 +207,7 @@ func NewClientWithOpts(ops ...Opt) (*Client, error) {
 	}
 	c := &Client{
 		host:    DefaultDockerHost,
-		version: api.DefaultVersion,
+		version: DefaultAPIVersion,
 		client:  client,
 		proto:   hostURL.Scheme,
 		addr:    hostURL.Host,
@@ -381,7 +390,7 @@ func (cli *Client) negotiateAPIVersionPing(pingResponse types.Ping) {
 
 	// if the client is not initialized with a version, start with the latest supported version
 	if cli.version == "" {
-		cli.version = api.DefaultVersion
+		cli.version = DefaultAPIVersion
 	}
 
 	// if server version is lower than the client version, downgrade
@@ -463,7 +472,9 @@ func (cli *Client) dialer() func(context.Context) (net.Conn, error) {
 		case "unix":
 			return net.Dial(cli.proto, cli.addr)
 		case "npipe":
-			return sockets.DialPipe(cli.addr, 32*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 32*time.Second)
+			defer cancel()
+			return dialPipeContext(ctx, cli.addr)
 		default:
 			if tlsConfig := cli.tlsConfig(); tlsConfig != nil {
 				return tls.Dial(cli.proto, cli.addr, tlsConfig)

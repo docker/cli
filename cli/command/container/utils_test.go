@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -60,10 +60,10 @@ func TestWaitExitOrRemoved(t *testing.T) {
 		},
 	}
 
-	client := &fakeClient{waitFunc: waitFn, Version: api.DefaultVersion}
+	apiClient := &fakeClient{waitFunc: waitFn, Version: client.DefaultAPIVersion}
 	for _, tc := range tests {
 		t.Run(tc.cid, func(t *testing.T) {
-			statusC := waitExitOrRemoved(context.Background(), client, tc.cid, true)
+			statusC := waitExitOrRemoved(context.Background(), apiClient, tc.cid, true)
 			exitCode := <-statusC
 			assert.Check(t, is.Equal(tc.exitCode, exitCode))
 		})

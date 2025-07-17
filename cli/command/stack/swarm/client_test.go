@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/compose/convert"
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
@@ -47,7 +46,7 @@ type fakeClient struct {
 func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
-		APIVersion: api.DefaultVersion,
+		APIVersion: client.DefaultAPIVersion,
 	}, nil
 }
 
