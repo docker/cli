@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/container"
-	mounttypes "github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/go-units"
@@ -461,7 +461,7 @@ func (ctx *serviceInspectContext) ContainerInit() bool {
 	return *ctx.Service.Spec.TaskTemplate.ContainerSpec.Init
 }
 
-func (ctx *serviceInspectContext) ContainerMounts() []mounttypes.Mount {
+func (ctx *serviceInspectContext) ContainerMounts() []mount.Mount {
 	return ctx.Service.Spec.TaskTemplate.ContainerSpec.Mounts
 }
 
