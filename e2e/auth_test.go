@@ -1,33 +1,37 @@
 package e2e
 
 import (
-	"os"
-	"os/exec"
 	"testing"
+
+	"github.com/docker/cli/e2e/internal/registry"
+	"github.com/docker/cli/internal/test/command"
 )
 
-func runCmd(t *testing.T, name string, args ...string) string {
-	cmd := exec.Command(name, args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Command failed: %s %v\nOutput: %s\nError: %v", name, args, output, err)
-	}
-	return string(output)
+func runDockerCommand(t *testing.T, args ...string) {
+	cmd := command.NewDockerCommand(t, args...)
+	cmd.Assert()
 }
 
 func TestAuthorizedPullPush(t *testing.T) {
-	username := os.Getenv("DOCKER_USERNAME")
-	password := os.Getenv("DOCKER_PASSWORD")
-	privateRepo := os.Getenv("PRIVATE_REPO")
-
-	if username == "" || password == "" || privateRepo == "" {
-		t.Fatal("DOCKER_USERNAME, DOCKER_PASSWORD, and PRIVATE_REPO must be set")
+	const (
+		username = "testuser"
+		password = "testpassword"
+	)
+	reg, err := registry.NewV2(
+		registry.WithAuth(username, password),
+	)
+	if err != nil {
+		t.Fatalf("Failed to start registry: %v", err)
 	}
+	defer reg.Stop()
 
-	runCmd(t, "docker", "login", "--username", username, "--password", password)
-	runCmd(t, "docker", "pull", "alpine")
-	runCmd(t, "docker", "tag", "alpine", privateRepo)
-	runCmd(t, "docker", "push", privateRepo)
-	runCmd(t, "docker", "rmi", privateRepo)
-	runCmd(t, "docker", "pull", privateRepo)
+	repo := reg.RepoName("private/alpine")
+
+	// docker login
+	runDockerCommand(t, "login", reg.Host(), "-u", username, "-p", password)
+	runDockerCommand(t, "pull", "alpine")
+	runDockerCommand(t, "tag", "alpine", repo)
+	runDockerCommand(t, "push", repo)
+	runDockerCommand(t, "rmi", repo)
+	runDockerCommand(t, "pull", repo)
 }
