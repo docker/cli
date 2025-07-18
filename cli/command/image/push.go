@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/tui"
@@ -109,14 +110,21 @@ To push the complete multi-platform image, remove the --platform flag.
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+
+	hostname := command.GetRegistryHostname(repoInfo.Index)
+
+	encoded, err := registrytypes.EncodeAuthConfig(registrytypes.AuthConfig{
+		Username: "test",
+		Password: "test",
+	})
 	if err != nil {
 		return err
 	}
+
 	options := image.PushOptions{
 		All:           opts.all,
-		RegistryAuth:  encodedAuth,
-		PrivilegeFunc: nil,
+		RegistryAuth:  encoded, // we already pass all configs from privilegeFuncs
+		PrivilegeFunc: configfile.RegistryAuthPrivilegeFunc(dockerCli.ConfigFile(), hostname),
 		Platform:      platform,
 	}
 
