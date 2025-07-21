@@ -139,7 +139,6 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpu-quota -d 
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s c -l cpu-shares -d 'CPU shares (relative weight)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpuset-cpus -d 'CPUs in which to allow execution (0-3, 0,1)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l cpuset-mems -d 'MEMs in which to allow execution (0-3, 0,1)'
-complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l disable-content-trust -d 'Skip image verification'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -s f -l file -d "Name of the Dockerfile (Default is ‘PATH/Dockerfile’)"
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l force-rm -d 'Always remove intermediate containers'
 complete -c docker -A -f -n '__fish_seen_subcommand_from build' -l help -d 'Print usage'
