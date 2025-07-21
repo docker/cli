@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
 )

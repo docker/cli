@@ -16,7 +16,7 @@ import (
 	"github.com/docker/cli/e2e/testutils"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/environment"
-	"github.com/docker/docker/api/types/versions"
+	"github.com/moby/moby/api/types/versions"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/poll"

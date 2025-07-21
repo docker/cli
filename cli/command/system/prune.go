@@ -17,9 +17,9 @@ import (
 	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

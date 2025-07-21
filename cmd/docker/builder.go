@@ -11,7 +11,7 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types/build"
+	"github.com/moby/moby/api/types/build"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

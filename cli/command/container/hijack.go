@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/moby/moby/api/types"
 	"github.com/moby/term"
 	"github.com/sirupsen/logrus"
 )

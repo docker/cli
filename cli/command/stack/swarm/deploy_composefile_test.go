@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test/network"
-	networktypes "github.com/docker/docker/api/types/network"
+	networktypes "github.com/moby/moby/api/types/network"
 	"gotest.tools/v3/assert"
 )
 

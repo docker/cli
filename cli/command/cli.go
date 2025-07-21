@@ -23,9 +23,9 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/build"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/build"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/swarm"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/swarm"
 )
 
 const (

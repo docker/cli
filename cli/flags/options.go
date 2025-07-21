@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/tlsconfig"
+	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 )

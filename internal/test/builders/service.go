@@ -1,7 +1,7 @@
 package builders
 
 import (
-	"github.com/docker/docker/api/types/swarm"
+	"github.com/moby/moby/api/types/swarm"
 )
 
 // Service creates a service with default values.

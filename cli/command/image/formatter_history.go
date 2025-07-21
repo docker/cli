@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types/image"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/image"
 )
 
 const (

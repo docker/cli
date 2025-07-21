@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/build"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/build"
 	"github.com/spf13/cobra"
 )
 

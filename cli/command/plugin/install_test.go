@@ -8,7 +8,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/docker/docker/api/types"
+	"github.com/moby/moby/api/types"
 
 	"gotest.tools/v3/assert"
 )

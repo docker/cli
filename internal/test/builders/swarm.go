@@ -3,7 +3,7 @@ package builders
 import (
 	"time"
 
-	"github.com/docker/docker/api/types/swarm"
+	"github.com/moby/moby/api/types/swarm"
 )
 
 // Swarm creates a swarm with default values.

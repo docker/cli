@@ -10,7 +10,7 @@ import (
 	manifesttypes "github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution"
 	distributionclient "github.com/docker/distribution/registry/client"
-	registrytypes "github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

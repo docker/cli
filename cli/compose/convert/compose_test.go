@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/api/types/network"
+	"github.com/moby/moby/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
