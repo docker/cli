@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types/swarm"
+	"github.com/moby/moby/api/types/swarm"
 	"github.com/spf13/cobra"
 )
 

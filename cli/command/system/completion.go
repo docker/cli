@@ -4,11 +4,11 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/volume"
+	"github.com/moby/moby/api/types/events"
+	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/api/types/volume"
 	"github.com/spf13/cobra"
 )
 

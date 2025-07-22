@@ -14,8 +14,8 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/context/docker"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/docker/docker/client"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 

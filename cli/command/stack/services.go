@@ -13,8 +13,8 @@ import (
 	"github.com/docker/cli/cli/command/stack/swarm"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	cliopts "github.com/docker/cli/opts"
-	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/fvbommel/sortorder"
+	swarmtypes "github.com/moby/moby/api/types/swarm"
 	"github.com/spf13/cobra"
 )
 

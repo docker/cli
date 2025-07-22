@@ -3,8 +3,8 @@ package checkpoint
 import (
 	"context"
 
-	"github.com/docker/docker/api/types/checkpoint"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/checkpoint"
+	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {

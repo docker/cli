@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/docker/api/types"
+	"github.com/moby/moby/api/types"
 	"github.com/spf13/cobra"
 )
 

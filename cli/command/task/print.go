@@ -9,8 +9,8 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/api/types/swarm"
 )
 
 type tasksSortable []swarm.Task

@@ -8,8 +8,8 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/volume"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/api/types/volume"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

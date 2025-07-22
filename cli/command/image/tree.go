@@ -14,9 +14,9 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/tui"
-	"github.com/docker/docker/api/types/filters"
-	imagetypes "github.com/docker/docker/api/types/image"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/filters"
+	imagetypes "github.com/moby/moby/api/types/image"
 	"github.com/morikuni/aec"
 	"github.com/opencontainers/go-digest"
 )

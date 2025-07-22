@@ -10,9 +10,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/system"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/api/types/system"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

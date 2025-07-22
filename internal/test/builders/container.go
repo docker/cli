@@ -3,7 +3,7 @@ package builders
 import (
 	"time"
 
-	"github.com/docker/docker/api/types/container"
+	"github.com/moby/moby/api/types/container"
 )
 
 // Container creates a container with default values.

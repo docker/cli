@@ -10,12 +10,12 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/swarm"
 	"github.com/pkg/errors"
 )
 

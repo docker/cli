@@ -6,7 +6,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/docker/api/types/swarm"
+	"github.com/moby/moby/api/types/swarm"
 )
 
 // GetServices is the swarm implementation of listing stack services

@@ -13,7 +13,7 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/docker/api/types/filters"
+	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/sys/atomicwriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"

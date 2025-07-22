@@ -3,9 +3,9 @@ package network
 import (
 	"context"
 
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {

@@ -16,7 +16,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
-	"github.com/docker/docker/api/types/events"
+	"github.com/moby/moby/api/types/events"
 	"github.com/spf13/cobra"
 )
 

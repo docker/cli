@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types/checkpoint"
+	"github.com/moby/moby/api/types/checkpoint"
 	"github.com/spf13/cobra"
 )
 

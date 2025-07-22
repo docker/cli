@@ -8,10 +8,10 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/stack/options"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/api/types/versions"
+	"github.com/moby/moby/client"
 )
 
 // RunRemove is the swarm implementation of docker stack remove

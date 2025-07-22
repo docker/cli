@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/docker/api/types/container"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
+	"github.com/moby/moby/api/types/container"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"

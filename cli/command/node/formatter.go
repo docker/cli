@@ -8,9 +8,9 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/system"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/api/types/system"
 )
 
 const (

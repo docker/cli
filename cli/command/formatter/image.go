@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/docker/api/types/image"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/image"
 )
 
 const (

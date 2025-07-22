@@ -16,8 +16,8 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
-	"github.com/docker/docker/api"
-	"github.com/docker/docker/api/types"
+	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tonistiigi/go-rosetta"
@@ -91,7 +91,7 @@ type clientVersion struct {
 func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	v := clientVersion{
 		Version:           version.Version,
-		DefaultAPIVersion: api.DefaultVersion,
+		DefaultAPIVersion: client.DefaultAPIVersion,
 		GoVersion:         runtime.Version(),
 		GitCommit:         version.GitCommit,
 		BuildTime:         reformatDate(version.BuildTime),

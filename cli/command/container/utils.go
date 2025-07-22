@@ -5,11 +5,11 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/events"
+	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/api/types/versions"
+	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
 )
 

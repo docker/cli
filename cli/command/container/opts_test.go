@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/api/types/container"
+	networktypes "github.com/moby/moby/api/types/network"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

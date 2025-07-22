@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/api/types/network"
+	"github.com/moby/moby/api/types/network"
 )
 
 const (

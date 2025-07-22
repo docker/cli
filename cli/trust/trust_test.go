@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/distribution/reference"
-	registrytypes "github.com/docker/docker/api/types/registry"
+	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/trustpinning"

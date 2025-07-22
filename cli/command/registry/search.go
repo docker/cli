@@ -8,8 +8,8 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
+	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/spf13/cobra"
 )
 

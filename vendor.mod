@@ -6,6 +6,12 @@ module github.com/docker/cli
 
 go 1.23.0
 
+replace (
+	// FIXME(thaJeztah): temporarily need to pin on commits, otherwise go modules won't resolve until these are tagged.
+	github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250721205005-81caabae43aa
+	github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250721205005-81caabae43aa
+)
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/errdefs v1.0.0
@@ -15,7 +21,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.10.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.3.1+incompatible
+	github.com/docker/docker v28.2.3-0.20250721205005-81caabae43aa+incompatible // master (v29.0-dev)
 	github.com/docker/docker-credential-helpers v0.9.3
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -28,6 +34,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/moby/go-archive v0.1.0
+	github.com/moby/moby/api v0.0.0
+	github.com/moby/moby/client v0.0.0
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.0.0
 	github.com/moby/sys/atomicwriter v0.1.0
@@ -38,7 +46,7 @@ require (
 	github.com/moby/term v0.5.2
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0
+	github.com/opencontainers/image-spec v1.1.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -99,7 +107,6 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
