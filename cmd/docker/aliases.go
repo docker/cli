@@ -38,7 +38,7 @@ func processAliases(dockerCli command.Cli, cmd *cobra.Command, args, osArgs []st
 
 	args, osArgs, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
 	if err != nil {
-		return args, os.Args, envs, err
+		return args, osArgs, envs, err
 	}
 
 	for _, al := range aliases {
