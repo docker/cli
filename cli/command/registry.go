@@ -62,6 +62,14 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 	}
 }
 
+func GetRegistryHostname(index *registrytypes.IndexInfo) string {
+	configKey := index.Name
+	if index.Official {
+		configKey = authConfigKey
+	}
+	return configKey
+}
+
 // ResolveAuthConfig returns auth-config for the given registry from the
 // credential-store. It returns an empty AuthConfig if no credentials were
 // found.

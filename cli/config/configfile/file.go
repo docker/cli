@@ -1,6 +1,7 @@
 package configfile
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -9,9 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/memorystore"
 	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/docker/api/types/registry"
+	c "github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -301,20 +305,9 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 		return store
 	}
 
-	authConfig, err := parseEnvConfig(envConfig)
+	envStore, err := getEnvStore(envConfig, store)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Failed to create credential store from DOCKER_AUTH_CONFIG: ", err)
-		return store
-	}
-
-	// use DOCKER_AUTH_CONFIG if set
-	// it uses the native or file store as a fallback to fetch and store credentials
-	envStore, err := memorystore.New(
-		memorystore.WithAuthConfig(authConfig),
-		memorystore.WithFallbackStore(store),
-	)
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Failed to create credential store from DOCKER_AUTH_CONFIG: ", err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		return store
 	}
 
@@ -358,6 +351,83 @@ var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentia
 // GetAuthConfig for a repository from the credential store
 func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
 	return configFile.GetCredentialsStore(registryHostname).Get(registryHostname)
+}
+
+func getEnvStore(envConfig string, fallbackStore credentials.Store) (credentials.Store, error) {
+	authConfig, err := parseEnvConfig(envConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create credential store from %s: %w", DockerEnvConfigKey, err)
+	}
+
+	// use DOCKER_AUTH_CONFIG if set
+	// it uses the native or file store as a fallback to fetch and store credentials
+	envStore, err := memorystore.New(
+		memorystore.WithAuthConfig(authConfig),
+		memorystore.WithFallbackStore(fallbackStore),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create credential store from %s: %w", DockerEnvConfigKey, err)
+	}
+	return envStore, nil
+}
+
+func getEncodedAuth(store credentials.Store, registryHostname string) (string, error) {
+	c, err := store.Get(registryHostname)
+	if err != nil {
+		return "", err
+	}
+	return registry.EncodeAuthConfig(registry.AuthConfig(c))
+}
+
+func envRequestAuthConfig(registryHostname string) registry.RequestAuthConfig {
+	return func(ctx context.Context) (string, error) {
+		fmt.Fprintln(os.Stdout, "Trying env")
+
+		envConfig := os.Getenv(DockerEnvConfigKey)
+		if envConfig == "" {
+			return "", cerrdefs.ErrNotFound.WithMessage(DockerEnvConfigKey + " not defined")
+		}
+
+		envStore, err := getEnvStore(envConfig, nil)
+		if err != nil {
+			return "", err
+		}
+		return getEncodedAuth(envStore, registryHostname)
+	}
+}
+
+func nativeRequestAuthConfig(configFile *ConfigFile, registryHostname string) registry.RequestAuthConfig {
+	return func(ctx context.Context) (string, error) {
+		fmt.Fprintln(os.Stdout, "Trying native")
+		helper := getConfiguredCredentialStore(configFile, registryHostname)
+		if helper == "" {
+			return "", cerrdefs.ErrNotFound.WithMessage("native credential helper not supported")
+		}
+		store := newNativeStore(configFile, helper)
+		return getEncodedAuth(store, registryHostname)
+	}
+}
+
+func fileRequestAuthConfig(configFile *ConfigFile, registryHostname string) registry.RequestAuthConfig {
+	return func(ctx context.Context) (string, error) {
+		fmt.Fprintln(os.Stdout, "Trying file")
+		store := credentials.NewFileStore(configFile)
+		return getEncodedAuth(store, registryHostname)
+	}
+}
+
+// RegistryAuthPrivilegeFunc returns an ordered slice of [registry.RequestAuthConfig]
+//
+// The order of precedence for resolving credentials are as follows:
+// - Credentials stored in the environment through DOCKER_AUTH_CONFIG
+// - Native credentials through the credential-helper
+// - Filestore credentials stored in `~/.docker/config.json`
+func RegistryAuthPrivilegeFunc(configFile *ConfigFile, registryHostname string) registry.RequestAuthConfig {
+	return c.ChainPrivilegeFuncs(
+		envRequestAuthConfig(registryHostname),
+		nativeRequestAuthConfig(configFile, registryHostname),
+		fileRequestAuthConfig(configFile, registryHostname),
+	)
 }
 
 // getConfiguredCredentialStore returns the credential helper configured for the
