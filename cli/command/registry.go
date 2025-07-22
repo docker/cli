@@ -34,44 +34,6 @@ const (
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker/registry#IndexServer
 const authConfigKey = "https://index.docker.io/v1/"
 
-// RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
-// for the given command to prompt the user for username and password.
-//
-// Deprecated: this function is no longer used and will be removed in the next release.
-func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
-	indexServer := index.Name
-	configKey := getAuthConfigKey(indexServer)
-	if index.Official {
-		configKey = authConfigKey
-	}
-	promptMsg := fmt.Sprintf("Login prior to %s:", cmdName)
-	return newPrivilegeFunc(cli, configKey, promptMsg)
-}
-
-func newPrivilegeFunc(cli Cli, indexServer string, promptMsg string) registrytypes.RequestAuthConfig {
-	return func(ctx context.Context) (string, error) {
-		// TODO(thaJeztah): can we make the prompt an argument? ("prompt func()" or "prompt func()?
-		_, _ = fmt.Fprint(cli.Out(), "\n"+promptMsg+"\n")
-		isDefaultRegistry := indexServer == authConfigKey
-		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
-		if err != nil {
-			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
-		}
-
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		default:
-		}
-
-		authConfig, err = PromptUserForCredentials(ctx, cli, "", "", authConfig.Username, indexServer)
-		if err != nil {
-			return "", err
-		}
-		return registrytypes.EncodeAuthConfig(authConfig)
-	}
-}
-
 // ResolveAuthConfig returns auth-config for the given registry from the
 // credential-store. It returns an empty AuthConfig if no credentials were
 // found.
