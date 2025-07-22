@@ -139,7 +139,7 @@ func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("target", annotation.ExternalURL, []string{"https://docs.docker.com/reference/cli/docker/buildx/build/#target"})
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
-	flags.Bool("disable-content-trust", dockerCli.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
 	_ = flags.MarkHidden("disable-content-trust")
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")

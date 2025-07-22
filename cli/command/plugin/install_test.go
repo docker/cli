@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/notary"
 	"github.com/moby/moby/api/types"
 
 	"gotest.tools/v3/assert"
@@ -56,50 +55,6 @@ func TestInstallErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{pluginInstallFunc: tc.installFunc})
-			cmd := newInstallCommand(cli)
-			cmd.SetArgs(tc.args)
-			cmd.SetOut(io.Discard)
-			cmd.SetErr(io.Discard)
-			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
-		})
-	}
-}
-
-func TestInstallContentTrustErrors(t *testing.T) {
-	testCases := []struct {
-		description   string
-		args          []string
-		expectedError string
-		notaryFunc    test.NotaryClientFuncType
-	}{
-		{
-			description:   "install plugin, offline notary server",
-			args:          []string{"plugin:tag"},
-			expectedError: "client is offline",
-			notaryFunc:    notary.GetOfflineNotaryRepository,
-		},
-		{
-			description:   "install plugin, uninitialized notary server",
-			args:          []string{"plugin:tag"},
-			expectedError: "remote trust data does not exist",
-			notaryFunc:    notary.GetUninitializedNotaryRepository,
-		},
-		{
-			description:   "install plugin, empty notary server",
-			args:          []string{"plugin:tag"},
-			expectedError: "No valid trust data for tag",
-			notaryFunc:    notary.GetEmptyTargetsNotaryRepository,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.description, func(t *testing.T) {
-			cli := test.NewFakeCli(&fakeClient{
-				pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-					return nil, errors.New("should not try to install plugin")
-				},
-			}, test.EnableContentTrust)
-			cli.SetNotaryClient(tc.notaryFunc)
 			cmd := newInstallCommand(cli)
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(io.Discard)

@@ -614,7 +614,6 @@ __docker_container_subcommand() {
         "($help)*--device-read-iops=[Limit the read rate (IO per second) from a device]:device:IO rate: "
         "($help)*--device-write-bps=[Limit the write rate (bytes per second) to a device]:device:IO rate: "
         "($help)*--device-write-iops=[Limit the write rate (IO per second) to a device]:device:IO rate: "
-        "($help)--disable-content-trust[Skip image verification]"
         "($help)*--dns=[Custom DNS servers]:DNS server: "
         "($help)*--dns-option=[Custom DNS options]:DNS option: "
         "($help)*--dns-search=[Custom DNS search domains]:DNS domains: "
@@ -1075,14 +1074,12 @@ __docker_image_subcommand() {
             _arguments $(__docker_arguments) \
                 $opts_help \
                 "($help -a --all-tags)"{-a,--all-tags}"[Download all tagged images]" \
-                "($help)--disable-content-trust[Skip image verification]" \
                 "($help -):name:__docker_search" && ret=0
             ;;
         (push)
             _arguments $(__docker_arguments) \
                 $opts_help \
                 "($help -a --all-tags)"{-a,--all-tags}"[Push all tags of an image to the repository]" \
-                "($help)--disable-content-trust[Skip image signing]" \
                 "($help -): :__docker_complete_images" && ret=0
             ;;
         (rm)
@@ -1651,7 +1648,6 @@ __docker_plugin_subcommand() {
                 $opts_help \
                 "($help)--alias=[Local name for plugin]:alias: " \
                 "($help)--disable[Do not enable the plugin on install]" \
-                "($help)--disable-content-trust[Skip image verification (default true)]" \
                 "($help)--grant-all-permissions[Grant all permissions necessary to run the plugin]" \
                 "($help -)1:plugin:__docker_complete_plugins" \
                 "($help -)*:key=value: " && ret=0
@@ -1667,7 +1663,6 @@ __docker_plugin_subcommand() {
         (push)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help)--disable-content-trust[Skip image verification (default true)]" \
                 "($help -)1:plugin:__docker_complete_plugins" && ret=0
             ;;
         (rm|remove)
@@ -1685,7 +1680,6 @@ __docker_plugin_subcommand() {
         (upgrade)
             _arguments $(__docker_arguments) \
                 $opts_help \
-                "($help)--disable-content-trust[Skip image verification (default true)]" \
                 "($help)--grant-all-permissions[Grant all permissions necessary to run the plugin]" \
                 "($help)--skip-remote-check[Do not check if specified remote plugin matches existing plugin image]" \
                 "($help -)1:plugin:__docker_complete_plugins" \

@@ -116,10 +116,6 @@ FROM docker/buildx-bin:${BUILDX_VERSION}   AS buildx
 FROM docker/compose-bin:${COMPOSE_VERSION} AS compose
 
 FROM e2e-base-${BASE_VARIANT} AS e2e
-ARG NOTARY_VERSION=v0.6.1
-ADD --chmod=0755 https://github.com/theupdateframework/notary/releases/download/${NOTARY_VERSION}/notary-Linux-amd64 /usr/local/bin/notary
-COPY --link e2e/testdata/notary/root-ca.cert /usr/share/ca-certificates/notary.cert
-RUN echo 'notary.cert' >> /etc/ca-certificates.conf && update-ca-certificates
 COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
 COPY --link --from=build /out ./build/
 COPY --link --from=build-plugins /out ./build/

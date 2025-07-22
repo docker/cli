@@ -2,7 +2,6 @@ package test
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"strings"
 
@@ -13,32 +12,25 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/moby/moby/client"
-	notaryclient "github.com/theupdateframework/notary/client"
 )
-
-// NotaryClientFuncType defines a function that returns a fake notary client
-type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
 	command.DockerCli
-	client           client.APIClient
-	configfile       *configfile.ConfigFile
-	out              *streams.Out
-	outBuffer        *bytes.Buffer
-	err              *streams.Out
-	errBuffer        *bytes.Buffer
-	in               *streams.In
-	server           command.ServerInfo
-	notaryClientFunc NotaryClientFuncType
-	manifestStore    manifeststore.Store
-	registryClient   registryclient.RegistryClient
-	contentTrust     bool
-	contextStore     store.Store
-	currentContext   string
-	dockerEndpoint   docker.Endpoint
+	client         client.APIClient
+	configfile     *configfile.ConfigFile
+	out            *streams.Out
+	outBuffer      *bytes.Buffer
+	err            *streams.Out
+	errBuffer      *bytes.Buffer
+	in             *streams.In
+	server         command.ServerInfo
+	manifestStore  manifeststore.Store
+	registryClient registryclient.RegistryClient
+	contextStore   store.Store
+	currentContext string
+	dockerEndpoint docker.Endpoint
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -164,19 +156,6 @@ func (c *FakeCli) ResetOutputBuffers() {
 	c.errBuffer.Reset()
 }
 
-// SetNotaryClient sets the internal getter for retrieving a NotaryClient
-func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
-	c.notaryClientFunc = notaryClientFunc
-}
-
-// NotaryClient returns an err for testing unless defined
-func (c *FakeCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
-	if c.notaryClientFunc != nil {
-		return c.notaryClientFunc(imgRefAndAuth, actions)
-	}
-	return nil, errors.New("no notary client available unless defined")
-}
-
 // ManifestStore returns a fake store used for testing
 func (c *FakeCli) ManifestStore() manifeststore.Store {
 	return c.manifestStore
@@ -195,16 +174,6 @@ func (c *FakeCli) SetManifestStore(manifestStore manifeststore.Store) {
 // SetRegistryClient on the fake cli
 func (c *FakeCli) SetRegistryClient(registryClient registryclient.RegistryClient) {
 	c.registryClient = registryClient
-}
-
-// ContentTrustEnabled on the fake cli
-func (c *FakeCli) ContentTrustEnabled() bool {
-	return c.contentTrust
-}
-
-// EnableContentTrust on the fake cli
-func EnableContentTrust(c *FakeCli) {
-	c.contentTrust = true
 }
 
 // BuildKitEnabled on the fake cli

@@ -1,14 +1,12 @@
 package image
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/notary"
 	"github.com/moby/moby/api/types/image"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -86,50 +84,6 @@ func TestNewPullCommandSuccess(t *testing.T) {
 			err := cmd.Execute()
 			assert.NilError(t, err)
 			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("pull-command-success.%s.golden", tc.name))
-		})
-	}
-}
-
-func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
-	testCases := []struct {
-		name          string
-		args          []string
-		expectedError string
-		notaryFunc    test.NotaryClientFuncType
-	}{
-		{
-			name:          "offline-notary-server",
-			notaryFunc:    notary.GetOfflineNotaryRepository,
-			expectedError: "client is offline",
-			args:          []string{"image:tag"},
-		},
-		{
-			name:          "uninitialized-notary-server",
-			notaryFunc:    notary.GetUninitializedNotaryRepository,
-			expectedError: "remote trust data does not exist",
-			args:          []string{"image:tag"},
-		},
-		{
-			name:          "empty-notary-server",
-			notaryFunc:    notary.GetEmptyTargetsNotaryRepository,
-			expectedError: "No valid trust data for tag",
-			args:          []string{"image:tag"},
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			cli := test.NewFakeCli(&fakeClient{
-				imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
-					return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
-				},
-			}, test.EnableContentTrust)
-			cli.SetNotaryClient(tc.notaryFunc)
-			cmd := NewPullCommand(cli)
-			cmd.SetOut(io.Discard)
-			cmd.SetErr(io.Discard)
-			cmd.SetArgs(tc.args)
-			err := cmd.Execute()
-			assert.ErrorContains(t, err, tc.expectedError)
 		})
 	}
 }

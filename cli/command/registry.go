@@ -251,7 +251,7 @@ func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (regis
 // [registrytypes.IndexInfo] as intermediate.
 //
 // [registry.GetAuthConfigKey]: https://pkg.go.dev/github.com/docker/docker/registry#GetAuthConfigKey
-// [registrytypes.IndexInfo]:https://pkg.go.dev/github.com/docker/docker/api/types/registry#IndexInfo
+// [registrytypes.IndexInfo]:https://pkg.go.dev/github.com/moby/moby/api/types/registry#IndexInfo
 func getAuthConfigKey(domainName string) string {
 	if domainName == "docker.io" || domainName == "index.docker.io" {
 		return authConfigKey
