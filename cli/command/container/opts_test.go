@@ -1017,7 +1017,7 @@ func TestParseLabelfileVariables(t *testing.T) {
 func TestParseEntryPoint(t *testing.T) {
 	config, _, _, err := parseRun([]string{"--entrypoint=anything", "cmd", "img"})
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual([]string(config.Entrypoint), []string{"anything"}))
+	assert.Check(t, is.DeepEqual(config.Entrypoint, []string{"anything"}))
 }
 
 func TestValidateDevice(t *testing.T) {
