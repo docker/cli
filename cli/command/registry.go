@@ -34,20 +34,6 @@ const (
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker/registry#IndexServer
 const authConfigKey = "https://index.docker.io/v1/"
 
-// NewAuthRequester returns a RequestPrivilegeFunc for the specified registry
-// and the given cmdName (used as informational message to the user).
-//
-// The returned function is a [registrytypes.RequestAuthConfig] to prompt the user
-// for credentials if needed. It is called as fallback if the credentials (if any)
-// used for the initial operation did not work.
-//
-// TODO(thaJeztah): cli Cli could be a Streams if it was not for cli.SetIn to be needed?
-// TODO(thaJeztah): ideally, this would accept reposName / imageRef as a regular string (we can parse it if needed!), or .. maybe generics and accept either?
-func NewAuthRequester(cli Cli, indexServer string, promptMsg string) registrytypes.RequestAuthConfig {
-	configKey := getAuthConfigKey(indexServer)
-	return newPrivilegeFunc(cli, configKey, promptMsg)
-}
-
 // RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
 // for the given command to prompt the user for username and password.
 //
