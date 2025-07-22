@@ -35,44 +35,6 @@ const (
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#IndexServer
 const authConfigKey = "https://index.docker.io/v1/"
 
-// NewAuthRequester returns a RequestPrivilegeFunc for the specified registry
-// and the given cmdName (used as informational message to the user).
-//
-// The returned function is a [registrytypes.RequestAuthConfig] to prompt the user
-// for credentials if needed. It is called as fallback if the credentials (if any)
-// used for the initial operation did not work.
-//
-// TODO(thaJeztah): cli Cli could be a Streams if it was not for cli.SetIn to be needed?
-// TODO(thaJeztah): ideally, this would accept reposName / imageRef as a regular string (we can parse it if needed!), or .. maybe generics and accept either?
-func NewAuthRequester(cli Cli, indexServer string, promptMsg string) registrytypes.RequestAuthConfig {
-	configKey := getAuthConfigKey(indexServer)
-	return newPrivilegeFunc(cli, configKey, promptMsg)
-}
-
-func newPrivilegeFunc(cli Cli, indexServer string, promptMsg string) registrytypes.RequestAuthConfig {
-	return func(ctx context.Context) (string, error) {
-		// TODO(thaJeztah): can we make the prompt an argument? ("prompt func()" or "prompt func()?
-		_, _ = fmt.Fprint(cli.Out(), "\n"+promptMsg+"\n")
-		isDefaultRegistry := indexServer == authConfigKey
-		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, indexServer, isDefaultRegistry)
-		if err != nil {
-			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", indexServer, err)
-		}
-
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		default:
-		}
-
-		authConfig, err = PromptUserForCredentials(ctx, cli, "", "", authConfig.Username, indexServer)
-		if err != nil {
-			return "", err
-		}
-		return registrytypes.EncodeAuthConfig(authConfig)
-	}
-}
-
 // ResolveAuthConfig returns auth-config for the given registry from the
 // credential-store. It returns an empty AuthConfig if no credentials were
 // found.
