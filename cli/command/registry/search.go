@@ -3,12 +3,12 @@ package registry
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/opts"
-	"github.com/docker/docker/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/spf13/cobra"
 )
@@ -52,13 +52,7 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 	if options.filter.Value().Contains("is-automated") {
 		_, _ = fmt.Fprintln(dockerCli.Err(), `WARNING: the "is-automated" filter is deprecated, and searching for "is-automated=true" will not yield any results in future.`)
 	}
-	indexInfo, err := registry.ParseSearchIndexInfo(options.term)
-	if err != nil {
-		return err
-	}
-
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := getAuth(dockerCli, options.term)
 	if err != nil {
 		return err
 	}
@@ -79,4 +73,38 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 		Trunc:  !options.noTrunc,
 	}
 	return SearchWrite(searchCtx, results)
+}
+
+// authConfigKey is the key used to store credentials for Docker Hub. It is
+// a copy of [registry.IndexServer].
+//
+// [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker/registry#IndexServer
+const authConfigKey = "https://index.docker.io/v1/"
+
+// getAuth will use fetch auth based on the given search-term. If the search
+// does not contain a hostname for the registry, it assumes Docker Hub is used,
+// and resolves authentication for Docker Hub, otherwise it resolves authentication
+// for the given registry.
+func getAuth(dockerCLI command.Cli, reposName string) (encodedAuth string, err error) {
+	authCfgKey := splitReposSearchTerm(reposName)
+	if authCfgKey == "docker.io" || authCfgKey == "index.docker.io" {
+		authCfgKey = authConfigKey
+	}
+
+	// Ignoring errors here, which was the existing behavior (likely
+	// "no credentials found"). We'll get an error when search failed,
+	// so fine to ignore in most situations.
+	authConfig, _ := dockerCLI.ConfigFile().GetAuthConfig(authCfgKey)
+	return registrytypes.EncodeAuthConfig(registrytypes.AuthConfig(authConfig))
+}
+
+// splitReposSearchTerm breaks a search term into an index name and remote name
+func splitReposSearchTerm(reposName string) string {
+	nameParts := strings.SplitN(reposName, "/", 2)
+	if len(nameParts) == 1 || (!strings.Contains(nameParts[0], ".") && !strings.Contains(nameParts[0], ":") && nameParts[0] != "localhost") {
+		// This is a Docker Hub repository (ex: samalba/hipache or ubuntu),
+		// use the default Docker Hub registry (docker.io)
+		return "docker.io"
+	}
+	return nameParts[0]
 }
