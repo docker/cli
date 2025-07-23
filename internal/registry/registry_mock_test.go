@@ -13,10 +13,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-var (
-	testHTTPServer  *httptest.Server
-	testHTTPSServer *httptest.Server
-)
+var testHTTPServer *httptest.Server
 
 func init() {
 	r := http.NewServeMux()
@@ -29,7 +26,6 @@ func init() {
 	r.HandleFunc("/v2/version", handlerGetPing)
 
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
-	testHTTPSServer = httptest.NewTLSServer(handlerAccessLog(r))
 }
 
 func handlerAccessLog(handler http.Handler) http.Handler {
@@ -42,30 +38,6 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 
 func makeURL(req string) string {
 	return testHTTPServer.URL + req
-}
-
-func makeHTTPSURL(req string) string {
-	return testHTTPSServer.URL + req
-}
-
-func makeIndex(req string) *registry.IndexInfo {
-	return &registry.IndexInfo{
-		Name: makeURL(req),
-	}
-}
-
-func makeHTTPSIndex(req string) *registry.IndexInfo {
-	return &registry.IndexInfo{
-		Name: makeHTTPSURL(req),
-	}
-}
-
-func makePublicIndex() *registry.IndexInfo {
-	return &registry.IndexInfo{
-		Name:     IndexServer,
-		Secure:   true,
-		Official: true,
-	}
 }
 
 func writeHeaders(w http.ResponseWriter) {

@@ -49,19 +49,3 @@ func (invalidParameterErr) InvalidParameter() {}
 func (e invalidParameterErr) Unwrap() error {
 	return e.error
 }
-
-type systemErr struct{ error }
-
-func (systemErr) System() {}
-
-func (e systemErr) Unwrap() error {
-	return e.error
-}
-
-type errUnknown struct{ error }
-
-func (errUnknown) Unknown() {}
-
-func (e errUnknown) Unwrap() error {
-	return e.error
-}
