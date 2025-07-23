@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/internal/lazyregexp"
+	"github.com/docker/cli/internal/parsevolume"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/container"
@@ -364,7 +364,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	volumes := copts.volumes.GetMap()
 	// add any bind targets to the list of container volumes
 	for bind := range copts.volumes.GetMap() {
-		parsed, err := loader.ParseVolume(bind)
+		parsed, err := parsevolume.ParseVolume(bind)
 		if err != nil {
 			return nil, err
 		}

@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/internal/parsevolume"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/go-connections/nat"
@@ -756,7 +757,7 @@ var transformBuildConfig TransformerFunc = func(data any) (any, error) {
 var transformServiceVolumeConfig TransformerFunc = func(data any) (any, error) {
 	switch value := data.(type) {
 	case string:
-		return ParseVolume(value)
+		return parsevolume.ParseVolume(value)
 	case map[string]any:
 		return data, nil
 	default:
