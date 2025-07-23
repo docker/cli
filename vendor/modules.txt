@@ -65,7 +65,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v28.2.3-0.20250721205005-81caabae43aa+incompatible
+# github.com/docker/docker v28.2.3-0.20250722205935-c55a16352354+incompatible
 ## explicit
 github.com/docker/docker/pkg/jsonmessage
 github.com/docker/docker/pkg/process
@@ -175,7 +175,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/tarheader
-# github.com/moby/moby/api v0.0.0 => github.com/moby/moby/api v0.0.0-20250721205005-81caabae43aa
+# github.com/moby/moby/api v0.0.0 => github.com/moby/moby/api v0.0.0-20250722205935-c55a16352354
 ## explicit; go 1.23.0
 github.com/moby/moby/api/stdcopy
 github.com/moby/moby/api/types
@@ -199,7 +199,7 @@ github.com/moby/moby/api/types/system
 github.com/moby/moby/api/types/time
 github.com/moby/moby/api/types/versions
 github.com/moby/moby/api/types/volume
-# github.com/moby/moby/client v0.0.0 => github.com/moby/moby/client v0.0.0-20250721205005-81caabae43aa
+# github.com/moby/moby/client v0.0.0 => github.com/moby/moby/client v0.0.0-20250722205935-c55a16352354
 ## explicit; go 1.23.0
 github.com/moby/moby/client
 # github.com/moby/patternmatcher v0.6.0
@@ -572,5 +572,5 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
-# github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250721205005-81caabae43aa
-# github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250721205005-81caabae43aa
+# github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250722205935-c55a16352354
+# github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250722205935-c55a16352354
