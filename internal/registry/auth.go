@@ -127,44 +127,6 @@ func v2AuthHTTPClient(endpoint *url.URL, authTransport http.RoundTripper, modifi
 	}, nil
 }
 
-// ConvertToHostname normalizes a registry URL which has http|https prepended
-// to just its hostname. It is used to match credentials, which may be either
-// stored as hostname or as hostname including scheme (in legacy configuration
-// files).
-func ConvertToHostname(maybeURL string) string {
-	stripped := maybeURL
-	if scheme, remainder, ok := strings.Cut(stripped, "://"); ok {
-		switch scheme {
-		case "http", "https":
-			stripped = remainder
-		default:
-			// unknown, or no scheme; doing nothing for now, as we never did.
-		}
-	}
-	stripped, _, _ = strings.Cut(stripped, "/")
-	return stripped
-}
-
-// ResolveAuthConfig matches an auth configuration to a server address or a URL
-func ResolveAuthConfig(authConfigs map[string]registry.AuthConfig, index *registry.IndexInfo) registry.AuthConfig {
-	configKey := GetAuthConfigKey(index)
-	// First try the happy case
-	if c, found := authConfigs[configKey]; found || index.Official {
-		return c
-	}
-
-	// Maybe they have a legacy config file, we will iterate the keys converting
-	// them to the new format and testing
-	for registryURL, ac := range authConfigs {
-		if configKey == ConvertToHostname(registryURL) {
-			return ac
-		}
-	}
-
-	// When all else fails, return an empty auth config
-	return registry.AuthConfig{}
-}
-
 // PingResponseError is used when the response from a ping
 // was received but invalid.
 type PingResponseError struct {
