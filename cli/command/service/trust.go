@@ -6,7 +6,7 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/docker/registry"
+	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"

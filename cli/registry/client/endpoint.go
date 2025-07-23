@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/docker/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/pkg/errors"
 )
