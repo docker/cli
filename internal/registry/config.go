@@ -22,7 +22,6 @@ import (
 
 // ServiceOptions holds command line options.
 type ServiceOptions struct {
-	Mirrors            []string `json:"registry-mirrors,omitempty"`
 	InsecureRegistries []string `json:"insecure-registries,omitempty"`
 }
 
@@ -93,51 +92,6 @@ func CertsDir() string {
 	return certsDir
 }
 
-// newServiceConfig returns a new instance of ServiceConfig
-func newServiceConfig(options ServiceOptions) (*serviceConfig, error) {
-	config := &serviceConfig{}
-	if err := config.loadMirrors(options.Mirrors); err != nil {
-		return nil, err
-	}
-	if err := config.loadInsecureRegistries(options.InsecureRegistries); err != nil {
-		return nil, err
-	}
-
-	return config, nil
-}
-
-// loadMirrors loads mirrors to config, after removing duplicates.
-// Returns an error if mirrors contains an invalid mirror.
-func (config *serviceConfig) loadMirrors(mirrors []string) error {
-	mMap := map[string]struct{}{}
-	unique := []string{}
-
-	for _, mirror := range mirrors {
-		m, err := ValidateMirror(mirror)
-		if err != nil {
-			return err
-		}
-		if _, exist := mMap[m]; !exist {
-			mMap[m] = struct{}{}
-			unique = append(unique, m)
-		}
-	}
-
-	config.Mirrors = unique
-
-	// Configure public registry since mirrors may have changed.
-	config.IndexConfigs = map[string]*registry.IndexInfo{
-		IndexName: {
-			Name:     IndexName,
-			Mirrors:  unique,
-			Secure:   true,
-			Official: true,
-		},
-	}
-
-	return nil
-}
-
 // loadInsecureRegistries loads insecure registries to config
 func (config *serviceConfig) loadInsecureRegistries(registries []string) error {
 	// Localhost is by default considered as an insecure registry. This is a
@@ -184,7 +138,6 @@ skip:
 			// Assume `host:port` if not CIDR.
 			indexConfigs[r] = &registry.IndexInfo{
 				Name:     r,
-				Mirrors:  []string{},
 				Secure:   false,
 				Official: false,
 			}
@@ -194,7 +147,6 @@ skip:
 	// Configure public registry.
 	indexConfigs[IndexName] = &registry.IndexInfo{
 		Name:     IndexName,
-		Mirrors:  config.Mirrors,
 		Secure:   true,
 		Official: true,
 	}
@@ -267,35 +219,6 @@ func isCIDRMatch(cidrs []*registry.NetIPNet, urlHost string) bool {
 	return false
 }
 
-// ValidateMirror validates and normalizes an HTTP(S) registry mirror. It
-// returns an error if the given mirrorURL is invalid, or the normalized
-// format for the URL otherwise.
-//
-// It is used by the daemon to validate the daemon configuration.
-func ValidateMirror(mirrorURL string) (string, error) {
-	// Fast path for missing scheme, as url.Parse splits by ":", which can
-	// cause the hostname to be considered the "scheme" when using "hostname:port".
-	if scheme, _, ok := strings.Cut(mirrorURL, "://"); !ok || scheme == "" {
-		return "", invalidParamf("invalid mirror: no scheme specified for %q: must use either 'https://' or 'http://'", mirrorURL)
-	}
-	uri, err := url.Parse(mirrorURL)
-	if err != nil {
-		return "", invalidParamWrapf(err, "invalid mirror: %q is not a valid URI", mirrorURL)
-	}
-	if uri.Scheme != "http" && uri.Scheme != "https" {
-		return "", invalidParamf("invalid mirror: unsupported scheme %q in %q: must use either 'https://' or 'http://'", uri.Scheme, uri)
-	}
-	if uri.RawQuery != "" || uri.Fragment != "" {
-		return "", invalidParamf("invalid mirror: query or fragment at end of the URI %q", uri)
-	}
-	if uri.User != nil {
-		// strip password from output
-		uri.User = url.UserPassword(uri.User.Username(), "xxxxx")
-		return "", invalidParamf("invalid mirror: username/password not allowed in URI %q", uri)
-	}
-	return strings.TrimSuffix(mirrorURL, "/") + "/", nil
-}
-
 // ValidateIndexName validates an index name. It is used by the daemon to
 // validate the daemon configuration.
 func ValidateIndexName(val string) (string, error) {
@@ -348,7 +271,6 @@ func ParseRepositoryInfo(reposName reference.Named) (*RepositoryInfo, error) {
 			Name: reference.TrimNamed(reposName),
 			Index: &registry.IndexInfo{
 				Name:     IndexName,
-				Mirrors:  []string{},
 				Secure:   true,
 				Official: true,
 			},
@@ -358,9 +280,8 @@ func ParseRepositoryInfo(reposName reference.Named) (*RepositoryInfo, error) {
 	return &RepositoryInfo{
 		Name: reference.TrimNamed(reposName),
 		Index: &registry.IndexInfo{
-			Name:    indexName,
-			Mirrors: []string{},
-			Secure:  !isInsecure(indexName),
+			Name:   indexName,
+			Secure: !isInsecure(indexName),
 		},
 	}, nil
 }
