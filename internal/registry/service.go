@@ -21,12 +21,13 @@ type Service struct {
 // NewService returns a new instance of [Service] ready to be installed into
 // an engine.
 func NewService(options ServiceOptions) (*Service, error) {
-	config, err := newServiceConfig(options)
-	if err != nil {
-		return nil, err
+	config := &serviceConfig{}
+	if len(options.InsecureRegistries) > 0 {
+		if err := config.loadInsecureRegistries(options.InsecureRegistries); err != nil {
+			return nil, err
+		}
 	}
-
-	return &Service{config: config}, err
+	return &Service{config: config}, nil
 }
 
 // Auth contacts the public registry with the provided credentials,
@@ -48,9 +49,8 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 		registryHostName = u.Host
 	}
 
-	// Lookup endpoints for authentication but exclude mirrors to prevent
-	// sending credentials of the upstream registry to a mirror.
-	endpoints, err := s.lookupV2Endpoints(ctx, registryHostName, false)
+	// Lookup endpoints for authentication.
+	endpoints, err := s.lookupV2Endpoints(ctx, registryHostName)
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return "", "", err
@@ -84,7 +84,6 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 
 // APIEndpoint represents a remote API endpoint
 type APIEndpoint struct {
-	Mirror    bool
 	URL       *url.URL
 	TLSConfig *tls.Config
 }
@@ -92,11 +91,11 @@ type APIEndpoint struct {
 // LookupPullEndpoints creates a list of v2 endpoints to try to pull from, in order of preference.
 // It gives preference to mirrors over the actual registry, and HTTPS over plain HTTP.
 func (s *Service) LookupPullEndpoints(hostname string) ([]APIEndpoint, error) {
-	return s.lookupV2Endpoints(context.TODO(), hostname, true)
+	return s.lookupV2Endpoints(context.TODO(), hostname)
 }
 
 // LookupPushEndpoints creates a list of v2 endpoints to try to push to, in order of preference.
 // It gives preference to HTTPS over plain HTTP. Mirrors are not included.
 func (s *Service) LookupPushEndpoints(hostname string) ([]APIEndpoint, error) {
-	return s.lookupV2Endpoints(context.TODO(), hostname, false)
+	return s.lookupV2Endpoints(context.TODO(), hostname)
 }
