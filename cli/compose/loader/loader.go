@@ -17,7 +17,7 @@ import (
 	"github.com/docker/cli/cli/compose/schema"
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/cli/internal/parsevolume"
+	"github.com/docker/cli/internal/volumespec"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/docker/go-connections/nat"
@@ -40,6 +40,13 @@ type Options struct {
 	Interpolate *interp.Options
 	// Discard 'env_file' entries after resolving to 'environment' section
 	discardEnvFiles bool
+}
+
+// ParseVolume parses a volume spec without any knowledge of the target platform.
+//
+// This function is unused, but kept for backward-compatibility for external users.
+func ParseVolume(spec string) (types.ServiceVolumeConfig, error) {
+	return volumespec.Parse(spec)
 }
 
 // WithDiscardEnvFiles sets the Options to discard the `env_file` section after resolving to
@@ -757,7 +764,7 @@ var transformBuildConfig TransformerFunc = func(data any) (any, error) {
 var transformServiceVolumeConfig TransformerFunc = func(data any) (any, error) {
 	switch value := data.(type) {
 	case string:
-		return parsevolume.ParseVolume(value)
+		return volumespec.Parse(value)
 	case map[string]any:
 		return data, nil
 	default:

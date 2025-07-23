@@ -1,20 +1,19 @@
-package parsevolume
+package volumespec
 
 import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/pkg/errors"
 )
 
 const endOfSpec = rune(0)
 
-// ParseVolume parses a volume spec without any knowledge of the target platform
-func ParseVolume(spec string) (types.ServiceVolumeConfig, error) {
-	volume := types.ServiceVolumeConfig{}
+// Parse parses a volume spec without any knowledge of the target platform
+func Parse(spec string) (VolumeConfig, error) {
+	volume := VolumeConfig{}
 
 	switch len(spec) {
 	case 0:
@@ -49,7 +48,7 @@ func isWindowsDrive(buffer []rune, char rune) bool {
 	return char == ':' && len(buffer) == 1 && unicode.IsLetter(buffer[0])
 }
 
-func populateFieldFromBuffer(char rune, buffer []rune, volume *types.ServiceVolumeConfig) error {
+func populateFieldFromBuffer(char rune, buffer []rune, volume *VolumeConfig) error {
 	strBuffer := string(buffer)
 	switch {
 	case len(buffer) == 0:
@@ -74,10 +73,10 @@ func populateFieldFromBuffer(char rune, buffer []rune, volume *types.ServiceVolu
 		case "rw":
 			volume.ReadOnly = false
 		case "nocopy":
-			volume.Volume = &types.ServiceVolumeVolume{NoCopy: true}
+			volume.Volume = &VolumeOpts{NoCopy: true}
 		default:
 			if isBindOption(option) {
-				volume.Bind = &types.ServiceVolumeBind{Propagation: option}
+				volume.Bind = &BindOpts{Propagation: option}
 			}
 			// ignore unknown options
 		}
@@ -94,7 +93,7 @@ func isBindOption(option string) bool {
 	return false
 }
 
-func populateType(volume *types.ServiceVolumeConfig) {
+func populateType(volume *VolumeConfig) {
 	switch {
 	// Anonymous volume
 	case volume.Source == "":
