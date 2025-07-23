@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.23
+
 package registry
 
 import (
@@ -6,6 +9,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,8 +18,6 @@ import (
 	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/internal/lazyregexp"
-	"github.com/docker/docker/pkg/homedir"
 )
 
 // ServiceOptions holds command line options.
@@ -58,52 +61,36 @@ var (
 		Host:   DefaultRegistryHost,
 	}
 
-	validHostPortRegex = lazyregexp.New(`^` + reference.DomainRegexp.String() + `$`)
-
-	// certsDir is used to override defaultCertsDir when running with rootlessKit.
-	//
-	// TODO(thaJeztah): change to a sync.OnceValue once we remove [SetCertsDir]
-	// TODO(thaJeztah): certsDir should not be a package variable, but stored in our config, and passed when needed.
-	setCertsDirOnce sync.Once
-	certsDir        string
+	validHostPortRegex = sync.OnceValue(func() *regexp.Regexp {
+		return regexp.MustCompile(`^` + reference.DomainRegexp.String() + `$`)
+	})
 )
 
-func setCertsDir(dir string) string {
-	setCertsDirOnce.Do(func() {
-		if dir != "" {
-			certsDir = dir
-			return
-		}
-		if os.Getenv("ROOTLESSKIT_STATE_DIR") != "" {
-			// Configure registry.CertsDir() when running in rootless-mode
-			// This is the equivalent of [rootless.RunningWithRootlessKit],
-			// but inlining it to prevent adding that as a dependency
-			// for docker/cli.
-			//
-			// [rootless.RunningWithRootlessKit]: https://github.com/moby/moby/blob/b4bdf12daec84caaf809a639f923f7370d4926ad/pkg/rootless/rootless.go#L5-L8
-			if configHome, _ := homedir.GetConfigHome(); configHome != "" {
-				certsDir = filepath.Join(configHome, "docker/certs.d")
-				return
-			}
-		}
-		certsDir = defaultCertsDir
-	})
-	return certsDir
-}
-
-// SetCertsDir allows the default certs directory to be changed. This function
-// is used at daemon startup to set the correct location when running in
-// rootless mode.
+// runningWithRootlessKit is a fork of [rootless.RunningWithRootlessKit],
+// but inlining it to prevent adding that as a dependency for docker/cli.
 //
-// Deprecated: the cert-directory is now automatically selected when running with rootlessKit, and should no longer be set manually.
-func SetCertsDir(path string) {
-	setCertsDir(path)
+// [rootless.RunningWithRootlessKit]: https://github.com/moby/moby/blob/b4bdf12daec84caaf809a639f923f7370d4926ad/pkg/rootless/rootless.go#L5-L8
+func runningWithRootlessKit() bool {
+	return runtime.GOOS == "linux" && os.Getenv("ROOTLESSKIT_STATE_DIR") != ""
 }
 
 // CertsDir is the directory where certificates are stored.
+//
+// - Linux: "/etc/docker/certs.d/"
+// - Linux (with rootlessKit): $XDG_CONFIG_HOME/docker/certs.d/" or "$HOME/.config/docker/certs.d/"
+// - Windows: "%PROGRAMDATA%/docker/certs.d/"
+//
+// TODO(thaJeztah): certsDir but stored in our config, and passed when needed. For the CLI, we should also default to same path as rootless.
 func CertsDir() string {
-	// call setCertsDir with an empty path to synchronise with [SetCertsDir]
-	return setCertsDir("")
+	certsDir := "/etc/docker/certs.d"
+	if runningWithRootlessKit() {
+		if configHome, _ := os.UserConfigDir(); configHome != "" {
+			certsDir = filepath.Join(configHome, "docker", "certs.d")
+		}
+	} else if runtime.GOOS == "windows" {
+		certsDir = filepath.Join(os.Getenv("programdata"), "docker", "certs.d")
+	}
+	return certsDir
 }
 
 // newServiceConfig returns a new instance of ServiceConfig
@@ -181,14 +168,15 @@ skip:
 		if _, err := ValidateIndexName(r); err != nil {
 			return err
 		}
-		if strings.HasPrefix(strings.ToLower(r), "http://") {
-			log.G(context.TODO()).Warnf("insecure registry %s should not contain 'http://' and 'http://' has been removed from the insecure registry config", r)
-			r = r[7:]
-		} else if strings.HasPrefix(strings.ToLower(r), "https://") {
-			log.G(context.TODO()).Warnf("insecure registry %s should not contain 'https://' and 'https://' has been removed from the insecure registry config", r)
-			r = r[8:]
-		} else if hasScheme(r) {
-			return invalidParamf("insecure registry %s should not contain '://'", r)
+		if scheme, host, ok := strings.Cut(r, "://"); ok {
+			switch strings.ToLower(scheme) {
+			case "http", "https":
+				log.G(context.TODO()).Warnf("insecure registry %[1]s should not contain '%[2]s' and '%[2]ss' has been removed from the insecure registry config", r, scheme)
+				r = host
+			default:
+				// unsupported scheme
+				return invalidParamf("insecure registry %s should not contain '://'", r)
+			}
 		}
 		// Check if CIDR was passed to --insecure-registry
 		_, ipnet, err := net.ParseCIDR(r)
@@ -253,18 +241,18 @@ func (config *serviceConfig) isSecureIndex(indexName string) bool {
 // for mocking in unit tests.
 var lookupIP = net.LookupIP
 
-// isCIDRMatch returns true if URLHost matches an element of cidrs. URLHost is a URL.Host (`host:port` or `host`)
+// isCIDRMatch returns true if urlHost matches an element of cidrs. urlHost is a URL.Host ("host:port" or "host")
 // where the `host` part can be either a domain name or an IP address. If it is a domain name, then it will be
 // resolved to IP addresses for matching. If resolution fails, false is returned.
-func isCIDRMatch(cidrs []*registry.NetIPNet, URLHost string) bool {
+func isCIDRMatch(cidrs []*registry.NetIPNet, urlHost string) bool {
 	if len(cidrs) == 0 {
 		return false
 	}
 
-	host, _, err := net.SplitHostPort(URLHost)
+	host, _, err := net.SplitHostPort(urlHost)
 	if err != nil {
-		// Assume URLHost is a host without port and go on.
-		host = URLHost
+		// Assume urlHost is a host without port and go on.
+		host = urlHost
 	}
 
 	var addresses []net.IP
@@ -353,7 +341,7 @@ func validateHostPort(s string) error {
 	}
 	// If match against the `host:port` pattern fails,
 	// it might be `IPv6:port`, which will be captured by net.ParseIP(host)
-	if !validHostPortRegex.MatchString(s) && net.ParseIP(host) == nil {
+	if !validHostPortRegex().MatchString(s) && net.ParseIP(host) == nil {
 		return invalidParamf("invalid host %q", host)
 	}
 	if port != "" {
@@ -394,25 +382,6 @@ func GetAuthConfigKey(index *registry.IndexInfo) string {
 	return index.Name
 }
 
-// newRepositoryInfo validates and breaks down a repository name into a RepositoryInfo
-func newRepositoryInfo(config *serviceConfig, name reference.Named) *RepositoryInfo {
-	index := newIndexInfo(config, reference.Domain(name))
-	var officialRepo bool
-	if index.Official {
-		// RepositoryInfo.Official indicates whether the image repository
-		// is an official (docker library official images) repository.
-		//
-		// We only need to check this if the image-repository is on Docker Hub.
-		officialRepo = !strings.ContainsRune(reference.FamiliarName(name), '/')
-	}
-
-	return &RepositoryInfo{
-		Name:     reference.TrimNamed(name),
-		Index:    index,
-		Official: officialRepo,
-	}
-}
-
 // ParseRepositoryInfo performs the breakdown of a repository name into a
 // [RepositoryInfo], but lacks registry configuration.
 //
@@ -428,7 +397,6 @@ func ParseRepositoryInfo(reposName reference.Named) (*RepositoryInfo, error) {
 				Secure:   true,
 				Official: true,
 			},
-			Official: !strings.ContainsRune(reference.FamiliarName(reposName), '/'),
 		}, nil
 	}
 

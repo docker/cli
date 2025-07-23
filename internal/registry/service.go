@@ -108,17 +108,6 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 	return "", "", lastErr
 }
 
-// ResolveRepository splits a repository name into its components
-// and configuration of the associated registry.
-//
-// Deprecated: this function was only used internally and is no longer used. It will be removed in the next release.
-func (s *Service) ResolveRepository(name reference.Named) (*RepositoryInfo, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	// TODO(thaJeztah): remove error return as it's no longer used.
-	return newRepositoryInfo(s.config, name), nil
-}
-
 // ResolveAuthConfig looks up authentication for the given reference from the
 // given authConfigs.
 //
@@ -139,12 +128,9 @@ func (s *Service) ResolveAuthConfig(authConfigs map[string]registry.AuthConfig, 
 
 // APIEndpoint represents a remote API endpoint
 type APIEndpoint struct {
-	Mirror                         bool
-	URL                            *url.URL
-	AllowNondistributableArtifacts bool // Deprecated: non-distributable artifacts are deprecated and enabled by default. This field will be removed in the next release.
-	Official                       bool // Deprecated: this field was only used internally, and will be removed in the next release.
-	TrimHostname                   bool // Deprecated: hostname is now trimmed unconditionally for remote names. This field will be removed in the next release.
-	TLSConfig                      *tls.Config
+	Mirror    bool
+	URL       *url.URL
+	TLSConfig *tls.Config
 }
 
 // LookupPullEndpoints creates a list of v2 endpoints to try to pull from, in order of preference.
