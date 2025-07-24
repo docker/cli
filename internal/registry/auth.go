@@ -34,35 +34,6 @@ func (lcs loginCredentialStore) SetRefreshToken(u *url.URL, service, token strin
 	lcs.authConfig.IdentityToken = token
 }
 
-type staticCredentialStore struct {
-	auth *registry.AuthConfig
-}
-
-// NewStaticCredentialStore returns a credential store
-// which always returns the same credential values.
-func NewStaticCredentialStore(ac *registry.AuthConfig) auth.CredentialStore {
-	return staticCredentialStore{
-		auth: ac,
-	}
-}
-
-func (scs staticCredentialStore) Basic(*url.URL) (string, string) {
-	if scs.auth == nil {
-		return "", ""
-	}
-	return scs.auth.Username, scs.auth.Password
-}
-
-func (scs staticCredentialStore) RefreshToken(*url.URL, string) string {
-	if scs.auth == nil {
-		return ""
-	}
-	return scs.auth.IdentityToken
-}
-
-func (staticCredentialStore) SetRefreshToken(*url.URL, string, string) {
-}
-
 // loginV2 tries to login to the v2 registry server. The given registry
 // endpoint will be pinged to get authorization challenges. These challenges
 // will be used to authenticate against the registry to validate credentials.
