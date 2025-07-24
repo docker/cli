@@ -5,6 +5,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -117,7 +118,7 @@ skip:
 				r = host
 			default:
 				// unsupported scheme
-				return nil, invalidParamf("insecure registry %s should not contain '://'", r)
+				return nil, invalidParam(fmt.Errorf("insecure registry %s should not contain '://'", r))
 			}
 		}
 		// Check if CIDR was passed to --insecure-registry
@@ -133,7 +134,7 @@ skip:
 			insecureRegistryCIDRs = append(insecureRegistryCIDRs, ipnet)
 		} else {
 			if err := validateHostPort(r); err != nil {
-				return nil, invalidParamWrapf(err, "insecure registry %s is not valid", r)
+				return nil, invalidParam(fmt.Errorf("insecure registry %s is not valid: %w", r, err))
 			}
 			// Assume `host:port` if not CIDR.
 			indexConfigs[r] = &registry.IndexInfo{

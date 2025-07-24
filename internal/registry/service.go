@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -41,7 +42,7 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 		}
 		u, err := url.Parse(serverAddress)
 		if err != nil {
-			return "", invalidParamWrapf(err, "unable to parse server address")
+			return "", invalidParam(fmt.Errorf("unable to parse server address: %w", err))
 		}
 		registryHostName = u.Host
 	}
