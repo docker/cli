@@ -127,28 +127,18 @@ func v2AuthHTTPClient(endpoint *url.URL, authTransport http.RoundTripper, modifi
 	}, nil
 }
 
-// PingResponseError is used when the response from a ping
-// was received but invalid.
-type PingResponseError struct {
-	Err error
-}
-
-func (err PingResponseError) Error() string {
-	return err.Err.Error()
-}
-
 // PingV2Registry attempts to ping a v2 registry and on success return a
 // challenge manager for the supported authentication types.
 // If a response is received but cannot be interpreted, a PingResponseError will be returned.
 func PingV2Registry(endpoint *url.URL, authTransport http.RoundTripper) (challenge.Manager, error) {
-	pingClient := &http.Client{
-		Transport: authTransport,
-		Timeout:   15 * time.Second,
-	}
 	endpointStr := strings.TrimRight(endpoint.String(), "/") + "/v2/"
 	req, err := http.NewRequest(http.MethodGet, endpointStr, http.NoBody)
 	if err != nil {
 		return nil, err
+	}
+	pingClient := &http.Client{
+		Transport: authTransport,
+		Timeout:   15 * time.Second,
 	}
 	resp, err := pingClient.Do(req)
 	if err != nil {
@@ -158,9 +148,7 @@ func PingV2Registry(endpoint *url.URL, authTransport http.RoundTripper) (challen
 
 	challengeManager := challenge.NewSimpleManager()
 	if err := challengeManager.AddResponse(resp); err != nil {
-		return nil, PingResponseError{
-			Err: err,
-		}
+		return nil, err
 	}
 
 	return challengeManager, nil
