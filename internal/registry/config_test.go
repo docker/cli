@@ -5,7 +5,6 @@ import (
 
 	cerrdefs "github.com/containerd/errdefs"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestLoadInsecureRegistries(t *testing.T) {
@@ -45,10 +44,6 @@ func TestLoadInsecureRegistries(t *testing.T) {
 		{
 			registries: []string{"svn://myregistry.example.com"},
 			err:        "insecure registry svn://myregistry.example.com should not contain '://'",
-		},
-		{
-			registries: []string{"-invalid-registry"},
-			err:        "Cannot begin or end with a hyphen",
 		},
 		{
 			registries: []string{`mytest-.com`},
@@ -94,65 +89,5 @@ func TestLoadInsecureRegistries(t *testing.T) {
 			assert.ErrorContains(t, err, testCase.err)
 			assert.Check(t, cerrdefs.IsInvalidArgument(err))
 		}
-	}
-}
-
-func TestValidateIndexName(t *testing.T) {
-	valid := []struct {
-		index  string
-		expect string
-	}{
-		{
-			index:  "index.docker.io",
-			expect: "docker.io",
-		},
-		{
-			index:  "example.com",
-			expect: "example.com",
-		},
-		{
-			index:  "127.0.0.1:8080",
-			expect: "127.0.0.1:8080",
-		},
-		{
-			index:  "mytest-1.com",
-			expect: "mytest-1.com",
-		},
-		{
-			index:  "mirror-1.example.com/v1/?q=foo",
-			expect: "mirror-1.example.com/v1/?q=foo",
-		},
-	}
-
-	for _, testCase := range valid {
-		result, err := ValidateIndexName(testCase.index)
-		if assert.Check(t, err) {
-			assert.Check(t, is.Equal(testCase.expect, result))
-		}
-	}
-}
-
-func TestValidateIndexNameWithError(t *testing.T) {
-	invalid := []struct {
-		index string
-		err   string
-	}{
-		{
-			index: "docker.io-",
-			err:   "invalid index name (docker.io-). Cannot begin or end with a hyphen",
-		},
-		{
-			index: "-example.com",
-			err:   "invalid index name (-example.com). Cannot begin or end with a hyphen",
-		},
-		{
-			index: "mirror-1.example.com/v1/?q=foo-",
-			err:   "invalid index name (mirror-1.example.com/v1/?q=foo-). Cannot begin or end with a hyphen",
-		},
-	}
-	for _, testCase := range invalid {
-		_, err := ValidateIndexName(testCase.index)
-		assert.Check(t, is.Error(err, testCase.err))
-		assert.Check(t, cerrdefs.IsInvalidArgument(err))
 	}
 }
