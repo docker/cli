@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/sequential"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +19,7 @@ import (
 type loadOptions struct {
 	input    string
 	quiet    bool
-	platform string
+	platform []string
 }
 
 // NewLoadCommand creates a new `docker load` command
@@ -42,7 +43,7 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags.StringVarP(&opts.input, "input", "i", "", "Read from tar archive file, instead of STDIN")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress the load output")
-	flags.StringVar(&opts.platform, "platform", "", `Load only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
+	flags.StringSliceVar(&opts.platform, "platform", []string{}, `Load only the given platform(s). Formatted as a comma-separated list of "os[/arch[/variant]]" (e.g., "linux/amd64,linux/arm64/v8").`)
 	_ = flags.SetAnnotation("platform", "version", []string{"1.48"})
 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
@@ -76,13 +77,16 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		options = append(options, client.ImageLoadWithQuiet(true))
 	}
 
-	if opts.platform != "" {
-		p, err := platforms.Parse(opts.platform)
+	platformList := []ocispec.Platform{}
+	for _, p := range opts.platform {
+		pp, err := platforms.Parse(p)
 		if err != nil {
 			return errors.Wrap(err, "invalid platform")
 		}
-		// TODO(thaJeztah): change flag-type to support multiple platforms.
-		options = append(options, client.ImageLoadWithPlatforms(p))
+		platformList = append(platformList, pp)
+	}
+	if len(platformList) > 0 {
+		options = append(options, client.ImageLoadWithPlatforms(platformList...))
 	}
 
 	response, err := dockerCli.Client().ImageLoad(ctx, input, options...)

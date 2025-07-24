@@ -111,6 +111,26 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
+		{
+			args:       []string{"--platform", "linux/amd64,linux/arm64/v8,linux/riscv64", "arg1"},
+			isTerminal: false,
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error) {
+				assert.Assert(t, is.Len(images, 1))
+				assert.Check(t, is.Equal("arg1", images[0]))
+				assert.Check(t, len(options) > 0) // can be 1 or 2 depending on whether a terminal is attached :/
+				return io.NopCloser(strings.NewReader("")), nil
+			},
+		},
+		{
+			args:       []string{"--platform", "linux/amd64", "--platform", "linux/arm64/v8", "--platform", "linux/riscv64", "arg1"},
+			isTerminal: false,
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error) {
+				assert.Assert(t, is.Len(images, 1))
+				assert.Check(t, is.Equal("arg1", images[0]))
+				assert.Check(t, len(options) > 0) // can be 1 or 2 depending on whether a terminal is attached :/
+				return io.NopCloser(strings.NewReader("")), nil
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {

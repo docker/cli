@@ -104,12 +104,28 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			},
 		},
 		{
-			name: "with platform",
+			name: "with-single-platform",
 			args: []string{"--platform", "linux/amd64"},
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
 				// FIXME(thaJeztah): need to find appropriate way to test the result of "ImageHistoryWithPlatform" being applied
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
+				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+			},
+		},
+		{
+			name: "with-comma-separated-platforms",
+			args: []string{"--platform", "linux/amd64,linux/arm64/v8,linux/riscv64"},
+			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
+				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
+				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+			},
+		},
+		{
+			name: "with-multiple-platform-options",
+			args: []string{"--platform", "linux/amd64", "--platform", "linux/arm64/v8", "--platform", "linux/riscv64"},
+			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
+				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
