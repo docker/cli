@@ -208,7 +208,6 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 	out.PrintlnWithColor(tui.ColorWarning, "WARNING: This is an experimental feature. The output may change and shouldn't be depended on.")
 
 	out.Println(generateLegend(out, width))
-	out.Println()
 
 	possibleChips := getPossibleChips(view)
 	columns := []imgColumn{
