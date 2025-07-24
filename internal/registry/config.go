@@ -105,10 +105,6 @@ func (config *serviceConfig) loadInsecureRegistries(registries []string) error {
 
 skip:
 	for _, r := range registries {
-		// validate insecure registry
-		if _, err := ValidateIndexName(r); err != nil {
-			return err
-		}
 		if scheme, host, ok := strings.Cut(r, "://"); ok {
 			switch strings.ToLower(scheme) {
 			case "http", "https":
@@ -217,16 +213,6 @@ func isCIDRMatch(cidrs []*registry.NetIPNet, urlHost string) bool {
 	}
 
 	return false
-}
-
-// ValidateIndexName validates an index name. It is used by the daemon to
-// validate the daemon configuration.
-func ValidateIndexName(val string) (string, error) {
-	val = normalizeIndexName(val)
-	if strings.HasPrefix(val, "-") || strings.HasSuffix(val, "-") {
-		return "", invalidParamf("invalid index name (%s). Cannot begin or end with a hyphen", val)
-	}
-	return val, nil
 }
 
 func normalizeIndexName(val string) string {
