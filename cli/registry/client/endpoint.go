@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/url"
@@ -55,7 +56,7 @@ func getDefaultEndpoint(repoName reference.Named, insecure bool) (registry.APIEn
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
-	endpoints, err := registryService.LookupPushEndpoints(reference.Domain(repoName))
+	endpoints, err := registryService.Endpoints(context.TODO(), reference.Domain(repoName))
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}

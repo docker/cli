@@ -7,15 +7,12 @@ import (
 	"github.com/docker/go-connections/tlsconfig"
 )
 
-func (s *Service) lookupV2Endpoints(ctx context.Context, hostname string) ([]APIEndpoint, error) {
-	var endpoints []APIEndpoint
+func (s *Service) Endpoints(ctx context.Context, hostname string) ([]APIEndpoint, error) {
 	if hostname == DefaultNamespace || hostname == IndexHostname {
-		endpoints = append(endpoints, APIEndpoint{
+		return []APIEndpoint{{
 			URL:       DefaultV2Registry,
 			TLSConfig: tlsconfig.ServerDefault(),
-		})
-
-		return endpoints, nil
+		}}, nil
 	}
 
 	tlsConfig, err := newTLSConfig(ctx, hostname, s.config.isSecureIndex(hostname))
@@ -23,22 +20,14 @@ func (s *Service) lookupV2Endpoints(ctx context.Context, hostname string) ([]API
 		return nil, err
 	}
 
-	endpoints = []APIEndpoint{
-		{
-			URL: &url.URL{
-				Scheme: "https",
-				Host:   hostname,
-			},
-			TLSConfig: tlsConfig,
-		},
-	}
+	endpoints := []APIEndpoint{{
+		URL:       &url.URL{Scheme: "https", Host: hostname},
+		TLSConfig: tlsConfig,
+	}}
 
 	if tlsConfig.InsecureSkipVerify {
 		endpoints = append(endpoints, APIEndpoint{
-			URL: &url.URL{
-				Scheme: "http",
-				Host:   hostname,
-			},
+			URL: &url.URL{Scheme: "http", Host: hostname},
 			// used to check if supposed to be secure via InsecureSkipVerify
 			TLSConfig: tlsConfig,
 		})

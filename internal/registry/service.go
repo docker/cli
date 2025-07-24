@@ -49,7 +49,7 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 	}
 
 	// Lookup endpoints for authentication.
-	endpoints, err := s.lookupV2Endpoints(ctx, registryHostName)
+	endpoints, err := s.Endpoints(ctx, registryHostName)
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return "", err
@@ -84,16 +84,4 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 type APIEndpoint struct {
 	URL       *url.URL
 	TLSConfig *tls.Config
-}
-
-// LookupPullEndpoints creates a list of v2 endpoints to try to pull from, in order of preference.
-// It gives preference to mirrors over the actual registry, and HTTPS over plain HTTP.
-func (s *Service) LookupPullEndpoints(hostname string) ([]APIEndpoint, error) {
-	return s.lookupV2Endpoints(context.TODO(), hostname)
-}
-
-// LookupPushEndpoints creates a list of v2 endpoints to try to push to, in order of preference.
-// It gives preference to HTTPS over plain HTTP. Mirrors are not included.
-func (s *Service) LookupPushEndpoints(hostname string) ([]APIEndpoint, error) {
-	return s.lookupV2Endpoints(context.TODO(), hostname)
 }
