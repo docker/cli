@@ -21,11 +21,9 @@ type Service struct {
 // NewService returns a new instance of [Service] ready to be installed into
 // an engine.
 func NewService(options ServiceOptions) (*Service, error) {
-	config := &serviceConfig{}
-	if len(options.InsecureRegistries) > 0 {
-		if err := config.loadInsecureRegistries(options.InsecureRegistries); err != nil {
-			return nil, err
-		}
+	config, err := newServiceConfig(options.InsecureRegistries)
+	if err != nil {
+		return nil, err
 	}
 	return &Service{config: config}, nil
 }

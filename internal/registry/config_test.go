@@ -67,20 +67,19 @@ func TestLoadInsecureRegistries(t *testing.T) {
 		},
 	}
 	for _, testCase := range testCases {
-		config := &serviceConfig{}
-		err := config.loadInsecureRegistries(testCase.registries)
+		config, err := newServiceConfig(testCase.registries)
 		if testCase.err == "" {
 			if err != nil {
 				t.Fatalf("expect no error, got '%s'", err)
 			}
 			match := false
-			for index := range config.IndexConfigs {
+			for index := range config.indexConfigs {
 				if index == testCase.index {
 					match = true
 				}
 			}
 			if !match {
-				t.Fatalf("expect index configs to contain '%s', got %+v", testCase.index, config.IndexConfigs)
+				t.Fatalf("expect index configs to contain '%s', got %+v", testCase.index, config.indexConfigs)
 			}
 		} else {
 			if err == nil {

@@ -21,12 +21,19 @@ import (
 )
 
 // ServiceOptions holds command line options.
+//
+// TODO(thaJeztah): add CertsDir as option to replace the [CertsDir] function, which sets the location magically.
 type ServiceOptions struct {
 	InsecureRegistries []string `json:"insecure-registries,omitempty"`
 }
 
 // serviceConfig holds daemon configuration for the registry service.
-type serviceConfig registry.ServiceConfig
+//
+// It's a reduced version of [registry.ServiceConfig] for the CLI.
+type serviceConfig struct {
+	insecureRegistryCIDRs []*net.IPNet
+	indexConfigs          map[string]*registry.IndexInfo
+}
 
 // TODO(thaJeztah) both the "index.docker.io" and "registry-1.docker.io" domains
 // are here for historic reasons and backward-compatibility. These domains
@@ -38,27 +45,22 @@ type serviceConfig registry.ServiceConfig
 const (
 	// DefaultNamespace is the default namespace
 	DefaultNamespace = "docker.io"
-	// DefaultRegistryHost is the hostname for the default (Docker Hub) registry
-	// used for pushing and pulling images. This hostname is hard-coded to handle
-	// the conversion from image references without registry name (e.g. "ubuntu",
-	// or "ubuntu:latest"), as well as references using the "docker.io" domain
-	// name, which is used as canonical reference for images on Docker Hub, but
-	// does not match the domain-name of Docker Hub's registry.
-	DefaultRegistryHost = "registry-1.docker.io"
 	// IndexHostname is the index hostname, used for authentication and image search.
 	IndexHostname = "index.docker.io"
 	// IndexServer is used for user auth and image search
-	IndexServer = "https://" + IndexHostname + "/v1/"
+	IndexServer = "https://index.docker.io/v1/"
 	// IndexName is the name of the index
 	IndexName = "docker.io"
 )
 
 var (
-	// DefaultV2Registry is the URI of the default (Docker Hub) registry.
-	DefaultV2Registry = &url.URL{
-		Scheme: "https",
-		Host:   DefaultRegistryHost,
-	}
+	// DefaultV2Registry is the URI of the default (Docker Hub) registry
+	// used for pushing and pulling images. This hostname is hard-coded to handle
+	// the conversion from image references without registry name (e.g. "ubuntu",
+	// or "ubuntu:latest"), as well as references using the "docker.io" domain
+	// name, which is used as canonical reference for images on Docker Hub, but
+	// does not match the domain-name of Docker Hub's registry.
+	DefaultV2Registry = &url.URL{Scheme: "https", Host: "registry-1.docker.io"}
 
 	validHostPortRegex = sync.OnceValue(func() *regexp.Regexp {
 		return regexp.MustCompile(`^` + reference.DomainRegexp.String() + `$`)
@@ -92,14 +94,17 @@ func CertsDir() string {
 	return certsDir
 }
 
-// loadInsecureRegistries loads insecure registries to config
-func (config *serviceConfig) loadInsecureRegistries(registries []string) error {
+// newServiceConfig creates a new service config with the given options.
+func newServiceConfig(registries []string) (*serviceConfig, error) {
+	if len(registries) == 0 {
+		return &serviceConfig{}, nil
+	}
 	// Localhost is by default considered as an insecure registry. This is a
 	// stop-gap for people who are running a private registry on localhost.
 	registries = append(registries, "::1/128", "127.0.0.0/8")
 
 	var (
-		insecureRegistryCIDRs = make([]*registry.NetIPNet, 0)
+		insecureRegistryCIDRs = make([]*net.IPNet, 0)
 		indexConfigs          = make(map[string]*registry.IndexInfo)
 	)
 
@@ -112,24 +117,23 @@ skip:
 				r = host
 			default:
 				// unsupported scheme
-				return invalidParamf("insecure registry %s should not contain '://'", r)
+				return nil, invalidParamf("insecure registry %s should not contain '://'", r)
 			}
 		}
 		// Check if CIDR was passed to --insecure-registry
 		_, ipnet, err := net.ParseCIDR(r)
 		if err == nil {
 			// Valid CIDR. If ipnet is already in config.InsecureRegistryCIDRs, skip.
-			data := (*registry.NetIPNet)(ipnet)
 			for _, value := range insecureRegistryCIDRs {
-				if value.IP.String() == data.IP.String() && value.Mask.String() == data.Mask.String() {
+				if value.IP.String() == ipnet.IP.String() && value.Mask.String() == ipnet.Mask.String() {
 					continue skip
 				}
 			}
 			// ipnet is not found, add it in config.InsecureRegistryCIDRs
-			insecureRegistryCIDRs = append(insecureRegistryCIDRs, data)
+			insecureRegistryCIDRs = append(insecureRegistryCIDRs, ipnet)
 		} else {
 			if err := validateHostPort(r); err != nil {
-				return invalidParamWrapf(err, "insecure registry %s is not valid", r)
+				return nil, invalidParamWrapf(err, "insecure registry %s is not valid", r)
 			}
 			// Assume `host:port` if not CIDR.
 			indexConfigs[r] = &registry.IndexInfo{
@@ -146,10 +150,11 @@ skip:
 		Secure:   true,
 		Official: true,
 	}
-	config.InsecureRegistryCIDRs = insecureRegistryCIDRs
-	config.IndexConfigs = indexConfigs
 
-	return nil
+	return &serviceConfig{
+		indexConfigs:          indexConfigs,
+		insecureRegistryCIDRs: insecureRegistryCIDRs,
+	}, nil
 }
 
 // isSecureIndex returns false if the provided indexName is part of the list of insecure registries
@@ -166,11 +171,11 @@ skip:
 func (config *serviceConfig) isSecureIndex(indexName string) bool {
 	// Check for configured index, first.  This is needed in case isSecureIndex
 	// is called from anything besides newIndexInfo, in order to honor per-index configurations.
-	if index, ok := config.IndexConfigs[indexName]; ok {
+	if index, ok := config.indexConfigs[indexName]; ok {
 		return index.Secure
 	}
 
-	return !isCIDRMatch(config.InsecureRegistryCIDRs, indexName)
+	return !isCIDRMatch(config.insecureRegistryCIDRs, indexName)
 }
 
 // for mocking in unit tests.
@@ -179,7 +184,7 @@ var lookupIP = net.LookupIP
 // isCIDRMatch returns true if urlHost matches an element of cidrs. urlHost is a URL.Host ("host:port" or "host")
 // where the `host` part can be either a domain name or an IP address. If it is a domain name, then it will be
 // resolved to IP addresses for matching. If resolution fails, false is returned.
-func isCIDRMatch(cidrs []*registry.NetIPNet, urlHost string) bool {
+func isCIDRMatch(cidrs []*net.IPNet, urlHost string) bool {
 	if len(cidrs) == 0 {
 		return false
 	}
@@ -206,7 +211,7 @@ func isCIDRMatch(cidrs []*registry.NetIPNet, urlHost string) bool {
 	for _, addr := range addresses {
 		for _, ipnet := range cidrs {
 			// check if the addr falls in the subnet
-			if (*net.IPNet)(ipnet).Contains(addr) {
+			if ipnet.Contains(addr) {
 				return true
 			}
 		}
