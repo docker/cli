@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.23
+
 package registry
 
 import (
@@ -23,7 +26,7 @@ func invalidParam(err error) error {
 	return invalidParameterErr{err}
 }
 
-func invalidParamf(format string, args ...interface{}) error {
+func invalidParamf(format string, args ...any) error {
 	return invalidParameterErr{fmt.Errorf(format, args...)}
 }
 
