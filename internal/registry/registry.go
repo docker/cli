@@ -4,6 +4,7 @@ package registry
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -82,7 +83,7 @@ func loadTLSConfig(ctx context.Context, directory string, tlsConfig *tls.Config)
 			if tlsConfig.RootCAs == nil {
 				systemPool, err := tlsconfig.SystemCertPool()
 				if err != nil {
-					return invalidParamWrapf(err, "unable to get system cert pool")
+					return invalidParam(fmt.Errorf("unable to get system cert pool: %w", err))
 				}
 				tlsConfig.RootCAs = systemPool
 			}

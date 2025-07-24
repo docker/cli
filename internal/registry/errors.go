@@ -1,10 +1,11 @@
 package registry
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/pkg/errors"
 )
 
 func translateV2AuthError(err error) error {
@@ -23,11 +24,7 @@ func invalidParam(err error) error {
 }
 
 func invalidParamf(format string, args ...interface{}) error {
-	return invalidParameterErr{errors.Errorf(format, args...)}
-}
-
-func invalidParamWrapf(err error, format string, args ...interface{}) error {
-	return invalidParameterErr{errors.Wrapf(err, format, args...)}
+	return invalidParameterErr{fmt.Errorf(format, args...)}
 }
 
 type unauthorizedErr struct{ error }
