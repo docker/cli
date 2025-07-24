@@ -33,8 +33,7 @@ func NewService(options ServiceOptions) (*Service, error) {
 // Auth contacts the public registry with the provided credentials,
 // and returns OK if authentication was successful.
 // It can be used to verify the validity of a client's credentials.
-func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, userAgent string) (statusMessage, token string, _ error) {
-	// TODO Use ctx when searching for repositories
+func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, userAgent string) (token string, _ error) {
 	registryHostName := IndexHostname
 
 	if authConfig.ServerAddress != "" {
@@ -44,7 +43,7 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 		}
 		u, err := url.Parse(serverAddress)
 		if err != nil {
-			return "", "", invalidParamWrapf(err, "unable to parse server address")
+			return "", invalidParamWrapf(err, "unable to parse server address")
 		}
 		registryHostName = u.Host
 	}
@@ -53,9 +52,9 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 	endpoints, err := s.lookupV2Endpoints(ctx, registryHostName)
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			return "", "", err
+			return "", err
 		}
-		return "", "", invalidParam(err)
+		return "", invalidParam(err)
 	}
 
 	var lastErr error
@@ -64,7 +63,7 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 		if err != nil {
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || cerrdefs.IsUnauthorized(err) {
 				// Failed to authenticate; don't continue with (non-TLS) endpoints.
-				return "", "", err
+				return "", err
 			}
 			// Try next endpoint
 			log.G(ctx).WithFields(log.Fields{
@@ -75,11 +74,10 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 			continue
 		}
 
-		// TODO(thaJeztah): move the statusMessage to the API endpoint; we don't need to produce that here?
-		return "Login Succeeded", authToken, nil
+		return authToken, nil
 	}
 
-	return "", "", lastErr
+	return "", lastErr
 }
 
 // APIEndpoint represents a remote API endpoint
