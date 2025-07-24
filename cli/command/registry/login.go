@@ -288,7 +288,7 @@ func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*regis
 		return nil, err
 	}
 
-	_, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+	token, err := svc.Auth(ctx, &auth, command.UserAgent())
 	if err != nil {
 		return nil, err
 	}
