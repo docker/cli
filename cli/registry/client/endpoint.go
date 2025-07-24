@@ -3,6 +3,7 @@ package client
 import (
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/distribution/reference"
@@ -97,7 +98,7 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 		if len(actions) == 0 {
 			actions = []string{"pull"}
 		}
-		creds := registry.NewStaticCredentialStore(&authConfig)
+		creds := &staticCredentialStore{authConfig: &authConfig}
 		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, actions...)
 		basicHandler := auth.NewBasicHandler(creds)
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
@@ -117,3 +118,23 @@ func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string
 func (*existingTokenHandler) Scheme() string {
 	return "bearer"
 }
+
+type staticCredentialStore struct {
+	authConfig *registrytypes.AuthConfig
+}
+
+func (scs staticCredentialStore) Basic(*url.URL) (string, string) {
+	if scs.authConfig == nil {
+		return "", ""
+	}
+	return scs.authConfig.Username, scs.authConfig.Password
+}
+
+func (scs staticCredentialStore) RefreshToken(*url.URL, string) string {
+	if scs.authConfig == nil {
+		return ""
+	}
+	return scs.authConfig.IdentityToken
+}
+
+func (staticCredentialStore) SetRefreshToken(*url.URL, string, string) {}
