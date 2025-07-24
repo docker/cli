@@ -78,7 +78,6 @@ var sampleInfoNoSwarm = system.Info{
 		IndexConfigs: map[string]*registrytypes.IndexInfo{
 			"docker.io": {
 				Name:     "docker.io",
-				Mirrors:  nil,
 				Secure:   true,
 				Official: true,
 			},
