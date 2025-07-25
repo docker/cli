@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/image"
@@ -39,7 +38,7 @@ type fakeClient struct {
 	containerStopFunc       func(ctx context.Context, containerID string, options container.StopOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
 	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
-	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error)
+	containerAttachFunc     func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error)
 	containerDiffFunc       func(ctx context.Context, containerID string) ([]container.FilesystemChange, error)
 	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
 	containerCommitFunc     func(ctx context.Context, container string, options container.CommitOptions) (container.CommitResponse, error)
@@ -195,11 +194,11 @@ func (f *fakeClient) ContainerStop(ctx context.Context, containerID string, opti
 	return nil
 }
 
-func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
+func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
 	if f.containerAttachFunc != nil {
 		return f.containerAttachFunc(ctx, containerID, options)
 	}
-	return types.HijackedResponse{}, nil
+	return client.HijackedResponse{}, nil
 }
 
 func (f *fakeClient) ContainerDiff(ctx context.Context, containerID string) ([]container.FilesystemChange, error) {

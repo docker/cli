@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/golden"
 )
 
@@ -16,7 +17,7 @@ func TestUpgradePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		pluginUpgradeFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
+		pluginUpgradeFunc: func(name string, options client.PluginInstallOptions) (io.ReadCloser, error) {
 			return nil, errors.New("should not be called")
 		},
 		pluginInspectFunc: func(name string) (*types.Plugin, []byte, error) {

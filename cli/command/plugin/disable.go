@@ -5,12 +5,12 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
 func newDisableCommand(dockerCLI command.Cli) *cobra.Command {
-	var opts types.PluginDisableOptions
+	var opts client.PluginDisableOptions
 
 	cmd := &cobra.Command{
 		Use:   "disable [OPTIONS] PLUGIN",

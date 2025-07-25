@@ -21,6 +21,7 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
@@ -85,14 +86,14 @@ func TestRunAttach(t *testing.T) {
 				ID: "id",
 			}, nil
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
-			server, client := net.Pipe()
+		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
+			server, clientConn := net.Pipe()
 			conn = server
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
 			attachCh <- struct{}{}
-			return types.NewHijackedResponse(client, types.MediaTypeRawStream), nil
+			return client.NewHijackedResponse(clientConn, types.MediaTypeRawStream), nil
 		},
 		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
 			responseChan := make(chan container.WaitResponse, 1)
@@ -162,14 +163,14 @@ func TestRunAttachTermination(t *testing.T) {
 			}
 			return nil
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
-			server, client := net.Pipe()
+		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
+			server, clientConn := net.Pipe()
 			conn = server
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
 			attachCh <- struct{}{}
-			return types.NewHijackedResponse(client, types.MediaTypeRawStream), nil
+			return client.NewHijackedResponse(clientConn, types.MediaTypeRawStream), nil
 		},
 		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
 			responseChan := make(chan container.WaitResponse, 1)
@@ -233,8 +234,8 @@ func TestRunPullTermination(t *testing.T) {
 		) (container.CreateResponse, error) {
 			return container.CreateResponse{}, errors.New("shouldn't try to create a container")
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
-			return types.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
+		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
+			return client.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
 		},
 		imageCreateFunc: func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 			server, client := net.Pipe()

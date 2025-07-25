@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -14,7 +14,7 @@ import (
 func TestRemoveErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		pluginRemoveFunc func(name string, options types.PluginRemoveOptions) error
+		pluginRemoveFunc func(name string, options client.PluginRemoveOptions) error
 		expectedError    string
 	}{
 		{
@@ -23,7 +23,7 @@ func TestRemoveErrors(t *testing.T) {
 		},
 		{
 			args: []string{"plugin-foo"},
-			pluginRemoveFunc: func(name string, options types.PluginRemoveOptions) error {
+			pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) error {
 				return errors.New("error removing plugin")
 			},
 			expectedError: "error removing plugin",
@@ -44,7 +44,7 @@ func TestRemoveErrors(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		pluginRemoveFunc: func(name string, options types.PluginRemoveOptions) error {
+		pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) error {
 			return nil
 		},
 	})
@@ -57,7 +57,7 @@ func TestRemove(t *testing.T) {
 func TestRemoveWithForceOption(t *testing.T) {
 	force := false
 	cli := test.NewFakeCli(&fakeClient{
-		pluginRemoveFunc: func(name string, options types.PluginRemoveOptions) error {
+		pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) error {
 			force = options.Force
 			return nil
 		},
