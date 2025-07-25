@@ -36,7 +36,9 @@ func NewLogoutCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string) error {
-	maybePrintEnvAuthWarning(dockerCLI)
+	if dockerCLI.ConfigFile().PreferDockerAuthConfig() {
+		printEnvAuthWarning(dockerCLI)
+	}
 
 	var isDefaultRegistry bool
 
