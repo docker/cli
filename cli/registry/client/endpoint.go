@@ -34,7 +34,7 @@ func (r repositoryEndpoint) BaseURL() string {
 
 func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositoryEndpoint, error) {
 	repoName := reference.TrimNamed(ref)
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
+	repoInfo := registry.ParseRepositoryInfo(ref)
 	indexInfo := repoInfo.Index
 
 	endpoint, err := getDefaultEndpoint(ref, !indexInfo.Secure)

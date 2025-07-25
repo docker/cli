@@ -221,7 +221,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 	}
 
 	repoName := reference.TrimNamed(namedRef)
-	repoInfo, _ := registry.ParseRepositoryInfo(namedRef)
+	repoInfo := registry.ParseRepositoryInfo(namedRef)
 	indexInfo := repoInfo.Index
 
 	confirmedTLSRegistries := make(map[string]bool)
@@ -285,7 +285,7 @@ func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoi
 	if err != nil {
 		return nil, err
 	}
-	repoInfo, _ := registry.ParseRepositoryInfo(namedRef)
+	repoInfo := registry.ParseRepositoryInfo(namedRef)
 	endpoints, err := registryService.Endpoints(context.TODO(), reference.Domain(repoInfo.Name))
 	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
 	return endpoints, err
