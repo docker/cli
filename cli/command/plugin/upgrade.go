@@ -31,7 +31,9 @@ func newUpgradeCommand(dockerCli command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	loadPullFlags(dockerCli, &options, flags)
+	flags.BoolVar(&options.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
+	flags.Bool("disable-content-trust", dockerCli.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	_ = flags.MarkHidden("disable-content-trust")
 	flags.BoolVar(&options.skipRemoteCheck, "skip-remote-check", false, "Do not check if specified remote plugin matches existing plugin image")
 	return cmd
 }
