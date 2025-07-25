@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/docker/cli/cli/context/store"
@@ -20,9 +21,13 @@ func (c *fakeCLI) ContextStore() store.Store {
 type fakeContextStore struct {
 	store.Store
 	names []string
+	err   error
 }
 
 func (f fakeContextStore) List() (c []store.Metadata, _ error) {
+	if f.err != nil {
+		return nil, f.err
+	}
 	for _, name := range f.names {
 		c = append(c, store.Metadata{Name: name})
 	}
@@ -40,6 +45,20 @@ func TestCompleteContextNames(t *testing.T) {
 	values, directives := completeContextNames(cli)(nil, nil, "")
 	assert.Check(t, is.Equal(directives, cobra.ShellCompDirectiveNoFileComp))
 	assert.Check(t, is.DeepEqual(values, expectedNames))
+}
+
+func TestCompleteContextNamesError(t *testing.T) {
+	expectedError := errors.New("test error")
+	cli := &fakeCLI{
+		contextStore: fakeContextStore{
+			err: expectedError,
+		},
+	}
+
+	values, directives := completeContextNames(cli)(nil, nil, "")
+
+	assert.Check(t, is.Equal(directives, cobra.ShellCompDirectiveError))
+	assert.Check(t, is.Nil(values))
 }
 
 func TestCompleteLogLevels(t *testing.T) {
