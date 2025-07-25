@@ -105,7 +105,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
+	repoInfo := registry.ParseRepositoryInfo(ref)
 
 	// Resolve the Auth config relevant for this server
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
