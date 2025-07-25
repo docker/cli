@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
