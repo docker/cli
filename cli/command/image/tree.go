@@ -6,6 +6,7 @@ package image
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/filters"
@@ -191,6 +193,10 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 }
 
 func printImageTree(dockerCLI command.Cli, view treeView) error {
+	if streamRedirected(dockerCLI.Out()) {
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
+	}
+
 	out := tui.NewOutput(dockerCLI.Out())
 	_, width := out.GetTtySize()
 	if width == 0 {
@@ -205,10 +211,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 	untaggedColor := out.Color(tui.ColorTertiary)
 	isTerm := out.IsTerminal()
 
-	out.PrintlnWithColor(tui.ColorWarning, "WARNING: This is an experimental feature. The output may change and shouldn't be depended on.")
-
 	out.Println(generateLegend(out, width))
-	out.Println()
 
 	possibleChips := getPossibleChips(view)
 	columns := []imgColumn{
@@ -487,4 +490,18 @@ func widestFirstColumnValue(headers []imgColumn, images []topImage) int {
 		}
 	}
 	return width
+}
+
+func streamRedirected(s *streams.Out) bool {
+	fd := s.FD()
+	if os.Stdout.Fd() != fd {
+		return true
+	}
+
+	fi, err := os.Stdout.Stat()
+	if err != nil {
+		return true
+	}
+
+	return fi.Mode()&os.ModeCharDevice == 0
 }
