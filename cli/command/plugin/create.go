@@ -14,6 +14,7 @@ import (
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -113,7 +114,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateO
 		return err
 	}
 
-	err = dockerCli.Client().PluginCreate(ctx, createCtx, types.PluginCreateOptions{RepoName: options.repoName})
+	err = dockerCli.Client().PluginCreate(ctx, createCtx, client.PluginCreateOptions{RepoName: options.repoName})
 	if err != nil {
 		return err
 	}

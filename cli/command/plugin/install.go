@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/types"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -56,13 +57,13 @@ func newInstallCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOptions) (types.PluginInstallOptions, error) {
+func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOptions) (client.PluginInstallOptions, error) {
 	// Names with both tag and digest will be treated by the daemon
 	// as a pull by digest with a local name for the tag
 	// (if no local name is provided).
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
 	if err != nil {
-		return types.PluginInstallOptions{}, err
+		return client.PluginInstallOptions{}, err
 	}
 
 	repoInfo, _ := registry.ParseRepositoryInfo(ref)
@@ -74,12 +75,12 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		ref = reference.TagNameOnly(ref)
 		nt, ok := ref.(reference.NamedTagged)
 		if !ok {
-			return types.PluginInstallOptions{}, errors.Errorf("invalid name: %s", ref.String())
+			return client.PluginInstallOptions{}, errors.Errorf("invalid name: %s", ref.String())
 		}
 
 		trusted, err := image.TrustedReference(ctx, dockerCli, nt)
 		if err != nil {
-			return types.PluginInstallOptions{}, err
+			return client.PluginInstallOptions{}, err
 		}
 		remote = reference.FamiliarString(trusted)
 	}
@@ -87,10 +88,10 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
-		return types.PluginInstallOptions{}, err
+		return client.PluginInstallOptions{}, err
 	}
 
-	options := types.PluginInstallOptions{
+	options := client.PluginInstallOptions{
 		RegistryAuth:          encodedAuth,
 		RemoteRef:             remote,
 		Disabled:              opts.disable,
