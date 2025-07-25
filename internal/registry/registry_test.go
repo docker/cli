@@ -269,8 +269,7 @@ func TestParseRepositoryInfo(t *testing.T) {
 			named, err := reference.ParseNormalizedNamed(reposName)
 			assert.NilError(t, err)
 
-			repoInfo, err := ParseRepositoryInfo(named)
-			assert.NilError(t, err)
+			repoInfo := ParseRepositoryInfo(named)
 
 			assert.Check(t, is.DeepEqual(repoInfo.Index, expected.Index))
 			assert.Check(t, is.Equal(reference.Path(repoInfo.Name), expected.RemoteName))
