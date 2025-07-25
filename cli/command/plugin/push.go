@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/docker/registry"
+	"github.com/docker/cli/internal/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

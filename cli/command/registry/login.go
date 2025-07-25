@@ -15,8 +15,8 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/oauth/manager"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
-	"github.com/docker/docker/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
@@ -288,7 +288,7 @@ func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*regis
 		return nil, err
 	}
 
-	_, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+	token, err := svc.Auth(ctx, &auth, command.UserAgent())
 	if err != nil {
 		return nil, err
 	}

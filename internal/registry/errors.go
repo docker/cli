@@ -1,10 +1,14 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.23
+
 package registry
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/docker/distribution/registry/api/errcode"
-	"github.com/pkg/errors"
 )
 
 func translateV2AuthError(err error) error {
@@ -22,12 +26,8 @@ func invalidParam(err error) error {
 	return invalidParameterErr{err}
 }
 
-func invalidParamf(format string, args ...interface{}) error {
-	return invalidParameterErr{errors.Errorf(format, args...)}
-}
-
-func invalidParamWrapf(err error, format string, args ...interface{}) error {
-	return invalidParameterErr{errors.Wrapf(err, format, args...)}
+func invalidParamf(format string, args ...any) error {
+	return invalidParameterErr{fmt.Errorf(format, args...)}
 }
 
 type unauthorizedErr struct{ error }
@@ -47,21 +47,5 @@ type invalidParameterErr struct{ error }
 func (invalidParameterErr) InvalidParameter() {}
 
 func (e invalidParameterErr) Unwrap() error {
-	return e.error
-}
-
-type systemErr struct{ error }
-
-func (systemErr) System() {}
-
-func (e systemErr) Unwrap() error {
-	return e.error
-}
-
-type errUnknown struct{ error }
-
-func (errUnknown) Unknown() {}
-
-func (e errUnknown) Unwrap() error {
 	return e.error
 }

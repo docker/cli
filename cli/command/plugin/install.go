@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/docker/registry"
+	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/types"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/pkg/errors"
