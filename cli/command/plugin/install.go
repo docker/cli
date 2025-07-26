@@ -125,7 +125,9 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 		}
 		return err
 	}
-	defer responseBody.Close()
+	defer func() {
+		_ = responseBody.Close()
+	}()
 	if err := jsonstream.Display(ctx, responseBody, dockerCLI.Out()); err != nil {
 		return err
 	}
