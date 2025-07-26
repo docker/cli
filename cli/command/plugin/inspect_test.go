@@ -21,14 +21,14 @@ var pluginFoo = &types.Plugin{
 		Documentation: "plugin foo documentation",
 		Entrypoint:    []string{"/foo"},
 		Interface: types.PluginConfigInterface{
-			Socket: "pluginfoo.sock",
+			Socket: "plugin-foo.sock",
 		},
 		Linux: types.PluginConfigLinux{
 			Capabilities: []string{"CAP_SYS_ADMIN"},
 		},
 		WorkDir: "workdir-foo",
 		Rootfs: &types.PluginConfigRootfs{
-			DiffIds: []string{"sha256:8603eedd4ea52cebb2f22b45405a3dc8f78ba3e31bf18f27b4547a9ff930e0bd"},
+			DiffIds: []string{"sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"},
 			Type:    "layers",
 		},
 	},
@@ -71,7 +71,7 @@ func TestInspectErrors(t *testing.T) {
 			cmd := newInspectCommand(cli)
 			cmd.SetArgs(tc.args)
 			for key, value := range tc.flags {
-				cmd.Flags().Set(key, value)
+				assert.NilError(t, cmd.Flags().Set(key, value))
 			}
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
@@ -142,7 +142,7 @@ func TestInspect(t *testing.T) {
 			cmd := newInspectCommand(cli)
 			cmd.SetArgs(tc.args)
 			for key, value := range tc.flags {
-				cmd.Flags().Set(key, value)
+				assert.NilError(t, cmd.Flags().Set(key, value))
 			}
 			assert.NilError(t, cmd.Execute())
 			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
