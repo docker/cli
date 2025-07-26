@@ -32,7 +32,7 @@ func TestInstallErrors(t *testing.T) {
 		},
 		{
 			description:   "invalid plugin name",
-			args:          []string{"UPPERCASE_REPONAME"},
+			args:          []string{"UPPERCASE_REPO_NAME"},
 			expectedError: "invalid",
 		},
 		{

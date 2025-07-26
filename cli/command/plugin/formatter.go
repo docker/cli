@@ -12,6 +12,12 @@ const (
 
 	enabledHeader  = "ENABLED"
 	pluginIDHeader = "ID"
+
+	rawFormat = `plugin_id: {{.ID}}
+name: {{.Name}}
+description: {{.Description}}
+enabled: {{.Enabled}}
+`
 )
 
 // NewFormat returns a Format for rendering using a plugin Context
@@ -26,7 +32,7 @@ func NewFormat(source string, quiet bool) formatter.Format {
 		if quiet {
 			return `plugin_id: {{.ID}}`
 		}
-		return `plugin_id: {{.ID}}\nname: {{.Name}}\ndescription: {{.Description}}\nenabled: {{.Enabled}}\n`
+		return rawFormat
 	}
 	return formatter.Format(source)
 }

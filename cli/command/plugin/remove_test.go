@@ -64,7 +64,7 @@ func TestRemoveWithForceOption(t *testing.T) {
 	})
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo"})
-	cmd.Flags().Set("force", "true")
+	assert.NilError(t, cmd.Flags().Set("force", "true"))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, force)
 	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))

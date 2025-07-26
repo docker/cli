@@ -40,7 +40,7 @@ func validateConfig(path string) error {
 	return err
 }
 
-// validateContextDir validates the given dir and returns abs path on success.
+// validateContextDir validates the given dir and returns its absolute path on success.
 func validateContextDir(contextDir string) (string, error) {
 	absContextDir, err := filepath.Abs(contextDir)
 	if err != nil {

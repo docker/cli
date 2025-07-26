@@ -1,7 +1,6 @@
 package plugin
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -10,27 +9,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newDisableCommand(dockerCli command.Cli) *cobra.Command {
-	var force bool
+func newDisableCommand(dockerCLI command.Cli) *cobra.Command {
+	var opts types.PluginDisableOptions
 
 	cmd := &cobra.Command{
 		Use:   "disable [OPTIONS] PLUGIN",
 		Short: "Disable a plugin",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDisable(cmd.Context(), dockerCli, args[0], force)
+			name := args[0]
+			if err := dockerCLI.Client().PluginDisable(cmd.Context(), name, opts); err != nil {
+				return err
+			}
+			_, _ = fmt.Fprintln(dockerCLI.Out(), name)
+			return nil
 		},
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&force, "force", "f", false, "Force the disable of an active plugin")
+	flags.BoolVarP(&opts.Force, "force", "f", false, "Force the disable of an active plugin")
 	return cmd
-}
-
-func runDisable(ctx context.Context, dockerCli command.Cli, name string, force bool) error {
-	if err := dockerCli.Client().PluginDisable(ctx, name, types.PluginDisableOptions{Force: force}); err != nil {
-		return err
-	}
-	fmt.Fprintln(dockerCli.Out(), name)
-	return nil
 }
