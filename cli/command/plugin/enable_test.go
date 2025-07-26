@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -15,7 +15,7 @@ func TestPluginEnableErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
 		flags            map[string]string
-		pluginEnableFunc func(name string, options types.PluginEnableOptions) error
+		pluginEnableFunc func(name string, options client.PluginEnableOptions) error
 		expectedError    string
 	}{
 		{
@@ -28,7 +28,7 @@ func TestPluginEnableErrors(t *testing.T) {
 		},
 		{
 			args: []string{"plugin-foo"},
-			pluginEnableFunc: func(name string, options types.PluginEnableOptions) error {
+			pluginEnableFunc: func(name string, options client.PluginEnableOptions) error {
 				return errors.New("failed to enable plugin")
 			},
 			expectedError: "failed to enable plugin",
@@ -48,7 +48,7 @@ func TestPluginEnableErrors(t *testing.T) {
 		}))
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
-			cmd.Flags().Set(key, value)
+			assert.NilError(t, cmd.Flags().Set(key, value))
 		}
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
@@ -58,7 +58,7 @@ func TestPluginEnableErrors(t *testing.T) {
 
 func TestPluginEnable(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		pluginEnableFunc: func(name string, options types.PluginEnableOptions) error {
+		pluginEnableFunc: func(name string, options client.PluginEnableOptions) error {
 			return nil
 		},
 	})

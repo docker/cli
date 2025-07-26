@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -96,7 +96,7 @@ func TestCreateErrorFromDaemon(t *testing.T) {
 	defer tmpDir.Remove()
 
 	cmd := newCreateCommand(test.NewFakeCli(&fakeClient{
-		pluginCreateFunc: func(createContext io.Reader, createOptions types.PluginCreateOptions) error {
+		pluginCreateFunc: func(createContext io.Reader, createOptions client.PluginCreateOptions) error {
 			return errors.New("error creating plugin")
 		},
 	}))
@@ -113,7 +113,7 @@ func TestCreatePlugin(t *testing.T) {
 	defer tmpDir.Remove()
 
 	cli := test.NewFakeCli(&fakeClient{
-		pluginCreateFunc: func(createContext io.Reader, createOptions types.PluginCreateOptions) error {
+		pluginCreateFunc: func(createContext io.Reader, createOptions client.PluginCreateOptions) error {
 			return nil
 		},
 	})

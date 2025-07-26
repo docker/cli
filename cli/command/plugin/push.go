@@ -60,7 +60,9 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	if err != nil {
 		return err
 	}
-	defer responseBody.Close()
+	defer func() {
+		_ = responseBody.Close()
+	}()
 
 	if !opts.untrusted {
 		return trust.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody, command.UserAgent())
