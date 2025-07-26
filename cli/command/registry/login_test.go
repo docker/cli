@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
+	configtypes "github.com/docker/cli/config/types"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/test"

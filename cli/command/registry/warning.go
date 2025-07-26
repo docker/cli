@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config/configfile"
 	"github.com/docker/cli/internal/tui"
 )
 

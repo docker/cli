@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/config"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/sys/atomicwriter"

@@ -13,8 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
 	dcontext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
@@ -22,6 +20,8 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
 	dopts "github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/api/types/swarm"

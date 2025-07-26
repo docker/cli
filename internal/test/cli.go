@@ -7,13 +7,13 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/config/configfile"
 	"github.com/moby/moby/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )

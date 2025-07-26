@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
+	"github.com/docker/cli/config/types"
 )
 
 // readCredentials resolves auth-config from the current environment to be

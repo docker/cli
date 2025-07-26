@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/google/go-cmp/cmp"

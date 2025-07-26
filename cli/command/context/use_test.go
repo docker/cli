@@ -11,9 +11,9 @@ import (
 
 	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config/configfile"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/moby/api/types/swarm"
 )

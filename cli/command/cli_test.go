@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"

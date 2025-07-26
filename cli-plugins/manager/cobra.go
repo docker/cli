@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/config"
 	"github.com/spf13/cobra"
 )
 

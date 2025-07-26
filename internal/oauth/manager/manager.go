@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/config/credentials"
+	"github.com/docker/cli/config/types"
 	"github.com/docker/cli/internal/oauth"
 	"github.com/docker/cli/internal/oauth/api"
 	"github.com/docker/cli/internal/registry"

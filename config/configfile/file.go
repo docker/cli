@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/memorystore"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/config/credentials"
+	"github.com/docker/cli/config/memorystore"
+	"github.com/docker/cli/config/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

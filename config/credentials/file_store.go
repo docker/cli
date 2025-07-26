@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/config/types"
 )
 
 type store interface {

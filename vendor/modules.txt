@@ -48,6 +48,13 @@ github.com/distribution/reference
 ## explicit; go 1.23.0
 github.com/docker/cli-docs-tool
 github.com/docker/cli-docs-tool/annotation
+# github.com/docker/cli/config v0.0.0 => ./config
+## explicit; go 1.24
+github.com/docker/cli/config
+github.com/docker/cli/config/configfile
+github.com/docker/cli/config/credentials
+github.com/docker/cli/config/memorystore
+github.com/docker/cli/config/types
 # github.com/docker/distribution v2.8.3+incompatible
 ## explicit
 github.com/docker/distribution
@@ -571,5 +578,6 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/cli/config => ./config
 # github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250724140036-49306c607b72
 # github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250724140036-49306c607b72
