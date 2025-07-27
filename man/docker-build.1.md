@@ -78,7 +78,7 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
    layers in tact, and one for the squashed version.
 
 **--add-host** []
-   Add a custom host-to-IP mapping (host=ip, or host:ip)
+   Add a custom host-to-IP mapping (host=ip, or host:ip).
 
    Add a line to /etc/hosts. The format is hostname=ip, or hostname:ip.
    The **--add-host** option can be set multiple times.
@@ -98,7 +98,7 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
    Set image that will be used as a build cache source.
 
 **--force-rm** *true*|*false*
-   Always remove intermediate containers, even after unsuccessful builds. The default is *false*.
+   Always remove intermediate containers, even after unsuccessful builds. The default is **false**.
 
 **--isolation** "*default*"
    Isolation specifies the type of isolation technology used by containers.
@@ -107,25 +107,25 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
    Set metadata for an image
 
 **--no-cache** *true*|*false*
-   Do not use cache when building the image. The default is *false*.
+   Do not use cache when building the image. The default is **false**.
 
 **--iidfile** ""
-   Write the image ID to the file
+   Write the image ID to the file.
 
 **--help**
-  Print usage statement
+  Print usage statement.
 
 **--pull** *true*|*false*
-   Always attempt to pull a newer version of the image. The default is *false*.
+   Always attempt to pull a newer version of the image. The default is **false**.
 
 **--compress** *true*|*false*
-   Compress the build context using gzip. The default is *false*.
+   Compress the build context using gzip. The default is **false**.
 
 **-q**, **--quiet** *true*|*false*
-   Suppress the build output and print image ID on success. The default is *false*.
+   Suppress the build output and print image ID on success. The default is **false**.
 
 **--rm** *true*|*false*
-   Remove intermediate containers after a successful build. The default is *true*.
+   Remove intermediate containers after a successful build. The default is **true**.
 
 **-t**, **--tag** ""
    Repository names (and optionally with tags) to be applied to the resulting
@@ -133,7 +133,7 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
    about valid tag names.
 
 **-m**, **--memory** *MEMORY*
-   Memory limit
+   Memory limit.
 
 **--memory-swap** *number*[*S*]
    Combined memory plus swap limit; *S* is an optional suffix which can be one
@@ -143,13 +143,13 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
 
 **--network** *type*
   Set the networking mode for the RUN instructions during build. Supported standard
-  values are: **none**, **bridge**, **host** and **container:**<_name_|_id_>. Any other value
+  values are: **none**, **bridge**, **host** and **container:** <_name_|_id_>. Any other value
   is taken as a custom network's name or ID which this container should connect to.
 
 In Linux, default is **bridge**.
 
 **--shm-size** *SHM-SIZE*
-  Size of `/dev/shm`. The format is `<number><unit>`. `number` must be greater than `0`.
+  Size of `/dev/shm`. The format is `numberunit`. `number` must be greater than `0`.
   Unit is optional and can be `b` (bytes), `k` (kilobytes), `m` (megabytes), or `g` (gigabytes). If you omit the unit, the system uses bytes.
   If you omit the size entirely, the system uses `64m`.
 
@@ -340,7 +340,7 @@ Note: supported compression formats are 'xz', 'bzip2', 'gzip' and 'identity' (no
 ## Specify isolation technology for container (--isolation)
 
 This option is useful in situations where you are running Docker containers on
-Windows. The `--isolation <value>` option sets a container's isolation
+Windows. The `--isolation value` option sets a container's isolation
 technology. On Linux, the only supported is the `default` option which uses
 Linux namespaces. On Microsoft Windows, you can specify these values:
 
