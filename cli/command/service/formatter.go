@@ -728,6 +728,7 @@ func (c *serviceContext) Image() string {
 }
 
 type portRange struct {
+	pName    string
 	pStart   uint32
 	pEnd     uint32
 	tStart   uint32
@@ -737,10 +738,16 @@ type portRange struct {
 
 func (pr portRange) String() string {
 	var (
-		pub string
-		tgt string
+		pub  string
+		tgt  string
+		name string
 	)
 
+	if pr.pName == "" {
+		name = "*"
+	} else {
+		name = pr.pName
+	}
 	if pr.pEnd > pr.pStart {
 		pub = fmt.Sprintf("%d-%d", pr.pStart, pr.pEnd)
 	} else {
@@ -751,7 +758,7 @@ func (pr portRange) String() string {
 	} else {
 		tgt = strconv.FormatUint(uint64(pr.tStart), 10)
 	}
-	return fmt.Sprintf("*:%s->%s/%s", pub, tgt, pr.protocol)
+	return fmt.Sprintf("%s:%s->%s/%s", name, pub, tgt, pr.protocol)
 }
 
 // Ports formats published ports on the ingress network for output.
@@ -797,6 +804,7 @@ func (c *serviceContext) Ports() string {
 					ports = append(ports, pr.String())
 				}
 				pr = portRange{
+					pName:    p.Name,
 					pStart:   p.PublishedPort,
 					pEnd:     p.PublishedPort,
 					tStart:   p.TargetPort,
