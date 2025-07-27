@@ -42,7 +42,7 @@ func NewPsCommand(dockerCLI command.Cli) *cobra.Command {
 		},
 		Annotations: map[string]string{
 			"category-top": "3",
-			"aliases":      "docker container ls, docker container list, docker container ps, docker ps",
+			"aliases":      "docker container ls, docker container list, docker container ps, docker ps, docker containers",
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
