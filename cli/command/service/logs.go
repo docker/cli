@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -93,12 +93,12 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, swarm.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
-		if !cerrdefs.IsNotFound(err) {
+		if !errdefs.IsNotFound(err) {
 			return err
 		}
 		task, _, err := apiClient.TaskInspectWithRaw(ctx, opts.target)
 		if err != nil {
-			if cerrdefs.IsNotFound(err) {
+			if errdefs.IsNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
 				// that we looked for services AND tasks and found none
 				err = fmt.Errorf("no such task or service: %v", opts.target)

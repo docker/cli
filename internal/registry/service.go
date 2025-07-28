@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/containerd/log"
 	"github.com/moby/moby/api/types/registry"
 )
@@ -60,7 +60,7 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 	for _, endpoint := range endpoints {
 		authToken, err := loginV2(ctx, authConfig, endpoint, userAgent)
 		if err != nil {
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || cerrdefs.IsUnauthorized(err) {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || errdefs.IsUnauthorized(err) {
 				// Failed to authenticate; don't continue with (non-TLS) endpoints.
 				return "", err
 			}
