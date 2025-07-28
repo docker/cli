@@ -57,8 +57,8 @@ github.com/docker/cli-docs-tool v0.10.0/go.mod h1:5EM5zPnT2E7yCLERZmrDA234Vwn09f
 github.com/docker/distribution v2.7.1+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
 github.com/docker/distribution v2.8.3+incompatible h1:AtKxIZ36LoNK51+Z6RpzLpddBirtxJnzDrHLEKxTAYk=
 github.com/docker/distribution v2.8.3+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
-github.com/docker/docker v28.2.3-0.20250724140036-49306c607b72+incompatible h1:jDPHkJMR6wCbKJhFijK8GfnbpesQFzzIxRnlQ9urO+s=
-github.com/docker/docker v28.2.3-0.20250724140036-49306c607b72+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
+github.com/docker/docker v28.2.3-0.20250726000215-c4afa7715715+incompatible h1:68v/T8kOboaoOkQHDoCoECymkwMCjA7kV/JCPuWF1cg=
+github.com/docker/docker v28.2.3-0.20250726000215-c4afa7715715+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker-credential-helpers v0.9.3 h1:gAm/VtF9wgqJMoxzT3Gj5p4AqIjCBS4wrsOh9yRqcz8=
 github.com/docker/docker-credential-helpers v0.9.3/go.mod h1:x+4Gbw9aGmChi3qTLZj8Dfn0TD20M/fuWy0E5+WDeCo=
 github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c h1:lzqkGL9b3znc+ZUgi7FlLnqjQhcXxkNM/quxIjBVMD0=
@@ -172,10 +172,10 @@ github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3N
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
 github.com/moby/go-archive v0.1.0 h1:Kk/5rdW/g+H8NHdJW2gsXyZ7UnzvJNOy6VKJqueWdcQ=
 github.com/moby/go-archive v0.1.0/go.mod h1:G9B+YoujNohJmrIYFBpSd54GTUB4lt9S+xVQvsJyFuo=
-github.com/moby/moby/api v0.0.0-20250724140036-49306c607b72 h1:8x4LgU8gdkvRQ0YCAMhG8dxUVKW31hyVZ2F1iYQg7JI=
-github.com/moby/moby/api v0.0.0-20250724140036-49306c607b72/go.mod h1:VA4aMWurxqzKHCXKDSqoBx3hiJxnTStnqSG5zgc8XL0=
-github.com/moby/moby/client v0.0.0-20250724140036-49306c607b72 h1:9Qub35j+NS1FltWbEWj2cJuQTeL5hCswCTEFxbqovgI=
-github.com/moby/moby/client v0.0.0-20250724140036-49306c607b72/go.mod h1:Ax3ccMnrUUuchkrGDgHpXDeoI0g3MCgZy0V0vDo0+qs=
+github.com/moby/moby/api v0.0.0-20250726000215-c4afa7715715 h1:UUkLPAPbTOKnuShYw9Qtzp2A8MAqLX0uUcGLMp88ZnI=
+github.com/moby/moby/api v0.0.0-20250726000215-c4afa7715715/go.mod h1:VA4aMWurxqzKHCXKDSqoBx3hiJxnTStnqSG5zgc8XL0=
+github.com/moby/moby/client v0.0.0-20250726000215-c4afa7715715 h1:clo9erZs096YQdhoocHEV99JEZ6BXriBXTVvugenHr4=
+github.com/moby/moby/client v0.0.0-20250726000215-c4afa7715715/go.mod h1:Ax3ccMnrUUuchkrGDgHpXDeoI0g3MCgZy0V0vDo0+qs=
 github.com/moby/patternmatcher v0.6.0 h1:GmP9lR19aU5GqSSFko+5pRqHi+Ohk1O69aFiKkVGiPk=
 github.com/moby/patternmatcher v0.6.0/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
 github.com/moby/swarmkit/v2 v2.0.0 h1:jkWQKQaJ4ltA61/mC9UdPe1McLma55RUcacTO+pPweY=

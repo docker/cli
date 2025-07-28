@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/api/stdcopy"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/client"
 	"github.com/moby/term"
 	"github.com/sirupsen/logrus"
 )
@@ -38,7 +38,7 @@ type hijackedIOStreamer struct {
 	outputStream io.Writer
 	errorStream  io.Writer
 
-	resp types.HijackedResponse
+	resp client.HijackedResponse
 
 	tty        bool
 	detachKeys string
