@@ -209,8 +209,7 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	case formatter.JSONFormatKey:
 		templateFormat = formatter.JSONFormat
 	}
-	tmpl := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder})
-	tmpl, err := tmpl.Parse(templateFormat)
+	tmpl, err := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder}).Parse(templateFormat)
 	if err != nil {
 		return nil, errors.Wrap(err, "template parsing error")
 	}

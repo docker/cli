@@ -71,7 +71,7 @@ var HeaderFunctions = template.FuncMap{
 // Parse creates a new anonymous template with the basic functions
 // and parses the given format.
 func Parse(format string) (*template.Template, error) {
-	return NewParse("", format)
+	return template.New("").Funcs(basicFunctions).Parse(format)
 }
 
 // New creates a new empty template with the provided tag and built-in
@@ -82,8 +82,10 @@ func New(tag string) *template.Template {
 
 // NewParse creates a new tagged template with the basic functions
 // and parses the given format.
+//
+// Deprecated: this function is unused and will be removed in the next release. Use [New] if you need to set a tag, or [Parse] instead.
 func NewParse(tag, format string) (*template.Template, error) {
-	return New(tag).Parse(format)
+	return template.New(tag).Funcs(basicFunctions).Parse(format)
 }
 
 // padWithSpace adds whitespace to the input if the input is non-empty

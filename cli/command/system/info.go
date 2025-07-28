@@ -162,7 +162,7 @@ func needsServerInfo(template string, info dockerInfo) bool {
 	}
 
 	// A template is provided and has at least one field set.
-	tmpl, err := templates.NewParse("", template)
+	tmpl, err := templates.Parse(template)
 	if err != nil {
 		// ignore parsing errors here, and let regular code handle them
 		return true
