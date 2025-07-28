@@ -86,6 +86,8 @@ linters:
               desc: Use github.com/moby/sys/userns instead.
             - pkg: "github.com/containerd/containerd/platforms"
               desc: The containerd platforms package was migrated to a separate module. Use github.com/containerd/platforms instead.
+            - pkg: "github.com/docker/docker/errdefs"
+              desc: Use github.com/containerd/errdefs instead.
             - pkg: "github.com/docker/docker/pkg/system"
               desc: This package should not be used unless strictly necessary.
             - pkg: "github.com/docker/distribution/uuid"
@@ -124,10 +126,9 @@ linters:
       no-unaliased: true
 
       alias:
-        # Enforce alias to prevent it accidentally being used instead of our
-        # own errdefs package (or vice-versa).
-        - pkg: github.com/containerd/errdefs
-          alias: cerrdefs
+          # Should no longer be aliased, because we no longer allow moby/docker errdefs.
+        - pkg: "github.com/docker/docker/errdefs"
+          alias: ""
         - pkg: github.com/opencontainers/image-spec/specs-go/v1
           alias: ocispec
           # Enforce that gotest.tools/v3/assert/cmp is always aliased as "is"

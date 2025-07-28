@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/socket"
@@ -41,7 +41,7 @@ func main() {
 		os.Exit(getExitCode(err))
 	}
 
-	if err != nil && !cerrdefs.IsCanceled(err) {
+	if err != nil && !errdefs.IsCanceled(err) {
 		if err.Error() != "" {
 			_, _ = fmt.Fprintln(os.Stderr, err)
 		}

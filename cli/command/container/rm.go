@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -75,7 +75,7 @@ func runRm(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) error {
 	var errs []error
 	for _, name := range opts.containers {
 		if err := <-errChan; err != nil {
-			if opts.force && cerrdefs.IsNotFound(err) {
+			if opts.force && errdefs.IsNotFound(err) {
 				_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 				continue
 			}

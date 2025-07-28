@@ -3,7 +3,7 @@ package registry
 import (
 	"testing"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"gotest.tools/v3/assert"
 )
 
@@ -86,7 +86,7 @@ func TestLoadInsecureRegistries(t *testing.T) {
 				t.Fatalf("expect error '%s', got no error", testCase.err)
 			}
 			assert.ErrorContains(t, err, testCase.err)
-			assert.Check(t, cerrdefs.IsInvalidArgument(err))
+			assert.Check(t, errdefs.IsInvalidArgument(err))
 		}
 	}
 }
