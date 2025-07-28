@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/hooks"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/config"
+	"github.com/docker/cli/config/configfile"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

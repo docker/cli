@@ -4,7 +4,11 @@ module github.com/docker/cli
 // There is no 'go.mod' file, as that would imply opting in for all the rules
 // around SemVer, which this repo cannot abide by as it uses CalVer.
 
-go 1.23.0
+go 1.24
+
+toolchain go1.24.2
+
+replace github.com/docker/cli/config => ./config
 
 replace (
 	// FIXME(thaJeztah): temporarily need to pin on commits, otherwise go modules won't resolve until these are tagged.
@@ -21,9 +25,10 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.10.0
+	github.com/docker/cli/config v0.0.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v28.2.3-0.20250724140036-49306c607b72+incompatible // master (v29.0-dev)
-	github.com/docker/docker-credential-helpers v0.9.3
+	github.com/docker/docker-credential-helpers v0.9.3 // indirect
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.1.0

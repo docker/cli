@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/config"
 	"github.com/docker/cli/internal/test"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/trustmanager"
