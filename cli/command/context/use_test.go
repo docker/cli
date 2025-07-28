@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"testing"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
@@ -47,7 +47,7 @@ func TestUse(t *testing.T) {
 func TestUseNoExist(t *testing.T) {
 	cli := makeFakeCli(t)
 	err := newUseCommand(cli).RunE(nil, []string{"test"})
-	assert.Check(t, is.ErrorType(err, cerrdefs.IsNotFound))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }
 
 // TestUseDefaultWithoutConfigFile verifies that the CLI does not create

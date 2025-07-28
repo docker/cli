@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"gotest.tools/v3/assert"
@@ -18,7 +18,7 @@ func TestRemove(t *testing.T) {
 	_, err := cli.ContextStore().GetMetadata("current")
 	assert.NilError(t, err)
 	_, err = cli.ContextStore().GetMetadata("other")
-	assert.Check(t, is.ErrorType(err, cerrdefs.IsNotFound))
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }
 
 func TestRemoveNotAContext(t *testing.T) {
