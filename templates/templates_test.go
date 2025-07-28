@@ -30,7 +30,7 @@ func TestParseStringFunctions(t *testing.T) {
 }
 
 func TestNewParse(t *testing.T) {
-	tm, err := NewParse("foo", "this is a {{ . }}")
+	tm, err := New("foo").Parse("this is a {{ . }}")
 	assert.NilError(t, err)
 
 	var b bytes.Buffer
