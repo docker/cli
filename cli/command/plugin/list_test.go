@@ -51,7 +51,7 @@ func TestListErrors(t *testing.T) {
 			cmd := newListCommand(cli)
 			cmd.SetArgs(tc.args)
 			for key, value := range tc.flags {
-				cmd.Flags().Set(key, value)
+				assert.NilError(t, cmd.Flags().Set(key, value))
 			}
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
@@ -170,7 +170,7 @@ func TestList(t *testing.T) {
 			cmd := newListCommand(cli)
 			cmd.SetArgs(tc.args)
 			for key, value := range tc.flags {
-				cmd.Flags().Set(key, value)
+				assert.NilError(t, cmd.Flags().Set(key, value))
 			}
 			assert.NilError(t, cmd.Execute())
 			golden.Assert(t, cli.OutBuffer().String(), tc.golden)
