@@ -15,7 +15,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.10.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.3.1+incompatible
+	github.com/docker/docker v28.3.3+incompatible
 	github.com/docker/docker-credential-helpers v0.9.3
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0
@@ -37,7 +37,7 @@ require (
 	github.com/moby/term v0.5.2
 	github.com/morikuni/aec v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0
+	github.com/opencontainers/image-spec v1.1.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
