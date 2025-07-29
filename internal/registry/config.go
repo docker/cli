@@ -254,9 +254,7 @@ func validateHostPort(s string) error {
 
 // ParseRepositoryInfo performs the breakdown of a repository name into a
 // [RepositoryInfo], but lacks registry configuration.
-//
-// It is used by the Docker cli to interact with registry-related endpoints.
-func ParseRepositoryInfo(reposName reference.Named) (*RepositoryInfo, error) {
+func ParseRepositoryInfo(reposName reference.Named) *RepositoryInfo {
 	indexName := normalizeIndexName(reference.Domain(reposName))
 	if indexName == IndexName {
 		return &RepositoryInfo{
@@ -266,7 +264,7 @@ func ParseRepositoryInfo(reposName reference.Named) (*RepositoryInfo, error) {
 				Secure:   true,
 				Official: true,
 			},
-		}, nil
+		}
 	}
 
 	return &RepositoryInfo{
@@ -275,7 +273,7 @@ func ParseRepositoryInfo(reposName reference.Named) (*RepositoryInfo, error) {
 			Name:   indexName,
 			Secure: !isInsecure(indexName),
 		},
-	}, nil
+	}
 }
 
 // isInsecure is used to detect whether a registry domain or IP-address is allowed
