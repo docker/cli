@@ -11,9 +11,9 @@ import (
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -65,8 +65,7 @@ func buildPullConfig(ctx context.Context, dockerCli command.Cli, opts pluginOpti
 		return types.PluginInstallOptions{}, err
 	}
 
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
-
+	repoInfo := registry.ParseRepositoryInfo(ref)
 	remote := ref.String()
 
 	_, isCanonical := ref.(reference.Canonical)

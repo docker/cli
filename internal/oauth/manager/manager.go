@@ -14,8 +14,8 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/oauth"
 	"github.com/docker/cli/internal/oauth/api"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
-	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	"github.com/sirupsen/logrus"
 

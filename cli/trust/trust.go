@@ -14,11 +14,11 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -321,7 +321,7 @@ func GetImageReferencesAndAuth(ctx context.Context,
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
+	repoInfo := registry.ParseRepositoryInfo(ref)
 	authConfig := authResolver(ctx, repoInfo.Index)
 	return ImageRefAndAuth{
 		original:   imgName,
