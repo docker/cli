@@ -65,7 +65,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v28.2.3-0.20250728115625-25e2b4d48551+incompatible
+# github.com/docker/docker v28.2.3-0.20250729125042-2574c2b2e917+incompatible
 ## explicit
 github.com/docker/docker/pkg/jsonmessage
 github.com/docker/docker/pkg/process
@@ -174,7 +174,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/tarheader
-# github.com/moby/moby/api v0.0.0 => github.com/moby/moby/api v0.0.0-20250728115625-25e2b4d48551
+# github.com/moby/moby/api v0.0.0 => github.com/moby/moby/api v0.0.0-20250729125042-2574c2b2e917
 ## explicit; go 1.23.0
 github.com/moby/moby/api/stdcopy
 github.com/moby/moby/api/types
@@ -193,12 +193,11 @@ github.com/moby/moby/api/types/registry
 github.com/moby/moby/api/types/storage
 github.com/moby/moby/api/types/strslice
 github.com/moby/moby/api/types/swarm
-github.com/moby/moby/api/types/swarm/runtime
 github.com/moby/moby/api/types/system
 github.com/moby/moby/api/types/time
 github.com/moby/moby/api/types/versions
 github.com/moby/moby/api/types/volume
-# github.com/moby/moby/client v0.0.0 => github.com/moby/moby/client v0.0.0-20250728115625-25e2b4d48551
+# github.com/moby/moby/client v0.0.0 => github.com/moby/moby/client v0.0.0-20250729125042-2574c2b2e917
 ## explicit; go 1.23.0
 github.com/moby/moby/client
 github.com/moby/moby/client/pkg/stringid
@@ -572,5 +571,5 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
-# github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250728115625-25e2b4d48551
-# github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250728115625-25e2b4d48551
+# github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250729125042-2574c2b2e917
+# github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250729125042-2574c2b2e917
