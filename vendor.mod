@@ -6,6 +6,15 @@ module github.com/docker/cli
 
 go 1.23.0
 
+replace (
+	// FIXME(thaJeztah): trying https://github.com/moby/moby/pull/50475
+	github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250731154917-67e26016308b+incompatible
+
+	// FIXME(thaJeztah): temporarily need to pin on commits, otherwise go modules won't resolve until these are tagged.
+	github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250731152656-4faedf2bec36
+	github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250731152656-4faedf2bec36
+)
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/errdefs v1.0.0
@@ -83,6 +92,8 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
+	github.com/moby/moby/api v0.0.0 // indirect
+	github.com/moby/moby/client v0.0.0-00010101000000-000000000000 // indirect
 	github.com/moby/sys/symlink v0.3.0 // indirect
 	github.com/moby/sys/user v0.4.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
