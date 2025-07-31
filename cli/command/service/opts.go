@@ -335,11 +335,31 @@ type credentialSpecOpt struct {
 	source string
 }
 
+type credentialSpecType string
+
+const (
+	credentialSpecConfig   credentialSpecType = "config"
+	credentialSpecFile     credentialSpecType = "file"
+	credentialSpecRegistry credentialSpecType = "registry"
+)
+
 func (c *credentialSpecOpt) Set(value string) error {
+	// TODO(thaJeztah): should c.source always be set, even if we may error further down?
 	c.source = value
-	c.value = &swarm.CredentialSpec{}
-	switch {
-	case strings.HasPrefix(value, "config://"):
+	if value == "" {
+		// if the value of the flag is an empty string, that means there is no
+		// CredentialSpec needed. This is useful for removing a CredentialSpec
+		// during a service update.
+		c.value = &swarm.CredentialSpec{}
+		return nil
+	}
+
+	scheme, val, ok := strings.Cut(value, "://")
+	if !ok {
+		scheme = ""
+	}
+	switch credentialSpecType(scheme) {
+	case credentialSpecConfig:
 		// NOTE(dperny): we allow the user to specify the value of
 		// CredentialSpec Config using the Name of the config, but the API
 		// requires the ID of the config. For simplicity, we will parse
@@ -347,20 +367,24 @@ func (c *credentialSpecOpt) Set(value string) error {
 		// making API calls, we may need to swap the Config Name for the ID.
 		// Therefore, this isn't the definitive location for the value of
 		// Config that is passed to the API.
-		c.value.Config = strings.TrimPrefix(value, "config://")
-	case strings.HasPrefix(value, "file://"):
-		c.value.File = strings.TrimPrefix(value, "file://")
-	case strings.HasPrefix(value, "registry://"):
-		c.value.Registry = strings.TrimPrefix(value, "registry://")
-	case value == "":
-		// if the value of the flag is an empty string, that means there is no
-		// CredentialSpec needed. This is useful for removing a CredentialSpec
-		// during a service update.
+		c.value = &swarm.CredentialSpec{
+			Config: val,
+		}
+		return nil
+	case credentialSpecFile:
+		c.value = &swarm.CredentialSpec{
+			File: val,
+		}
+		return nil
+	case credentialSpecRegistry:
+		c.value = &swarm.CredentialSpec{
+			Registry: val,
+		}
+		return nil
 	default:
+		c.value = &swarm.CredentialSpec{}
 		return errors.New(`invalid credential spec: value must be prefixed with "config://", "file://", or "registry://"`)
 	}
-
-	return nil
 }
 
 func (*credentialSpecOpt) Type() string {
