@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/streams"
+	"github.com/moby/moby/api/types/jsonstream"
 	"gotest.tools/v3/assert"
 )
 
@@ -35,9 +36,11 @@ func TestDisplay(t *testing.T) {
 					TimeNano: time.Now().UnixNano(),
 					Time:     time.Now().Unix(),
 					Progress: &JSONProgress{
-						Current: int64(i),
-						Total:   100,
-						Start:   0,
+						Progress: jsonstream.Progress{
+							Current: int64(i),
+							Total:   100,
+							Start:   0,
+						},
 					},
 				})
 				if err != nil {

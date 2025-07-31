@@ -8,8 +8,8 @@ go 1.23.0
 
 replace (
 	// FIXME(thaJeztah): temporarily need to pin on commits, otherwise go modules won't resolve until these are tagged.
-	github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250729125042-2574c2b2e917
-	github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250729125042-2574c2b2e917
+	github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250731152656-4faedf2bec36
+	github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250731152656-4faedf2bec36
 )
 
 require (
@@ -22,7 +22,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.10.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.2.3-0.20250729125042-2574c2b2e917+incompatible // master (v29.0-dev)
+	github.com/docker/docker v28.2.3-0.20250731152656-4faedf2bec36+incompatible // master (v29.0-dev)
 	github.com/docker/docker-credential-helpers v0.9.3
 	github.com/docker/go-connections v0.5.0
 	github.com/docker/go-units v0.5.0

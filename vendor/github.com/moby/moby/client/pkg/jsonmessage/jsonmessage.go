@@ -8,37 +8,17 @@ import (
 	"time"
 
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/jsonstream"
 	"github.com/moby/term"
-	"github.com/morikuni/aec"
 )
 
 // RFC3339NanoFixed is time.RFC3339Nano with nanoseconds padded using zeros to
 // ensure the formatted time isalways the same number of characters.
 const RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
 
-// JSONError wraps a concrete Code and Message, Code is
-// an integer error code, Message is the error message.
-type JSONError struct {
-	Code    int    `json:"code,omitempty"`
-	Message string `json:"message,omitempty"`
-}
-
-func (e *JSONError) Error() string {
-	return e.Message
-}
-
 // JSONProgress describes a progress message in a JSON stream.
 type JSONProgress struct {
-	// Current is the current status and value of the progress made towards Total.
-	Current int64 `json:"current,omitempty"`
-	// Total is the end value describing when we made 100% progress for an operation.
-	Total int64 `json:"total,omitempty"`
-	// Start is the initial value for the operation.
-	Start int64 `json:"start,omitempty"`
-	// HideCounts. if true, hides the progress count indicator (xB/yB).
-	HideCounts bool `json:"hidecounts,omitempty"`
-	// Units is the unit to print for progress. It defaults to "bytes" if empty.
-	Units string `json:"units,omitempty"`
+	jsonstream.Progress
 
 	// terminalFd is the fd of the current terminal, if any. It is used
 	// to get the terminal width.
@@ -142,40 +122,44 @@ func (p *JSONProgress) width() int {
 // the created time, where it from, status, ID of the
 // message. It's used for docker events.
 type JSONMessage struct {
-	Stream   string        `json:"stream,omitempty"`
-	Status   string        `json:"status,omitempty"`
-	Progress *JSONProgress `json:"progressDetail,omitempty"`
-
-	// ProgressMessage is a pre-formatted presentation of [Progress].
-	//
-	// Deprecated: this field is deprecated since docker v0.7.1 / API v1.8. Use the information in [Progress] instead. This field will be omitted in a future release.
-	ProgressMessage string     `json:"progress,omitempty"`
-	ID              string     `json:"id,omitempty"`
-	From            string     `json:"from,omitempty"`
-	Time            int64      `json:"time,omitempty"`
-	TimeNano        int64      `json:"timeNano,omitempty"`
-	Error           *JSONError `json:"errorDetail,omitempty"`
-
-	// ErrorMessage contains errors encountered during the operation.
-	//
-	// Deprecated: this field is deprecated since docker v0.6.0 / API v1.4. Use [Error.Message] instead. This field will be omitted in a future release.
-	ErrorMessage string `json:"error,omitempty"` // deprecated
-	// Aux contains out-of-band data, such as digests for push signing and image id after building.
-	Aux *json.RawMessage `json:"aux,omitempty"`
+	Stream   string            `json:"stream,omitempty"`
+	Status   string            `json:"status,omitempty"`
+	Progress *JSONProgress     `json:"progressDetail,omitempty"`
+	ID       string            `json:"id,omitempty"`
+	From     string            `json:"from,omitempty"`
+	Time     int64             `json:"time,omitempty"`
+	TimeNano int64             `json:"timeNano,omitempty"`
+	Error    *jsonstream.Error `json:"errorDetail,omitempty"`
+	Aux      *json.RawMessage  `json:"aux,omitempty"` // Aux contains out-of-band data, such as digests for push signing and image id after building.
 }
 
+// We can probably use [aec.EmptyBuilder] for managing the output, but
+// currently we're doing it all manually, so defining some consts for
+// the basics we use.
+//
+// [aec.EmptyBuilder]: https://pkg.go.dev/github.com/morikuni/aec#EmptyBuilder
+const (
+	ansiEraseLine     = "\x1b[2K"  // Erase entire line
+	ansiCursorUpFmt   = "\x1b[%dA" // Move cursor up N lines
+	ansiCursorDownFmt = "\x1b[%dB" // Move cursor down N lines
+)
+
 func clearLine(out io.Writer) {
-	eraseMode := aec.EraseModes.All
-	cl := aec.EraseLine(eraseMode)
-	fmt.Fprint(out, cl)
+	_, _ = out.Write([]byte(ansiEraseLine))
 }
 
 func cursorUp(out io.Writer, l uint) {
-	fmt.Fprint(out, aec.Up(l))
+	if l == 0 {
+		return
+	}
+	_, _ = fmt.Fprintf(out, ansiCursorUpFmt, l)
 }
 
 func cursorDown(out io.Writer, l uint) {
-	fmt.Fprint(out, aec.Down(l))
+	if l == 0 {
+		return
+	}
+	_, _ = fmt.Fprintf(out, ansiCursorDownFmt, l)
 }
 
 // Display prints the JSONMessage to out. If isTerminal is true, it erases
@@ -189,29 +173,27 @@ func (jm *JSONMessage) Display(out io.Writer, isTerminal bool) error {
 	if isTerminal && jm.Stream == "" && jm.Progress != nil {
 		clearLine(out)
 		endl = "\r"
-		fmt.Fprint(out, endl)
+		_, _ = fmt.Fprint(out, endl)
 	} else if jm.Progress != nil && jm.Progress.String() != "" { // disable progressbar in non-terminal
 		return nil
 	}
 	if jm.TimeNano != 0 {
-		fmt.Fprintf(out, "%s ", time.Unix(0, jm.TimeNano).Format(RFC3339NanoFixed))
+		_, _ = fmt.Fprintf(out, "%s ", time.Unix(0, jm.TimeNano).Format(RFC3339NanoFixed))
 	} else if jm.Time != 0 {
-		fmt.Fprintf(out, "%s ", time.Unix(jm.Time, 0).Format(RFC3339NanoFixed))
+		_, _ = fmt.Fprintf(out, "%s ", time.Unix(jm.Time, 0).Format(RFC3339NanoFixed))
 	}
 	if jm.ID != "" {
-		fmt.Fprintf(out, "%s: ", jm.ID)
+		_, _ = fmt.Fprintf(out, "%s: ", jm.ID)
 	}
 	if jm.From != "" {
-		fmt.Fprintf(out, "(from %s) ", jm.From)
+		_, _ = fmt.Fprintf(out, "(from %s) ", jm.From)
 	}
 	if jm.Progress != nil && isTerminal {
-		fmt.Fprintf(out, "%s %s%s", jm.Status, jm.Progress.String(), endl)
-	} else if jm.ProgressMessage != "" { // deprecated
-		fmt.Fprintf(out, "%s %s%s", jm.Status, jm.ProgressMessage, endl)
+		_, _ = fmt.Fprintf(out, "%s %s%s", jm.Status, jm.Progress.String(), endl)
 	} else if jm.Stream != "" {
-		fmt.Fprintf(out, "%s%s", jm.Stream, endl)
+		_, _ = fmt.Fprintf(out, "%s%s", jm.Stream, endl)
 	} else {
-		fmt.Fprintf(out, "%s%s\n", jm.Status, endl)
+		_, _ = fmt.Fprintf(out, "%s%s\n", jm.Status, endl)
 	}
 	return nil
 }
@@ -258,7 +240,7 @@ func DisplayJSONMessagesStream(in io.Reader, out io.Writer, terminalFd uintptr, 
 		if jm.Progress != nil {
 			jm.Progress.terminalFd = terminalFd
 		}
-		if jm.ID != "" && (jm.Progress != nil || jm.ProgressMessage != "") {
+		if jm.ID != "" && jm.Progress != nil {
 			line, ok := ids[jm.ID]
 			if !ok {
 				// NOTE: This approach of using len(id) to
@@ -270,7 +252,7 @@ func DisplayJSONMessagesStream(in io.Reader, out io.Writer, terminalFd uintptr, 
 				line = uint(len(ids))
 				ids[jm.ID] = line
 				if isTerminal {
-					fmt.Fprintf(out, "\n")
+					_, _ = fmt.Fprintf(out, "\n")
 				}
 			}
 			diff = uint(len(ids)) - line
@@ -294,21 +276,4 @@ func DisplayJSONMessagesStream(in io.Reader, out io.Writer, terminalFd uintptr, 
 		}
 	}
 	return nil
-}
-
-// Stream is an io.Writer for output with utilities to get the output's file
-// descriptor and to detect whether it's a terminal.
-//
-// it is subset of the streams.Out type in
-// https://pkg.go.dev/github.com/docker/cli@v20.10.17+incompatible/cli/streams#Out
-type Stream interface {
-	io.Writer
-	FD() uintptr
-	IsTerminal() bool
-}
-
-// DisplayJSONMessagesToStream prints json messages to the output Stream. It is
-// used by the Docker CLI to print JSONMessage streams.
-func DisplayJSONMessagesToStream(in io.Reader, stream Stream, auxCallback func(JSONMessage)) error {
-	return DisplayJSONMessagesStream(in, stream, stream.FD(), stream.IsTerminal(), auxCallback)
 }
