@@ -11,8 +11,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/go-connections/nat"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +67,7 @@ func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) erro
 		if _, err = strconv.ParseUint(port, 10, 16); err != nil {
 			return errors.Wrapf(err, "Error: invalid port (%s)", port)
 		}
-		frontends, exists := c.NetworkSettings.Ports[nat.Port(port+"/"+proto)]
+		frontends, exists := c.NetworkSettings.Ports[container.PortRangeProto(port+"/"+proto)]
 		if !exists || len(frontends) == 0 {
 			return errors.Errorf("Error: No public port '%s' published for %s", opts.port, opts.container)
 		}

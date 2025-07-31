@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/container"
 	networktypes "github.com/moby/moby/api/types/network"
 	"github.com/spf13/pflag"
@@ -439,7 +438,7 @@ func TestParseWithExpose(t *testing.T) {
 		"8080-NaN/tcp":        `invalid range format for --expose: 8080-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
 		"1234567890-8080/tcp": `invalid range format for --expose: 1234567890-8080/tcp, error: strconv.ParseUint: parsing "1234567890": value out of range`,
 	}
-	valids := map[string][]nat.Port{
+	valids := map[string][]container.PortRangeProto{
 		"8080/tcp":      {"8080/tcp"},
 		"8080/udp":      {"8080/udp"},
 		"8080/ncp":      {"8080/ncp"},
@@ -473,7 +472,7 @@ func TestParseWithExpose(t *testing.T) {
 	if len(config.ExposedPorts) != 2 {
 		t.Fatalf("Expected 2 exposed ports, got %v", config.ExposedPorts)
 	}
-	ports := []nat.Port{"80/tcp", "81/tcp"}
+	ports := []container.PortRangeProto{"80/tcp", "81/tcp"}
 	for _, port := range ports {
 		if _, ok := config.ExposedPorts[port]; !ok {
 			t.Fatalf("Expected %v, got %v", ports, config.ExposedPorts)

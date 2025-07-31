@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/sirupsen/logrus"
 )
@@ -150,28 +151,31 @@ func (p *PortOpt) Value() []swarm.PortConfig {
 
 // ConvertPortToPortConfig converts ports to the swarm type
 func ConvertPortToPortConfig(
-	port nat.Port,
-	portBindings map[nat.Port][]nat.PortBinding,
+	portRangeProto container.PortRangeProto,
+	portBindings map[container.PortRangeProto][]container.PortBinding,
 ) ([]swarm.PortConfig, error) {
-	ports := []swarm.PortConfig{}
+	proto, port := nat.SplitProtoPort(string(portRangeProto))
+	portInt, _ := strconv.ParseUint(port, 10, 16)
+	proto = strings.ToLower(proto)
 
-	for _, binding := range portBindings[port] {
+	var ports []swarm.PortConfig
+	for _, binding := range portBindings[portRangeProto] {
 		if p := net.ParseIP(binding.HostIP); p != nil && !p.IsUnspecified() {
 			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
-			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), port)
+			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), portRangeProto)
 		}
 
 		startHostPort, endHostPort, err := nat.ParsePortRange(binding.HostPort)
 
 		if err != nil && binding.HostPort != "" {
-			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%s)", binding.HostPort, port.Port())
+			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%s)", binding.HostPort, port)
 		}
 
 		for i := startHostPort; i <= endHostPort; i++ {
 			ports = append(ports, swarm.PortConfig{
 				// TODO Name: ?
-				Protocol:      swarm.PortConfigProtocol(strings.ToLower(port.Proto())),
-				TargetPort:    uint32(port.Int()),
+				Protocol:      swarm.PortConfigProtocol(proto),
+				TargetPort:    uint32(portInt),
 				PublishedPort: uint32(i),
 				PublishMode:   swarm.PortConfigPublishModeIngress,
 			})

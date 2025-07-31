@@ -414,8 +414,8 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 
 	publishOpts := copts.publish.GetSlice()
 	var (
-		ports         map[nat.Port]struct{}
-		portBindings  map[nat.Port][]nat.PortBinding
+		ports         map[container.PortRangeProto]struct{}
+		portBindings  map[container.PortRangeProto][]container.PortBinding
 		convertedOpts []string
 	)
 

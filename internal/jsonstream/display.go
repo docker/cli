@@ -4,13 +4,14 @@ import (
 	"context"
 	"io"
 
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/cli/cli/streams"
+	"github.com/moby/moby/api/types/jsonstream"
+	"github.com/moby/moby/client/pkg/jsonmessage"
 )
 
 type (
-	Stream       = jsonmessage.Stream
+	JSONError    = jsonstream.Error
 	JSONMessage  = jsonmessage.JSONMessage
-	JSONError    = jsonmessage.JSONError
 	JSONProgress = jsonmessage.JSONProgress
 )
 
@@ -46,7 +47,7 @@ func WithAuxCallback(cb func(JSONMessage)) Options {
 // "context aware" and appropriately returns why the function was canceled.
 //
 // It returns an error if the context is canceled, but not if the input reader / stream is closed.
-func Display(ctx context.Context, in io.Reader, stream Stream, opts ...Options) error {
+func Display(ctx context.Context, in io.Reader, stream *streams.Out, opts ...Options) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}

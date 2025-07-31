@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/container"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -47,19 +46,19 @@ func TestNewPortCommandOutput(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				inspectFunc: func(string) (container.InspectResponse, error) {
 					ci := container.InspectResponse{NetworkSettings: &container.NetworkSettings{}}
-					ci.NetworkSettings.Ports = nat.PortMap{
-						"80/tcp":  make([]nat.PortBinding, len(tc.ips)),
-						"443/tcp": make([]nat.PortBinding, len(tc.ips)),
-						"443/udp": make([]nat.PortBinding, len(tc.ips)),
+					ci.NetworkSettings.Ports = container.PortMap{
+						"80/tcp":  make([]container.PortBinding, len(tc.ips)),
+						"443/tcp": make([]container.PortBinding, len(tc.ips)),
+						"443/udp": make([]container.PortBinding, len(tc.ips)),
 					}
 					for i, ip := range tc.ips {
-						ci.NetworkSettings.Ports["80/tcp"][i] = nat.PortBinding{
+						ci.NetworkSettings.Ports["80/tcp"][i] = container.PortBinding{
 							HostIP: ip, HostPort: "3456",
 						}
-						ci.NetworkSettings.Ports["443/tcp"][i] = nat.PortBinding{
+						ci.NetworkSettings.Ports["443/tcp"][i] = container.PortBinding{
 							HostIP: ip, HostPort: "4567",
 						}
-						ci.NetworkSettings.Ports["443/udp"][i] = nat.PortBinding{
+						ci.NetworkSettings.Ports["443/udp"][i] = container.PortBinding{
 							HostIP: ip, HostPort: "5678",
 						}
 					}

@@ -16,12 +16,13 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/api/types/jsonstream"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
+	"github.com/moby/moby/client/pkg/jsonmessage"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
@@ -256,9 +257,11 @@ func TestRunPullTermination(t *testing.T) {
 							TimeNano: time.Now().UnixNano(),
 							Time:     time.Now().Unix(),
 							Progress: &jsonmessage.JSONProgress{
-								Current: int64(i),
-								Total:   100,
-								Start:   0,
+								Progress: jsonstream.Progress{
+									Current: int64(i),
+									Total:   100,
+									Start:   0,
+								},
 							},
 						}))
 						time.Sleep(100 * time.Millisecond)
