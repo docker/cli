@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
@@ -347,7 +347,7 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 	logrus.SetOutput(&b)
 	for _, tc := range testCases {
 		t.Run(tc.value, func(t *testing.T) {
-			_, err := ConvertPortToPortConfig("80/tcp", map[nat.Port][]nat.PortBinding{
+			_, err := ConvertPortToPortConfig("80/tcp", map[container.PortRangeProto][]container.PortBinding{
 				"80/tcp": {{HostIP: tc.value, HostPort: "2345"}},
 			})
 			assert.NilError(t, err)

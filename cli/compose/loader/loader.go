@@ -24,6 +24,7 @@ import (
 	"github.com/docker/go-units"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/shlex"
+	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -934,7 +935,7 @@ func toServicePortConfigs(value string) ([]any, error) {
 
 	for _, key := range keys {
 		// Reuse ConvertPortToPortConfig so that it is consistent
-		portConfig, err := swarmopts.ConvertPortToPortConfig(nat.Port(key), portBindings)
+		portConfig, err := swarmopts.ConvertPortToPortConfig(container.PortRangeProto(key), portBindings)
 		if err != nil {
 			return nil, err
 		}
