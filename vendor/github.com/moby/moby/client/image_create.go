@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -39,12 +38,10 @@ func (cli *Client) tryImageCreate(ctx context.Context, query url.Values, resolve
 	if resolveAuth != nil {
 		registryAuth, err := resolveAuth(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("tryImageCreate: %w", err)
+			return nil, err
 		}
 		if registryAuth != "" {
 			hdr.Set(registry.AuthHeader, registryAuth)
-		} else {
-			hdr.Set(registry.AuthHeader, "e30")
 		}
 	}
 	return cli.post(ctx, "/images/create", query, nil, hdr)

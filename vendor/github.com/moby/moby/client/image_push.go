@@ -66,12 +66,10 @@ func (cli *Client) tryImagePush(ctx context.Context, imageID string, query url.V
 	if resolveAuth != nil {
 		registryAuth, err := resolveAuth(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("tryImagePush: %w", err)
+			return nil, err
 		}
 		if registryAuth != "" {
 			hdr.Set(registry.AuthHeader, registryAuth)
-		} else {
-			hdr.Set(registry.AuthHeader, "e30")
 		}
 	}
 
