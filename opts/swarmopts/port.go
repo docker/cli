@@ -42,7 +42,10 @@ func (p *PortOpt) Set(value string) error {
 			return err
 		}
 
-		pConfig := swarm.PortConfig{}
+		pConfig := swarm.PortConfig{
+			Protocol:    swarm.PortConfigProtocolTCP,
+			PublishMode: swarm.PortConfigPublishModeIngress,
+		}
 		for _, field := range fields {
 			// TODO(thaJeztah): these options should not be case-insensitive.
 			key, val, ok := strings.Cut(strings.ToLower(field), "=")
@@ -51,17 +54,19 @@ func (p *PortOpt) Set(value string) error {
 			}
 			switch key {
 			case portOptProtocol:
-				if val != string(swarm.PortConfigProtocolTCP) && val != string(swarm.PortConfigProtocolUDP) && val != string(swarm.PortConfigProtocolSCTP) {
+				switch swarm.PortConfigProtocol(val) {
+				case swarm.PortConfigProtocolTCP, swarm.PortConfigProtocolUDP, swarm.PortConfigProtocolSCTP:
+					pConfig.Protocol = swarm.PortConfigProtocol(val)
+				default:
 					return fmt.Errorf("invalid protocol value '%s'", val)
 				}
-
-				pConfig.Protocol = swarm.PortConfigProtocol(val)
 			case portOptMode:
-				if val != string(swarm.PortConfigPublishModeIngress) && val != string(swarm.PortConfigPublishModeHost) {
+				switch swarm.PortConfigPublishMode(val) {
+				case swarm.PortConfigPublishModeIngress, swarm.PortConfigPublishModeHost:
+					pConfig.PublishMode = swarm.PortConfigPublishMode(val)
+				default:
 					return fmt.Errorf("invalid publish mode value (%s): must be either '%s' or '%s'", val, swarm.PortConfigPublishModeIngress, swarm.PortConfigPublishModeHost)
 				}
-
-				pConfig.PublishMode = swarm.PortConfigPublishMode(val)
 			case portOptTargetPort:
 				tPort, err := strconv.ParseUint(val, 10, 16)
 				if err != nil {
@@ -93,18 +98,9 @@ func (p *PortOpt) Set(value string) error {
 			return fmt.Errorf("missing mandatory field '%s'", portOptTargetPort)
 		}
 
-		if pConfig.PublishMode == "" {
-			pConfig.PublishMode = swarm.PortConfigPublishModeIngress
-		}
-
-		if pConfig.Protocol == "" {
-			pConfig.Protocol = swarm.PortConfigProtocolTCP
-		}
-
 		p.ports = append(p.ports, pConfig)
 	} else {
 		// short syntax
-		portConfigs := []swarm.PortConfig{}
 		ports, portBindingMap, err := nat.ParsePortSpecs([]string{value})
 		if err != nil {
 			return err
@@ -117,6 +113,7 @@ func (p *PortOpt) Set(value string) error {
 			}
 		}
 
+		var portConfigs []swarm.PortConfig
 		for port := range ports {
 			portConfig, err := ConvertPortToPortConfig(port, portBindingMap)
 			if err != nil {
@@ -136,7 +133,7 @@ func (*PortOpt) Type() string {
 
 // String returns a string repr of this option
 func (p *PortOpt) String() string {
-	ports := []string{}
+	ports := make([]string, 0, len(p.ports))
 	for _, port := range p.ports {
 		repr := fmt.Sprintf("%v:%v/%s/%s", port.PublishedPort, port.TargetPort, port.Protocol, port.PublishMode)
 		ports = append(ports, repr)
@@ -158,7 +155,7 @@ func ConvertPortToPortConfig(
 	portInt, _ := strconv.ParseUint(port, 10, 16)
 	proto = strings.ToLower(proto)
 
-	var ports []swarm.PortConfig
+	ports := make([]swarm.PortConfig, 0, len(portBindings))
 	for _, binding := range portBindings[portRangeProto] {
 		if p := net.ParseIP(binding.HostIP); p != nil && !p.IsUnspecified() {
 			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
