@@ -69,7 +69,13 @@ func (cli *Client) ServiceCreate(ctx context.Context, service swarm.ServiceSpec,
 		headers["version"] = []string{cli.version}
 	}
 	if options.EncodedRegistryAuth != "" {
-		headers[registry.AuthHeader] = []string{options.EncodedRegistryAuth}
+		headers = http.Header{
+			registry.AuthHeader: {options.EncodedRegistryAuth},
+		}
+	} else {
+		headers = http.Header{
+			registry.AuthHeader: {"e30"},
+		}
 	}
 	resp, err := cli.post(ctx, "/services/create", nil, service, headers)
 	defer ensureReaderClosed(resp)

@@ -24,6 +24,10 @@ func (cli *Client) DistributionInspect(ctx context.Context, imageRef, encodedReg
 		headers = http.Header{
 			registry.AuthHeader: {encodedRegistryAuth},
 		}
+	} else {
+		headers = http.Header{
+			registry.AuthHeader: {"e30"},
+		}
 	}
 
 	// Contact the registry to retrieve digest and platform information
