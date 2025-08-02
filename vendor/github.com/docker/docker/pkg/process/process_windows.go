@@ -6,7 +6,8 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func alive(pid int) bool {
+// Alive returns true if process with a given pid is running.
+func Alive(pid int) bool {
 	h, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, uint32(pid))
 	if err != nil {
 		return false
@@ -31,7 +32,8 @@ func alive(pid int) bool {
 	return true
 }
 
-func kill(pid int) error {
+// Kill force-stops a process.
+func Kill(pid int) error {
 	p, err := os.FindProcess(pid)
 	if err == nil {
 		err = p.Kill()

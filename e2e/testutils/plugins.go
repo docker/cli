@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
@@ -32,7 +33,11 @@ func SetupPlugin(t *testing.T, ctx context.Context) *fs.Dir {
 		},
 		Interface: types.PluginConfigInterface{
 			Socket: "basic.sock",
-			Types:  []types.PluginInterfaceType{{Capability: "docker.dummy/1.0"}},
+			Types: []plugin.CapabilityID{{
+				Capability: "dummy",
+				Prefix:     "docker",
+				Version:    "1.0",
+			}},
 		},
 		Entrypoint: []string{"/basic"},
 	}
