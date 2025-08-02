@@ -13,7 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -34,7 +34,7 @@ func validateConfig(path string) error {
 		return err
 	}
 
-	m := types.PluginConfig{}
+	m := plugin.Config{}
 	err = json.NewDecoder(dt).Decode(&m)
 	_ = dt.Close()
 

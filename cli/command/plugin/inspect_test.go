@@ -7,27 +7,27 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
 
-var pluginFoo = &types.Plugin{
+var pluginFoo = &plugin.Plugin{
 	ID:   "id-foo",
 	Name: "name-foo",
-	Config: types.PluginConfig{
+	Config: plugin.Config{
 		Description:   "plugin foo description",
 		DockerVersion: "17.12.1-ce",
 		Documentation: "plugin foo documentation",
 		Entrypoint:    []string{"/foo"},
-		Interface: types.PluginConfigInterface{
+		Interface: plugin.Interface{
 			Socket: "plugin-foo.sock",
 		},
-		Linux: types.PluginConfigLinux{
+		Linux: plugin.LinuxConfig{
 			Capabilities: []string{"CAP_SYS_ADMIN"},
 		},
 		WorkDir: "workdir-foo",
-		Rootfs: &types.PluginConfigRootfs{
+		Rootfs: &plugin.RootFS{
 			DiffIds: []string{"sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"},
 			Type:    "layers",
 		},
@@ -40,7 +40,7 @@ func TestInspectErrors(t *testing.T) {
 		args          []string
 		flags         map[string]string
 		expectedError string
-		inspectFunc   func(name string) (*types.Plugin, []byte, error)
+		inspectFunc   func(name string) (*plugin.Plugin, []byte, error)
 	}{
 		{
 			description:   "too few arguments",
@@ -51,7 +51,7 @@ func TestInspectErrors(t *testing.T) {
 			description:   "error inspecting plugin",
 			args:          []string{"foo"},
 			expectedError: "error inspecting plugin",
-			inspectFunc: func(name string) (*types.Plugin, []byte, error) {
+			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
 				return nil, nil, errors.New("error inspecting plugin")
 			},
 		},
@@ -86,7 +86,7 @@ func TestInspect(t *testing.T) {
 		args        []string
 		flags       map[string]string
 		golden      string
-		inspectFunc func(name string) (*types.Plugin, []byte, error)
+		inspectFunc func(name string) (*plugin.Plugin, []byte, error)
 	}{
 		{
 			description: "inspect single plugin with format",
@@ -95,8 +95,8 @@ func TestInspect(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-inspect-single-with-format.golden",
-			inspectFunc: func(name string) (*types.Plugin, []byte, error) {
-				return &types.Plugin{
+			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
+				return &plugin.Plugin{
 					ID:   "id-foo",
 					Name: "name-foo",
 				}, []byte{}, nil
@@ -106,7 +106,7 @@ func TestInspect(t *testing.T) {
 			description: "inspect single plugin without format",
 			args:        []string{"foo"},
 			golden:      "plugin-inspect-single-without-format.golden",
-			inspectFunc: func(name string) (*types.Plugin, []byte, error) {
+			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
 				return pluginFoo, nil, nil
 			},
 		},
@@ -117,15 +117,15 @@ func TestInspect(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-inspect-multiple-with-format.golden",
-			inspectFunc: func(name string) (*types.Plugin, []byte, error) {
+			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
 				switch name {
 				case "foo":
-					return &types.Plugin{
+					return &plugin.Plugin{
 						ID:   "id-foo",
 						Name: "name-foo",
 					}, []byte{}, nil
 				case "bar":
-					return &types.Plugin{
+					return &plugin.Plugin{
 						ID:   "id-bar",
 						Name: "name-bar",
 					}, []byte{}, nil

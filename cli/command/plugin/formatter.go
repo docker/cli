@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 )
 
 const (
@@ -38,10 +38,10 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, plugins []*types.Plugin) error {
+func FormatWrite(ctx formatter.Context, plugins []*plugin.Plugin) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, plugin := range plugins {
-			pluginCtx := &pluginContext{trunc: ctx.Trunc, p: *plugin}
+		for _, p := range plugins {
+			pluginCtx := &pluginContext{trunc: ctx.Trunc, p: *p}
 			if err := format(pluginCtx); err != nil {
 				return err
 			}
@@ -62,7 +62,7 @@ func FormatWrite(ctx formatter.Context, plugins []*types.Plugin) error {
 type pluginContext struct {
 	formatter.HeaderContext
 	trunc bool
-	p     types.Plugin
+	p     plugin.Plugin
 }
 
 func (c *pluginContext) MarshalJSON() ([]byte, error) {

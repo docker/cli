@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/icmd"
@@ -26,13 +26,17 @@ var plugins embed.FS
 func SetupPlugin(t *testing.T, ctx context.Context) *fs.Dir {
 	t.Helper()
 
-	p := &types.PluginConfig{
-		Linux: types.PluginConfigLinux{
+	p := &plugin.Config{
+		Linux: plugin.LinuxConfig{
 			Capabilities: []string{"CAP_SYS_ADMIN"},
 		},
-		Interface: types.PluginConfigInterface{
+		Interface: plugin.Interface{
 			Socket: "basic.sock",
-			Types:  []types.PluginInterfaceType{{Capability: "docker.dummy/1.0"}},
+			Types: []plugin.CapabilityID{{
+				Capability: "dummy",
+				Prefix:     "docker",
+				Version:    "1.0",
+			}},
 		},
 		Entrypoint: []string{"/basic"},
 	}

@@ -3,15 +3,16 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 
 	cerrdefs "github.com/containerd/errdefs"
 	"github.com/distribution/reference"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/api/types/registry"
-	"github.com/pkg/errors"
 )
 
 // PluginInstallOptions holds parameters to install a plugin.
@@ -28,7 +29,7 @@ type PluginInstallOptions struct {
 	//
 	// For details, refer to [github.com/moby/moby/api/types/registry.RequestAuthConfig].
 	PrivilegeFunc         func(context.Context) (string, error)
-	AcceptPermissionsFunc func(context.Context, types.PluginPrivileges) (bool, error)
+	AcceptPermissionsFunc func(context.Context, plugin.Privileges) (bool, error)
 	Args                  []string
 }
 
@@ -36,7 +37,7 @@ type PluginInstallOptions struct {
 func (cli *Client) PluginInstall(ctx context.Context, name string, options PluginInstallOptions) (_ io.ReadCloser, retErr error) {
 	query := url.Values{}
 	if _, err := reference.ParseNormalizedNamed(options.RemoteRef); err != nil {
-		return nil, errors.Wrap(err, "invalid remote reference")
+		return nil, fmt.Errorf("invalid remote reference: %w", err)
 	}
 	query.Set("remote", options.RemoteRef)
 
@@ -92,16 +93,16 @@ func (cli *Client) tryPluginPrivileges(ctx context.Context, query url.Values, re
 	})
 }
 
-func (cli *Client) tryPluginPull(ctx context.Context, query url.Values, privileges types.PluginPrivileges, registryAuth string) (*http.Response, error) {
+func (cli *Client) tryPluginPull(ctx context.Context, query url.Values, privileges plugin.Privileges, registryAuth string) (*http.Response, error) {
 	return cli.post(ctx, "/plugins/pull", query, privileges, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})
 }
 
-func (cli *Client) checkPluginPermissions(ctx context.Context, query url.Values, options PluginInstallOptions) (types.PluginPrivileges, error) {
+func (cli *Client) checkPluginPermissions(ctx context.Context, query url.Values, options PluginInstallOptions) (plugin.Privileges, error) {
 	resp, err := cli.tryPluginPrivileges(ctx, query, options.RegistryAuth)
 	if cerrdefs.IsUnauthorized(err) && options.PrivilegeFunc != nil {
-		// todo: do inspect before to check existing name before checking privileges
+		// TODO: do inspect before to check existing name before checking privileges
 		newAuthHeader, privilegeErr := options.PrivilegeFunc(ctx)
 		if privilegeErr != nil {
 			ensureReaderClosed(resp)
@@ -115,7 +116,7 @@ func (cli *Client) checkPluginPermissions(ctx context.Context, query url.Values,
 		return nil, err
 	}
 
-	var privileges types.PluginPrivileges
+	var privileges plugin.Privileges
 	if err := json.NewDecoder(resp.Body).Decode(&privileges); err != nil {
 		ensureReaderClosed(resp)
 		return nil, err
@@ -128,7 +129,7 @@ func (cli *Client) checkPluginPermissions(ctx context.Context, query url.Values,
 			return nil, err
 		}
 		if !accept {
-			return nil, errors.Errorf("permission denied while installing plugin %s", options.RemoteRef)
+			return nil, errors.New("permission denied while installing plugin " + options.RemoteRef)
 		}
 	}
 	return privileges, nil
