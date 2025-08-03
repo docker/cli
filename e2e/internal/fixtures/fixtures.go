@@ -44,8 +44,7 @@ func SetupConfigWithNotaryURL(t *testing.T, path, notaryURL string) fs.Dir {
 			"%s": {
 				"auth": "ZWlhaXM6cGFzc3dvcmQK"
 			}
-		},
-		"experimental": "enabled"
+		}
 	}
 	`, notaryURL)), fs.WithDir("trust", fs.WithDir("private")))
 	return *dir
