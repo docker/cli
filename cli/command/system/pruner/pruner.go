@@ -50,9 +50,10 @@ var pruneOrder = []ContentType{
 //     will be pruned (for example, "all stopped containers") instead of
 //     executing the prune. This summary is presented to the user as a
 //     confirmation message. It may return a [ErrCancelled] to indicate
-//     the operation was canceled. Any other error is considered a
-//     validation error of the given options (such as a filter that
-//     is not supported.
+//     the operation was canceled or a [ErrNotImplemented] if the prune
+//     function is not implemented for the daemon's API version. Any
+//     other error is considered a validation error for the given options
+//     (such as a filter that is not supported).
 //   - If [PruneOptions.Confirmed] is "true", the PruneFunc must execute
 //     the prune with the given options.
 //
@@ -64,6 +65,7 @@ var pruneOrder = []ContentType{
 //     presented to the user.
 //
 // [ErrCancelled]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/errdefs#ErrCancelled
+// [ErrNotImplemented]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/errdefs#ErrNotImplemented
 type PruneFunc func(ctx context.Context, dockerCLI command.Cli, pruneOpts PruneOptions) (spaceReclaimed uint64, details string, _ error)
 
 type PruneOptions struct {

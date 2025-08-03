@@ -17,16 +17,14 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/spf13/cobra"
 )
 
 type pruneOptions struct {
-	force           bool
-	all             bool
-	pruneVolumes    bool
-	pruneBuildCache bool
-	filter          opts.FilterOpt
+	force        bool
+	all          bool
+	pruneVolumes bool
+	filter       opts.FilterOpt
 }
 
 // newPruneCommand creates a new cobra.Command for `docker prune`
@@ -38,7 +36,6 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove unused data",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.pruneBuildCache = versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.31")
 			return runPrune(cmd.Context(), dockerCli, options)
 		},
 		Annotations:       map[string]string{"version": "1.25"},
@@ -95,11 +92,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			if !options.pruneVolumes {
 				continue
 			}
-		case pruner.TypeBuildCache:
-			if !options.pruneBuildCache {
-				continue
-			}
-		case pruner.TypeContainer, pruner.TypeNetwork, pruner.TypeImage:
+		case pruner.TypeContainer, pruner.TypeNetwork, pruner.TypeImage, pruner.TypeBuildCache:
 			// no special handling; keeping the "exhaustive" linter happy.
 		default:
 			// other pruners; no special handling; keeping the "exhaustive" linter happy.
@@ -110,7 +103,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			All:       options.all,
 			Filter:    options.filter,
 		})
-		if err != nil {
+		if err != nil && !errdefs.IsNotImplemented(err) {
 			return err
 		}
 		spaceReclaimed += spc
@@ -141,10 +134,10 @@ func dryRun(ctx context.Context, dockerCli command.Cli, options pruneOptions) (s
 			if !options.pruneVolumes {
 				continue
 			}
-		case pruner.TypeBuildCache:
-			if !options.pruneBuildCache {
-				continue
-			}
+		case pruner.TypeContainer, pruner.TypeNetwork, pruner.TypeImage, pruner.TypeBuildCache:
+			// no special handling; keeping the "exhaustive" linter happy.
+		default:
+			// other pruners; no special handling; keeping the "exhaustive" linter happy.
 		}
 		// Always run with "[pruner.PruneOptions.Confirmed] = false"
 		// to perform validation of the given options and produce
@@ -155,7 +148,7 @@ func dryRun(ctx context.Context, dockerCli command.Cli, options pruneOptions) (s
 		})
 		// A "canceled" error is expected in dry-run mode; any other error
 		// must be returned as a "fatal" error.
-		if err != nil && !errdefs.IsCanceled(err) {
+		if err != nil && !errdefs.IsCanceled(err) && !errdefs.IsNotImplemented(err) {
 			errs = append(errs, err)
 		}
 		if confirmMsg != "" {
