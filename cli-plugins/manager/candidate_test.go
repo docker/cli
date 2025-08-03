@@ -36,10 +36,9 @@ func TestValidateCandidate(t *testing.T) {
 		builtinName  = metadata.NamePrefix + "builtin"
 		builtinAlias = metadata.NamePrefix + "alias"
 
-		badPrefixPath    = "/usr/local/libexec/cli-plugins/wobble"
-		badNamePath      = "/usr/local/libexec/cli-plugins/docker-123456"
-		goodPluginPath   = "/usr/local/libexec/cli-plugins/" + goodPluginName
-		metaExperimental = `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing", "Experimental": true}`
+		badPrefixPath  = "/usr/local/libexec/cli-plugins/wobble"
+		badNamePath    = "/usr/local/libexec/cli-plugins/docker-123456"
+		goodPluginPath = "/usr/local/libexec/cli-plugins/" + goodPluginName
 	)
 
 	fakeroot := &cobra.Command{Use: "docker"}
@@ -72,7 +71,8 @@ func TestValidateCandidate(t *testing.T) {
 		{name: "empty vendor", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": ""}`}, invalid: "plugin metadata does not define a vendor"},
 		// This one should work
 		{name: "valid", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`}},
-		{name: "experimental + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental}},
+		// Including the deprecated "experimental" field should not break processing.
+		{name: "with legacy experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing", "Experimental": true}`}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			p, err := newPlugin(tc.c, fakeroot.Commands())
