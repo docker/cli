@@ -93,14 +93,6 @@ type cancelledErr struct{ error }
 
 func (cancelledErr) Cancelled() {}
 
-// RunPrune calls the Container Prune API
-// This returns the amount of space reclaimed and a detailed output string
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(ctx, dockerCli, pruneOptions{force: true, filter: filter})
-}
-
 // pruneFn calls the Container Prune API for use in "docker system prune",
 // and returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
