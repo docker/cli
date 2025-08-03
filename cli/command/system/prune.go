@@ -3,10 +3,12 @@ package system
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"text/template"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -16,7 +18,6 @@ import (
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/moby/api/types/versions"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -68,16 +69,21 @@ const confirmationTemplate = `WARNING! This will remove:
 Are you sure you want to continue?`
 
 func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) error {
-	// TODO version this once "until" filter is supported for volumes
-	if options.pruneVolumes && options.filter.Value().Contains("until") {
-		return errors.New(`ERROR: The "until" filter is not supported with "--volumes"`)
+	// prune requires either force, or a user to confirm after prompting.
+	confirmed := options.force
+
+	// Validate the given options for each pruner and construct a confirmation-message.
+	confirmationMessage, err := dryRun(ctx, dockerCli, options)
+	if err != nil {
+		return err
 	}
-	if !options.force {
-		r, err := prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage(dockerCli, options))
+	if !confirmed {
+		var err error
+		confirmed, err = prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), confirmationMessage)
 		if err != nil {
 			return err
 		}
-		if !r {
+		if !confirmed {
 			return cancelledErr{errors.New("system prune has been cancelled")}
 		}
 	}
@@ -100,8 +106,9 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 
 		spc, output, err := pruneFn(ctx, dockerCli, pruner.PruneOptions{
-			All:    options.all,
-			Filter: options.filter,
+			Confirmed: confirmed,
+			All:       options.all,
+			Filter:    options.filter,
 		})
 		if err != nil {
 			return err
@@ -121,28 +128,42 @@ type cancelledErr struct{ error }
 
 func (cancelledErr) Cancelled() {}
 
-// confirmationMessage constructs a confirmation message that depends on the cli options.
-func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
-	t := template.Must(template.New("confirmation message").Parse(confirmationTemplate))
-
-	warnings := []string{
-		"all stopped containers",
-		"all networks not used by at least one container",
-	}
-	if options.pruneVolumes {
-		warnings = append(warnings, "all anonymous volumes not used by at least one container")
-	}
-	if options.all {
-		warnings = append(warnings, "all images without at least one container associated to them")
-	} else {
-		warnings = append(warnings, "all dangling images")
-	}
-	if options.pruneBuildCache {
-		if options.all {
-			warnings = append(warnings, "all build cache")
-		} else {
-			warnings = append(warnings, "unused build cache")
+// dryRun validates the given options for each prune-function and constructs
+// a confirmation message that depends on the cli options.
+func dryRun(ctx context.Context, dockerCli command.Cli, options pruneOptions) (string, error) {
+	var (
+		errs     []error
+		warnings []string
+	)
+	for contentType, pruneFn := range pruner.List() {
+		switch contentType {
+		case pruner.TypeVolume:
+			if !options.pruneVolumes {
+				continue
+			}
+		case pruner.TypeBuildCache:
+			if !options.pruneBuildCache {
+				continue
+			}
 		}
+		// Always run with "[pruner.PruneOptions.Confirmed] = false"
+		// to perform validation of the given options and produce
+		// a confirmation message for the pruner.
+		_, confirmMsg, err := pruneFn(ctx, dockerCli, pruner.PruneOptions{
+			All:    options.all,
+			Filter: options.filter,
+		})
+		// A "canceled" error is expected in dry-run mode; any other error
+		// must be returned as a "fatal" error.
+		if err != nil && !errdefs.IsCanceled(err) {
+			errs = append(errs, err)
+		}
+		if confirmMsg != "" {
+			warnings = append(warnings, confirmMsg)
+		}
+	}
+	if len(errs) > 0 {
+		return "", errors.Join(errs...)
 	}
 
 	var filters []string
@@ -161,6 +182,7 @@ func confirmationMessage(dockerCli command.Cli, options pruneOptions) string {
 	}
 
 	var buffer bytes.Buffer
-	t.Execute(&buffer, map[string][]string{"warnings": warnings, "filters": filters})
-	return buffer.String()
+	t := template.Must(template.New("confirmation message").Parse(confirmationTemplate))
+	_ = t.Execute(&buffer, map[string][]string{"warnings": warnings, "filters": filters})
+	return buffer.String(), nil
 }

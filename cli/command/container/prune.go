@@ -104,6 +104,11 @@ func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.Fi
 // pruneFn calls the Container Prune API for use in "docker system prune",
 // and returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		confirmMsg := "all stopped containers"
+		return 0, confirmMsg, cancelledErr{errors.New("containers prune has been cancelled")}
+	}
 	return runPrune(ctx, dockerCLI, pruneOptions{
 		force:  true,
 		filter: options.Filter,

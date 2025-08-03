@@ -100,6 +100,11 @@ func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.Fi
 // pruneFn calls the Network Prune API for use in "docker system prune"
 // and returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		confirmMsg := "all networks not used by at least one container"
+		return 0, confirmMsg, cancelledErr{errors.New("network prune has been cancelled")}
+	}
 	output, err := runPrune(ctx, dockerCLI, pruneOptions{
 		force:  true,
 		filter: options.Filter,

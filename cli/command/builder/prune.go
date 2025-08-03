@@ -122,6 +122,16 @@ func CachePrune(ctx context.Context, dockerCli command.Cli, all bool, filter opt
 // pruneFn prunes the build cache for use in "docker system prune" and
 // returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		var confirmMsg string
+		if options.All {
+			confirmMsg = "all build cache"
+		} else {
+			confirmMsg = "unused build cache"
+		}
+		return 0, confirmMsg, cancelledErr{errors.New("builder prune has been cancelled")}
+	}
 	return runPrune(ctx, dockerCLI, pruneOptions{
 		force:  true,
 		all:    options.All,

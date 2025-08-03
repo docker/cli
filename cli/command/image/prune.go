@@ -125,9 +125,19 @@ func RunPrune(ctx context.Context, dockerCli command.Cli, all bool, filter opts.
 	return runPrune(ctx, dockerCli, pruneOptions{force: true, all: all, filter: filter})
 }
 
-// pruneFn calls the Container Prune API for use in "docker system prune",
+// pruneFn calls the Image Prune API for use in "docker system prune",
 // and returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		var confirmMsg string
+		if options.All {
+			confirmMsg = "all images without at least one container associated to them"
+		} else {
+			confirmMsg = "all dangling images"
+		}
+		return 0, confirmMsg, cancelledErr{errors.New("image prune has been cancelled")}
+	}
 	return runPrune(ctx, dockerCLI, pruneOptions{
 		force:  true,
 		all:    options.All,

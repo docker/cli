@@ -129,6 +129,17 @@ func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.Fi
 // pruneFn calls the Volume Prune API for use in "docker system prune",
 // and returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCli command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	// TODO version this once "until" filter is supported for volumes
+	// Ideally, this check wasn't done on the CLI because the list of
+	// filters that is supported by the daemon may evolve over time.
+	if options.Filter.Value().Contains("until") {
+		return 0, "", errors.New(`ERROR: The "until" filter is not supported with "--volumes"`)
+	}
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		confirmMsg := "all anonymous volumes not used by at least one container"
+		return 0, confirmMsg, cancelledErr{errors.New("volume prune has been cancelled")}
+	}
 	return runPrune(ctx, dockerCli, pruneOptions{
 		force:  true,
 		filter: options.Filter,
