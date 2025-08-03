@@ -7,12 +7,20 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/system/pruner"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	// Register the prune command to run as part of "docker system prune"
+	if err := pruner.Register(pruner.TypeContainer, pruneFn); err != nil {
+		panic(err)
+	}
+}
 
 type pruneOptions struct {
 	force  bool
@@ -87,6 +95,17 @@ func (cancelledErr) Cancelled() {}
 
 // RunPrune calls the Container Prune API
 // This returns the amount of space reclaimed and a detailed output string
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func RunPrune(ctx context.Context, dockerCli command.Cli, _ bool, filter opts.FilterOpt) (uint64, string, error) {
 	return runPrune(ctx, dockerCli, pruneOptions{force: true, filter: filter})
+}
+
+// pruneFn calls the Container Prune API for use in "docker system prune",
+// and returns the amount of space reclaimed and a detailed output string.
+func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	return runPrune(ctx, dockerCLI, pruneOptions{
+		force:  true,
+		filter: options.Filter,
+	})
 }

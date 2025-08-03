@@ -9,12 +9,8 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/builder"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/command/container"
-	"github.com/docker/cli/cli/command/image"
-	"github.com/docker/cli/cli/command/network"
-	"github.com/docker/cli/cli/command/volume"
+	"github.com/docker/cli/cli/command/system/pruner"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
@@ -85,21 +81,28 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 			return cancelledErr{errors.New("system prune has been cancelled")}
 		}
 	}
-	pruneFuncs := []func(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error){
-		container.RunPrune,
-		network.RunPrune,
-	}
-	if options.pruneVolumes {
-		pruneFuncs = append(pruneFuncs, volume.RunPrune)
-	}
-	pruneFuncs = append(pruneFuncs, image.RunPrune)
-	if options.pruneBuildCache {
-		pruneFuncs = append(pruneFuncs, builder.CachePrune)
-	}
 
 	var spaceReclaimed uint64
-	for _, pruneFn := range pruneFuncs {
-		spc, output, err := pruneFn(ctx, dockerCli, options.all, options.filter)
+	for contentType, pruneFn := range pruner.List() {
+		switch contentType {
+		case pruner.TypeVolume:
+			if !options.pruneVolumes {
+				continue
+			}
+		case pruner.TypeBuildCache:
+			if !options.pruneBuildCache {
+				continue
+			}
+		case pruner.TypeContainer, pruner.TypeNetwork, pruner.TypeImage:
+			// no special handling; keeping the "exhaustive" linter happy.
+		default:
+			// other pruners; no special handling; keeping the "exhaustive" linter happy.
+		}
+
+		spc, output, err := pruneFn(ctx, dockerCli, pruner.PruneOptions{
+			All:    options.all,
+			Filter: options.filter,
+		})
 		if err != nil {
 			return err
 		}
