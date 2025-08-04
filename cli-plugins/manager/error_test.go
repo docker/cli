@@ -10,7 +10,7 @@ import (
 )
 
 func TestPluginError(t *testing.T) {
-	err := NewPluginError("new error")
+	err := newPluginError("new error")
 	assert.Check(t, is.Error(err, "new error"))
 
 	inner := errors.New("testing")
