@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
@@ -131,7 +132,7 @@ echo '{"SchemaVersion":"0.1.0"}'`, fs.WithMode(0o777)),
 
 	_, err = GetPlugin("ccc", cli, &cobra.Command{})
 	assert.Error(t, err, "Error: No such CLI plugin: ccc")
-	assert.Assert(t, IsNotFound(err))
+	assert.Assert(t, errdefs.IsNotFound(err))
 }
 
 func TestListPluginsIsSorted(t *testing.T) {
@@ -166,8 +167,8 @@ func TestErrPluginNotFound(t *testing.T) {
 	var err error = errPluginNotFound("test")
 	err.(errPluginNotFound).NotFound()
 	assert.Error(t, err, "Error: No such CLI plugin: test")
-	assert.Assert(t, IsNotFound(err))
-	assert.Assert(t, !IsNotFound(nil))
+	assert.Assert(t, errdefs.IsNotFound(err))
+	assert.Assert(t, !errdefs.IsNotFound(nil))
 }
 
 func TestGetPluginDirs(t *testing.T) {
