@@ -31,12 +31,18 @@ type Plugin struct {
 	ShadowedPaths []string `json:",omitempty"`
 }
 
+// pluginCandidate represents a possible plugin candidate, for mocking purposes.
+type pluginCandidate interface {
+	Path() string
+	Metadata() ([]byte, error)
+}
+
 // newPlugin determines if the given candidate is valid and returns a
 // Plugin.  If the candidate fails one of the tests then `Plugin.Err`
 // is set, and is always a `pluginError`, but the `Plugin` is still
 // returned with no error. An error is only returned due to a
 // non-recoverable error.
-func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
+func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 	path := c.Path()
 	if path == "" {
 		return Plugin{}, errors.New("plugin candidate path cannot be empty")
