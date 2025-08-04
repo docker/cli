@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/types/image"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
@@ -42,7 +41,11 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (
 }
 
 // pushTrustedReference pushes a canonical reference to the trust server.
-func pushTrustedReference(ctx context.Context, ioStreams command.Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+func pushTrustedReference(ctx context.Context, ioStreams command.Streams, indexInfo *registrytypes.IndexInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+	repoInfo := &trust.RepositoryInfo{
+		Name:  reference.TrimNamed(ref),
+		Index: indexInfo,
+	}
 	return trust.PushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in, command.UserAgent())
 }
 

@@ -49,8 +49,8 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 
 	named = reference.TagNameOnly(named)
 
-	repoInfo := registry.ParseRepositoryInfo(named)
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
+	indexInfo := registry.NewIndexInfo(named)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
@@ -65,6 +65,10 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	}()
 
 	if !opts.untrusted {
+		repoInfo := &trust.RepositoryInfo{
+			Name:  reference.TrimNamed(named),
+			Index: indexInfo,
+		}
 		return trust.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody, command.UserAgent())
 	}
 

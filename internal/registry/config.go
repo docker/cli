@@ -252,27 +252,22 @@ func validateHostPort(s string) error {
 	return nil
 }
 
-// ParseRepositoryInfo performs the breakdown of a repository name into a
-// [RepositoryInfo], but lacks registry configuration.
-func ParseRepositoryInfo(reposName reference.Named) *RepositoryInfo {
+// NewIndexInfo creates a new [registry.IndexInfo] or the given
+// repository-name, and detects whether the registry is considered
+// "secure" (non-localhost).
+func NewIndexInfo(reposName reference.Named) *registry.IndexInfo {
 	indexName := normalizeIndexName(reference.Domain(reposName))
 	if indexName == IndexName {
-		return &RepositoryInfo{
-			Name: reference.TrimNamed(reposName),
-			Index: &registry.IndexInfo{
-				Name:     IndexName,
-				Secure:   true,
-				Official: true,
-			},
+		return &registry.IndexInfo{
+			Name:     IndexName,
+			Secure:   true,
+			Official: true,
 		}
 	}
 
-	return &RepositoryInfo{
-		Name: reference.TrimNamed(reposName),
-		Index: &registry.IndexInfo{
-			Name:   indexName,
-			Secure: !isInsecure(indexName),
-		},
+	return &registry.IndexInfo{
+		Name:   indexName,
+		Secure: !isInsecure(indexName),
 	}
 }
 

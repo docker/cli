@@ -9,7 +9,7 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func TestParseRepositoryInfo(t *testing.T) {
+func TestNewIndexInfo(t *testing.T) {
 	type staticRepositoryInfo struct {
 		Index         *registry.IndexInfo
 		RemoteName    string
@@ -269,12 +269,13 @@ func TestParseRepositoryInfo(t *testing.T) {
 			named, err := reference.ParseNormalizedNamed(reposName)
 			assert.NilError(t, err)
 
-			repoInfo := ParseRepositoryInfo(named)
+			indexInfo := NewIndexInfo(named)
+			repoInfoName := reference.TrimNamed(named)
 
-			assert.Check(t, is.DeepEqual(repoInfo.Index, expected.Index))
-			assert.Check(t, is.Equal(reference.Path(repoInfo.Name), expected.RemoteName))
-			assert.Check(t, is.Equal(reference.FamiliarName(repoInfo.Name), expected.LocalName))
-			assert.Check(t, is.Equal(repoInfo.Name.Name(), expected.CanonicalName))
+			assert.Check(t, is.DeepEqual(indexInfo, expected.Index))
+			assert.Check(t, is.Equal(reference.Path(repoInfoName), expected.RemoteName))
+			assert.Check(t, is.Equal(reference.FamiliarName(repoInfoName), expected.LocalName))
+			assert.Check(t, is.Equal(repoInfoName.Name(), expected.CanonicalName))
 		})
 	}
 }
