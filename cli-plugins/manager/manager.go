@@ -24,12 +24,6 @@ const (
 	// plugin. Assuming $PATH and $CWD remain unchanged this should allow
 	// the plugin to re-execute the original CLI.
 	ReexecEnvvar = metadata.ReexecEnvvar
-
-	// ResourceAttributesEnvvar is the name of the envvar that includes additional
-	// resource attributes for OTEL.
-	//
-	// Deprecated: The "OTEL_RESOURCE_ATTRIBUTES" env-var is part of the OpenTelemetry specification; users should define their own const for this. This const will be removed in the next release.
-	ResourceAttributesEnvvar = "OTEL_RESOURCE_ATTRIBUTES"
 )
 
 // errPluginNotFound is the error returned when a plugin could not be found.
