@@ -21,4 +21,7 @@ func TestPluginError(t *testing.T) {
 	actual, err := json.Marshal(err)
 	assert.Check(t, err)
 	assert.Check(t, is.Equal(`"wrapping: testing"`, string(actual)))
+
+	err = wrapAsPluginError(nil, "wrapping")
+	assert.Check(t, is.Error(err, "wrapping: %!w(<nil>)"))
 }
