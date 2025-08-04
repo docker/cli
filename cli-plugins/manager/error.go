@@ -47,8 +47,8 @@ func wrapAsPluginError(err error, msg string) error {
 	return &pluginError{cause: fmt.Errorf("%s: %w", msg, err)}
 }
 
-// NewPluginError creates a new pluginError, analogous to
+// newPluginError creates a new pluginError, analogous to
 // errors.Errorf.
-func NewPluginError(msg string, args ...any) error {
+func newPluginError(msg string, args ...any) error {
 	return &pluginError{cause: fmt.Errorf(msg, args...)}
 }

@@ -29,7 +29,7 @@ func TestPluginMarshal(t *testing.T) {
 		},
 		{
 			doc:      "custom error",
-			error:    NewPluginError("something went wrong"),
+			error:    newPluginError("something went wrong"),
 			expected: jsonWithError,
 		},
 	}
