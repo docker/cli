@@ -236,7 +236,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 			endpoint.TLSConfig.InsecureSkipVerify = true
 		}
 		repoEndpoint := repositoryEndpoint{
-			repoName:  repoName,
+			repoName:  reference.Path(repoName),
 			indexInfo: indexInfo,
 			endpoint:  endpoint,
 		}
