@@ -6,12 +6,6 @@ import (
 	"github.com/docker/cli/cli-plugins/metadata"
 )
 
-// Candidate represents a possible plugin candidate, for mocking purposes
-type Candidate interface {
-	Path() string
-	Metadata() ([]byte, error)
-}
-
 type candidate struct {
 	path string
 }

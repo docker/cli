@@ -2,6 +2,7 @@ package system
 
 import (
 	"encoding/base64"
+	"errors"
 	"net"
 	"testing"
 	"time"
@@ -226,7 +227,7 @@ var samplePluginsInfo = []pluginmanager.Plugin{
 	{
 		Name: "badplugin",
 		Path: "/path/to/docker-badplugin",
-		Err:  pluginmanager.NewPluginError("something wrong"),
+		Err:  errors.New("something wrong"),
 	},
 }
 
