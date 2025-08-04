@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,22 @@ type Plugin struct {
 
 	// ShadowedPaths contains the paths of any other plugins which this plugin takes precedence over.
 	ShadowedPaths []string `json:",omitempty"`
+}
+
+// MarshalJSON implements [json.Marshaler] to handle marshaling the
+// [Plugin.Err] field (Go doesn't marshal errors by default).
+func (p *Plugin) MarshalJSON() ([]byte, error) {
+	type Alias Plugin // avoid recursion
+
+	cp := *p // shallow copy to avoid mutating original
+
+	if cp.Err != nil {
+		if _, ok := cp.Err.(encoding.TextMarshaler); !ok {
+			cp.Err = &pluginError{cp.Err}
+		}
+	}
+
+	return json.Marshal((*Alias)(&cp))
 }
 
 // pluginCandidate represents a possible plugin candidate, for mocking purposes.
