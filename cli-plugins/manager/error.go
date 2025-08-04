@@ -23,11 +23,6 @@ func (e *pluginError) Error() string {
 	return e.cause.Error()
 }
 
-// Cause satisfies the errors.causer interface for pluginError.
-func (e *pluginError) Cause() error {
-	return e.cause
-}
-
 // Unwrap provides compatibility for Go 1.13 error chains.
 func (e *pluginError) Unwrap() error {
 	return e.cause
