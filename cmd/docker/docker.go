@@ -201,7 +201,7 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 			if err == nil {
 				return helpcmd.Run()
 			}
-			if !pluginmanager.IsNotFound(err) {
+			if !errdefs.IsNotFound(err) {
 				return fmt.Errorf("unknown help topic: %v", strings.Join(args, " "))
 			}
 		}
@@ -240,7 +240,7 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 			if err == nil {
 				return
 			}
-			if !pluginmanager.IsNotFound(err) {
+			if !errdefs.IsNotFound(err) {
 				ccmd.Println(err)
 				return
 			}
@@ -473,7 +473,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 				}
 				return nil
 			}
-			if !pluginmanager.IsNotFound(err) {
+			if !errdefs.IsNotFound(err) {
 				// For plugin not found we fall through to
 				// cmd.Execute() which deals with reporting
 				// "command not found" in a consistent way.
