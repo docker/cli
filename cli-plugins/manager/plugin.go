@@ -86,7 +86,7 @@ func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 
 	// Now apply the candidate tests, so these update p.Err.
 	if !pluginNameRe.MatchString(p.Name) {
-		p.Err = NewPluginError("plugin candidate %q did not match %q", p.Name, pluginNameRe.String())
+		p.Err = newPluginError("plugin candidate %q did not match %q", p.Name, pluginNameRe.String())
 		return p, nil
 	}
 
@@ -98,11 +98,11 @@ func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 			continue
 		}
 		if cmd.Name() == p.Name {
-			p.Err = NewPluginError("plugin %q duplicates builtin command", p.Name)
+			p.Err = newPluginError("plugin %q duplicates builtin command", p.Name)
 			return p, nil
 		}
 		if cmd.HasAlias(p.Name) {
-			p.Err = NewPluginError("plugin %q duplicates an alias of builtin command %q", p.Name, cmd.Name())
+			p.Err = newPluginError("plugin %q duplicates an alias of builtin command %q", p.Name, cmd.Name())
 			return p, nil
 		}
 	}
@@ -119,11 +119,11 @@ func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 		return p, nil
 	}
 	if p.Metadata.SchemaVersion != "0.1.0" {
-		p.Err = NewPluginError("plugin SchemaVersion %q is not valid, must be 0.1.0", p.Metadata.SchemaVersion)
+		p.Err = newPluginError("plugin SchemaVersion %q is not valid, must be 0.1.0", p.Metadata.SchemaVersion)
 		return p, nil
 	}
 	if p.Metadata.Vendor == "" {
-		p.Err = NewPluginError("plugin metadata does not define a vendor")
+		p.Err = newPluginError("plugin metadata does not define a vendor")
 		return p, nil
 	}
 	return p, nil
