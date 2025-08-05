@@ -9,12 +9,21 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/system/pruner"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/build"
+	"github.com/moby/moby/api/types/versions"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	// Register the prune command to run as part of "docker system prune"
+	if err := pruner.Register(pruner.TypeBuildCache, pruneFn); err != nil {
+		panic(err)
+	}
+}
 
 type pruneOptions struct {
 	force       bool
@@ -104,7 +113,30 @@ type cancelledErr struct{ error }
 
 func (cancelledErr) Cancelled() {}
 
-// CachePrune executes a prune command for build cache
-func CachePrune(ctx context.Context, dockerCli command.Cli, all bool, filter opts.FilterOpt) (uint64, string, error) {
-	return runPrune(ctx, dockerCli, pruneOptions{force: true, all: all, filter: filter})
+type errNotImplemented struct{ error }
+
+func (errNotImplemented) NotImplemented() {}
+
+// pruneFn prunes the build cache for use in "docker system prune" and
+// returns the amount of space reclaimed and a detailed output string.
+func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if ver := dockerCLI.Client().ClientVersion(); ver != "" && versions.LessThan(ver, "1.31") {
+		// Not supported on older daemons.
+		return 0, "", errNotImplemented{errors.New("builder prune requires API version 1.31 or greater")}
+	}
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		var confirmMsg string
+		if options.All {
+			confirmMsg = "all build cache"
+		} else {
+			confirmMsg = "unused build cache"
+		}
+		return 0, confirmMsg, cancelledErr{errors.New("builder prune has been cancelled")}
+	}
+	return runPrune(ctx, dockerCLI, pruneOptions{
+		force:  true,
+		all:    options.All,
+		filter: options.Filter,
+	})
 }

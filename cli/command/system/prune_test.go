@@ -13,6 +13,13 @@ import (
 	"github.com/moby/moby/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+
+	// Make sure pruners are registered for tests (they're included automatically when building).
+	_ "github.com/docker/cli/cli/command/builder"
+	_ "github.com/docker/cli/cli/command/container"
+	_ "github.com/docker/cli/cli/command/image"
+	_ "github.com/docker/cli/cli/command/network"
+	_ "github.com/docker/cli/cli/command/volume"
 )
 
 func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
