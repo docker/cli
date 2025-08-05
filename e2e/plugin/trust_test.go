@@ -29,9 +29,8 @@ func TestInstallWithContentTrust(t *testing.T) {
 	t.Cleanup(cancel)
 
 	pluginDir := testutils.SetupPlugin(t, ctx)
-	t.Cleanup(pluginDir.Remove)
 
-	icmd.RunCommand("docker", "plugin", "create", pluginName, pluginDir.Path()).Assert(t, icmd.Success)
+	icmd.RunCommand("docker", "plugin", "create", pluginName, pluginDir).Assert(t, icmd.Success)
 	result := icmd.RunCmd(icmd.Command("docker", "plugin", "push", pluginName),
 		fixtures.WithConfig(dir.Path()),
 		fixtures.WithTrust,
