@@ -14,23 +14,9 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/moby/moby/api/types/filters"
-	"github.com/moby/sys/atomicwriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
-
-// CopyToFile writes the content of the reader to the specified file
-//
-// Deprecated: use [atomicwriter.New].
-func CopyToFile(outfile string, r io.Reader) error {
-	writer, err := atomicwriter.New(outfile, 0o600)
-	if err != nil {
-		return err
-	}
-	defer writer.Close()
-	_, err = io.Copy(writer, r)
-	return err
-}
 
 const ErrPromptTerminated = prompt.ErrTerminated
 
