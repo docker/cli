@@ -145,13 +145,14 @@ func TestPromptExitCode(t *testing.T) {
 				t.Helper()
 				skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 
+				const plugin = "registry:5000/plugin-install-test:latest"
+
 				pluginDir := testutils.SetupPlugin(t, ctx)
-
-				plugin := "registry:5000/plugin-content-trust-install:latest"
-
 				icmd.RunCommand("docker", "plugin", "create", plugin, pluginDir).Assert(t, icmd.Success)
 				icmd.RunCmd(icmd.Command("docker", "plugin", "push", plugin), defaultCmdOpts...).Assert(t, icmd.Success)
 				icmd.RunCmd(icmd.Command("docker", "plugin", "rm", "-f", plugin), defaultCmdOpts...).Assert(t, icmd.Success)
+
+				// Test prompt to grant privileges.
 				return icmd.Command("docker", "plugin", "install", plugin)
 			},
 		},
@@ -161,18 +162,22 @@ func TestPromptExitCode(t *testing.T) {
 				t.Helper()
 				skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 
+				const plugin = "registry:5000/plugin-upgrade-test"
+
 				pluginLatestDir := testutils.SetupPlugin(t, ctx)
-				pluginNextDir := testutils.SetupPlugin(t, ctx)
-
-				plugin := "registry:5000/plugin-content-trust-upgrade"
-
 				icmd.RunCommand("docker", "plugin", "create", plugin+":latest", pluginLatestDir).Assert(t, icmd.Success)
-				icmd.RunCommand("docker", "plugin", "create", plugin+":next", pluginNextDir).Assert(t, icmd.Success)
 				icmd.RunCmd(icmd.Command("docker", "plugin", "push", plugin+":latest"), defaultCmdOpts...).Assert(t, icmd.Success)
-				icmd.RunCmd(icmd.Command("docker", "plugin", "push", plugin+":next"), defaultCmdOpts...).Assert(t, icmd.Success)
 				icmd.RunCmd(icmd.Command("docker", "plugin", "rm", "-f", plugin+":latest"), defaultCmdOpts...).Assert(t, icmd.Success)
+
+				pluginNextDir := testutils.SetupPlugin(t, ctx)
+				icmd.RunCommand("docker", "plugin", "create", plugin+":next", pluginNextDir).Assert(t, icmd.Success)
+				icmd.RunCmd(icmd.Command("docker", "plugin", "push", plugin+":next"), defaultCmdOpts...).Assert(t, icmd.Success)
 				icmd.RunCmd(icmd.Command("docker", "plugin", "rm", "-f", plugin+":next"), defaultCmdOpts...).Assert(t, icmd.Success)
+
+				// Using "--grant-all-permissions" to disable prompting for confirmation.
 				icmd.RunCmd(icmd.Command("docker", "plugin", "install", "--disable", "--grant-all-permissions", plugin+":latest"), defaultCmdOpts...).Assert(t, icmd.Success)
+
+				// Test prompting for upgrade.
 				return icmd.Command("docker", "plugin", "upgrade", plugin+":latest", plugin+":next")
 			},
 		},
