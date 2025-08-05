@@ -6,12 +6,6 @@ module github.com/docker/cli
 
 go 1.23.0
 
-replace (
-	// FIXME(thaJeztah): temporarily need to pin on commits, otherwise go modules won't resolve until these are tagged.
-	github.com/moby/moby/api => github.com/moby/moby/api v0.0.0-20250731152656-4faedf2bec36
-	github.com/moby/moby/client => github.com/moby/moby/client v0.0.0-20250731152656-4faedf2bec36
-)
-
 require (
 	dario.cat/mergo v1.0.1
 	github.com/containerd/errdefs v1.0.0
@@ -34,8 +28,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/moby/go-archive v0.1.0
-	github.com/moby/moby/api v0.0.0
-	github.com/moby/moby/client v0.0.0
+	github.com/moby/moby/api v1.52.0-alpha.1
+	github.com/moby/moby/client v0.1.0-alpha.0
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.0.0
 	github.com/moby/sys/atomicwriter v0.1.0

@@ -239,7 +239,7 @@ func TestRunPullTermination(t *testing.T) {
 			return client.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
 		},
 		imageCreateFunc: func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
-			server, client := net.Pipe()
+			server, respReader := net.Pipe()
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
@@ -269,7 +269,7 @@ func TestRunPullTermination(t *testing.T) {
 				}
 			}()
 			attachCh <- struct{}{}
-			return client, nil
+			return respReader, nil
 		},
 		Version: "1.30",
 	})

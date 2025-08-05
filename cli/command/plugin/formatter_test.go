@@ -11,7 +11,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -27,7 +27,7 @@ func TestPluginContext(t *testing.T) {
 	}{
 		{
 			pluginCtx: pluginContext{
-				p:     types.Plugin{ID: pluginID},
+				p:     plugin.Plugin{ID: pluginID},
 				trunc: false,
 			},
 			expValue: pluginID,
@@ -35,7 +35,7 @@ func TestPluginContext(t *testing.T) {
 		},
 		{
 			pluginCtx: pluginContext{
-				p:     types.Plugin{ID: pluginID},
+				p:     plugin.Plugin{ID: pluginID},
 				trunc: true,
 			},
 			expValue: formatter.TruncateID(pluginID),
@@ -43,14 +43,14 @@ func TestPluginContext(t *testing.T) {
 		},
 		{
 			pluginCtx: pluginContext{
-				p: types.Plugin{Name: "plugin_name"},
+				p: plugin.Plugin{Name: "plugin_name"},
 			},
 			expValue: "plugin_name",
 			call:     pCtx.Name,
 		},
 		{
 			pluginCtx: pluginContext{
-				p: types.Plugin{Config: types.PluginConfig{Description: "plugin_description"}},
+				p: plugin.Plugin{Config: plugin.Config{Description: "plugin_description"}},
 			},
 			expValue: "plugin_description",
 			call:     pCtx.Description,
@@ -146,9 +146,9 @@ foobar_bar
 		},
 	}
 
-	plugins := []*types.Plugin{
-		{ID: "pluginID1", Name: "foobar_baz", Config: types.PluginConfig{Description: "description 1"}, Enabled: true},
-		{ID: "pluginID2", Name: "foobar_bar", Config: types.PluginConfig{Description: "description 2"}, Enabled: false},
+	plugins := []*plugin.Plugin{
+		{ID: "pluginID1", Name: "foobar_baz", Config: plugin.Config{Description: "description 1"}, Enabled: true},
+		{ID: "pluginID2", Name: "foobar_bar", Config: plugin.Config{Description: "description 2"}, Enabled: false},
 	}
 
 	for _, tc := range tests {
@@ -167,7 +167,7 @@ foobar_bar
 }
 
 func TestPluginContextWriteJSON(t *testing.T) {
-	plugins := []*types.Plugin{
+	plugins := []*plugin.Plugin{
 		{ID: "pluginID1", Name: "foobar_baz"},
 		{ID: "pluginID2", Name: "foobar_bar"},
 	}
@@ -191,7 +191,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 }
 
 func TestPluginContextWriteJSONField(t *testing.T) {
-	plugins := []*types.Plugin{
+	plugins := []*plugin.Plugin{
 		{ID: "pluginID1", Name: "foobar_baz"},
 		{ID: "pluginID2", Name: "foobar_bar"},
 	}

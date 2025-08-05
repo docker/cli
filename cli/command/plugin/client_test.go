@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
@@ -17,8 +17,8 @@ type fakeClient struct {
 	pluginEnableFunc  func(name string, options client.PluginEnableOptions) error
 	pluginRemoveFunc  func(name string, options client.PluginRemoveOptions) error
 	pluginInstallFunc func(name string, options client.PluginInstallOptions) (io.ReadCloser, error)
-	pluginListFunc    func(filter filters.Args) (types.PluginsListResponse, error)
-	pluginInspectFunc func(name string) (*types.Plugin, []byte, error)
+	pluginListFunc    func(filter filters.Args) (plugin.ListResponse, error)
+	pluginInspectFunc func(name string) (*plugin.Plugin, []byte, error)
 	pluginUpgradeFunc func(name string, options client.PluginInstallOptions) (io.ReadCloser, error)
 }
 
@@ -57,15 +57,15 @@ func (c *fakeClient) PluginInstall(_ context.Context, name string, installOption
 	return nil, nil
 }
 
-func (c *fakeClient) PluginList(_ context.Context, filter filters.Args) (types.PluginsListResponse, error) {
+func (c *fakeClient) PluginList(_ context.Context, filter filters.Args) (plugin.ListResponse, error) {
 	if c.pluginListFunc != nil {
 		return c.pluginListFunc(filter)
 	}
 
-	return types.PluginsListResponse{}, nil
+	return plugin.ListResponse{}, nil
 }
 
-func (c *fakeClient) PluginInspectWithRaw(_ context.Context, name string) (*types.Plugin, []byte, error) {
+func (c *fakeClient) PluginInspectWithRaw(_ context.Context, name string) (*plugin.Plugin, []byte, error) {
 	if c.pluginInspectFunc != nil {
 		return c.pluginInspectFunc(name)
 	}

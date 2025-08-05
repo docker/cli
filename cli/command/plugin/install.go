@@ -12,7 +12,7 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/registry"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
@@ -136,8 +136,8 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	return nil
 }
 
-func acceptPrivileges(dockerCLI command.Streams, name string) func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
-	return func(ctx context.Context, privileges types.PluginPrivileges) (bool, error) {
+func acceptPrivileges(dockerCLI command.Streams, name string) func(ctx context.Context, privileges plugin.Privileges) (bool, error) {
+	return func(ctx context.Context, privileges plugin.Privileges) (bool, error) {
 		_, _ = fmt.Fprintf(dockerCLI.Out(), "Plugin %q is requesting the following privileges:\n", name)
 		for _, privilege := range privileges {
 			_, _ = fmt.Fprintf(dockerCLI.Out(), " - %s: %v\n", privilege.Name, privilege.Value)

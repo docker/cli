@@ -2,14 +2,14 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/distribution/reference"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/api/types/registry"
-	"github.com/pkg/errors"
 )
 
 // PluginUpgrade upgrades a plugin
@@ -24,7 +24,7 @@ func (cli *Client) PluginUpgrade(ctx context.Context, name string, options Plugi
 	}
 	query := url.Values{}
 	if _, err := reference.ParseNormalizedNamed(options.RemoteRef); err != nil {
-		return nil, errors.Wrap(err, "invalid remote reference")
+		return nil, fmt.Errorf("invalid remote reference: %w", err)
 	}
 	query.Set("remote", options.RemoteRef)
 
@@ -40,7 +40,7 @@ func (cli *Client) PluginUpgrade(ctx context.Context, name string, options Plugi
 	return resp.Body, nil
 }
 
-func (cli *Client) tryPluginUpgrade(ctx context.Context, query url.Values, privileges types.PluginPrivileges, name, registryAuth string) (*http.Response, error) {
+func (cli *Client) tryPluginUpgrade(ctx context.Context, query url.Values, privileges plugin.Privileges, name, registryAuth string) (*http.Response, error) {
 	return cli.post(ctx, "/plugins/"+name+"/upgrade", query, privileges, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})

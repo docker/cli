@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -13,8 +14,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/moby/moby/api/types"
-	"github.com/pkg/errors"
+	"github.com/moby/moby/api/types/common"
 )
 
 // head sends an http request to the docker API using the method HEAD.
@@ -144,7 +144,7 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 	}
 
 	if cli.scheme == "https" && strings.Contains(err.Error(), "bad certificate") {
-		return nil, errConnectionFailed{errors.Wrap(err, "the server probably has client authentication (--tlsverify) enabled; check your TLS client certification settings")}
+		return nil, errConnectionFailed{fmt.Errorf("the server probably has client authentication (--tlsverify) enabled; check your TLS client certification settings: %w", err)}
 	}
 
 	// Don't decorate context sentinel errors; users may be comparing to
@@ -162,11 +162,11 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 		// Unwrap the error to remove request errors ("Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/version"),
 		// which are irrelevant if we weren't able to connect.
 		err = errors.Unwrap(err)
-		return nil, errConnectionFailed{errors.Wrapf(err, "failed to connect to the docker API at %v; check if the path is correct and if the daemon is running", cli.host)}
+		return nil, errConnectionFailed{fmt.Errorf("failed to connect to the docker API at %v; check if the path is correct and if the daemon is running: %w", cli.host, err)}
 	}
 	var dnsErr *net.DNSError
 	if errors.As(err, &dnsErr) {
-		return nil, errConnectionFailed{errors.Wrapf(dnsErr, "failed to connect to the docker API at %v", cli.host)}
+		return nil, errConnectionFailed{fmt.Errorf("failed to connect to the docker API at %v: %w", cli.host, dnsErr)}
 	}
 
 	var nErr net.Error
@@ -193,14 +193,14 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 	if strings.Contains(err.Error(), `open //./pipe/docker_engine`) {
 		// Checks if client is running with elevated privileges
 		if f, elevatedErr := os.Open(`\\.\PHYSICALDRIVE0`); elevatedErr != nil {
-			err = errors.Wrap(err, "in the default daemon configuration on Windows, the docker client must be run with elevated privileges to connect")
+			err = fmt.Errorf("in the default daemon configuration on Windows, the docker client must be run with elevated privileges to connect: %w", err)
 		} else {
 			_ = f.Close()
-			err = errors.Wrap(err, "this error may indicate that the docker daemon is not running")
+			err = fmt.Errorf("this error may indicate that the docker daemon is not running: %w", err)
 		}
 	}
 
-	return nil, errConnectionFailed{errors.Wrap(err, "error during connect")}
+	return nil, errConnectionFailed{fmt.Errorf("error during connect: %w", err)}
 }
 
 func (cli *Client) checkResponseErr(serverResp *http.Response) (retErr error) {
@@ -250,20 +250,20 @@ func (cli *Client) checkResponseErr(serverResp *http.Response) (retErr error) {
 
 	var daemonErr error
 	if serverResp.Header.Get("Content-Type") == "application/json" {
-		var errorResponse types.ErrorResponse
+		var errorResponse common.ErrorResponse
 		if err := json.Unmarshal(body, &errorResponse); err != nil {
-			return errors.Wrap(err, "Error reading JSON")
+			return fmt.Errorf("error reading JSON: %w", err)
 		}
 		if errorResponse.Message == "" {
 			// Error-message is empty, which means that we successfully parsed the
 			// JSON-response (no error produced), but it didn't contain an error
 			// message. This could either be because the response was empty, or
 			// the response was valid JSON, but not with the expected schema
-			// ([types.ErrorResponse]).
+			// ([common.ErrorResponse]).
 			//
 			// We cannot use "strict" JSON handling (json.NewDecoder with DisallowUnknownFields)
 			// due to the API using an open schema (we must anticipate fields
-			// being added to [types.ErrorResponse] in the future, and not
+			// being added to [common.ErrorResponse] in the future, and not
 			// reject those responses.
 			//
 			// For these cases, we construct an error with the status-code
@@ -285,7 +285,7 @@ func (cli *Client) checkResponseErr(serverResp *http.Response) (retErr error) {
 		// situations where a proxy is involved, returning a HTML response.
 		daemonErr = errors.New(strings.TrimSpace(string(body)))
 	}
-	return errors.Wrap(daemonErr, "Error response from daemon")
+	return fmt.Errorf("Error response from daemon: %w", daemonErr)
 }
 
 func (cli *Client) addHeaders(req *http.Request, headers http.Header) *http.Request {
