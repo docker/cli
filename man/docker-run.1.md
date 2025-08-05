@@ -479,8 +479,6 @@ according to RFC4862.
       If set to `disabled`, submounts are not recursively bind-mounted.
       If set to `writable`, submounts are recursively bind-mounted but not made recursively read-only.
       If set to `readonly`, submounts are recursively bind-mounted and forcibly made recursively read-only.
-   * `bind-nonrecursive` (Deprecated): `true` or `false` (default). Setting `true` equates to `bind-recursive=disabled`.
-     Setting `false` equates to `bind-recursive=enabled`.
 
    Options specific to `volume`:
 

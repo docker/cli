@@ -259,21 +259,6 @@ func TestMountOptSetTmpfsError(t *testing.T) {
 	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
 }
 
-func TestMountOptSetBindNonRecursive(t *testing.T) {
-	var m MountOpt
-	assert.NilError(t, m.Set("type=bind,source=/foo,target=/bar,bind-nonrecursive"))
-	assert.Check(t, is.DeepEqual([]mount.Mount{
-		{
-			Type:   mount.TypeBind,
-			Source: "/foo",
-			Target: "/bar",
-			BindOptions: &mount.BindOptions{
-				NonRecursive: true,
-			},
-		},
-	}, m.Value()))
-}
-
 func TestMountOptSetBindRecursive(t *testing.T) {
 	t.Run("enabled", func(t *testing.T) {
 		var m MountOpt

@@ -455,20 +455,6 @@ The following options can only be used for bind mounts (`type=bind`):
       When the option is not specified, the default behavior correponds to setting <tt>enabled</tt>.
     </td>
   </tr>
-  <tr>
-    <td><b>bind-nonrecursive</b></td>
-    <td>
-      <tt>bind-nonrecursive</tt> is deprecated since Docker Engine v25.0.
-      Use <tt>bind-recursive</tt>instead.<br />
-      <br />
-      A value is optional:<br />
-      <br />
-      <ul>
-        <li><tt>true</tt> or <tt>1</tt>:  Equivalent to <tt>bind-recursive=disabled</tt>.</li>
-        <li><tt>false</tt> or <tt>0</tt>: Equivalent to <tt>bind-recursive=enabled</tt>.</li>
-      </ul>
-    </td>
-  </tr>
 </table>
 
 ##### Bind propagation
