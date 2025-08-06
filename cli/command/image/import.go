@@ -47,7 +47,7 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 	options.changes = dockeropts.NewListOpts(nil)
 	flags.VarP(&options.changes, "change", "c", "Apply Dockerfile instruction to the created image")
 	flags.StringVarP(&options.message, "message", "m", "", "Set commit message for imported image")
-	command.AddPlatformFlag(flags, &options.platform)
+	addPlatformFlag(flags, &options.platform)
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
 	return cmd
