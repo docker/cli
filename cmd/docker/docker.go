@@ -451,7 +451,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	if cli.HasCompletionArg(args) {
+	if hasCompletionArg(args) {
 		// We add plugin command stubs early only for completion. We don't
 		// want to add them for normal command execution as it would cause
 		// a significant performance hit.
@@ -502,6 +502,16 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	}
 
 	return err
+}
+
+// hasCompletionArg returns true if a cobra completion arg request is found.
+func hasCompletionArg(args []string) bool {
+	for _, arg := range args {
+		if arg == cobra.ShellCompRequestCmd || arg == cobra.ShellCompNoDescRequestCmd {
+			return true
+		}
+	}
+	return false
 }
 
 type versionDetails interface {
