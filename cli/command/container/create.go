@@ -86,7 +86,10 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	// with hostname
 	flags.Bool("help", false, "Print usage")
 
-	command.AddPlatformFlag(flags, &options.platform)
+	// TODO(thaJeztah): consider adding platform as "image create option" on containerOptions
+	addPlatformFlag(flags, &options.platform)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+
 	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image verification")
 	copts = addFlags(flags)
 
