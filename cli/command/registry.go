@@ -99,23 +99,6 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 	return registrytypes.AuthConfig(authconfig), nil
 }
 
-// ConfigureAuth handles prompting of user's username and password if needed.
-//
-// Deprecated: use [PromptUserForCredentials] instead.
-func ConfigureAuth(ctx context.Context, cli Cli, flUser, flPassword string, authConfig *registrytypes.AuthConfig, _ bool) error {
-	defaultUsername := authConfig.Username
-	serverAddress := authConfig.ServerAddress
-
-	newAuthConfig, err := PromptUserForCredentials(ctx, cli, flUser, flPassword, defaultUsername, serverAddress)
-	if err != nil {
-		return err
-	}
-
-	authConfig.Username = newAuthConfig.Username
-	authConfig.Password = newAuthConfig.Password
-	return nil
-}
-
 // PromptUserForCredentials handles the CLI prompt for the user to input
 // credentials.
 // If argUser is not empty, then the user is only prompted for their password.
