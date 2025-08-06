@@ -13,11 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ValidArgsFn a function to be used by cobra command as `ValidArgsFunction` to offer command line completion.
-//
-// Deprecated: use [cobra.CompletionFunc].
-type ValidArgsFn = cobra.CompletionFunc
-
 // APIClientProvider provides a method to get an [client.APIClient], initializing
 // it if needed.
 //
