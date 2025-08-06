@@ -4,54 +4,15 @@
 package command
 
 import (
-	"context"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/prompt"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 )
-
-const ErrPromptTerminated = prompt.ErrTerminated
-
-// DisableInputEcho disables input echo on the provided streams.In.
-// This is useful when the user provides sensitive information like passwords.
-// The function returns a restore function that should be called to restore the
-// terminal state.
-func DisableInputEcho(ins *streams.In) (restore func() error, err error) {
-	return prompt.DisableInputEcho(ins)
-}
-
-// PromptForInput requests input from the user.
-//
-// If the user terminates the CLI with SIGINT or SIGTERM while the prompt is
-// active, the prompt will return an empty string ("") with an ErrPromptTerminated error.
-// When the prompt returns an error, the caller should propagate the error up
-// the stack and close the io.Reader used for the prompt which will prevent the
-// background goroutine from blocking indefinitely.
-func PromptForInput(ctx context.Context, in io.Reader, out io.Writer, message string) (string, error) {
-	return prompt.ReadInput(ctx, in, out, message)
-}
-
-// PromptForConfirmation requests and checks confirmation from the user.
-// This will display the provided message followed by ' [y/N] '. If the user
-// input 'y' or 'Y' it returns true otherwise false. If no message is provided,
-// "Are you sure you want to proceed? [y/N] " will be used instead.
-//
-// If the user terminates the CLI with SIGINT or SIGTERM while the prompt is
-// active, the prompt will return false with an ErrPromptTerminated error.
-// When the prompt returns an error, the caller should propagate the error up
-// the stack and close the io.Reader used for the prompt which will prevent the
-// background goroutine from blocking indefinitely.
-func PromptForConfirmation(ctx context.Context, ins io.Reader, outs io.Writer, message string) (bool, error) {
-	return prompt.Confirm(ctx, ins, outs, message)
-}
 
 // PruneFilters merges prune filters specified in config.json with those specified
 // as command-line flags.
