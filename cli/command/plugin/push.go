@@ -2,55 +2,45 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-type pushOptions struct {
-	name      string
-	untrusted bool
-}
-
-func newPushCommand(dockerCli command.Cli) *cobra.Command {
-	var opts pushOptions
+func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push [OPTIONS] PLUGIN[:TAG]",
 		Short: "Push a plugin to a registry",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.name = args[0]
-			return runPush(cmd.Context(), dockerCli, opts)
+			name := args[0]
+			return runPush(cmd.Context(), dockerCLI, name)
 		},
 	}
 
 	flags := cmd.Flags()
-
-	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
-
+	flags.Bool("disable-content-trust", dockerCLI.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	_ = flags.MarkHidden("disable-content-trust")
 	return cmd
 }
 
-func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error {
-	named, err := reference.ParseNormalizedNamed(opts.name)
+func runPush(ctx context.Context, dockerCli command.Cli, name string) error {
+	named, err := reference.ParseNormalizedNamed(name)
 	if err != nil {
 		return err
 	}
 	if _, ok := named.(reference.Canonical); ok {
-		return errors.Errorf("invalid name: %s", opts.name)
+		return fmt.Errorf("invalid name: %s", name)
 	}
 
 	named = reference.TagNameOnly(named)
-
-	indexInfo := registry.NewIndexInfo(named)
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), registry.NewIndexInfo(named))
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
@@ -63,14 +53,5 @@ func runPush(ctx context.Context, dockerCli command.Cli, opts pushOptions) error
 	defer func() {
 		_ = responseBody.Close()
 	}()
-
-	if !opts.untrusted {
-		repoInfo := &trust.RepositoryInfo{
-			Name:  reference.TrimNamed(named),
-			Index: indexInfo,
-		}
-		return trust.PushTrustedReference(ctx, dockerCli, repoInfo, named, authConfig, responseBody, command.UserAgent())
-	}
-
 	return jsonstream.Display(ctx, responseBody, dockerCli.Out())
 }
