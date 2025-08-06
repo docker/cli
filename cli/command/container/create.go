@@ -87,7 +87,7 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.Bool("help", false, "Print usage")
 
 	command.AddPlatformFlag(flags, &options.platform)
-	command.AddTrustVerificationFlags(flags, &options.untrusted, dockerCli.ContentTrustEnabled())
+	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image verification")
 	copts = addFlags(flags)
 
 	addCompletions(cmd, dockerCli)
