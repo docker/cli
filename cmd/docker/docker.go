@@ -163,8 +163,11 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetOut(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
-	cli.DisableFlagsInUseLine(cmd)
-	setValidateArgs(dockerCli, cmd)
+	visitAll(cmd,
+		setValidateArgs(dockerCli),
+		// prevent adding "[flags]" to the end of the usage line.
+		func(c *cobra.Command) { c.DisableFlagsInUseLine = true },
+	)
 
 	// flags must be the top-level command flags, not cmd.Flags()
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())
@@ -265,14 +268,29 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
-	// The Args is handled by ValidateArgs in cobra, which does not allows a pre-hook.
-	// As a result, here we replace the existing Args validation func to a wrapper,
-	// where the wrapper will check to see if the feature is supported or not.
-	// The Args validation error will only be returned if the feature is supported.
-	cli.VisitAll(cmd, func(ccmd *cobra.Command) {
+// visitAll traverses all commands from the root.
+func visitAll(root *cobra.Command, fns ...func(*cobra.Command)) {
+	for _, cmd := range root.Commands() {
+		visitAll(cmd, fns...)
+	}
+	for _, fn := range fns {
+		fn(root)
+	}
+}
+
+// The Args is handled by ValidateArgs in cobra, which does not allows a pre-hook.
+// As a result, here we replace the existing Args validation func to a wrapper,
+// where the wrapper will check to see if the feature is supported or not.
+// The Args validation error will only be returned if the feature is supported.
+func setValidateArgs(dockerCLI versionDetails) func(*cobra.Command) {
+	return func(ccmd *cobra.Command) {
 		// if there is no tags for a command or any of its parent,
 		// there is no need to wrap the Args validation.
+		//
+		// FIXME(thaJeztah): can we memoize properties of the parent?
+		//  visitAll traverses root -> all childcommands, and hasTags
+		//  goes the reverse (cmd -> visit all parents), so we may
+		//  end traversing two directions.
 		if !hasTags(ccmd) {
 			return
 		}
@@ -283,12 +301,12 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 
 		cmdArgs := ccmd.Args
 		ccmd.Args = func(cmd *cobra.Command, args []string) error {
-			if err := isSupported(cmd, dockerCli); err != nil {
+			if err := isSupported(cmd, dockerCLI); err != nil {
 				return err
 			}
 			return cmdArgs(cmd, args)
 		}
-	})
+	}
 }
 
 func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
