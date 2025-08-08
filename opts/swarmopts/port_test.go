@@ -309,7 +309,8 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 		},
 		{
 			value:         "",
-			expectedError: "no port specified: <empty>",
+			expectedError: "invalid proto: ",
+			// expectedError: "no port specified: <empty>", // FIXME(thaJeztah): re-enable once https://github.com/docker/go-connections/pull/143 is in a go-connections release.
 		},
 		{
 			value:         "1.1.1.1:80:80",
