@@ -147,11 +147,21 @@ linters:
 
     revive:
       rules:
+        - name: early-return      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#early-return
+          arguments:
+            - preserveScope
         - name: empty-block       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-block
         - name: empty-lines       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#empty-lines
+        - name: if-return         # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#if-return
         - name: import-shadowing  # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#import-shadowing
+        - name: indent-error-flow # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#indent-error-flow
+          arguments:
+            - preserveScope
         - name: line-length-limit # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
           arguments: [200]
+        - name: superfluous-else # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#superfluous-else
+          arguments:
+            - preserveScope
         - name: unused-receiver   # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
         - name: use-any           # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
 

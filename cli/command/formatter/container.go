@@ -177,15 +177,15 @@ func (c *ContainerContext) Image() string {
 		// truncate digest if no-trunc option was not selected
 		ref, err := reference.ParseNormalizedNamed(c.c.Image)
 		if err == nil {
-			if nt, ok := ref.(reference.NamedTagged); ok {
-				// case for when a tag is provided
-				if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
-					return reference.FamiliarString(namedTagged)
-				}
-			} else {
+			nt, ok := ref.(reference.NamedTagged)
+			if !ok {
 				// case for when a tag is not provided
 				named := reference.TrimNamed(ref)
 				return reference.FamiliarString(named)
+			}
+			// case for when a tag is provided
+			if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
+				return reference.FamiliarString(namedTagged)
 			}
 		}
 	}
