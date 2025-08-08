@@ -154,6 +154,7 @@ linters:
           arguments: [200]
         - name: unused-receiver   # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unused-receiver
         - name: use-any           # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
+        - name: use-errors-new    # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md#use-errors-new
 
     usetesting:
       os-chdir: false           # FIXME(thaJeztah): Disable `os.Chdir()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
