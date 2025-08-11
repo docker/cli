@@ -128,7 +128,7 @@ func TestRunLogin(t *testing.T) {
 			input: loginOptions{
 				serverAddress: "reg1",
 			},
-			expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+			expectedErr: "error: cannot perform an interactive login from a non TTY device",
 		},
 		{
 			doc:              "store valid username and password",
@@ -335,19 +335,19 @@ func TestLoginNonInteractive(t *testing.T) {
 				doc:         "error - w/o user w/o pass ",
 				username:    false,
 				password:    false,
-				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+				expectedErr: "error: cannot perform an interactive login from a non TTY device",
 			},
 			{
 				doc:         "error - w/ user w/o pass",
 				username:    true,
 				password:    false,
-				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+				expectedErr: "error: cannot perform an interactive login from a non TTY device",
 			},
 			{
 				doc:         "error - w/o user w/ pass",
 				username:    false,
 				password:    true,
-				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+				expectedErr: "error: cannot perform an interactive login from a non TTY device",
 			},
 		}
 
@@ -404,13 +404,13 @@ func TestLoginNonInteractive(t *testing.T) {
 				doc:         "error - w/ user w/o pass",
 				username:    true,
 				password:    false,
-				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+				expectedErr: "error: cannot perform an interactive login from a non TTY device",
 			},
 			{
 				doc:         "error - w/o user w/ pass",
 				username:    false,
 				password:    true,
-				expectedErr: "Error: Cannot perform an interactive login from a non TTY device",
+				expectedErr: "error: cannot perform an interactive login from a non TTY device",
 			},
 		}
 
