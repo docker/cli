@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/moby/moby/api/types/registry"
-	"github.com/pkg/errors"
 )
 
 type repositoryEndpoint struct {
@@ -89,7 +89,7 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 	authTransport := transport.NewTransport(base, modifiers...)
 	challengeManager, err := registry.PingV2Registry(endpoint.URL, authTransport)
 	if err != nil {
-		return nil, errors.Wrap(err, "error pinging v2 registry")
+		return nil, fmt.Errorf("error pinging v2 registry: %w", err)
 	}
 	if authConfig.RegistryToken != "" {
 		passThruTokenHandler := &existingTokenHandler{token: authConfig.RegistryToken}
