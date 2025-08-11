@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/docker/go-connections/nat"
-	"github.com/pkg/errors"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -80,7 +79,7 @@ func Validate(config map[string]any, version string) error {
 	version = normalizeVersion(version)
 	schemaData, err := schemas.ReadFile("data/config_schema_v" + version + ".json")
 	if err != nil {
-		return errors.Errorf("unsupported Compose file version: %s", version)
+		return fmt.Errorf("unsupported Compose file version: %s", version)
 	}
 
 	schemaLoader := gojsonschema.NewStringLoader(string(schemaData))

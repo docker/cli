@@ -1,11 +1,12 @@
 package convert
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/mount"
-	"github.com/pkg/errors"
 )
 
 type volumes map[string]composetypes.VolumeConfig
@@ -59,7 +60,7 @@ func handleVolumeToMount(
 
 	stackVolume, exists := stackVolumes[volume.Source]
 	if !exists {
-		return mount.Mount{}, errors.Errorf("undefined volume %q", volume.Source)
+		return mount.Mount{}, fmt.Errorf("undefined volume %q", volume.Source)
 	}
 
 	result.Source = namespace.Scope(volume.Source)
@@ -219,7 +220,7 @@ func handleClusterToMount(
 		// external volumes with a given group exist.
 		stackVolume, exists := stackVolumes[volume.Source]
 		if !exists {
-			return mount.Mount{}, errors.Errorf("undefined volume %q", volume.Source)
+			return mount.Mount{}, fmt.Errorf("undefined volume %q", volume.Source)
 		}
 
 		// if the volume is not specified with a group source, we may namespace
