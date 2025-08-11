@@ -2,12 +2,12 @@ package manifest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/store"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func createManifestList(ctx context.Context, dockerCLI command.Cli, args []strin
 	newRef := args[0]
 	targetRef, err := normalizeReference(newRef)
 	if err != nil {
-		return errors.Wrapf(err, "error parsing name for manifest list %s", newRef)
+		return fmt.Errorf("error parsing name for manifest list %s: %w", newRef, err)
 	}
 
 	manifestStore := newManifestStore(dockerCLI)
@@ -49,7 +49,7 @@ func createManifestList(ctx context.Context, dockerCLI command.Cli, args []strin
 	case err != nil:
 		return err
 	case !opts.amend:
-		return errors.Errorf("refusing to amend an existing manifest list with no --amend flag")
+		return errors.New("refusing to amend an existing manifest list with no --amend flag")
 	}
 
 	// Now create the local manifest list transaction by looking up the manifest schemas
