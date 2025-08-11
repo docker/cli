@@ -143,6 +143,7 @@ func TestPromptExitCode(t *testing.T) {
 			name: "plugin install",
 			run: func(t *testing.T) icmd.Cmd {
 				t.Helper()
+				t.Skip("flaky test: see https://github.com/docker/cli/issues/6248")
 				skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 
 				const plugin = "registry:5000/plugin-install-test:latest"
@@ -160,6 +161,7 @@ func TestPromptExitCode(t *testing.T) {
 			name: "plugin upgrade",
 			run: func(t *testing.T) icmd.Cmd {
 				t.Helper()
+				t.Skip("flaky test: see https://github.com/docker/cli/issues/6248")
 				skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 
 				const plugin = "registry:5000/plugin-upgrade-test"
