@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -14,7 +16,6 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 )
 
 // EndpointMeta is a typed wrapper around a context-store generic endpoint describing
@@ -68,7 +69,7 @@ func (ep *Endpoint) tlsConfig() (*tls.Config, error) {
 
 		x509cert, err := tls.X509KeyPair(ep.TLSData.Cert, keyBytes)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to retrieve context tls info")
+			return nil, fmt.Errorf("failed to retrieve context tls info: %w", err)
 		}
 		tlsOpts = append(tlsOpts, func(cfg *tls.Config) {
 			cfg.Certificates = []tls.Certificate{x509cert}
@@ -160,7 +161,7 @@ func EndpointFromContext(metadata store.Metadata) (EndpointMeta, error) {
 	}
 	typed, ok := ep.(EndpointMeta)
 	if !ok {
-		return EndpointMeta{}, errors.Errorf("endpoint %q is not of type EndpointMeta", DockerEndpoint)
+		return EndpointMeta{}, fmt.Errorf("endpoint %q is not of type EndpointMeta", DockerEndpoint)
 	}
 	return typed, nil
 }
