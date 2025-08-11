@@ -5,10 +5,10 @@ package formatter
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"reflect"
 	"unicode"
-
-	"github.com/pkg/errors"
 )
 
 // MarshalJSON marshals x into json
@@ -25,14 +25,14 @@ func MarshalJSON(x any) ([]byte, error) {
 func marshalMap(x any) (map[string]any, error) {
 	val := reflect.ValueOf(x)
 	if val.Kind() != reflect.Ptr {
-		return nil, errors.Errorf("expected a pointer to a struct, got %v", val.Kind())
+		return nil, fmt.Errorf("expected a pointer to a struct, got %v", val.Kind())
 	}
 	if val.IsNil() {
-		return nil, errors.Errorf("expected a pointer to a struct, got nil pointer")
+		return nil, errors.New("expected a pointer to a struct, got nil pointer")
 	}
 	valElem := val.Elem()
 	if valElem.Kind() != reflect.Struct {
-		return nil, errors.Errorf("expected a pointer to a struct, got a pointer to %v", valElem.Kind())
+		return nil, fmt.Errorf("expected a pointer to a struct, got a pointer to %v", valElem.Kind())
 	}
 	typ := val.Type()
 	m := make(map[string]any)
@@ -54,7 +54,7 @@ var unmarshallableNames = map[string]struct{}{"FullHeader": {}}
 // It returns ("", nil, nil) for valid but non-marshallable parameter. (e.g. "unexportedFunc()")
 func marshalForMethod(typ reflect.Method, val reflect.Value) (string, any, error) {
 	if val.Kind() != reflect.Func {
-		return "", nil, errors.Errorf("expected func, got %v", val.Kind())
+		return "", nil, fmt.Errorf("expected func, got %v", val.Kind())
 	}
 	name, numIn, numOut := typ.Name, val.Type().NumIn(), val.Type().NumOut()
 	_, blackListed := unmarshallableNames[name]
