@@ -298,25 +298,25 @@ func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cp
 // about both the source and destination. The API is a simple tar
 // archive/extract API but we can use the stat info header about the
 // destination to be more informed about exactly what the destination is.
-func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (err error) {
+func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (retErr error) {
 	srcPath := copyConfig.sourcePath
 	dstPath := copyConfig.destPath
 
 	if srcPath != "-" {
 		// Get an absolute source path.
-		srcPath, err = resolveLocalPath(srcPath)
-		if err != nil {
-			return err
+		srcPath, retErr = resolveLocalPath(srcPath)
+		if retErr != nil {
+			return retErr
 		}
 	}
 
 	apiClient := dockerCLI.Client()
 	// Prepare destination copy info by stat-ing the container path.
 	dstInfo := archive.CopyInfo{Path: dstPath}
-	dstStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, dstPath)
+	dstStat, retErr := apiClient.ContainerStatPath(ctx, copyConfig.container, dstPath)
 
 	// If the destination is a symbolic link, we should evaluate it.
-	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
+	if retErr == nil && dstStat.Mode&os.ModeSymlink != 0 {
 		linkTarget := dstStat.LinkTarget
 		if !isAbs(linkTarget) {
 			// Join with the parent directory.
@@ -325,7 +325,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		}
 
 		dstInfo.Path = linkTarget
-		dstStat, err = apiClient.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+		dstStat, retErr = apiClient.ContainerStatPath(ctx, copyConfig.container, linkTarget)
 		// FIXME(thaJeztah): unhandled error (should this return?)
 	}
 
@@ -340,7 +340,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	// or vice versa) the extraction will fail. If the destination simply did
 	// not exist, but the parent directory does, the extraction will still
 	// succeed.
-	if err == nil {
+	if retErr == nil {
 		dstInfo.Exists, dstInfo.IsDir = true, dstStat.Mode.IsDir()
 	}
 
@@ -411,7 +411,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	cancel()
 	<-done
 	restore()
-	fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
 	return res
 }
