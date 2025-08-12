@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -167,7 +168,7 @@ type swarmUpdateRecorder struct {
 	spec swarm.Spec
 }
 
-func (s *swarmUpdateRecorder) swarmUpdate(sp swarm.Spec, _ swarm.UpdateFlags) error {
+func (s *swarmUpdateRecorder) swarmUpdate(sp swarm.Spec, _ client.SwarmUpdateFlags) error {
 	s.spec = sp
 	return nil
 }

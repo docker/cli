@@ -7,16 +7,17 @@ import (
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 // GetServices is the swarm implementation of listing stack services
-func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Services) ([]swarm.Service, error) {
+func GetServices(ctx context.Context, dockerCLI command.Cli, opts options.Services) ([]swarm.Service, error) {
 	var (
-		err    error
-		client = dockerCli.Client()
+		err       error
+		apiClient = dockerCLI.Client()
 	)
 
-	listOpts := swarm.ServiceListOptions{
+	listOpts := client.ServiceListOptions{
 		Filters: getStackFilterFromOpt(opts.Namespace, opts.Filter),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and
@@ -25,7 +26,7 @@ func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Servic
 		Status: !opts.Quiet,
 	}
 
-	services, err := client.ServiceList(ctx, listOpts)
+	services, err := apiClient.ServiceList(ctx, listOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +44,7 @@ func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Servic
 		// situations where the client uses the "default" version. To account for
 		// these situations, we do a quick check for services that do not have
 		// a ServiceStatus set, and perform a lookup for those.
-		services, err = service.AppendServiceStatus(ctx, client, services)
+		services, err = service.AppendServiceStatus(ctx, apiClient, services)
 		if err != nil {
 			return nil, err
 		}

@@ -90,7 +90,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		logfunc func(context.Context, string, container.LogsOptions) (io.ReadCloser, error)
 	)
 
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, swarm.ServiceInspectOptions{})
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, client.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
 		if !errdefs.IsNotFound(err) {

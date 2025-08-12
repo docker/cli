@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -18,11 +19,11 @@ import (
 
 func TestNetworkListErrors(t *testing.T) {
 	testCases := []struct {
-		networkListFunc func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
+		networkListFunc func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 		expectedError   string
 	}{
 		{
-			networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 				return []network.Summary{}, errors.New("error creating network")
 			},
 			expectedError: "error creating network",
@@ -44,7 +45,7 @@ func TestNetworkListErrors(t *testing.T) {
 func TestNetworkList(t *testing.T) {
 	testCases := []struct {
 		doc             string
-		networkListFunc func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
+		networkListFunc func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 		flags           map[string]string
 		golden          string
 	}{
@@ -54,8 +55,8 @@ func TestNetworkList(t *testing.T) {
 				"filter": "image.name=ubuntu",
 			},
 			golden: "network-list.golden",
-			networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
-				expectedOpts := network.ListOptions{
+			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
+				expectedOpts := client.NetworkListOptions{
 					Filters: filters.NewArgs(filters.Arg("image.name", "ubuntu")),
 				}
 				assert.Check(t, is.DeepEqual(expectedOpts, options, cmp.AllowUnexported(filters.Args{})))
@@ -72,7 +73,7 @@ func TestNetworkList(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "network-list-sort.golden",
-			networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 				return []network.Summary{
 					*builders.NetworkResource(builders.NetworkResourceName("network-2-foo")),
 					*builders.NetworkResource(builders.NetworkResourceName("network-1-foo")),

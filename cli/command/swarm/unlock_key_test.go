@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -19,7 +20,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 		args                  []string
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
+		swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
 		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 		expectedError         string
 	}{
@@ -56,7 +57,7 @@ func TestSwarmUnlockKeyErrors(t *testing.T) {
 			swarmInspectFunc: func() (swarm.Swarm, error) {
 				return *builders.Swarm(builders.Autolock()), nil
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
+			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
 				return errors.New("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
@@ -104,7 +105,7 @@ func TestSwarmUnlockKey(t *testing.T) {
 		name                  string
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
+		swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
 		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 	}{
 		{

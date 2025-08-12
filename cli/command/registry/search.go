@@ -10,7 +10,9 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/commands"
 	"github.com/docker/cli/opts"
+	"github.com/moby/moby/api/pkg/authconfig"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -62,7 +64,7 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 		return err
 	}
 
-	results, err := dockerCli.Client().ImageSearch(ctx, options.term, registrytypes.SearchOptions{
+	results, err := dockerCli.Client().ImageSearch(ctx, options.term, client.ImageSearchOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: nil,
 		Filters:       options.filter.Value(),
@@ -100,7 +102,7 @@ func getAuth(dockerCLI command.Cli, reposName string) (encodedAuth string, err e
 	// "no credentials found"). We'll get an error when search failed,
 	// so fine to ignore in most situations.
 	authConfig, _ := dockerCLI.ConfigFile().GetAuthConfig(authCfgKey)
-	return registrytypes.EncodeAuthConfig(registrytypes.AuthConfig(authConfig))
+	return authconfig.Encode(registrytypes.AuthConfig(authConfig))
 }
 
 // splitReposSearchTerm breaks a search term into an index name and remote name

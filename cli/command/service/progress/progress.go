@@ -88,7 +88,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 	)
 
 	for {
-		service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, swarm.ServiceInspectOptions{})
+		service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
 		if err != nil {
 			return err
 		}
@@ -142,7 +142,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			return nil
 		}
 
-		tasks, err := apiClient.TaskList(ctx, swarm.TaskListOptions{Filters: filters.NewArgs(
+		tasks, err := apiClient.TaskList(ctx, client.TaskListOptions{Filters: filters.NewArgs(
 			filters.KeyValuePair{Key: "service", Value: service.ID},
 			filters.KeyValuePair{Key: "_up-to-date", Value: "true"},
 		)})
@@ -216,7 +216,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 //
 // TODO(thaJeztah): this should really be a filter on [apiClient.NodeList] instead of being filtered on the client side.
 func getActiveNodes(ctx context.Context, apiClient client.NodeAPIClient) (map[string]struct{}, error) {
-	nodes, err := apiClient.NodeList(ctx, swarm.NodeListOptions{})
+	nodes, err := apiClient.NodeList(ctx, client.NodeListOptions{})
 	if err != nil {
 		return nil, err
 	}

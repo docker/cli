@@ -18,6 +18,7 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -164,7 +165,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			// is not valid for filtering containers.
 			f := options.Filters.Clone()
 			f.Add("type", string(events.ContainerEventType))
-			eventChan, errChan := apiClient.Events(ctx, events.ListOptions{
+			eventChan, errChan := apiClient.Events(ctx, client.EventsListOptions{
 				Filters: f,
 			})
 

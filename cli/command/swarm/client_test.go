@@ -17,7 +17,7 @@ type fakeClient struct {
 	swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 	swarmJoinFunc         func() error
 	swarmLeaveFunc        func() error
-	swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
+	swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
 	swarmUnlockFunc       func(req swarm.UnlockRequest) error
 }
 
@@ -70,7 +70,7 @@ func (cli *fakeClient) SwarmLeave(context.Context, bool) error {
 	return nil
 }
 
-func (cli *fakeClient) SwarmUpdate(_ context.Context, _ swarm.Version, swarmSpec swarm.Spec, flags swarm.UpdateFlags) error {
+func (cli *fakeClient) SwarmUpdate(_ context.Context, _ swarm.Version, swarmSpec swarm.Spec, flags client.SwarmUpdateFlags) error {
 	if cli.swarmUpdateFunc != nil {
 		return cli.swarmUpdateFunc(swarmSpec, flags)
 	}

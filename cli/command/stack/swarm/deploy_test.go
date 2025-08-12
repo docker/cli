@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -32,12 +33,12 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	namespace := convert.NewNamespace("mystack")
 
 	var (
-		receivedOptions swarm.ServiceUpdateOptions
+		receivedOptions client.ServiceUpdateOptions
 		receivedService swarm.ServiceSpec
 	)
 
-	client := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+	fakeCli := test.NewFakeCli(&fakeClient{
+		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{
 					Spec: swarm.ServiceSpec{
@@ -55,7 +56,7 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
+		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 			receivedOptions = options
 			receivedService = service
 			return swarm.ServiceUpdateResponse{}, nil
@@ -97,14 +98,14 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 					},
 				},
 			}
-			_, err := deployServices(ctx, client, spec, namespace, false, ResolveImageChanged)
+			_, err := deployServices(ctx, fakeCli, spec, namespace, false, ResolveImageChanged)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(receivedOptions.QueryRegistry, tc.expectedQueryRegistry))
 			assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, tc.expectedImage))
 			assert.Check(t, is.Equal(receivedService.TaskTemplate.ForceUpdate, tc.expectedForceUpdate))
 
 			receivedService = swarm.ServiceSpec{}
-			receivedOptions = swarm.ServiceUpdateOptions{}
+			receivedOptions = client.ServiceUpdateOptions{}
 		})
 	}
 }

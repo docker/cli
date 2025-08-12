@@ -14,9 +14,9 @@ type fakeClient struct {
 	networkConnectFunc    func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
-	networkListFunc       func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
+	networkListFunc       func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 	networkPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (network.PruneReport, error)
-	networkInspectFunc    func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, []byte, error)
+	networkInspectFunc    func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, []byte, error)
 }
 
 func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error) {
@@ -40,7 +40,7 @@ func (c *fakeClient) NetworkDisconnect(ctx context.Context, networkID, container
 	return nil
 }
 
-func (c *fakeClient) NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 	if c.networkListFunc != nil {
 		return c.networkListFunc(ctx, options)
 	}
@@ -54,7 +54,7 @@ func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string) error 
 	return nil
 }
 
-func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, opts network.InspectOptions) (network.Inspect, []byte, error) {
+func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string, opts client.NetworkInspectOptions) (network.Inspect, []byte, error) {
 	if c.networkInspectFunc != nil {
 		return c.networkInspectFunc(ctx, networkID, opts)
 	}

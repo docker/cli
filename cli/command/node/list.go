@@ -11,8 +11,8 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -53,7 +53,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	nodes, err := apiClient.NodeList(ctx, swarm.NodeListOptions{
+	nodes, err := apiClient.NodeList(ctx, client.NodeListOptions{
 		Filters: options.filter.Value(),
 	})
 	if err != nil {

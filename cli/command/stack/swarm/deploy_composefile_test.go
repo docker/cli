@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/internal/test/network"
 	networktypes "github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -49,13 +50,13 @@ func TestValidateExternalNetworks(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		client := &network.FakeClient{
-			NetworkInspectFunc: func(_ context.Context, _ string, _ networktypes.InspectOptions) (networktypes.Inspect, error) {
+		fakeAPIClient := &network.FakeClient{
+			NetworkInspectFunc: func(_ context.Context, _ string, _ client.NetworkInspectOptions) (networktypes.Inspect, error) {
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}
 		networks := []string{testcase.network}
-		err := validateExternalNetworks(context.Background(), client, networks)
+		err := validateExternalNetworks(context.Background(), fakeAPIClient, networks)
 		if testcase.expectedMsg == "" {
 			assert.NilError(t, err)
 		} else {

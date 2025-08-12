@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
 	"github.com/sirupsen/logrus"
@@ -21,7 +20,7 @@ func resizeTtyTo(ctx context.Context, apiClient client.ContainerAPIClient, id st
 		return nil
 	}
 
-	options := container.ResizeOptions{
+	options := client.ContainerResizeOptions{
 		Height: height,
 		Width:  width,
 	}

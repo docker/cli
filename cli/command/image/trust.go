@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/image"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
@@ -149,7 +150,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
-	encodedAuth, err := registrytypes.EncodeAuthConfig(*imgRefAndAuth.AuthConfig())
+	encodedAuth, err := authconfig.Encode(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -20,7 +21,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 		args                  []string
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
+		swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
 		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 		expectedError         string
 	}{
@@ -44,7 +45,7 @@ func TestSwarmUpdateErrors(t *testing.T) {
 			flags: map[string]string{
 				flagTaskHistoryLimit: "10",
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
+			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
 				return errors.New("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
@@ -95,7 +96,7 @@ func TestSwarmUpdate(t *testing.T) {
 		args                  []string
 		flags                 map[string]string
 		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmUpdateFunc       func(swarm swarm.Spec, flags swarm.UpdateFlags) error
+		swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
 		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
 	}{
 		{
@@ -115,7 +116,7 @@ func TestSwarmUpdate(t *testing.T) {
 			swarmInspectFunc: func() (swarm.Swarm, error) {
 				return *swarmInfo, nil
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
+			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
 					return errors.New("historyLimit not correctly set")
 				}
@@ -154,7 +155,7 @@ func TestSwarmUpdate(t *testing.T) {
 				flagTaskHistoryLimit: "10",
 				flagAutolock:         "true",
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
+			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
 				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
 					return errors.New("historyLimit not correctly set")
 				}

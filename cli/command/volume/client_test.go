@@ -31,7 +31,7 @@ func (c *fakeClient) VolumeInspect(_ context.Context, volumeID string) (volume.V
 	return volume.Volume{}, nil
 }
 
-func (c *fakeClient) VolumeList(_ context.Context, options volume.ListOptions) (volume.ListResponse, error) {
+func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
 	if c.volumeListFunc != nil {
 		return c.volumeListFunc(options.Filters)
 	}

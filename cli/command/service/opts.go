@@ -16,7 +16,6 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/moby/swarmkit/v2/api"
@@ -400,8 +399,11 @@ func (c *credentialSpecOpt) Value() *swarm.CredentialSpec {
 }
 
 func resolveNetworkID(ctx context.Context, apiClient client.NetworkAPIClient, networkIDOrName string) (string, error) {
-	nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, network.InspectOptions{Scope: "swarm"})
-	return nw.ID, err
+	nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, client.NetworkInspectOptions{Scope: "swarm"})
+	if err != nil {
+		return "", err
+	}
+	return nw.ID, nil
 }
 
 func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {

@@ -25,7 +25,7 @@ const (
 )
 
 // RootRotationProgress outputs progress information for convergence of a root rotation.
-func RootRotationProgress(ctx context.Context, dclient client.APIClient, progressWriter io.WriteCloser) error {
+func RootRotationProgress(ctx context.Context, apiClient client.APIClient, progressWriter io.WriteCloser) error {
 	defer progressWriter.Close()
 
 	progressOut := streamformatter.NewJSONProgressOutput(progressWriter, false)
@@ -42,7 +42,7 @@ func RootRotationProgress(ctx context.Context, dclient client.APIClient, progres
 	var done bool
 
 	for {
-		info, err := dclient.SwarmInspect(ctx)
+		info, err := apiClient.SwarmInspect(ctx)
 		if err != nil {
 			return err
 		}
@@ -51,7 +51,7 @@ func RootRotationProgress(ctx context.Context, dclient client.APIClient, progres
 			return nil
 		}
 
-		nodes, err := dclient.NodeList(ctx, swarm.NodeListOptions{})
+		nodes, err := apiClient.NodeList(ctx, client.NodeListOptions{})
 		if err != nil {
 			return err
 		}

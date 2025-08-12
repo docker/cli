@@ -95,7 +95,7 @@ func validateExternalNetworks(ctx context.Context, apiClient client.NetworkAPICl
 			// local-scoped networks, so there's no need to inspect them.
 			continue
 		}
-		nw, err := apiClient.NetworkInspect(ctx, networkName, network.InspectOptions{})
+		nw, err := apiClient.NetworkInspect(ctx, networkName, client.NetworkInspectOptions{})
 		switch {
 		case errdefs.IsNotFound(err):
 			return fmt.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
@@ -220,7 +220,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 		if service, exists := existingServiceMap[name]; exists {
 			_, _ = fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
 
-			updateOpts := swarm.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
+			updateOpts := client.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
 			switch resolveImage {
 			case ResolveImageAlways:
@@ -265,7 +265,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 		} else {
 			_, _ = fmt.Fprintln(out, "Creating service", name)
 
-			createOpts := swarm.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
+			createOpts := client.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
 
 			// query registry if flag disabling it was not set
 			if resolveImage == ResolveImageAlways || resolveImage == ResolveImageChanged {

@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -22,7 +23,7 @@ func TestNodePsErrors(t *testing.T) {
 		flags           map[string]string
 		infoFunc        func() (system.Info, error)
 		nodeInspectFunc func() (swarm.Node, []byte, error)
-		taskListFunc    func(options swarm.TaskListOptions) ([]swarm.Task, error)
+		taskListFunc    func(options client.TaskListOptions) ([]swarm.Task, error)
 		taskInspectFunc func(taskID string) (swarm.Task, []byte, error)
 		expectedError   string
 	}{
@@ -41,7 +42,7 @@ func TestNodePsErrors(t *testing.T) {
 		},
 		{
 			args: []string{"nodeID"},
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{}, errors.New("error returning the task list")
 			},
 			expectedError: "error returning the task list",
@@ -72,9 +73,9 @@ func TestNodePs(t *testing.T) {
 		flags              map[string]string
 		infoFunc           func() (system.Info, error)
 		nodeInspectFunc    func() (swarm.Node, []byte, error)
-		taskListFunc       func(options swarm.TaskListOptions) ([]swarm.Task, error)
+		taskListFunc       func(options client.TaskListOptions) ([]swarm.Task, error)
 		taskInspectFunc    func(taskID string) (swarm.Task, []byte, error)
-		serviceInspectFunc func(ctx context.Context, serviceID string, opts swarm.ServiceInspectOptions) (swarm.Service, []byte, error)
+		serviceInspectFunc func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (swarm.Service, []byte, error)
 	}{
 		{
 			name: "simple",
@@ -82,7 +83,7 @@ func TestNodePs(t *testing.T) {
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *builders.Node(), []byte{}, nil
 			},
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{
 					*builders.Task(builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.PortStatus([]swarm.PortConfig{
 						{
@@ -93,7 +94,7 @@ func TestNodePs(t *testing.T) {
 					}))),
 				}, nil
 			},
-			serviceInspectFunc: func(ctx context.Context, serviceID string, opts swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+			serviceInspectFunc: func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 				return swarm.Service{
 					ID: serviceID,
 					Spec: swarm.ServiceSpec{
@@ -110,7 +111,7 @@ func TestNodePs(t *testing.T) {
 			nodeInspectFunc: func() (swarm.Node, []byte, error) {
 				return *builders.Node(), []byte{}, nil
 			},
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{
 					*builders.Task(builders.TaskID("taskID1"), builders.TaskServiceID("failure"),
 						builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.StatusErr("a task error"))),
@@ -120,7 +121,7 @@ func TestNodePs(t *testing.T) {
 						builders.WithStatus(builders.Timestamp(time.Now().Add(-4*time.Hour)), builders.StatusErr("a task error"))),
 				}, nil
 			},
-			serviceInspectFunc: func(ctx context.Context, serviceID string, opts swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+			serviceInspectFunc: func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 				return swarm.Service{
 					ID: serviceID,
 					Spec: swarm.ServiceSpec{

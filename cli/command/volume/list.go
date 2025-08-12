@@ -11,7 +11,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +53,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
-	volumes, err := apiClient.VolumeList(ctx, volume.ListOptions{Filters: options.filter.Value()})
+	volumes, err := apiClient.VolumeList(ctx, client.VolumeListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}

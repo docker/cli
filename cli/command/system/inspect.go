@@ -16,8 +16,6 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/api/types/image"
-	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -124,7 +122,7 @@ func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFun
 
 func inspectNetwork(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, network.InspectOptions{})
+		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, client.NetworkInspectOptions{})
 	}
 }
 
@@ -137,7 +135,7 @@ func inspectNode(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc 
 func inspectService(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, swarm.ServiceInspectOptions{InsertDefaults: true})
+		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, client.ServiceInspectOptions{InsertDefaults: true})
 	}
 }
 

@@ -20,7 +20,7 @@ func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, nodeID string) (swa
 	return swarm.Node{}, []byte{}, nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 	if cli.serviceInspectFunc != nil {
 		return cli.serviceInspectFunc(serviceID)
 	}

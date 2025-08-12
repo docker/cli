@@ -10,13 +10,14 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
 
 func TestTaskPrintSorted(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceInspectWithRaw: func(ref string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+		serviceInspectWithRaw: func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 			if ref == "service-id-one" {
 				return *builders.Service(builders.ServiceName("service-name-1")), nil, nil
 			}
@@ -108,7 +109,7 @@ func TestTaskPrintWithIndentation(t *testing.T) {
 	const trunc = false
 	const noResolve = false
 	apiClient := &fakeClient{
-		serviceInspectWithRaw: func(ref string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+		serviceInspectWithRaw: func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 			return *builders.Service(builders.ServiceName("service-name-foo")), nil, nil
 		},
 		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
@@ -144,7 +145,7 @@ func TestTaskPrintWithResolution(t *testing.T) {
 	const trunc = false
 	const noResolve = false
 	apiClient := &fakeClient{
-		serviceInspectWithRaw: func(ref string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+		serviceInspectWithRaw: func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 			return *builders.Service(builders.ServiceName("service-name-foo")), nil, nil
 		},
 		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
