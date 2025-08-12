@@ -46,7 +46,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 2
       # CodeQL 2.16.4's auto-build added support for multi-module repositories,
