@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -19,7 +20,6 @@ import (
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -200,7 +200,7 @@ func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, de
 	// will hit this if you attempt docker login from mintty where stdin
 	// is a pipe, not a character based console.
 	if (opts.user == "" || opts.password == "") && !dockerCLI.In().IsTerminal() {
-		return "", errors.Errorf("Error: Cannot perform an interactive login from a non TTY device")
+		return "", errors.New("error: cannot perform an interactive login from a non TTY device")
 	}
 
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
@@ -263,7 +263,7 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
 	creds := cfg.GetCredentialsStore(authConfig.ServerAddress)
 	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
-		return errors.Errorf("Error saving credentials: %v", err)
+		return fmt.Errorf("error saving credentials: %v", err)
 	}
 
 	return nil

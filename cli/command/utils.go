@@ -4,13 +4,14 @@
 package command
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/docker/cli/cli/config"
 	"github.com/moby/moby/api/types/filters"
-	"github.com/pkg/errors"
 )
 
 // PruneFilters merges prune filters specified in config.json with those specified
@@ -59,7 +60,7 @@ func ValidateOutputPath(path string) error {
 	dir := filepath.Dir(filepath.Clean(path))
 	if dir != "" && dir != "." {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			return errors.Errorf("invalid output path: directory %q does not exist", dir)
+			return fmt.Errorf("invalid output path: directory %q does not exist", dir)
 		}
 	}
 	// check whether `path` points to a regular file
@@ -74,7 +75,7 @@ func ValidateOutputPath(path string) error {
 		}
 
 		if err := ValidateOutputPathFileMode(fileInfo.Mode()); err != nil {
-			return errors.Wrapf(err, "invalid output path: %q must be a directory or a regular file", path)
+			return fmt.Errorf("invalid output path: %q must be a directory or a regular file: %w", path, err)
 		}
 	}
 	return nil

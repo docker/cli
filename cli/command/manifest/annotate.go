@@ -12,7 +12,6 @@ import (
 	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/moby/moby/api/types/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -86,11 +85,11 @@ func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
 func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
-		return errors.Wrapf(err, "annotate: error parsing name for manifest list %s", opts.target)
+		return fmt.Errorf("annotate: error parsing name for manifest list %s: %w", opts.target, err)
 	}
 	imgRef, err := normalizeReference(opts.image)
 	if err != nil {
-		return errors.Wrapf(err, "annotate: error parsing name for manifest %s", opts.image)
+		return fmt.Errorf("annotate: error parsing name for manifest %s: %w", opts.image, err)
 	}
 
 	manifestStore := newManifestStore(dockerCLI)
@@ -123,7 +122,7 @@ func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	}
 
 	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
-		return errors.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
+		return fmt.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
 	}
 	return manifestStore.Save(targetRef, imgRef, imageManifest)
 }

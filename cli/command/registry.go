@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/morikuni/aec"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -151,7 +151,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 			argUser = defaultUsername
 		}
 		if argUser == "" {
-			return registrytypes.AuthConfig{}, errors.Errorf("Error: Non-null Username Required")
+			return registrytypes.AuthConfig{}, errors.New("error: username is required")
 		}
 	}
 
@@ -183,7 +183,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 		_, _ = fmt.Fprintln(cli.Out())
 		if argPassword == "" {
-			return registrytypes.AuthConfig{}, errors.Errorf("Error: Password Required")
+			return registrytypes.AuthConfig{}, errors.New("error: password is required")
 		}
 	}
 

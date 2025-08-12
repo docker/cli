@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/moby/sys/symlink"
-	"github.com/pkg/errors"
 )
 
 type gitRepo struct {
@@ -61,17 +61,17 @@ func (repo gitRepo) clone() (checkoutDir string, retErr error) {
 	}()
 
 	if out, err := repo.gitWithinDir(root, "init"); err != nil {
-		return "", errors.Wrapf(err, "failed to init repo at %s: %s", root, out)
+		return "", fmt.Errorf("failed to init repo at %s: %s: %w", root, out, err)
 	}
 
 	// Add origin remote for compatibility with previous implementation that
 	// used "git clone" and also to make sure local refs are created for branches
 	if out, err := repo.gitWithinDir(root, "remote", "add", "origin", repo.remote); err != nil {
-		return "", errors.Wrapf(err, "failed add origin repo at %s: %s", repo.remote, out)
+		return "", fmt.Errorf("failed add origin repo at %s: %s: %w", repo.remote, out, err)
 	}
 
 	if output, err := repo.gitWithinDir(root, fetch...); err != nil {
-		return "", errors.Wrapf(err, "error fetching: %s", output)
+		return "", fmt.Errorf("error fetching: %s: %w", output, err)
 	}
 
 	checkoutDir, err = repo.checkout(root)
@@ -83,7 +83,7 @@ func (repo gitRepo) clone() (checkoutDir string, retErr error) {
 	cmd.Dir = root
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", errors.Wrapf(err, "error initializing submodules: %s", output)
+		return "", fmt.Errorf("error initializing submodules: %s: %w", output, err)
 	}
 
 	return checkoutDir, nil
@@ -113,7 +113,7 @@ func parseRemoteURL(remoteURL string) (gitRepo, error) {
 	}
 
 	if strings.HasPrefix(repo.ref, "-") {
-		return gitRepo{}, errors.Errorf("invalid refspec: %s", repo.ref)
+		return gitRepo{}, fmt.Errorf("invalid refspec: %s", repo.ref)
 	}
 
 	return repo, nil
@@ -178,14 +178,14 @@ func (repo gitRepo) checkout(root string) (string, error) {
 	if output, err := repo.gitWithinDir(root, "checkout", repo.ref); err != nil {
 		// If checking out by branch name fails check out the last fetched ref
 		if _, err2 := repo.gitWithinDir(root, "checkout", "FETCH_HEAD"); err2 != nil {
-			return "", errors.Wrapf(err, "error checking out %s: %s", repo.ref, output)
+			return "", fmt.Errorf("error checking out %s: %s: %w", repo.ref, output, err)
 		}
 	}
 
 	if repo.subdir != "" {
 		newCtx, err := symlink.FollowSymlinkInScope(filepath.Join(root, repo.subdir), root)
 		if err != nil {
-			return "", errors.Wrapf(err, "error setting git context, %q not within git root", repo.subdir)
+			return "", fmt.Errorf("error setting git context, %q not within git root: %w", repo.subdir, err)
 		}
 
 		fi, err := os.Stat(newCtx)
@@ -193,7 +193,7 @@ func (repo gitRepo) checkout(root string) (string, error) {
 			return "", err
 		}
 		if !fi.IsDir() {
-			return "", errors.Errorf("error setting git context, not a directory: %s", newCtx)
+			return "", fmt.Errorf("error setting git context, not a directory: %s", newCtx)
 		}
 		root = newCtx
 	}

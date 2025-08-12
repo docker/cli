@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/sys/sequential"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +53,7 @@ func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateO
 
 	configData, err := readConfigData(dockerCLI.In(), options.File)
 	if err != nil {
-		return errors.Errorf("Error reading content from %q: %v", options.File, err)
+		return fmt.Errorf("error reading content from %q: %v", options.File, err)
 	}
 
 	spec := swarm.ConfigSpec{

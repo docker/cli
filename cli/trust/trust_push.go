@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -14,7 +15,6 @@ import (
 	"github.com/moby/moby/api/types"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 )
@@ -82,18 +82,18 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 	}
 
 	if cnt > 1 {
-		return errors.Errorf("internal error: only one call to handleTarget expected")
+		return errors.New("internal error: only one call to handleTarget expected")
 	}
 
 	if notaryTarget == nil {
-		return errors.Errorf("no targets found, provide a specific tag in order to sign it")
+		return errors.New("no targets found, provide a specific tag in order to sign it")
 	}
 
 	_, _ = fmt.Fprintln(ioStreams.Out(), "Signing and pushing trust metadata")
 
 	repo, err := GetNotaryRepository(ioStreams.In(), ioStreams.Out(), userAgent, repoInfo, &authConfig, "push", "pull")
 	if err != nil {
-		return errors.Wrap(err, "error establishing connection to trust repository")
+		return fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	// get the latest repository metadata so we can figure out which roles to sign
@@ -133,7 +133,7 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 	}
 
 	if err != nil {
-		err = errors.Wrapf(err, "failed to sign %s:%s", repoInfo.Name.Name(), tag)
+		err = fmt.Errorf("failed to sign %s:%s: %w", repoInfo.Name.Name(), tag, err)
 		return NotaryError(repoInfo.Name.Name(), err)
 	}
 

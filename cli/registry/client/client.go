@@ -12,7 +12,6 @@ import (
 	distributionclient "github.com/docker/distribution/registry/client"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -83,9 +82,9 @@ func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, t
 		return nil
 	case nil:
 	default:
-		return errors.Wrapf(err, "failed to mount blob %s to %s", sourceRef, targetRef)
+		return fmt.Errorf("failed to mount blob %s to %s: %w", sourceRef, targetRef, err)
 	}
-	lu.Cancel(ctx)
+	_ = lu.Cancel(ctx)
 	logrus.Debugf("mount of blob %s created", sourceRef)
 	return ErrBlobCreated{From: sourceRef, Target: targetRef}
 }
@@ -115,7 +114,7 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 
 	dgst, err := manifestService.Put(ctx, manifest, opts...)
 	if err != nil {
-		return dgst, errors.Wrapf(err, "failed to put manifest %s", ref)
+		return dgst, fmt.Errorf("failed to put manifest %s: %w", ref, err)
 	}
 	return dgst, nil
 }
@@ -123,7 +122,7 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
 	repoName, err := reference.WithName(repoEndpoint.Name())
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse repo name from %s", ref)
+		return nil, fmt.Errorf("failed to parse repo name from %s: %w", ref, err)
 	}
 	httpTransport, err := c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
 	if err != nil {
@@ -154,7 +153,7 @@ func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoi
 		repoEndpoint.actions,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to configure transport")
+		return nil, fmt.Errorf("failed to configure transport: %w", err)
 	}
 	return httpTransport, nil
 }
@@ -193,5 +192,5 @@ func getManifestOptionsFromReference(ref reference.Named) (digest.Digest, []dist
 	if digested, isDigested := ref.(reference.Canonical); isDigested {
 		return digested.Digest(), []distribution.ManifestServiceOption{}, nil
 	}
-	return "", nil, errors.Errorf("%s no tag or digest", ref)
+	return "", nil, fmt.Errorf("%s no tag or digest", ref)
 }

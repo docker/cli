@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/moby/moby/client"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
 )
 
 // CLIOption is a functional argument to apply options to a [DockerCli]. These
@@ -189,7 +189,7 @@ func withCustomHeadersFromEnv() client.Opt {
 		csvReader := csv.NewReader(strings.NewReader(value))
 		fields, err := csvReader.Read()
 		if err != nil {
-			return invalidParameter(errors.Errorf(
+			return invalidParameter(fmt.Errorf(
 				"failed to parse custom headers from %s environment variable: value must be formatted as comma-separated key=value pairs",
 				envOverrideHTTPHeaders,
 			))
@@ -206,7 +206,7 @@ func withCustomHeadersFromEnv() client.Opt {
 			k = strings.TrimSpace(k)
 
 			if k == "" {
-				return invalidParameter(errors.Errorf(
+				return invalidParameter(fmt.Errorf(
 					`failed to set custom headers from %s environment variable: value contains a key=value pair with an empty key: '%s'`,
 					envOverrideHTTPHeaders, kv,
 				))
@@ -217,7 +217,7 @@ func withCustomHeadersFromEnv() client.Opt {
 			// from an environment variable with the same name). In the meantime,
 			// produce an error to prevent users from depending on this.
 			if !hasValue {
-				return invalidParameter(errors.Errorf(
+				return invalidParameter(fmt.Errorf(
 					`failed to set custom headers from %s environment variable: missing "=" in key=value pair: '%s'`,
 					envOverrideHTTPHeaders, kv,
 				))

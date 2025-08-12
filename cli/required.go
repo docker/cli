@@ -1,7 +1,8 @@
 package cli
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +13,7 @@ func NoArgs(cmd *cobra.Command, args []string) error {
 	}
 
 	if cmd.HasSubCommands() {
-		return errors.Errorf(
+		return fmt.Errorf(
 			"%[1]s: unknown command: %[2]s %[3]s\n\nUsage:  %[4]s\n\nRun '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
@@ -21,7 +22,7 @@ func NoArgs(cmd *cobra.Command, args []string) error {
 		)
 	}
 
-	return errors.Errorf(
+	return fmt.Errorf(
 		"%[1]s: '%[2]s' accepts no arguments\n\nUsage:  %[3]s\n\nRun '%[2]s --help' for more information",
 		binName(cmd),
 		cmd.CommandPath(),
@@ -35,7 +36,7 @@ func RequiresMinArgs(minArgs int) cobra.PositionalArgs {
 		if len(args) >= minArgs {
 			return nil
 		}
-		return errors.Errorf(
+		return fmt.Errorf(
 			"%[1]s: '%[2]s' requires at least %[3]d %[4]s\n\nUsage:  %[5]s\n\nSee '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
@@ -52,8 +53,8 @@ func RequiresMaxArgs(maxArgs int) cobra.PositionalArgs {
 		if len(args) <= maxArgs {
 			return nil
 		}
-		return errors.Errorf(
-			"%[1]s: '%[2]s' requires at most %[3]d %[4]s\n\nUsage:  %[5]s\n\nSRun '%[2]s --help' for more information",
+		return fmt.Errorf(
+			"%[1]s: '%[2]s' requires at most %[3]d %[4]s\n\nUsage:  %[5]s\n\nRun '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
 			maxArgs,
@@ -69,7 +70,7 @@ func RequiresRangeArgs(minArgs int, maxArgs int) cobra.PositionalArgs {
 		if len(args) >= minArgs && len(args) <= maxArgs {
 			return nil
 		}
-		return errors.Errorf(
+		return fmt.Errorf(
 			"%[1]s: '%[2]s' requires at least %[3]d and at most %[4]d %[5]s\n\nUsage:  %[6]s\n\nRun '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
@@ -87,7 +88,7 @@ func ExactArgs(number int) cobra.PositionalArgs {
 		if len(args) == number {
 			return nil
 		}
-		return errors.Errorf(
+		return fmt.Errorf(
 			"%[1]s: '%[2]s' requires %[3]d %[4]s\n\nUsage:  %[5]s\n\nRun '%[2]s --help' for more information",
 			binName(cmd),
 			cmd.CommandPath(),
