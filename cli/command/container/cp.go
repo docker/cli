@@ -298,50 +298,50 @@ func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cp
 // about both the source and destination. The API is a simple tar
 // archive/extract API but we can use the stat info header about the
 // destination to be more informed about exactly what the destination is.
-func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) (err error) {
+func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) error {
 	srcPath := copyConfig.sourcePath
 	dstPath := copyConfig.destPath
 
 	if srcPath != "-" {
 		// Get an absolute source path.
-		srcPath, err = resolveLocalPath(srcPath)
+		p, err := resolveLocalPath(srcPath)
 		if err != nil {
 			return err
 		}
+		srcPath = p
 	}
 
 	apiClient := dockerCLI.Client()
 	// Prepare destination copy info by stat-ing the container path.
 	dstInfo := archive.CopyInfo{Path: dstPath}
-	dstStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, dstPath)
+	if dstStat, err := apiClient.ContainerStatPath(ctx, copyConfig.container, dstPath); err == nil {
+		// If the destination is a symbolic link, we should evaluate it.
+		if dstStat.Mode&os.ModeSymlink != 0 {
+			linkTarget := dstStat.LinkTarget
+			if !isAbs(linkTarget) {
+				// Join with the parent directory.
+				dstParent, _ := archive.SplitPathDirEntry(dstPath)
+				linkTarget = filepath.Join(dstParent, linkTarget)
+			}
 
-	// If the destination is a symbolic link, we should evaluate it.
-	if err == nil && dstStat.Mode&os.ModeSymlink != 0 {
-		linkTarget := dstStat.LinkTarget
-		if !isAbs(linkTarget) {
-			// Join with the parent directory.
-			dstParent, _ := archive.SplitPathDirEntry(dstPath)
-			linkTarget = filepath.Join(dstParent, linkTarget)
+			dstInfo.Path = linkTarget
+			dstStat, err = apiClient.ContainerStatPath(ctx, copyConfig.container, linkTarget)
+		}
+		// Validate the destination path
+		if err == nil {
+			if err := command.ValidateOutputPathFileMode(dstStat.Mode); err != nil {
+				return fmt.Errorf(`destination "%s:%s" must be a directory or a regular file: %w`, copyConfig.container, dstPath, err)
+			}
+			dstInfo.Exists, dstInfo.IsDir = true, dstStat.Mode.IsDir()
 		}
 
-		dstInfo.Path = linkTarget
-		dstStat, err = apiClient.ContainerStatPath(ctx, copyConfig.container, linkTarget)
-		// FIXME(thaJeztah): unhandled error (should this return?)
-	}
-
-	// Validate the destination path
-	if err := command.ValidateOutputPathFileMode(dstStat.Mode); err != nil {
-		return fmt.Errorf(`destination "%s:%s" must be a directory or a regular file: %w`, copyConfig.container, dstPath, err)
-	}
-
-	// Ignore any error and assume that the parent directory of the destination
-	// path exists, in which case the copy may still succeed. If there is any
-	// type of conflict (e.g., non-directory overwriting an existing directory
-	// or vice versa) the extraction will fail. If the destination simply did
-	// not exist, but the parent directory does, the extraction will still
-	// succeed.
-	if err == nil {
-		dstInfo.Exists, dstInfo.IsDir = true, dstStat.Mode.IsDir()
+		// Ignore any error and assume that the parent directory of the destination
+		// path exists, in which case the copy may still succeed. If there is any
+		// type of conflict (e.g., non-directory overwriting an existing directory
+		// or vice versa) the extraction will fail. If the destination simply did
+		// not exist, but the parent directory does, the extraction will still
+		// succeed.
+		_ = err // Intentionally ignore stat errors (see above)
 	}
 
 	var (
@@ -411,7 +411,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	cancel()
 	<-done
 	restore()
-	fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
 
 	return res
 }
