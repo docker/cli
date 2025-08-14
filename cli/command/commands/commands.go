@@ -10,6 +10,8 @@ import (
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/context"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/command/internal/cli"
+	"github.com/docker/cli/cli/command/internal/commands"
 	"github.com/docker/cli/cli/command/manifest"
 	"github.com/docker/cli/cli/command/network"
 	"github.com/docker/cli/cli/command/node"
@@ -25,13 +27,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func RegisterCommands(cmd *cobra.Command, dockerCLI cli.Cli) {
+	for _, c := range commands.Commands() {
+		cmd.AddCommand(c(dockerCLI))
+	}
+}
+
 // AddCommands adds all the commands from cli/command to the root command
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
 func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 	cmd.AddCommand(
 		// commonly used shorthands
-		container.NewRunCommand(dockerCli),
-		container.NewExecCommand(dockerCli),
-		container.NewPsCommand(dockerCli),
 		image.NewBuildCommand(dockerCli),
 		image.NewPullCommand(dockerCli),
 		image.NewPushCommand(dockerCli),

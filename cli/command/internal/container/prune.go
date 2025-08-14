@@ -1,0 +1,113 @@
+package container
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/internal/cli"
+	"github.com/docker/cli/cli/command/system/pruner"
+	"github.com/docker/cli/internal/prompt"
+	"github.com/docker/cli/opts"
+	"github.com/docker/go-units"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+)
+
+func init() {
+	// Register the prune command to run as part of "docker system prune"
+	if err := pruner.Register(pruner.TypeContainer, pruneFn); err != nil {
+		panic(err)
+	}
+}
+
+type pruneOptions struct {
+	force  bool
+	filter opts.FilterOpt
+}
+
+// NewPruneCommand returns a new cobra prune command for containers
+func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
+	return newPruneCommand(dockerCli)
+}
+
+// newPruneCommand returns a new cobra prune command for containers
+func newPruneCommand(dockerCli command.Cli) *cobra.Command {
+	options := pruneOptions{filter: opts.NewFilterOpt()}
+
+	cmd := &cobra.Command{
+		Use:   "prune [OPTIONS]",
+		Short: "Remove all stopped containers",
+		Args:  cli.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCli, options)
+			if err != nil {
+				return err
+			}
+			if output != "" {
+				fmt.Fprintln(dockerCli.Out(), output)
+			}
+			fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
+			return nil
+		},
+		Annotations:       map[string]string{"version": "1.25"},
+		ValidArgsFunction: completion.NoComplete,
+	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
+	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "until=<timestamp>")`)
+
+	return cmd
+}
+
+const warning = `WARNING! This will remove all stopped containers.
+Are you sure you want to continue?`
+
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
+
+	if !options.force {
+		r, err := prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		if err != nil {
+			return 0, "", err
+		}
+		if !r {
+			return 0, "", cancelledErr{errors.New("container prune has been cancelled")}
+		}
+	}
+
+	report, err := dockerCli.Client().ContainersPrune(ctx, pruneFilters)
+	if err != nil {
+		return 0, "", err
+	}
+
+	if len(report.ContainersDeleted) > 0 {
+		output = "Deleted Containers:\n"
+		for _, id := range report.ContainersDeleted {
+			output += id + "\n"
+		}
+		spaceReclaimed = report.SpaceReclaimed
+	}
+
+	return spaceReclaimed, output, nil
+}
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
+
+// pruneFn calls the Container Prune API for use in "docker system prune",
+// and returns the amount of space reclaimed and a detailed output string.
+func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		confirmMsg := "all stopped containers"
+		return 0, confirmMsg, cancelledErr{errors.New("containers prune has been cancelled")}
+	}
+	return runPrune(ctx, dockerCLI, pruneOptions{
+		force:  true,
+		filter: options.Filter,
+	})
+}

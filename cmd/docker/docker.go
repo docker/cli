@@ -161,7 +161,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	setHelpFunc(dockerCli, cmd)
 
 	cmd.SetOut(dockerCli.Out())
-	commands.AddCommands(cmd, dockerCli)
+	commands.RegisterCommands(cmd, dockerCli)
 
 	cli.DisableFlagsInUseLine(cmd)
 	setValidateArgs(dockerCli, cmd)

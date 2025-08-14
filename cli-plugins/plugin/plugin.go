@@ -8,10 +8,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli-plugins/socket"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/internal/cli"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/cli/cli/debug"
 	"github.com/moby/moby/client"
@@ -46,7 +46,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadat
 			if os.Getenv("DOCKER_CLI_PLUGIN_USE_DIAL_STDIO") != "" {
 				opts = append(opts, withPluginClientConn(plugin.Name()))
 			}
-			opts = append(opts, command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider())
+			opts = append(opts, cli.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider())
 			retErr = tcmd.Initialize(opts...)
 			ogRunE := cmd.RunE
 			if ogRunE == nil {
