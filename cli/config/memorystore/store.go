@@ -23,6 +23,7 @@ type Config struct {
 	lock              sync.RWMutex
 	memoryCredentials map[string]types.AuthConfig
 	fallbackStore     credentials.Store
+	preferFallback    bool
 }
 
 func (e *Config) Erase(serverAddress string) error {
@@ -43,6 +44,14 @@ func (e *Config) Erase(serverAddress string) error {
 func (e *Config) Get(serverAddress string) (types.AuthConfig, error) {
 	e.lock.RLock()
 	defer e.lock.RUnlock()
+
+	if e.preferFallback && e.fallbackStore != nil {
+		authConfig, err := e.fallbackStore.Get(serverAddress)
+		if err == nil {
+			return authConfig, nil
+		}
+	}
+
 	authConfig, ok := e.memoryCredentials[serverAddress]
 	if !ok {
 		if e.fallbackStore != nil {
@@ -58,16 +67,22 @@ func (e *Config) GetAll() (map[string]types.AuthConfig, error) {
 	defer e.lock.RUnlock()
 	creds := make(map[string]types.AuthConfig)
 
+	if e.preferFallback {
+		maps.Copy(creds, e.memoryCredentials)
+	}
+
 	if e.fallbackStore != nil {
 		fileCredentials, err := e.fallbackStore.GetAll()
 		if err != nil {
 			_, _ = fmt.Fprintln(os.Stderr, "memorystore: ", err)
 		} else {
-			creds = fileCredentials
+			maps.Copy(creds, fileCredentials)
 		}
 	}
 
-	maps.Copy(creds, e.memoryCredentials)
+	if !e.preferFallback {
+		maps.Copy(creds, e.memoryCredentials)
+	}
 	return creds, nil
 }
 
@@ -98,6 +113,26 @@ func (e *Config) Store(authConfig types.AuthConfig) error {
 func WithFallbackStore(store credentials.Store) Options {
 	return func(s *Config) error {
 		s.fallbackStore = store
+		return nil
+	}
+}
+
+// WithPreferFallback configures the store to prefer reading credentials from
+// the fallback store.
+//
+// Write operations will be executed on both the memory store and the
+// fallback store.
+//
+// For read operations, the fallback store is checked first. If the credential
+// is not found there, the memory store is checked next.
+//
+// When retrieving all credentials, results from both the memory store and the
+// fallback store are combined into a single map.
+//
+// Credentials in the fallback store will override those in the memory store.
+func WithPreferFallback() Options {
+	return func(s *Config) error {
+		s.preferFallback = true
 		return nil
 	}
 }
