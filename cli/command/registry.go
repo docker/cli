@@ -34,34 +34,6 @@ const (
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker/registry#IndexServer
 const authConfigKey = "https://index.docker.io/v1/"
 
-// RegistryAuthenticationPrivilegedFunc returns a RequestPrivilegeFunc from the specified registry index info
-// for the given command to prompt the user for username and password.
-//
-// Deprecated: this function is no longer used and will be removed in the next release.
-func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInfo, cmdName string) registrytypes.RequestAuthConfig {
-	configKey := getAuthConfigKey(index.Name)
-	isDefaultRegistry := configKey == authConfigKey || index.Official
-	return func(ctx context.Context) (string, error) {
-		_, _ = fmt.Fprintf(cli.Out(), "\nLogin prior to %s:\n", cmdName)
-		authConfig, err := GetDefaultAuthConfig(cli.ConfigFile(), true, configKey, isDefaultRegistry)
-		if err != nil {
-			_, _ = fmt.Fprintf(cli.Err(), "Unable to retrieve stored credentials for %s, error: %s.\n", configKey, err)
-		}
-
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		default:
-		}
-
-		authConfig, err = PromptUserForCredentials(ctx, cli, "", "", authConfig.Username, configKey)
-		if err != nil {
-			return "", err
-		}
-		return registrytypes.EncodeAuthConfig(authConfig)
-	}
-}
-
 // ResolveAuthConfig returns auth-config for the given registry from the
 // credential-store. It returns an empty AuthConfig if no credentials were
 // found.
@@ -69,7 +41,8 @@ func RegistryAuthenticationPrivilegedFunc(cli Cli, index *registrytypes.IndexInf
 // It is similar to [registry.ResolveAuthConfig], but uses the credentials-
 // store, instead of looking up credentials from a map.
 func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-	configKey := index.Name
+	indexServer := index.Name
+	configKey := getAuthConfigKey(indexServer)
 	if index.Official {
 		configKey = authConfigKey
 	}
@@ -82,6 +55,7 @@ func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInf
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
 func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
 	if !isDefaultRegistry {
+		// FIXME(thaJeztah): should the same logic be used for getAuthConfigKey ?? Looks like we're normalizing things here, but not elsewhere? why?
 		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
 	authconfig := configtypes.AuthConfig{}
@@ -108,6 +82,8 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 // If defaultUsername is not empty, the username prompt includes that username
 // and the user can hit enter without inputting a username  to use that default
 // username.
+//
+// TODO(thaJeztah): cli Cli could be a Streams if it was not for cli.SetIn to be needed?
 func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
 	// On Windows, force the use of the regular OS stdin stream.
 	//
@@ -200,12 +176,15 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 //
 // For details on base64url encoding, see:
 // - RFC4648, section 5:   https://tools.ietf.org/html/rfc4648#section-5
+//
+// FIXME(thaJeztah): do we need a variant like this, but with "indexServer" (domainName) as input?
 func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (string, error) {
 	// Retrieve encoded auth token from the image reference
 	authConfig, err := resolveAuthConfigFromImage(cfg, image)
 	if err != nil {
 		return "", err
 	}
+	// FIXME(thaJeztah); implement stringer or "MarshalText / UnmarshalText" on AuthConfig, so that we can pass it around as-is, and encode where it needs to be encoded (when making requests).
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return "", err
@@ -214,6 +193,8 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 }
 
 // resolveAuthConfigFromImage retrieves that AuthConfig using the image string
+//
+// TODO(thaJeztah): export this and/or accept an image ref-type, and use instead of ResolveAuthConfig
 func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {

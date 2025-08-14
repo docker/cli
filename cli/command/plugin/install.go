@@ -10,9 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/types/plugin"
-	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -60,15 +58,15 @@ func buildPullConfig(dockerCLI command.Cli, opts pluginOptions) (client.PluginIn
 		return client.PluginInstallOptions{}, err
 	}
 
-	authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), registry.NewIndexInfo(ref))
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	remote := ref.String()
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), remote)
 	if err != nil {
 		return client.PluginInstallOptions{}, err
 	}
 
 	return client.PluginInstallOptions{
 		RegistryAuth:          encodedAuth,
-		RemoteRef:             ref.String(),
+		RemoteRef:             remote,
 		Disabled:              opts.disable,
 		AcceptAllPermissions:  opts.grantPerms,
 		AcceptPermissionsFunc: acceptPrivileges(dockerCLI, opts.remote),
