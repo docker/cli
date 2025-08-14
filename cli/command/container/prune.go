@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

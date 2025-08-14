@@ -14,7 +14,6 @@ import (
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/go-units"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -135,7 +134,7 @@ func (c *ContainerContext) MarshalJSON() ([]byte, error) {
 // option being set, the full or truncated ID is returned.
 func (c *ContainerContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.c.ID)
+		return TruncateID(c.c.ID)
 	}
 	return c.c.ID
 }
@@ -172,7 +171,7 @@ func (c *ContainerContext) Image() string {
 		return "<no image>"
 	}
 	if c.trunc {
-		if trunc := stringid.TruncateID(c.c.ImageID); trunc == stringid.TruncateID(c.c.Image) {
+		if trunc := TruncateID(c.c.ImageID); trunc == TruncateID(c.c.Image) {
 			return trunc
 		}
 		// truncate digest if no-trunc option was not selected

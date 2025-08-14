@@ -16,7 +16,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/docker/api/types/container"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/moby/go-archive"
 	"github.com/morikuni/aec"
 	"github.com/pkg/errors"
@@ -398,8 +398,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	}
 
 	options := container.CopyToContainerOptions{
-		AllowOverwriteDirWithFile: false,
-		CopyUIDGID:                copyConfig.copyUIDGID,
+		CopyUIDGID: copyConfig.copyUIDGID,
 	}
 
 	if copyConfig.quiet {

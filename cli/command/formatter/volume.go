@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/volume"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 )
 
 const (

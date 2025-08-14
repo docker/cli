@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/progress"
 	"github.com/docker/docker/pkg/streamformatter"
-	"github.com/docker/docker/pkg/stringid"
 )
 
 var (
@@ -505,7 +505,7 @@ func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int
 
 	if task.Status.Err != "" {
 		u.progressOut.WriteProgress(progress.Progress{
-			ID:     stringid.TruncateID(task.NodeID),
+			ID:     formatter.TruncateID(task.NodeID),
 			Action: truncError(task.Status.Err),
 		})
 		return
@@ -513,7 +513,7 @@ func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int
 
 	if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
 		u.progressOut.WriteProgress(progress.Progress{
-			ID:         stringid.TruncateID(task.NodeID),
+			ID:         formatter.TruncateID(task.NodeID),
 			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
 			Current:    numberedStates[task.Status.State],
 			Total:      maxProgress,

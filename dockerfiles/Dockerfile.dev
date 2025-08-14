@@ -1,12 +1,16 @@
 # syntax=docker/dockerfile:1
 
 ARG GO_VERSION=1.24.5
+
+# ALPINE_VERSION sets the version of the alpine base image to use, including for the golang image.
+# It must be a supported tag in the docker.io/library/alpine image repository
+# that's also available as alpine image variant for the Golang version used.
 ARG ALPINE_VERSION=3.21
 
 # BUILDX_VERSION sets the version of buildx to install in the dev container.
 # It must be a valid tag in the docker.io/docker/buildx-bin image repository
 # on Docker Hub.
-ARG BUILDX_VERSION=0.24.0
+ARG BUILDX_VERSION=0.25.0
 FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS golang
@@ -22,7 +26,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     && gofumpt --version
 
 FROM golang AS gotestsum
-ARG GOTESTSUM_VERSION=v1.12.0
+# GOTESTSUM_VERSION sets the version of gotestsum to install in the dev container.
+# It must be a valid tag in the https://github.com/gotestyourself/gotestsum repository.
+ARG GOTESTSUM_VERSION=v1.12.3
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/pkg/stringid"
 )
 
 const (
@@ -119,7 +118,7 @@ func (c *signerInfoContext) Keys() string {
 	truncatedKeys := []string{}
 	if c.trunc {
 		for _, keyID := range c.s.Keys {
-			truncatedKeys = append(truncatedKeys, stringid.TruncateID(keyID))
+			truncatedKeys = append(truncatedKeys, formatter.TruncateID(keyID))
 		}
 		return strings.Join(truncatedKeys, ", ")
 	}

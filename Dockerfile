@@ -1,19 +1,30 @@
 # syntax=docker/dockerfile:1
 
 ARG BASE_VARIANT=alpine
+
+# ALPINE_VERSION sets the version of the alpine base image to use, including for the golang image.
+# It must be a supported tag in the docker.io/library/alpine image repository
+# that's also available as alpine image variant for the Golang version used.
 ARG ALPINE_VERSION=3.21
 ARG BASE_DEBIAN_DISTRO=bookworm
 
 ARG GO_VERSION=1.24.5
 ARG XX_VERSION=1.6.1
 ARG GOVERSIONINFO_VERSION=v1.4.1
-ARG GOTESTSUM_VERSION=v1.12.0
+
+# GOTESTSUM_VERSION sets the version of gotestsum to install in the dev container.
+# It must be a valid tag in the https://github.com/gotestyourself/gotestsum repository.
+ARG GOTESTSUM_VERSION=v1.12.3
 
 # BUILDX_VERSION sets the version of buildx to use for the e2e tests.
 # It must be a tag in the docker.io/docker/buildx-bin image repository
 # on Docker Hub.
-ARG BUILDX_VERSION=0.24.0
-ARG COMPOSE_VERSION=v2.36.2
+ARG BUILDX_VERSION=0.25.0
+
+# COMPOSE_VERSION is the version of compose to install in the dev container.
+# It must be a tag in the docker.io/docker/compose-bin image repository
+# on Docker Hub.
+ARG COMPOSE_VERSION=v2.38.2
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
