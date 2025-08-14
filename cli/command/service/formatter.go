@@ -14,8 +14,7 @@ import (
 	mounttypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/stringid"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
 	"github.com/pkg/errors"
 )
@@ -645,7 +644,7 @@ func (c *serviceContext) MarshalJSON() ([]byte, error) {
 }
 
 func (c *serviceContext) ID() string {
-	return stringid.TruncateID(c.service.ID)
+	return formatter.TruncateID(c.service.ID)
 }
 
 func (c *serviceContext) Name() string {

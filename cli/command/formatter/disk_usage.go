@@ -11,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/volume"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 )
 
 const (

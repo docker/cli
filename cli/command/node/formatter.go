@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/system"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 )
 
 const (

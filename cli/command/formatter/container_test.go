@@ -13,7 +13,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/pkg/stringid"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -21,7 +20,7 @@ import (
 )
 
 func TestContainerPsContext(t *testing.T) {
-	containerID := stringid.GenerateRandomID()
+	containerID := test.RandomID()
 	unix := time.Now().Add(-65 * time.Second).Unix()
 
 	var ctx ContainerContext
@@ -34,7 +33,7 @@ func TestContainerPsContext(t *testing.T) {
 		{
 			container: container.Summary{ID: containerID},
 			trunc:     true,
-			expValue:  stringid.TruncateID(containerID),
+			expValue:  TruncateID(containerID),
 			call:      ctx.ID,
 		},
 		{

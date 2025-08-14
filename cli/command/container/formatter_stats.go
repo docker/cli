@@ -5,8 +5,7 @@ import (
 	"sync"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/docker/pkg/stringid"
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 )
 
 const (
@@ -176,7 +175,7 @@ func (c *statsContext) Name() string {
 
 func (c *statsContext) ID() string {
 	if c.trunc {
-		return stringid.TruncateID(c.s.ID)
+		return formatter.TruncateID(c.s.ID)
 	}
 	return c.s.ID
 }

@@ -27,6 +27,25 @@ func charWidth(r rune) int {
 	}
 }
 
+const shortLen = 12
+
+// TruncateID returns a shorthand version of a string identifier for presentation,
+// after trimming digest algorithm prefix (if any).
+//
+// This function is a copy of [stringid.TruncateID] for presentation / formatting
+// purposes.
+//
+// [stringid.TruncateID]: https://github.com/moby/moby/blob/v28.3.2/pkg/stringid/stringid.go#L19
+func TruncateID(id string) string {
+	if i := strings.IndexRune(id, ':'); i >= 0 {
+		id = id[i+1:]
+	}
+	if len(id) > shortLen {
+		id = id[:shortLen]
+	}
+	return id
+}
+
 // Ellipsis truncates a string to fit within maxDisplayWidth, and appends ellipsis (…).
 // For maxDisplayWidth of 1 and lower, no ellipsis is appended.
 // For maxDisplayWidth of 1, first char of string will return even if its width > 1.

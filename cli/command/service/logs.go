@@ -13,13 +13,13 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/internal/logdetails"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/docker/pkg/stringid"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -220,7 +220,7 @@ func (f *taskFormatter) format(ctx context.Context, logCtx logContext) (string, 
 		if f.opts.noTrunc {
 			taskName += "." + task.ID
 		} else {
-			taskName += "." + stringid.TruncateID(task.ID)
+			taskName += "." + formatter.TruncateID(task.ID)
 		}
 	}
 
