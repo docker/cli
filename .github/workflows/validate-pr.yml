@@ -19,14 +19,12 @@ jobs:
     timeout-minutes: 120 # guardrails timeout for the whole job
     steps:
       - name: Missing `area/` label
-        continue-on-error: true
-        if: contains(join(github.event.pull_request.labels.*.name, ','), 'impact/') && !contains(join(github.event.pull_request.labels.*.name, ','), 'area/')
+        if: always() && contains(join(github.event.pull_request.labels.*.name, ','), 'impact/') && !contains(join(github.event.pull_request.labels.*.name, ','), 'area/')
         run: |
           echo "::error::Every PR with an 'impact/*' label should also have an 'area/*' label"
           exit 1
       - name: Missing `kind/` label
-        continue-on-error: true
-        if: contains(join(github.event.pull_request.labels.*.name, ','), 'impact/') && !contains(join(github.event.pull_request.labels.*.name, ','), 'kind/')
+        if: always() && contains(join(github.event.pull_request.labels.*.name, ','), 'impact/') && !contains(join(github.event.pull_request.labels.*.name, ','), 'kind/')
         run: |
           echo "::error::Every PR with an 'impact/*' label should also have a 'kind/*' label"
           exit 1
