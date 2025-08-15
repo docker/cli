@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/opts"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
@@ -94,9 +93,9 @@ func (o *ClientOptions) InstallFlags(flags *pflag.FlagSet) {
 	flags.Var(&quotedString{&tlsOptions.CertFile}, "tlscert", "Path to TLS certificate file")
 	flags.Var(&quotedString{&tlsOptions.KeyFile}, "tlskey", "Path to TLS key file")
 
-	// opts.ValidateHost is not used here, so as to allow connection helpers
-	hostOpt := opts.NewNamedListOptsRef("hosts", &o.Hosts, nil)
-	flags.VarP(hostOpt, "host", "H", "Daemon socket to connect to")
+	// TODO(thaJeztah): show the default host.
+	// TODO(thaJeztah): this should be a string, not an "array" as we only allow a single host.
+	flags.StringArrayVarP(&o.Hosts, "host", "H", nil, "Daemon socket to connect to")
 	flags.StringVarP(&o.Context, "context", "c", "",
 		`Name of the context to use to connect to the daemon (overrides `+client.EnvOverrideHost+` env var and default context set with "docker context use")`)
 }
