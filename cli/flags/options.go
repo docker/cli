@@ -90,9 +90,9 @@ func (o *ClientOptions) InstallFlags(flags *pflag.FlagSet) {
 		KeyFile:  filepath.Join(dockerCertPath, DefaultKeyFile),
 	}
 	tlsOptions := o.TLSOptions
-	flags.Var(opts.NewQuotedString(&tlsOptions.CAFile), "tlscacert", "Trust certs signed only by this CA")
-	flags.Var(opts.NewQuotedString(&tlsOptions.CertFile), "tlscert", "Path to TLS certificate file")
-	flags.Var(opts.NewQuotedString(&tlsOptions.KeyFile), "tlskey", "Path to TLS key file")
+	flags.Var(&quotedString{&tlsOptions.CAFile}, "tlscacert", "Trust certs signed only by this CA")
+	flags.Var(&quotedString{&tlsOptions.CertFile}, "tlscert", "Path to TLS certificate file")
+	flags.Var(&quotedString{&tlsOptions.KeyFile}, "tlskey", "Path to TLS key file")
 
 	// opts.ValidateHost is not used here, so as to allow connection helpers
 	hostOpt := opts.NewNamedListOptsRef("hosts", &o.Hosts, nil)
@@ -145,4 +145,34 @@ func SetLogLevel(logLevel string) {
 	} else {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
+}
+
+type quotedString struct {
+	value *string
+}
+
+func (s *quotedString) Set(val string) error {
+	*s.value = trimQuotes(val)
+	return nil
+}
+
+func (*quotedString) Type() string {
+	return "string"
+}
+
+func (s *quotedString) String() string {
+	return *s.value
+}
+
+func trimQuotes(value string) string {
+	if len(value) < 2 {
+		return value
+	}
+	lastIndex := len(value) - 1
+	for _, char := range []byte{'\'', '"'} {
+		if value[0] == char && value[lastIndex] == char {
+			return value[1:lastIndex]
+		}
+	}
+	return value
 }
