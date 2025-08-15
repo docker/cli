@@ -339,19 +339,19 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 		// signals to the subprocess because the shared
 		// pgid makes the TTY a controlling terminal.
 		//
-		// The plugin should have it's own copy of this
+		// The plugin should have its own copy of this
 		// termination logic, and exit after 3 retries
-		// on it's own.
+		// on its own.
 		if dockerCli.Out().IsTerminal() {
 			return
 		}
 
-		// Terminate the plugin server, which will
-		// close all connections with plugin
-		// subprocesses, and signal them to exit.
+		// Terminate the plugin server, which closes
+		// all connections with plugin subprocesses,
+		// and signal them to exit.
 		//
-		// Repeated invocations will result in EINVAL,
-		// or EBADF; but that is fine for our purposes.
+		// Repeated invocations result in EINVAL or EBADF,
+		// but that is fine for our purposes.
 		if srv != nil {
 			_ = srv.Close()
 		}
@@ -369,15 +369,15 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 
 	go func() {
 		retries := 0
-		force := false
 		// catch the first signal through context cancellation
 		<-ctx.Done()
-		tryTerminatePlugin(force)
+		tryTerminatePlugin(false)
 
 		// register subsequent signals
 		signals := make(chan os.Signal, exitLimit)
 		signal.Notify(signals, platformsignals.TerminationSignals...)
 
+		force := false
 		for range signals {
 			retries++
 			// If we're still running after 3 interruptions
@@ -458,7 +458,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			}
 		}()
 	} else {
-		fmt.Fprint(dockerCli.Err(), "Warning: Unexpected OTEL error, metrics may not be flushed")
+		_, _ = fmt.Fprint(dockerCli.Err(), "Warning: Unexpected OTEL error, metrics may not be flushed")
 	}
 
 	dockerCli.InstrumentCobraCommands(ctx, cmd)
@@ -473,8 +473,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		// We add plugin command stubs early only for completion. We don't
 		// want to add them for normal command execution as it would cause
 		// a significant performance hit.
-		err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
-		if err != nil {
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, cmd); err != nil {
 			return err
 		}
 	}
