@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	cerrdefs "github.com/containerd/errdefs"
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -159,7 +159,7 @@ func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, auth
 
 	response, err := dockerCLI.Client().RegistryLogin(ctx, authConfig)
 	if err != nil {
-		if cerrdefs.IsUnauthorized(err) {
+		if errdefs.IsUnauthorized(err) {
 			_, _ = fmt.Fprintln(dockerCLI.Err(), "Stored credentials invalid or expired")
 		} else {
 			_, _ = fmt.Fprintln(dockerCLI.Err(), "Login did not succeed, error:", err)
