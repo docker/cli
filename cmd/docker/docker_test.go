@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/debug"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -107,4 +108,22 @@ func TestUserTerminatedError(t *testing.T) {
 	})
 
 	assert.Equal(t, getExitCode(context.Cause(notifyCtx)), 143)
+}
+
+func TestVisitAll(t *testing.T) {
+	root := &cobra.Command{Use: "root"}
+	sub1 := &cobra.Command{Use: "sub1"}
+	sub1sub1 := &cobra.Command{Use: "sub1sub1"}
+	sub1sub2 := &cobra.Command{Use: "sub1sub2"}
+	sub2 := &cobra.Command{Use: "sub2"}
+
+	root.AddCommand(sub1, sub2)
+	sub1.AddCommand(sub1sub1, sub1sub2)
+
+	var visited []string
+	visitAll(root, func(ccmd *cobra.Command) {
+		visited = append(visited, ccmd.Name())
+	})
+	expected := []string{"sub1sub1", "sub1sub2", "sub1", "sub2", "root"}
+	assert.DeepEqual(t, expected, visited)
 }

@@ -163,8 +163,11 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetOut(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
-	cli.DisableFlagsInUseLine(cmd)
-	setValidateArgs(dockerCli, cmd)
+	visitAll(cmd,
+		setValidateArgs(dockerCli),
+		// prevent adding "[flags]" to the end of the usage line.
+		func(c *cobra.Command) { c.DisableFlagsInUseLine = true },
+	)
 
 	// flags must be the top-level command flags, not cmd.Flags()
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())
@@ -265,14 +268,29 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
-	// The Args is handled by ValidateArgs in cobra, which does not allows a pre-hook.
-	// As a result, here we replace the existing Args validation func to a wrapper,
-	// where the wrapper will check to see if the feature is supported or not.
-	// The Args validation error will only be returned if the feature is supported.
-	cli.VisitAll(cmd, func(ccmd *cobra.Command) {
+// visitAll traverses all commands from the root.
+func visitAll(root *cobra.Command, fns ...func(*cobra.Command)) {
+	for _, cmd := range root.Commands() {
+		visitAll(cmd, fns...)
+	}
+	for _, fn := range fns {
+		fn(root)
+	}
+}
+
+// The Args is handled by ValidateArgs in cobra, which does not allows a pre-hook.
+// As a result, here we replace the existing Args validation func to a wrapper,
+// where the wrapper will check to see if the feature is supported or not.
+// The Args validation error will only be returned if the feature is supported.
+func setValidateArgs(dockerCLI versionDetails) func(*cobra.Command) {
+	return func(ccmd *cobra.Command) {
 		// if there is no tags for a command or any of its parent,
 		// there is no need to wrap the Args validation.
+		//
+		// FIXME(thaJeztah): can we memoize properties of the parent?
+		//  visitAll traverses root -> all childcommands, and hasTags
+		//  goes the reverse (cmd -> visit all parents), so we may
+		//  end traversing two directions.
 		if !hasTags(ccmd) {
 			return
 		}
@@ -283,12 +301,12 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 
 		cmdArgs := ccmd.Args
 		ccmd.Args = func(cmd *cobra.Command, args []string) error {
-			if err := isSupported(cmd, dockerCli); err != nil {
+			if err := isSupported(cmd, dockerCLI); err != nil {
 				return err
 			}
 			return cmdArgs(cmd, args)
 		}
-	})
+	}
 }
 
 func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
@@ -321,19 +339,19 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 		// signals to the subprocess because the shared
 		// pgid makes the TTY a controlling terminal.
 		//
-		// The plugin should have it's own copy of this
+		// The plugin should have its own copy of this
 		// termination logic, and exit after 3 retries
-		// on it's own.
+		// on its own.
 		if dockerCli.Out().IsTerminal() {
 			return
 		}
 
-		// Terminate the plugin server, which will
-		// close all connections with plugin
-		// subprocesses, and signal them to exit.
+		// Terminate the plugin server, which closes
+		// all connections with plugin subprocesses,
+		// and signal them to exit.
 		//
-		// Repeated invocations will result in EINVAL,
-		// or EBADF; but that is fine for our purposes.
+		// Repeated invocations result in EINVAL or EBADF,
+		// but that is fine for our purposes.
 		if srv != nil {
 			_ = srv.Close()
 		}
@@ -351,15 +369,15 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 
 	go func() {
 		retries := 0
-		force := false
 		// catch the first signal through context cancellation
 		<-ctx.Done()
-		tryTerminatePlugin(force)
+		tryTerminatePlugin(false)
 
 		// register subsequent signals
 		signals := make(chan os.Signal, exitLimit)
 		signal.Notify(signals, platformsignals.TerminationSignals...)
 
+		force := false
 		for range signals {
 			retries++
 			// If we're still running after 3 interruptions
@@ -440,7 +458,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			}
 		}()
 	} else {
-		fmt.Fprint(dockerCli.Err(), "Warning: Unexpected OTEL error, metrics may not be flushed")
+		_, _ = fmt.Fprint(dockerCli.Err(), "Warning: Unexpected OTEL error, metrics may not be flushed")
 	}
 
 	dockerCli.InstrumentCobraCommands(ctx, cmd)
@@ -451,12 +469,11 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	if cli.HasCompletionArg(args) {
+	if hasCompletionArg(args) {
 		// We add plugin command stubs early only for completion. We don't
 		// want to add them for normal command execution as it would cause
 		// a significant performance hit.
-		err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
-		if err != nil {
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, cmd); err != nil {
 			return err
 		}
 	}
@@ -502,6 +519,16 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	}
 
 	return err
+}
+
+// hasCompletionArg returns true if a cobra completion arg request is found.
+func hasCompletionArg(args []string) bool {
+	for _, arg := range args {
+		if arg == cobra.ShellCompRequestCmd || arg == cobra.ShellCompNoDescRequestCmd {
+			return true
+		}
+	}
+	return false
 }
 
 type versionDetails interface {
