@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/internal/cli"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
@@ -23,7 +23,7 @@ type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []st
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
-	command.DockerCli
+	cli.DockerCli
 	client           client.APIClient
 	configfile       *configfile.ConfigFile
 	out              *streams.Out
@@ -31,7 +31,7 @@ type FakeCli struct {
 	err              *streams.Out
 	errBuffer        *bytes.Buffer
 	in               *streams.In
-	server           command.ServerInfo
+	server           cli.ServerInfo
 	notaryClientFunc NotaryClientFuncType
 	manifestStore    manifeststore.Store
 	registryClient   registryclient.RegistryClient
@@ -55,7 +55,7 @@ func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 		// Use an empty string for filename so that tests don't create configfiles
 		// Set cli.ConfigFile().Filename to a tempfile to support Save.
 		configfile:     configfile.New(""),
-		currentContext: command.DefaultContextName,
+		currentContext: cli.DefaultContextName,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -144,7 +144,7 @@ func (c *FakeCli) DockerEndpoint() docker.Endpoint {
 }
 
 // ServerInfo returns API server information for the server used by this client
-func (c *FakeCli) ServerInfo() command.ServerInfo {
+func (c *FakeCli) ServerInfo() cli.ServerInfo {
 	return c.server
 }
 

@@ -1,0 +1,73 @@
+package stack
+
+import (
+	"fmt"
+
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/command/internal/cli"
+	"github.com/docker/cli/cli/command/internal/commands"
+	"github.com/docker/cli/cli/command/internal/stack/swarm"
+	"github.com/spf13/cobra"
+)
+
+func init() {
+	commands.RegisterCommand(newStackCommand)
+}
+
+// NewStackCommand returns a cobra command for `stack` subcommands
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewStackCommand(dockerCLI command.Cli) *cobra.Command {
+	return newStackCommand(dockerCLI)
+}
+
+// newStackCommand returns a cobra command for `stack` subcommands
+func newStackCommand(dockerCli command.Cli) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "stack [OPTIONS]",
+		Short: "Manage Swarm stacks",
+		Args:  cli.NoArgs,
+		RunE:  command.ShowHelp(dockerCli.Err()),
+		Annotations: map[string]string{
+			"version": "1.25",
+			"swarm":   "manager",
+		},
+	}
+	defaultHelpFunc := cmd.HelpFunc()
+	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
+		if err := cmd.Root().PersistentPreRunE(c, args); err != nil {
+			fmt.Fprintln(dockerCli.Err(), err)
+			return
+		}
+		defaultHelpFunc(c, args)
+	})
+	cmd.AddCommand(
+		newDeployCommand(dockerCli),
+		newListCommand(dockerCli),
+		newPsCommand(dockerCli),
+		newRemoveCommand(dockerCli),
+		newServicesCommand(dockerCli),
+		newConfigCommand(dockerCli),
+	)
+	flags := cmd.PersistentFlags()
+	flags.String("orchestrator", "", "Orchestrator to use (swarm|all)")
+	flags.SetAnnotation("orchestrator", "deprecated", nil)
+	flags.MarkDeprecated("orchestrator", "option will be ignored")
+	return cmd
+}
+
+// completeNames offers completion for swarm stacks
+func completeNames(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		list, err := swarm.GetStacks(cmd.Context(), dockerCLI.Client())
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		var names []string
+		for _, stack := range list {
+			names = append(names, stack.Name)
+		}
+		return names, cobra.ShellCompDirectiveNoFileComp
+	}
+}

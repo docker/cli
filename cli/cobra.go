@@ -92,14 +92,14 @@ func FlagErrorFunc(cmd *cobra.Command, err error) error {
 // for plugins.
 type TopLevelCommand struct {
 	cmd       *cobra.Command
-	dockerCli *command.DockerCli
+	dockerCli command.Cli
 	opts      *cliflags.ClientOptions
 	flags     *pflag.FlagSet
 	args      []string
 }
 
 // NewTopLevelCommand returns a new TopLevelCommand object
-func NewTopLevelCommand(cmd *cobra.Command, dockerCli *command.DockerCli, opts *cliflags.ClientOptions, flags *pflag.FlagSet) *TopLevelCommand {
+func NewTopLevelCommand(cmd *cobra.Command, dockerCli command.Cli, opts *cliflags.ClientOptions, flags *pflag.FlagSet) *TopLevelCommand {
 	return &TopLevelCommand{
 		cmd:       cmd,
 		dockerCli: dockerCli,
