@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -53,6 +54,39 @@ var (
 	dockerTLS       = os.Getenv(EnvEnableTLS) != ""
 )
 
+// hostVar is used for the '--host' / '-H' flag to set [ClientOptions.Hosts].
+// The [ClientOptions.Hosts] field is a slice because it was originally shared
+// with the daemon config. However, the CLI only allows for a single host to
+// be specified.
+//
+// hostVar presents itself as a "string", but stores the value in a string
+// slice. It produces an error when trying to set multiple values, matching
+// the check in [getServerHost].
+//
+// [getServerHost]: https://github.com/docker/cli/blob/7eab668982645def1cd46fe1b60894cba6fd17a4/cli/command/cli.go#L542-L551
+type hostVar struct {
+	dst *[]string
+	set bool
+}
+
+func (h *hostVar) String() string {
+	if h.dst == nil || len(*h.dst) == 0 {
+		return ""
+	}
+	return (*h.dst)[0]
+}
+
+func (h *hostVar) Set(s string) error {
+	if h.set {
+		return errors.New("specify only one -H")
+	}
+	*h.dst = []string{s}
+	h.set = true
+	return nil
+}
+
+func (*hostVar) Type() string { return "string" }
+
 // ClientOptions are the options used to configure the client cli.
 type ClientOptions struct {
 	Debug      bool
@@ -95,7 +129,7 @@ func (o *ClientOptions) InstallFlags(flags *pflag.FlagSet) {
 
 	// TODO(thaJeztah): show the default host.
 	// TODO(thaJeztah): this should be a string, not an "array" as we only allow a single host.
-	flags.StringArrayVarP(&o.Hosts, "host", "H", nil, "Daemon socket to connect to")
+	flags.VarP(&hostVar{dst: &o.Hosts}, "host", "H", "Daemon socket to connect to")
 	flags.StringVarP(&o.Context, "context", "c", "",
 		`Name of the context to use to connect to the daemon (overrides `+client.EnvOverrideHost+` env var and default context set with "docker context use")`)
 }
