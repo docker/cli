@@ -1,9 +1,9 @@
 package container
 
-import cerrdefs "github.com/containerd/errdefs"
+import "github.com/containerd/errdefs"
 
 func invalidParameter(err error) error {
-	if err == nil || cerrdefs.IsInvalidArgument(err) {
+	if err == nil || errdefs.IsInvalidArgument(err) {
 		return err
 	}
 	return invalidParameterErr{err}
@@ -17,7 +17,7 @@ func (e invalidParameterErr) Unwrap() error {
 }
 
 func notFound(err error) error {
-	if err == nil || cerrdefs.IsNotFound(err) {
+	if err == nil || errdefs.IsNotFound(err) {
 		return err
 	}
 	return notFoundErr{err}
