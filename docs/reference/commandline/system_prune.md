@@ -72,7 +72,8 @@ my-network-a
 my-network-b
 
 Deleted Volumes:
-named-vol
+1e31bcd425e913d9f65ec0c3841e9c4ebb543aead2a1cfe0d95a7c5e88bb5026
+6a6ab3d6b8d740a1c1d4dbe36a9c5f043dd4bac5f78abfa7d1f2ae5789fe60b0
 
 Deleted Images:
 untagged: my-curl:latest
