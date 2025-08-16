@@ -15,10 +15,10 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/oauth/manager"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -288,7 +288,7 @@ func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*regis
 		return nil, err
 	}
 
-	_, token, err := svc.Auth(ctx, &auth, command.UserAgent())
+	token, err := svc.Auth(ctx, &auth, command.UserAgent())
 	if err != nil {
 		return nil, err
 	}

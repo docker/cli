@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/theupdateframework/notary/client"
@@ -32,7 +31,7 @@ type Streams interface {
 // PushTrustedReference pushes a canonical reference to the trust server.
 //
 //nolint:gocyclo
-func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *registry.RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader, userAgent string) error {
+func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *RepositoryInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader, userAgent string) error {
 	// If it is a trusted push we would like to find the target entry which match the
 	// tag provided in the function and then do an AddTarget later.
 	notaryTarget := &client.Target{}

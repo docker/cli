@@ -6,8 +6,8 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -51,9 +51,12 @@ func resolveServiceImageDigestContentTrust(dockerCli command.Cli, service *swarm
 }
 
 func trustedResolveDigest(cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
-	authConfig := command.ResolveAuthConfig(cli.ConfigFile(), repoInfo.Index)
-
+	indexInfo := registry.NewIndexInfo(ref)
+	authConfig := command.ResolveAuthConfig(cli.ConfigFile(), indexInfo)
+	repoInfo := &trust.RepositoryInfo{
+		Name:  reference.TrimNamed(ref),
+		Index: indexInfo,
+	}
 	notaryRepo, err := trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, &authConfig, "pull")
 	if err != nil {
 		return nil, errors.Wrap(err, "error establishing connection to trust repository")

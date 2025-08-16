@@ -1,15 +1,17 @@
 package client
 
 import (
+	"context"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/distribution/reference"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 )
 
@@ -32,8 +34,7 @@ func (r repositoryEndpoint) BaseURL() string {
 
 func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositoryEndpoint, error) {
 	repoName := reference.TrimNamed(ref)
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
-	indexInfo := repoInfo.Index
+	indexInfo := registry.NewIndexInfo(ref)
 
 	endpoint, err := getDefaultEndpoint(ref, !indexInfo.Secure)
 	if err != nil {
@@ -54,7 +55,7 @@ func getDefaultEndpoint(repoName reference.Named, insecure bool) (registry.APIEn
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
-	endpoints, err := registryService.LookupPushEndpoints(reference.Domain(repoName))
+	endpoints, err := registryService.Endpoints(context.TODO(), reference.Domain(repoName))
 	if err != nil {
 		return registry.APIEndpoint{}, err
 	}
@@ -97,7 +98,7 @@ func getHTTPTransport(authConfig registrytypes.AuthConfig, endpoint registry.API
 		if len(actions) == 0 {
 			actions = []string{"pull"}
 		}
-		creds := registry.NewStaticCredentialStore(&authConfig)
+		creds := &staticCredentialStore{authConfig: &authConfig}
 		tokenHandler := auth.NewTokenHandler(authTransport, creds, repoName, actions...)
 		basicHandler := auth.NewBasicHandler(creds)
 		modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
@@ -117,3 +118,23 @@ func (th *existingTokenHandler) AuthorizeRequest(req *http.Request, _ map[string
 func (*existingTokenHandler) Scheme() string {
 	return "bearer"
 }
+
+type staticCredentialStore struct {
+	authConfig *registrytypes.AuthConfig
+}
+
+func (scs staticCredentialStore) Basic(*url.URL) (string, string) {
+	if scs.authConfig == nil {
+		return "", ""
+	}
+	return scs.authConfig.Username, scs.authConfig.Password
+}
+
+func (scs staticCredentialStore) RefreshToken(*url.URL, string) string {
+	if scs.authConfig == nil {
+		return ""
+	}
+	return scs.authConfig.IdentityToken
+}
+
+func (staticCredentialStore) SetRefreshToken(*url.URL, string, string) {}

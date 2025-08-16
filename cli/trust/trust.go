@@ -14,11 +14,11 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
 	"github.com/docker/distribution/registry/client/transport"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -95,7 +95,7 @@ func (simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {}
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
-func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *registry.RepositoryInfo, authConfig *registrytypes.AuthConfig, actions ...string) (client.Repository, error) {
+func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *RepositoryInfo, authConfig *registrytypes.AuthConfig, actions ...string) (client.Repository, error) {
 	server, err := Server(repoInfo.Index)
 	if err != nil {
 		return nil, err
@@ -304,9 +304,16 @@ type ImageRefAndAuth struct {
 	original   string
 	authConfig *registrytypes.AuthConfig
 	reference  reference.Named
-	repoInfo   *registry.RepositoryInfo
+	repoInfo   *RepositoryInfo
 	tag        string
 	digest     digest.Digest
+}
+
+// RepositoryInfo describes a repository
+type RepositoryInfo struct {
+	Name reference.Named
+	// Index points to registry information
+	Index *registrytypes.IndexInfo
 }
 
 // GetImageReferencesAndAuth retrieves the necessary reference and auth information for an image name
@@ -321,15 +328,18 @@ func GetImageReferencesAndAuth(ctx context.Context,
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
-	authConfig := authResolver(ctx, repoInfo.Index)
+	indexInfo := registry.NewIndexInfo(ref)
+	authConfig := authResolver(ctx, indexInfo)
 	return ImageRefAndAuth{
 		original:   imgName,
 		authConfig: &authConfig,
 		reference:  ref,
-		repoInfo:   repoInfo,
-		tag:        getTag(ref),
-		digest:     getDigest(ref),
+		repoInfo: &RepositoryInfo{
+			Name:  reference.TrimNamed(ref),
+			Index: indexInfo,
+		},
+		tag:    getTag(ref),
+		digest: getDigest(ref),
 	}, nil
 }
 
@@ -366,7 +376,7 @@ func (imgRefAuth *ImageRefAndAuth) Reference() reference.Named {
 }
 
 // RepoInfo returns the repository information for a given ImageRefAndAuth
-func (imgRefAuth *ImageRefAndAuth) RepoInfo() *registry.RepositoryInfo {
+func (imgRefAuth *ImageRefAndAuth) RepoInfo() *RepositoryInfo {
 	return imgRefAuth.repoInfo
 }
 

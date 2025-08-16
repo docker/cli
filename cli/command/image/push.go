@@ -16,11 +16,11 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -105,10 +105,10 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	// Resolve the Repository name from fqn to RepositoryInfo
-	repoInfo, _ := registry.ParseRepositoryInfo(ref)
+	indexInfo := registry.NewIndexInfo(ref)
 
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), repoInfo.Index)
+	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
 	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	defer responseBody.Close()
 	if !opts.untrusted {
 		// TODO pushTrustedReference currently doesn't respect `--quiet`
-		return pushTrustedReference(ctx, dockerCli, repoInfo, ref, authConfig, responseBody)
+		return pushTrustedReference(ctx, dockerCli, indexInfo, ref, authConfig, responseBody)
 	}
 
 	if opts.quiet {
