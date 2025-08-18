@@ -2,14 +2,14 @@ package jsonstream
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
 	"testing"
 	"time"
 
 	"github.com/docker/cli/cli/streams"
-	"github.com/moby/moby/api/types/jsonstream"
+	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client/pkg/progress"
+	"github.com/moby/moby/client/pkg/streamformatter"
 	"gotest.tools/v3/assert"
 )
 
@@ -23,21 +23,19 @@ func TestDisplay(t *testing.T) {
 	})
 
 	go func() {
-		enc := json.NewEncoder(server)
+		id := test.RandomID()[:12] // short-ID
+		progressOutput := streamformatter.NewJSONProgressOutput(server, true)
 		for i := 0; i < 100; i++ {
 			select {
 			case <-ctx.Done():
 				assert.NilError(t, server.Close(), "failed to close jsonmessage server")
 				return
 			default:
-				err := enc.Encode(JSONMessage{
-					Status: "Downloading",
-					ID:     fmt.Sprintf("id-%d", i),
-					Progress: &jsonstream.Progress{
-						Current: int64(i),
-						Total:   100,
-						Start:   0,
-					},
+				err := progressOutput.WriteProgress(progress.Progress{
+					ID:      id,
+					Message: "Downloading",
+					Current: int64(i),
+					Total:   100,
 				})
 				if err != nil {
 					break
