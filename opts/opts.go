@@ -125,43 +125,6 @@ func (opts *ListOpts) WithValidator(validator ValidatorFctType) *ListOpts {
 	return opts
 }
 
-// NamedOption is an interface that list and map options
-// with names implement.
-//
-// Deprecated: NamedOption is no longer used and will be removed in the next release.
-type NamedOption interface {
-	Name() string
-}
-
-// NamedListOpts is a ListOpts with a configuration name.
-// This struct is useful to keep reference to the assigned
-// field name in the internal configuration struct.
-//
-// Deprecated: NamedListOpts is no longer used and will be removed in the next release.
-type NamedListOpts struct {
-	name string
-	ListOpts
-}
-
-var _ NamedOption = &NamedListOpts{}
-
-// NewNamedListOptsRef creates a reference to a new NamedListOpts struct.
-//
-// Deprecated: NewNamedListOptsRef is no longer used and will be removed in the next release.
-func NewNamedListOptsRef(name string, values *[]string, validator ValidatorFctType) *NamedListOpts {
-	return &NamedListOpts{
-		name:     name,
-		ListOpts: *NewListOptsRef(values, validator),
-	}
-}
-
-// Name returns the name of the NamedListOpts in the configuration.
-//
-// Deprecated: NamedListOpts is no longer used and will be removed in the next release.
-func (o *NamedListOpts) Name() string {
-	return o.name
-}
-
 // MapOpts holds a map of values and a validation function.
 type MapOpts struct {
 	values    map[string]string
@@ -206,35 +169,6 @@ func NewMapOpts(values map[string]string, validator ValidatorFctType) *MapOpts {
 		values:    values,
 		validator: validator,
 	}
-}
-
-// NamedMapOpts is a MapOpts struct with a configuration name.
-// This struct is useful to keep reference to the assigned
-// field name in the internal configuration struct.
-//
-// Deprecated: NamedMapOpts is no longer used and will be removed in the next release.
-type NamedMapOpts struct {
-	name string
-	MapOpts
-}
-
-var _ NamedOption = &NamedMapOpts{}
-
-// NewNamedMapOpts creates a reference to a new NamedMapOpts struct.
-//
-// Deprecated: NamedMapOpts is no longer used and will be removed in the next release.
-func NewNamedMapOpts(name string, values map[string]string, validator ValidatorFctType) *NamedMapOpts {
-	return &NamedMapOpts{
-		name:    name,
-		MapOpts: *NewMapOpts(values, validator),
-	}
-}
-
-// Name returns the name of the NamedMapOpts in the configuration.
-//
-// Deprecated: NamedMapOpts is no longer used and will be removed in the next release.
-func (o *NamedMapOpts) Name() string {
-	return o.name
 }
 
 // ValidatorFctType defines a validator function that returns a validated string and/or an error.
