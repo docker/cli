@@ -112,7 +112,6 @@ func TestMapOpts(t *testing.T) {
 	}
 }
 
-//nolint:gocyclo // ignore "cyclomatic complexity 17 is too high"
 func TestListOptsWithoutValidator(t *testing.T) {
 	o := NewListOpts(nil)
 	err := o.Set("foo")
@@ -145,9 +144,6 @@ func TestListOptsWithoutValidator(t *testing.T) {
 	o.Delete("foo")
 	if o.String() != "[bar bar]" {
 		t.Errorf("%s != [bar bar]", o.String())
-	}
-	if listOpts := o.GetAll(); len(listOpts) != 2 || listOpts[0] != "bar" || listOpts[1] != "bar" {
-		t.Errorf("Expected [[bar bar]], got [%v]", listOpts)
 	}
 	if listOpts := o.GetSlice(); len(listOpts) != 2 || listOpts[0] != "bar" || listOpts[1] != "bar" {
 		t.Errorf("Expected [[bar bar]], got [%v]", listOpts)

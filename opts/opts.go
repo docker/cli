@@ -79,13 +79,6 @@ func (opts *ListOpts) GetMap() map[string]struct{} {
 	return ret
 }
 
-// GetAll returns the values of slice.
-//
-// Deprecated: use [ListOpts.GetSlice] instead. This method will be removed in a future release.
-func (opts *ListOpts) GetAll() []string {
-	return *opts.values
-}
-
 // GetSlice returns the values of slice.
 //
 // It implements [cobra.SliceValue] to allow shell completion to be provided
