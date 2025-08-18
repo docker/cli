@@ -348,23 +348,22 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
-		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
-			if !options.quiet {
-				// we don't want to write to stdout anything apart from container.ID
-				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
-			}
-
-			if err := pullAndTagImage(); err != nil {
-				return "", err
-			}
-
-			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
-			if retryErr != nil {
-				return "", retryErr
-			}
-		} else {
+		if !errdefs.IsNotFound(err) || namedRef == nil || options.pull != PullImageMissing {
 			return "", err
+		}
+		if !options.quiet {
+			// we don't want to write to stdout anything apart from container.ID
+			_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+		}
+
+		if err := pullAndTagImage(); err != nil {
+			return "", err
+		}
+
+		var retryErr error
+		response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
+		if retryErr != nil {
+			return "", retryErr
 		}
 	}
 

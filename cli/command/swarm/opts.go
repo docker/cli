@@ -184,11 +184,10 @@ func parseExternalCA(caSpec string) (*swarm.ExternalCA, error) {
 		switch strings.ToLower(key) {
 		case "protocol":
 			hasProtocol = true
-			if strings.ToLower(value) == string(swarm.ExternalCAProtocolCFSSL) {
-				externalCA.Protocol = swarm.ExternalCAProtocolCFSSL
-			} else {
+			if strings.ToLower(value) != string(swarm.ExternalCAProtocolCFSSL) {
 				return nil, errors.Errorf("unrecognized external CA protocol %s", value)
 			}
+			externalCA.Protocol = swarm.ExternalCAProtocolCFSSL
 		case "url":
 			hasURL = true
 			externalCA.URL = value
