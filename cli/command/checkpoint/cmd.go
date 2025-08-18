@@ -7,12 +7,18 @@ import (
 )
 
 // NewCheckpointCommand returns the `checkpoint` subcommand (only in experimental)
-func NewCheckpointCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewCheckpointCommand(dockerCLI command.Cli) *cobra.Command {
+	return newCheckpointCommand(dockerCLI)
+}
+
+func newCheckpointCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkpoint",
 		Short: "Manage checkpoints",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{
 			"experimental": "",
 			"ostype":       "linux",
@@ -20,9 +26,9 @@ func NewCheckpointCommand(dockerCli command.Cli) *cobra.Command {
 		},
 	}
 	cmd.AddCommand(
-		newCreateCommand(dockerCli),
-		newListCommand(dockerCli),
-		newRemoveCommand(dockerCli),
+		newCreateCommand(dockerCLI),
+		newListCommand(dockerCLI),
+		newRemoveCommand(dockerCLI),
 	)
 	return cmd
 }
