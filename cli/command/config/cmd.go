@@ -9,22 +9,28 @@ import (
 )
 
 // NewConfigCommand returns a cobra command for `config` subcommands
-func NewConfigCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewConfigCommand(dockerCLI command.Cli) *cobra.Command {
+	return newConfigCommand(dockerCLI)
+}
+
+func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage Swarm configs",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{
 			"version": "1.30",
 			"swarm":   "manager",
 		},
 	}
 	cmd.AddCommand(
-		newConfigListCommand(dockerCli),
-		newConfigCreateCommand(dockerCli),
-		newConfigInspectCommand(dockerCli),
-		newConfigRemoveCommand(dockerCli),
+		newConfigListCommand(dockerCLI),
+		newConfigCreateCommand(dockerCLI),
+		newConfigInspectCommand(dockerCLI),
+		newConfigRemoveCommand(dockerCLI),
 	)
 	return cmd
 }
