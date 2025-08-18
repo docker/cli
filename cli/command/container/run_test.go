@@ -2,9 +2,7 @@ package container
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"syscall"
@@ -16,13 +14,13 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
+	"github.com/moby/moby/api/pkg/progress"
+	"github.com/moby/moby/api/pkg/streamformatter"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/image"
-	"github.com/moby/moby/api/types/jsonstream"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
-	"github.com/moby/moby/client/pkg/jsonmessage"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
@@ -244,25 +242,19 @@ func TestRunPullTermination(t *testing.T) {
 				_ = server.Close()
 			})
 			go func() {
-				enc := json.NewEncoder(server)
+				id := test.RandomID()[:12] // short-ID
+				progressOutput := streamformatter.NewJSONProgressOutput(server, true)
 				for i := 0; i < 100; i++ {
 					select {
 					case <-ctx.Done():
 						assert.NilError(t, server.Close(), "failed to close imageCreateFunc server")
 						return
 					default:
-						assert.NilError(t, enc.Encode(jsonmessage.JSONMessage{
-							Status:   "Downloading",
-							ID:       fmt.Sprintf("id-%d", i),
-							TimeNano: time.Now().UnixNano(),
-							Time:     time.Now().Unix(),
-							Progress: &jsonmessage.JSONProgress{
-								Progress: jsonstream.Progress{
-									Current: int64(i),
-									Total:   100,
-									Start:   0,
-								},
-							},
+						assert.NilError(t, progressOutput.WriteProgress(progress.Progress{
+							ID:      id,
+							Message: "Downloading",
+							Current: int64(i),
+							Total:   100,
 						}))
 						time.Sleep(100 * time.Millisecond)
 					}
