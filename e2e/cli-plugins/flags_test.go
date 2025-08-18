@@ -1,6 +1,7 @@
 package cliplugins
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -91,9 +92,9 @@ func TestGlobalArgsOnlyParsedOnce(t *testing.T) {
 			// This is checking the precondition wrt -H mentioned in the function comment
 			name:             "fails-if-H-used-twice",
 			args:             []string{"-H", dh, "-H", dh, "version", "-f", "{{.Client.Version}}"},
-			expectedExitCode: 1,
+			expectedExitCode: 125,
 			expectedOut:      icmd.None,
-			expectedErr:      "Specify only one -H",
+			expectedErr:      fmt.Sprintf(`invalid argument %q for "-H, --host" flag: specify only one -H`, dh),
 		},
 		{
 			name:             "builtin",
