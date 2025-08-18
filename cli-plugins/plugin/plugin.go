@@ -175,9 +175,22 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 		newMetadataSubcommand(plugin, meta),
 	)
 
-	cli.DisableFlagsInUseLine(cmd)
+	visitAll(cmd,
+		// prevent adding "[flags]" to the end of the usage line.
+		func(c *cobra.Command) { c.DisableFlagsInUseLine = true },
+	)
 
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())
+}
+
+// visitAll traverses all commands from the root.
+func visitAll(root *cobra.Command, fns ...func(*cobra.Command)) {
+	for _, cmd := range root.Commands() {
+		visitAll(cmd, fns...)
+	}
+	for _, fn := range fns {
+		fn(root)
+	}
 }
 
 func newMetadataSubcommand(plugin *cobra.Command, meta metadata.Metadata) *cobra.Command {
