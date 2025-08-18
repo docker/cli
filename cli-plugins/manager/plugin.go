@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -31,12 +32,34 @@ type Plugin struct {
 	ShadowedPaths []string `json:",omitempty"`
 }
 
+// MarshalJSON implements [json.Marshaler] to handle marshaling the
+// [Plugin.Err] field (Go doesn't marshal errors by default).
+func (p *Plugin) MarshalJSON() ([]byte, error) {
+	type Alias Plugin // avoid recursion
+
+	cp := *p // shallow copy to avoid mutating original
+
+	if cp.Err != nil {
+		if _, ok := cp.Err.(encoding.TextMarshaler); !ok {
+			cp.Err = &pluginError{cp.Err}
+		}
+	}
+
+	return json.Marshal((*Alias)(&cp))
+}
+
+// pluginCandidate represents a possible plugin candidate, for mocking purposes.
+type pluginCandidate interface {
+	Path() string
+	Metadata() ([]byte, error)
+}
+
 // newPlugin determines if the given candidate is valid and returns a
 // Plugin.  If the candidate fails one of the tests then `Plugin.Err`
 // is set, and is always a `pluginError`, but the `Plugin` is still
 // returned with no error. An error is only returned due to a
 // non-recoverable error.
-func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
+func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 	path := c.Path()
 	if path == "" {
 		return Plugin{}, errors.New("plugin candidate path cannot be empty")
@@ -63,7 +86,7 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 
 	// Now apply the candidate tests, so these update p.Err.
 	if !pluginNameRe.MatchString(p.Name) {
-		p.Err = NewPluginError("plugin candidate %q did not match %q", p.Name, pluginNameRe.String())
+		p.Err = newPluginError("plugin candidate %q did not match %q", p.Name, pluginNameRe.String())
 		return p, nil
 	}
 
@@ -75,11 +98,11 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 			continue
 		}
 		if cmd.Name() == p.Name {
-			p.Err = NewPluginError("plugin %q duplicates builtin command", p.Name)
+			p.Err = newPluginError("plugin %q duplicates builtin command", p.Name)
 			return p, nil
 		}
 		if cmd.HasAlias(p.Name) {
-			p.Err = NewPluginError("plugin %q duplicates an alias of builtin command %q", p.Name, cmd.Name())
+			p.Err = newPluginError("plugin %q duplicates an alias of builtin command %q", p.Name, cmd.Name())
 			return p, nil
 		}
 	}
@@ -96,11 +119,11 @@ func newPlugin(c Candidate, cmds []*cobra.Command) (Plugin, error) {
 		return p, nil
 	}
 	if p.Metadata.SchemaVersion != "0.1.0" {
-		p.Err = NewPluginError("plugin SchemaVersion %q is not valid, must be 0.1.0", p.Metadata.SchemaVersion)
+		p.Err = newPluginError("plugin SchemaVersion %q is not valid, must be 0.1.0", p.Metadata.SchemaVersion)
 		return p, nil
 	}
 	if p.Metadata.Vendor == "" {
-		p.Err = NewPluginError("plugin metadata does not define a vendor")
+		p.Err = newPluginError("plugin metadata does not define a vendor")
 		return p, nil
 	}
 	return p, nil
