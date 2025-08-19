@@ -31,7 +31,14 @@ type pruneOptions struct {
 }
 
 // NewPruneCommand returns a new cobra prune command for images
-func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewPruneCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPruneCommand(dockerCLI)
+}
+
+// newPruneCommand returns a new cobra prune command for images
+func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -39,14 +46,14 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove unused images",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCli, options)
+			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCLI, options)
 			if err != nil {
 				return err
 			}
 			if output != "" {
-				fmt.Fprintln(dockerCli.Out(), output)
+				fmt.Fprintln(dockerCLI.Out(), output)
 			}
-			fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
+			fmt.Fprintln(dockerCLI.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 			return nil
 		},
 		Annotations:       map[string]string{"version": "1.25"},

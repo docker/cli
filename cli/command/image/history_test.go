@@ -42,7 +42,7 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}))
+			cmd := newHistoryCommand(test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -114,7 +114,7 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 			// printed in the current timezone
 			t.Setenv("TZ", "UTC")
 			cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
-			cmd := NewHistoryCommand(cli)
+			cmd := newHistoryCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()

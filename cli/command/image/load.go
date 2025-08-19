@@ -23,7 +23,14 @@ type loadOptions struct {
 }
 
 // NewLoadCommand creates a new `docker load` command
-func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewLoadCommand(dockerCLI command.Cli) *cobra.Command {
+	return newLoadCommand(dockerCLI)
+}
+
+// newLoadCommand creates a new `docker load` command
+func newLoadCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts loadOptions
 
 	cmd := &cobra.Command{
@@ -31,7 +38,7 @@ func NewLoadCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Load an image from a tar archive or STDIN",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLoad(cmd.Context(), dockerCli, opts)
+			return runLoad(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image load, docker load",

@@ -36,7 +36,14 @@ type pushOptions struct {
 }
 
 // NewPushCommand creates a new `docker push` command
-func NewPushCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewPushCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPushCommand(dockerCLI)
+}
+
+// newPushCommand creates a new `docker push` command
+func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pushOptions
 
 	cmd := &cobra.Command{
@@ -45,19 +52,19 @@ func NewPushCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runPush(cmd.Context(), dockerCli, opts)
+			return runPush(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "6",
 			"aliases":      "docker image push, docker push",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, 1),
+		ValidArgsFunction: completion.ImageNames(dockerCLI, 1),
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
-	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image signing")
+	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image signing")
 
 	// Don't default to DOCKER_DEFAULT_PLATFORM env variable, always default to
 	// pushing the image as-is. This also avoids forcing the platform selection

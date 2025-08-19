@@ -36,7 +36,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
+			cmd := newImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -85,7 +85,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
 			cli.SetConfigFile(&configfile.ConfigFile{ImagesFormat: tc.imageFormat})
-			cmd := NewImagesCommand(cli)
+			cmd := newImagesCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -104,7 +104,7 @@ func TestNewListCommandAlias(t *testing.T) {
 
 func TestNewListCommandAmbiguous(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cmd := NewImagesCommand(cli)
+	cmd := newImagesCommand(cli)
 	cmd.SetOut(io.Discard)
 
 	// Set the Use field to mimic that the command was called as "docker images",
