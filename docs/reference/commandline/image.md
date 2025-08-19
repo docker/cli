@@ -18,7 +18,7 @@ Manage images
 | [`push`](image_push.md)       | Upload an image to a registry                                            |
 | [`rm`](image_rm.md)           | Remove one or more images                                                |
 | [`save`](image_save.md)       | Save one or more images to a tar archive (streamed to STDOUT by default) |
-| [`tag`](image_tag.md)         | Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE                    |
+| [`tag`](image_tag.md)         | Create one or more tags TARGET_IMAGE that refers to SOURCE_IMAGE         |
 
 
 
