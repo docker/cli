@@ -47,6 +47,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		builder.NewBakeStubCommand(dockerCli),
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		builder.NewBuilderCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		checkpoint.NewCheckpointCommand(dockerCli),
 		container.NewContainerCommand(dockerCli),
 		context.NewContextCommand(dockerCli),
