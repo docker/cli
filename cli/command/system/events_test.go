@@ -70,7 +70,7 @@ func TestEventsFormat(t *testing.T) {
 				}()
 				return messages, errs
 			}})
-			cmd := NewEventsCommand(cli)
+			cmd := newEventsCommand(cli)
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
