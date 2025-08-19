@@ -9,7 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/manifest/store"
-	registryclient "github.com/docker/cli/cli/registry/client"
+	"github.com/docker/cli/internal/registryclient"
 	"github.com/docker/docker/api/types/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
