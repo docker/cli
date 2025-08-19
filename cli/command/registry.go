@@ -203,30 +203,21 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 //
 // [RFC 4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
 func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (string, error) {
-	// Retrieve encoded auth token from the image reference
-	authConfig, err := resolveAuthConfigFromImage(cfg, image)
+	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return "", err
 	}
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	configKey := getAuthConfigKey(reference.Domain(registryRef))
+	authConfig, err := cfg.GetAuthConfig(configKey)
+	if err != nil {
+		return "", err
+	}
+
+	encodedAuth, err := registrytypes.EncodeAuthConfig(registrytypes.AuthConfig(authConfig))
 	if err != nil {
 		return "", err
 	}
 	return encodedAuth, nil
-}
-
-// resolveAuthConfigFromImage retrieves that AuthConfig using the image string
-func resolveAuthConfigFromImage(cfg *configfile.ConfigFile, image string) (registrytypes.AuthConfig, error) {
-	registryRef, err := reference.ParseNormalizedNamed(image)
-	if err != nil {
-		return registrytypes.AuthConfig{}, err
-	}
-	configKey := getAuthConfigKey(reference.Domain(registryRef))
-	a, err := cfg.GetAuthConfig(configKey)
-	if err != nil {
-		return registrytypes.AuthConfig{}, err
-	}
-	return registrytypes.AuthConfig(a), nil
 }
 
 // getAuthConfigKey special-cases using the full index address of the official
