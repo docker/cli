@@ -40,7 +40,7 @@ func TestNewPullCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
-			cmd := NewPullCommand(cli)
+			cmd := newPullCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -79,7 +79,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 					return io.NopCloser(strings.NewReader("")), nil
 				},
 			})
-			cmd := NewPullCommand(cli)
+			cmd := newPullCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -124,7 +124,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 				},
 			}, test.EnableContentTrust)
 			cli.SetNotaryClient(tc.notaryFunc)
-			cmd := NewPullCommand(cli)
+			cmd := newPullCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

@@ -21,7 +21,14 @@ type removeOptions struct {
 }
 
 // NewRemoveCommand creates a new `docker remove` command
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
 func NewRemoveCommand(dockerCLI command.Cli) *cobra.Command {
+	return newRemoveCommand(dockerCLI)
+}
+
+// newRemoveCommand creates a new `docker remove` command
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var options removeOptions
 
 	cmd := &cobra.Command{
@@ -50,8 +57,9 @@ func NewRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
-	cmd := *NewRemoveCommand(dockerCli)
+// newImageRemoveCommand is a sub-command under `image` (`docker image rm`)
+func newImageRemoveCommand(dockerCli command.Cli) *cobra.Command {
+	cmd := *newRemoveCommand(dockerCli)
 	cmd.Aliases = []string{"rmi", "remove"}
 	cmd.Use = "rm [OPTIONS] IMAGE [IMAGE...]"
 	return &cmd

@@ -35,9 +35,13 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		container.NewExecCommand(dockerCli),
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		container.NewPsCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewBuildCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewPullCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewPushCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewImagesCommand(dockerCli),
 		registry.NewLoginCommand(dockerCli),
 		registry.NewLogoutCommand(dockerCli),
@@ -55,6 +59,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		container.NewContainerCommand(dockerCli),
 		context.NewContextCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewImageCommand(dockerCli),
 		manifest.NewManifestCommand(dockerCli),
 		network.NewNetworkCommand(dockerCli),
@@ -113,11 +118,17 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(container.NewUpdateCommand(dockerCli)),
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(container.NewWaitCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewHistoryCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewImportCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewLoadCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewRemoveCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewSaveCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewTagCommand(dockerCli)),
 		hide(system.NewEventsCommand(dockerCli)),
 		hide(system.NewInspectCommand(dockerCli)),

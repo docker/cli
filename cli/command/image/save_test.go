@@ -61,7 +61,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageSaveFunc: tc.imageSaveFunc})
 			cli.Out().SetIsTerminal(tc.isTerminal)
-			cmd := NewSaveCommand(cli)
+			cmd := newSaveCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -114,7 +114,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
-			cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
+			cmd := newSaveCommand(test.NewFakeCli(&fakeClient{
 				imageSaveFunc: tc.imageSaveFunc,
 			}))
 			cmd.SetOut(io.Discard)

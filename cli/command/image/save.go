@@ -21,7 +21,14 @@ type saveOptions struct {
 }
 
 // NewSaveCommand creates a new `docker save` command
-func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewSaveCommand(dockerCLI command.Cli) *cobra.Command {
+	return newSaveCommand(dockerCLI)
+}
+
+// newSaveCommand creates a new `docker save` command
+func newSaveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts saveOptions
 
 	cmd := &cobra.Command{
@@ -30,12 +37,12 @@ func NewSaveCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.images = args
-			return runSave(cmd.Context(), dockerCli, opts)
+			return runSave(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image save, docker save",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
+		ValidArgsFunction: completion.ImageNames(dockerCLI, -1),
 	}
 
 	flags := cmd.Flags()

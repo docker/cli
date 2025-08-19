@@ -23,7 +23,14 @@ type importOptions struct {
 }
 
 // NewImportCommand creates a new `docker import` command
-func NewImportCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewImportCommand(dockerCLI command.Cli) *cobra.Command {
+	return newImportCommand(dockerCLI)
+}
+
+// newImportCommand creates a new `docker import` command
+func newImportCommand(dockerCLI command.Cli) *cobra.Command {
 	var options importOptions
 
 	cmd := &cobra.Command{
@@ -35,7 +42,7 @@ func NewImportCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.reference = args[1]
 			}
-			return runImport(cmd.Context(), dockerCli, options)
+			return runImport(cmd.Context(), dockerCLI, options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image import, docker import",

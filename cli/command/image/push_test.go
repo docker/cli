@@ -40,7 +40,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imagePushFunc: tc.imagePushFunc})
-			cmd := NewPushCommand(cli)
+			cmd := newPushCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -73,7 +73,7 @@ func TestNewPushCommandSuccess(t *testing.T) {
 					return io.NopCloser(strings.NewReader("")), nil
 				},
 			})
-			cmd := NewPushCommand(cli)
+			cmd := newPushCommand(cli)
 			cmd.SetOut(cli.OutBuffer())
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

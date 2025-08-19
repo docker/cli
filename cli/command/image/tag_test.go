@@ -17,7 +17,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 	}
 	expectedError := "'tag' requires 2 arguments"
 	for _, args := range testCases {
-		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
+		cmd := newTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
@@ -26,7 +26,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 }
 
 func TestCliNewTagCommand(t *testing.T) {
-	cmd := NewTagCommand(
+	cmd := newTagCommand(
 		test.NewFakeCli(&fakeClient{
 			imageTagFunc: func(image string, ref string) error {
 				assert.Check(t, is.Equal("image1", image))

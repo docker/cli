@@ -27,7 +27,14 @@ type pullOptions struct {
 }
 
 // NewPullCommand creates a new `docker pull` command
-func NewPullCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewPullCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPullCommand(dockerCLI)
+}
+
+// newPullCommand creates a new `docker pull` command
+func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pullOptions
 
 	cmd := &cobra.Command{
@@ -36,7 +43,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runPull(cmd.Context(), dockerCli, opts)
+			return runPull(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "5",
@@ -51,7 +58,7 @@ func NewPullCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
 
 	addPlatformFlag(flags, &opts.platform)
-	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image verification")
+	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image verification")
 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
