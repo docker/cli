@@ -25,6 +25,8 @@ func newBuilderCommand(dockerCLI command.Cli) *cobra.Command {
 	}
 	cmd.AddCommand(
 		NewPruneCommand(dockerCLI),
+		// we should have a mechanism for registering sub-commands in the cli/internal/commands.Register function.
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewBuildCommand(dockerCLI),
 	)
 	return cmd
