@@ -92,12 +92,12 @@ func New(fn string) *ConfigFile {
 
 // LoadFromReader reads the configuration data given and sets up the auth config
 // information with given directory and populates the receiver object
-func (configFile *ConfigFile) LoadFromReader(configData io.Reader) error {
-	if err := json.NewDecoder(configData).Decode(configFile); err != nil && !errors.Is(err, io.EOF) {
+func (c *ConfigFile) LoadFromReader(configData io.Reader) error {
+	if err := json.NewDecoder(configData).Decode(c); err != nil && !errors.Is(err, io.EOF) {
 		return err
 	}
 	var err error
-	for addr, ac := range configFile.AuthConfigs {
+	for addr, ac := range c.AuthConfigs {
 		if ac.Auth != "" {
 			ac.Username, ac.Password, err = decodeAuth(ac.Auth)
 			if err != nil {
@@ -106,33 +106,33 @@ func (configFile *ConfigFile) LoadFromReader(configData io.Reader) error {
 		}
 		ac.Auth = ""
 		ac.ServerAddress = addr
-		configFile.AuthConfigs[addr] = ac
+		c.AuthConfigs[addr] = ac
 	}
 	return nil
 }
 
 // ContainsAuth returns whether there is authentication configured
 // in this file or not.
-func (configFile *ConfigFile) ContainsAuth() bool {
-	return configFile.CredentialsStore != "" ||
-		len(configFile.CredentialHelpers) > 0 ||
-		len(configFile.AuthConfigs) > 0
+func (c *ConfigFile) ContainsAuth() bool {
+	return c.CredentialsStore != "" ||
+		len(c.CredentialHelpers) > 0 ||
+		len(c.AuthConfigs) > 0
 }
 
 // GetAuthConfigs returns the mapping of repo to auth configuration
-func (configFile *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
-	if configFile.AuthConfigs == nil {
-		configFile.AuthConfigs = make(map[string]types.AuthConfig)
+func (c *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
+	if c.AuthConfigs == nil {
+		c.AuthConfigs = make(map[string]types.AuthConfig)
 	}
-	return configFile.AuthConfigs
+	return c.AuthConfigs
 }
 
 // SaveToWriter encodes and writes out all the authorization information to
 // the given writer
-func (configFile *ConfigFile) SaveToWriter(writer io.Writer) error {
+func (c *ConfigFile) SaveToWriter(writer io.Writer) error {
 	// Encode sensitive data into a new/temp struct
-	tmpAuthConfigs := make(map[string]types.AuthConfig, len(configFile.AuthConfigs))
-	for k, authConfig := range configFile.AuthConfigs {
+	tmpAuthConfigs := make(map[string]types.AuthConfig, len(c.AuthConfigs))
+	for k, authConfig := range c.AuthConfigs {
 		authCopy := authConfig
 		// encode and save the authstring, while blanking out the original fields
 		authCopy.Auth = encodeAuth(&authCopy)
@@ -142,18 +142,18 @@ func (configFile *ConfigFile) SaveToWriter(writer io.Writer) error {
 		tmpAuthConfigs[k] = authCopy
 	}
 
-	saveAuthConfigs := configFile.AuthConfigs
-	configFile.AuthConfigs = tmpAuthConfigs
-	defer func() { configFile.AuthConfigs = saveAuthConfigs }()
+	saveAuthConfigs := c.AuthConfigs
+	c.AuthConfigs = tmpAuthConfigs
+	defer func() { c.AuthConfigs = saveAuthConfigs }()
 
 	// User-Agent header is automatically set, and should not be stored in the configuration
-	for v := range configFile.HTTPHeaders {
+	for v := range c.HTTPHeaders {
 		if strings.EqualFold(v, "User-Agent") {
-			delete(configFile.HTTPHeaders, v)
+			delete(c.HTTPHeaders, v)
 		}
 	}
 
-	data, err := json.MarshalIndent(configFile, "", "\t")
+	data, err := json.MarshalIndent(c, "", "\t")
 	if err != nil {
 		return err
 	}
@@ -162,16 +162,16 @@ func (configFile *ConfigFile) SaveToWriter(writer io.Writer) error {
 }
 
 // Save encodes and writes out all the authorization information
-func (configFile *ConfigFile) Save() (retErr error) {
-	if configFile.Filename == "" {
+func (c *ConfigFile) Save() (retErr error) {
+	if c.Filename == "" {
 		return errors.New("can't save config with empty filename")
 	}
 
-	dir := filepath.Dir(configFile.Filename)
+	dir := filepath.Dir(c.Filename)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
-	temp, err := os.CreateTemp(dir, filepath.Base(configFile.Filename))
+	temp, err := os.CreateTemp(dir, filepath.Base(c.Filename))
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (configFile *ConfigFile) Save() (retErr error) {
 		}
 	}()
 
-	err = configFile.SaveToWriter(temp)
+	err = c.SaveToWriter(temp)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (configFile *ConfigFile) Save() (retErr error) {
 	}
 
 	// Handle situation where the configfile is a symlink, and allow for dangling symlinks
-	cfgFile := configFile.Filename
+	cfgFile := c.Filename
 	if f, err := filepath.EvalSymlinks(cfgFile); err == nil {
 		cfgFile = f
 	} else if os.IsNotExist(err) {
@@ -213,16 +213,16 @@ func (configFile *ConfigFile) Save() (retErr error) {
 
 // ParseProxyConfig computes proxy configuration by retrieving the config for the provided host and
 // then checking this against any environment variables provided to the container
-func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts map[string]*string) map[string]*string {
+func (c *ConfigFile) ParseProxyConfig(host string, runOpts map[string]*string) map[string]*string {
 	var cfgKey string
 
-	if _, ok := configFile.Proxies[host]; !ok {
+	if _, ok := c.Proxies[host]; !ok {
 		cfgKey = "default"
 	} else {
 		cfgKey = host
 	}
 
-	config := configFile.Proxies[cfgKey]
+	config := c.Proxies[cfgKey]
 	permitted := map[string]*string{
 		"HTTP_PROXY":  &config.HTTPProxy,
 		"HTTPS_PROXY": &config.HTTPSProxy,
@@ -286,12 +286,12 @@ func decodeAuth(authStr string) (string, string, error) {
 
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
-func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
+func (c *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
 	var store credentials.Store
-	if helper := configFile.CredentialHelpers[registryHostname]; helper != "" {
-		store = newNativeStore(configFile, helper)
+	if helper := c.CredentialHelpers[registryHostname]; helper != "" {
+		store = newNativeStore(c, helper)
 	} else {
-		store = credentials.NewFileStore(configFile)
+		store = credentials.NewFileStore(c)
 	}
 
 	envConfig := os.Getenv(DockerEnvConfigKey)
@@ -354,13 +354,13 @@ var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentia
 }
 
 // GetAuthConfig for a repository from the credential store
-func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
-	return configFile.GetCredentialsStore(registryHostname).Get(registryHostname)
+func (c *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
+	return c.GetCredentialsStore(registryHostname).Get(registryHostname)
 }
 
 // GetAllCredentials returns all of the credentials stored in all of the
 // configured credential stores.
-func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, error) {
+func (c *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, error) {
 	auths := make(map[string]types.AuthConfig)
 	addAll := func(from map[string]types.AuthConfig) {
 		for reg, ac := range from {
@@ -368,7 +368,7 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 		}
 	}
 
-	defaultStore := configFile.GetCredentialsStore("")
+	defaultStore := c.GetCredentialsStore("")
 	newAuths, err := defaultStore.GetAll()
 	if err != nil {
 		return nil, err
@@ -376,8 +376,8 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 	addAll(newAuths)
 
 	// Auth configs from a registry-specific helper should override those from the default store.
-	for registryHostname := range configFile.CredentialHelpers {
-		newAuth, err := configFile.GetAuthConfig(registryHostname)
+	for registryHostname := range c.CredentialHelpers {
+		newAuth, err := c.GetAuthConfig(registryHostname)
 		if err != nil {
 			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
 			logrus.WithError(err).Warnf("Failed to get credentials for registry: %s", registryHostname)
@@ -389,16 +389,16 @@ func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, 
 }
 
 // GetFilename returns the file name that this config file is based on.
-func (configFile *ConfigFile) GetFilename() string {
-	return configFile.Filename
+func (c *ConfigFile) GetFilename() string {
+	return c.Filename
 }
 
 // PluginConfig retrieves the requested option for the given plugin.
-func (configFile *ConfigFile) PluginConfig(pluginname, option string) (string, bool) {
-	if configFile.Plugins == nil {
+func (c *ConfigFile) PluginConfig(pluginname, option string) (string, bool) {
+	if c.Plugins == nil {
 		return "", false
 	}
-	pluginConfig, ok := configFile.Plugins[pluginname]
+	pluginConfig, ok := c.Plugins[pluginname]
 	if !ok {
 		return "", false
 	}
@@ -410,14 +410,14 @@ func (configFile *ConfigFile) PluginConfig(pluginname, option string) (string, b
 // plugin. Passing a value of "" will remove the option. If removing
 // the final config item for a given plugin then also cleans up the
 // overall plugin entry.
-func (configFile *ConfigFile) SetPluginConfig(pluginname, option, value string) {
-	if configFile.Plugins == nil {
-		configFile.Plugins = make(map[string]map[string]string)
+func (c *ConfigFile) SetPluginConfig(pluginname, option, value string) {
+	if c.Plugins == nil {
+		c.Plugins = make(map[string]map[string]string)
 	}
-	pluginConfig, ok := configFile.Plugins[pluginname]
+	pluginConfig, ok := c.Plugins[pluginname]
 	if !ok {
 		pluginConfig = make(map[string]string)
-		configFile.Plugins[pluginname] = pluginConfig
+		c.Plugins[pluginname] = pluginConfig
 	}
 	if value != "" {
 		pluginConfig[option] = value
@@ -425,6 +425,6 @@ func (configFile *ConfigFile) SetPluginConfig(pluginname, option, value string) 
 		delete(pluginConfig, option)
 	}
 	if len(pluginConfig) == 0 {
-		delete(configFile.Plugins, pluginname)
+		delete(c.Plugins, pluginname)
 	}
 }
