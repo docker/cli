@@ -46,7 +46,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		registry.NewLoginCommand(dockerCli),
 		registry.NewLogoutCommand(dockerCli),
 		registry.NewSearchCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		system.NewVersionCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		system.NewInfoCommand(dockerCli),
 
 		// management commands
@@ -64,6 +66,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		manifest.NewManifestCommand(dockerCli),
 		network.NewNetworkCommand(dockerCli),
 		plugin.NewPluginCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		system.NewSystemCommand(dockerCli),
 		trust.NewTrustCommand(dockerCli),
 		volume.NewVolumeCommand(dockerCli),
@@ -130,7 +133,9 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		hide(image.NewSaveCommand(dockerCli)),
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(image.NewTagCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(system.NewEventsCommand(dockerCli)),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		hide(system.NewInspectCommand(dockerCli)),
 	)
 }

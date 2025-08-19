@@ -156,7 +156,7 @@ func TestCompleteEventFilter(t *testing.T) {
 	for _, tc := range tests {
 		cli := test.NewFakeCli(tc.client)
 
-		completions, directive := completeEventFilters(cli)(NewEventsCommand(cli), nil, tc.toComplete)
+		completions, directive := completeEventFilters(cli)(newEventsCommand(cli), nil, tc.toComplete)
 
 		assert.DeepEqual(t, completions, tc.expected)
 		assert.Equal(t, directive, cobra.ShellCompDirectiveNoFileComp, fmt.Sprintf("wrong directive in completion for '%s'", tc.toComplete))

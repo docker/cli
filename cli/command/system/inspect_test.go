@@ -32,7 +32,7 @@ func TestInspectValidateFlagsAndArgs(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewInspectCommand(test.NewFakeCli(&fakeClient{}))
+			cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

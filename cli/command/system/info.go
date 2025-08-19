@@ -60,7 +60,14 @@ func (i *dockerInfo) clientPlatform() string {
 }
 
 // NewInfoCommand creates a new cobra.Command for `docker info`
-func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewInfoCommand(dockerCLI command.Cli) *cobra.Command {
+	return newInfoCommand(dockerCLI)
+}
+
+// newInfoCommand creates a new cobra.Command for `docker info`
+func newInfoCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts infoOptions
 
 	cmd := &cobra.Command{
@@ -68,7 +75,7 @@ func NewInfoCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display system-wide information",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInfo(cmd.Context(), cmd, dockerCli, &opts)
+			return runInfo(cmd.Context(), cmd, dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"category-top": "12",
