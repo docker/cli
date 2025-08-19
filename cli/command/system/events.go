@@ -28,7 +28,14 @@ type eventsOptions struct {
 }
 
 // NewEventsCommand creates a new cobra.Command for `docker events`
-func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewEventsCommand(dockerCLI command.Cli) *cobra.Command {
+	return newEventsCommand(dockerCLI)
+}
+
+// newEventsCommand creates a new cobra.Command for `docker events`
+func newEventsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := eventsOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -36,7 +43,7 @@ func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Get real time events from the server",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEvents(cmd.Context(), dockerCli, &options)
+			return runEvents(cmd.Context(), dockerCLI, &options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker system events, docker events",
@@ -50,7 +57,7 @@ func NewEventsCommand(dockerCli command.Cli) *cobra.Command {
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 	flags.StringVar(&options.format, "format", "", flagsHelper.InspectFormatHelp) // using the same flag description as "inspect" commands for now.
 
-	_ = cmd.RegisterFlagCompletionFunc("filter", completeEventFilters(dockerCli))
+	_ = cmd.RegisterFlagCompletionFunc("filter", completeEventFilters(dockerCLI))
 
 	return cmd
 }

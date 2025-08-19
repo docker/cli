@@ -20,7 +20,7 @@ func TestVersionWithoutServer(t *testing.T) {
 			return types.Version{}, errors.New("no server")
 		},
 	})
-	cmd := NewVersionCommand(cli)
+	cmd := newVersionCommand(cli)
 	cmd.SetArgs([]string{})
 	cmd.SetOut(cli.Err())
 	cmd.SetErr(io.Discard)
