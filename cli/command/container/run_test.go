@@ -2,9 +2,7 @@ package container
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"syscall"
@@ -20,7 +18,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/progress"
+	"github.com/docker/docker/pkg/streamformatter"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
@@ -242,23 +241,19 @@ func TestRunPullTermination(t *testing.T) {
 				_ = server.Close()
 			})
 			go func() {
-				enc := json.NewEncoder(server)
+				id := test.RandomID()[:12] // short-ID
+				progressOutput := streamformatter.NewJSONProgressOutput(server, true)
 				for i := 0; i < 100; i++ {
 					select {
 					case <-ctx.Done():
 						assert.NilError(t, server.Close(), "failed to close imageCreateFunc server")
 						return
 					default:
-						assert.NilError(t, enc.Encode(jsonmessage.JSONMessage{
-							Status:   "Downloading",
-							ID:       fmt.Sprintf("id-%d", i),
-							TimeNano: time.Now().UnixNano(),
-							Time:     time.Now().Unix(),
-							Progress: &jsonmessage.JSONProgress{
-								Current: int64(i),
-								Total:   100,
-								Start:   0,
-							},
+						assert.NilError(t, progressOutput.WriteProgress(progress.Progress{
+							ID:      id,
+							Message: "Downloading",
+							Current: int64(i),
+							Total:   100,
 						}))
 						time.Sleep(100 * time.Millisecond)
 					}
