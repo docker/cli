@@ -4135,10 +4135,15 @@ _docker_manifest() {
 		annotate
 		create
 		inspect
+		ls
 		push
 		rm
 	"
-	__docker_subcommands "$subcommands" && return
+
+	local aliases="
+		list
+	"
+	__docker_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -4242,6 +4247,24 @@ _docker_manifest_rm() {
 			;;
 		*)
 			__docker_complete_images --force-tag --id
+			;;
+	esac
+}
+
+_docker_manifest_list() {
+  _docker_manifest_ls
+}
+
+_docker_manifest_ls() {
+	case "$prev" in
+		--format)
+			return
+			;;
+	esac
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--format --help --quiet -q" -- "$cur" ) )
 			;;
 	esac
 }
