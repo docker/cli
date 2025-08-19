@@ -21,7 +21,13 @@ type restartOptions struct {
 }
 
 // NewRestartCommand creates a new cobra.Command for `docker restart`
-func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewRestartCommand(dockerCLI command.Cli) *cobra.Command {
+	return newRestartCommand(dockerCLI)
+}
+
+func newRestartCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts restartOptions
 
 	cmd := &cobra.Command{
@@ -34,12 +40,12 @@ func NewRestartCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			opts.containers = args
 			opts.timeoutChanged = cmd.Flags().Changed("timeout") || cmd.Flags().Changed("time")
-			return runRestart(cmd.Context(), dockerCli, &opts)
+			return runRestart(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container restart, docker restart",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
 	}
 
 	flags := cmd.Flags()

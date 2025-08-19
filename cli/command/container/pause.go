@@ -17,7 +17,13 @@ type pauseOptions struct {
 }
 
 // NewPauseCommand creates a new cobra.Command for `docker pause`
-func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewPauseCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPauseCommand(dockerCLI)
+}
+
+func newPauseCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pauseOptions
 
 	return &cobra.Command{
@@ -26,12 +32,12 @@ func NewPauseCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runPause(cmd.Context(), dockerCli, &opts)
+			return runPause(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container pause, docker pause",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false, func(ctr container.Summary) bool {
 			return ctr.State != container.StatePaused
 		}),
 	}

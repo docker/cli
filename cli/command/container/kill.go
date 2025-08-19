@@ -18,7 +18,13 @@ type killOptions struct {
 }
 
 // NewKillCommand creates a new cobra.Command for `docker kill`
-func NewKillCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewKillCommand(dockerCLI command.Cli) *cobra.Command {
+	return newKillCommand(dockerCLI)
+}
+
+func newKillCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts killOptions
 
 	cmd := &cobra.Command{
@@ -27,12 +33,12 @@ func NewKillCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runKill(cmd.Context(), dockerCli, &opts)
+			return runKill(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container kill, docker kill",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
 	}
 
 	flags := cmd.Flags()

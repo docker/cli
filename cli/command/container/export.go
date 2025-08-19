@@ -18,7 +18,13 @@ type exportOptions struct {
 }
 
 // NewExportCommand creates a new `docker export` command
-func NewExportCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewExportCommand(dockerCLI command.Cli) *cobra.Command {
+	return newExportCommand(dockerCLI)
+}
+
+func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts exportOptions
 
 	cmd := &cobra.Command{
@@ -27,12 +33,12 @@ func NewExportCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runExport(cmd.Context(), dockerCli, opts)
+			return runExport(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container export, docker export",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
 	}
 
 	flags := cmd.Flags()

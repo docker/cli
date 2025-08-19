@@ -29,7 +29,13 @@ type psOptions struct {
 }
 
 // NewPsCommand creates a new cobra.Command for `docker ps`
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
 func NewPsCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPsCommand(dockerCLI)
+}
+
+func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -62,7 +68,7 @@ func NewPsCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func newListCommand(dockerCLI command.Cli) *cobra.Command {
-	cmd := *NewPsCommand(dockerCLI)
+	cmd := *newPsCommand(dockerCLI)
 	cmd.Aliases = []string{"ps", "list"}
 	cmd.Use = "ls [OPTIONS]"
 	return &cmd

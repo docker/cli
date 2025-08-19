@@ -40,7 +40,13 @@ func NewExecOptions() ExecOptions {
 }
 
 // NewExecCommand creates a new cobra.Command for `docker exec`
-func NewExecCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewExecCommand(dockerCLI command.Cli) *cobra.Command {
+	return newExecCommand(dockerCLI)
+}
+
+func newExecCommand(dockerCLI command.Cli) *cobra.Command {
 	options := NewExecOptions()
 
 	cmd := &cobra.Command{
@@ -50,9 +56,9 @@ func NewExecCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			containerIDorName := args[0]
 			options.Command = args[1:]
-			return RunExec(cmd.Context(), dockerCli, containerIDorName, options)
+			return RunExec(cmd.Context(), dockerCLI, containerIDorName, options)
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false, func(ctr container.Summary) bool {
 			return ctr.State != container.StatePaused
 		}),
 		Annotations: map[string]string{

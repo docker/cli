@@ -29,7 +29,7 @@ func TestRunCommit(t *testing.T) {
 		},
 	})
 
-	cmd := NewCommitCommand(cli)
+	cmd := newCommitCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs(
 		[]string{
@@ -60,7 +60,7 @@ func TestRunCommitClientError(t *testing.T) {
 		},
 	})
 
-	cmd := NewCommitCommand(cli)
+	cmd := newCommitCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"container-id"})

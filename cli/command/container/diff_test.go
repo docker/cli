@@ -36,7 +36,7 @@ func TestRunDiff(t *testing.T) {
 		},
 	})
 
-	cmd := NewDiffCommand(cli)
+	cmd := newDiffCommand(cli)
 	cmd.SetOut(io.Discard)
 
 	cmd.SetArgs([]string{"container-id"})
@@ -68,7 +68,7 @@ func TestRunDiffClientError(t *testing.T) {
 		},
 	})
 
-	cmd := NewDiffCommand(cli)
+	cmd := newDiffCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 

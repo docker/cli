@@ -28,7 +28,13 @@ type StartOptions struct {
 }
 
 // NewStartCommand creates a new cobra.Command for `docker start`
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
 func NewStartCommand(dockerCli command.Cli) *cobra.Command {
+	return newStartCommand(dockerCli)
+}
+
+func newStartCommand(dockerCli command.Cli) *cobra.Command {
 	var opts StartOptions
 
 	cmd := &cobra.Command{

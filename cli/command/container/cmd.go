@@ -7,39 +7,45 @@ import (
 )
 
 // NewContainerCommand returns a cobra command for `container` subcommands
-func NewContainerCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewContainerCommand(dockerCLI command.Cli) *cobra.Command {
+	return newContainerCommand(dockerCLI)
+}
+
+func newContainerCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "container",
 		Short: "Manage containers",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 	}
 	cmd.AddCommand(
-		NewAttachCommand(dockerCli),
-		NewCommitCommand(dockerCli),
-		NewCopyCommand(dockerCli),
-		NewCreateCommand(dockerCli),
-		NewDiffCommand(dockerCli),
-		NewExecCommand(dockerCli),
-		NewExportCommand(dockerCli),
-		NewKillCommand(dockerCli),
-		NewLogsCommand(dockerCli),
-		NewPauseCommand(dockerCli),
-		NewPortCommand(dockerCli),
-		NewRenameCommand(dockerCli),
-		NewRestartCommand(dockerCli),
-		newRemoveCommand(dockerCli),
-		NewRunCommand(dockerCli),
-		NewStartCommand(dockerCli),
-		NewStatsCommand(dockerCli),
-		NewStopCommand(dockerCli),
-		NewTopCommand(dockerCli),
-		NewUnpauseCommand(dockerCli),
-		NewUpdateCommand(dockerCli),
-		NewWaitCommand(dockerCli),
-		newListCommand(dockerCli),
-		newInspectCommand(dockerCli),
-		NewPruneCommand(dockerCli),
+		newAttachCommand(dockerCLI),
+		newCommitCommand(dockerCLI),
+		newCopyCommand(dockerCLI),
+		newCreateCommand(dockerCLI),
+		newDiffCommand(dockerCLI),
+		newExecCommand(dockerCLI),
+		newExportCommand(dockerCLI),
+		newKillCommand(dockerCLI),
+		newLogsCommand(dockerCLI),
+		newPauseCommand(dockerCLI),
+		newPortCommand(dockerCLI),
+		newRenameCommand(dockerCLI),
+		newRestartCommand(dockerCLI),
+		newRemoveCommand(dockerCLI),
+		newRunCommand(dockerCLI),
+		newStartCommand(dockerCLI),
+		newStatsCommand(dockerCLI),
+		newStopCommand(dockerCLI),
+		newTopCommand(dockerCLI),
+		newUnpauseCommand(dockerCLI),
+		newUpdateCommand(dockerCLI),
+		newWaitCommand(dockerCLI),
+		newListCommand(dockerCLI),
+		newInspectCommand(dockerCLI),
+		newPruneCommand(dockerCLI),
 	)
 	return cmd
 }

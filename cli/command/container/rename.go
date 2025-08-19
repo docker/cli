@@ -18,7 +18,13 @@ type renameOptions struct {
 }
 
 // NewRenameCommand creates a new cobra.Command for `docker rename`
-func NewRenameCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewRenameCommand(dockerCLI command.Cli) *cobra.Command {
+	return newRenameCommand(dockerCLI)
+}
+
+func newRenameCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts renameOptions
 
 	cmd := &cobra.Command{
@@ -28,12 +34,12 @@ func NewRenameCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.oldName = args[0]
 			opts.newName = args[1]
-			return runRename(cmd.Context(), dockerCli, &opts)
+			return runRename(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container rename, docker rename",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
 	}
 	return cmd
 }
