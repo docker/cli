@@ -33,7 +33,7 @@ func newPushCommand(dockerCli command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	command.AddTrustSigningFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image signing")
 
 	return cmd
 }
