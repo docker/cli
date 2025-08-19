@@ -23,7 +23,13 @@ type rmOptions struct {
 }
 
 // NewRmCommand creates a new cobra.Command for `docker rm`
-func NewRmCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewRmCommand(dockerCLI command.Cli) *cobra.Command {
+	return newRmCommand(dockerCLI)
+}
+
+func newRmCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts rmOptions
 
 	cmd := &cobra.Command{
@@ -32,12 +38,12 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runRm(cmd.Context(), dockerCli, &opts)
+			return runRm(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container rm, docker container remove, docker rm",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(ctr container.Summary) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true, func(ctr container.Summary) bool {
 			return opts.force || ctr.State == container.StateExited || ctr.State == container.StateCreated
 		}),
 	}
@@ -53,7 +59,7 @@ func NewRmCommand(dockerCli command.Cli) *cobra.Command {
 // top-level "docker rm", it also adds a "remove" alias to support
 // "docker container remove" in addition to "docker container rm".
 func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
-	cmd := *NewRmCommand(dockerCli)
+	cmd := *newRmCommand(dockerCli)
 	cmd.Aliases = []string{"rm", "remove"}
 	return &cmd
 }

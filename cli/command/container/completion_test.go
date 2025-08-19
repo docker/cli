@@ -59,7 +59,7 @@ func TestCompletePid(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				containerListFunc: tc.containerListFunc,
 			})
-			completions, directive := completePid(cli)(NewRunCommand(cli), nil, tc.toComplete)
+			completions, directive := completePid(cli)(newRunCommand(cli), nil, tc.toComplete)
 			assert.Check(t, is.DeepEqual(completions, tc.expectedCompletions))
 			assert.Check(t, is.Equal(directive, tc.expectedDirective))
 		})

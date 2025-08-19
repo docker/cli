@@ -24,7 +24,13 @@ type portOptions struct {
 }
 
 // NewPortCommand creates a new cobra.Command for `docker port`
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
 func NewPortCommand(dockerCli command.Cli) *cobra.Command {
+	return newPortCommand(dockerCli)
+}
+
+func newPortCommand(dockerCli command.Cli) *cobra.Command {
 	var opts portOptions
 
 	cmd := &cobra.Command{

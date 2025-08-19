@@ -21,7 +21,13 @@ type stopOptions struct {
 }
 
 // NewStopCommand creates a new cobra.Command for `docker stop`
-func NewStopCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewStopCommand(dockerCLI command.Cli) *cobra.Command {
+	return newStopCommand(dockerCLI)
+}
+
+func newStopCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts stopOptions
 
 	cmd := &cobra.Command{
@@ -34,12 +40,12 @@ func NewStopCommand(dockerCli command.Cli) *cobra.Command {
 			}
 			opts.containers = args
 			opts.timeoutChanged = cmd.Flags().Changed("timeout") || cmd.Flags().Changed("time")
-			return runStop(cmd.Context(), dockerCli, &opts)
+			return runStop(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container stop, docker stop",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
 	}
 
 	flags := cmd.Flags()

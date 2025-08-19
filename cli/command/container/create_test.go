@@ -206,7 +206,7 @@ func TestCreateContainerValidateFlags(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewCreateCommand(test.NewFakeCli(&fakeClient{}))
+			cmd := newCreateCommand(test.NewFakeCli(&fakeClient{}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -260,7 +260,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 				},
 			}, test.EnableContentTrust)
 			fakeCLI.SetNotaryClient(tc.notaryFunc)
-			cmd := NewCreateCommand(fakeCLI)
+			cmd := newCreateCommand(fakeCLI)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -314,7 +314,7 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 					return container.CreateResponse{Warnings: tc.warnings}, nil
 				},
 			})
-			cmd := NewCreateCommand(fakeCLI)
+			cmd := newCreateCommand(fakeCLI)
 			cmd.SetOut(io.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
@@ -366,7 +366,7 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 			},
 		},
 	})
-	cmd := NewCreateCommand(fakeCLI)
+	cmd := newCreateCommand(fakeCLI)
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()

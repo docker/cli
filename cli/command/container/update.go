@@ -37,7 +37,13 @@ type updateOptions struct {
 }
 
 // NewUpdateCommand creates a new cobra.Command for `docker update`
-func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewUpdateCommand(dockerCLI command.Cli) *cobra.Command {
+	return newUpdateCommand(dockerCLI)
+}
+
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	var options updateOptions
 
 	cmd := &cobra.Command{
@@ -47,12 +53,12 @@ func NewUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.containers = args
 			options.nFlag = cmd.Flags().NFlag()
-			return runUpdate(cmd.Context(), dockerCli, &options)
+			return runUpdate(cmd.Context(), dockerCLI, &options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container update, docker update",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
 	}
 
 	flags := cmd.Flags()

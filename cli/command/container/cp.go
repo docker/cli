@@ -122,7 +122,13 @@ func copyProgress(ctx context.Context, dst io.Writer, header string, total *int6
 }
 
 // NewCopyCommand creates a new `docker cp` command
-func NewCopyCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewCopyCommand(dockerCLI command.Cli) *cobra.Command {
+	return newCopyCommand(dockerCLI)
+}
+
+func newCopyCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts copyOptions
 
 	cmd := &cobra.Command{
@@ -147,9 +153,9 @@ container source to stdout.`,
 			opts.destination = args[1]
 			if !cmd.Flag("quiet").Changed {
 				// User did not specify "quiet" flag; suppress output if no terminal is attached
-				opts.quiet = !dockerCli.Out().IsTerminal()
+				opts.quiet = !dockerCLI.Out().IsTerminal()
 			}
-			return runCopy(cmd.Context(), dockerCli, opts)
+			return runCopy(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container cp, docker cp",

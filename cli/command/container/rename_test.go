@@ -43,7 +43,7 @@ func TestRunRename(t *testing.T) {
 				},
 			})
 
-			cmd := NewRenameCommand(cli)
+			cmd := newRenameCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs([]string{tc.oldName, tc.newName})
@@ -66,7 +66,7 @@ func TestRunRenameClientError(t *testing.T) {
 		},
 	})
 
-	cmd := NewRenameCommand(cli)
+	cmd := newRenameCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"oldName", "newName"})

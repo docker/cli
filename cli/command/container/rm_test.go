@@ -41,7 +41,7 @@ func TestRemoveForce(t *testing.T) {
 				},
 				Version: "1.36",
 			})
-			cmd := NewRmCommand(cli)
+			cmd := newRmCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
