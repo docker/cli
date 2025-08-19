@@ -185,9 +185,9 @@ func TestRetrieveAuthTokenFromImage(t *testing.T) {
 				imageRef := path.Join(tc.prefix, remoteRef)
 				actual, err := command.RetrieveAuthTokenFromImage(&cfg, imageRef)
 				assert.NilError(t, err)
-				ac, err := registry.DecodeAuthConfig(actual)
+				expectedAuthCfg, err := registry.EncodeAuthConfig(tc.expectedAuthCfg)
 				assert.NilError(t, err)
-				assert.Check(t, is.DeepEqual(*ac, tc.expectedAuthCfg))
+				assert.Equal(t, actual, expectedAuthCfg)
 			}
 		})
 	}
