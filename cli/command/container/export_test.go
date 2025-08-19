@@ -19,7 +19,7 @@ func TestContainerExportOutputToFile(t *testing.T) {
 			return io.NopCloser(strings.NewReader("bar")), nil
 		},
 	})
-	cmd := NewExportCommand(cli)
+	cmd := newExportCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"-o", dir.Join("foo"), "container"})
 	assert.NilError(t, cmd.Execute())
@@ -37,7 +37,7 @@ func TestContainerExportOutputToIrregularFile(t *testing.T) {
 			return io.NopCloser(strings.NewReader("foo")), nil
 		},
 	})
-	cmd := NewExportCommand(cli)
+	cmd := newExportCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"-o", "/dev/random", "container"})

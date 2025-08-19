@@ -64,7 +64,13 @@ type StatsOptions struct {
 }
 
 // NewStatsCommand creates a new [cobra.Command] for "docker stats".
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
 func NewStatsCommand(dockerCLI command.Cli) *cobra.Command {
+	return newStatsCommand(dockerCLI)
+}
+
+func newStatsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := StatsOptions{}
 
 	cmd := &cobra.Command{

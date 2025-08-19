@@ -40,7 +40,7 @@ func TestRunValidateFlags(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewRunCommand(test.NewFakeCli(&fakeClient{}))
+			cmd := newRunCommand(test.NewFakeCli(&fakeClient{}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)
@@ -64,7 +64,7 @@ func TestRunLabel(t *testing.T) {
 		},
 		Version: "1.36",
 	})
-	cmd := NewRunCommand(fakeCLI)
+	cmd := newRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"--detach=true", "--label", "foo", "busybox"})
 	assert.NilError(t, cmd.Execute())
 }
@@ -111,7 +111,7 @@ func TestRunAttach(t *testing.T) {
 		fc.SetIn(streams.NewIn(tty))
 	})
 
-	cmd := NewRunCommand(fakeCLI)
+	cmd := newRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"-it", "busybox"})
 	cmd.SilenceUsage = true
 	cmdErrC := make(chan error, 1)
@@ -188,7 +188,7 @@ func TestRunAttachTermination(t *testing.T) {
 		fc.SetIn(streams.NewIn(tty))
 	})
 
-	cmd := NewRunCommand(fakeCLI)
+	cmd := newRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"-it", "busybox"})
 	cmd.SilenceUsage = true
 	cmdErrC := make(chan error, 1)
@@ -266,7 +266,7 @@ func TestRunPullTermination(t *testing.T) {
 		Version: "1.30",
 	})
 
-	cmd := NewRunCommand(fakeCLI)
+	cmd := newRunCommand(fakeCLI)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"--pull", "always", "foobar:latest"})
@@ -335,7 +335,7 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 				},
 			}, test.EnableContentTrust)
 			fakeCLI.SetNotaryClient(tc.notaryFunc)
-			cmd := NewRunCommand(fakeCLI)
+			cmd := newRunCommand(fakeCLI)
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)

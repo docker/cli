@@ -20,7 +20,7 @@ func TestContainerPrunePromptTermination(t *testing.T) {
 			return container.PruneReport{}, errors.New("fakeClient containerPruneFunc should not be called")
 		},
 	})
-	cmd := NewPruneCommand(cli)
+	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)

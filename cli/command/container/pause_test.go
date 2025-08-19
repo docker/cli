@@ -21,7 +21,7 @@ func TestRunPause(t *testing.T) {
 		},
 	)
 
-	cmd := NewPauseCommand(cli)
+	cmd := newPauseCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetArgs([]string{"container-id-1", "container-id-2"})
 
@@ -47,7 +47,7 @@ func TestRunPauseClientError(t *testing.T) {
 		},
 	)
 
-	cmd := NewPauseCommand(cli)
+	cmd := newPauseCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"container-id-1", "container-id-2"})

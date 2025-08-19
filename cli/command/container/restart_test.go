@@ -76,7 +76,7 @@ func TestRestart(t *testing.T) {
 				},
 				Version: "1.36",
 			})
-			cmd := NewRestartCommand(cli)
+			cmd := newRestartCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

@@ -24,7 +24,13 @@ type logsOptions struct {
 }
 
 // NewLogsCommand creates a new cobra.Command for `docker logs`
-func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewLogsCommand(dockerCLI command.Cli) *cobra.Command {
+	return newLogsCommand(dockerCLI)
+}
+
+func newLogsCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts logsOptions
 
 	cmd := &cobra.Command{
@@ -33,12 +39,12 @@ func NewLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
-			return runLogs(cmd.Context(), dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container logs, docker logs",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
 	}
 
 	flags := cmd.Flags()

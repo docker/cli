@@ -28,7 +28,13 @@ type runOptions struct {
 }
 
 // NewRunCommand create a new `docker run` command
-func NewRunCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewRunCommand(dockerCLI command.Cli) *cobra.Command {
+	return newRunCommand(dockerCLI)
+}
+
+func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 	var options runOptions
 	var copts *containerOptions
 
@@ -41,9 +47,9 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runRun(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
+			return runRun(cmd.Context(), dockerCLI, cmd.Flags(), &options, copts)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, 1),
+		ValidArgsFunction: completion.ImageNames(dockerCLI, 1),
 		Annotations: map[string]string{
 			"category-top": "1",
 			"aliases":      "docker container run, docker run",
@@ -68,11 +74,11 @@ func NewRunCommand(dockerCli command.Cli) *cobra.Command {
 
 	// TODO(thaJeztah): consider adding platform as "image create option" on containerOptions
 	addPlatformFlag(flags, &options.platform)
-	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image verification")
+	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image verification")
 	copts = addFlags(flags)
 
 	_ = cmd.RegisterFlagCompletionFunc("detach-keys", completeDetachKeys)
-	addCompletions(cmd, dockerCli)
+	addCompletions(cmd, dockerCLI)
 
 	flags.VisitAll(func(flag *pflag.Flag) {
 		// Set a default completion function if none was set. We don't look
