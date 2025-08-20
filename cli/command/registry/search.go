@@ -8,10 +8,15 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/internal/commands"
 	"github.com/docker/cli/opts"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newSearchCommand)
+}
 
 type searchOptions struct {
 	format  string

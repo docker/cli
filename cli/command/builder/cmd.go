@@ -6,7 +6,15 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/internal/commands"
 )
+
+func init() {
+	commands.Register(newBuilderCommand)
+	commands.Register(func(c command.Cli) *cobra.Command {
+		return newBakeStubCommand(c)
+	})
+}
 
 // NewBuilderCommand returns a cobra command for `builder` subcommands
 //

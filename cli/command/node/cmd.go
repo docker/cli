@@ -6,10 +6,15 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/commands"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newNodeCommand)
+}
 
 // NewNodeCommand returns a cobra command for `node` subcommands
 //

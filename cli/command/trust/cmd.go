@@ -3,8 +3,13 @@ package trust
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/commands"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newTrustCommand)
+}
 
 // NewTrustCommand returns a cobra command for `trust` subcommands
 //

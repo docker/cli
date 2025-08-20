@@ -3,8 +3,36 @@ package container
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/commands"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newRunCommand)
+	commands.Register(newExecCommand)
+	commands.Register(newPsCommand)
+	commands.Register(newContainerCommand)
+	commands.RegisterLegacy(newAttachCommand)
+	commands.RegisterLegacy(newCommitCommand)
+	commands.RegisterLegacy(newCopyCommand)
+	commands.RegisterLegacy(newCreateCommand)
+	commands.RegisterLegacy(newDiffCommand)
+	commands.RegisterLegacy(newExportCommand)
+	commands.RegisterLegacy(newKillCommand)
+	commands.RegisterLegacy(newLogsCommand)
+	commands.RegisterLegacy(newPauseCommand)
+	commands.RegisterLegacy(newPortCommand)
+	commands.RegisterLegacy(newRenameCommand)
+	commands.RegisterLegacy(newRestartCommand)
+	commands.RegisterLegacy(newRmCommand)
+	commands.RegisterLegacy(newStartCommand)
+	commands.RegisterLegacy(newStatsCommand)
+	commands.RegisterLegacy(newStopCommand)
+	commands.RegisterLegacy(newTopCommand)
+	commands.RegisterLegacy(newUnpauseCommand)
+	commands.RegisterLegacy(newUpdateCommand)
+	commands.RegisterLegacy(newWaitCommand)
+}
 
 // NewContainerCommand returns a cobra command for `container` subcommands
 //

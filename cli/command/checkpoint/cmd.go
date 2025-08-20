@@ -3,8 +3,13 @@ package checkpoint
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/commands"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newCheckpointCommand)
+}
 
 // NewCheckpointCommand returns the `checkpoint` subcommand (only in experimental)
 //

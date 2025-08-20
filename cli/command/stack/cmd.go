@@ -7,8 +7,13 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/stack/swarm"
+	"github.com/docker/cli/internal/commands"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newStackCommand)
+}
 
 // NewStackCommand returns a cobra command for `stack` subcommands
 //

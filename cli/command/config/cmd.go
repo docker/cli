@@ -4,9 +4,14 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/commands"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newConfigCommand)
+}
 
 // NewConfigCommand returns a cobra command for `config` subcommands
 //
