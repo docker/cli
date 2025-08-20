@@ -11,12 +11,19 @@ import (
 )
 
 // NewStackCommand returns a cobra command for `stack` subcommands
-func NewStackCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewStackCommand(dockerCLI command.Cli) *cobra.Command {
+	return newStackCommand(dockerCLI)
+}
+
+// newStackCommand returns a cobra command for `stack` subcommands
+func newStackCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stack [OPTIONS]",
 		Short: "Manage Swarm stacks",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{
 			"version": "1.25",
 			"swarm":   "manager",
@@ -25,18 +32,18 @@ func NewStackCommand(dockerCli command.Cli) *cobra.Command {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
 		if err := cmd.Root().PersistentPreRunE(c, args); err != nil {
-			fmt.Fprintln(dockerCli.Err(), err)
+			fmt.Fprintln(dockerCLI.Err(), err)
 			return
 		}
 		defaultHelpFunc(c, args)
 	})
 	cmd.AddCommand(
-		newDeployCommand(dockerCli),
-		newListCommand(dockerCli),
-		newPsCommand(dockerCli),
-		newRemoveCommand(dockerCli),
-		newServicesCommand(dockerCli),
-		newConfigCommand(dockerCli),
+		newDeployCommand(dockerCLI),
+		newListCommand(dockerCLI),
+		newPsCommand(dockerCLI),
+		newRemoveCommand(dockerCLI),
+		newServicesCommand(dockerCLI),
+		newConfigCommand(dockerCLI),
 	)
 	flags := cmd.PersistentFlags()
 	flags.String("orchestrator", "", "Orchestrator to use (swarm|all)")
