@@ -32,7 +32,11 @@ func SetupPlugin(t *testing.T, ctx context.Context) *fs.Dir {
 		},
 		Interface: types.PluginConfigInterface{
 			Socket: "basic.sock",
-			Types:  []types.PluginInterfaceType{{Capability: "docker.dummy/1.0"}},
+			Types: []types.PluginInterfaceType{{
+				Capability: "dummy",
+				Prefix:     "docker",
+				Version:    "1.0",
+			}},
 		},
 		Entrypoint: []string{"/basic"},
 	}
