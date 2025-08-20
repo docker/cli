@@ -120,7 +120,7 @@ func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest 
 }
 
 func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
-	repoName, err := reference.WithName(repoEndpoint.Name())
+	repoName, err := reference.WithName(repoEndpoint.repoName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse repo name from %s: %w", ref, err)
 	}
@@ -148,7 +148,7 @@ func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoi
 	httpTransport, err := getHTTPTransport(
 		c.authConfigResolver(ctx, repoEndpoint.indexInfo),
 		repoEndpoint.endpoint,
-		repoEndpoint.Name(),
+		repoEndpoint.repoName,
 		c.userAgent,
 		repoEndpoint.actions,
 	)
