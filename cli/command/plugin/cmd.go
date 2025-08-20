@@ -7,26 +7,33 @@ import (
 )
 
 // NewPluginCommand returns a cobra command for `plugin` subcommands
-func NewPluginCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewPluginCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPluginCommand(dockerCLI)
+}
+
+// newPluginCommand returns a cobra command for `plugin` subcommands
+func newPluginCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "plugin",
 		Short:       "Manage plugins",
 		Args:        cli.NoArgs,
-		RunE:        command.ShowHelp(dockerCli.Err()),
+		RunE:        command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{"version": "1.25"},
 	}
 
 	cmd.AddCommand(
-		newDisableCommand(dockerCli),
-		newEnableCommand(dockerCli),
-		newInspectCommand(dockerCli),
-		newInstallCommand(dockerCli),
-		newListCommand(dockerCli),
-		newRemoveCommand(dockerCli),
-		newSetCommand(dockerCli),
-		newPushCommand(dockerCli),
-		newCreateCommand(dockerCli),
-		newUpgradeCommand(dockerCli),
+		newDisableCommand(dockerCLI),
+		newEnableCommand(dockerCLI),
+		newInspectCommand(dockerCLI),
+		newInstallCommand(dockerCLI),
+		newListCommand(dockerCLI),
+		newRemoveCommand(dockerCLI),
+		newSetCommand(dockerCLI),
+		newPushCommand(dockerCLI),
+		newCreateCommand(dockerCLI),
+		newUpgradeCommand(dockerCLI),
 	)
 	return cmd
 }
