@@ -80,6 +80,7 @@ func AddCommands(cmd *cobra.Command, dockerCli command.Cli) {
 		node.NewNodeCommand(dockerCli),
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		secret.NewSecretCommand(dockerCli),
+		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		service.NewServiceCommand(dockerCli),
 		stack.NewStackCommand(dockerCli),
 		swarm.NewSwarmCommand(dockerCli),
