@@ -10,7 +10,14 @@ import (
 )
 
 // NewManifestCommand returns a cobra command for `manifest` subcommands
-func NewManifestCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewManifestCommand(dockerCLI command.Cli) *cobra.Command {
+	return newManifestCommand(dockerCLI)
+}
+
+// newManifestCommand returns a cobra command for `manifest` subcommands
+func newManifestCommand(dockerCLI command.Cli) *cobra.Command {
 	// use dockerCli as command.Cli
 	cmd := &cobra.Command{
 		Use:   "manifest COMMAND",
@@ -18,16 +25,16 @@ func NewManifestCommand(dockerCli command.Cli) *cobra.Command {
 		Long:  manifestDescription,
 		Args:  cli.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			_, _ = fmt.Fprint(dockerCli.Err(), "\n"+cmd.UsageString())
+			_, _ = fmt.Fprint(dockerCLI.Err(), "\n"+cmd.UsageString())
 		},
 		Annotations: map[string]string{"experimentalCLI": ""},
 	}
 	cmd.AddCommand(
-		newCreateListCommand(dockerCli),
-		newInspectCommand(dockerCli),
-		newAnnotateCommand(dockerCli),
-		newPushListCommand(dockerCli),
-		newRmManifestListCommand(dockerCli),
+		newCreateListCommand(dockerCLI),
+		newInspectCommand(dockerCLI),
+		newAnnotateCommand(dockerCLI),
+		newPushListCommand(dockerCLI),
+		newRmManifestListCommand(dockerCLI),
 	)
 	return cmd
 }
