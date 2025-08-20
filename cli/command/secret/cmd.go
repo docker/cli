@@ -9,22 +9,28 @@ import (
 )
 
 // NewSecretCommand returns a cobra command for `secret` subcommands
-func NewSecretCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewSecretCommand(dockerCLI command.Cli) *cobra.Command {
+	return newSecretCommand(dockerCLI)
+}
+
+func newSecretCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "secret",
 		Short: "Manage Swarm secrets",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{
 			"version": "1.25",
 			"swarm":   "manager",
 		},
 	}
 	cmd.AddCommand(
-		newSecretListCommand(dockerCli),
-		newSecretCreateCommand(dockerCli),
-		newSecretInspectCommand(dockerCli),
-		newSecretRemoveCommand(dockerCli),
+		newSecretListCommand(dockerCLI),
+		newSecretCreateCommand(dockerCLI),
+		newSecretInspectCommand(dockerCLI),
+		newSecretRemoveCommand(dockerCLI),
 	)
 	return cmd
 }
