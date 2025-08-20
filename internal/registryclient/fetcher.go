@@ -221,7 +221,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		return err
 	}
 
-	repoName := reference.TrimNamed(namedRef)
+	repoName := reference.Path(reference.TrimNamed(namedRef))
 	indexInfo := registry.NewIndexInfo(namedRef)
 
 	confirmedTLSRegistries := make(map[string]bool)

@@ -16,15 +16,10 @@ import (
 )
 
 type repositoryEndpoint struct {
-	repoName  reference.Named
+	repoName  string
 	indexInfo *registrytypes.IndexInfo
 	endpoint  registry.APIEndpoint
 	actions   []string
-}
-
-// Name returns the repository name
-func (r repositoryEndpoint) Name() string {
-	return reference.Path(r.repoName)
 }
 
 // BaseURL returns the endpoint url
@@ -33,9 +28,7 @@ func (r repositoryEndpoint) BaseURL() string {
 }
 
 func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositoryEndpoint, error) {
-	repoName := reference.TrimNamed(ref)
 	indexInfo := registry.NewIndexInfo(ref)
-
 	endpoint, err := getDefaultEndpoint(ref, !indexInfo.Secure)
 	if err != nil {
 		return repositoryEndpoint{}, err
@@ -44,7 +37,7 @@ func newDefaultRepositoryEndpoint(ref reference.Named, insecure bool) (repositor
 		endpoint.TLSConfig.InsecureSkipVerify = true
 	}
 	return repositoryEndpoint{
-		repoName:  repoName,
+		repoName:  reference.Path(reference.TrimNamed(ref)),
 		indexInfo: indexInfo,
 		endpoint:  endpoint,
 	}, nil
