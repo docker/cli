@@ -18,7 +18,14 @@ type pruneOptions struct {
 }
 
 // NewPruneCommand returns a new cobra prune command for networks
-func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewPruneCommand(dockerCLI command.Cli) *cobra.Command {
+	return newPruneCommand(dockerCLI)
+}
+
+// newPruneCommand returns a new cobra prune command for networks
+func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -26,12 +33,12 @@ func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove all unused networks",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			output, err := runPrune(cmd.Context(), dockerCli, options)
+			output, err := runPrune(cmd.Context(), dockerCLI, options)
 			if err != nil {
 				return err
 			}
 			if output != "" {
-				_, _ = fmt.Fprintln(dockerCli.Out(), output)
+				_, _ = fmt.Fprintln(dockerCLI.Out(), output)
 			}
 			return nil
 		},
