@@ -7,22 +7,29 @@ import (
 )
 
 // NewNetworkCommand returns a cobra command for `network` subcommands
-func NewNetworkCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewNetworkCommand(dockerCLI command.Cli) *cobra.Command {
+	return newNetworkCommand(dockerCLI)
+}
+
+// newNetworkCommand returns a cobra command for `network` subcommands
+func newNetworkCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "network",
 		Short:       "Manage networks",
 		Args:        cli.NoArgs,
-		RunE:        command.ShowHelp(dockerCli.Err()),
+		RunE:        command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{"version": "1.21"},
 	}
 	cmd.AddCommand(
-		newConnectCommand(dockerCli),
-		newCreateCommand(dockerCli),
-		newDisconnectCommand(dockerCli),
-		newInspectCommand(dockerCli),
-		newListCommand(dockerCli),
-		newRemoveCommand(dockerCli),
-		NewPruneCommand(dockerCli),
+		newConnectCommand(dockerCLI),
+		newCreateCommand(dockerCLI),
+		newDisconnectCommand(dockerCLI),
+		newInspectCommand(dockerCLI),
+		newListCommand(dockerCLI),
+		newRemoveCommand(dockerCLI),
+		newPruneCommand(dockerCLI),
 	)
 	return cmd
 }
