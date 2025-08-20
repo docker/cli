@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
 )
 
 const ErrPromptTerminated = prompt.ErrTerminated
@@ -92,12 +91,6 @@ func PruneFilters(dockerCLI config.Provider, pruneFilters filters.Args) filters.
 	}
 
 	return pruneFilters
-}
-
-// AddPlatformFlag adds `platform` to a set of flags for API version 1.32 and later.
-func AddPlatformFlag(flags *pflag.FlagSet, target *string) {
-	flags.StringVar(target, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
-	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
 }
 
 // ValidateOutputPath validates the output paths of the "docker cp" command.

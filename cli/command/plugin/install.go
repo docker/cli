@@ -31,7 +31,7 @@ type pluginOptions struct {
 
 func loadPullFlags(dockerCli command.Cli, opts *pluginOptions, flags *pflag.FlagSet) {
 	flags.BoolVar(&opts.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
-	command.AddTrustVerificationFlags(flags, &opts.untrusted, dockerCli.ContentTrustEnabled())
+	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image verification")
 }
 
 func newInstallCommand(dockerCli command.Cli) *cobra.Command {
