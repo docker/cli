@@ -53,7 +53,7 @@ func TestVolumePruneErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewPruneCommand(
+			cmd := newPruneCommand(
 				test.NewFakeCli(&fakeClient{
 					volumePruneFunc: tc.volumePruneFunc,
 				}),
@@ -105,7 +105,7 @@ func TestVolumePruneSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{volumePruneFunc: tc.volumePruneFunc})
-			cmd := NewPruneCommand(cli)
+			cmd := newPruneCommand(cli)
 			if tc.input != "" {
 				cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(tc.input))))
 			}
@@ -135,7 +135,7 @@ func TestVolumePruneForce(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{
 			volumePruneFunc: tc.volumePruneFunc,
 		})
-		cmd := NewPruneCommand(cli)
+		cmd := newPruneCommand(cli)
 		cmd.Flags().Set("force", "true")
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("volume-prune.%s.golden", tc.name))
@@ -152,7 +152,7 @@ func TestVolumePrunePromptYes(t *testing.T) {
 		})
 
 		cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
-		cmd := NewPruneCommand(cli)
+		cmd := newPruneCommand(cli)
 		cmd.SetArgs([]string{})
 		assert.NilError(t, cmd.Execute())
 		golden.Assert(t, cli.OutBuffer().String(), "volume-prune-yes.golden")
@@ -170,7 +170,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 			})
 
 			cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader(input))))
-			cmd := NewPruneCommand(cli)
+			cmd := newPruneCommand(cli)
 			cmd.SetArgs([]string{})
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
@@ -199,7 +199,7 @@ func TestVolumePrunePromptTerminate(t *testing.T) {
 		},
 	})
 
-	cmd := NewPruneCommand(cli)
+	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
