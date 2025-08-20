@@ -7,19 +7,26 @@ import (
 )
 
 // NewSystemCommand returns a cobra command for `system` subcommands
-func NewSystemCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewSystemCommand(dockerCLI command.Cli) *cobra.Command {
+	return newSystemCommand(dockerCLI)
+}
+
+// newSystemCommand returns a cobra command for `system` subcommands
+func newSystemCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "system",
 		Short: "Manage Docker",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 	}
 	cmd.AddCommand(
-		NewEventsCommand(dockerCli),
-		NewInfoCommand(dockerCli),
-		newDiskUsageCommand(dockerCli),
-		newPruneCommand(dockerCli),
-		newDialStdioCommand(dockerCli),
+		newEventsCommand(dockerCLI),
+		newInfoCommand(dockerCLI),
+		newDiskUsageCommand(dockerCLI),
+		newPruneCommand(dockerCLI),
+		newDialStdioCommand(dockerCLI),
 	)
 
 	return cmd

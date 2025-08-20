@@ -52,7 +52,13 @@ type createOptions struct {
 }
 
 // NewCreateCommand creates a new cobra.Command for `docker create`
-func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewCreateCommand(dockerCLI command.Cli) *cobra.Command {
+	return newCreateCommand(dockerCLI)
+}
+
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	var options createOptions
 	var copts *containerOptions
 
@@ -65,12 +71,12 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				copts.Args = args[1:]
 			}
-			return runCreate(cmd.Context(), dockerCli, cmd.Flags(), &options, copts)
+			return runCreate(cmd.Context(), dockerCLI, cmd.Flags(), &options, copts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container create, docker create",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
+		ValidArgsFunction: completion.ImageNames(dockerCLI, -1),
 	}
 
 	flags := cmd.Flags()
@@ -90,10 +96,10 @@ func NewCreateCommand(dockerCli command.Cli) *cobra.Command {
 	addPlatformFlag(flags, &options.platform)
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
-	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCli.ContentTrustEnabled(), "Skip image verification")
+	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image verification")
 	copts = addFlags(flags)
 
-	addCompletions(cmd, dockerCli)
+	addCompletions(cmd, dockerCLI)
 
 	flags.VisitAll(func(flag *pflag.Flag) {
 		// Set a default completion function if none was set. We don't look

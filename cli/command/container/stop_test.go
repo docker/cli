@@ -77,7 +77,7 @@ func TestStop(t *testing.T) {
 				},
 				Version: "1.36",
 			})
-			cmd := NewStopCommand(cli)
+			cmd := newStopCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

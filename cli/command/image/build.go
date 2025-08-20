@@ -87,7 +87,14 @@ func newBuildOptions() buildOptions {
 }
 
 // NewBuildCommand creates a new `docker build` command
-func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewBuildCommand(dockerCLI command.Cli) *cobra.Command {
+	return newBuildCommand(dockerCLI)
+}
+
+// newBuildCommand creates a new `docker build` command
+func newBuildCommand(dockerCli command.Cli) *cobra.Command {
 	options := newBuildOptions()
 
 	cmd := &cobra.Command{

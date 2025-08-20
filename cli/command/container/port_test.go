@@ -66,7 +66,7 @@ func TestNewPortCommandOutput(t *testing.T) {
 					return ci, nil
 				},
 			})
-			cmd := NewPortCommand(cli)
+			cmd := newPortCommand(cli)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs([]string{"some_container", tc.port})
 			err := cmd.Execute()

@@ -60,7 +60,14 @@ type inspectOptions struct {
 }
 
 // NewInspectCommand creates a new cobra.Command for `docker inspect`
-func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewInspectCommand(dockerCLI command.Cli) *cobra.Command {
+	return newInspectCommand(dockerCLI)
+}
+
+// newInspectCommand creates a new cobra.Command for `docker inspect`
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -72,7 +79,7 @@ func NewInspectCommand(dockerCli command.Cli) *cobra.Command {
 			if cmd.Flags().Changed("type") && opts.objectType == "" {
 				return fmt.Errorf(`type is empty: must be one of "%s"`, strings.Join(allTypes, `", "`))
 			}
-			return runInspect(cmd.Context(), dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
 		// TODO(thaJeztah): should we consider adding completion for common object-types? (images, containers?)
 		ValidArgsFunction: completion.NoComplete,

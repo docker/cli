@@ -8,26 +8,33 @@ import (
 )
 
 // NewSwarmCommand returns a cobra command for `swarm` subcommands
-func NewSwarmCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewSwarmCommand(dockerCLI command.Cli) *cobra.Command {
+	return newSwarmCommand(dockerCLI)
+}
+
+// newSwarmCommand returns a cobra command for `swarm` subcommands
+func newSwarmCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "swarm",
 		Short: "Manage Swarm",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "", // swarm command itself does not require swarm to be enabled (so swarm init and join is always available on API 1.24 and up)
 		},
 	}
 	cmd.AddCommand(
-		newInitCommand(dockerCli),
-		newJoinCommand(dockerCli),
-		newJoinTokenCommand(dockerCli),
-		newUnlockKeyCommand(dockerCli),
-		newUpdateCommand(dockerCli),
-		newLeaveCommand(dockerCli),
-		newUnlockCommand(dockerCli),
-		newCACommand(dockerCli),
+		newInitCommand(dockerCLI),
+		newJoinCommand(dockerCLI),
+		newJoinTokenCommand(dockerCLI),
+		newUnlockKeyCommand(dockerCLI),
+		newUpdateCommand(dockerCLI),
+		newLeaveCommand(dockerCLI),
+		newUnlockCommand(dockerCLI),
+		newCACommand(dockerCLI),
 	)
 	return cmd
 }

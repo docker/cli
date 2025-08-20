@@ -7,7 +7,14 @@ import (
 )
 
 // NewImageCommand returns a cobra command for `image` subcommands
-func NewImageCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewImageCommand(dockerCLI command.Cli) *cobra.Command {
+	return newImageCommand(dockerCLI)
+}
+
+// newImageCommand returns a cobra command for `image` subcommands
+func newImageCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "image",
 		Short: "Manage images",
@@ -15,18 +22,18 @@ func NewImageCommand(dockerCli command.Cli) *cobra.Command {
 		RunE:  command.ShowHelp(dockerCli.Err()),
 	}
 	cmd.AddCommand(
-		NewBuildCommand(dockerCli),
-		NewHistoryCommand(dockerCli),
-		NewImportCommand(dockerCli),
-		NewLoadCommand(dockerCli),
-		NewPullCommand(dockerCli),
-		NewPushCommand(dockerCli),
-		NewSaveCommand(dockerCli),
-		NewTagCommand(dockerCli),
+		newBuildCommand(dockerCli),
+		newHistoryCommand(dockerCli),
+		newImportCommand(dockerCli),
+		newLoadCommand(dockerCli),
+		newPullCommand(dockerCli),
+		newPushCommand(dockerCli),
+		newSaveCommand(dockerCli),
+		newTagCommand(dockerCli),
 		newListCommand(dockerCli),
-		newRemoveCommand(dockerCli),
+		newImageRemoveCommand(dockerCli),
 		newInspectCommand(dockerCli),
-		NewPruneCommand(dockerCli),
+		newPruneCommand(dockerCli),
 	)
 	return cmd
 }

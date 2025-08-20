@@ -23,7 +23,13 @@ type commitOptions struct {
 }
 
 // NewCommitCommand creates a new cobra.Command for `docker commit`
-func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewCommitCommand(dockerCLI command.Cli) *cobra.Command {
+	return newCommitCommand(dockerCLI)
+}
+
+func newCommitCommand(dockerCLI command.Cli) *cobra.Command {
 	var options commitOptions
 
 	cmd := &cobra.Command{
@@ -35,12 +41,12 @@ func NewCommitCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.reference = args[1]
 			}
-			return runCommit(cmd.Context(), dockerCli, &options)
+			return runCommit(cmd.Context(), dockerCLI, &options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container commit, docker commit",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
 	}
 
 	flags := cmd.Flags()

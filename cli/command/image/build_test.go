@@ -123,7 +123,7 @@ COPY data /data
 // to support testing (ex: docker/cli#294)
 func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
-	cmd := NewBuildCommand(test.NewFakeCli(&fakeClient{}))
+	cmd := newBuildCommand(test.NewFakeCli(&fakeClient{}))
 	// Clone a small repo that exists so git doesn't prompt for credentials
 	cmd.SetArgs([]string{"github.com/docker/for-win"})
 	cmd.SetOut(io.Discard)
@@ -146,7 +146,7 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	assert.NilError(t, err)
 
 	client := test.NewFakeCli(&fakeClient{})
-	cmd := NewBuildCommand(client)
+	cmd := newBuildCommand(client)
 	cmd.SetArgs([]string{buildDir})
 	cmd.SetOut(io.Discard)
 	err = cmd.Execute()

@@ -24,7 +24,7 @@ func (n notFound) Error() string {
 func (notFound) NotFound() {}
 
 func TestNewRemoveCommandAlias(t *testing.T) {
-	cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{}))
+	cmd := newImageRemoveCommand(test.NewFakeCli(&fakeClient{}))
 	assert.Check(t, cmd.HasAlias("rmi"))
 	assert.Check(t, cmd.HasAlias("remove"))
 	assert.Check(t, !cmd.HasAlias("other"))
@@ -63,7 +63,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewRemoveCommand(test.NewFakeCli(&fakeClient{
+			cmd := newRemoveCommand(test.NewFakeCli(&fakeClient{
 				imageRemoveFunc: tc.imageRemoveFunc,
 			}))
 			cmd.SetOut(io.Discard)
@@ -122,7 +122,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageRemoveFunc: tc.imageRemoveFunc})
-			cmd := NewRemoveCommand(cli)
+			cmd := newRemoveCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

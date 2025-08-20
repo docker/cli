@@ -34,7 +34,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}))
+		cmd := newImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}))
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
 		cmd.SetArgs(tc.args)
@@ -43,7 +43,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 }
 
 func TestNewImportCommandInvalidFile(t *testing.T) {
-	cmd := NewImportCommand(test.NewFakeCli(&fakeClient{}))
+	cmd := newImportCommand(test.NewFakeCli(&fakeClient{}))
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"testdata/import-command-success.unexistent-file"})
@@ -99,7 +99,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}))
+			cmd := newImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			cmd.SetArgs(tc.args)

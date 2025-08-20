@@ -19,7 +19,13 @@ type topOptions struct {
 }
 
 // NewTopCommand creates a new cobra.Command for `docker top`
-func NewTopCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewTopCommand(dockerCLI command.Cli) *cobra.Command {
+	return newTopCommand(dockerCLI)
+}
+
+func newTopCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts topOptions
 
 	cmd := &cobra.Command{
@@ -29,12 +35,12 @@ func NewTopCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
 			opts.args = args[1:]
-			return runTop(cmd.Context(), dockerCli, &opts)
+			return runTop(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container top, docker top",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
 	}
 
 	flags := cmd.Flags()

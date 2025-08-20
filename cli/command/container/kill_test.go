@@ -24,7 +24,7 @@ func TestRunKill(t *testing.T) {
 		},
 	})
 
-	cmd := NewKillCommand(cli)
+	cmd := newKillCommand(cli)
 	cmd.SetOut(io.Discard)
 
 	cmd.SetArgs([]string{
@@ -56,7 +56,7 @@ func TestRunKillClientError(t *testing.T) {
 		},
 	})
 
-	cmd := NewKillCommand(cli)
+	cmd := newKillCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 
