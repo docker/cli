@@ -22,7 +22,14 @@ type searchOptions struct {
 }
 
 // NewSearchCommand creates a new `docker search` command
-func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
+//
+// Deprecated: Do not import commands directly. They will be removed in a future release.
+func NewSearchCommand(dockerCLI command.Cli) *cobra.Command {
+	return newSearchCommand(dockerCLI)
+}
+
+// newSearchCommand creates a new `docker search` command
+func newSearchCommand(dockerCLI command.Cli) *cobra.Command {
 	options := searchOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -31,7 +38,7 @@ func NewSearchCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.term = args[0]
-			return runSearch(cmd.Context(), dockerCli, options)
+			return runSearch(cmd.Context(), dockerCLI, options)
 		},
 		Annotations: map[string]string{
 			"category-top": "10",
