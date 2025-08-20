@@ -287,10 +287,11 @@ func decodeAuth(authStr string) (string, string, error) {
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
 func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
-	store := credentials.NewFileStore(configFile)
-
-	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
+	var store credentials.Store
+	if helper := configFile.CredentialHelpers[registryHostname]; helper != "" {
 		store = newNativeStore(configFile, helper)
+	} else {
+		store = credentials.NewFileStore(configFile)
 	}
 
 	envConfig := os.Getenv(DockerEnvConfigKey)
@@ -355,18 +356,6 @@ var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentia
 // GetAuthConfig for a repository from the credential store
 func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
 	return configFile.GetCredentialsStore(registryHostname).Get(registryHostname)
-}
-
-// getConfiguredCredentialStore returns the credential helper configured for the
-// given registry, the default credsStore, or the empty string if neither are
-// configured.
-func getConfiguredCredentialStore(c *ConfigFile, registryHostname string) string {
-	if c.CredentialHelpers != nil && registryHostname != "" {
-		if helper, exists := c.CredentialHelpers[registryHostname]; exists {
-			return helper
-		}
-	}
-	return c.CredentialsStore
 }
 
 // GetAllCredentials returns all of the credentials stored in all of the
