@@ -21,14 +21,7 @@ type saveOptions struct {
 	platform []string
 }
 
-// NewSaveCommand creates a new `docker save` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewSaveCommand(dockerCLI command.Cli) *cobra.Command {
-	return newSaveCommand(dockerCLI)
-}
-
-// newSaveCommand creates a new `docker save` command
+// newSaveCommand creates a new "docker image save" command.
 func newSaveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts saveOptions
 

@@ -59,13 +59,6 @@ func (i *dockerInfo) clientPlatform() string {
 	return ""
 }
 
-// NewInfoCommand creates a new cobra.Command for `docker info`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewInfoCommand(dockerCLI command.Cli) *cobra.Command {
-	return newInfoCommand(dockerCLI)
-}
-
 // newInfoCommand creates a new cobra.Command for `docker info`
 func newInfoCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts infoOptions

@@ -11,13 +11,6 @@ func init() {
 	commands.Register(newVolumeCommand)
 }
 
-// NewVolumeCommand returns a cobra command for `volume` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewVolumeCommand(dockerCLI command.Cli) *cobra.Command {
-	return newVolumeCommand(dockerCLI)
-}
-
 // newVolumeCommand returns a cobra command for `volume` subcommands
 func newVolumeCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

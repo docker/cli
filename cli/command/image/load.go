@@ -22,14 +22,7 @@ type loadOptions struct {
 	platform []string
 }
 
-// NewLoadCommand creates a new `docker load` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewLoadCommand(dockerCLI command.Cli) *cobra.Command {
-	return newLoadCommand(dockerCLI)
-}
-
-// newLoadCommand creates a new `docker load` command
+// newLoadCommand creates a new "docker image load" command.
 func newLoadCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts loadOptions
 

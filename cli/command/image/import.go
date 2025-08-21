@@ -22,14 +22,7 @@ type importOptions struct {
 	platform  string
 }
 
-// NewImportCommand creates a new `docker import` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewImportCommand(dockerCLI command.Cli) *cobra.Command {
-	return newImportCommand(dockerCLI)
-}
-
-// newImportCommand creates a new `docker import` command
+// newImportCommand creates a new "docker image import" command.
 func newImportCommand(dockerCLI command.Cli) *cobra.Command {
 	var options importOptions
 

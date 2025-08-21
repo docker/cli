@@ -20,14 +20,7 @@ type removeOptions struct {
 	platforms []string
 }
 
-// NewRemoveCommand creates a new `docker remove` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewRemoveCommand(dockerCLI command.Cli) *cobra.Command {
-	return newRemoveCommand(dockerCLI)
-}
-
-// newRemoveCommand creates a new `docker remove` command
+// newRemoveCommand creates a new "docker image remove" command
 func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var options removeOptions
 

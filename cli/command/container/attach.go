@@ -40,13 +40,7 @@ func inspectContainerAndCheckState(ctx context.Context, apiClient client.APIClie
 	return &c, nil
 }
 
-// NewAttachCommand creates a new cobra.Command for `docker attach`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewAttachCommand(dockerCLI command.Cli) *cobra.Command {
-	return newAttachCommand(dockerCLI)
-}
-
+// newAttachCommand creates a new cobra.Command for `docker attach`
 func newAttachCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts AttachOptions
 

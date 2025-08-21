@@ -17,13 +17,7 @@ type renameOptions struct {
 	newName string
 }
 
-// NewRenameCommand creates a new cobra.Command for `docker rename`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewRenameCommand(dockerCLI command.Cli) *cobra.Command {
-	return newRenameCommand(dockerCLI)
-}
-
+// newRenameCommand creates a new cobra.Command for "docker container rename".
 func newRenameCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts renameOptions
 

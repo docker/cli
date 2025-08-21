@@ -28,13 +28,7 @@ type psOptions struct {
 	filter      opts.FilterOpt
 }
 
-// NewPsCommand creates a new cobra.Command for `docker ps`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPsCommand(dockerCLI command.Cli) *cobra.Command {
-	return newPsCommand(dockerCLI)
-}
-
+// newPsCommand creates a new cobra.Command for "docker container ps"
 func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := psOptions{filter: opts.NewFilterOpt()}
 

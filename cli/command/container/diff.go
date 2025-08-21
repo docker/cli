@@ -10,13 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewDiffCommand creates a new cobra.Command for `docker diff`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewDiffCommand(dockerCLI command.Cli) *cobra.Command {
-	return newDiffCommand(dockerCLI)
-}
-
+// newDiffCommand creates a new cobra.Command for `docker diff`
 func newDiffCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:   "diff CONTAINER",

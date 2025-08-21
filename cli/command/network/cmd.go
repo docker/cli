@@ -11,13 +11,6 @@ func init() {
 	commands.Register(newNetworkCommand)
 }
 
-// NewNetworkCommand returns a cobra command for `network` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewNetworkCommand(dockerCLI command.Cli) *cobra.Command {
-	return newNetworkCommand(dockerCLI)
-}
-
 // newNetworkCommand returns a cobra command for `network` subcommands
 func newNetworkCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

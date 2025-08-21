@@ -22,13 +22,7 @@ type rmOptions struct {
 	containers []string
 }
 
-// NewRmCommand creates a new cobra.Command for `docker rm`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewRmCommand(dockerCLI command.Cli) *cobra.Command {
-	return newRmCommand(dockerCLI)
-}
-
+// newRmCommand creates a new cobra.Command for "docker container rm".
 func newRmCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts rmOptions
 

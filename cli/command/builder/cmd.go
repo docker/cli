@@ -16,13 +16,7 @@ func init() {
 	})
 }
 
-// NewBuilderCommand returns a cobra command for `builder` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewBuilderCommand(dockerCLI command.Cli) *cobra.Command {
-	return newBuilderCommand(dockerCLI)
-}
-
+// newBuilderCommand returns a cobra command for `builder` subcommands
 func newBuilderCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "builder",
@@ -40,16 +34,10 @@ func newBuilderCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-// NewBakeStubCommand returns a cobra command "stub" for the "bake" subcommand.
+// newBakeStubCommand returns a cobra command "stub" for the "bake" subcommand.
 // This command is a placeholder / stub that is dynamically replaced by an
 // alias for "docker buildx bake" if BuildKit is enabled (and the buildx plugin
 // installed).
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewBakeStubCommand(dockerCLI command.Streams) *cobra.Command {
-	return newBakeStubCommand(dockerCLI)
-}
-
 func newBakeStubCommand(dockerCLI command.Streams) *cobra.Command {
 	return &cobra.Command{
 		Use:   "bake [OPTIONS] [TARGET...]",

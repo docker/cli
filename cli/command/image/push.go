@@ -35,13 +35,6 @@ type pushOptions struct {
 	platform  string
 }
 
-// NewPushCommand creates a new `docker push` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPushCommand(dockerCLI command.Cli) *cobra.Command {
-	return newPushCommand(dockerCLI)
-}
-
 // newPushCommand creates a new `docker push` command
 func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pushOptions

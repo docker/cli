@@ -59,13 +59,6 @@ type inspectOptions struct {
 	ids        []string
 }
 
-// NewInspectCommand creates a new cobra.Command for `docker inspect`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewInspectCommand(dockerCLI command.Cli) *cobra.Command {
-	return newInspectCommand(dockerCLI)
-}
-
 // newInspectCommand creates a new cobra.Command for `docker inspect`
 func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions

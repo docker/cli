@@ -13,13 +13,7 @@ func init() {
 	commands.Register(newSecretCommand)
 }
 
-// NewSecretCommand returns a cobra command for `secret` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewSecretCommand(dockerCLI command.Cli) *cobra.Command {
-	return newSecretCommand(dockerCLI)
-}
-
+// newSecretCommand returns a cobra command for `secret` subcommands.
 func newSecretCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "secret",

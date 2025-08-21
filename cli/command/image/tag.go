@@ -14,14 +14,7 @@ type tagOptions struct {
 	name  string
 }
 
-// NewTagCommand creates a new `docker tag` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewTagCommand(dockerCLI command.Cli) *cobra.Command {
-	return newTagCommand(dockerCLI)
-}
-
-// newTagCommand creates a new `docker tag` command
+// newTagCommand creates a new "docker image tag" command.
 func newTagCommand(dockerCli command.Cli) *cobra.Command {
 	var opts tagOptions
 

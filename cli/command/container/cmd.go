@@ -34,13 +34,7 @@ func init() {
 	commands.RegisterLegacy(newWaitCommand)
 }
 
-// NewContainerCommand returns a cobra command for `container` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewContainerCommand(dockerCLI command.Cli) *cobra.Command {
-	return newContainerCommand(dockerCLI)
-}
-
+// newContainerCommand returns a cobra command for `container` subcommands
 func newContainerCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "container",

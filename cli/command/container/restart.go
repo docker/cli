@@ -20,13 +20,7 @@ type restartOptions struct {
 	containers []string
 }
 
-// NewRestartCommand creates a new cobra.Command for `docker restart`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewRestartCommand(dockerCLI command.Cli) *cobra.Command {
-	return newRestartCommand(dockerCLI)
-}
-
+// newRestartCommand creates a new cobra.Command for "docker container restart".
 func newRestartCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts restartOptions
 

@@ -40,7 +40,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cmd := NewPruneCommand(test.NewFakeCli(&fakeClient{
+			cmd := newPruneCommand(test.NewFakeCli(&fakeClient{
 				imagesPruneFunc: tc.imagesPruneFunc,
 			}))
 			cmd.SetOut(io.Discard)
@@ -102,7 +102,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			// when prompted, answer "Y" to confirm the prune.
 			// will not be prompted if --force is used.
 			cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader("Y\n"))))
-			cmd := NewPruneCommand(cli)
+			cmd := newPruneCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetArgs(tc.args)
 			err := cmd.Execute()
@@ -121,7 +121,7 @@ func TestPrunePromptTermination(t *testing.T) {
 			return image.PruneReport{}, errors.New("fakeClient imagesPruneFunc should not be called")
 		},
 	})
-	cmd := NewPruneCommand(cli)
+	cmd := newPruneCommand(cli)
 	cmd.SetArgs([]string{})
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)

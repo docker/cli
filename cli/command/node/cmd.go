@@ -16,13 +16,6 @@ func init() {
 	commands.Register(newNodeCommand)
 }
 
-// NewNodeCommand returns a cobra command for `node` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewNodeCommand(dockerCLI command.Cli) *cobra.Command {
-	return newNodeCommand(dockerCLI)
-}
-
 // newNodeCommand returns a cobra command for `node` subcommands
 func newNodeCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

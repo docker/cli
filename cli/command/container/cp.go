@@ -121,13 +121,7 @@ func copyProgress(ctx context.Context, dst io.Writer, header string, total *int6
 	return restore, done
 }
 
-// NewCopyCommand creates a new `docker cp` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewCopyCommand(dockerCLI command.Cli) *cobra.Command {
-	return newCopyCommand(dockerCLI)
-}
-
+// newCopyCommand creates a new `docker cp` command
 func newCopyCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts copyOptions
 

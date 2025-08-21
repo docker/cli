@@ -24,14 +24,7 @@ type historyOptions struct {
 	format  string
 }
 
-// NewHistoryCommand creates a new `docker history` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewHistoryCommand(dockerCLI command.Cli) *cobra.Command {
-	return newHistoryCommand(dockerCLI)
-}
-
-// newHistoryCommand creates a new `docker history` command
+// newHistoryCommand creates a new "docker image history" command.
 func newHistoryCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts historyOptions
 

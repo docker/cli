@@ -11,13 +11,7 @@ func init() {
 	commands.Register(newCheckpointCommand)
 }
 
-// NewCheckpointCommand returns the `checkpoint` subcommand (only in experimental)
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewCheckpointCommand(dockerCLI command.Cli) *cobra.Command {
-	return newCheckpointCommand(dockerCLI)
-}
-
+// newCheckpointCommand returns the `checkpoint` subcommand (only in experimental)
 func newCheckpointCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkpoint",

@@ -11,13 +11,6 @@ func init() {
 	commands.Register(newServiceCommand)
 }
 
-// NewServiceCommand returns a cobra command for `service` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewServiceCommand(dockerCLI command.Cli) *cobra.Command {
-	return newServiceCommand(dockerCLI)
-}
-
 // newServiceCommand returns a cobra command for `service` subcommands
 func newServiceCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

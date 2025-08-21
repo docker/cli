@@ -17,13 +17,7 @@ type exportOptions struct {
 	output    string
 }
 
-// NewExportCommand creates a new `docker export` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewExportCommand(dockerCLI command.Cli) *cobra.Command {
-	return newExportCommand(dockerCLI)
-}
-
+// newExportCommand creates a new "docker container export" command.
 func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts exportOptions
 
