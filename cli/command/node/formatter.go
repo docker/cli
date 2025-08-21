@@ -114,27 +114,31 @@ func FormatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info)
 
 // formatWrite writes the context.
 func formatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	nodeCtx := &nodeContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":            nodeIDHeader,
+				"Self":          selfHeader,
+				"Hostname":      hostnameHeader,
+				"Status":        formatter.StatusHeader,
+				"Availability":  availabilityHeader,
+				"ManagerStatus": managerStatusHeader,
+				"EngineVersion": engineVersionHeader,
+				"TLSStatus":     tlsStatusHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(nodeCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, node := range nodes {
-			nodeCtx := &nodeContext{n: node, info: info}
-			if err := format(nodeCtx); err != nil {
+			if err := format(&nodeContext{
+				n:    node,
+				info: info,
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	nodeCtx := nodeContext{}
-	nodeCtx.Header = formatter.SubHeaderContext{
-		"ID":            nodeIDHeader,
-		"Self":          selfHeader,
-		"Hostname":      hostnameHeader,
-		"Status":        formatter.StatusHeader,
-		"Availability":  availabilityHeader,
-		"ManagerStatus": managerStatusHeader,
-		"EngineVersion": engineVersionHeader,
-		"TLSStatus":     tlsStatusHeader,
-	}
-	return fmtCtx.Write(&nodeCtx, render)
+	})
 }
 
 type nodeContext struct {
@@ -205,7 +209,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.
 	if fmtCtx.Format != nodeInspectPrettyTemplate {
 		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
-	render := func(format func(subContext formatter.SubContext) error) error {
+	return fmtCtx.Write(&nodeInspectContext{}, func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
 			nodeI, _, err := getRef(ref)
 			if err != nil {
@@ -220,8 +224,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(&nodeInspectContext{}, render)
+	})
 }
 
 type nodeInspectContext struct {
