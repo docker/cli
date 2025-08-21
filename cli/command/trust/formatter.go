@@ -73,21 +73,23 @@ func TagWrite(fmtCtx formatter.Context, signedTagInfoList []signedTagInfo) error
 
 // tagWrite writes the context
 func tagWrite(fmtCtx formatter.Context, signedTagInfoList []signedTagInfo) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	trustTagCtx := &trustTagContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"SignedTag": signedTagNameHeader,
+				"Digest":    trustedDigestHeader,
+				"Signers":   signersHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(trustTagCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, signedTag := range signedTagInfoList {
 			if err := format(&trustTagContext{s: signedTag}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	trustTagCtx := trustTagContext{}
-	trustTagCtx.Header = formatter.SubHeaderContext{
-		"SignedTag": signedTagNameHeader,
-		"Digest":    trustedDigestHeader,
-		"Signers":   signersHeader,
-	}
-	return fmtCtx.Write(&trustTagCtx, render)
+	})
 }
 
 type trustTagContext struct {
@@ -120,23 +122,25 @@ func SignerInfoWrite(fmtCtx formatter.Context, signerInfoList []signerInfo) erro
 
 // signerInfoWrite writes the context.
 func signerInfoWrite(fmtCtx formatter.Context, signerInfoList []signerInfo) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, signerInfo := range signerInfoList {
+	signerInfoCtx := &signerInfoContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"Signer": signerNameHeader,
+				"Keys":   keysHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(signerInfoCtx, func(format func(subContext formatter.SubContext) error) error {
+		for _, info := range signerInfoList {
 			if err := format(&signerInfoContext{
 				trunc: fmtCtx.Trunc,
-				s:     signerInfo,
+				s:     info,
 			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	signerInfoCtx := signerInfoContext{}
-	signerInfoCtx.Header = formatter.SubHeaderContext{
-		"Signer": signerNameHeader,
-		"Keys":   keysHeader,
-	}
-	return fmtCtx.Write(&signerInfoCtx, render)
+	})
 }
 
 type signerInfoContext struct {
