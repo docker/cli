@@ -58,7 +58,19 @@ func FormatWrite(fmtCtx formatter.Context, secrets []swarm.Secret) error {
 
 // formatWrite writes the context
 func formatWrite(fmtCtx formatter.Context, secrets []swarm.Secret) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	sCtx := &secretContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":        secretIDHeader,
+				"Name":      formatter.NameHeader,
+				"Driver":    formatter.DriverHeader,
+				"CreatedAt": secretCreatedHeader,
+				"UpdatedAt": secretUpdatedHeader,
+				"Labels":    formatter.LabelsHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(sCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, secret := range secrets {
 			secretCtx := &secretContext{s: secret}
 			if err := format(secretCtx); err != nil {
@@ -66,22 +78,7 @@ func formatWrite(fmtCtx formatter.Context, secrets []swarm.Secret) error {
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(newSecretContext(), render)
-}
-
-func newSecretContext() *secretContext {
-	sCtx := &secretContext{}
-
-	sCtx.Header = formatter.SubHeaderContext{
-		"ID":        secretIDHeader,
-		"Name":      formatter.NameHeader,
-		"Driver":    formatter.DriverHeader,
-		"CreatedAt": secretCreatedHeader,
-		"UpdatedAt": secretUpdatedHeader,
-		"Labels":    formatter.LabelsHeader,
-	}
-	return sCtx
+	})
 }
 
 type secretContext struct {
@@ -147,7 +144,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.
 	if fmtCtx.Format != secretInspectPrettyTemplate {
 		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
-	render := func(format func(subContext formatter.SubContext) error) error {
+	return fmtCtx.Write(&secretInspectContext{}, func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
 			secretI, _, err := getRef(ref)
 			if err != nil {
@@ -162,8 +159,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(&secretInspectContext{}, render)
+	})
 }
 
 type secretInspectContext struct {
