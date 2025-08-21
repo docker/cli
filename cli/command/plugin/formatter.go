@@ -53,24 +53,28 @@ func FormatWrite(fmtCtx formatter.Context, plugins []*plugin.Plugin) error {
 
 // formatWrite writes the context
 func formatWrite(fmtCtx formatter.Context, plugins []*plugin.Plugin) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	pluginCtx := &pluginContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":              pluginIDHeader,
+				"Name":            formatter.NameHeader,
+				"Description":     formatter.DescriptionHeader,
+				"Enabled":         enabledHeader,
+				"PluginReference": formatter.ImageHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(pluginCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, p := range plugins {
-			pluginCtx := &pluginContext{trunc: fmtCtx.Trunc, p: *p}
-			if err := format(pluginCtx); err != nil {
+			if err := format(&pluginContext{
+				trunc: fmtCtx.Trunc,
+				p:     *p,
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	pluginCtx := pluginContext{}
-	pluginCtx.Header = formatter.SubHeaderContext{
-		"ID":              pluginIDHeader,
-		"Name":            formatter.NameHeader,
-		"Description":     formatter.DescriptionHeader,
-		"Enabled":         enabledHeader,
-		"PluginReference": formatter.ImageHeader,
-	}
-	return fmtCtx.Write(&pluginCtx, render)
+	})
 }
 
 type pluginContext struct {
