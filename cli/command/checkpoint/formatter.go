@@ -11,7 +11,14 @@ const (
 )
 
 // NewFormat returns a format for use with a checkpoint Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string) formatter.Format {
+	return newFormat(source)
+}
+
+// newFormat returns a format for use with a checkpointContext.
+func newFormat(source string) formatter.Format {
 	if source == formatter.TableFormatKey {
 		return defaultCheckpointFormat
 	}
@@ -19,7 +26,14 @@ func NewFormat(source string) formatter.Format {
 }
 
 // FormatWrite writes formatted checkpoints using the Context
-func FormatWrite(ctx formatter.Context, checkpoints []checkpoint.Summary) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func FormatWrite(fmtCtx formatter.Context, checkpoints []checkpoint.Summary) error {
+	return formatWrite(fmtCtx, checkpoints)
+}
+
+// formatWrite writes formatted checkpoints using the Context
+func formatWrite(fmtCtx formatter.Context, checkpoints []checkpoint.Summary) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, cp := range checkpoints {
 			if err := format(&checkpointContext{c: cp}); err != nil {
@@ -28,7 +42,7 @@ func FormatWrite(ctx formatter.Context, checkpoints []checkpoint.Summary) error 
 		}
 		return nil
 	}
-	return ctx.Write(newCheckpointContext(), render)
+	return fmtCtx.Write(newCheckpointContext(), render)
 }
 
 type checkpointContext struct {
