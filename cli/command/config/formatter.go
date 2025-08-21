@@ -59,7 +59,18 @@ func FormatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
 
 // formatWrite writes the context
 func formatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	cCtx := &configContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":        configIDHeader,
+				"Name":      formatter.NameHeader,
+				"CreatedAt": configCreatedHeader,
+				"UpdatedAt": configUpdatedHeader,
+				"Labels":    formatter.LabelsHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(cCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, config := range configs {
 			configCtx := &configContext{c: config}
 			if err := format(configCtx); err != nil {
@@ -67,21 +78,7 @@ func formatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(newConfigContext(), render)
-}
-
-func newConfigContext() *configContext {
-	cCtx := &configContext{}
-
-	cCtx.Header = formatter.SubHeaderContext{
-		"ID":        configIDHeader,
-		"Name":      formatter.NameHeader,
-		"CreatedAt": configCreatedHeader,
-		"UpdatedAt": configUpdatedHeader,
-		"Labels":    formatter.LabelsHeader,
-	}
-	return cCtx
+	})
 }
 
 type configContext struct {
@@ -140,7 +137,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.
 	if fmtCtx.Format != configInspectPrettyTemplate {
 		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
-	render := func(format func(subContext formatter.SubContext) error) error {
+	return fmtCtx.Write(&configInspectContext{}, func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
 			configI, _, err := getRef(ref)
 			if err != nil {
@@ -155,8 +152,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(&configInspectContext{}, render)
+	})
 }
 
 type configInspectContext struct {
