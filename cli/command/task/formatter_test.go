@@ -27,30 +27,30 @@ func TestTaskContextWrite(t *testing.T) {
 			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
 		{
-			formatter.Context{Format: NewTaskFormat("table", true)},
+			formatter.Context{Format: newTaskFormat("table", true)},
 			`taskID1
 taskID2
 `,
 		},
 		{
-			formatter.Context{Format: NewTaskFormat("table {{.Name}}\t{{.Node}}\t{{.Ports}}", false)},
+			formatter.Context{Format: newTaskFormat("table {{.Name}}\t{{.Node}}\t{{.Ports}}", false)},
 			string(golden.Get(t, "task-context-write-table-custom.golden")),
 		},
 		{
-			formatter.Context{Format: NewTaskFormat("table {{.Name}}", true)},
+			formatter.Context{Format: newTaskFormat("table {{.Name}}", true)},
 			`NAME
 foobar_baz
 foobar_bar
 `,
 		},
 		{
-			formatter.Context{Format: NewTaskFormat("raw", true)},
+			formatter.Context{Format: newTaskFormat("raw", true)},
 			`id: taskID1
 id: taskID2
 `,
 		},
 		{
-			formatter.Context{Format: NewTaskFormat("{{.Name}} {{.Node}}", false)},
+			formatter.Context{Format: newTaskFormat("{{.Name}} {{.Node}}", false)},
 			`foobar_baz foo1
 foobar_bar foo2
 `,
@@ -75,7 +75,7 @@ foobar_bar foo2
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			if err := FormatWrite(tc.context, tasks, names, nodes); err != nil {
+			if err := formatWrite(tc.context, tasks, names, nodes); err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)
@@ -94,7 +94,7 @@ func TestTaskContextWriteJSONField(t *testing.T) {
 		"taskID2": "foobar_bar",
 	}
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, tasks, names, map[string]string{})
+	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, tasks, names, map[string]string{})
 	if err != nil {
 		t.Fatal(err)
 	}
