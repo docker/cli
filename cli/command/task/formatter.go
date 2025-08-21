@@ -55,27 +55,33 @@ func FormatWrite(fmtCtx formatter.Context, tasks []swarm.Task, names map[string]
 
 // formatWrite writes the context.
 func formatWrite(fmtCtx formatter.Context, tasks []swarm.Task, names map[string]string, nodes map[string]string) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	taskCtx := &taskContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":           taskIDHeader,
+				"Name":         formatter.NameHeader,
+				"Image":        formatter.ImageHeader,
+				"Node":         nodeHeader,
+				"DesiredState": desiredStateHeader,
+				"CurrentState": currentStateHeader,
+				"Error":        formatter.ErrorHeader,
+				"Ports":        formatter.PortsHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(taskCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, task := range tasks {
-			taskCtx := &taskContext{trunc: fmtCtx.Trunc, task: task, name: names[task.ID], node: nodes[task.ID]}
-			if err := format(taskCtx); err != nil {
+			if err := format(&taskContext{
+				trunc: fmtCtx.Trunc,
+				task:  task,
+				name:  names[task.ID],
+				node:  nodes[task.ID],
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	taskCtx := taskContext{}
-	taskCtx.Header = formatter.SubHeaderContext{
-		"ID":           taskIDHeader,
-		"Name":         formatter.NameHeader,
-		"Image":        formatter.ImageHeader,
-		"Node":         nodeHeader,
-		"DesiredState": desiredStateHeader,
-		"CurrentState": currentStateHeader,
-		"Error":        formatter.ErrorHeader,
-		"Ports":        formatter.PortsHeader,
-	}
-	return fmtCtx.Write(&taskCtx, render)
+	})
 }
 
 type taskContext struct {
