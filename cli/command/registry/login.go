@@ -36,13 +36,6 @@ type loginOptions struct {
 	passwordStdin bool
 }
 
-// NewLoginCommand creates a new `docker login` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewLoginCommand(dockerCLI command.Cli) *cobra.Command {
-	return newLoginCommand(dockerCLI)
-}
-
 // newLoginCommand creates a new `docker login` command
 func newLoginCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts loginOptions

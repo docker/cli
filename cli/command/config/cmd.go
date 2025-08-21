@@ -13,13 +13,7 @@ func init() {
 	commands.Register(newConfigCommand)
 }
 
-// NewConfigCommand returns a cobra command for `config` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewConfigCommand(dockerCLI command.Cli) *cobra.Command {
-	return newConfigCommand(dockerCLI)
-}
-
+// newConfigCommand returns a cobra command for `config` subcommands
 func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",

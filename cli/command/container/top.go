@@ -18,13 +18,7 @@ type topOptions struct {
 	args []string
 }
 
-// NewTopCommand creates a new cobra.Command for `docker top`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewTopCommand(dockerCLI command.Cli) *cobra.Command {
-	return newTopCommand(dockerCLI)
-}
-
+// newTopCommand creates a new cobra.Command for "docker container top",
 func newTopCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts topOptions
 

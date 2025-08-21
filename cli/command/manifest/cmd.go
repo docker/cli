@@ -14,13 +14,6 @@ func init() {
 	commands.Register(newManifestCommand)
 }
 
-// NewManifestCommand returns a cobra command for `manifest` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewManifestCommand(dockerCLI command.Cli) *cobra.Command {
-	return newManifestCommand(dockerCLI)
-}
-
 // newManifestCommand returns a cobra command for `manifest` subcommands
 func newManifestCommand(dockerCLI command.Cli) *cobra.Command {
 	// use dockerCli as command.Cli

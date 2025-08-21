@@ -17,13 +17,6 @@ func init() {
 	commands.Register(newLogoutCommand)
 }
 
-// NewLogoutCommand creates a new `docker logout` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewLogoutCommand(dockerCLI command.Cli) *cobra.Command {
-	return newLogoutCommand(dockerCLI)
-}
-
 // newLogoutCommand creates a new `docker logout` command
 func newLogoutCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

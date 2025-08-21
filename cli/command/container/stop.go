@@ -20,13 +20,7 @@ type stopOptions struct {
 	containers []string
 }
 
-// NewStopCommand creates a new cobra.Command for `docker stop`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewStopCommand(dockerCLI command.Cli) *cobra.Command {
-	return newStopCommand(dockerCLI)
-}
-
+// newStopCommand creates a new cobra.Command for "docker container stop".
 func newStopCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts stopOptions
 

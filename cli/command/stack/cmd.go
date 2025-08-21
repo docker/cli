@@ -15,13 +15,6 @@ func init() {
 	commands.Register(newStackCommand)
 }
 
-// NewStackCommand returns a cobra command for `stack` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewStackCommand(dockerCLI command.Cli) *cobra.Command {
-	return newStackCommand(dockerCLI)
-}
-
 // newStackCommand returns a cobra command for `stack` subcommands
 func newStackCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

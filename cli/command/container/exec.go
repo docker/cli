@@ -39,13 +39,7 @@ func NewExecOptions() ExecOptions {
 	}
 }
 
-// NewExecCommand creates a new cobra.Command for `docker exec`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewExecCommand(dockerCLI command.Cli) *cobra.Command {
-	return newExecCommand(dockerCLI)
-}
-
+// newExecCommand creates a new cobra.Command for "docker exec".
 func newExecCommand(dockerCLI command.Cli) *cobra.Command {
 	options := NewExecOptions()
 

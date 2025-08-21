@@ -108,13 +108,6 @@ func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	return v
 }
 
-// NewVersionCommand creates a new cobra.Command for `docker version`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewVersionCommand(dockerCLI command.Cli) *cobra.Command {
-	return newVersionCommand(dockerCLI)
-}
-
 // newVersionCommand creates a new cobra.Command for `docker version`
 func newVersionCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts versionOptions

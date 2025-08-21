@@ -26,13 +26,6 @@ type searchOptions struct {
 	filter  opts.FilterOpt
 }
 
-// NewSearchCommand creates a new `docker search` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewSearchCommand(dockerCLI command.Cli) *cobra.Command {
-	return newSearchCommand(dockerCLI)
-}
-
 // newSearchCommand creates a new `docker search` command
 func newSearchCommand(dockerCLI command.Cli) *cobra.Command {
 	options := searchOptions{filter: opts.NewFilterOpt()}

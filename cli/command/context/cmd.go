@@ -11,13 +11,6 @@ func init() {
 	commands.Register(newContextCommand)
 }
 
-// NewContextCommand returns the context cli subcommand
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewContextCommand(dockerCLI command.Cli) *cobra.Command {
-	return newContextCommand(dockerCLI)
-}
-
 // newContextCommand returns the context cli subcommand
 func newContextCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

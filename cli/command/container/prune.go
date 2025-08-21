@@ -27,13 +27,7 @@ type pruneOptions struct {
 	filter opts.FilterOpt
 }
 
-// NewPruneCommand returns a new cobra prune command for containers
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPruneCommand(dockerCLI command.Cli) *cobra.Command {
-	return newPruneCommand(dockerCLI)
-}
-
+// newPruneCommand returns a new cobra prune command for containers.
 func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt()}
 

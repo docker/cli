@@ -21,13 +21,6 @@ func init() {
 	commands.RegisterLegacy(newTagCommand)
 }
 
-// NewImageCommand returns a cobra command for `image` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewImageCommand(dockerCLI command.Cli) *cobra.Command {
-	return newImageCommand(dockerCLI)
-}
-
 // newImageCommand returns a cobra command for `image` subcommands
 func newImageCommand(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

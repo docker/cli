@@ -28,13 +28,6 @@ type imagesOptions struct {
 	tree        bool
 }
 
-// NewImagesCommand creates a new `docker images` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewImagesCommand(dockerCLI command.Cli) *cobra.Command {
-	return newImagesCommand(dockerCLI)
-}
-
 // newImagesCommand creates a new `docker images` command
 func newImagesCommand(dockerCLI command.Cli) *cobra.Command {
 	options := imagesOptions{filter: opts.NewFilterOpt()}

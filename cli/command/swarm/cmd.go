@@ -12,13 +12,6 @@ func init() {
 	commands.Register(newSwarmCommand)
 }
 
-// NewSwarmCommand returns a cobra command for `swarm` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewSwarmCommand(dockerCLI command.Cli) *cobra.Command {
-	return newSwarmCommand(dockerCLI)
-}
-
 // newSwarmCommand returns a cobra command for `swarm` subcommands
 func newSwarmCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

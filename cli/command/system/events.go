@@ -27,13 +27,6 @@ type eventsOptions struct {
 	format string
 }
 
-// NewEventsCommand creates a new cobra.Command for `docker events`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewEventsCommand(dockerCLI command.Cli) *cobra.Command {
-	return newEventsCommand(dockerCLI)
-}
-
 // newEventsCommand creates a new cobra.Command for `docker events`
 func newEventsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := eventsOptions{filter: opts.NewFilterOpt()}

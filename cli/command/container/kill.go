@@ -17,13 +17,7 @@ type killOptions struct {
 	containers []string
 }
 
-// NewKillCommand creates a new cobra.Command for `docker kill`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewKillCommand(dockerCLI command.Cli) *cobra.Command {
-	return newKillCommand(dockerCLI)
-}
-
+// newKillCommand creates a new cobra.Command for "docker container kill"
 func newKillCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts killOptions
 

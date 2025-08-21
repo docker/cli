@@ -15,13 +15,7 @@ type waitOptions struct {
 	containers []string
 }
 
-// NewWaitCommand creates a new cobra.Command for `docker wait`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewWaitCommand(dockerCLI command.Cli) *cobra.Command {
-	return newWaitCommand(dockerCLI)
-}
-
+// newWaitCommand creates a new cobra.Command for "docker container wait".
 func newWaitCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts waitOptions
 

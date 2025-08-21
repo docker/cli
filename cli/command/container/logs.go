@@ -23,13 +23,7 @@ type logsOptions struct {
 	container string
 }
 
-// NewLogsCommand creates a new cobra.Command for `docker logs`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewLogsCommand(dockerCLI command.Cli) *cobra.Command {
-	return newLogsCommand(dockerCLI)
-}
-
+// newLogsCommand creates a new cobra.Command for "docker container logs"
 func newLogsCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts logsOptions
 

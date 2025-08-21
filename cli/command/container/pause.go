@@ -16,13 +16,7 @@ type pauseOptions struct {
 	containers []string
 }
 
-// NewPauseCommand creates a new cobra.Command for `docker pause`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPauseCommand(dockerCLI command.Cli) *cobra.Command {
-	return newPauseCommand(dockerCLI)
-}
-
+// newPauseCommand creates a new cobra.Command for "docker container pause"
 func newPauseCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pauseOptions
 

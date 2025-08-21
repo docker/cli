@@ -22,13 +22,7 @@ type commitOptions struct {
 	changes opts.ListOpts
 }
 
-// NewCommitCommand creates a new cobra.Command for `docker commit`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewCommitCommand(dockerCLI command.Cli) *cobra.Command {
-	return newCommitCommand(dockerCLI)
-}
-
+// newCommitCommand creates a new cobra.Command for `docker commit`
 func newCommitCommand(dockerCLI command.Cli) *cobra.Command {
 	var options commitOptions
 

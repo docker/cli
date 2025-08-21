@@ -36,13 +36,7 @@ type updateOptions struct {
 	containers []string
 }
 
-// NewUpdateCommand creates a new cobra.Command for `docker update`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewUpdateCommand(dockerCLI command.Cli) *cobra.Command {
-	return newUpdateCommand(dockerCLI)
-}
-
+// newUpdateCommand creates a new cobra.Command for "docker container update".
 func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	var options updateOptions
 

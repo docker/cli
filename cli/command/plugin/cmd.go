@@ -11,13 +11,6 @@ func init() {
 	commands.Register(newPluginCommand)
 }
 
-// NewPluginCommand returns a cobra command for `plugin` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPluginCommand(dockerCLI command.Cli) *cobra.Command {
-	return newPluginCommand(dockerCLI)
-}
-
 // newPluginCommand returns a cobra command for `plugin` subcommands
 func newPluginCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

@@ -15,13 +15,6 @@ func init() {
 	commands.RegisterLegacy(newInspectCommand)
 }
 
-// NewSystemCommand returns a cobra command for `system` subcommands
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewSystemCommand(dockerCLI command.Cli) *cobra.Command {
-	return newSystemCommand(dockerCLI)
-}
-
 // newSystemCommand returns a cobra command for `system` subcommands
 func newSystemCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

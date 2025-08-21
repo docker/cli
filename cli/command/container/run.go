@@ -27,13 +27,7 @@ type runOptions struct {
 	detachKeys string
 }
 
-// NewRunCommand create a new `docker run` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewRunCommand(dockerCLI command.Cli) *cobra.Command {
-	return newRunCommand(dockerCLI)
-}
-
+// newRunCommand create a new "docker run" command.
 func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 	var options runOptions
 	var copts *containerOptions

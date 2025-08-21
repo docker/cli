@@ -51,13 +51,7 @@ type createOptions struct {
 	useAPISocket bool
 }
 
-// NewCreateCommand creates a new cobra.Command for `docker create`
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewCreateCommand(dockerCLI command.Cli) *cobra.Command {
-	return newCreateCommand(dockerCLI)
-}
-
+// newCreateCommand creates a new cobra.Command for `docker create`
 func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	var options createOptions
 	var copts *containerOptions

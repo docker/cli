@@ -26,13 +26,6 @@ type pullOptions struct {
 	untrusted bool
 }
 
-// NewPullCommand creates a new `docker pull` command
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPullCommand(dockerCLI command.Cli) *cobra.Command {
-	return newPullCommand(dockerCLI)
-}
-
 // newPullCommand creates a new `docker pull` command
 func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pullOptions
