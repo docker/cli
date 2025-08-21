@@ -7,10 +7,15 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/internal/commands"
 	"github.com/docker/cli/internal/oauth/manager"
 	"github.com/docker/cli/internal/registry"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newLogoutCommand)
+}
 
 // NewLogoutCommand creates a new `docker logout` command
 //

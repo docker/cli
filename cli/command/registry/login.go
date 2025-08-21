@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/internal/commands"
 	"github.com/docker/cli/internal/oauth/manager"
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
@@ -23,6 +24,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
+
+func init() {
+	commands.Register(newLoginCommand)
+}
 
 type loginOptions struct {
 	serverAddress string

@@ -5,7 +5,12 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/commands"
 )
+
+func init() {
+	commands.Register(newSwarmCommand)
+}
 
 // NewSwarmCommand returns a cobra command for `swarm` subcommands
 //

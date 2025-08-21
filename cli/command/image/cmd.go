@@ -3,8 +3,23 @@ package image
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/internal/commands"
 	"github.com/spf13/cobra"
 )
+
+func init() {
+	commands.Register(newBuildCommand)
+	commands.Register(newPullCommand)
+	commands.Register(newPushCommand)
+	commands.Register(newImagesCommand)
+	commands.Register(newImageCommand)
+	commands.RegisterLegacy(newHistoryCommand)
+	commands.RegisterLegacy(newImportCommand)
+	commands.RegisterLegacy(newLoadCommand)
+	commands.RegisterLegacy(newRemoveCommand)
+	commands.RegisterLegacy(newSaveCommand)
+	commands.RegisterLegacy(newTagCommand)
+}
 
 // NewImageCommand returns a cobra command for `image` subcommands
 //
