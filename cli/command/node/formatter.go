@@ -80,7 +80,14 @@ TLS Info:
 )
 
 // NewFormat returns a Format for rendering using a node Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string, quiet bool) formatter.Format {
+	return newFormat(source, quiet)
+}
+
+// newFormat returns a Format for rendering using a nodeContext.
+func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
 	case formatter.PrettyFormatKey:
 		return nodeInspectPrettyTemplate
@@ -99,7 +106,14 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, nodes []swarm.Node, info system.Info) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func FormatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info) error {
+	return formatWrite(fmtCtx, nodes, info)
+}
+
+// formatWrite writes the context.
+func formatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, node := range nodes {
 			nodeCtx := &nodeContext{n: node, info: info}
@@ -120,7 +134,7 @@ func FormatWrite(ctx formatter.Context, nodes []swarm.Node, info system.Info) er
 		"EngineVersion": engineVersionHeader,
 		"TLSStatus":     tlsStatusHeader,
 	}
-	return ctx.Write(&nodeCtx, render)
+	return fmtCtx.Write(&nodeCtx, render)
 }
 
 type nodeContext struct {
@@ -180,9 +194,16 @@ func (c *nodeContext) EngineVersion() string {
 }
 
 // InspectFormatWrite renders the context for a list of nodes
-func InspectFormatWrite(ctx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
-	if ctx.Format != nodeInspectPrettyTemplate {
-		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
+	return inspectFormatWrite(fmtCtx, refs, getRef)
+}
+
+// inspectFormatWrite renders the context for a list of nodes.
+func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
+	if fmtCtx.Format != nodeInspectPrettyTemplate {
+		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
@@ -200,7 +221,7 @@ func InspectFormatWrite(ctx formatter.Context, refs []string, getRef inspect.Get
 		}
 		return nil
 	}
-	return ctx.Write(&nodeInspectContext{}, render)
+	return fmtCtx.Write(&nodeInspectContext{}, render)
 }
 
 type nodeInspectContext struct {
