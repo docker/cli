@@ -22,14 +22,13 @@ func Register(f func(command.Cli) *cobra.Command) {
 // in an init function and is not safe for concurrent use.
 func RegisterLegacy(f func(command.Cli) *cobra.Command) {
 	commands = append(commands, func(c command.Cli) *cobra.Command {
-		cmd := f(c)
 		if os.Getenv("DOCKER_HIDE_LEGACY_COMMANDS") == "" {
-			return cmd
+			return f(c)
 		}
-		cmdCopy := *cmd
-		cmdCopy.Hidden = true
-		cmdCopy.Aliases = []string{}
-		return &cmdCopy
+		cmd := f(c)
+		cmd.Hidden = true
+		cmd.Aliases = []string{}
+		return cmd
 	})
 }
 
