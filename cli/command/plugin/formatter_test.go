@@ -86,7 +86,7 @@ func TestPluginContextWrite(t *testing.T) {
 		},
 		{
 			doc:     "table format",
-			context: formatter.Context{Format: NewFormat("table", false)},
+			context: formatter.Context{Format: newFormat("table", false)},
 			expected: `ID          NAME         DESCRIPTION     ENABLED
 pluginID1   foobar_baz   description 1   true
 pluginID2   foobar_bar   description 2   false
@@ -94,14 +94,14 @@ pluginID2   foobar_bar   description 2   false
 		},
 		{
 			doc:     "table format, quiet",
-			context: formatter.Context{Format: NewFormat("table", true)},
+			context: formatter.Context{Format: newFormat("table", true)},
 			expected: `pluginID1
 pluginID2
 `,
 		},
 		{
 			doc:     "table format name col",
-			context: formatter.Context{Format: NewFormat("table {{.Name}}", false)},
+			context: formatter.Context{Format: newFormat("table {{.Name}}", false)},
 			expected: `NAME
 foobar_baz
 foobar_bar
@@ -109,7 +109,7 @@ foobar_bar
 		},
 		{
 			doc:     "table format name col, quiet",
-			context: formatter.Context{Format: NewFormat("table {{.Name}}", true)},
+			context: formatter.Context{Format: newFormat("table {{.Name}}", true)},
 			expected: `NAME
 foobar_baz
 foobar_bar
@@ -117,7 +117,7 @@ foobar_bar
 		},
 		{
 			doc:     "raw format",
-			context: formatter.Context{Format: NewFormat("raw", false)},
+			context: formatter.Context{Format: newFormat("raw", false)},
 			expected: `plugin_id: pluginID1
 name: foobar_baz
 description: description 1
@@ -132,14 +132,14 @@ enabled: false
 		},
 		{
 			doc:     "raw format, quiet",
-			context: formatter.Context{Format: NewFormat("raw", true)},
+			context: formatter.Context{Format: newFormat("raw", true)},
 			expected: `plugin_id: pluginID1
 plugin_id: pluginID2
 `,
 		},
 		{
 			doc:     "custom format",
-			context: formatter.Context{Format: NewFormat("{{.Name}}", false)},
+			context: formatter.Context{Format: newFormat("{{.Name}}", false)},
 			expected: `foobar_baz
 foobar_bar
 `,
@@ -156,7 +156,7 @@ foobar_bar
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			err := FormatWrite(tc.context, plugins)
+			err := formatWrite(tc.context, plugins)
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -177,7 +177,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 	}
 
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .}}", Output: out}, plugins)
+	err := formatWrite(formatter.Context{Format: "{{json .}}", Output: out}, plugins)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,7 +196,7 @@ func TestPluginContextWriteJSONField(t *testing.T) {
 		{ID: "pluginID2", Name: "foobar_bar"},
 	}
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, plugins)
+	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, plugins)
 	if err != nil {
 		t.Fatal(err)
 	}
