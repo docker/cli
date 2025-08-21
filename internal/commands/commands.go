@@ -2,48 +2,38 @@ package commands
 
 import (
 	"os"
-	"slices"
-	"sync"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/spf13/cobra"
 )
 
-var (
-	commands []func(command.Cli) *cobra.Command
-	l        sync.RWMutex
-)
+var commands []func(command.Cli) *cobra.Command
 
 // Register pushes the passed in command into an internal queue which can
-// be retrieved using the [Commands] function.
+// be retrieved using the [Commands] function. It is designed to be called
+// in an init function and is not safe for concurrent use.
 func Register(f func(command.Cli) *cobra.Command) {
-	l.Lock()
-	defer l.Unlock()
 	commands = append(commands, f)
 }
 
 // RegisterLegacy functions similarly to [Register], but it checks the
-// `DOCKER_HIDE_LEGACY_COMMANDS` environment variable and if
-// it has been set and is non-empty, the command will be hidden.
+// "DOCKER_HIDE_LEGACY_COMMANDS" environment variable and if it has been
+// set and is non-empty, the command will be hidden. It is designed to be called
+// in an init function and is not safe for concurrent use.
 func RegisterLegacy(f func(command.Cli) *cobra.Command) {
-	l.Lock()
-	defer l.Unlock()
 	commands = append(commands, func(c command.Cli) *cobra.Command {
-		cmd := f(c)
 		if os.Getenv("DOCKER_HIDE_LEGACY_COMMANDS") == "" {
-			return cmd
+			return f(c)
 		}
-		cmdCopy := *cmd
-		cmdCopy.Hidden = true
-		cmdCopy.Aliases = []string{}
-		return &cmdCopy
+		cmd := f(c)
+		cmd.Hidden = true
+		cmd.Aliases = []string{}
+		return cmd
 	})
 }
 
-// Commands returns a copy of the internal queue holding registered commands
-// added via [Register] or [RegisterLegacy].
+// Commands returns the internal queue holding registered commands added
+// via [Register] and [RegisterLegacy].
 func Commands() []func(command.Cli) *cobra.Command {
-	l.RLock()
-	defer l.RUnlock()
-	return slices.Clone(commands)
+	return commands
 }
