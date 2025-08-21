@@ -97,10 +97,10 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 
 	serviceCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(f),
+		Format: newFormat(f),
 	}
 
-	if err := InspectFormatWrite(serviceCtx, opts.refs, getRef, getNetwork); err != nil {
+	if err := inspectFormatWrite(serviceCtx, opts.refs, getRef, getNetwork); err != nil {
 		return cli.StatusError{StatusCode: 1, Status: err.Error()}
 	}
 	return nil
