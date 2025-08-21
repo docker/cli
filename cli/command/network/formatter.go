@@ -17,8 +17,15 @@ const (
 	internalHeader  = "INTERNAL"
 )
 
-// NewFormat returns a Format for rendering using a network Context
+// NewFormat returns a Format for rendering using a network Context.
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string, quiet bool) formatter.Format {
+	return newFormat(source, quiet)
+}
+
+// newFormat returns a [formatter.Format] for rendering a networkContext.
+func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
 	case formatter.TableFormatKey:
 		if quiet {
@@ -35,10 +42,17 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, networks []network.Summary) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func FormatWrite(fmtCtx formatter.Context, networks []network.Summary) error {
+	return formatWrite(fmtCtx, networks)
+}
+
+// formatWrite writes the context.
+func formatWrite(fmtCtx formatter.Context, networks []network.Summary) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, nw := range networks {
-			networkCtx := &networkContext{trunc: ctx.Trunc, n: nw}
+			networkCtx := &networkContext{trunc: fmtCtx.Trunc, n: nw}
 			if err := format(networkCtx); err != nil {
 				return err
 			}
@@ -57,7 +71,7 @@ func FormatWrite(ctx formatter.Context, networks []network.Summary) error {
 		"Labels":    formatter.LabelsHeader,
 		"CreatedAt": formatter.CreatedAtHeader,
 	}
-	return ctx.Write(&networkCtx, render)
+	return fmtCtx.Write(&networkCtx, render)
 }
 
 type networkContext struct {
