@@ -10,26 +10,12 @@ const (
 	checkpointNameHeader    = "CHECKPOINT NAME"
 )
 
-// NewFormat returns a format for use with a checkpoint Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string) formatter.Format {
-	return newFormat(source)
-}
-
 // newFormat returns a format for use with a checkpointContext.
 func newFormat(source string) formatter.Format {
 	if source == formatter.TableFormatKey {
 		return defaultCheckpointFormat
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes formatted checkpoints using the Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, checkpoints []checkpoint.Summary) error {
-	return formatWrite(fmtCtx, checkpoints)
 }
 
 // formatWrite writes formatted checkpoints using the Context
