@@ -49,8 +49,8 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
-	client := dockerCli.Client()
+func runSecretCreate(ctx context.Context, dockerCLI command.Cli, options createOptions) error {
+	apiClient := dockerCLI.Client()
 
 	var secretData []byte
 	if options.driver != "" {
@@ -59,7 +59,7 @@ func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createO
 		}
 	} else {
 		var err error
-		secretData, err = readSecretData(dockerCli.In(), options.file)
+		secretData, err = readSecretData(dockerCLI.In(), options.file)
 		if err != nil {
 			return err
 		}
@@ -82,12 +82,12 @@ func runSecretCreate(ctx context.Context, dockerCli command.Cli, options createO
 			Name: options.templateDriver,
 		}
 	}
-	r, err := client.SecretCreate(ctx, spec)
+	r, err := apiClient.SecretCreate(ctx, spec)
 	if err != nil {
 		return err
 	}
 
-	_, _ = fmt.Fprintln(dockerCli.Out(), r.ID)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), r.ID)
 	return nil
 }
 

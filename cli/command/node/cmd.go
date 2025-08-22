@@ -55,6 +55,8 @@ func Reference(ctx context.Context, apiClient client.APIClient, ref string) (str
 			// If there's no node ID in /info, the node probably
 			// isn't a manager. Call a swarm-specific endpoint to
 			// get a more specific error message.
+			//
+			// FIXME(thaJeztah): this should not require calling a Swarm endpoint, and we could just suffice with info / ping (which has swarm status).
 			_, err = apiClient.NodeList(ctx, swarm.NodeListOptions{})
 			if err != nil {
 				return "", err

@@ -44,17 +44,17 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSecretList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
-	client := dockerCli.Client()
+func runSecretList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
+	apiClient := dockerCLI.Client()
 
-	secrets, err := client.SecretList(ctx, swarm.SecretListOptions{Filters: options.filter.Value()})
+	secrets, err := apiClient.SecretList(ctx, swarm.SecretListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
 	format := options.format
 	if len(format) == 0 {
-		if len(dockerCli.ConfigFile().SecretFormat) > 0 && !options.quiet {
-			format = dockerCli.ConfigFile().SecretFormat
+		if len(dockerCLI.ConfigFile().SecretFormat) > 0 && !options.quiet {
+			format = dockerCLI.ConfigFile().SecretFormat
 		} else {
 			format = formatter.TableFormatKey
 		}
@@ -65,7 +65,7 @@ func runSecretList(ctx context.Context, dockerCli command.Cli, options listOptio
 	})
 
 	secretCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: newFormat(format, options.quiet),
 	}
 	return formatWrite(secretCtx, secrets)

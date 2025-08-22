@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -47,18 +48,15 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runUpdate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, nodeID string) error {
-	success := func(_ string) {
-		fmt.Fprintln(dockerCli.Out(), nodeID)
-	}
-	return updateNodes(ctx, dockerCli, []string{nodeID}, mergeNodeUpdate(flags), success)
+func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, nodeID string) error {
+	return updateNodes(ctx, dockerCLI.Client(), []string{nodeID}, mergeNodeUpdate(flags), func(_ string) {
+		_, _ = fmt.Fprintln(dockerCLI.Out(), nodeID)
+	})
 }
 
-func updateNodes(ctx context.Context, dockerCli command.Cli, nodes []string, mergeNode func(node *swarm.Node) error, success func(nodeID string)) error {
-	client := dockerCli.Client()
-
+func updateNodes(ctx context.Context, apiClient client.NodeAPIClient, nodes []string, mergeNode func(node *swarm.Node) error, success func(nodeID string)) error {
 	for _, nodeID := range nodes {
-		node, _, err := client.NodeInspectWithRaw(ctx, nodeID)
+		node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeID)
 		if err != nil {
 			return err
 		}
@@ -70,7 +68,7 @@ func updateNodes(ctx context.Context, dockerCli command.Cli, nodes []string, mer
 			}
 			return err
 		}
-		err = client.NodeUpdate(ctx, node.ID, node.Version, node.Spec)
+		err = apiClient.NodeUpdate(ctx, node.ID, node.Version, node.Spec)
 		if err != nil {
 			return err
 		}

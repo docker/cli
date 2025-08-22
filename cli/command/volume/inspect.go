@@ -38,13 +38,10 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
-	client := dockerCli.Client()
-
-	getVolFunc := func(name string) (any, []byte, error) {
-		i, err := client.VolumeInspect(ctx, name)
+func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
+	apiClient := dockerCLI.Client()
+	return inspect.Inspect(dockerCLI.Out(), opts.names, opts.format, func(name string) (any, []byte, error) {
+		i, err := apiClient.VolumeInspect(ctx, name)
 		return i, nil, err
-	}
-
-	return inspect.Inspect(dockerCli.Out(), opts.names, opts.format, getVolFunc)
+	})
 }

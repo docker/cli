@@ -41,27 +41,26 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runSecretInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
-	client := dockerCli.Client()
+func runSecretInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
+	apiClient := dockerCLI.Client()
 
 	if opts.pretty {
 		opts.format = "pretty"
 	}
 
 	getRef := func(id string) (any, []byte, error) {
-		return client.SecretInspectWithRaw(ctx, id)
+		return apiClient.SecretInspectWithRaw(ctx, id)
 	}
-	f := opts.format
 
 	// check if the user is trying to apply a template to the pretty format, which
 	// is not supported
-	if strings.HasPrefix(f, "pretty") && f != "pretty" {
+	if strings.HasPrefix(opts.format, "pretty") && opts.format != "pretty" {
 		return errors.New("cannot supply extra formatting options to the pretty template")
 	}
 
 	secretCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: newFormat(f, false),
+		Output: dockerCLI.Out(),
+		Format: newFormat(opts.format, false),
 	}
 
 	if err := inspectFormatWrite(secretCtx, opts.names, getRef); err != nil {

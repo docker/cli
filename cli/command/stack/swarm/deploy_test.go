@@ -18,11 +18,11 @@ func TestPruneServices(t *testing.T) {
 		"new":  {},
 		"keep": {},
 	}
-	client := &fakeClient{services: []string{objectName("foo", "keep"), objectName("foo", "remove")}}
-	dockerCli := test.NewFakeCli(client)
+	apiClient := &fakeClient{services: []string{objectName("foo", "keep"), objectName("foo", "remove")}}
+	dockerCli := test.NewFakeCli(apiClient)
 
 	pruneServices(ctx, dockerCli, namespace, services)
-	assert.Check(t, is.DeepEqual(buildObjectIDs([]string{objectName("foo", "remove")}), client.removedServices))
+	assert.Check(t, is.DeepEqual(buildObjectIDs([]string{objectName("foo", "remove")}), apiClient.removedServices))
 }
 
 // TestServiceUpdateResolveImageChanged tests that the service's

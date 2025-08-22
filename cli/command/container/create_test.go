@@ -116,7 +116,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 		t.Run(tc.PullPolicy, func(t *testing.T) {
 			pullCounter := 0
 
-			client := &fakeClient{
+			apiClient := &fakeClient{
 				createContainerFunc: func(
 					config *container.Config,
 					hostConfig *container.HostConfig,
@@ -140,7 +140,7 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 					return system.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
 				},
 			}
-			fakeCLI := test.NewFakeCli(client)
+			fakeCLI := test.NewFakeCli(apiClient)
 			id, err := createContainer(context.Background(), fakeCLI, config, &createOptions{
 				name:      "name",
 				platform:  runtime.GOOS,
