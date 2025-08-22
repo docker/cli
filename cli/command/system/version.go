@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"io"
 	"runtime"
 	"sort"
 	"strconv"
@@ -188,14 +189,14 @@ func runVersion(ctx context.Context, dockerCli command.Cli, opts *versionOptions
 			})
 		}
 	}
-	if err2 := prettyPrintVersion(dockerCli, vd, tmpl); err2 != nil && err == nil {
+	if err2 := prettyPrintVersion(dockerCli.Out(), vd, tmpl); err2 != nil && err == nil {
 		err = err2
 	}
 	return err
 }
 
-func prettyPrintVersion(dockerCli command.Cli, vd versionInfo, tmpl *template.Template) error {
-	t := tabwriter.NewWriter(dockerCli.Out(), 20, 1, 1, ' ', 0)
+func prettyPrintVersion(out io.Writer, vd versionInfo, tmpl *template.Template) error {
+	t := tabwriter.NewWriter(out, 20, 1, 1, ' ', 0)
 	err := tmpl.Execute(t, vd)
 	_, _ = t.Write([]byte("\n"))
 	_ = t.Flush()
