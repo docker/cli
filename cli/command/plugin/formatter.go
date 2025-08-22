@@ -20,13 +20,6 @@ enabled: {{.Enabled}}
 `
 )
 
-// NewFormat returns a Format for rendering using a plugin Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string, quiet bool) formatter.Format {
-	return newFormat(source, quiet)
-}
-
 // newFormat returns a Format for rendering using a pluginContext.
 func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
@@ -42,13 +35,6 @@ func newFormat(source string, quiet bool) formatter.Format {
 		return rawFormat
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, plugins []*plugin.Plugin) error {
-	return formatWrite(fmtCtx, plugins)
 }
 
 // formatWrite writes the context
