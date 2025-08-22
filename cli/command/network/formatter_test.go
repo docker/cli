@@ -91,27 +91,27 @@ func TestNetworkContextWrite(t *testing.T) {
 		},
 		// Table format
 		{
-			formatter.Context{Format: NewFormat("table", false)},
+			formatter.Context{Format: newFormat("table", false)},
 			`NETWORK ID   NAME         DRIVER    SCOPE
 networkID1   foobar_baz   foo       local
 networkID2   foobar_bar   bar       local
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("table", true)},
+			formatter.Context{Format: newFormat("table", true)},
 			`networkID1
 networkID2
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("table {{.Name}}", false)},
+			formatter.Context{Format: newFormat("table {{.Name}}", false)},
 			`NAME
 foobar_baz
 foobar_bar
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("table {{.Name}}", true)},
+			formatter.Context{Format: newFormat("table {{.Name}}", true)},
 			`NAME
 foobar_baz
 foobar_bar
@@ -119,7 +119,7 @@ foobar_bar
 		},
 		// Raw Format
 		{
-			formatter.Context{Format: NewFormat("raw", false)},
+			formatter.Context{Format: newFormat("raw", false)},
 			`network_id: networkID1
 name: foobar_baz
 driver: foo
@@ -133,21 +133,21 @@ scope: local
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("raw", true)},
+			formatter.Context{Format: newFormat("raw", true)},
 			`network_id: networkID1
 network_id: networkID2
 `,
 		},
 		// Custom Format
 		{
-			formatter.Context{Format: NewFormat("{{.Name}}", false)},
+			formatter.Context{Format: newFormat("{{.Name}}", false)},
 			`foobar_baz
 foobar_bar
 `,
 		},
 		// Custom Format with CreatedAt
 		{
-			formatter.Context{Format: NewFormat("{{.Name}} {{.CreatedAt}}", false)},
+			formatter.Context{Format: newFormat("{{.Name}} {{.CreatedAt}}", false)},
 			`foobar_baz 2016-01-01 00:00:00 +0000 UTC
 foobar_bar 2017-01-01 00:00:00 +0000 UTC
 `,
@@ -166,7 +166,7 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
-			err := FormatWrite(tc.context, networks)
+			err := formatWrite(tc.context, networks)
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -187,7 +187,7 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 	}
 
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .}}", Output: out}, networks)
+	err := formatWrite(formatter.Context{Format: "{{json .}}", Output: out}, networks)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +206,7 @@ func TestNetworkContextWriteJSONField(t *testing.T) {
 		{ID: "networkID2", Name: "foobar_bar"},
 	}
 	out := bytes.NewBufferString("")
-	err := FormatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, networks)
+	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, networks)
 	if err != nil {
 		t.Fatal(err)
 	}

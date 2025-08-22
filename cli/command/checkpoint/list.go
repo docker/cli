@@ -45,7 +45,7 @@ func runList(ctx context.Context, dockerCli command.Cli, container string, opts 
 
 	cpCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(formatter.TableFormatKey),
+		Format: newFormat(formatter.TableFormatKey),
 	}
-	return FormatWrite(cpCtx, checkpoints)
+	return formatWrite(cpCtx, checkpoints)
 }

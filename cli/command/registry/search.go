@@ -76,10 +76,10 @@ func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions
 
 	searchCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewSearchFormat(options.format),
+		Format: newFormat(options.format),
 		Trunc:  !options.noTrunc,
 	}
-	return SearchWrite(searchCtx, results)
+	return formatWrite(searchCtx, results)
 }
 
 // authConfigKey is the key used to store credentials for Docker Hub. It is

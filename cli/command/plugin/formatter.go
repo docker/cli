@@ -21,7 +21,14 @@ enabled: {{.Enabled}}
 )
 
 // NewFormat returns a Format for rendering using a plugin Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string, quiet bool) formatter.Format {
+	return newFormat(source, quiet)
+}
+
+// newFormat returns a Format for rendering using a pluginContext.
+func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
 	case formatter.TableFormatKey:
 		if quiet {
@@ -38,10 +45,17 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, plugins []*types.Plugin) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func FormatWrite(fmtCtx formatter.Context, plugins []*types.Plugin) error {
+	return formatWrite(fmtCtx, plugins)
+}
+
+// formatWrite writes the context
+func formatWrite(fmtCtx formatter.Context, plugins []*types.Plugin) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, plugin := range plugins {
-			pluginCtx := &pluginContext{trunc: ctx.Trunc, p: *plugin}
+		for _, p := range plugins {
+			pluginCtx := &pluginContext{trunc: fmtCtx.Trunc, p: *p}
 			if err := format(pluginCtx); err != nil {
 				return err
 			}
@@ -56,7 +70,7 @@ func FormatWrite(ctx formatter.Context, plugins []*types.Plugin) error {
 		"Enabled":         enabledHeader,
 		"PluginReference": formatter.ImageHeader,
 	}
-	return ctx.Write(&pluginCtx, render)
+	return fmtCtx.Write(&pluginCtx, render)
 }
 
 type pluginContext struct {

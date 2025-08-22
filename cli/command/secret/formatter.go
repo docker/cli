@@ -29,7 +29,14 @@ Updated at:        {{.UpdatedAt}}`
 )
 
 // NewFormat returns a Format for rendering using a secret Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string, quiet bool) formatter.Format {
+	return newFormat(source, quiet)
+}
+
+// newFormat returns a Format for rendering using a secretContext.
+func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
 	case formatter.PrettyFormatKey:
 		return secretInspectPrettyTemplate
@@ -43,7 +50,14 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, secrets []swarm.Secret) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func FormatWrite(fmtCtx formatter.Context, secrets []swarm.Secret) error {
+	return formatWrite(fmtCtx, secrets)
+}
+
+// formatWrite writes the context
+func formatWrite(fmtCtx formatter.Context, secrets []swarm.Secret) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, secret := range secrets {
 			secretCtx := &secretContext{s: secret}
@@ -53,7 +67,7 @@ func FormatWrite(ctx formatter.Context, secrets []swarm.Secret) error {
 		}
 		return nil
 	}
-	return ctx.Write(newSecretContext(), render)
+	return fmtCtx.Write(newSecretContext(), render)
 }
 
 func newSecretContext() *secretContext {
@@ -122,9 +136,16 @@ func (c *secretContext) Label(name string) string {
 }
 
 // InspectFormatWrite renders the context for a list of secrets
-func InspectFormatWrite(ctx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
-	if ctx.Format != secretInspectPrettyTemplate {
-		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
+	return inspectFormatWrite(fmtCtx, refs, getRef)
+}
+
+// inspectFormatWrite renders the context for a list of secrets.
+func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
+	if fmtCtx.Format != secretInspectPrettyTemplate {
+		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
@@ -142,7 +163,7 @@ func InspectFormatWrite(ctx formatter.Context, refs []string, getRef inspect.Get
 		}
 		return nil
 	}
-	return ctx.Write(&secretInspectContext{}, render)
+	return fmtCtx.Write(&secretInspectContext{}, render)
 }
 
 type secretInspectContext struct {

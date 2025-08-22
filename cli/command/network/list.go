@@ -67,8 +67,8 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 
 	networksCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(format, options.quiet),
+		Format: newFormat(format, options.quiet),
 		Trunc:  !options.noTrunc,
 	}
-	return FormatWrite(networksCtx, networkResources)
+	return formatWrite(networksCtx, networkResources)
 }

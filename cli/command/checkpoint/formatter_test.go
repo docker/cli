@@ -15,7 +15,7 @@ func TestCheckpointContextFormatWrite(t *testing.T) {
 		expected string
 	}{
 		{
-			formatter.Context{Format: NewFormat(defaultCheckpointFormat)},
+			formatter.Context{Format: newFormat(defaultCheckpointFormat)},
 			`CHECKPOINT NAME
 checkpoint-1
 checkpoint-2
@@ -23,14 +23,14 @@ checkpoint-3
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("{{.Name}}")},
+			formatter.Context{Format: newFormat("{{.Name}}")},
 			`checkpoint-1
 checkpoint-2
 checkpoint-3
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("{{.Name}}:")},
+			formatter.Context{Format: newFormat("{{.Name}}:")},
 			`checkpoint-1:
 checkpoint-2:
 checkpoint-3:
@@ -41,7 +41,7 @@ checkpoint-3:
 	for _, testcase := range cases {
 		out := bytes.NewBufferString("")
 		testcase.context.Output = out
-		err := FormatWrite(testcase.context, []checkpoint.Summary{
+		err := formatWrite(testcase.context, []checkpoint.Summary{
 			{Name: "checkpoint-1"},
 			{Name: "checkpoint-2"},
 			{Name: "checkpoint-3"},

@@ -66,10 +66,10 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 
 	nodeCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(f, false),
+		Format: newFormat(f, false),
 	}
 
-	if err := InspectFormatWrite(nodeCtx, opts.nodeIds, getRef); err != nil {
+	if err := inspectFormatWrite(nodeCtx, opts.nodeIds, getRef); err != nil {
 		return cli.StatusError{StatusCode: 1, Status: err.Error()}
 	}
 	return nil

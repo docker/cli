@@ -63,10 +63,10 @@ func RunConfigInspect(ctx context.Context, dockerCLI command.Cli, opts InspectOp
 
 	configCtx := formatter.Context{
 		Output: dockerCLI.Out(),
-		Format: NewFormat(f, false),
+		Format: newFormat(f, false),
 	}
 
-	if err := InspectFormatWrite(configCtx, opts.Names, getRef); err != nil {
+	if err := inspectFormatWrite(configCtx, opts.Names, getRef); err != nil {
 		return cli.StatusError{StatusCode: 1, Status: err.Error()}
 	}
 	return nil

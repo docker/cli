@@ -196,7 +196,14 @@ Ports:
 `
 
 // NewFormat returns a Format for rendering using a Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string) formatter.Format {
+	return newFormat(source)
+}
+
+// newFormat returns a Format for rendering using a Context.
+func newFormat(source string) formatter.Format {
 	switch source {
 	case formatter.PrettyFormatKey:
 		return serviceInspectPrettyTemplate
@@ -218,9 +225,16 @@ func resolveNetworks(service swarm.Service, getNetwork inspect.GetRefFunc) map[s
 }
 
 // InspectFormatWrite renders the context for a list of services
-func InspectFormatWrite(ctx formatter.Context, refs []string, getRef, getNetwork inspect.GetRefFunc) error {
-	if ctx.Format != serviceInspectPrettyTemplate {
-		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef, getNetwork inspect.GetRefFunc) error {
+	return inspectFormatWrite(fmtCtx, refs, getRef, getNetwork)
+}
+
+// inspectFormatWrite renders the context for a list of services
+func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef, getNetwork inspect.GetRefFunc) error {
+	if fmtCtx.Format != serviceInspectPrettyTemplate {
+		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
@@ -238,7 +252,7 @@ func InspectFormatWrite(ctx formatter.Context, refs []string, getRef, getNetwork
 		}
 		return nil
 	}
-	return ctx.Write(&serviceInspectContext{}, render)
+	return fmtCtx.Write(&serviceInspectContext{}, render)
 }
 
 type serviceInspectContext struct {

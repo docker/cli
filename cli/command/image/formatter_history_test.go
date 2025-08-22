@@ -237,7 +237,7 @@ imageID6   17 years ago   /bin/bash echo                                  183MB 
 	}{
 		{
 			formatter.Context{
-				Format: NewHistoryFormat("table", false, true),
+				Format: newHistoryFormat("table", false, true),
 				Trunc:  true,
 				Output: out,
 			},
@@ -245,7 +245,7 @@ imageID6   17 years ago   /bin/bash echo                                  183MB 
 		},
 		{
 			formatter.Context{
-				Format: NewHistoryFormat("table", false, true),
+				Format: newHistoryFormat("table", false, true),
 				Trunc:  false,
 				Output: out,
 			},
@@ -255,7 +255,7 @@ imageID6   17 years ago   /bin/bash echo                                  183MB 
 
 	for _, tc := range cases {
 		t.Run(string(tc.context.Format), func(t *testing.T) {
-			err := HistoryWrite(tc.context, true, histories)
+			err := historyWrite(tc.context, true, histories)
 			assert.NilError(t, err)
 			assert.Equal(t, out.String(), tc.expected)
 			// Clean buffer

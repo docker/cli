@@ -50,7 +50,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 
 	tasksCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewTaskFormat(format, quiet),
+		Format: newTaskFormat(format, quiet),
 		Trunc:  trunc,
 	}
 
@@ -75,7 +75,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 		nodes[task.ID] = nodeValue
 	}
 
-	return FormatWrite(tasksCtx, tasks, names, nodes)
+	return formatWrite(tasksCtx, tasks, names, nodes)
 }
 
 // generateTaskNames generates names for the given tasks, and returns a copy of
