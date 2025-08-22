@@ -1,6 +1,7 @@
 package system
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -125,10 +126,9 @@ func TestVersionFormat(t *testing.T) {
 			tmpl, err := newVersionTemplate(tc.format)
 			assert.NilError(t, err)
 
-			cli := test.NewFakeCli(&fakeClient{})
-			assert.NilError(t, prettyPrintVersion(cli, vi, tmpl))
-			assert.Check(t, golden.String(cli.OutBuffer().String(), t.Name()+".golden"))
-			assert.Check(t, is.Equal("", cli.ErrBuffer().String()))
+			var out bytes.Buffer
+			assert.NilError(t, prettyPrintVersion(&out, vi, tmpl))
+			assert.Check(t, golden.String(out.String(), t.Name()+".golden"))
 		})
 	}
 }
