@@ -195,13 +195,6 @@ Ports:
 {{- end }}
 `
 
-// NewFormat returns a Format for rendering using a Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string) formatter.Format {
-	return newFormat(source)
-}
-
 // newFormat returns a Format for rendering using a Context.
 func newFormat(source string) formatter.Format {
 	switch source {
@@ -222,13 +215,6 @@ func resolveNetworks(service swarm.Service, getNetwork inspect.GetRefFunc) map[s
 		}
 	}
 	return networkNames
-}
-
-// InspectFormatWrite renders the context for a list of services
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef, getNetwork inspect.GetRefFunc) error {
-	return inspectFormatWrite(fmtCtx, refs, getRef, getNetwork)
 }
 
 // inspectFormatWrite renders the context for a list of services
