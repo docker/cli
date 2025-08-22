@@ -17,13 +17,6 @@ const (
 	internalHeader  = "INTERNAL"
 )
 
-// NewFormat returns a Format for rendering using a network Context.
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string, quiet bool) formatter.Format {
-	return newFormat(source, quiet)
-}
-
 // newFormat returns a [formatter.Format] for rendering a networkContext.
 func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
@@ -39,13 +32,6 @@ func newFormat(source string, quiet bool) formatter.Format {
 		return `network_id: {{.ID}}\nname: {{.Name}}\ndriver: {{.Driver}}\nscope: {{.Scope}}\n`
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, networks []network.Summary) error {
-	return formatWrite(fmtCtx, networks)
 }
 
 // formatWrite writes the context.

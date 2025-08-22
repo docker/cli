@@ -79,13 +79,6 @@ TLS Info:
 	tlsStatusHeader     = "TLS STATUS"
 )
 
-// NewFormat returns a Format for rendering using a node Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string, quiet bool) formatter.Format {
-	return newFormat(source, quiet)
-}
-
 // newFormat returns a Format for rendering using a nodeContext.
 func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
@@ -103,13 +96,6 @@ func newFormat(source string, quiet bool) formatter.Format {
 		return `node_id: {{.ID}}\nhostname: {{.Hostname}}\nstatus: {{.Status}}\navailability: {{.Availability}}\nmanager_status: {{.ManagerStatus}}\n`
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info) error {
-	return formatWrite(fmtCtx, nodes, info)
 }
 
 // formatWrite writes the context.
@@ -191,13 +177,6 @@ func (c *nodeContext) TLSStatus() string {
 
 func (c *nodeContext) EngineVersion() string {
 	return c.n.Description.Engine.EngineVersion
-}
-
-// InspectFormatWrite renders the context for a list of nodes
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
-	return inspectFormatWrite(fmtCtx, refs, getRef)
 }
 
 // inspectFormatWrite renders the context for a list of nodes.

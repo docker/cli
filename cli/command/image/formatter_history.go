@@ -19,13 +19,6 @@ const (
 	commentHeader   = "COMMENT"
 )
 
-// NewHistoryFormat returns a format for rendering an HistoryContext
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewHistoryFormat(source string, quiet bool, human bool) formatter.Format {
-	return newHistoryFormat(source, quiet, human)
-}
-
 // newHistoryFormat returns a format for rendering a historyContext.
 func newHistoryFormat(source string, quiet bool, human bool) formatter.Format {
 	if source == formatter.TableFormatKey {
@@ -40,13 +33,6 @@ func newHistoryFormat(source string, quiet bool, human bool) formatter.Format {
 	}
 
 	return formatter.Format(source)
-}
-
-// HistoryWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func HistoryWrite(fmtCtx formatter.Context, human bool, histories []image.HistoryResponseItem) error {
-	return historyWrite(fmtCtx, human, histories)
 }
 
 // historyWrite writes the context

@@ -22,13 +22,6 @@ const (
 	maxErrLength = 30
 )
 
-// NewTaskFormat returns a Format for rendering using a task Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewTaskFormat(source string, quiet bool) formatter.Format {
-	return newTaskFormat(source, quiet)
-}
-
 // newTaskFormat returns a Format for rendering using a taskContext.
 func newTaskFormat(source string, quiet bool) formatter.Format {
 	switch source {
@@ -44,13 +37,6 @@ func newTaskFormat(source string, quiet bool) formatter.Format {
 		return `id: {{.ID}}\nname: {{.Name}}\nimage: {{.Image}}\nnode: {{.Node}}\ndesired_state: {{.DesiredState}}\ncurrent_state: {{.CurrentState}}\nerror: {{.Error}}\nports: {{.Ports}}\n`
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, tasks []swarm.Task, names map[string]string, nodes map[string]string) error {
-	return formatWrite(fmtCtx, tasks, names, nodes)
 }
 
 // formatWrite writes the context.
