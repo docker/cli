@@ -851,7 +851,7 @@ func TestUpdateNetworks(t *testing.T) {
 		{Name: "zzz-network", ID: "id111"},
 	}
 
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
@@ -874,28 +874,28 @@ func TestUpdateNetworks(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	err := flags.Set(flagNetworkAdd, "aaa-network")
 	assert.NilError(t, err)
-	err = updateService(ctx, client, flags, &svc)
+	err = updateService(ctx, apiClient, flags, &svc)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks))
 
 	flags = newUpdateCommand(nil).Flags()
 	err = flags.Set(flagNetworkAdd, "aaa-network")
 	assert.NilError(t, err)
-	err = updateService(ctx, client, flags, &svc)
+	err = updateService(ctx, apiClient, flags, &svc)
 	assert.Error(t, err, "service is already attached to network aaa-network")
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks))
 
 	flags = newUpdateCommand(nil).Flags()
 	err = flags.Set(flagNetworkAdd, "id555")
 	assert.NilError(t, err)
-	err = updateService(ctx, client, flags, &svc)
+	err = updateService(ctx, apiClient, flags, &svc)
 	assert.Error(t, err, "service is already attached to network id555")
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}, {Target: "id999"}}, svc.TaskTemplate.Networks))
 
 	flags = newUpdateCommand(nil).Flags()
 	err = flags.Set(flagNetworkRemove, "id999")
 	assert.NilError(t, err)
-	err = updateService(ctx, client, flags, &svc)
+	err = updateService(ctx, apiClient, flags, &svc)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id555"}}, svc.TaskTemplate.Networks))
 
@@ -904,7 +904,7 @@ func TestUpdateNetworks(t *testing.T) {
 	assert.NilError(t, err)
 	err = flags.Set(flagNetworkRemove, "aaa-network")
 	assert.NilError(t, err)
-	err = updateService(ctx, client, flags, &svc)
+	err = updateService(ctx, apiClient, flags, &svc)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id999"}}, svc.TaskTemplate.Networks))
 }

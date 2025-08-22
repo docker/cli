@@ -59,8 +59,8 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error {
-	client := dockerCli.Client()
+func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error {
+	apiClient := dockerCLI.Client()
 
 	var (
 		errs  []string
@@ -68,13 +68,13 @@ func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 	)
 
 	for _, nodeID := range options.nodeIDs {
-		nodeRef, err := Reference(ctx, client, nodeID)
+		nodeRef, err := Reference(ctx, apiClient, nodeID)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
 		}
 
-		node, _, err := client.NodeInspectWithRaw(ctx, nodeRef)
+		node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeRef)
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -83,7 +83,7 @@ func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 		filter := options.filter.Value()
 		filter.Add("node", node.ID)
 
-		nodeTasks, err := client.TaskList(ctx, swarm.TaskListOptions{Filters: filter})
+		nodeTasks, err := apiClient.TaskList(ctx, swarm.TaskListOptions{Filters: filter})
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue
@@ -94,11 +94,11 @@ func runPs(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 
 	format := options.format
 	if len(format) == 0 {
-		format = task.DefaultFormat(dockerCli.ConfigFile(), options.quiet)
+		format = task.DefaultFormat(dockerCLI.ConfigFile(), options.quiet)
 	}
 
 	if len(errs) == 0 || len(tasks) != 0 {
-		if err := task.Print(ctx, dockerCli, tasks, idresolver.New(client, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
+		if err := task.Print(ctx, dockerCLI, tasks, idresolver.New(apiClient, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
 			errs = append(errs, err.Error())
 		}
 	}

@@ -12,13 +12,13 @@ import (
 )
 
 func TestResolveError(t *testing.T) {
-	cli := &fakeClient{
+	apiClient := &fakeClient{
 		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
 			return swarm.Node{}, []byte{}, errors.New("error inspecting node")
 		},
 	}
 
-	idResolver := New(cli, false)
+	idResolver := New(apiClient, false)
 	_, err := idResolver.Resolve(context.Background(), struct{}{}, "nodeID")
 
 	assert.Error(t, err, "unsupported type")
@@ -26,7 +26,7 @@ func TestResolveError(t *testing.T) {
 
 func TestResolveWithNoResolveOption(t *testing.T) {
 	resolved := false
-	cli := &fakeClient{
+	apiClient := &fakeClient{
 		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
 			resolved = true
 			return swarm.Node{}, []byte{}, nil
@@ -37,7 +37,7 @@ func TestResolveWithNoResolveOption(t *testing.T) {
 		},
 	}
 
-	idResolver := New(cli, true)
+	idResolver := New(apiClient, true)
 	id, err := idResolver.Resolve(context.Background(), swarm.Node{}, "nodeID")
 
 	assert.NilError(t, err)
@@ -47,14 +47,14 @@ func TestResolveWithNoResolveOption(t *testing.T) {
 
 func TestResolveWithCache(t *testing.T) {
 	inspectCounter := 0
-	cli := &fakeClient{
+	apiClient := &fakeClient{
 		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
 			inspectCounter++
 			return *builders.Node(builders.NodeName("node-foo")), []byte{}, nil
 		},
 	}
 
-	idResolver := New(cli, false)
+	idResolver := New(apiClient, false)
 
 	ctx := context.Background()
 	for i := 0; i < 2; i++ {
@@ -97,10 +97,10 @@ func TestResolveNode(t *testing.T) {
 
 	ctx := context.Background()
 	for _, tc := range testCases {
-		cli := &fakeClient{
+		apiClient := &fakeClient{
 			nodeInspectFunc: tc.nodeInspectFunc,
 		}
-		idResolver := New(cli, false)
+		idResolver := New(apiClient, false)
 		id, err := idResolver.Resolve(ctx, swarm.Node{}, tc.nodeID)
 
 		assert.NilError(t, err)
@@ -132,10 +132,10 @@ func TestResolveService(t *testing.T) {
 
 	ctx := context.Background()
 	for _, tc := range testCases {
-		cli := &fakeClient{
+		apiClient := &fakeClient{
 			serviceInspectFunc: tc.serviceInspectFunc,
 		}
-		idResolver := New(cli, false)
+		idResolver := New(apiClient, false)
 		id, err := idResolver.Resolve(ctx, swarm.Service{}, tc.serviceID)
 
 		assert.NilError(t, err)

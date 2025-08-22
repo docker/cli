@@ -55,7 +55,7 @@ func newEventsCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runEvents(ctx context.Context, dockerCli command.Cli, options *eventsOptions) error {
+func runEvents(ctx context.Context, dockerCLI command.Cli, options *eventsOptions) error {
 	tmpl, err := makeTemplate(options.format)
 	if err != nil {
 		return cli.StatusError{
@@ -64,14 +64,14 @@ func runEvents(ctx context.Context, dockerCli command.Cli, options *eventsOption
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	evts, errs := dockerCli.Client().Events(ctx, events.ListOptions{
+	evts, errs := dockerCLI.Client().Events(ctx, events.ListOptions{
 		Since:   options.since,
 		Until:   options.until,
 		Filters: options.filter.Value(),
 	})
 	defer cancel()
 
-	out := dockerCli.Out()
+	out := dockerCLI.Out()
 
 	for {
 		select {
