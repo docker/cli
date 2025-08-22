@@ -26,7 +26,7 @@ func newBuilderCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{"version": "1.31"},
 	}
 	cmd.AddCommand(
-		NewPruneCommand(dockerCLI),
+		newPruneCommand(dockerCLI),
 		// we should have a mechanism for registering sub-commands in the cli/internal/commands.Register function.
 		//nolint:staticcheck // TODO: Remove when migration to cli/internal/commands.Register is complete. (see #6283)
 		image.NewBuildCommand(dockerCLI),
