@@ -37,25 +37,30 @@ func newHistoryFormat(source string, quiet bool, human bool) formatter.Format {
 
 // historyWrite writes the context
 func historyWrite(fmtCtx formatter.Context, human bool, histories []image.HistoryResponseItem) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	historyCtx := &historyContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":           historyIDHeader,
+				"CreatedSince": formatter.CreatedSinceHeader,
+				"CreatedAt":    formatter.CreatedAtHeader,
+				"CreatedBy":    createdByHeader,
+				"Size":         formatter.SizeHeader,
+				"Comment":      commentHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(historyCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, history := range histories {
-			historyCtx := &historyContext{trunc: fmtCtx.Trunc, h: history, human: human}
-			if err := format(historyCtx); err != nil {
+			if err := format(&historyContext{
+				trunc: fmtCtx.Trunc,
+				h:     history,
+				human: human,
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	historyCtx := &historyContext{}
-	historyCtx.Header = formatter.SubHeaderContext{
-		"ID":           historyIDHeader,
-		"CreatedSince": formatter.CreatedSinceHeader,
-		"CreatedAt":    formatter.CreatedAtHeader,
-		"CreatedBy":    createdByHeader,
-		"Size":         formatter.SizeHeader,
-		"Comment":      commentHeader,
-	}
-	return fmtCtx.Write(historyCtx, render)
+	})
 }
 
 type historyContext struct {

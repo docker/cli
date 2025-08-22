@@ -20,28 +20,26 @@ func newFormat(source string) formatter.Format {
 
 // formatWrite writes formatted checkpoints using the Context
 func formatWrite(fmtCtx formatter.Context, checkpoints []checkpoint.Summary) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	cpContext := &checkpointContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"Name": checkpointNameHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(cpContext, func(format func(subContext formatter.SubContext) error) error {
 		for _, cp := range checkpoints {
 			if err := format(&checkpointContext{c: cp}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(newCheckpointContext(), render)
+	})
 }
 
 type checkpointContext struct {
 	formatter.HeaderContext
 	c checkpoint.Summary
-}
-
-func newCheckpointContext() *checkpointContext {
-	cpCtx := checkpointContext{}
-	cpCtx.Header = formatter.SubHeaderContext{
-		"Name": checkpointNameHeader,
-	}
-	return &cpCtx
 }
 
 func (c *checkpointContext) MarshalJSON() ([]byte, error) {

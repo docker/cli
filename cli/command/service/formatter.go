@@ -222,7 +222,8 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef, getNetw
 	if fmtCtx.Format != serviceInspectPrettyTemplate {
 		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
-	render := func(format func(subContext formatter.SubContext) error) error {
+
+	return fmtCtx.Write(&serviceInspectContext{}, func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
 			serviceI, _, err := getRef(ref)
 			if err != nil {
@@ -232,13 +233,15 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef, getNetw
 			if !ok {
 				return errors.Errorf("got wrong object to inspect")
 			}
-			if err := format(&serviceInspectContext{Service: service, networkNames: resolveNetworks(service, getNetwork)}); err != nil {
+			if err := format(&serviceInspectContext{
+				Service:      service,
+				networkNames: resolveNetworks(service, getNetwork),
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	return fmtCtx.Write(&serviceInspectContext{}, render)
+	})
 }
 
 type serviceInspectContext struct {

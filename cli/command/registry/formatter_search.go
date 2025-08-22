@@ -27,23 +27,27 @@ func newFormat(source string) formatter.Format {
 
 // formatWrite writes the context.
 func formatWrite(fmtCtx formatter.Context, results []registrytypes.SearchResult) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	searchCtx := &searchContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"Name":        formatter.NameHeader,
+				"Description": formatter.DescriptionHeader,
+				"StarCount":   starsHeader,
+				"IsOfficial":  officialHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(searchCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, result := range results {
-			searchCtx := &searchContext{trunc: fmtCtx.Trunc, s: result}
-			if err := format(searchCtx); err != nil {
+			if err := format(&searchContext{
+				trunc: fmtCtx.Trunc,
+				s:     result,
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	searchCtx := searchContext{}
-	searchCtx.Header = formatter.SubHeaderContext{
-		"Name":        formatter.NameHeader,
-		"Description": formatter.DescriptionHeader,
-		"StarCount":   starsHeader,
-		"IsOfficial":  officialHeader,
-	}
-	return fmtCtx.Write(&searchCtx, render)
+	})
 }
 
 type searchContext struct {

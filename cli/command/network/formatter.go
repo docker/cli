@@ -36,28 +36,32 @@ func newFormat(source string, quiet bool) formatter.Format {
 
 // formatWrite writes the context.
 func formatWrite(fmtCtx formatter.Context, networks []network.Summary) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+	networkCtx := networkContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"ID":        networkIDHeader,
+				"Name":      formatter.NameHeader,
+				"Driver":    formatter.DriverHeader,
+				"Scope":     formatter.ScopeHeader,
+				"IPv4":      ipv4Header,
+				"IPv6":      ipv6Header,
+				"Internal":  internalHeader,
+				"Labels":    formatter.LabelsHeader,
+				"CreatedAt": formatter.CreatedAtHeader,
+			},
+		},
+	}
+	return fmtCtx.Write(&networkCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, nw := range networks {
-			networkCtx := &networkContext{trunc: fmtCtx.Trunc, n: nw}
-			if err := format(networkCtx); err != nil {
+			if err := format(&networkContext{
+				trunc: fmtCtx.Trunc,
+				n:     nw,
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	networkCtx := networkContext{}
-	networkCtx.Header = formatter.SubHeaderContext{
-		"ID":        networkIDHeader,
-		"Name":      formatter.NameHeader,
-		"Driver":    formatter.DriverHeader,
-		"Scope":     formatter.ScopeHeader,
-		"IPv4":      ipv4Header,
-		"IPv6":      ipv6Header,
-		"Internal":  internalHeader,
-		"Labels":    formatter.LabelsHeader,
-		"CreatedAt": formatter.CreatedAtHeader,
-	}
-	return fmtCtx.Write(&networkCtx, render)
+	})
 }
 
 type networkContext struct {
