@@ -32,13 +32,6 @@ type pruneOptions struct {
 	keepStorage opts.MemBytes
 }
 
-// NewPruneCommand returns a new cobra prune command for images
-//
-// Deprecated: Do not import commands directly. They will be removed in a future release.
-func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
-	return newPruneCommand(dockerCli)
-}
-
 // newPruneCommand returns a new cobra prune command for images
 func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt()}
