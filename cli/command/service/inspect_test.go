@@ -131,7 +131,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 		Format: format,
 	}
 
-	err := InspectFormatWrite(ctx, []string{"de179gar9d0o7ltdybungplod"},
+	err := inspectFormatWrite(ctx, []string{"de179gar9d0o7ltdybungplod"},
 		func(ref string) (any, []byte, error) {
 			return s, nil, nil
 		},
@@ -149,12 +149,12 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 }
 
 func TestPrettyPrint(t *testing.T) {
-	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
+	s := formatServiceInspect(t, newFormat("pretty"), time.Now())
 	golden.Assert(t, s, "service-inspect-pretty.golden")
 }
 
 func TestPrettyPrintWithNoUpdateConfig(t *testing.T) {
-	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
+	s := formatServiceInspect(t, newFormat("pretty"), time.Now())
 	if strings.Contains(s, "UpdateStatus") {
 		t.Fatal("Pretty print failed before parsing UpdateStatus")
 	}
@@ -167,8 +167,8 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 	now := time.Now()
 	// s1: [{"ID":..}]
 	// s2: {"ID":..}
-	s1 := formatServiceInspect(t, NewFormat(""), now)
-	s2 := formatServiceInspect(t, NewFormat("{{json .}}"), now)
+	s1 := formatServiceInspect(t, newFormat(""), now)
+	s2 := formatServiceInspect(t, newFormat("{{json .}}"), now)
 	var m1Wrap []map[string]any
 	if err := json.Unmarshal([]byte(s1), &m1Wrap); err != nil {
 		t.Fatal(err)
@@ -185,7 +185,7 @@ func TestJSONFormatWithNoUpdateConfig(t *testing.T) {
 }
 
 func TestPrettyPrintWithConfigsAndSecrets(t *testing.T) {
-	s := formatServiceInspect(t, NewFormat("pretty"), time.Now())
+	s := formatServiceInspect(t, newFormat("pretty"), time.Now())
 	assert.Check(t, is.Contains(s, "Log Driver:"), "Pretty print missing Log Driver")
 	assert.Check(t, is.Contains(s, "Configs:"), "Pretty print missing configs")
 	assert.Check(t, is.Contains(s, "Secrets:"), "Pretty print missing secrets")

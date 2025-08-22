@@ -23,7 +23,7 @@ func TestTrustTag(t *testing.T) {
 	}{
 		{
 			trustTagContext{
-				s: SignedTagInfo{
+				s: signedTagInfo{
 					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
@@ -34,7 +34,7 @@ func TestTrustTag(t *testing.T) {
 		},
 		{
 			trustTagContext{
-				s: SignedTagInfo{
+				s: signedTagInfo{
 					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
@@ -46,7 +46,7 @@ func TestTrustTag(t *testing.T) {
 		// Empty signers makes a row with empty string
 		{
 			trustTagContext{
-				s: SignedTagInfo{
+				s: signedTagInfo{
 					Name:    trustedTag,
 					Digest:  digest,
 					Signers: nil,
@@ -57,7 +57,7 @@ func TestTrustTag(t *testing.T) {
 		},
 		{
 			trustTagContext{
-				s: SignedTagInfo{
+				s: signedTagInfo{
 					Name:    trustedTag,
 					Digest:  digest,
 					Signers: []string{"alice", "bob", "claire"},
@@ -69,7 +69,7 @@ func TestTrustTag(t *testing.T) {
 		// alphabetic signing on Signers
 		{
 			trustTagContext{
-				s: SignedTagInfo{
+				s: signedTagInfo{
 					Name:    trustedTag,
 					Digest:  digest,
 					Signers: []string{"claire", "bob", "alice"},
@@ -110,7 +110,7 @@ func TestTrustTagContextWrite(t *testing.T) {
 		// Table Format
 		{
 			formatter.Context{
-				Format: NewTrustTagFormat(),
+				Format: defaultTrustTagTableFormat,
 			},
 			`SIGNED TAG   DIGEST     SIGNERS
 tag1         deadbeef   alice
@@ -120,7 +120,7 @@ tag3         bbbbbbbb
 		},
 	}
 
-	signedTags := []SignedTagInfo{
+	signedTags := []signedTagInfo{
 		{Name: "tag1", Digest: "deadbeef", Signers: []string{"alice"}},
 		{Name: "tag2", Digest: "aaaaaaaa", Signers: []string{"alice", "bob"}},
 		{Name: "tag3", Digest: "bbbbbbbb", Signers: []string{}},
@@ -131,7 +131,7 @@ tag3         bbbbbbbb
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			if err := TagWrite(tc.context, signedTags); err != nil {
+			if err := tagWrite(tc.context, signedTags); err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)
@@ -140,7 +140,7 @@ tag3         bbbbbbbb
 	}
 }
 
-// With no trust data, the TagWrite will print an empty table:
+// With no trust data, the formatWrite will print an empty table:
 // it's up to the caller to decide whether or not to print this versus an error
 func TestTrustTagContextEmptyWrite(t *testing.T) {
 	emptyCase := struct {
@@ -148,16 +148,16 @@ func TestTrustTagContextEmptyWrite(t *testing.T) {
 		expected string
 	}{
 		formatter.Context{
-			Format: NewTrustTagFormat(),
+			Format: defaultTrustTagTableFormat,
 		},
 		`SIGNED TAG   DIGEST    SIGNERS
 `,
 	}
 
-	emptySignedTags := []SignedTagInfo{}
+	emptySignedTags := []signedTagInfo{}
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
-	err := TagWrite(emptyCase.context, emptySignedTags)
+	err := tagWrite(emptyCase.context, emptySignedTags)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
@@ -168,15 +168,15 @@ func TestSignerInfoContextEmptyWrite(t *testing.T) {
 		expected string
 	}{
 		formatter.Context{
-			Format: NewSignerInfoFormat(),
+			Format: defaultSignerInfoTableFormat,
 		},
 		`SIGNER    KEYS
 `,
 	}
-	emptySignerInfo := []SignerInfo{}
+	emptySignerInfo := []signerInfo{}
 	out := bytes.NewBufferString("")
 	emptyCase.context.Output = out
-	err := SignerInfoWrite(emptyCase.context, emptySignerInfo)
+	err := signerInfoWrite(emptyCase.context, emptySignerInfo)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(emptyCase.expected, out.String()))
 }
@@ -202,7 +202,7 @@ func TestSignerInfoContextWrite(t *testing.T) {
 		// Table Format
 		{
 			formatter.Context{
-				Format: NewSignerInfoFormat(),
+				Format: defaultSignerInfoTableFormat,
 				Trunc:  true,
 			},
 			`SIGNER    KEYS
@@ -214,7 +214,7 @@ eve       foobarbazqux, key31, key32
 		// No truncation
 		{
 			formatter.Context{
-				Format: NewSignerInfoFormat(),
+				Format: defaultSignerInfoTableFormat,
 			},
 			`SIGNER    KEYS
 alice     key11, key12
@@ -224,7 +224,7 @@ eve       foobarbazquxquux, key31, key32
 		},
 	}
 
-	signerInfo := []SignerInfo{
+	signerInfo := []signerInfo{
 		{Name: "alice", Keys: []string{"key11", "key12"}},
 		{Name: "bob", Keys: []string{"key21"}},
 		{Name: "eve", Keys: []string{"key31", "key32", "foobarbazquxquux"}},
@@ -234,7 +234,7 @@ eve       foobarbazquxquux, key31, key32
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			if err := SignerInfoWrite(tc.context, signerInfo); err != nil {
+			if err := signerInfoWrite(tc.context, signerInfo); err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)

@@ -77,8 +77,8 @@ func runHistory(ctx context.Context, dockerCli command.Cli, opts historyOptions)
 
 	historyCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewHistoryFormat(format, opts.quiet, opts.human),
+		Format: newHistoryFormat(format, opts.quiet, opts.human),
 		Trunc:  !opts.noTrunc,
 	}
-	return HistoryWrite(historyCtx, opts.human, history)
+	return historyWrite(historyCtx, opts.human, history)
 }

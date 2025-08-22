@@ -66,8 +66,8 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 
 	pluginsCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(format, options.quiet),
+		Format: newFormat(format, options.quiet),
 		Trunc:  !options.noTrunc,
 	}
-	return FormatWrite(pluginsCtx, plugins)
+	return formatWrite(pluginsCtx, plugins)
 }

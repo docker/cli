@@ -27,21 +27,21 @@ func TestConfigContextFormatWrite(t *testing.T) {
 		},
 		// Table format
 		{
-			formatter.Context{Format: NewFormat("table", false)},
+			formatter.Context{Format: newFormat("table", false)},
 			`ID        NAME        CREATED                  UPDATED
 1         passwords   Less than a second ago   Less than a second ago
 2         id_rsa      Less than a second ago   Less than a second ago
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("table {{.Name}}", true)},
+			formatter.Context{Format: newFormat("table {{.Name}}", true)},
 			`NAME
 passwords
 id_rsa
 `,
 		},
 		{
-			formatter.Context{Format: NewFormat("{{.ID}}-{{.Name}}", false)},
+			formatter.Context{Format: newFormat("{{.ID}}-{{.Name}}", false)},
 			`1-passwords
 2-id_rsa
 `,
@@ -64,7 +64,7 @@ id_rsa
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
-			if err := FormatWrite(tc.context, configs); err != nil {
+			if err := formatWrite(tc.context, configs); err != nil {
 				assert.ErrorContains(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)

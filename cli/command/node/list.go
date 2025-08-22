@@ -79,10 +79,10 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 
 	nodesCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(format, options.quiet),
+		Format: newFormat(format, options.quiet),
 	}
 	sort.Slice(nodes, func(i, j int) bool {
 		return sortorder.NaturalLess(nodes[i].Description.Hostname, nodes[j].Description.Hostname)
 	})
-	return FormatWrite(nodesCtx, nodes, info)
+	return formatWrite(nodesCtx, nodes, info)
 }

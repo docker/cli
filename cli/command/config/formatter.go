@@ -30,7 +30,14 @@ Data:
 )
 
 // NewFormat returns a Format for rendering using a config Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewFormat(source string, quiet bool) formatter.Format {
+	return newFormat(source, quiet)
+}
+
+// newFormat returns a Format for rendering using a configContext.
+func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
 	case formatter.PrettyFormatKey:
 		return configInspectPrettyTemplate
@@ -44,7 +51,14 @@ func NewFormat(source string, quiet bool) formatter.Format {
 }
 
 // FormatWrite writes the context
-func FormatWrite(ctx formatter.Context, configs []swarm.Config) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func FormatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
+	return formatWrite(fmtCtx, configs)
+}
+
+// formatWrite writes the context
+func formatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, config := range configs {
 			configCtx := &configContext{c: config}
@@ -54,7 +68,7 @@ func FormatWrite(ctx formatter.Context, configs []swarm.Config) error {
 		}
 		return nil
 	}
-	return ctx.Write(newConfigContext(), render)
+	return fmtCtx.Write(newConfigContext(), render)
 }
 
 func newConfigContext() *configContext {
@@ -115,9 +129,16 @@ func (c *configContext) Label(name string) string {
 }
 
 // InspectFormatWrite renders the context for a list of configs
-func InspectFormatWrite(ctx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
-	if ctx.Format != configInspectPrettyTemplate {
-		return inspect.Inspect(ctx.Output, refs, string(ctx.Format), getRef)
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
+	return inspectFormatWrite(fmtCtx, refs, getRef)
+}
+
+// inspectFormatWrite renders the context for a list of configs
+func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
+	if fmtCtx.Format != configInspectPrettyTemplate {
+		return inspect.Inspect(fmtCtx.Output, refs, string(fmtCtx.Format), getRef)
 	}
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, ref := range refs {
@@ -135,7 +156,7 @@ func InspectFormatWrite(ctx formatter.Context, refs []string, getRef inspect.Get
 		}
 		return nil
 	}
-	return ctx.Write(&configInspectContext{}, render)
+	return fmtCtx.Write(&configInspectContext{}, render)
 }
 
 type configInspectContext struct {

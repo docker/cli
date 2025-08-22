@@ -66,7 +66,7 @@ func runSecretList(ctx context.Context, dockerCli command.Cli, options listOptio
 
 	secretCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(format, options.quiet),
+		Format: newFormat(format, options.quiet),
 	}
-	return FormatWrite(secretCtx, secrets)
+	return formatWrite(secretCtx, secrets)
 }

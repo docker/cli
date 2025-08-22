@@ -61,10 +61,10 @@ func runSecretInspect(ctx context.Context, dockerCli command.Cli, opts inspectOp
 
 	secretCtx := formatter.Context{
 		Output: dockerCli.Out(),
-		Format: NewFormat(f, false),
+		Format: newFormat(f, false),
 	}
 
-	if err := InspectFormatWrite(secretCtx, opts.names, getRef); err != nil {
+	if err := inspectFormatWrite(secretCtx, opts.names, getRef); err != nil {
 		return cli.StatusError{StatusCode: 1, Status: err.Error()}
 	}
 	return nil

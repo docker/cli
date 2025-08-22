@@ -16,8 +16,15 @@ const (
 	automatedHeader = "AUTOMATED"
 )
 
-// NewSearchFormat returns a Format for rendering using a network Context
+// NewSearchFormat returns a Format for rendering using a search Context
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
 func NewSearchFormat(source string) formatter.Format {
+	return newFormat(source)
+}
+
+// newFormat returns a Format for rendering using a searchContext.
+func newFormat(source string) formatter.Format {
 	switch source {
 	case "", formatter.TableFormatKey:
 		return defaultSearchTableFormat
@@ -26,10 +33,17 @@ func NewSearchFormat(source string) formatter.Format {
 }
 
 // SearchWrite writes the context
-func SearchWrite(ctx formatter.Context, results []registrytypes.SearchResult) error {
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func SearchWrite(fmtCtx formatter.Context, results []registrytypes.SearchResult) error {
+	return formatWrite(fmtCtx, results)
+}
+
+// formatWrite writes the context.
+func formatWrite(fmtCtx formatter.Context, results []registrytypes.SearchResult) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
 		for _, result := range results {
-			searchCtx := &searchContext{trunc: ctx.Trunc, s: result}
+			searchCtx := &searchContext{trunc: fmtCtx.Trunc, s: result}
 			if err := format(searchCtx); err != nil {
 				return err
 			}
@@ -43,7 +57,7 @@ func SearchWrite(ctx formatter.Context, results []registrytypes.SearchResult) er
 		"StarCount":   starsHeader,
 		"IsOfficial":  officialHeader,
 	}
-	return ctx.Write(&searchCtx, render)
+	return fmtCtx.Write(&searchCtx, render)
 }
 
 type searchContext struct {

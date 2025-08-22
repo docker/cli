@@ -68,7 +68,7 @@ func RunConfigList(ctx context.Context, dockerCLI command.Cli, options ListOptio
 
 	configCtx := formatter.Context{
 		Output: dockerCLI.Out(),
-		Format: NewFormat(format, options.Quiet),
+		Format: newFormat(format, options.Quiet),
 	}
-	return FormatWrite(configCtx, configs)
+	return formatWrite(configCtx, configs)
 }

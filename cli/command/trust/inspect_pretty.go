@@ -56,33 +56,33 @@ func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures)
 func printSignatures(out io.Writer, signatureRows []trustTagRow) error {
 	trustTagCtx := formatter.Context{
 		Output: out,
-		Format: NewTrustTagFormat(),
+		Format: defaultTrustTagTableFormat,
 	}
 	// convert the formatted type before printing
-	formattedTags := []SignedTagInfo{}
+	formattedTags := []signedTagInfo{}
 	for _, sigRow := range signatureRows {
 		formattedSigners := sigRow.Signers
 		if len(formattedSigners) == 0 {
 			formattedSigners = append(formattedSigners, fmt.Sprintf("(%s)", releasedRoleName))
 		}
-		formattedTags = append(formattedTags, SignedTagInfo{
+		formattedTags = append(formattedTags, signedTagInfo{
 			Name:    sigRow.SignedTag,
 			Digest:  sigRow.Digest,
 			Signers: formattedSigners,
 		})
 	}
-	return TagWrite(trustTagCtx, formattedTags)
+	return tagWrite(trustTagCtx, formattedTags)
 }
 
 func printSignerInfo(out io.Writer, roleToKeyIDs map[string][]string) error {
 	signerInfoCtx := formatter.Context{
 		Output: out,
-		Format: NewSignerInfoFormat(),
+		Format: defaultSignerInfoTableFormat,
 		Trunc:  true,
 	}
-	formattedSignerInfo := []SignerInfo{}
+	formattedSignerInfo := []signerInfo{}
 	for name, keyIDs := range roleToKeyIDs {
-		formattedSignerInfo = append(formattedSignerInfo, SignerInfo{
+		formattedSignerInfo = append(formattedSignerInfo, signerInfo{
 			Name: name,
 			Keys: keyIDs,
 		})
@@ -90,5 +90,5 @@ func printSignerInfo(out io.Writer, roleToKeyIDs map[string][]string) error {
 	sort.Slice(formattedSignerInfo, func(i, j int) bool {
 		return sortorder.NaturalLess(formattedSignerInfo[i].Name, formattedSignerInfo[j].Name)
 	})
-	return SignerInfoWrite(signerInfoCtx, formattedSignerInfo)
+	return signerInfoWrite(signerInfoCtx, formattedSignerInfo)
 }
