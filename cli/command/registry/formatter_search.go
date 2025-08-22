@@ -16,13 +16,6 @@ const (
 	automatedHeader = "AUTOMATED"
 )
 
-// NewSearchFormat returns a Format for rendering using a search Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewSearchFormat(source string) formatter.Format {
-	return newFormat(source)
-}
-
 // newFormat returns a Format for rendering using a searchContext.
 func newFormat(source string) formatter.Format {
 	switch source {
@@ -30,13 +23,6 @@ func newFormat(source string) formatter.Format {
 		return defaultSearchTableFormat
 	}
 	return formatter.Format(source)
-}
-
-// SearchWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func SearchWrite(fmtCtx formatter.Context, results []registrytypes.SearchResult) error {
-	return formatWrite(fmtCtx, results)
 }
 
 // formatWrite writes the context.
