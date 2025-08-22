@@ -29,13 +29,6 @@ Data:
 {{.Data}}`
 )
 
-// NewFormat returns a Format for rendering using a config Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string, quiet bool) formatter.Format {
-	return newFormat(source, quiet)
-}
-
 // newFormat returns a Format for rendering using a configContext.
 func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
@@ -48,13 +41,6 @@ func newFormat(source string, quiet bool) formatter.Format {
 		return defaultConfigTableFormat
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
-	return formatWrite(fmtCtx, configs)
 }
 
 // formatWrite writes the context
@@ -126,13 +112,6 @@ func (c *configContext) Label(name string) string {
 		return ""
 	}
 	return c.c.Spec.Annotations.Labels[name]
-}
-
-// InspectFormatWrite renders the context for a list of configs
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
-	return inspectFormatWrite(fmtCtx, refs, getRef)
 }
 
 // inspectFormatWrite renders the context for a list of configs
