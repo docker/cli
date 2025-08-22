@@ -28,13 +28,6 @@ Created at:        {{.CreatedAt}}
 Updated at:        {{.UpdatedAt}}`
 )
 
-// NewFormat returns a Format for rendering using a secret Context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func NewFormat(source string, quiet bool) formatter.Format {
-	return newFormat(source, quiet)
-}
-
 // newFormat returns a Format for rendering using a secretContext.
 func newFormat(source string, quiet bool) formatter.Format {
 	switch source {
@@ -47,13 +40,6 @@ func newFormat(source string, quiet bool) formatter.Format {
 		return defaultSecretTableFormat
 	}
 	return formatter.Format(source)
-}
-
-// FormatWrite writes the context
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func FormatWrite(fmtCtx formatter.Context, secrets []swarm.Secret) error {
-	return formatWrite(fmtCtx, secrets)
 }
 
 // formatWrite writes the context
@@ -133,13 +119,6 @@ func (c *secretContext) Label(name string) string {
 		return ""
 	}
 	return c.s.Spec.Annotations.Labels[name]
-}
-
-// InspectFormatWrite renders the context for a list of secrets
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func InspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef inspect.GetRefFunc) error {
-	return inspectFormatWrite(fmtCtx, refs, getRef)
 }
 
 // inspectFormatWrite renders the context for a list of secrets.
