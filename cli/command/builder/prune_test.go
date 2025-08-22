@@ -19,7 +19,7 @@ func TestBuilderPromptTermination(t *testing.T) {
 			return nil, errors.New("fakeClient builderPruneFunc should not be called")
 		},
 	})
-	cmd := NewPruneCommand(cli)
+	cmd := newPruneCommand(cli)
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	test.TerminatePrompt(ctx, t, cmd, cli)
