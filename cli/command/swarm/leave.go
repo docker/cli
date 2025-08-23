@@ -36,13 +36,13 @@ func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runLeave(ctx context.Context, dockerCli command.Cli, opts leaveOptions) error {
-	client := dockerCli.Client()
+func runLeave(ctx context.Context, dockerCLI command.Cli, opts leaveOptions) error {
+	apiClient := dockerCLI.Client()
 
-	if err := client.SwarmLeave(ctx, opts.force); err != nil {
+	if err := apiClient.SwarmLeave(ctx, opts.force); err != nil {
 		return err
 	}
 
-	fmt.Fprintln(dockerCli.Out(), "Node left the swarm.")
+	_, _ = fmt.Fprintln(dockerCLI.Out(), "Node left the swarm.")
 	return nil
 }

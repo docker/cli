@@ -51,17 +51,17 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
-	client := dockerCli.Client()
-	volumes, err := client.VolumeList(ctx, volume.ListOptions{Filters: options.filter.Value()})
+func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
+	apiClient := dockerCLI.Client()
+	volumes, err := apiClient.VolumeList(ctx, volume.ListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
 
 	format := options.format
 	if len(format) == 0 && !options.cluster {
-		if len(dockerCli.ConfigFile().VolumesFormat) > 0 && !options.quiet {
-			format = dockerCli.ConfigFile().VolumesFormat
+		if len(dockerCLI.ConfigFile().VolumesFormat) > 0 && !options.quiet {
+			format = dockerCLI.ConfigFile().VolumesFormat
 		} else {
 			format = formatter.TableFormatKey
 		}
@@ -90,7 +90,7 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 	})
 
 	volumeCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: formatter.NewVolumeFormat(format, options.quiet),
 	}
 	return formatter.VolumeWrite(volumeCtx, volumes.Volumes)

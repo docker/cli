@@ -190,7 +190,7 @@ func TestToServiceNetwork(t *testing.T) {
 		{Name: "zzz-network", ID: "id111"},
 	}
 
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
@@ -212,7 +212,7 @@ func TestToServiceNetwork(t *testing.T) {
 
 	ctx := context.Background()
 	flags := newCreateCommand(nil).Flags()
-	service, err := o.ToService(ctx, client, flags)
+	service, err := o.ToService(ctx, apiClient, flags)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual([]swarm.NetworkAttachmentConfig{{Target: "id111"}, {Target: "id555"}, {Target: "id999"}}, service.TaskTemplate.Networks))
 }

@@ -234,13 +234,13 @@ func TestGetExecExitStatus(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		client := &fakeClient{
+		apiClient := &fakeClient{
 			execInspectFunc: func(id string) (container.ExecInspect, error) {
 				assert.Check(t, is.Equal(execID, id))
 				return container.ExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
 			},
 		}
-		err := getExecExitStatus(context.Background(), client, execID)
+		err := getExecExitStatus(context.Background(), apiClient, execID)
 		assert.Check(t, is.Equal(testcase.expectedError, err))
 	}
 }
