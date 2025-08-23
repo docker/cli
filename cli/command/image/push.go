@@ -92,9 +92,11 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	ref, err := reference.ParseNormalizedNamed(opts.remote)
-	switch {
-	case err != nil:
+	if err != nil {
 		return err
+	}
+
+	switch {
 	case opts.all && !reference.IsNameOnly(ref):
 		return errors.New("tag can't be used with --all-tags/-a")
 	case !opts.all && reference.IsNameOnly(ref):
@@ -113,34 +115,32 @@ To push the complete multi-platform image, remove the --platform flag.
 	if err != nil {
 		return err
 	}
-	options := image.PushOptions{
+
+	responseBody, err := dockerCli.Client().ImagePush(ctx, reference.FamiliarString(ref), image.PushOptions{
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: nil,
 		Platform:      platform,
-	}
-
-	responseBody, err := dockerCli.Client().ImagePush(ctx, reference.FamiliarString(ref), options)
+	})
 	if err != nil {
 		return err
 	}
 
 	defer func() {
+		_ = responseBody.Close()
 		for _, note := range notes {
 			out.PrintNote(note)
 		}
 	}()
 
-	defer responseBody.Close()
 	if !opts.untrusted {
-		// TODO pushTrustedReference currently doesn't respect `--quiet`
 		return pushTrustedReference(ctx, dockerCli, indexInfo, ref, authConfig, responseBody)
 	}
 
 	if opts.quiet {
 		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux()))
 		if err == nil {
-			fmt.Fprintln(dockerCli.Out(), ref.String())
+			_, _ = fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
