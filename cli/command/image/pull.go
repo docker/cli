@@ -14,9 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// PullOptions defines what and how to pull
-type PullOptions = pullOptions
-
 // pullOptions defines what and how to pull.
 type pullOptions struct {
 	remote    string
@@ -56,11 +53,6 @@ func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
 
 	return cmd
-}
-
-// RunPull performs a pull against the engine based on the specified options
-func RunPull(ctx context.Context, dockerCLI command.Cli, opts PullOptions) error {
-	return runPull(ctx, dockerCLI, opts)
 }
 
 // runPull performs a pull against the engine based on the specified options
