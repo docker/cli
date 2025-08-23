@@ -419,7 +419,7 @@ $ docker run -it -m 300M ubuntu:24.04 /bin/bash
 
 We set memory limit only, this means the processes in the container can use
 300M memory and 300M swap memory, by default, the total virtual memory size
-(--memory-swap) will be set as double of memory, in this case, memory + swap
+(`--memory-swap`) will be set as double of memory, in this case, memory + swap
 would be 2*300M, so processes can use 300M swap memory as well.
 
 ```console
