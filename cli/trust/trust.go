@@ -156,26 +156,23 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 		}
 	}
 
-	scope := auth.RepositoryScope{
-		Repository: repoInfo.Name.Name(),
-		Actions:    actions,
-	}
-	creds := simpleCredentialStore{auth: *authConfig}
 	tokenHandler := auth.NewTokenHandlerWithOptions(auth.TokenHandlerOptions{
 		Transport:   authTransport,
-		Credentials: creds,
-		Scopes:      []auth.Scope{scope},
-		ClientID:    registry.AuthClientID,
+		Credentials: simpleCredentialStore{auth: *authConfig},
+		Scopes: []auth.Scope{auth.RepositoryScope{
+			Repository: repoInfo.Name.Name(),
+			Actions:    actions,
+		}},
+		ClientID: registry.AuthClientID,
 	})
-	basicHandler := auth.NewBasicHandler(creds)
+	basicHandler := auth.NewBasicHandler(simpleCredentialStore{auth: *authConfig})
 	modifiers = append(modifiers, auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler))
-	tr := transport.NewTransport(base, modifiers...)
 
 	return client.NewFileCachedRepository(
 		GetTrustDirectory(),
 		data.GUN(repoInfo.Name.Name()),
 		server,
-		tr,
+		transport.NewTransport(base, modifiers...),
 		GetPassphraseRetriever(in, out),
 		trustpinning.TrustPinConfig{})
 }
@@ -234,9 +231,9 @@ func NotaryError(repoName string, err error) error {
 		return fmt.Errorf("error: remote trust data does not exist for %s: %v", repoName, err)
 	case signed.ErrInsufficientSignatures:
 		return fmt.Errorf("error: could not produce valid signature for %s.  If Yubikey was used, was touch input provided?: %v", repoName, err)
+	default:
+		return err
 	}
-
-	return err
 }
 
 // AddToAllSignableRoles attempts to add the image target to all the top level
