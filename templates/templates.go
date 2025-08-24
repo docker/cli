@@ -6,6 +6,9 @@ package templates
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"reflect"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -15,7 +18,7 @@ import (
 var basicFunctions = template.FuncMap{
 	"json":     formatJSON,
 	"split":    strings.Split,
-	"join":     strings.Join,
+	"join":     joinElements,
 	"title":    strings.Title, //nolint:nolintlint,staticcheck // strings.Title is deprecated, but we only use it for ASCII, so replacing with golang.org/x/text is out of scope
 	"lower":    strings.ToLower,
 	"upper":    strings.ToUpper,
@@ -96,4 +99,41 @@ func formatJSON(v any) string {
 
 	// Remove the trailing new line added by the encoder
 	return strings.TrimSpace(buf.String())
+}
+
+// joinElements joins a slice of items with the given separator. It uses
+// [strings.Join] if it's a slice of strings, otherwise uses [fmt.Sprint]
+// to join each item to the output.
+func joinElements(elems any, sep string) (string, error) {
+	if elems == nil {
+		return "", nil
+	}
+
+	if ss, ok := elems.([]string); ok {
+		return strings.Join(ss, sep), nil
+	}
+
+	switch rv := reflect.ValueOf(elems); rv.Kind() { //nolint:exhaustive // ignore: too many options to make exhaustive
+	case reflect.Array, reflect.Slice:
+		var b strings.Builder
+		for i := range rv.Len() {
+			if i > 0 {
+				b.WriteString(sep)
+			}
+			_, _ = fmt.Fprint(&b, rv.Index(i).Interface())
+		}
+		return b.String(), nil
+
+	case reflect.Map:
+		var out []string
+		for _, k := range rv.MapKeys() {
+			out = append(out, fmt.Sprint(rv.MapIndex(k).Interface()))
+		}
+		// Not ideal, but trying to keep a consistent order
+		sort.Strings(out)
+		return strings.Join(out, sep), nil
+
+	default:
+		return "", fmt.Errorf("expected slice, got %T", elems)
+	}
 }
