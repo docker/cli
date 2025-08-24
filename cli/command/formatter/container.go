@@ -181,18 +181,22 @@ func (c *ContainerContext) Image() string {
 		return c.c.Image
 	}
 
-	if nt, ok := ref.(reference.NamedTagged); ok {
-		// strip the digest, but preserve the tag
-		if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
-			return reference.FamiliarString(namedTagged)
+	if _, ok := ref.(reference.Digested); ok {
+		// strip the digest, but preserve the tag (if any)
+		var tag string
+		if t, ok := ref.(reference.Tagged); ok {
+			tag = t.Tag()
 		}
-	} else {
-		// case for when a tag is not provided
-		named := reference.TrimNamed(ref)
-		return reference.FamiliarString(named)
+		ref = reference.TrimNamed(ref)
+		if tag != "" {
+			if out, err := reference.WithTag(ref, tag); err == nil {
+				ref = out
+			}
+		}
 	}
 
-	return c.c.Image
+	// Format as "familiar" name with "docker.io[/library]" trimmed.
+	return reference.FamiliarString(ref)
 }
 
 // Command returns's the container's command. If the trunc option is set, the
