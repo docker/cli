@@ -63,9 +63,9 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 
 	var tag string
 	switch x := ref.(type) {
-	case reference.Canonical:
+	case reference.Digested:
 		return errors.New("cannot push a digest reference")
-	case reference.NamedTagged:
+	case reference.Tagged:
 		tag = x.Tag()
 	default:
 		// We want trust signatures to always take an explicit tag,

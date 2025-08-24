@@ -346,9 +346,9 @@ func GetImageReferencesAndAuth(ctx context.Context,
 
 func getTag(ref reference.Named) string {
 	switch x := ref.(type) {
-	case reference.Canonical, reference.Digested:
-		return ""
-	case reference.NamedTagged:
+	case reference.Digested:
+		return "" // TODO(thaJeztah): is it intentional to discard the tag when "Tagged+Digested"?
+	case reference.Tagged:
 		return x.Tag()
 	default:
 		return ""
@@ -357,12 +357,10 @@ func getTag(ref reference.Named) string {
 
 func getDigest(ref reference.Named) digest.Digest {
 	switch x := ref.(type) {
-	case reference.Canonical:
-		return x.Digest()
 	case reference.Digested:
 		return x.Digest()
 	default:
-		return digest.Digest("")
+		return ""
 	}
 }
 
