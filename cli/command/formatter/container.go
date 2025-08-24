@@ -170,24 +170,26 @@ func (c *ContainerContext) Image() string {
 	if c.c.Image == "" {
 		return "<no image>"
 	}
-	if c.trunc {
-		if trunc := TruncateID(c.c.ImageID); trunc == TruncateID(c.c.Image) {
-			return trunc
+	if !c.trunc {
+		return c.c.Image
+	}
+	if trunc := TruncateID(c.c.ImageID); trunc == TruncateID(c.c.Image) {
+		return trunc
+	}
+	ref, err := reference.ParseNormalizedNamed(c.c.Image)
+	if err != nil {
+		return c.c.Image
+	}
+
+	if nt, ok := ref.(reference.NamedTagged); ok {
+		// strip the digest, but preserve the tag
+		if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
+			return reference.FamiliarString(namedTagged)
 		}
-		// truncate digest if no-trunc option was not selected
-		ref, err := reference.ParseNormalizedNamed(c.c.Image)
-		if err == nil {
-			if nt, ok := ref.(reference.NamedTagged); ok {
-				// case for when a tag is provided
-				if namedTagged, err := reference.WithTag(reference.TrimNamed(nt), nt.Tag()); err == nil {
-					return reference.FamiliarString(namedTagged)
-				}
-			} else {
-				// case for when a tag is not provided
-				named := reference.TrimNamed(ref)
-				return reference.FamiliarString(named)
-			}
-		}
+	} else {
+		// case for when a tag is not provided
+		named := reference.TrimNamed(ref)
+		return reference.FamiliarString(named)
 	}
 
 	return c.c.Image
