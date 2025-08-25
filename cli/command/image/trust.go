@@ -8,6 +8,7 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
@@ -68,7 +69,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), trustedRef.String())
+		updatedImgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(cli), trustedRef.String())
 		if err != nil {
 			return err
 		}
@@ -172,7 +173,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 
 // TrustedReference returns the canonical trusted reference for an image reference
 func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(cli), ref.String())
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(cli), ref.String())
 	if err != nil {
 		return nil, err
 	}
@@ -210,9 +211,16 @@ func convertTarget(t client.Target) (target, error) {
 	}, nil
 }
 
-// AuthResolver returns an auth resolver function from a command.Cli
-func AuthResolver(cli command.Cli) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+// AuthResolver returns an auth resolver function from a [config.Provider].
+//
+// Deprecated: this function was only used internally and will be removed in the next release.
+func AuthResolver(dockerCLI config.Provider) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+	return authResolver(dockerCLI)
+}
+
+// authResolver returns an auth resolver function from a [config.Provider].
+func authResolver(dockerCLI config.Provider) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-		return command.ResolveAuthConfig(cli.ConfigFile(), index)
+		return command.ResolveAuthConfig(dockerCLI.ConfigFile(), index)
 	}
 }

@@ -70,7 +70,7 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 		}
 	}
 
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, AuthResolver(dockerCLI), distributionRef.String())
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(dockerCLI), distributionRef.String())
 	if err != nil {
 		return err
 	}
