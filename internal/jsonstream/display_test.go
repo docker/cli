@@ -30,10 +30,8 @@ func TestDisplay(t *testing.T) {
 				return
 			default:
 				err := enc.Encode(JSONMessage{
-					Status:   "Downloading",
-					ID:       fmt.Sprintf("id-%d", i),
-					TimeNano: time.Now().UnixNano(),
-					Time:     time.Now().Unix(),
+					Status: "Downloading",
+					ID:     fmt.Sprintf("id-%d", i),
 					Progress: &JSONProgress{
 						Current: int64(i),
 						Total:   100,
