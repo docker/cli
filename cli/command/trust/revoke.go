@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/pkg/errors"
@@ -35,7 +34,7 @@ func newRevokeCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func revokeTrust(ctx context.Context, dockerCLI command.Cli, remote string, options revokeOptions) error {
-	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, image.AuthResolver(dockerCLI), remote)
+	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(dockerCLI), remote)
 	if err != nil {
 		return err
 	}
