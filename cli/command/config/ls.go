@@ -15,15 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ListOptions contains options for the docker config ls command.
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type ListOptions struct {
-	Quiet  bool
-	Format string
-	Filter opts.FilterOpt
-}
-
 // listOptions contains options for the docker config ls command.
 type listOptions struct {
 	quiet  bool
@@ -51,17 +42,6 @@ func newConfigListCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.VarP(&listOpts.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
-}
-
-// RunConfigList lists Swarm configs.
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunConfigList(ctx context.Context, dockerCLI command.Cli, options ListOptions) error {
-	return runList(ctx, dockerCLI, listOptions{
-		quiet:  options.Quiet,
-		format: options.Format,
-		filter: options.Filter,
-	})
 }
 
 // runList lists Swarm configs.

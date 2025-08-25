@@ -15,16 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateOptions specifies some options that are used when creating a config.
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type CreateOptions struct {
-	Name           string
-	TemplateDriver string
-	File           string
-	Labels         opts.ListOpts
-}
-
 // createOptions specifies some options that are used when creating a config.
 type createOptions struct {
 	name           string
@@ -55,18 +45,6 @@ func newConfigCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	_ = flags.SetAnnotation("template-driver", "version", []string{"1.37"})
 
 	return cmd
-}
-
-// RunConfigCreate creates a config with the given options.
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateOptions) error {
-	return runCreate(ctx, dockerCLI, createOptions{
-		name:           options.Name,
-		templateDriver: options.TemplateDriver,
-		file:           options.File,
-		labels:         options.Labels,
-	})
 }
 
 // runCreate creates a config with the given options.
