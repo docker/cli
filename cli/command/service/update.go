@@ -112,9 +112,9 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
-	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
+	flags.SetAnnotation(flagGenericResourcesRemove, "version", []string{"1.32"})
 	flags.Var(newListOptsVarWithValidator(ValidateSingleGenericResource), flagGenericResourcesAdd, "Add a Generic resource")
-	flags.SetAnnotation(flagHostAdd, "version", []string{"1.32"})
+	flags.SetAnnotation(flagGenericResourcesAdd, "version", []string{"1.32"})
 
 	// TODO(thaJeztah): add completion for capabilities, stop-signal (currently non-exported in container package)
 	// _ = cmd.RegisterFlagCompletionFunc(flagCapAdd, completeLinuxCapabilityNames)
