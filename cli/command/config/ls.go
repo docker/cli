@@ -16,14 +16,23 @@ import (
 )
 
 // ListOptions contains options for the docker config ls command.
+//
+// Deprecated: this type was for internal use and will be removed in the next release.
 type ListOptions struct {
 	Quiet  bool
 	Format string
 	Filter opts.FilterOpt
 }
 
-func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
-	listOpts := ListOptions{Filter: opts.NewFilterOpt()}
+// listOptions contains options for the docker config ls command.
+type listOptions struct {
+	quiet  bool
+	format string
+	filter opts.FilterOpt
+}
+
+func newConfigListCommand(dockerCLI command.Cli) *cobra.Command {
+	listOpts := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -31,31 +40,42 @@ func newConfigListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List configs",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunConfigList(cmd.Context(), dockerCli, listOpts)
+			return runList(cmd.Context(), dockerCLI, listOpts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&listOpts.Quiet, "quiet", "q", false, "Only display IDs")
-	flags.StringVar(&listOpts.Format, "format", "", flagsHelper.FormatHelp)
-	flags.VarP(&listOpts.Filter, "filter", "f", "Filter output based on conditions provided")
+	flags.BoolVarP(&listOpts.quiet, "quiet", "q", false, "Only display IDs")
+	flags.StringVar(&listOpts.format, "format", "", flagsHelper.FormatHelp)
+	flags.VarP(&listOpts.filter, "filter", "f", "Filter output based on conditions provided")
 
 	return cmd
 }
 
 // RunConfigList lists Swarm configs.
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunConfigList(ctx context.Context, dockerCLI command.Cli, options ListOptions) error {
+	return runList(ctx, dockerCLI, listOptions{
+		quiet:  options.Quiet,
+		format: options.Format,
+		filter: options.Filter,
+	})
+}
+
+// runList lists Swarm configs.
+func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	configs, err := apiClient.ConfigList(ctx, swarm.ConfigListOptions{Filters: options.Filter.Value()})
+	configs, err := apiClient.ConfigList(ctx, swarm.ConfigListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
 
-	format := options.Format
+	format := options.format
 	if len(format) == 0 {
-		if len(dockerCLI.ConfigFile().ConfigFormat) > 0 && !options.Quiet {
+		if len(dockerCLI.ConfigFile().ConfigFormat) > 0 && !options.quiet {
 			format = dockerCLI.ConfigFile().ConfigFormat
 		} else {
 			format = formatter.TableFormatKey
@@ -68,7 +88,7 @@ func RunConfigList(ctx context.Context, dockerCLI command.Cli, options ListOptio
 
 	configCtx := formatter.Context{
 		Output: dockerCLI.Out(),
-		Format: newFormat(format, options.Quiet),
+		Format: newFormat(format, options.quiet),
 	}
 	return formatWrite(configCtx, configs)
 }
