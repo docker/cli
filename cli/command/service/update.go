@@ -95,7 +95,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.SetAnnotation(flagDNSOptionAdd, "version", []string{"1.25"})
 	flags.Var(&options.dnsSearch, flagDNSSearchAdd, "Add or update a custom DNS search domain")
 	flags.SetAnnotation(flagDNSSearchAdd, "version", []string{"1.25"})
-	flags.Var(&options.hosts, flagHostAdd, `Add a custom host-to-IP mapping ("host:ip")`)
+	flags.Var(opts.NewListOptsCSV(&options.hosts), flagHostAdd, `Add a custom host-to-IP mapping ("host:ip")`)
 	flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
 	flags.BoolVar(&options.init, flagInit, false, "Use an init inside each service container to forward signals and reap processes")
 	flags.SetAnnotation(flagInit, "version", []string{"1.37"})
@@ -1235,7 +1235,7 @@ func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 
 	// Append new hosts (in SwarmKit format)
 	if flags.Changed(flagHostAdd) {
-		values := convertExtraHostsToSwarmHosts(flags.Lookup(flagHostAdd).Value.(*opts.ListOpts).GetSlice())
+		values := convertExtraHostsToSwarmHosts(flags.Lookup(flagHostAdd).Value.(pflag.SliceValue).GetSlice())
 		newHosts = append(newHosts, values...)
 	}
 	*hosts = removeDuplicates(newHosts)

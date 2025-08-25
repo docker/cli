@@ -388,6 +388,7 @@ func TestUpdateHealthcheckTable(t *testing.T) {
 
 func TestUpdateHosts(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
+	flags.Set("host-add", "a:1.1.1.1,b:2.2.2.2")
 	flags.Set("host-add", "example.net:2.2.2.2")
 	flags.Set("host-add", "ipv6.net:2001:db8:abc8::1")
 	// adding the special "host-gateway" target should work
@@ -402,7 +403,7 @@ func TestUpdateHosts(t *testing.T) {
 	assert.ErrorContains(t, flags.Set("host-add", "$example.com$"), `bad format for add-host: "$example.com$"`)
 
 	hosts := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2001:db8:abc8::1 example.net", "gateway.docker.internal:host-gateway"}
-	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "2.2.2.2 example.net", "2001:db8:abc8::1 ipv6.net", "host-gateway host.docker.internal"}
+	expected := []string{"1.2.3.4 example.com", "4.3.2.1 example.org", "1.1.1.1 a", "2.2.2.2 b", "2.2.2.2 example.net", "2001:db8:abc8::1 ipv6.net", "host-gateway host.docker.internal"}
 
 	err := updateHosts(flags, &hosts)
 	assert.NilError(t, err)
