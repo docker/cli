@@ -211,13 +211,6 @@ func convertTarget(t client.Target) (target, error) {
 	}, nil
 }
 
-// AuthResolver returns an auth resolver function from a [config.Provider].
-//
-// Deprecated: this function was only used internally and will be removed in the next release.
-func AuthResolver(dockerCLI config.Provider) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-	return authResolver(dockerCLI)
-}
-
 // authResolver returns an auth resolver function from a [config.Provider].
 func authResolver(dockerCLI config.Provider) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
