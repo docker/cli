@@ -15,15 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// InspectOptions contains options for the docker config inspect command.
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type InspectOptions struct {
-	Names  []string
-	Format string
-	Pretty bool
-}
-
 // inspectOptions contains options for the docker config inspect command.
 type inspectOptions struct {
 	names  []string
@@ -49,17 +40,6 @@ func newConfigInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
 	cmd.Flags().BoolVar(&opts.pretty, "pretty", false, "Print the information in a human friendly format")
 	return cmd
-}
-
-// RunConfigInspect inspects the given Swarm config.
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunConfigInspect(ctx context.Context, dockerCLI command.Cli, opts InspectOptions) error {
-	return runInspect(ctx, dockerCLI, inspectOptions{
-		names:  opts.Names,
-		format: opts.Format,
-		pretty: opts.Pretty,
-	})
 }
 
 // runInspect inspects the given Swarm config.
