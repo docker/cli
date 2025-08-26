@@ -16,7 +16,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	"github.com/moby/moby/api/types/auxprogress"
 	"github.com/moby/moby/client"
@@ -129,10 +128,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}()
 
 	if !opts.untrusted {
-		// Resolve the Repository name from fqn to RepositoryInfo
-		indexInfo := registry.NewIndexInfo(ref)
-		authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
-		return pushTrustedReference(ctx, dockerCli, indexInfo, ref, authConfig, responseBody)
+		return pushTrustedReference(ctx, dockerCli, ref, responseBody)
 	}
 
 	if opts.quiet {
