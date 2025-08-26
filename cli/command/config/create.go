@@ -16,6 +16,8 @@ import (
 )
 
 // CreateOptions specifies some options that are used when creating a config.
+//
+// Deprecated: this type was for internal use and will be removed in the next release.
 type CreateOptions struct {
 	Name           string
 	TemplateDriver string
@@ -23,9 +25,17 @@ type CreateOptions struct {
 	Labels         opts.ListOpts
 }
 
-func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
-	createOpts := CreateOptions{
-		Labels: opts.NewListOpts(opts.ValidateLabel),
+// createOptions specifies some options that are used when creating a config.
+type createOptions struct {
+	name           string
+	templateDriver string
+	file           string
+	labels         opts.ListOpts
+}
+
+func newConfigCreateCommand(dockerCLI command.Cli) *cobra.Command {
+	createOpts := createOptions{
+		labels: opts.NewListOpts(opts.ValidateLabel),
 	}
 
 	cmd := &cobra.Command{
@@ -33,39 +43,51 @@ func newConfigCreateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Create a config from a file or STDIN",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			createOpts.Name = args[0]
-			createOpts.File = args[1]
-			return RunConfigCreate(cmd.Context(), dockerCli, createOpts)
+			createOpts.name = args[0]
+			createOpts.file = args[1]
+			return runCreate(cmd.Context(), dockerCLI, createOpts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 	flags := cmd.Flags()
-	flags.VarP(&createOpts.Labels, "label", "l", "Config labels")
-	flags.StringVar(&createOpts.TemplateDriver, "template-driver", "", "Template driver")
-	flags.SetAnnotation("template-driver", "version", []string{"1.37"})
+	flags.VarP(&createOpts.labels, "label", "l", "Config labels")
+	flags.StringVar(&createOpts.templateDriver, "template-driver", "", "Template driver")
+	_ = flags.SetAnnotation("template-driver", "version", []string{"1.37"})
 
 	return cmd
 }
 
 // RunConfigCreate creates a config with the given options.
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunConfigCreate(ctx context.Context, dockerCLI command.Cli, options CreateOptions) error {
+	return runCreate(ctx, dockerCLI, createOptions{
+		name:           options.Name,
+		templateDriver: options.TemplateDriver,
+		file:           options.File,
+		labels:         options.Labels,
+	})
+}
+
+// runCreate creates a config with the given options.
+func runCreate(ctx context.Context, dockerCLI command.Cli, options createOptions) error {
 	apiClient := dockerCLI.Client()
 
-	configData, err := readConfigData(dockerCLI.In(), options.File)
+	configData, err := readConfigData(dockerCLI.In(), options.file)
 	if err != nil {
-		return fmt.Errorf("error reading content from %q: %v", options.File, err)
+		return fmt.Errorf("error reading content from %q: %v", options.file, err)
 	}
 
 	spec := swarm.ConfigSpec{
 		Annotations: swarm.Annotations{
-			Name:   options.Name,
-			Labels: opts.ConvertKVStringsToMap(options.Labels.GetSlice()),
+			Name:   options.name,
+			Labels: opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 		},
 		Data: configData,
 	}
-	if options.TemplateDriver != "" {
+	if options.templateDriver != "" {
 		spec.Templating = &swarm.Driver{
-			Name: options.TemplateDriver,
+			Name: options.templateDriver,
 		}
 	}
 	r, err := apiClient.ConfigCreate(ctx, spec)
