@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -44,8 +44,6 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts swarmOptions) error {
 	apiClient := dockerCLI.Client()
 
-	var updateFlags swarm.UpdateFlags
-
 	swarmInspect, err := apiClient.SwarmInspect(ctx)
 	if err != nil {
 		return err
@@ -57,7 +55,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 
 	curAutoLock := swarmInspect.Spec.EncryptionConfig.AutoLockManagers
 
-	err = apiClient.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, updateFlags)
+	err = apiClient.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, client.SwarmUpdateFlags{})
 	if err != nil {
 		return err
 	}

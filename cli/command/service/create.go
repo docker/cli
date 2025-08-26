@@ -101,7 +101,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
 	apiClient := dockerCLI.Client()
-	createOpts := swarm.ServiceCreateOptions{}
+	createOpts := client.ServiceCreateOptions{}
 
 	service, err := opts.ToService(ctx, apiClient, flags)
 	if err != nil {

@@ -16,6 +16,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/tui"
+	"github.com/moby/moby/api/pkg/authconfig"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/morikuni/aec"
 )
@@ -58,19 +59,19 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 	if !isDefaultRegistry {
 		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
-	authconfig := configtypes.AuthConfig{}
+	authCfg := configtypes.AuthConfig{}
 	var err error
 	if checkCredStore {
-		authconfig, err = cfg.GetAuthConfig(serverAddress)
+		authCfg, err = cfg.GetAuthConfig(serverAddress)
 		if err != nil {
 			return registrytypes.AuthConfig{
 				ServerAddress: serverAddress,
 			}, err
 		}
 	}
-	authconfig.ServerAddress = serverAddress
-	authconfig.IdentityToken = ""
-	return registrytypes.AuthConfig(authconfig), nil
+	authCfg.ServerAddress = serverAddress
+	authCfg.IdentityToken = ""
+	return registrytypes.AuthConfig(authCfg), nil
 }
 
 // PromptUserForCredentials handles the CLI prompt for the user to input
@@ -185,7 +186,7 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 		return "", err
 	}
 
-	encodedAuth, err := registrytypes.EncodeAuthConfig(registrytypes.AuthConfig(authConfig))
+	encodedAuth, err := authconfig.Encode(registrytypes.AuthConfig(authConfig))
 	if err != nil {
 		return "", err
 	}

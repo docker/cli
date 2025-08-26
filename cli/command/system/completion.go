@@ -6,9 +6,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/api/types/image"
-	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -197,7 +195,7 @@ func imageNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []st
 // networkNames contacts the API to get a list of network names.
 // In case of an error, an empty list is returned.
 func networkNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().NetworkList(cmd.Context(), network.ListOptions{})
+	list, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
 	if err != nil {
 		return []string{}
 	}
@@ -211,7 +209,7 @@ func networkNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []
 // nodeNames contacts the API to get a list of node names.
 // In case of an error, an empty list is returned.
 func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().NodeList(cmd.Context(), swarm.NodeListOptions{})
+	list, err := dockerCLI.Client().NodeList(cmd.Context(), client.NodeListOptions{})
 	if err != nil {
 		return []string{}
 	}
@@ -225,7 +223,7 @@ func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []str
 // volumeNames contacts the API to get a list of volume names.
 // In case of an error, an empty list is returned.
 func volumeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().VolumeList(cmd.Context(), volume.ListOptions{})
+	list, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
 	if err != nil {
 		return []string{}
 	}

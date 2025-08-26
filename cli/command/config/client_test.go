@@ -11,7 +11,7 @@ type fakeClient struct {
 	client.Client
 	configCreateFunc  func(context.Context, swarm.ConfigSpec) (swarm.ConfigCreateResponse, error)
 	configInspectFunc func(context.Context, string) (swarm.Config, []byte, error)
-	configListFunc    func(context.Context, swarm.ConfigListOptions) ([]swarm.Config, error)
+	configListFunc    func(context.Context, client.ConfigListOptions) ([]swarm.Config, error)
 	configRemoveFunc  func(string) error
 }
 
@@ -29,7 +29,7 @@ func (c *fakeClient) ConfigInspectWithRaw(ctx context.Context, id string) (swarm
 	return swarm.Config{}, nil, nil
 }
 
-func (c *fakeClient) ConfigList(ctx context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
+func (c *fakeClient) ConfigList(ctx context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
 	if c.configListFunc != nil {
 		return c.configListFunc(ctx, options)
 	}

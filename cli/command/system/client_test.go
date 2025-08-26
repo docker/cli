@@ -21,14 +21,14 @@ type fakeClient struct {
 	version            string
 	containerListFunc  func(context.Context, container.ListOptions) ([]container.Summary, error)
 	containerPruneFunc func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
-	eventsFn           func(context.Context, events.ListOptions) (<-chan events.Message, <-chan error)
+	eventsFn           func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error)
 	imageListFunc      func(ctx context.Context, options image.ListOptions) ([]image.Summary, error)
 	infoFunc           func(ctx context.Context) (system.Info, error)
-	networkListFunc    func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
+	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 	networkPruneFunc   func(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
-	nodeListFunc       func(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error)
+	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error)
 	serverVersion      func(ctx context.Context) (types.Version, error)
-	volumeListFunc     func(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error)
+	volumeListFunc     func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error)
 }
 
 func (cli *fakeClient) ClientVersion() string {
@@ -49,7 +49,7 @@ func (cli *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters
 	return container.PruneReport{}, nil
 }
 
-func (cli *fakeClient) Events(ctx context.Context, opts events.ListOptions) (<-chan events.Message, <-chan error) {
+func (cli *fakeClient) Events(ctx context.Context, opts client.EventsListOptions) (<-chan events.Message, <-chan error) {
 	return cli.eventsFn(ctx, opts)
 }
 
@@ -67,7 +67,7 @@ func (cli *fakeClient) Info(ctx context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (cli *fakeClient) NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+func (cli *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 	if cli.networkListFunc != nil {
 		return cli.networkListFunc(ctx, options)
 	}
@@ -81,7 +81,7 @@ func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Ar
 	return network.PruneReport{}, nil
 }
 
-func (cli *fakeClient) NodeList(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error) {
+func (cli *fakeClient) NodeList(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error) {
 	if cli.nodeListFunc != nil {
 		return cli.nodeListFunc(ctx, options)
 	}
@@ -92,7 +92,7 @@ func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error)
 	return cli.serverVersion(ctx)
 }
 
-func (cli *fakeClient) VolumeList(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error) {
+func (cli *fakeClient) VolumeList(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
 	if cli.volumeListFunc != nil {
 		return cli.volumeListFunc(ctx, options)
 	}

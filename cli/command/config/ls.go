@@ -11,7 +11,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +48,7 @@ func newConfigListCommand(dockerCLI command.Cli) *cobra.Command {
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	configs, err := apiClient.ConfigList(ctx, swarm.ConfigListOptions{Filters: options.filter.Value()})
+	configs, err := apiClient.ConfigList(ctx, client.ConfigListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}

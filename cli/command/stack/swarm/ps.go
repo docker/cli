@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/task"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 // RunPS is the swarm implementation of docker stack ps
@@ -16,7 +16,7 @@ func RunPS(ctx context.Context, dockerCLI command.Cli, opts options.PS) error {
 	filter := getStackFilterFromOpt(opts.Namespace, opts.Filter)
 
 	apiClient := dockerCLI.Client()
-	tasks, err := apiClient.TaskList(ctx, swarm.TaskListOptions{Filters: filter})
+	tasks, err := apiClient.TaskList(ctx, client.TaskListOptions{Filters: filter})
 	if err != nil {
 		return err
 	}

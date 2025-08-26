@@ -56,7 +56,7 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		err       error
 	)
 
-	listOpts := swarm.ServiceListOptions{
+	listOpts := client.ServiceListOptions{
 		Filters: options.filter.Value(),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and
@@ -146,7 +146,7 @@ func AppendServiceStatus(ctx context.Context, c client.APIClient, services []swa
 		return services, nil
 	}
 
-	tasks, err := c.TaskList(ctx, swarm.TaskListOptions{Filters: taskFilter})
+	tasks, err := c.TaskList(ctx, client.TaskListOptions{Filters: taskFilter})
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func AppendServiceStatus(ctx context.Context, c client.APIClient, services []swa
 }
 
 func getActiveNodes(ctx context.Context, c client.NodeAPIClient) (map[string]struct{}, error) {
-	nodes, err := c.NodeList(ctx, swarm.NodeListOptions{})
+	nodes, err := c.NodeList(ctx, client.NodeListOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -344,7 +344,7 @@ func (c *ContainerContext) Networks() string {
 // DisplayablePorts returns formatted string representing open ports of container
 // e.g. "0.0.0.0:80->9090/tcp, 9988/tcp"
 // it's used by command 'docker ps'
-func DisplayablePorts(ports []container.Port) string {
+func DisplayablePorts(ports []container.PortSummary) string {
 	type portGroup struct {
 		first uint16
 		last  uint16
@@ -410,7 +410,7 @@ func formGroup(key string, start, last uint16) string {
 	return group + "/" + groupType
 }
 
-func comparePorts(i, j container.Port) bool {
+func comparePorts(i, j container.PortSummary) bool {
 	if i.PrivatePort != j.PrivatePort {
 		return i.PrivatePort < j.PrivatePort
 	}

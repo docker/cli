@@ -32,7 +32,7 @@ type fakeClient struct {
 	client.Client
 	containerListFunc func(options container.ListOptions) ([]container.Summary, error)
 	imageListFunc     func(options image.ListOptions) ([]image.Summary, error)
-	networkListFunc   func(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
+	networkListFunc   func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
 }
 
@@ -50,14 +50,14 @@ func (c *fakeClient) ImageList(_ context.Context, options image.ListOptions) ([]
 	return []image.Summary{}, nil
 }
 
-func (c *fakeClient) NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 	if c.networkListFunc != nil {
 		return c.networkListFunc(ctx, options)
 	}
 	return []network.Inspect{}, nil
 }
 
-func (c *fakeClient) VolumeList(_ context.Context, options volume.ListOptions) (volume.ListResponse, error) {
+func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
 	if c.volumeListFunc != nil {
 		return c.volumeListFunc(options.Filters)
 	}
@@ -273,7 +273,7 @@ func TestCompleteNetworkNames(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := NetworkNames(fakeCLI{&fakeClient{
-				networkListFunc: func(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
+				networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return nil, errors.New("some error occurred")
 					}

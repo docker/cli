@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -18,7 +19,7 @@ import (
 func TestStackPsErrors(t *testing.T) {
 	testCases := []struct {
 		args          []string
-		taskListFunc  func(options swarm.TaskListOptions) ([]swarm.Task, error)
+		taskListFunc  func(options client.TaskListOptions) ([]swarm.Task, error)
 		expectedError string
 	}{
 		{
@@ -31,7 +32,7 @@ func TestStackPsErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return nil, errors.New("error getting tasks")
 			},
 			expectedError: "error getting tasks",
@@ -54,7 +55,7 @@ func TestStackPsErrors(t *testing.T) {
 func TestStackPs(t *testing.T) {
 	testCases := []struct {
 		doc                string
-		taskListFunc       func(swarm.TaskListOptions) ([]swarm.Task, error)
+		taskListFunc       func(client.TaskListOptions) ([]swarm.Task, error)
 		nodeInspectWithRaw func(string) (swarm.Node, []byte, error)
 		config             configfile.ConfigFile
 		args               []string
@@ -69,7 +70,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithEmptyStack",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{}, nil
 			},
 			args:        []string{"foo"},
@@ -77,7 +78,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithQuietOption",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task(builders.TaskID("id-foo"))}, nil
 			},
 			args: []string{"foo"},
@@ -88,7 +89,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithNoTruncOption",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task(builders.TaskID("xn4cypcov06f2w8gsbaf2lst3"))}, nil
 			},
 			args: []string{"foo"},
@@ -100,7 +101,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithNoResolveOption",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task(
 					builders.TaskNodeID("id-node-foo"),
 				)}, nil
@@ -117,7 +118,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithFormat",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task(builders.TaskServiceID("service-id-foo"))}, nil
 			},
 			args: []string{"foo"},
@@ -128,7 +129,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithConfigFormat",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task(builders.TaskServiceID("service-id-foo"))}, nil
 			},
 			config: configfile.ConfigFile{
@@ -139,7 +140,7 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithoutFormat",
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task(
 					builders.TaskID("id-foo"),
 					builders.TaskServiceID("service-id-foo"),

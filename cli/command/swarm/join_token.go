@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -57,7 +57,7 @@ func runJoinToken(ctx context.Context, dockerCLI command.Cli, opts joinTokenOpti
 			return err
 		}
 
-		err = apiClient.SwarmUpdate(ctx, sw.Version, sw.Spec, swarm.UpdateFlags{
+		err = apiClient.SwarmUpdate(ctx, sw.Version, sw.Spec, client.SwarmUpdateFlags{
 			RotateWorkerToken:  worker,
 			RotateManagerToken: manager,
 		})

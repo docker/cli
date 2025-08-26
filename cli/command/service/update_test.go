@@ -12,6 +12,7 @@ import (
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -852,7 +853,7 @@ func TestUpdateNetworks(t *testing.T) {
 	}
 
 	apiClient := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
+		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
 					return nw, nil
@@ -1202,7 +1203,7 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 
 			// fakeConfigAPIClientList is actually defined in create_test.go,
 			// but we'll use it here as well
-			var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts swarm.ConfigListOptions) ([]swarm.Config, error) {
+			var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
 				names := opts.Filters.Get("name")
 				assert.Equal(t, len(names), len(tc.lookupConfigs))
 

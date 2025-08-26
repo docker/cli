@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -58,14 +59,14 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		},
 	}
 	cfg := configfile.New("filename")
-	for _, authconfig := range testAuthConfigs {
-		assert.Check(t, cfg.GetCredentialsStore(authconfig.ServerAddress).Store(configtypes.AuthConfig(authconfig)))
+	for _, authCfg := range testAuthConfigs {
+		assert.Check(t, cfg.GetCredentialsStore(authCfg.ServerAddress).Store(configtypes.AuthConfig(authCfg)))
 	}
 	for _, tc := range testCases {
 		serverAddress := tc.inputServerAddress
-		authconfig, err := command.GetDefaultAuthConfig(cfg, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
+		authCfg, err := command.GetDefaultAuthConfig(cfg, tc.checkCredStore, serverAddress, serverAddress == "https://index.docker.io/v1/")
 		assert.NilError(t, err)
-		assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, authconfig))
+		assert.Check(t, is.DeepEqual(tc.expectedAuthConfig, authCfg))
 	}
 }
 
@@ -78,8 +79,8 @@ func TestGetDefaultAuthConfig_HelperError(t *testing.T) {
 		ServerAddress: serverAddress,
 	}
 	const isDefaultRegistry = false // registry is not "https://index.docker.io/v1/"
-	authconfig, err := command.GetDefaultAuthConfig(cfg, true, serverAddress, isDefaultRegistry)
-	assert.Check(t, is.DeepEqual(expectedAuthConfig, authconfig))
+	authCfg, err := command.GetDefaultAuthConfig(cfg, true, serverAddress, isDefaultRegistry)
+	assert.Check(t, is.DeepEqual(expectedAuthConfig, authCfg))
 	assert.Check(t, is.ErrorContains(err, "docker-credential-fake-does-not-exist"))
 }
 
@@ -185,7 +186,7 @@ func TestRetrieveAuthTokenFromImage(t *testing.T) {
 				imageRef := path.Join(tc.prefix, remoteRef)
 				actual, err := command.RetrieveAuthTokenFromImage(&cfg, imageRef)
 				assert.NilError(t, err)
-				expectedAuthCfg, err := registry.EncodeAuthConfig(tc.expectedAuthCfg)
+				expectedAuthCfg, err := authconfig.Encode(tc.expectedAuthCfg)
 				assert.NilError(t, err)
 				assert.Equal(t, actual, expectedAuthCfg)
 			}

@@ -10,11 +10,11 @@ import (
 // FakeClient is a fake NetworkAPIClient
 type FakeClient struct {
 	client.NetworkAPIClient
-	NetworkInspectFunc func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error)
+	NetworkInspectFunc func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error)
 }
 
 // NetworkInspect fakes inspecting a network
-func (c *FakeClient) NetworkInspect(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
+func (c *FakeClient) NetworkInspect(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error) {
 	if c.NetworkInspectFunc != nil {
 		return c.NetworkInspectFunc(ctx, networkID, options)
 	}

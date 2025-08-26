@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -21,7 +22,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 		flags            map[string]string
 		infoFunc         func() (system.Info, error)
 		swarmInspectFunc func() (swarm.Swarm, error)
-		swarmUpdateFunc  func(swarm swarm.Spec, flags swarm.UpdateFlags) error
+		swarmUpdateFunc  func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
 		nodeInspectFunc  func() (swarm.Node, []byte, error)
 		expectedError    string
 	}{
@@ -65,7 +66,7 @@ func TestSwarmJoinTokenErrors(t *testing.T) {
 			flags: map[string]string{
 				flagRotate: "true",
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags swarm.UpdateFlags) error {
+			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
 				return errors.New("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",

@@ -32,7 +32,7 @@ type fakeClient struct {
 	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
 	containerListFunc       func(container.ListOptions) ([]container.Summary, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
-	containerExecResizeFunc func(id string, options container.ResizeOptions) error
+	containerExecResizeFunc func(id string, options client.ContainerResizeOptions) error
 	containerRemoveFunc     func(ctx context.Context, containerID string, options container.RemoveOptions) error
 	containerRestartFunc    func(ctx context.Context, containerID string, options container.StopOptions) error
 	containerStopFunc       func(ctx context.Context, containerID string, options container.StopOptions) error
@@ -159,7 +159,7 @@ func (f *fakeClient) ContainerExport(_ context.Context, containerID string) (io.
 	return nil, nil
 }
 
-func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options container.ResizeOptions) error {
+func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options client.ContainerResizeOptions) error {
 	if f.containerExecResizeFunc != nil {
 		return f.containerExecResizeFunc(id, options)
 	}

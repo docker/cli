@@ -69,7 +69,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 	f.Add("container", containerID)
 
 	eventCtx, cancel := context.WithCancel(ctx)
-	eventq, errq := apiClient.Events(eventCtx, events.ListOptions{
+	eventq, errq := apiClient.Events(eventCtx, client.EventsListOptions{
 		Filters: f,
 	})
 

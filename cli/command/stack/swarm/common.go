@@ -30,11 +30,11 @@ func getAllStacksFilter() filters.Args {
 }
 
 func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Service, error) {
-	return apiclient.ServiceList(ctx, swarm.ServiceListOptions{Filters: getStackFilter(namespace)})
+	return apiclient.ServiceList(ctx, client.ServiceListOptions{Filters: getStackFilter(namespace)})
 }
 
 func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) ([]network.Summary, error) {
-	return apiclient.NetworkList(ctx, network.ListOptions{Filters: getStackFilter(namespace)})
+	return apiclient.NetworkList(ctx, client.NetworkListOptions{Filters: getStackFilter(namespace)})
 }
 
 func getStackSecrets(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Secret, error) {
@@ -42,9 +42,9 @@ func getStackSecrets(ctx context.Context, apiclient client.APIClient, namespace 
 }
 
 func getStackConfigs(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Config, error) {
-	return apiclient.ConfigList(ctx, swarm.ConfigListOptions{Filters: getStackFilter(namespace)})
+	return apiclient.ConfigList(ctx, client.ConfigListOptions{Filters: getStackFilter(namespace)})
 }
 
 func getStackTasks(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Task, error) {
-	return apiclient.TaskList(ctx, swarm.TaskListOptions{Filters: getStackFilter(namespace)})
+	return apiclient.TaskList(ctx, client.TaskListOptions{Filters: getStackFilter(namespace)})
 }

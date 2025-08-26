@@ -13,8 +13,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
+	"github.com/moby/moby/api/pkg/authconfig"
 	imagetypes "github.com/moby/moby/api/types/image"
-	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -93,7 +93,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			_, _ = fmt.Fprintf(dockerCLI.Err(), "Signing and pushing trust data for local image %s, may overwrite remote trust data\n", imageName)
 
 			authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), imgRefAndAuth.RepoInfo().Index)
-			encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+			encodedAuth, err := authconfig.Encode(authConfig)
 			if err != nil {
 				return err
 			}

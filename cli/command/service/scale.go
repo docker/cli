@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
@@ -94,7 +93,7 @@ func runScale(ctx context.Context, dockerCLI command.Cli, options *scaleOptions,
 }
 
 func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, serviceID string, scale uint64) (warnings []string, _ error) {
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, swarm.ServiceInspectOptions{})
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +108,7 @@ func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, ser
 		return nil, errors.New("scale can only be used with replicated or replicated-job mode")
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, swarm.ServiceUpdateOptions{})
+	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, client.ServiceUpdateOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
 	"github.com/moby/moby/api/types/events"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +65,7 @@ func runEvents(ctx context.Context, dockerCLI command.Cli, options *eventsOption
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	evts, errs := dockerCLI.Client().Events(ctx, events.ListOptions{
+	evts, errs := dockerCLI.Client().Events(ctx, client.EventsListOptions{
 		Since:   options.since,
 		Until:   options.until,
 		Filters: options.filter.Value(),

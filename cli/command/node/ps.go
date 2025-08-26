@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -83,7 +84,7 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 		filter := options.filter.Value()
 		filter.Add("node", node.ID)
 
-		nodeTasks, err := apiClient.TaskList(ctx, swarm.TaskListOptions{Filters: filter})
+		nodeTasks, err := apiClient.TaskList(ctx, client.TaskListOptions{Filters: filter})
 		if err != nil {
 			errs = append(errs, err.Error())
 			continue

@@ -14,6 +14,7 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 )
@@ -89,7 +90,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				networkListFunc: func(_ context.Context, _ network.ListOptions) ([]network.Summary, error) {
+				networkListFunc: func(_ context.Context, _ client.NetworkListOptions) ([]network.Summary, error) {
 					return []network.Summary{
 						*builders.NetworkResource(builders.NetworkResourceName("nw1")),
 						*builders.NetworkResource(builders.NetworkResourceName("nw2")),
@@ -101,7 +102,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				networkListFunc: func(_ context.Context, _ network.ListOptions) ([]network.Summary, error) {
+				networkListFunc: func(_ context.Context, _ client.NetworkListOptions) ([]network.Summary, error) {
 					return nil, errors.New("API error")
 				},
 			},
@@ -110,7 +111,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				nodeListFunc: func(_ context.Context, _ swarm.NodeListOptions) ([]swarm.Node, error) {
+				nodeListFunc: func(_ context.Context, _ client.NodeListOptions) ([]swarm.Node, error) {
 					return []swarm.Node{
 						*builders.Node(builders.Hostname("n1")),
 					}, nil
@@ -121,7 +122,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				nodeListFunc: func(_ context.Context, _ swarm.NodeListOptions) ([]swarm.Node, error) {
+				nodeListFunc: func(_ context.Context, _ client.NodeListOptions) ([]swarm.Node, error) {
 					return []swarm.Node{}, errors.New("API error")
 				},
 			},
@@ -130,7 +131,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				volumeListFunc: func(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error) {
+				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
 					return volume.ListResponse{
 						Volumes: []*volume.Volume{
 							builders.Volume(builders.VolumeName("v1")),
@@ -144,7 +145,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				volumeListFunc: func(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error) {
+				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
 					return volume.ListResponse{}, errors.New("API error")
 				},
 			},

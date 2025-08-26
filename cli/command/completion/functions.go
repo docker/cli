@@ -7,8 +7,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/image"
-	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -79,7 +77,7 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(conta
 // VolumeNames offers completion for volumes
 func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().VolumeList(cmd.Context(), volume.ListOptions{})
+		list, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
@@ -94,7 +92,7 @@ func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 // NetworkNames offers completion for networks
 func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().NetworkList(cmd.Context(), network.ListOptions{})
+		list, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

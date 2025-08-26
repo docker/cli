@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -46,7 +46,7 @@ func runUnlockKey(ctx context.Context, dockerCLI command.Cli, opts unlockKeyOpti
 	apiClient := dockerCLI.Client()
 
 	if opts.rotate {
-		flags := swarm.UpdateFlags{RotateManagerUnlockKey: true}
+		flags := client.SwarmUpdateFlags{RotateManagerUnlockKey: true}
 
 		sw, err := apiClient.SwarmInspect(ctx)
 		if err != nil {

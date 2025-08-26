@@ -10,13 +10,14 @@ import (
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestCreateFilter(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "idmatch"},
 				{ID: "idprefixmatch"},
@@ -48,7 +49,7 @@ func TestCreateFilter(t *testing.T) {
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "aaaone"},
 				{ID: "aaatwo"},
@@ -75,7 +76,7 @@ func TestCreateFilterNoneFound(t *testing.T) {
 
 func TestRunPSWarnsOnNotFound(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "foo"},
 			}, nil
@@ -96,10 +97,10 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 
 func TestRunPSQuiet(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{{ID: "foo"}}, nil
 		},
-		taskListFunc: func(ctx context.Context, options swarm.TaskListOptions) ([]swarm.Task, error) {
+		taskListFunc: func(ctx context.Context, options client.TaskListOptions) ([]swarm.Task, error) {
 			return []swarm.Task{{ID: "sxabyp0obqokwekpun4rjo0b3"}}, nil
 		},
 	}

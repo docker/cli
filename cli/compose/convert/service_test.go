@@ -571,7 +571,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 		},
 	}
 	apiClient := &fakeClient{
-		configListFunc: func(opts swarm.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(opts client.ConfigListOptions) ([]swarm.Config, error) {
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_config"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_config"))
 			assert.Check(t, is.Contains(opts.Filters.Get("name"), "baz_config"))
@@ -615,7 +615,7 @@ func TestConvertServiceConfigs(t *testing.T) {
 type fakeClient struct {
 	client.Client
 	secretListFunc func(swarm.SecretListOptions) ([]swarm.Secret, error)
-	configListFunc func(swarm.ConfigListOptions) ([]swarm.Config, error)
+	configListFunc func(client.ConfigListOptions) ([]swarm.Config, error)
 }
 
 func (c *fakeClient) SecretList(_ context.Context, options swarm.SecretListOptions) ([]swarm.Secret, error) {
@@ -625,7 +625,7 @@ func (c *fakeClient) SecretList(_ context.Context, options swarm.SecretListOptio
 	return []swarm.Secret{}, nil
 }
 
-func (c *fakeClient) ConfigList(_ context.Context, options swarm.ConfigListOptions) ([]swarm.Config, error) {
+func (c *fakeClient) ConfigList(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
 	if c.configListFunc != nil {
 		return c.configListFunc(options)
 	}

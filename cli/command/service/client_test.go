@@ -12,30 +12,30 @@ import (
 
 type fakeClient struct {
 	client.Client
-	serviceInspectWithRawFunc func(ctx context.Context, serviceID string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error)
-	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
-	serviceListFunc           func(context.Context, swarm.ServiceListOptions) ([]swarm.Service, error)
-	taskListFunc              func(context.Context, swarm.TaskListOptions) ([]swarm.Task, error)
+	serviceInspectWithRawFunc func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (swarm.Service, []byte, error)
+	serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
+	serviceListFunc           func(context.Context, client.ServiceListOptions) ([]swarm.Service, error)
+	taskListFunc              func(context.Context, client.TaskListOptions) ([]swarm.Task, error)
 	infoFunc                  func(ctx context.Context) (system.Info, error)
-	networkInspectFunc        func(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error)
-	nodeListFunc              func(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error)
+	networkInspectFunc        func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error)
+	nodeListFunc              func(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error)
 }
 
-func (f *fakeClient) NodeList(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error) {
+func (f *fakeClient) NodeList(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error) {
 	if f.nodeListFunc != nil {
 		return f.nodeListFunc(ctx, options)
 	}
 	return nil, nil
 }
 
-func (f *fakeClient) TaskList(ctx context.Context, options swarm.TaskListOptions) ([]swarm.Task, error) {
+func (f *fakeClient) TaskList(ctx context.Context, options client.TaskListOptions) ([]swarm.Task, error) {
 	if f.taskListFunc != nil {
 		return f.taskListFunc(ctx, options)
 	}
 	return nil, nil
 }
 
-func (f *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (f *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
 	if f.serviceInspectWithRawFunc != nil {
 		return f.serviceInspectWithRawFunc(ctx, serviceID, options)
 	}
@@ -43,7 +43,7 @@ func (f *fakeClient) ServiceInspectWithRaw(ctx context.Context, serviceID string
 	return *builders.Service(builders.ServiceID(serviceID)), []byte{}, nil
 }
 
-func (f *fakeClient) ServiceList(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
+func (f *fakeClient) ServiceList(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
 	if f.serviceListFunc != nil {
 		return f.serviceListFunc(ctx, options)
 	}
@@ -51,7 +51,7 @@ func (f *fakeClient) ServiceList(ctx context.Context, options swarm.ServiceListO
 	return nil, nil
 }
 
-func (f *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
+func (f *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 	if f.serviceUpdateFunc != nil {
 		return f.serviceUpdateFunc(ctx, serviceID, version, service, options)
 	}
@@ -66,7 +66,7 @@ func (f *fakeClient) Info(ctx context.Context) (system.Info, error) {
 	return f.infoFunc(ctx)
 }
 
-func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, options network.InspectOptions) (network.Inspect, error) {
+func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error) {
 	if f.networkInspectFunc != nil {
 		return f.networkInspectFunc(ctx, networkID, options)
 	}

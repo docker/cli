@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -18,37 +19,37 @@ func TestStackServicesErrors(t *testing.T) {
 	testCases := []struct {
 		args            []string
 		flags           map[string]string
-		serviceListFunc func(options swarm.ServiceListOptions) ([]swarm.Service, error)
-		nodeListFunc    func(options swarm.NodeListOptions) ([]swarm.Node, error)
-		taskListFunc    func(options swarm.TaskListOptions) ([]swarm.Task, error)
+		serviceListFunc func(options client.ServiceListOptions) ([]swarm.Service, error)
+		nodeListFunc    func(options client.NodeListOptions) ([]swarm.Node, error)
+		taskListFunc    func(options client.TaskListOptions) ([]swarm.Task, error)
 		expectedError   string
 	}{
 		{
 			args: []string{"foo"},
-			serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 				return nil, errors.New("error getting services")
 			},
 			expectedError: "error getting services",
 		},
 		{
 			args: []string{"foo"},
-			serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 				return []swarm.Service{*builders.Service(builders.GlobalService())}, nil
 			},
-			nodeListFunc: func(options swarm.NodeListOptions) ([]swarm.Node, error) {
+			nodeListFunc: func(options client.NodeListOptions) ([]swarm.Node, error) {
 				return nil, errors.New("error getting nodes")
 			},
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return []swarm.Task{*builders.Task()}, nil
 			},
 			expectedError: "error getting nodes",
 		},
 		{
 			args: []string{"foo"},
-			serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 				return []swarm.Service{*builders.Service(builders.GlobalService())}, nil
 			},
-			taskListFunc: func(options swarm.TaskListOptions) ([]swarm.Task, error) {
+			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
 				return nil, errors.New("error getting tasks")
 			},
 			expectedError: "error getting tasks",
@@ -58,7 +59,7 @@ func TestStackServicesErrors(t *testing.T) {
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
-			serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 				return []swarm.Service{*builders.Service()}, nil
 			},
 			expectedError: "template parsing error",
@@ -95,7 +96,7 @@ func TestRunServicesWithEmptyName(t *testing.T) {
 
 func TestStackServicesEmptyServiceList(t *testing.T) {
 	fakeCli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{}, nil
 		},
 	})
@@ -108,7 +109,7 @@ func TestStackServicesEmptyServiceList(t *testing.T) {
 
 func TestStackServicesWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*builders.Service(builders.ServiceID("id-foo"))}, nil
 		},
 	})
@@ -121,7 +122,7 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 
 func TestStackServicesWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*builders.Service(builders.ServiceName("service-name-foo")),
 			}, nil
@@ -136,7 +137,7 @@ func TestStackServicesWithFormat(t *testing.T) {
 
 func TestStackServicesWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*builders.Service(builders.ServiceName("service-name-foo")),
 			}, nil
@@ -153,7 +154,7 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 
 func TestStackServicesWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options swarm.ServiceListOptions) ([]swarm.Service, error) {
+		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{*builders.Service(
 				builders.ServiceName("name-foo"),
 				builders.ServiceID("id-foo"),

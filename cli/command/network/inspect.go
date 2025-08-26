@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -45,6 +44,6 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runInspect(ctx context.Context, apiClient client.NetworkAPIClient, output io.Writer, opts inspectOptions) error {
 	return inspect.Inspect(output, opts.names, opts.format, func(name string) (any, []byte, error) {
-		return apiClient.NetworkInspectWithRaw(ctx, name, network.InspectOptions{Verbose: opts.verbose})
+		return apiClient.NetworkInspectWithRaw(ctx, name, client.NetworkInspectOptions{Verbose: opts.verbose})
 	})
 }

@@ -43,7 +43,7 @@ func (r *IDResolver) get(ctx context.Context, t any, id string) (string, error) 
 		}
 		return id, nil
 	case swarm.Service:
-		service, _, err := r.client.ServiceInspectWithRaw(ctx, id, swarm.ServiceInspectOptions{})
+		service, _, err := r.client.ServiceInspectWithRaw(ctx, id, client.ServiceInspectOptions{})
 		if err != nil {
 			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
 			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.

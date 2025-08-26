@@ -45,12 +45,12 @@ func WithName(name string) func(*container.Summary) {
 }
 
 // WithPort adds a port mapping to the container
-func WithPort(privatePort, publicPort uint16, builders ...func(*container.Port)) func(*container.Summary) {
+func WithPort(privatePort, publicPort uint16, builders ...func(summary *container.PortSummary)) func(*container.Summary) {
 	return func(c *container.Summary) {
 		if c.Ports == nil {
-			c.Ports = []container.Port{}
+			c.Ports = []container.PortSummary{}
 		}
-		port := &container.Port{
+		port := &container.PortSummary{
 			PrivatePort: privatePort,
 			PublicPort:  publicPort,
 		}
@@ -71,18 +71,18 @@ func WithSize(size int64) func(*container.Summary) {
 }
 
 // IP sets the ip of the port
-func IP(ip string) func(*container.Port) {
-	return func(p *container.Port) {
+func IP(ip string) func(*container.PortSummary) {
+	return func(p *container.PortSummary) {
 		p.IP = ip
 	}
 }
 
 // TCP sets the port to tcp
-func TCP(p *container.Port) {
+func TCP(p *container.PortSummary) {
 	p.Type = "tcp"
 }
 
 // UDP sets the port to udp
-func UDP(p *container.Port) {
+func UDP(p *container.PortSummary) {
 	p.Type = "udp"
 }

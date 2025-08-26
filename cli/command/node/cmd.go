@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/commands"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -55,7 +54,7 @@ func Reference(ctx context.Context, apiClient client.APIClient, ref string) (str
 			// get a more specific error message.
 			//
 			// FIXME(thaJeztah): this should not require calling a Swarm endpoint, and we could just suffice with info / ping (which has swarm status).
-			_, err = apiClient.NodeList(ctx, swarm.NodeListOptions{})
+			_, err = apiClient.NodeList(ctx, client.NodeListOptions{})
 			if err != nil {
 				return "", err
 			}

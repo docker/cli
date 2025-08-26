@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/swarm/progress"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -83,7 +84,7 @@ func runCA(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opt
 	}
 
 	updateSwarmSpec(&swarmInspect.Spec, flags, opts)
-	if err := apiClient.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, swarm.UpdateFlags{}); err != nil {
+	if err := apiClient.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, client.SwarmUpdateFlags{}); err != nil {
 		return err
 	}
 

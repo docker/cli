@@ -7,8 +7,8 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/versions"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -43,12 +43,12 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 func runRollback(ctx context.Context, dockerCLI command.Cli, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCLI.Client()
 
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, swarm.ServiceInspectOptions{})
+	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
 	if err != nil {
 		return err
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, swarm.ServiceUpdateOptions{
+	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, client.ServiceUpdateOptions{
 		Rollback: "previous", // TODO(thaJeztah): this should have a const defined
 	})
 	if err != nil {

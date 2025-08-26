@@ -13,8 +13,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -66,7 +65,7 @@ func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions)
 
 	getRef := func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		service, _, err := apiClient.ServiceInspectWithRaw(ctx, ref, swarm.ServiceInspectOptions{InsertDefaults: true})
+		service, _, err := apiClient.ServiceInspectWithRaw(ctx, ref, client.ServiceInspectOptions{InsertDefaults: true})
 		if err == nil || !errdefs.IsNotFound(err) {
 			return service, nil, err
 		}
@@ -74,7 +73,7 @@ func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions)
 	}
 
 	getNetwork := func(ref string) (any, []byte, error) {
-		nw, _, err := apiClient.NetworkInspectWithRaw(ctx, ref, network.InspectOptions{Scope: "swarm"})
+		nw, _, err := apiClient.NetworkInspectWithRaw(ctx, ref, client.NetworkInspectOptions{Scope: "swarm"})
 		if err == nil || !errdefs.IsNotFound(err) {
 			return nw, nil, err
 		}

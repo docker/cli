@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/events"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -59,7 +60,7 @@ func TestEventsFormat(t *testing.T) {
 			// Set to UTC timezone as timestamps in output are
 			// printed in the current timezone
 			t.Setenv("TZ", "UTC")
-			cli := test.NewFakeCli(&fakeClient{eventsFn: func(context.Context, events.ListOptions) (<-chan events.Message, <-chan error) {
+			fakeCLI := test.NewFakeCli(&fakeClient{eventsFn: func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error) {
 				messages := make(chan events.Message)
 				errs := make(chan error, 1)
 				go func() {
@@ -70,14 +71,14 @@ func TestEventsFormat(t *testing.T) {
 				}()
 				return messages, errs
 			}})
-			cmd := newEventsCommand(cli)
+			cmd := newEventsCommand(fakeCLI)
 			cmd.SetArgs(tc.args)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			assert.Check(t, cmd.Execute())
-			out := cli.OutBuffer().String()
+			out := fakeCLI.OutBuffer().String()
 			assert.Check(t, golden.String(out, fmt.Sprintf("docker-events-%s.golden", strings.ReplaceAll(tc.name, " ", "-"))))
-			cli.OutBuffer().Reset()
+			fakeCLI.OutBuffer().Reset()
 		})
 	}
 }
