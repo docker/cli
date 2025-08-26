@@ -282,6 +282,8 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	}
 	filterResourceAttributesEnvvar()
 
+	cli.setAllowNegativex509()
+
 	return nil
 }
 
@@ -473,6 +475,43 @@ func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
 		return resolveDefaultDockerEndpoint(cli.options)
 	}
 	return resolveDockerEndpoint(cli.contextStore, cn)
+}
+
+// setAllowNegativex509 is an escape hatch that sets the GODEBUG=x509negativeserial
+// environment variable for this process and sub-processes (such as CLI plugins)
+func (cli *DockerCli) setAllowNegativex509() {
+	cn := cli.CurrentContext()
+	meta, err := cli.ContextStore().GetMetadata(cn)
+	if err != nil {
+		return
+	}
+
+	fieldName := "allowx509negativeserialdonotuse"
+
+	var config any
+	var ok bool
+	switch m := meta.Metadata.(type) {
+	case DockerContext:
+		config, ok = m.AdditionalFields[fieldName]
+		if !ok {
+			return
+		}
+	case map[string]any:
+		config, ok = m[fieldName]
+		if !ok {
+			return
+		}
+	default:
+		return
+	}
+
+	v, ok := config.(string)
+	if !ok {
+		return
+	}
+	if v == "1" {
+		_ = os.Setenv("GODEBUG", "x509negativeserial=1")
+	}
 }
 
 func (cli *DockerCli) initialize() error {
