@@ -2,15 +2,14 @@ package image
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/trust"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -78,15 +77,13 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 	// Check if reference has a digest
 	_, isCanonical := distributionRef.(reference.Canonical)
 	if !opts.untrusted && !isCanonical {
-		err = trustedPull(ctx, dockerCLI, imgRefAndAuth, opts)
-	} else {
-		err = imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth, opts)
-	}
-	if err != nil {
-		if strings.Contains(err.Error(), "when fetching 'plugin'") {
-			return errors.New(err.Error() + " - Use `docker plugin install`")
+		if err := trustedPull(ctx, dockerCLI, imgRefAndAuth, opts); err != nil {
+			return err
 		}
-		return err
+	} else {
+		if err := imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth, opts); err != nil {
+			return err
+		}
 	}
 	_, _ = fmt.Fprintln(dockerCLI.Out(), imgRefAndAuth.Reference().String())
 	return nil
