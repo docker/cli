@@ -9,53 +9,57 @@ import (
 )
 
 func TestStackContextWrite(t *testing.T) {
-	cases := []struct {
-		context  formatter.Context
+	tests := []struct {
+		name     string
+		format   formatter.Format
 		expected string
 	}{
-		// Errors
 		{
-			formatter.Context{Format: "{{InvalidFunction}}"},
-			`template parsing error: template: :1: function "InvalidFunction" not defined`,
+			name:     "invalid function",
+			format:   `{{InvalidFunction}}`,
+			expected: `template parsing error: template: :1: function "InvalidFunction" not defined`,
 		},
 		{
-			formatter.Context{Format: "{{nil}}"},
-			`template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
+			name:     "invalid placeholder",
+			format:   `{{nil}}`,
+			expected: `template parsing error: template: :1:2: executing "" at <nil>: nil is not a command`,
 		},
-		// Table format
 		{
-			formatter.Context{Format: SwarmStackTableFormat},
-			`NAME      SERVICES
+			name:   "table format",
+			format: SwarmStackTableFormat,
+			expected: `NAME      SERVICES
 baz       2
 bar       1
 `,
 		},
 		{
-			formatter.Context{Format: formatter.Format("table {{.Name}}")},
-			`NAME
+			name:   "custom table format",
+			format: `table {{.Name}}`,
+			expected: `NAME
 baz
 bar
 `,
 		},
-		// Custom Format
 		{
-			formatter.Context{Format: formatter.Format("{{.Name}}")},
-			`baz
+			name:   "custom format",
+			format: `{{.Name}}`,
+			expected: `baz
 bar
 `,
 		},
 	}
 
-	stacks := []*Stack{
-		{Name: "baz", Services: 2},
-		{Name: "bar", Services: 1},
-	}
-	for _, tc := range cases {
-		t.Run(string(tc.context.Format), func(t *testing.T) {
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
 			var out bytes.Buffer
-			tc.context.Output = &out
-
-			if err := StackWrite(tc.context, stacks); err != nil {
+			fmtCtx := formatter.Context{
+				Format: tc.format,
+				Output: &out,
+			}
+			if err := StackWrite(fmtCtx, []*Stack{
+				{Name: "baz", Services: 2},
+				{Name: "bar", Services: 1},
+			}); err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)
