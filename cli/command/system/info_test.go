@@ -109,16 +109,13 @@ var sampleInfoNoSwarm = system.Info{
 	Isolation:          "",
 	InitBinary:         "docker-init",
 	ContainerdCommit: system.Commit{
-		ID:       "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
-		Expected: "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
+		ID: "6e23458c129b551d5c9871e5174f6b1b7f6d1170",
 	},
 	RuncCommit: system.Commit{
-		ID:       "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
-		Expected: "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
+		ID: "810190ceaa507aa2727d7ae6f4790c76ec150bd2",
 	},
 	InitCommit: system.Commit{
-		ID:       "949e6fa",
-		Expected: "949e6fa",
+		ID: "949e6fa",
 	},
 	SecurityOptions: []string{"name=apparmor", "name=seccomp,profile=default"},
 	DefaultAddressPools: []system.NetworkAddressPool{
