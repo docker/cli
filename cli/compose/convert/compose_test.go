@@ -5,6 +5,7 @@ import (
 
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -76,7 +77,7 @@ func TestNetworks(t *testing.T) {
 			Name: "othername",
 		},
 	}
-	expected := map[string]network.CreateOptions{
+	expected := map[string]client.NetworkCreateOptions{
 		"foo_default": {
 			Labels: map[string]string{
 				LabelNamespace: "foo",

@@ -113,7 +113,7 @@ func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io
 			Network: options.configFrom,
 		}
 	}
-	resp, err := apiClient.NetworkCreate(ctx, options.name, network.CreateOptions{
+	resp, err := apiClient.NetworkCreate(ctx, options.name, client.NetworkCreateOptions{
 		Driver:     options.driver,
 		Options:    options.driverOpts.GetAll(),
 		IPAM:       ipamCfg,

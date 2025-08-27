@@ -7,6 +7,7 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -51,13 +52,13 @@ func AddStackLabel(namespace Namespace, labels map[string]string) map[string]str
 type networkMap map[string]composetypes.NetworkConfig
 
 // Networks from the compose-file type to the engine API type
-func Networks(namespace Namespace, networks networkMap, servicesNetworks map[string]struct{}) (map[string]network.CreateOptions, []string) {
+func Networks(namespace Namespace, networks networkMap, servicesNetworks map[string]struct{}) (map[string]client.NetworkCreateOptions, []string) {
 	if networks == nil {
 		networks = make(map[string]composetypes.NetworkConfig)
 	}
 
 	externalNetworks := []string{}
-	result := make(map[string]network.CreateOptions)
+	result := make(map[string]client.NetworkCreateOptions)
 	for internalName := range servicesNetworks {
 		nw := networks[internalName]
 		if nw.External.External {
@@ -65,7 +66,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 			continue
 		}
 
-		createOpts := network.CreateOptions{
+		createOpts := client.NetworkCreateOptions{
 			Labels:     AddStackLabel(namespace, nw.Labels),
 			Driver:     nw.Driver,
 			Options:    nw.DriverOpts,
