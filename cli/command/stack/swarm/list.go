@@ -9,37 +9,31 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetStacks lists the swarm stacks.
+// GetStacks lists the swarm stacks with the number of services they contain.
 //
 // Deprecated: this function was for internal use and will be removed in the next release.
 func GetStacks(ctx context.Context, apiClient client.ServiceAPIClient) ([]*formatter.Stack, error) {
-	services, err := apiClient.ServiceList(
-		ctx,
-		client.ServiceListOptions{Filters: getAllStacksFilter()})
+	services, err := apiClient.ServiceList(ctx, client.ServiceListOptions{
+		Filters: getAllStacksFilter(),
+	})
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string]*formatter.Stack)
-	for _, service := range services {
-		labels := service.Spec.Labels
-		name, ok := labels[convert.LabelNamespace]
+
+	idx := make(map[string]int, len(services))
+	out := make([]*formatter.Stack, 0, len(services))
+
+	for _, svc := range services {
+		name, ok := svc.Spec.Labels[convert.LabelNamespace]
 		if !ok {
-			return nil, errors.Errorf("cannot get label %s for service %s",
-				convert.LabelNamespace, service.ID)
+			return nil, errors.New("cannot get label " + convert.LabelNamespace + " for service " + svc.ID)
 		}
-		ztack, ok := m[name]
-		if !ok {
-			m[name] = &formatter.Stack{
-				Name:     name,
-				Services: 1,
-			}
-		} else {
-			ztack.Services++
+		if i, ok := idx[name]; ok {
+			out[i].Services++
+			continue
 		}
+		idx[name] = len(out)
+		out = append(out, &formatter.Stack{Name: name, Services: 1})
 	}
-	stacks := make([]*formatter.Stack, 0, len(m))
-	for _, stack := range m {
-		stacks = append(stacks, stack)
-	}
-	return stacks, nil
+	return out, nil
 }
