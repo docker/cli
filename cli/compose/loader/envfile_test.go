@@ -1,4 +1,4 @@
-package opts
+package loader
 
 import (
 	"os"
@@ -17,13 +17,13 @@ func tmpFileWithContent(t *testing.T, content string) string {
 	return fileName
 }
 
-// Test ParseEnvFile for a non existent file
+// Test parseEnvFile for a non existent file
 func TestParseEnvFileNonExistentFile(t *testing.T) {
-	_, err := ParseEnvFile("no_such_file")
+	_, err := parseEnvFile("no_such_file")
 	assert.Check(t, is.ErrorType(err, os.IsNotExist))
 }
 
-// ParseEnvFile with environment variable import definitions
+// parseEnvFile with environment variable import definitions
 func TestParseEnvVariableDefinitionsFile(t *testing.T) {
 	content := `# comment=
 UNDEFINED_VAR
@@ -32,7 +32,7 @@ DEFINED_VAR
 	tmpFile := tmpFileWithContent(t, content)
 
 	t.Setenv("DEFINED_VAR", "defined-value")
-	variables, err := ParseEnvFile(tmpFile)
+	variables, err := parseEnvFile(tmpFile)
 	assert.NilError(t, err)
 
 	expectedLines := []string{"DEFINED_VAR=defined-value"}

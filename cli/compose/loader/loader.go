@@ -468,7 +468,7 @@ func resolveEnvironment(serviceConfig *types.ServiceConfig, workingDir string, l
 
 		for _, file := range serviceConfig.EnvFile {
 			filePath := absPath(workingDir, file)
-			fileVars, err := opts.ParseEnvFile(filePath)
+			fileVars, err := parseEnvFile(filePath)
 			if err != nil {
 				return err
 			}
