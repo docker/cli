@@ -248,7 +248,7 @@ $ docker run -it --mount type=bind,source=[PATH],target=[PATH] busybox
 ```
 
 In this case, the `--mount` flag takes three parameters. A type (`bind`), and
-two paths. The `source` path is a the location on the host that you want to
+two paths. The `source` path is the location on the host that you want to
 bind mount into the container. The `target` path is the mount destination
 inside the container.
 
@@ -419,7 +419,7 @@ $ docker run -it -m 300M ubuntu:24.04 /bin/bash
 
 We set memory limit only, this means the processes in the container can use
 300M memory and 300M swap memory, by default, the total virtual memory size
-(--memory-swap) will be set as double of memory, in this case, memory + swap
+(`--memory-swap`) will be set as double of memory, in this case, memory + swap
 would be 2*300M, so processes can use 300M swap memory as well.
 
 ```console
@@ -1087,7 +1087,7 @@ Additionally, you can set any environment variable in the container by using
 one or more `-e` flags. You can even override the variables mentioned above, or
 variables defined using a Dockerfile `ENV` instruction when building the image.
 
-If the you name an environment variable without specifying a value, the current
+If you name an environment variable without specifying a value, the current
 value of the named variable on the host is propagated into the container's
 environment:
 
