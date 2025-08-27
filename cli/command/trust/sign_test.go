@@ -142,7 +142,7 @@ func TestAddStageSigners(t *testing.T) {
 	newSignerKeyChange := changeList[0]
 	expectedJSON, err := json.Marshal(&changelist.TUFDelegation{
 		NewThreshold: notary.MinThreshold,
-		AddKeys:      data.KeyList([]data.PublicKey{userKey}),
+		AddKeys:      []data.PublicKey{userKey},
 	})
 	assert.NilError(t, err)
 	expectedChange := changelist.NewTUFChange(
@@ -175,7 +175,7 @@ func TestAddStageSigners(t *testing.T) {
 	releasesKeyChange := changeList[2]
 	expectedJSON, err = json.Marshal(&changelist.TUFDelegation{
 		NewThreshold: notary.MinThreshold,
-		AddKeys:      data.KeyList([]data.PublicKey{userKey}),
+		AddKeys:      []data.PublicKey{userKey},
 	})
 	assert.NilError(t, err)
 	expectedChange = changelist.NewTUFChange(
