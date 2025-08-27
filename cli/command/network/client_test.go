@@ -10,7 +10,7 @@ import (
 
 type fakeClient struct {
 	client.Client
-	networkCreateFunc     func(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error)
+	networkCreateFunc     func(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error)
 	networkConnectFunc    func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
@@ -19,7 +19,7 @@ type fakeClient struct {
 	networkInspectFunc    func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, []byte, error)
 }
 
-func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error) {
+func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error) {
 	if c.networkCreateFunc != nil {
 		return c.networkCreateFunc(ctx, name, options)
 	}

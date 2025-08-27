@@ -156,7 +156,7 @@ func createConfigs(ctx context.Context, dockerCLI command.Cli, configs []swarm.C
 	return nil
 }
 
-func createNetworks(ctx context.Context, dockerCLI command.Cli, namespace convert.Namespace, networks map[string]network.CreateOptions) error {
+func createNetworks(ctx context.Context, dockerCLI command.Cli, namespace convert.Namespace, networks map[string]client.NetworkCreateOptions) error {
 	apiClient := dockerCLI.Client()
 
 	existingNetworks, err := getStackNetworks(ctx, apiClient, namespace.Name())
