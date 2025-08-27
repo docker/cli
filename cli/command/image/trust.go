@@ -13,12 +13,12 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/moby/moby/api/pkg/authconfig"
-	"github.com/moby/moby/api/types/image"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/theupdateframework/notary/client"
+	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
@@ -30,11 +30,11 @@ type target struct {
 
 // notaryClientProvider is used in tests to provide a dummy notary client.
 type notaryClientProvider interface {
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error)
+	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 }
 
 // newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
-func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (client.Repository, error) {
+func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (notaryclient.Repository, error) {
 	if ncp, ok := cli.(notaryClientProvider); ok {
 		// notaryClientProvider is used in tests to provide a dummy notary client.
 		return ncp.NotaryClient(imgRefAndAuth, []string{"pull"})
@@ -154,7 +154,7 @@ func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth tru
 	if err != nil {
 		return err
 	}
-	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), image.PullOptions{
+	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), client.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: nil,
 		All:           opts.all,
@@ -191,7 +191,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	// Only list tags in the top level targets role or the releases delegation role - ignore
 	// all other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), client.ErrNoSuchTarget(ref.Tag()))
+		return nil, trust.NotaryError(imgRefAndAuth.RepoInfo().Name.Name(), notaryclient.ErrNoSuchTarget(ref.Tag()))
 	}
 	r, err := convertTarget(t.Target)
 	if err != nil {
@@ -200,7 +200,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 	return reference.WithDigest(reference.TrimNamed(ref), r.digest)
 }
 
-func convertTarget(t client.Target) (target, error) {
+func convertTarget(t notaryclient.Target) (target, error) {
 	h, ok := t.Hashes["sha256"]
 	if !ok {
 		return target{}, errors.New("no valid hash, expecting sha256")

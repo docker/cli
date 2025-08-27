@@ -10,7 +10,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +47,7 @@ func newSecretListCommand(dockerCli command.Cli) *cobra.Command {
 func runSecretList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	secrets, err := apiClient.SecretList(ctx, swarm.SecretListOptions{Filters: options.filter.Value()})
+	secrets, err := apiClient.SecretList(ctx, client.SecretListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}

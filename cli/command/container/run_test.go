@@ -18,7 +18,6 @@ import (
 	"github.com/moby/moby/api/pkg/streamformatter"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -236,7 +235,7 @@ func TestRunPullTermination(t *testing.T) {
 		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
 			return client.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
 		},
-		imageCreateFunc: func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
+		imageCreateFunc: func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error) {
 			server, respReader := net.Pipe()
 			t.Cleanup(func() {
 				_ = server.Close()

@@ -6,7 +6,6 @@ import (
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/filters"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -24,7 +23,7 @@ type fakeClient struct {
 		platform *ocispec.Platform,
 		containerName string) (container.CreateResponse, error)
 	containerStartFunc      func(containerID string, options container.StartOptions) error
-	imageCreateFunc         func(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error)
+	imageCreateFunc         func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error)
 	infoFunc                func() (system.Info, error)
 	containerStatPathFunc   func(containerID, path string) (container.PathStat, error)
 	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, container.PathStat, error)
@@ -99,7 +98,7 @@ func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, op
 	return nil
 }
 
-func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error) {
 	if f.imageCreateFunc != nil {
 		return f.imageCreateFunc(ctx, parentReference, options)
 	}

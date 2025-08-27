@@ -20,7 +20,7 @@ import (
 	"github.com/docker/cli/internal/tui"
 	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/auxprogress"
-	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -116,7 +116,7 @@ To push the complete multi-platform image, remove the --platform flag.
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().ImagePush(ctx, reference.FamiliarString(ref), image.PushOptions{
+	responseBody, err := dockerCli.Client().ImagePush(ctx, reference.FamiliarString(ref), client.ImagePushOptions{
 		All:           opts.all,
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: nil,

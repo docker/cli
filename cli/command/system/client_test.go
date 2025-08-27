@@ -22,7 +22,7 @@ type fakeClient struct {
 	containerListFunc  func(context.Context, container.ListOptions) ([]container.Summary, error)
 	containerPruneFunc func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	eventsFn           func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error)
-	imageListFunc      func(ctx context.Context, options image.ListOptions) ([]image.Summary, error)
+	imageListFunc      func(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error)
 	infoFunc           func(ctx context.Context) (system.Info, error)
 	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 	networkPruneFunc   func(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
@@ -53,7 +53,7 @@ func (cli *fakeClient) Events(ctx context.Context, opts client.EventsListOptions
 	return cli.eventsFn(ctx, opts)
 }
 
-func (cli *fakeClient) ImageList(ctx context.Context, options image.ListOptions) ([]image.Summary, error) {
+func (cli *fakeClient) ImageList(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error) {
 	if cli.imageListFunc != nil {
 		return cli.imageListFunc(ctx, options)
 	}

@@ -19,6 +19,7 @@ import (
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/filters"
 	imagetypes "github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"github.com/morikuni/aec"
 	"github.com/opencontainers/go-digest"
 )
@@ -36,7 +37,7 @@ type treeView struct {
 }
 
 func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error {
-	images, err := dockerCLI.Client().ImageList(ctx, imagetypes.ListOptions{
+	images, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
 		All:       opts.all,
 		Filters:   opts.filters,
 		Manifests: true,

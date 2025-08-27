@@ -26,7 +26,6 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
-	imagetypes "github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
@@ -144,7 +143,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().ImageCreate(ctx, img, imagetypes.CreateOptions{
+	responseBody, err := dockerCli.Client().ImageCreate(ctx, img, client.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
 		Platform:     options.platform,
 	})

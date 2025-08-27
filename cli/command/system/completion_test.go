@@ -69,7 +69,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				imageListFunc: func(_ context.Context, _ image.ListOptions) ([]image.Summary, error) {
+				imageListFunc: func(_ context.Context, _ client.ImageListOptions) ([]image.Summary, error) {
 					return []image.Summary{
 						{RepoTags: []string{"img:1"}},
 						{RepoTags: []string{"img:2"}},
@@ -81,7 +81,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				imageListFunc: func(_ context.Context, _ image.ListOptions) ([]image.Summary, error) {
+				imageListFunc: func(_ context.Context, _ client.ImageListOptions) ([]image.Summary, error) {
 					return []image.Summary{}, errors.New("API error")
 				},
 			},
