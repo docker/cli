@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -16,7 +16,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 		name          string
 		args          []string
 		expectedError string
-		imagePushFunc func(ref string, options image.PushOptions) (io.ReadCloser, error)
+		imagePushFunc func(ref string, options client.ImagePushOptions) (io.ReadCloser, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -32,7 +32,7 @@ func TestNewPushCommandErrors(t *testing.T) {
 			name:          "push-failed",
 			args:          []string{"image:repo"},
 			expectedError: "Failed to push",
-			imagePushFunc: func(ref string, options image.PushOptions) (io.ReadCloser, error) {
+			imagePushFunc: func(ref string, options client.ImagePushOptions) (io.ReadCloser, error) {
 				return io.NopCloser(strings.NewReader("")), errors.New("Failed to push")
 			},
 		},
@@ -69,7 +69,7 @@ func TestNewPushCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				imagePushFunc: func(ref string, options image.PushOptions) (io.ReadCloser, error) {
+				imagePushFunc: func(ref string, options client.ImagePushOptions) (io.ReadCloser, error) {
 					return io.NopCloser(strings.NewReader("")), nil
 				},
 			})

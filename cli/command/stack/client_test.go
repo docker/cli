@@ -29,7 +29,7 @@ type fakeClient struct {
 
 	serviceListFunc    func(options client.ServiceListOptions) ([]swarm.Service, error)
 	networkListFunc    func(options client.NetworkListOptions) ([]network.Summary, error)
-	secretListFunc     func(options swarm.SecretListOptions) ([]swarm.Secret, error)
+	secretListFunc     func(options client.SecretListOptions) ([]swarm.Secret, error)
 	configListFunc     func(options client.ConfigListOptions) ([]swarm.Config, error)
 	nodeListFunc       func(options client.NodeListOptions) ([]swarm.Node, error)
 	taskListFunc       func(options client.TaskListOptions) ([]swarm.Task, error)
@@ -84,7 +84,7 @@ func (cli *fakeClient) NetworkList(_ context.Context, options client.NetworkList
 	return networksList, nil
 }
 
-func (cli *fakeClient) SecretList(_ context.Context, options swarm.SecretListOptions) ([]swarm.Secret, error) {
+func (cli *fakeClient) SecretList(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
 	if cli.secretListFunc != nil {
 		return cli.secretListFunc(options)
 	}

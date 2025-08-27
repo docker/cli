@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -19,7 +20,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		name          string
 		args          []string
 		expectedError string
-		imageListFunc func(options image.ListOptions) ([]image.Summary, error)
+		imageListFunc func(options client.ImageListOptions) ([]image.Summary, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -29,7 +30,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		{
 			name:          "failed-list",
 			expectedError: "something went wrong",
-			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
 				return []image.Summary{}, errors.New("something went wrong")
 			},
 		},
@@ -50,7 +51,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		name          string
 		args          []string
 		imageFormat   string
-		imageListFunc func(options image.ListOptions) ([]image.Summary, error)
+		imageListFunc func(options client.ImageListOptions) ([]image.Summary, error)
 	}{
 		{
 			name: "simple",
@@ -67,7 +68,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		{
 			name: "match-name",
 			args: []string{"image"},
-			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
 				assert.Check(t, is.Equal("image", options.Filters.Get("reference")[0]))
 				return []image.Summary{}, nil
 			},
@@ -75,7 +76,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		{
 			name: "filters",
 			args: []string{"--filter", "name=value"},
-			imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
 				assert.Check(t, is.Equal("value", options.Filters.Get("name")[0]))
 				return []image.Summary{}, nil
 			},

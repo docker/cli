@@ -504,7 +504,7 @@ type secretAPIClientMock struct {
 	listResult []swarm.Secret
 }
 
-func (s secretAPIClientMock) SecretList(context.Context, swarm.SecretListOptions) ([]swarm.Secret, error) {
+func (s secretAPIClientMock) SecretList(context.Context, client.SecretListOptions) ([]swarm.Secret, error) {
 	return s.listResult, nil
 }
 

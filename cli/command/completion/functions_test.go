@@ -31,7 +31,7 @@ func (c fakeCLI) Client() client.APIClient {
 type fakeClient struct {
 	client.Client
 	containerListFunc func(options container.ListOptions) ([]container.Summary, error)
-	imageListFunc     func(options image.ListOptions) ([]image.Summary, error)
+	imageListFunc     func(options client.ImageListOptions) ([]image.Summary, error)
 	networkListFunc   func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
 }
@@ -43,7 +43,7 @@ func (c *fakeClient) ContainerList(_ context.Context, options container.ListOpti
 	return []container.Summary{}, nil
 }
 
-func (c *fakeClient) ImageList(_ context.Context, options image.ListOptions) ([]image.Summary, error) {
+func (c *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) ([]image.Summary, error) {
 	if c.imageListFunc != nil {
 		return c.imageListFunc(options)
 	}
@@ -228,7 +228,7 @@ func TestCompleteImageNames(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := ImageNames(fakeCLI{&fakeClient{
-				imageListFunc: func(options image.ListOptions) ([]image.Summary, error) {
+				imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return nil, errors.New("some error occurred")
 					}

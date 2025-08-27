@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/events"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -181,7 +180,7 @@ func daemonNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []s
 // imageNames contacts the API to get a list of image names.
 // In case of an error, an empty list is returned.
 func imageNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().ImageList(cmd.Context(), image.ListOptions{})
+	list, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
 	if err != nil {
 		return []string{}
 	}

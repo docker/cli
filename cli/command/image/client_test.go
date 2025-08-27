@@ -17,15 +17,15 @@ type fakeClient struct {
 	client.Client
 	imageTagFunc     func(string, string) error
 	imageSaveFunc    func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error)
-	imageRemoveFunc  func(image string, options image.RemoveOptions) ([]image.DeleteResponse, error)
-	imagePushFunc    func(ref string, options image.PushOptions) (io.ReadCloser, error)
+	imageRemoveFunc  func(image string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error)
+	imagePushFunc    func(ref string, options client.ImagePushOptions) (io.ReadCloser, error)
 	infoFunc         func() (system.Info, error)
-	imagePullFunc    func(ref string, options image.PullOptions) (io.ReadCloser, error)
+	imagePullFunc    func(ref string, options client.ImagePullOptions) (io.ReadCloser, error)
 	imagesPruneFunc  func(pruneFilter filters.Args) (image.PruneReport, error)
 	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error)
-	imageListFunc    func(options image.ListOptions) ([]image.Summary, error)
+	imageListFunc    func(options client.ImageListOptions) ([]image.Summary, error)
 	imageInspectFunc func(img string) (image.InspectResponse, error)
-	imageImportFunc  func(source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
+	imageImportFunc  func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (io.ReadCloser, error)
 	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
 	imageBuildFunc   func(context.Context, io.Reader, build.ImageBuildOptions) (build.ImageBuildResponse, error)
 }
@@ -45,7 +45,7 @@ func (cli *fakeClient) ImageSave(_ context.Context, images []string, options ...
 }
 
 func (cli *fakeClient) ImageRemove(_ context.Context, img string,
-	options image.RemoveOptions,
+	options client.ImageRemoveOptions,
 ) ([]image.DeleteResponse, error) {
 	if cli.imageRemoveFunc != nil {
 		return cli.imageRemoveFunc(img, options)
@@ -53,7 +53,7 @@ func (cli *fakeClient) ImageRemove(_ context.Context, img string,
 	return []image.DeleteResponse{}, nil
 }
 
-func (cli *fakeClient) ImagePush(_ context.Context, ref string, options image.PushOptions) (io.ReadCloser, error) {
+func (cli *fakeClient) ImagePush(_ context.Context, ref string, options client.ImagePushOptions) (io.ReadCloser, error) {
 	if cli.imagePushFunc != nil {
 		return cli.imagePushFunc(ref, options)
 	}
@@ -67,7 +67,7 @@ func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (cli *fakeClient) ImagePull(_ context.Context, ref string, options image.PullOptions) (io.ReadCloser, error) {
+func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
 	if cli.imagePullFunc != nil {
 		return cli.imagePullFunc(ref, options)
 	}
@@ -88,7 +88,7 @@ func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...
 	return image.LoadResponse{}, nil
 }
 
-func (cli *fakeClient) ImageList(_ context.Context, options image.ListOptions) ([]image.Summary, error) {
+func (cli *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) ([]image.Summary, error) {
 	if cli.imageListFunc != nil {
 		return cli.imageListFunc(options)
 	}
@@ -102,8 +102,8 @@ func (cli *fakeClient) ImageInspect(_ context.Context, img string, _ ...client.I
 	return image.InspectResponse{}, nil
 }
 
-func (cli *fakeClient) ImageImport(_ context.Context, source image.ImportSource, ref string,
-	options image.ImportOptions,
+func (cli *fakeClient) ImageImport(_ context.Context, source client.ImageImportSource, ref string,
+	options client.ImageImportOptions,
 ) (io.ReadCloser, error) {
 	if cli.imageImportFunc != nil {
 		return cli.imageImportFunc(source, ref, options)

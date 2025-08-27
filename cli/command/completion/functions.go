@@ -6,12 +6,11 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
-// APIClientProvider provides a method to get an [client.APIClient], initializing
+// APIClientProvider provides a method to get a [client.APIClient], initializing
 // it if needed.
 //
 // It's a smaller interface than [command.Cli], and used in situations where an
@@ -27,7 +26,7 @@ func ImageNames(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
 		if limit > 0 && len(args) >= limit {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		list, err := dockerCLI.Client().ImageList(cmd.Context(), image.ListOptions{})
+		list, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

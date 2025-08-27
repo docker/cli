@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/trust"
 	"github.com/moby/moby/api/pkg/authconfig"
-	imagetypes "github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -97,7 +96,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			if err != nil {
 				return err
 			}
-			responseBody, err := dockerCLI.Client().ImagePush(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), imagetypes.PushOptions{
+			responseBody, err := dockerCLI.Client().ImagePush(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), client.ImagePushOptions{
 				RegistryAuth:  encodedAuth,
 				PrivilegeFunc: nil,
 			})

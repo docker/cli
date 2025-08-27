@@ -32,7 +32,7 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 		args.Add("name", s.SecretName)
 	}
 
-	secrets, err := apiClient.SecretList(ctx, swarm.SecretListOptions{
+	secrets, err := apiClient.SecretList(ctx, client.SecretListOptions{
 		Filters: args,
 	})
 	if err != nil {

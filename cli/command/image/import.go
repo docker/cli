@@ -10,7 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/jsonstream"
 	dockeropts "github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -54,17 +54,17 @@ func newImportCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runImport(ctx context.Context, dockerCli command.Cli, options importOptions) error {
-	var source image.ImportSource
+	var source client.ImageImportSource
 	switch {
 	case options.source == "-":
 		// import from STDIN
-		source = image.ImportSource{
+		source = client.ImageImportSource{
 			Source:     dockerCli.In(),
 			SourceName: options.source,
 		}
 	case strings.HasPrefix(options.source, "https://"), strings.HasPrefix(options.source, "http://"):
 		// import from a remote source (handled by the daemon)
-		source = image.ImportSource{
+		source = client.ImageImportSource{
 			SourceName: options.source,
 		}
 	default:
@@ -74,13 +74,13 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 			return err
 		}
 		defer file.Close()
-		source = image.ImportSource{
+		source = client.ImageImportSource{
 			Source:     file,
 			SourceName: "-",
 		}
 	}
 
-	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, image.ImportOptions{
+	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, client.ImageImportOptions{
 		Message:  options.message,
 		Changes:  options.changes.GetSlice(),
 		Platform: options.platform,

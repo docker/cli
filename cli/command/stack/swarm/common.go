@@ -38,7 +38,7 @@ func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace
 }
 
 func getStackSecrets(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Secret, error) {
-	return apiclient.SecretList(ctx, swarm.SecretListOptions{Filters: getStackFilter(namespace)})
+	return apiclient.SecretList(ctx, client.SecretListOptions{Filters: getStackFilter(namespace)})
 }
 
 func getStackConfigs(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Config, error) {

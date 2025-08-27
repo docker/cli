@@ -36,7 +36,7 @@ func (*fakeClient) ImageInspect(context.Context, string, ...client.ImageInspectO
 	return image.InspectResponse{}, nil
 }
 
-func (*fakeClient) ImagePush(context.Context, string, image.PushOptions) (io.ReadCloser, error) {
+func (*fakeClient) ImagePush(context.Context, string, client.ImagePushOptions) (io.ReadCloser, error) {
 	return &utils.NoopCloser{Reader: bytes.NewBuffer([]byte{})}, nil
 }
 

@@ -12,6 +12,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -101,7 +102,7 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		})
 	}
 
-	images, err := dockerCLI.Client().ImageList(ctx, image.ListOptions{
+	images, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
 		All:     options.all,
 		Filters: filters,
 	})

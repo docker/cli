@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -74,7 +74,7 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
+				imagePullFunc: func(ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
 					assert.Check(t, is.Equal(tc.expectedTag, ref), tc.name)
 					return io.NopCloser(strings.NewReader("")), nil
 				},
@@ -119,7 +119,7 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				imagePullFunc: func(ref string, options image.PullOptions) (io.ReadCloser, error) {
+				imagePullFunc: func(ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
 					return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
 				},
 			}, test.EnableContentTrust)
