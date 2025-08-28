@@ -46,12 +46,10 @@ func RunList(ctx context.Context, dockerCLI command.Cli, opts options.List) erro
 
 // runList performs a stack list against the specified swarm cluster
 func runList(ctx context.Context, dockerCLI command.Cli, opts listOptions) error {
-	ss, err := swarm.GetStacks(ctx, dockerCLI.Client())
+	stacks, err := swarm.GetStacks(ctx, dockerCLI.Client())
 	if err != nil {
 		return err
 	}
-	stacks := make([]*formatter.Stack, 0, len(ss))
-	stacks = append(stacks, ss...)
 	return format(dockerCLI.Out(), opts, stacks)
 }
 
