@@ -53,7 +53,7 @@ func runList(ctx context.Context, dockerCLI command.Cli, opts listOptions) error
 	return format(dockerCLI.Out(), opts, stacks)
 }
 
-func format(out io.Writer, opts listOptions, stacks []*formatter.Stack) error {
+func format(out io.Writer, opts listOptions, stacks []formatter.Stack) error {
 	fmt := formatter.Format(opts.Format)
 	if fmt == "" || fmt == formatter.TableFormatKey {
 		fmt = formatter.SwarmStackTableFormat

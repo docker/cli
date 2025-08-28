@@ -43,7 +43,7 @@ type Stack struct {
 // StackWrite writes formatted stacks using the Context
 //
 // Deprecated: this function was for internal use and will be removed in the next release.
-func StackWrite(ctx formatter.Context, stacks []*Stack) error {
+func StackWrite(ctx formatter.Context, stacks []Stack) error {
 	fmtCtx := &stackContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -64,7 +64,7 @@ func StackWrite(ctx formatter.Context, stacks []*Stack) error {
 
 type stackContext struct {
 	formatter.HeaderContext
-	s *Stack
+	s Stack
 }
 
 func (s *stackContext) MarshalJSON() ([]byte, error) {

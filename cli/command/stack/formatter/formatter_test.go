@@ -56,7 +56,7 @@ bar
 				Format: tc.format,
 				Output: &out,
 			}
-			if err := StackWrite(fmtCtx, []*Stack{
+			if err := StackWrite(fmtCtx, []Stack{
 				{Name: "baz", Services: 2},
 				{Name: "bar", Services: 1},
 			}); err != nil {
