@@ -18,7 +18,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/go-units"
 	"github.com/moby/go-archive"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/morikuni/aec"
 	"github.com/spf13/cobra"
 )
@@ -398,7 +398,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		}
 	}
 
-	options := container.CopyToContainerOptions{
+	options := client.CopyToContainerOptions{
 		CopyUIDGID: copyConfig.copyUIDGID,
 	}
 

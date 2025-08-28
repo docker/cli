@@ -105,7 +105,7 @@ func (c *FakeCli) Client() client.APIClient {
 
 // CurrentVersion returns the API version used by FakeCli.
 func (*FakeCli) CurrentVersion() string {
-	return client.DefaultAPIVersion
+	return client.MaxAPIVersion
 }
 
 // Out returns the output stream (stdout) the cli should write on

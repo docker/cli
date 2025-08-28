@@ -450,7 +450,7 @@ func copyDockerConfigIntoContainer(ctx context.Context, dockerAPI client.APIClie
 	}
 
 	if err := dockerAPI.CopyToContainer(ctx, containerID, "/",
-		&tarBuf, container.CopyToContainerOptions{}); err != nil {
+		&tarBuf, client.CopyToContainerOptions{}); err != nil {
 		return fmt.Errorf("copying config.json into container failed: %w", err)
 	}
 

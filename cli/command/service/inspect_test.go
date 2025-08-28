@@ -136,9 +136,11 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 			return s, nil, nil
 		},
 		func(ref string) (any, []byte, error) {
-			return network.Inspect{
-				ID:   "5vpyomhb6ievnk0i0o60gcnei",
-				Name: "mynetwork",
+			return network.Summary{
+				Network: network.Network{
+					ID:   "5vpyomhb6ievnk0i0o60gcnei",
+					Name: "mynetwork",
+				},
 			}, nil, nil
 		},
 	)

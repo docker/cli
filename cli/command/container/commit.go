@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +58,7 @@ func newCommitCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runCommit(ctx context.Context, dockerCli command.Cli, options *commitOptions) error {
-	response, err := dockerCli.Client().ContainerCommit(ctx, options.container, container.CommitOptions{
+	response, err := dockerCli.Client().ContainerCommit(ctx, options.container, client.ContainerCommitOptions{
 		Reference: options.reference,
 		Comment:   options.comment,
 		Author:    options.author,

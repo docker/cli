@@ -87,9 +87,9 @@ type DockerCli struct {
 	enableGlobalMeter, enableGlobalTracer bool
 }
 
-// DefaultVersion returns [client.DefaultAPIVersion].
+// DefaultVersion returns [client.MaxAPIVersion].
 func (*DockerCli) DefaultVersion() string {
-	return client.DefaultAPIVersion
+	return client.MaxAPIVersion
 }
 
 // CurrentVersion returns the API version currently negotiated, or the default
@@ -97,7 +97,7 @@ func (*DockerCli) DefaultVersion() string {
 func (cli *DockerCli) CurrentVersion() string {
 	_ = cli.initialize()
 	if cli.client == nil {
-		return client.DefaultAPIVersion
+		return client.MaxAPIVersion
 	}
 	return cli.client.ClientVersion()
 }

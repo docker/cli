@@ -44,7 +44,7 @@ func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkList
 	if c.networkListFunc != nil {
 		return c.networkListFunc(ctx, options)
 	}
-	return []network.Inspect{}, nil
+	return []network.Summary{}, nil
 }
 
 func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string) error {

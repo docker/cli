@@ -113,9 +113,11 @@ func TestNetworkRemovePromptTermination(t *testing.T) {
 		},
 		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, []byte, error) {
 			return network.Inspect{
-				ID:      "existing-network",
-				Name:    "existing-network",
-				Ingress: true,
+				Network: network.Network{
+					ID:      "existing-network",
+					Name:    "existing-network",
+					Ingress: true,
+				},
 			}, nil, nil
 		},
 	})

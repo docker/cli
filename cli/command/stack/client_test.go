@@ -46,7 +46,7 @@ type fakeClient struct {
 func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	return types.Version{
 		Version:    "docker-dev",
-		APIVersion: client.DefaultAPIVersion,
+		APIVersion: client.MaxAPIVersion,
 	}, nil
 }
 
@@ -201,8 +201,10 @@ func serviceFromName(name string) swarm.Service {
 
 func networkFromName(name string) network.Summary {
 	return network.Summary{
-		ID:   "ID-" + name,
-		Name: name,
+		Network: network.Network{
+			ID:   "ID-" + name,
+			Name: name,
+		},
 	}
 }
 

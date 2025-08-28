@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +64,7 @@ func runStop(ctx context.Context, dockerCLI command.Cli, opts *stopOptions) erro
 
 	apiClient := dockerCLI.Client()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, id string) error {
-		return apiClient.ContainerStop(ctx, id, container.StopOptions{
+		return apiClient.ContainerStop(ctx, id, client.ContainerStopOptions{
 			Signal:  opts.signal,
 			Timeout: timeout,
 		})

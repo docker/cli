@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -20,7 +19,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 		args          []string
 		isTerminalIn  bool
 		expectedError string
-		imageLoadFunc func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error)
+		imageLoadFunc func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -37,16 +36,16 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			name:          "pull-error",
 			args:          []string{},
 			expectedError: "something went wrong",
-			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (image.LoadResponse, error) {
-				return image.LoadResponse{}, errors.New("something went wrong")
+			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (client.LoadResponse, error) {
+				return client.LoadResponse{}, errors.New("something went wrong")
 			},
 		},
 		{
 			name:          "invalid platform",
 			args:          []string{"--platform", "<invalid>"},
 			expectedError: `invalid platform`,
-			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (image.LoadResponse, error) {
-				return image.LoadResponse{}, nil
+			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (client.LoadResponse, error) {
+				return client.LoadResponse{}, nil
 			},
 		},
 	}
@@ -77,20 +76,20 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
-		imageLoadFunc func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error)
+		imageLoadFunc func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error)
 	}{
 		{
 			name: "simple",
 			args: []string{},
-			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (image.LoadResponse, error) {
-				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (client.LoadResponse, error) {
+				return client.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
 			name: "json",
 			args: []string{},
-			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (image.LoadResponse, error) {
-				return image.LoadResponse{
+			imageLoadFunc: func(io.Reader, ...client.ImageLoadOption) (client.LoadResponse, error) {
+				return client.LoadResponse{
 					Body: io.NopCloser(strings.NewReader(`{"ID": "1"}`)),
 					JSON: true,
 				}, nil
@@ -99,34 +98,34 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 		{
 			name: "input-file",
 			args: []string{"--input", "testdata/load-command-success.input.txt"},
-			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
-				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {
+				return client.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
 			name: "with-single-platform",
 			args: []string{"--platform", "linux/amd64"},
-			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {
 				// FIXME(thaJeztah): need to find appropriate way to test the result of "ImageHistoryWithPlatform" being applied
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
-				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+				return client.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
 			name: "with-comma-separated-platforms",
 			args: []string{"--platform", "linux/amd64,linux/arm64/v8,linux/riscv64"},
-			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
-				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+				return client.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 		{
 			name: "with-multiple-platform-options",
 			args: []string{"--platform", "linux/amd64", "--platform", "linux/arm64/v8", "--platform", "linux/riscv64"},
-			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
+			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
-				return image.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
+				return client.LoadResponse{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 			},
 		},
 	}

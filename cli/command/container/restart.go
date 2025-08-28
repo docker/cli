@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -66,7 +66,7 @@ func runRestart(ctx context.Context, dockerCLI command.Cli, opts *restartOptions
 	var errs []error
 	// TODO(thaJeztah): consider using parallelOperation for restart, similar to "stop" and "remove"
 	for _, name := range opts.containers {
-		err := apiClient.ContainerRestart(ctx, name, container.StopOptions{
+		err := apiClient.ContainerRestart(ctx, name, client.ContainerStopOptions{
 			Signal:  opts.signal,
 			Timeout: timeout,
 		})

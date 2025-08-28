@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/checkpoint"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -15,7 +16,7 @@ import (
 func TestCheckpointListErrors(t *testing.T) {
 	testCases := []struct {
 		args               []string
-		checkpointListFunc func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error)
+		checkpointListFunc func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error)
 		expectedError      string
 	}{
 		{
@@ -28,7 +29,7 @@ func TestCheckpointListErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
+			checkpointListFunc: func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error) {
 				return []checkpoint.Summary{}, errors.New("error getting checkpoints for container foo")
 			},
 			expectedError: "error getting checkpoints for container foo",
@@ -50,7 +51,7 @@ func TestCheckpointListErrors(t *testing.T) {
 func TestCheckpointListWithOptions(t *testing.T) {
 	var containerID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{
-		checkpointListFunc: func(container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
+		checkpointListFunc: func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error) {
 			containerID = container
 			checkpointDir = options.CheckpointDir
 			return []checkpoint.Summary{

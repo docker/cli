@@ -19,7 +19,7 @@ type fakeClient struct {
 	client.Client
 
 	version            string
-	containerListFunc  func(context.Context, container.ListOptions) ([]container.Summary, error)
+	containerListFunc  func(context.Context, client.ContainerListOptions) ([]container.Summary, error)
 	containerPruneFunc func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 	eventsFn           func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error)
 	imageListFunc      func(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error)
@@ -35,7 +35,7 @@ func (cli *fakeClient) ClientVersion() string {
 	return cli.version
 }
 
-func (cli *fakeClient) ContainerList(ctx context.Context, options container.ListOptions) ([]container.Summary, error) {
+func (cli *fakeClient) ContainerList(ctx context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
 	if cli.containerListFunc != nil {
 		return cli.containerListFunc(ctx, options)
 	}

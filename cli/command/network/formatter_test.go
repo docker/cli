@@ -28,39 +28,39 @@ func TestNetworkContext(t *testing.T) {
 		call       func() string
 	}{
 		{networkContext{
-			n:     network.Summary{ID: networkID},
+			n:     network.Summary{Network: network.Network{ID: networkID}},
 			trunc: false,
 		}, networkID, ctx.ID},
 		{networkContext{
-			n:     network.Summary{ID: networkID},
+			n:     network.Summary{Network: network.Network{ID: networkID}},
 			trunc: true,
 		}, formatter.TruncateID(networkID), ctx.ID},
 		{networkContext{
-			n: network.Summary{Name: "network_name"},
+			n: network.Summary{Network: network.Network{Name: "network_name"}},
 		}, "network_name", ctx.Name},
 		{networkContext{
-			n: network.Summary{Driver: "driver_name"},
+			n: network.Summary{Network: network.Network{Driver: "driver_name"}},
 		}, "driver_name", ctx.Driver},
 		{networkContext{
-			n: network.Summary{EnableIPv4: true},
+			n: network.Summary{Network: network.Network{EnableIPv4: true}},
 		}, "true", ctx.IPv4},
 		{networkContext{
-			n: network.Summary{EnableIPv6: true},
+			n: network.Summary{Network: network.Network{EnableIPv6: true}},
 		}, "true", ctx.IPv6},
 		{networkContext{
-			n: network.Summary{EnableIPv6: false},
+			n: network.Summary{Network: network.Network{EnableIPv6: false}},
 		}, "false", ctx.IPv6},
 		{networkContext{
-			n: network.Summary{Internal: true},
+			n: network.Summary{Network: network.Network{Internal: true}},
 		}, "true", ctx.Internal},
 		{networkContext{
-			n: network.Summary{Internal: false},
+			n: network.Summary{Network: network.Network{Internal: false}},
 		}, "false", ctx.Internal},
 		{networkContext{
 			n: network.Summary{},
 		}, "", ctx.Labels},
 		{networkContext{
-			n: network.Summary{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
+			n: network.Summary{Network: network.Network{Labels: map[string]string{"label1": "value1", "label2": "value2"}}},
 		}, "label1=value1,label2=value2", ctx.Labels},
 	}
 
@@ -158,8 +158,24 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 	timestamp2, _ := time.Parse("2006-01-02", "2017-01-01")
 
 	networks := []network.Summary{
-		{ID: "networkID1", Name: "foobar_baz", Driver: "foo", Scope: "local", Created: timestamp1},
-		{ID: "networkID2", Name: "foobar_bar", Driver: "bar", Scope: "local", Created: timestamp2},
+		{
+			Network: network.Network{
+				ID:      "networkID1",
+				Name:    "foobar_baz",
+				Driver:  "foo",
+				Scope:   "local",
+				Created: timestamp1,
+			},
+		},
+		{
+			Network: network.Network{
+				ID:      "networkID2",
+				Name:    "foobar_bar",
+				Driver:  "bar",
+				Scope:   "local",
+				Created: timestamp2,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -178,8 +194,18 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 
 func TestNetworkContextWriteJSON(t *testing.T) {
 	networks := []network.Summary{
-		{ID: "networkID1", Name: "foobar_baz"},
-		{ID: "networkID2", Name: "foobar_bar"},
+		{
+			Network: network.Network{
+				ID:   "networkID1",
+				Name: "foobar_baz",
+			},
+		},
+		{
+			Network: network.Network{
+				ID:   "networkID2",
+				Name: "foobar_bar",
+			},
+		},
 	}
 	expectedJSONs := []map[string]any{
 		{"Driver": "", "ID": "networkID1", "IPv4": "false", "IPv6": "false", "Internal": "false", "Labels": "", "Name": "foobar_baz", "Scope": "", "CreatedAt": "0001-01-01 00:00:00 +0000 UTC"},
@@ -202,8 +228,18 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 
 func TestNetworkContextWriteJSONField(t *testing.T) {
 	networks := []network.Summary{
-		{ID: "networkID1", Name: "foobar_baz"},
-		{ID: "networkID2", Name: "foobar_bar"},
+		{
+			Network: network.Network{
+				ID:   "networkID1",
+				Name: "foobar_baz",
+			},
+		},
+		{
+			Network: network.Network{
+				ID:   "networkID2",
+				Name: "foobar_bar",
+			},
+		},
 	}
 	out := bytes.NewBufferString("")
 	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, networks)

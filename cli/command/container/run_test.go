@@ -84,7 +84,7 @@ func TestRunAttach(t *testing.T) {
 				ID: "id",
 			}, nil
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
+		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
 			server, clientConn := net.Pipe()
 			conn = server
 			t.Cleanup(func() {
@@ -161,7 +161,7 @@ func TestRunAttachTermination(t *testing.T) {
 			}
 			return nil
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
+		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
 			server, clientConn := net.Pipe()
 			conn = server
 			t.Cleanup(func() {
@@ -232,7 +232,7 @@ func TestRunPullTermination(t *testing.T) {
 		) (container.CreateResponse, error) {
 			return container.CreateResponse{}, errors.New("shouldn't try to create a container")
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options container.AttachOptions) (client.HijackedResponse, error) {
+		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
 			return client.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
 		},
 		imageCreateFunc: func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error) {

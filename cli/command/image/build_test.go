@@ -15,7 +15,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/go-archive/compression"
-	"github.com/moby/moby/api/types/build"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/skip"
@@ -25,7 +25,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 	buffer := new(bytes.Buffer)
 	fakeBuild := newFakeBuild()
-	fakeImageBuild := func(ctx context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
+	fakeImageBuild := func(ctx context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResponse, error) {
 		tee := io.TeeReader(buildContext, buffer)
 		gzipReader, err := gzip.NewReader(tee)
 		assert.NilError(t, err)
@@ -142,8 +142,8 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	err = os.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0o644)
 	assert.NilError(t, err)
 
-	client := test.NewFakeCli(&fakeClient{})
-	cmd := newBuildCommand(client)
+	fakeCLI := test.NewFakeCli(&fakeClient{})
+	cmd := newBuildCommand(fakeCLI)
 	cmd.SetArgs([]string{buildDir})
 	cmd.SetOut(io.Discard)
 	err = cmd.Execute()
@@ -174,18 +174,18 @@ RUN echo hello world
 
 type fakeBuild struct {
 	context *tar.Reader
-	options build.ImageBuildOptions
+	options client.ImageBuildOptions
 }
 
 func newFakeBuild() *fakeBuild {
 	return &fakeBuild{}
 }
 
-func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
+func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResponse, error) {
 	f.context = tar.NewReader(buildContext)
 	f.options = options
 	body := new(bytes.Buffer)
-	return build.ImageBuildResponse{Body: io.NopCloser(body)}, nil
+	return client.ImageBuildResponse{Body: io.NopCloser(body)}, nil
 }
 
 func (f *fakeBuild) headers(t *testing.T) []*tar.Header {

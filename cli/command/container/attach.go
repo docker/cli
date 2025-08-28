@@ -90,7 +90,7 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		detachKeys = opts.DetachKeys
 	}
 
-	options := container.AttachOptions{
+	options := client.ContainerAttachOptions{
 		Stream:     true,
 		Stdin:      !opts.NoStdin && c.Config.OpenStdin,
 		Stdout:     true,

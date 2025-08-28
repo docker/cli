@@ -186,9 +186,24 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 
 func TestToServiceNetwork(t *testing.T) {
 	nws := []network.Inspect{
-		{Name: "aaa-network", ID: "id555"},
-		{Name: "mmm-network", ID: "id999"},
-		{Name: "zzz-network", ID: "id111"},
+		{
+			Network: network.Network{
+				Name: "aaa-network",
+				ID:   "id555",
+			},
+		},
+		{
+			Network: network.Network{
+				Name: "mmm-network",
+				ID:   "id999",
+			},
+		},
+		{
+			Network: network.Network{
+				Name: "zzz-network",
+				ID:   "id111",
+			},
+		},
 	}
 
 	apiClient := &fakeClient{

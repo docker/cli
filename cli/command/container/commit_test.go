@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -17,7 +18,7 @@ func TestRunCommit(t *testing.T) {
 		containerCommitFunc: func(
 			ctx context.Context,
 			ctr string,
-			options container.CommitOptions,
+			options client.ContainerCommitOptions,
 		) (container.CommitResponse, error) {
 			assert.Check(t, is.Equal(options.Author, "Author Name <author@name.com>"))
 			assert.Check(t, is.DeepEqual(options.Changes, []string{"EXPOSE 80"}))
@@ -54,7 +55,7 @@ func TestRunCommitClientError(t *testing.T) {
 		containerCommitFunc: func(
 			ctx context.Context,
 			ctr string,
-			options container.CommitOptions,
+			options client.ContainerCommitOptions,
 		) (container.CommitResponse, error) {
 			return container.CommitResponse{}, clientError
 		},

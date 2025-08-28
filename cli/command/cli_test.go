@@ -34,7 +34,7 @@ func TestNewAPIClientFromFlags(t *testing.T) {
 	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
 	assert.Equal(t, apiClient.DaemonHost(), host)
-	assert.Equal(t, apiClient.ClientVersion(), client.DefaultAPIVersion)
+	assert.Equal(t, apiClient.ClientVersion(), client.MaxAPIVersion)
 }
 
 func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
@@ -47,7 +47,7 @@ func TestNewAPIClientFromFlagsForDefaultSchema(t *testing.T) {
 	apiClient, err := NewAPIClientFromFlags(opts, &configfile.ConfigFile{})
 	assert.NilError(t, err)
 	assert.Equal(t, apiClient.DaemonHost(), slug+host)
-	assert.Equal(t, apiClient.ClientVersion(), client.DefaultAPIVersion)
+	assert.Equal(t, apiClient.ClientVersion(), client.MaxAPIVersion)
 }
 
 func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
@@ -71,7 +71,7 @@ func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
 	apiClient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
 	assert.Equal(t, apiClient.DaemonHost(), host)
-	assert.Equal(t, apiClient.ClientVersion(), client.DefaultAPIVersion)
+	assert.Equal(t, apiClient.ClientVersion(), client.MaxAPIVersion)
 
 	// verify User-Agent is not appended to the configfile. see https://github.com/docker/cli/pull/2756
 	assert.DeepEqual(t, configFile.HTTPHeaders, map[string]string{"My-Header": "Custom-Value"})
@@ -106,7 +106,7 @@ func TestNewAPIClientFromFlagsWithCustomHeadersFromEnv(t *testing.T) {
 	apiClient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
 	assert.Equal(t, apiClient.DaemonHost(), host)
-	assert.Equal(t, apiClient.ClientVersion(), client.DefaultAPIVersion)
+	assert.Equal(t, apiClient.ClientVersion(), client.MaxAPIVersion)
 
 	expectedHeaders := http.Header{
 		"One":        []string{"one-value"},

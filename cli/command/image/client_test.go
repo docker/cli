@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/system"
@@ -22,12 +21,12 @@ type fakeClient struct {
 	infoFunc         func() (system.Info, error)
 	imagePullFunc    func(ref string, options client.ImagePullOptions) (io.ReadCloser, error)
 	imagesPruneFunc  func(pruneFilter filters.Args) (image.PruneReport, error)
-	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error)
+	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error)
 	imageListFunc    func(options client.ImageListOptions) ([]image.Summary, error)
 	imageInspectFunc func(img string) (image.InspectResponse, error)
 	imageImportFunc  func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (io.ReadCloser, error)
 	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
-	imageBuildFunc   func(context.Context, io.Reader, build.ImageBuildOptions) (build.ImageBuildResponse, error)
+	imageBuildFunc   func(context.Context, io.Reader, client.ImageBuildOptions) (client.ImageBuildResponse, error)
 }
 
 func (cli *fakeClient) ImageTag(_ context.Context, img, ref string) error {
@@ -81,11 +80,11 @@ func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter filters.Args) 
 	return image.PruneReport{}, nil
 }
 
-func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...client.ImageLoadOption) (image.LoadResponse, error) {
+func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {
 	if cli.imageLoadFunc != nil {
 		return cli.imageLoadFunc(input, options...)
 	}
-	return image.LoadResponse{}, nil
+	return client.LoadResponse{}, nil
 }
 
 func (cli *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) ([]image.Summary, error) {
@@ -118,9 +117,9 @@ func (cli *fakeClient) ImageHistory(_ context.Context, img string, options ...cl
 	return []image.HistoryResponseItem{{ID: img, Created: time.Now().Unix()}}, nil
 }
 
-func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
+func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResponse, error) {
 	if cli.imageBuildFunc != nil {
 		return cli.imageBuildFunc(ctx, buildContext, options)
 	}
-	return build.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
+	return client.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
 }

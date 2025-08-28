@@ -10,7 +10,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -68,8 +68,8 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func buildContainerListOptions(options *psOptions) (*container.ListOptions, error) {
-	listOptions := &container.ListOptions{
+func buildContainerListOptions(options *psOptions) (*client.ContainerListOptions, error) {
+	listOptions := &client.ContainerListOptions{
 		All:     options.all,
 		Limit:   options.last,
 		Size:    options.size,

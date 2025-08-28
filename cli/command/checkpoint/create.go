@@ -6,7 +6,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/checkpoint"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runCreate(ctx context.Context, dockerCLI command.Cli, opts createOptions) error {
-	err := dockerCLI.Client().CheckpointCreate(ctx, opts.container, checkpoint.CreateOptions{
+	err := dockerCLI.Client().CheckpointCreate(ctx, opts.container, client.CheckpointCreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
 		Exit:          !opts.leaveRunning,

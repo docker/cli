@@ -24,6 +24,7 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
+	"github.com/moby/moby/client/pkg/security"
 	"github.com/spf13/cobra"
 )
 
@@ -306,7 +307,7 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 		fprintln(output, " runc version:", info.RuncCommit.ID)
 		fprintln(output, " init version:", info.InitCommit.ID)
 		if len(info.SecurityOptions) != 0 {
-			if kvs, err := system.DecodeSecurityOptions(info.SecurityOptions); err != nil {
+			if kvs, err := security.DecodeOptions(info.SecurityOptions); err != nil {
 				errs = append(errs, err)
 			} else {
 				fprintln(output, " Security Options:")
