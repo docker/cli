@@ -1,31 +1,22 @@
-package swarm
+package stack
 
 import (
 	"context"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/service"
-	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
 
-// GetServices is the swarm implementation of listing stack services
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func GetServices(ctx context.Context, dockerCLI command.Cli, opts options.Services) ([]swarm.Service, error) {
-	var (
-		err       error
-		apiClient = dockerCLI.Client()
-	)
-
+// getServices is the swarm implementation of listing stack services
+func getServices(ctx context.Context, apiClient client.APIClient, opts serviceListOptions) ([]swarm.Service, error) {
 	listOpts := client.ServiceListOptions{
-		Filters: getStackFilterFromOpt(opts.Namespace, opts.Filter),
+		Filters: getStackFilterFromOpt(opts.namespace, opts.filter),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and
 		// up; older API versions ignore this option, and we will have to collect
 		// the information manually below.
-		Status: !opts.Quiet,
+		Status: !opts.quiet,
 	}
 
 	services, err := apiClient.ServiceList(ctx, listOpts)

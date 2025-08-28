@@ -42,13 +42,3 @@ type Remove struct {
 	Namespaces []string
 	Detach     bool
 }
-
-// Services holds docker stack services options
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type Services struct {
-	Quiet     bool
-	Format    string
-	Filter    opts.FilterOpt
-	Namespace string
-}
