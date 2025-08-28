@@ -18,8 +18,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newServicesCommand(dockerCli command.Cli) *cobra.Command {
-	opts := options.Services{Filter: cliopts.NewFilterOpt()}
+// servicesOptions holds docker stack services options
+type servicesOptions = options.Services
+
+func newServicesCommand(dockerCLI command.Cli) *cobra.Command {
+	opts := servicesOptions{Filter: cliopts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
 		Use:   "services [OPTIONS] STACK",
@@ -30,10 +33,10 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			return RunServices(cmd.Context(), dockerCli, opts)
+			return runServices(cmd.Context(), dockerCLI, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return completeNames(dockerCli)(cmd, args, toComplete)
+			return completeNames(dockerCLI)(cmd, args, toComplete)
 		},
 	}
 	flags := cmd.Flags()
@@ -44,15 +47,22 @@ func newServicesCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunServices performs a stack services against the specified swarm cluster
-func RunServices(ctx context.Context, dockerCli command.Cli, opts options.Services) error {
-	services, err := swarm.GetServices(ctx, dockerCli, opts)
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
+func RunServices(ctx context.Context, dockerCLI command.Cli, opts options.Services) error {
+	return runServices(ctx, dockerCLI, opts)
+}
+
+// runServices performs a stack services against the specified swarm cluster
+func runServices(ctx context.Context, dockerCLI command.Cli, opts servicesOptions) error {
+	services, err := swarm.GetServices(ctx, dockerCLI, opts)
 	if err != nil {
 		return err
 	}
-	return formatWrite(dockerCli, services, opts)
+	return formatWrite(dockerCLI, services, opts)
 }
 
-func formatWrite(dockerCLI command.Cli, services []swarmtypes.Service, opts options.Services) error {
+func formatWrite(dockerCLI command.Cli, services []swarmtypes.Service, opts servicesOptions) error {
 	// if no services in the stack, print message and exit 0
 	if len(services) == 0 {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "Nothing found in stack:", opts.Namespace)
