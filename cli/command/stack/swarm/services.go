@@ -11,6 +11,8 @@ import (
 )
 
 // GetServices is the swarm implementation of listing stack services
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func GetServices(ctx context.Context, dockerCLI command.Cli, opts options.Services) ([]swarm.Service, error) {
 	var (
 		err       error
