@@ -52,8 +52,8 @@ func newJoinCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runJoin(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
-	client := dockerCli.Client()
+func runJoin(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
+	apiClient := dockerCLI.Client()
 
 	req := swarm.JoinRequest{
 		JoinToken:     opts.token,
@@ -72,20 +72,20 @@ func runJoin(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, o
 		}
 	}
 
-	err := client.SwarmJoin(ctx, req)
+	err := apiClient.SwarmJoin(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	info, err := client.Info(ctx)
+	info, err := apiClient.Info(ctx)
 	if err != nil {
 		return err
 	}
 
 	if info.Swarm.ControlAvailable {
-		fmt.Fprintln(dockerCli.Out(), "This node joined a swarm as a manager.")
+		_, _ = fmt.Fprintln(dockerCLI.Out(), "This node joined a swarm as a manager.")
 	} else {
-		fmt.Fprintln(dockerCli.Out(), "This node joined a swarm as a worker.")
+		_, _ = fmt.Fprintln(dockerCLI.Out(), "This node joined a swarm as a worker.")
 	}
 	return nil
 }

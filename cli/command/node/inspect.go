@@ -41,32 +41,31 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
-	client := dockerCli.Client()
+func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
+	apiClient := dockerCLI.Client()
 
 	if opts.pretty {
 		opts.format = "pretty"
 	}
 
 	getRef := func(ref string) (any, []byte, error) {
-		nodeRef, err := Reference(ctx, client, ref)
+		nodeRef, err := Reference(ctx, apiClient, ref)
 		if err != nil {
 			return nil, nil, err
 		}
-		node, _, err := client.NodeInspectWithRaw(ctx, nodeRef)
+		node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeRef)
 		return node, nil, err
 	}
-	f := opts.format
 
 	// check if the user is trying to apply a template to the pretty format, which
 	// is not supported
-	if strings.HasPrefix(f, "pretty") && f != "pretty" {
+	if strings.HasPrefix(opts.format, "pretty") && opts.format != "pretty" {
 		return errors.New("cannot supply extra formatting options to the pretty template")
 	}
 
 	nodeCtx := formatter.Context{
-		Output: dockerCli.Out(),
-		Format: newFormat(f, false),
+		Output: dockerCLI.Out(),
+		Format: newFormat(opts.format, false),
 	}
 
 	if err := inspectFormatWrite(nodeCtx, opts.nodeIds, getRef); err != nil {

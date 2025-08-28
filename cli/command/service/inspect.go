@@ -57,8 +57,8 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions) error {
-	client := dockerCli.Client()
+func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
+	apiClient := dockerCLI.Client()
 
 	if opts.pretty {
 		opts.format = "pretty"
@@ -66,7 +66,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 
 	getRef := func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		service, _, err := client.ServiceInspectWithRaw(ctx, ref, swarm.ServiceInspectOptions{InsertDefaults: true})
+		service, _, err := apiClient.ServiceInspectWithRaw(ctx, ref, swarm.ServiceInspectOptions{InsertDefaults: true})
 		if err == nil || !errdefs.IsNotFound(err) {
 			return service, nil, err
 		}
@@ -74,7 +74,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	getNetwork := func(ref string) (any, []byte, error) {
-		nw, _, err := client.NetworkInspectWithRaw(ctx, ref, network.InspectOptions{Scope: "swarm"})
+		nw, _, err := apiClient.NetworkInspectWithRaw(ctx, ref, network.InspectOptions{Scope: "swarm"})
 		if err == nil || !errdefs.IsNotFound(err) {
 			return nw, nil, err
 		}
@@ -84,8 +84,8 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	f := opts.format
 	if len(f) == 0 {
 		f = "raw"
-		if len(dockerCli.ConfigFile().ServiceInspectFormat) > 0 {
-			f = dockerCli.ConfigFile().ServiceInspectFormat
+		if len(dockerCLI.ConfigFile().ServiceInspectFormat) > 0 {
+			f = dockerCLI.ConfigFile().ServiceInspectFormat
 		}
 	}
 
@@ -96,7 +96,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	serviceCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: newFormat(f),
 	}
 

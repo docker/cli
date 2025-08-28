@@ -15,7 +15,7 @@ import (
 )
 
 func TestCreateFilter(t *testing.T) {
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "idmatch"},
@@ -33,7 +33,7 @@ func TestCreateFilter(t *testing.T) {
 		filter:   filter,
 	}
 
-	actual, notfound, err := createFilter(context.Background(), client, options)
+	actual, notfound, err := createFilter(context.Background(), apiClient, options)
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(notfound, []string{"no such service: notfound"}))
 
@@ -47,7 +47,7 @@ func TestCreateFilter(t *testing.T) {
 }
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "aaaone"},
@@ -59,22 +59,22 @@ func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
 		services: []string{"aaa"},
 		filter:   opts.NewFilterOpt(),
 	}
-	_, _, err := createFilter(context.Background(), client, options)
+	_, _, err := createFilter(context.Background(), apiClient, options)
 	assert.Error(t, err, "multiple services found with provided prefix: aaa")
 }
 
 func TestCreateFilterNoneFound(t *testing.T) {
-	client := &fakeClient{}
+	apiClient := &fakeClient{}
 	options := psOptions{
 		services: []string{"foo", "notfound"},
 		filter:   opts.NewFilterOpt(),
 	}
-	_, _, err := createFilter(context.Background(), client, options)
+	_, _, err := createFilter(context.Background(), apiClient, options)
 	assert.Error(t, err, "no such service: foo\nno such service: notfound")
 }
 
 func TestRunPSWarnsOnNotFound(t *testing.T) {
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				{ID: "foo"},
@@ -82,7 +82,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeCli(client)
+	cli := test.NewFakeCli(apiClient)
 	options := psOptions{
 		services: []string{"foo", "bar"},
 		filter:   opts.NewFilterOpt(),
@@ -95,7 +95,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 }
 
 func TestRunPSQuiet(t *testing.T) {
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		serviceListFunc: func(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{{ID: "foo"}}, nil
 		},
@@ -104,7 +104,7 @@ func TestRunPSQuiet(t *testing.T) {
 		},
 	}
 
-	cli := test.NewFakeCli(client)
+	cli := test.NewFakeCli(apiClient)
 	ctx := context.Background()
 	err := runPS(ctx, cli, psOptions{services: []string{"foo"}, quiet: true, filter: opts.NewFilterOpt()})
 	assert.NilError(t, err)
@@ -119,13 +119,14 @@ func TestUpdateNodeFilter(t *testing.T) {
 		filters.Arg("node", "self"),
 	)
 
-	client := &fakeClient{
+	apiClient := &fakeClient{
 		infoFunc: func(_ context.Context) (system.Info, error) {
 			return system.Info{Swarm: swarm.Info{NodeID: selfNodeID}}, nil
 		},
 	}
 
-	updateNodeFilter(context.Background(), client, filter)
+	err := updateNodeFilter(context.Background(), apiClient, filter)
+	assert.NilError(t, err)
 
 	expected := filters.NewArgs(
 		filters.Arg("node", "one"),

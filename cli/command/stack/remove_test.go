@@ -99,14 +99,14 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	allConfigs := []string{objectName("bar", "config1")}
 	allConfigIDs := buildObjectIDs(allConfigs)
 
-	fakeClient := &fakeClient{
+	apiClient := &fakeClient{
 		version:  "1.30",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
 		configs:  allConfigs,
 	}
-	fakeCli := test.NewFakeCli(fakeClient)
+	fakeCli := test.NewFakeCli(apiClient)
 	cmd := newRemoveCommand(fakeCli)
 	cmd.SetArgs([]string{"foo", "bar"})
 
@@ -120,10 +120,10 @@ func TestRemoveStackSkipEmpty(t *testing.T) {
 	}
 	assert.Check(t, is.Equal(strings.Join(expectedList, "\n"), fakeCli.OutBuffer().String()))
 	assert.Check(t, is.Contains(fakeCli.ErrBuffer().String(), "Nothing found in stack: foo\n"))
-	assert.Check(t, is.DeepEqual(allServiceIDs, fakeClient.removedServices))
-	assert.Check(t, is.DeepEqual(allNetworkIDs, fakeClient.removedNetworks))
-	assert.Check(t, is.DeepEqual(allSecretIDs, fakeClient.removedSecrets))
-	assert.Check(t, is.DeepEqual(allConfigIDs, fakeClient.removedConfigs))
+	assert.Check(t, is.DeepEqual(allServiceIDs, apiClient.removedServices))
+	assert.Check(t, is.DeepEqual(allNetworkIDs, apiClient.removedNetworks))
+	assert.Check(t, is.DeepEqual(allSecretIDs, apiClient.removedSecrets))
+	assert.Check(t, is.DeepEqual(allConfigIDs, apiClient.removedConfigs))
 }
 
 func TestRemoveContinueAfterError(t *testing.T) {
@@ -140,7 +140,7 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	allConfigIDs := buildObjectIDs(allConfigs)
 
 	removedServices := []string{}
-	cli := &fakeClient{
+	apiClient := &fakeClient{
 		version:  "1.30",
 		services: allServices,
 		networks: allNetworks,
@@ -156,14 +156,14 @@ func TestRemoveContinueAfterError(t *testing.T) {
 			return nil
 		},
 	}
-	cmd := newRemoveCommand(test.NewFakeCli(cli))
+	cmd := newRemoveCommand(test.NewFakeCli(apiClient))
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.Error(t, cmd.Execute(), "failed to remove some resources from stack: foo")
 	assert.Check(t, is.DeepEqual(allServiceIDs, removedServices))
-	assert.Check(t, is.DeepEqual(allNetworkIDs, cli.removedNetworks))
-	assert.Check(t, is.DeepEqual(allSecretIDs, cli.removedSecrets))
-	assert.Check(t, is.DeepEqual(allConfigIDs, cli.removedConfigs))
+	assert.Check(t, is.DeepEqual(allNetworkIDs, apiClient.removedNetworks))
+	assert.Check(t, is.DeepEqual(allSecretIDs, apiClient.removedSecrets))
+	assert.Check(t, is.DeepEqual(allConfigIDs, apiClient.removedConfigs))
 }

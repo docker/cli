@@ -50,20 +50,20 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
-	client := dockerCli.Client()
+func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
+	apiClient := dockerCLI.Client()
 
-	nodes, err := client.NodeList(
-		ctx,
-		swarm.NodeListOptions{Filters: options.filter.Value()})
+	nodes, err := apiClient.NodeList(ctx, swarm.NodeListOptions{
+		Filters: options.filter.Value(),
+	})
 	if err != nil {
 		return err
 	}
 
-	info := system.Info{}
+	var info system.Info
 	if len(nodes) > 0 && !options.quiet {
 		// only non-empty nodes and not quiet, should we call /info api
-		info, err = client.Info(ctx)
+		info, err = apiClient.Info(ctx)
 		if err != nil {
 			return err
 		}
@@ -72,13 +72,13 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 	format := options.format
 	if len(format) == 0 {
 		format = formatter.TableFormatKey
-		if len(dockerCli.ConfigFile().NodesFormat) > 0 && !options.quiet {
-			format = dockerCli.ConfigFile().NodesFormat
+		if len(dockerCLI.ConfigFile().NodesFormat) > 0 && !options.quiet {
+			format = dockerCLI.ConfigFile().NodesFormat
 		}
 	}
 
 	nodesCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: newFormat(format, options.quiet),
 	}
 	sort.Slice(nodes, func(i, j int) bool {

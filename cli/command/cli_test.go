@@ -188,16 +188,16 @@ func TestInitializeFromClient(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.doc, func(t *testing.T) {
-			apiclient := &fakeClient{
+			apiClient := &fakeClient{
 				pingFunc: tc.pingFunc,
 				version:  defaultVersion,
 			}
 
-			cli := &DockerCli{client: apiclient}
+			cli := &DockerCli{client: apiClient}
 			err := cli.Initialize(flags.NewClientOptions())
 			assert.NilError(t, err)
 			assert.DeepEqual(t, cli.ServerInfo(), tc.expectedServer)
-			assert.Equal(t, apiclient.negotiated, tc.negotiated)
+			assert.Equal(t, apiClient.negotiated, tc.negotiated)
 		})
 	}
 }
