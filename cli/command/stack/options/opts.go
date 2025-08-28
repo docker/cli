@@ -23,14 +23,6 @@ type Config struct {
 	SkipInterpolation bool
 }
 
-// List holds docker stack ls options
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type List struct {
-	Format        string
-	AllNamespaces bool
-}
-
 // PS holds docker stack ps options
 //
 // Deprecated: this type was for internal use and will be removed in the next release.
