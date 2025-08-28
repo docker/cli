@@ -16,8 +16,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type listOptions = options.List
+
 func newListCommand(dockerCli command.Cli) *cobra.Command {
-	opts := options.List{}
+	opts := listOptions{}
 
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -25,7 +27,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunList(cmd.Context(), dockerCli, opts)
+			return runList(cmd.Context(), dockerCli, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
@@ -36,17 +38,24 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 }
 
 // RunList performs a stack list against the specified swarm cluster
-func RunList(ctx context.Context, dockerCli command.Cli, opts options.List) error {
-	ss, err := swarm.GetStacks(ctx, dockerCli.Client())
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
+func RunList(ctx context.Context, dockerCLI command.Cli, opts options.List) error {
+	return runList(ctx, dockerCLI, opts)
+}
+
+// runList performs a stack list against the specified swarm cluster
+func runList(ctx context.Context, dockerCLI command.Cli, opts listOptions) error {
+	ss, err := swarm.GetStacks(ctx, dockerCLI.Client())
 	if err != nil {
 		return err
 	}
 	stacks := make([]*formatter.Stack, 0, len(ss))
 	stacks = append(stacks, ss...)
-	return format(dockerCli.Out(), opts, stacks)
+	return format(dockerCLI.Out(), opts, stacks)
 }
 
-func format(out io.Writer, opts options.List, stacks []*formatter.Stack) error {
+func format(out io.Writer, opts listOptions, stacks []*formatter.Stack) error {
 	fmt := formatter.Format(opts.Format)
 	if fmt == "" || fmt == formatter.TableFormatKey {
 		fmt = formatter.SwarmStackTableFormat

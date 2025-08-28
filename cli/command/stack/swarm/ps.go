@@ -12,6 +12,8 @@ import (
 )
 
 // RunPS is the swarm implementation of docker stack ps
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunPS(ctx context.Context, dockerCLI command.Cli, opts options.PS) error {
 	filter := getStackFilterFromOpt(opts.Namespace, opts.Filter)
 

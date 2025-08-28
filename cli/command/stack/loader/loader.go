@@ -22,6 +22,8 @@ import (
 )
 
 // LoadComposefile parse the composefile specified in the cli and returns its Config and version.
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Config, error) {
 	configDetails, err := GetConfigDetails(opts.Composefiles, dockerCli.In())
 	if err != nil {
@@ -84,6 +86,8 @@ func propertyWarnings(properties map[string]string) string {
 }
 
 // GetConfigDetails parse the composefiles specified in the cli and returns their ConfigDetails
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
 	var details composetypes.ConfigDetails
 
