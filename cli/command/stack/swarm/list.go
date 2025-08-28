@@ -11,6 +11,8 @@ import (
 )
 
 // GetStacks lists the swarm stacks.
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func GetStacks(ctx context.Context, apiClient client.ServiceAPIClient) ([]*formatter.Stack, error) {
 	services, err := apiClient.ServiceList(
 		ctx,

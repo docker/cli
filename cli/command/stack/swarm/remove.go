@@ -15,6 +15,8 @@ import (
 )
 
 // RunRemove is the swarm implementation of docker stack remove
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunRemove(ctx context.Context, dockerCli command.Cli, opts options.Remove) error {
 	apiClient := dockerCli.Client()
 

@@ -222,6 +222,14 @@ linters:
         linters:
           - staticcheck
 
+      # Ignore deprecation linting for cli/command/stack/*.
+      #
+      # FIXME(thaJeztah): remove exception once these functions are un-exported or internal; see https://github.com/docker/cli/pull/6389
+      - text: '^(SA1019): '
+        path: "cli/command/stack"
+        linters:
+          - staticcheck
+
     # Log a warning if an exclusion rule is unused.
     # Default: false
     warn-unused: true

@@ -23,6 +23,8 @@ const (
 )
 
 // RunDeploy is the swarm implementation of docker stack deploy
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *options.Deploy, cfg *composetypes.Config) error {
 	if err := validateResolveImageFlag(opts); err != nil {
 		return err

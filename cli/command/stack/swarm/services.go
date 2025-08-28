@@ -10,10 +10,12 @@ import (
 )
 
 // GetServices is the swarm implementation of listing stack services
-func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Services) ([]swarm.Service, error) {
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
+func GetServices(ctx context.Context, dockerCLI command.Cli, opts options.Services) ([]swarm.Service, error) {
 	var (
-		err    error
-		client = dockerCli.Client()
+		err       error
+		apiClient = dockerCLI.Client()
 	)
 
 	listOpts := swarm.ServiceListOptions{
@@ -25,7 +27,7 @@ func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Servic
 		Status: !opts.Quiet,
 	}
 
-	services, err := client.ServiceList(ctx, listOpts)
+	services, err := apiClient.ServiceList(ctx, listOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +45,7 @@ func GetServices(ctx context.Context, dockerCli command.Cli, opts options.Servic
 		// situations where the client uses the "default" version. To account for
 		// these situations, we do a quick check for services that do not have
 		// a ServiceStatus set, and perform a lookup for those.
-		services, err = service.AppendServiceStatus(ctx, client, services)
+		services, err = service.AppendServiceStatus(ctx, apiClient, services)
 		if err != nil {
 			return nil, err
 		}
