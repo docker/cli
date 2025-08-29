@@ -21,14 +21,11 @@ func TestExportImportWithFile(t *testing.T) {
 		"MyCustomMetadata": t.Name(),
 	})
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, RunExport(cli, &ExportOptions{
-		ContextName: "test",
-		Dest:        contextFile,
-	}))
+	assert.NilError(t, runExport(cli, "test", contextFile))
 	assert.Equal(t, cli.ErrBuffer().String(), fmt.Sprintf("Written file %q\n", contextFile))
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, RunImport(cli, "test2", contextFile))
+	assert.NilError(t, runImport(cli, "test2", contextFile))
 	context1, err := cli.ContextStore().GetMetadata("test")
 	assert.NilError(t, err)
 	context2, err := cli.ContextStore().GetMetadata("test2")
@@ -55,15 +52,12 @@ func TestExportImportPipe(t *testing.T) {
 	})
 	cli.ErrBuffer().Reset()
 	cli.OutBuffer().Reset()
-	assert.NilError(t, RunExport(cli, &ExportOptions{
-		ContextName: "test",
-		Dest:        "-",
-	}))
+	assert.NilError(t, runExport(cli, "test", "-"))
 	assert.Equal(t, cli.ErrBuffer().String(), "")
 	cli.SetIn(streams.NewIn(io.NopCloser(bytes.NewBuffer(cli.OutBuffer().Bytes()))))
 	cli.OutBuffer().Reset()
 	cli.ErrBuffer().Reset()
-	assert.NilError(t, RunImport(cli, "test2", "-"))
+	assert.NilError(t, runImport(cli, "test2", "-"))
 	context1, err := cli.ContextStore().GetMetadata("test")
 	assert.NilError(t, err)
 	context2, err := cli.ContextStore().GetMetadata("test2")
@@ -88,6 +82,6 @@ func TestExportExistingFile(t *testing.T) {
 	cli := makeFakeCli(t)
 	cli.ErrBuffer().Reset()
 	assert.NilError(t, os.WriteFile(contextFile, []byte{}, 0o644))
-	err := RunExport(cli, &ExportOptions{ContextName: "test", Dest: contextFile})
+	err := runExport(cli, "test", contextFile)
 	assert.Assert(t, os.IsExist(err))
 }
