@@ -80,22 +80,19 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 		}
 
 		if nw.Ipam.Driver != "" || len(nw.Ipam.Config) > 0 {
-			createOpts.IPAM = &network.IPAM{}
-		}
-
-		if nw.Ipam.Driver != "" {
-			createOpts.IPAM.Driver = nw.Ipam.Driver
-		}
-		for _, ipamConfig := range nw.Ipam.Config {
-			config := network.IPAMConfig{
-				Subnet: ipamConfig.Subnet,
+			createOpts.IPAM = &network.IPAM{
+				Driver: nw.Ipam.Driver,
 			}
-			createOpts.IPAM.Config = append(createOpts.IPAM.Config, config)
+			for _, ipamConfig := range nw.Ipam.Config {
+				createOpts.IPAM.Config = append(createOpts.IPAM.Config, network.IPAMConfig{
+					Subnet: ipamConfig.Subnet,
+				})
+			}
 		}
 
-		networkName := namespace.Scope(internalName)
-		if nw.Name != "" {
-			networkName = nw.Name
+		networkName := nw.Name
+		if nw.Name == "" {
+			networkName = namespace.Scope(internalName)
 		}
 		result[networkName] = createOpts
 	}
