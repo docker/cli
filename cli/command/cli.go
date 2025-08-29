@@ -282,7 +282,10 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	}
 	filterResourceAttributesEnvvar()
 
-	cli.setAllowNegativex509()
+	meta, err := cli.contextStore.GetMetadata(cli.currentContext)
+	if err == nil {
+		setAllowNegativex509(meta)
+	}
 
 	return nil
 }
@@ -477,27 +480,42 @@ func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
 	return resolveDockerEndpoint(cli.contextStore, cn)
 }
 
-// setAllowNegativex509 is an escape hatch that sets the GODEBUG=x509negativeserial
-// environment variable for this process and sub-processes (such as CLI plugins)
-func (cli *DockerCli) setAllowNegativex509() {
-	cn := cli.CurrentContext()
-	meta, err := cli.ContextStore().GetMetadata(cn)
-	if err != nil {
+// setAllowNegativex509 is an escape hatch that sets the GODEBUG environment
+// variable value using docker context metadata.
+//
+//	{
+//	  "Name": "my-context",
+//	  "Metadata": { "GODEBUG": "x509negativeserial=1" }
+//	}
+//
+// WARNING: Setting x509negativeserial=1 allows Go's x509 library to accept
+// X.509 certificates with negative serial numbers.
+// This behavior is deprecated and non-compliant with current security
+// standards (RFC 5280). Accepting negative serial numbers can introduce
+// serious security vulnerabilities, including the risk of certificate
+// collision or bypass attacks.
+// This option should only be used for legacy compatibility and never in
+// production environments.
+// Use at your own risk.
+func setAllowNegativex509(meta store.Metadata) {
+	fieldName := "GODEBUG"
+	godebugEnv := os.Getenv(fieldName)
+	// early return if GODEBUG is already set. We don't want to override what
+	// the user already sets.
+	if godebugEnv != "" {
 		return
 	}
 
-	fieldName := "allowx509negativeserialdonotuse"
-
-	var config any
+	var cfg any
 	var ok bool
 	switch m := meta.Metadata.(type) {
 	case DockerContext:
-		config, ok = m.AdditionalFields[fieldName]
+		cfg, ok = m.AdditionalFields[fieldName]
 		if !ok {
 			return
 		}
 	case map[string]any:
-		config, ok = m[fieldName]
+		cfg, ok = m[fieldName]
 		if !ok {
 			return
 		}
@@ -505,13 +523,12 @@ func (cli *DockerCli) setAllowNegativex509() {
 		return
 	}
 
-	v, ok := config.(string)
+	v, ok := cfg.(string)
 	if !ok {
 		return
 	}
-	if v == "1" {
-		_ = os.Setenv("GODEBUG", "x509negativeserial=1")
-	}
+	// set the GODEBUG environment variable with whatever was in the context
+	_ = os.Setenv(fieldName, v)
 }
 
 func (cli *DockerCli) initialize() error {
