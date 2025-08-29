@@ -12,16 +12,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newImportCommand(dockerCli command.Cli) *cobra.Command {
+func newImportCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import CONTEXT FILE|-",
 		Short: "Import a context from a tar or zip file",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runImport(dockerCli, args[0], args[1])
+			return runImport(dockerCLI, args[0], args[1])
 		},
 		// TODO(thaJeztah): this should also include "-"
-		ValidArgsFunction: completion.FileNames,
+		ValidArgsFunction:     completion.FileNames,
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

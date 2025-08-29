@@ -23,7 +23,7 @@ type inspectOptions struct {
 	prettyPrint bool
 }
 
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	options := inspectOptions{}
 	cmd := &cobra.Command{
 		Use:   "inspect IMAGE[:TAG] [IMAGE[:TAG]...]",
@@ -32,8 +32,9 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.remotes = args
 
-			return runInspect(cmd.Context(), dockerCli, options)
+			return runInspect(cmd.Context(), dockerCLI, options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

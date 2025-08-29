@@ -17,7 +17,7 @@ type joinTokenOptions struct {
 	quiet  bool
 }
 
-func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
+func newJoinTokenCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := joinTokenOptions{}
 
 	cmd := &cobra.Command{
@@ -26,12 +26,13 @@ func newJoinTokenCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.role = args[0]
-			return runJoinToken(cmd.Context(), dockerCli, opts)
+			return runJoinToken(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "manager",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

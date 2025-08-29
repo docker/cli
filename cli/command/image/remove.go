@@ -35,6 +35,7 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker image rm, docker image remove, docker rmi",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

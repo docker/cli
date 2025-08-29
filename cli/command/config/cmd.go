@@ -24,6 +24,7 @@ func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 			"version": "1.30",
 			"swarm":   "manager",
 		},
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newConfigListCommand(dockerCLI),

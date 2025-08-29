@@ -15,7 +15,7 @@ type removeOptions struct {
 	force bool
 }
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := removeOptions{}
 
 	cmd := &cobra.Command{
@@ -24,9 +24,10 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more nodes from the swarm",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(cmd.Context(), dockerCli, args, opts)
+			return runRemove(cmd.Context(), dockerCLI, args, opts)
 		},
-		ValidArgsFunction: completeNodeNames(dockerCli),
+		ValidArgsFunction:     completeNodeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.force, "force", "f", false, "Force remove a node from the swarm")

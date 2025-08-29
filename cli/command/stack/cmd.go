@@ -26,6 +26,7 @@ func newStackCommand(dockerCLI command.Cli) *cobra.Command {
 			"version": "1.25",
 			"swarm":   "manager",
 		},
+		DisableFlagsInUseLine: true,
 	}
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {

@@ -26,7 +26,7 @@ type inspectOptions struct {
 }
 
 // newInspectCommand creates a new cobra.Command for `docker image inspect`
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -35,9 +35,10 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.refs = args
-			return runInspect(cmd.Context(), dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, -1),
+		ValidArgsFunction:     completion.ImageNames(dockerCLI, -1),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

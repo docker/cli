@@ -27,6 +27,7 @@ func newRevokeCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return revokeTrust(cmd.Context(), dockerCLI, args[0], options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.forceYes, "yes", "y", false, "Do not prompt for confirmation")

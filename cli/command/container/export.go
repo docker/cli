@@ -32,7 +32,8 @@ func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container export, docker export",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, true),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

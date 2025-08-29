@@ -21,7 +21,7 @@ type signerRemoveOptions struct {
 	forceYes bool
 }
 
-func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newSignerRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	options := signerRemoveOptions{}
 	cmd := &cobra.Command{
 		Use:   "remove [OPTIONS] NAME REPOSITORY [REPOSITORY...]",
@@ -30,8 +30,9 @@ func newSignerRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.signer = args[0]
 			options.repos = args[1:]
-			return removeSigner(cmd.Context(), dockerCli, options)
+			return removeSigner(cmd.Context(), dockerCLI, options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.forceYes, "force", "f", false, "Do not prompt for confirmation before removing the most recent signer")

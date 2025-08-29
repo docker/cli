@@ -33,7 +33,8 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(cmd.Context(), dockerCLI, cmd.Flags(), options, args[0])
 		},
-		ValidArgsFunction: completeServiceNames(dockerCLI),
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

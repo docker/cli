@@ -36,7 +36,8 @@ func newSaveCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker image save, docker save",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCLI, -1),
+		ValidArgsFunction:     completion.ImageNames(dockerCLI, -1),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

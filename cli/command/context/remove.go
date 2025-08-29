@@ -32,7 +32,8 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(dockerCLI, opts, args)
 		},
-		ValidArgsFunction: completeContextNames(dockerCLI, -1, false),
+		ValidArgsFunction:     completeContextNames(dockerCLI, -1, false),
+		DisableFlagsInUseLine: true,
 	}
 	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "Force the removal of a context in use")
 	return cmd

@@ -41,7 +41,8 @@ func newEventsCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker system events, docker events",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

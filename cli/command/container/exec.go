@@ -59,6 +59,7 @@ func newExecCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "2",
 			"aliases":      "docker container exec, docker exec",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

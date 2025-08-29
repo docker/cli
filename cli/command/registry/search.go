@@ -43,6 +43,7 @@ func newSearchCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "10",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

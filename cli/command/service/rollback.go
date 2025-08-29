@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
+func newRollbackCommand(dockerCLI command.Cli) *cobra.Command {
 	options := newServiceOptions()
 
 	cmd := &cobra.Command{
@@ -20,10 +20,11 @@ func newRollbackCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Revert changes to a service's configuration",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRollback(cmd.Context(), dockerCli, options, args[0])
+			return runRollback(cmd.Context(), dockerCLI, options, args[0])
 		},
-		Annotations:       map[string]string{"version": "1.31"},
-		ValidArgsFunction: completeServiceNames(dockerCli),
+		Annotations:           map[string]string{"version": "1.31"},
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

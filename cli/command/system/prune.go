@@ -27,7 +27,7 @@ type pruneOptions struct {
 }
 
 // newPruneCommand creates a new cobra.Command for `docker prune`
-func newPruneCommand(dockerCli command.Cli) *cobra.Command {
+func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	options := pruneOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -35,10 +35,11 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Remove unused data",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPrune(cmd.Context(), dockerCli, options)
+			return runPrune(cmd.Context(), dockerCLI, options)
 		},
-		Annotations:       map[string]string{"version": "1.25"},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		Annotations:           map[string]string{"version": "1.25"},
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

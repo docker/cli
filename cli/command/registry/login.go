@@ -56,7 +56,8 @@ func newLoginCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "8",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

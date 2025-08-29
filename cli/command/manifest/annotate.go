@@ -57,7 +57,7 @@ func newRegistryClient(dockerCLI command.Cli, allowInsecure bool) registryclient
 }
 
 // NewAnnotateCommand creates a new `docker manifest annotate` command
-func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
+func newAnnotateCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts annotateOptions
 
 	cmd := &cobra.Command{
@@ -67,8 +67,9 @@ func newAnnotateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
 			opts.image = args[1]
-			return runManifestAnnotate(dockerCli, opts)
+			return runManifestAnnotate(dockerCLI, opts)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

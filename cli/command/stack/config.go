@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func newConfigCommand(dockerCli command.Cli) *cobra.Command {
+func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts options.Config
 
 	cmd := &cobra.Command{
@@ -22,7 +22,7 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Outputs the final config file, after doing merges and interpolations",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configDetails, err := loader.GetConfigDetails(opts.Composefiles, dockerCli.In())
+			configDetails, err := loader.GetConfigDetails(opts.Composefiles, dockerCLI.In())
 			if err != nil {
 				return err
 			}
@@ -32,10 +32,11 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 				return err
 			}
 
-			_, err = fmt.Fprintf(dockerCli.Out(), "%s", cfg)
+			_, err = fmt.Fprintf(dockerCLI.Out(), "%s", cfg)
 			return err
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

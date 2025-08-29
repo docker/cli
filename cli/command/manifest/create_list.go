@@ -16,7 +16,7 @@ type createOpts struct {
 	insecure bool
 }
 
-func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateListCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := createOpts{}
 
 	cmd := &cobra.Command{
@@ -24,8 +24,9 @@ func newCreateListCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Create a local manifest list for annotating and pushing to a registry",
 		Args:  cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return createManifestList(cmd.Context(), dockerCli, args, opts)
+			return createManifestList(cmd.Context(), dockerCLI, args, opts)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

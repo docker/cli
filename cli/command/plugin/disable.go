@@ -24,6 +24,7 @@ func newDisableCommand(dockerCLI command.Cli) *cobra.Command {
 			_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 			return nil
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
