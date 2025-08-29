@@ -119,7 +119,7 @@ func Service(
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
 			Name:   name,
-			Labels: AddStackLabel(namespace, service.Deploy.Labels),
+			Labels: addStackLabel(namespace, service.Deploy.Labels),
 		},
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: &swarm.ContainerSpec{
@@ -131,7 +131,7 @@ func Service(
 				DNSConfig:       dnsConfig,
 				Healthcheck:     healthcheck,
 				Env:             convertEnvironment(service.Environment),
-				Labels:          AddStackLabel(namespace, service.Labels),
+				Labels:          addStackLabel(namespace, service.Labels),
 				Dir:             service.WorkingDir,
 				User:            service.User,
 				Mounts:          mounts,

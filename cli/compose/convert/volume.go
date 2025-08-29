@@ -80,7 +80,7 @@ func handleVolumeToMount(
 		return result, nil
 	}
 
-	result.VolumeOptions.Labels = AddStackLabel(namespace, stackVolume.Labels)
+	result.VolumeOptions.Labels = addStackLabel(namespace, stackVolume.Labels)
 	if stackVolume.Driver != "" || stackVolume.DriverOpts != nil {
 		result.VolumeOptions.DriverConfig = &mount.Driver{
 			Name:    stackVolume.Driver,

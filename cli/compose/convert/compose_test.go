@@ -30,7 +30,7 @@ func TestAddStackLabel(t *testing.T) {
 	labels := map[string]string{
 		"something": "labeled",
 	}
-	actual := AddStackLabel(Namespace{name: "foo"}, labels)
+	actual := addStackLabel(Namespace{name: "foo"}, labels)
 	expected := map[string]string{
 		"something":    "labeled",
 		LabelNamespace: "foo",

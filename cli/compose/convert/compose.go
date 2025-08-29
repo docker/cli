@@ -42,6 +42,11 @@ func NewNamespace(name string) Namespace {
 
 // AddStackLabel returns labels with the namespace label added
 func AddStackLabel(namespace Namespace, labels map[string]string) map[string]string {
+	return addStackLabel(namespace, labels)
+}
+
+// addStackLabel returns labels with the namespace label added
+func addStackLabel(namespace Namespace, labels map[string]string) map[string]string {
 	if labels == nil {
 		labels = make(map[string]string)
 	}
@@ -67,7 +72,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 		}
 
 		createOpts := client.NetworkCreateOptions{
-			Labels:     AddStackLabel(namespace, nw.Labels),
+			Labels:     addStackLabel(namespace, nw.Labels),
 			Driver:     nw.Driver,
 			Options:    nw.DriverOpts,
 			Internal:   nw.Internal,
@@ -75,22 +80,19 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 		}
 
 		if nw.Ipam.Driver != "" || len(nw.Ipam.Config) > 0 {
-			createOpts.IPAM = &network.IPAM{}
-		}
-
-		if nw.Ipam.Driver != "" {
-			createOpts.IPAM.Driver = nw.Ipam.Driver
-		}
-		for _, ipamConfig := range nw.Ipam.Config {
-			config := network.IPAMConfig{
-				Subnet: ipamConfig.Subnet,
+			createOpts.IPAM = &network.IPAM{
+				Driver: nw.Ipam.Driver,
 			}
-			createOpts.IPAM.Config = append(createOpts.IPAM.Config, config)
+			for _, ipamConfig := range nw.Ipam.Config {
+				createOpts.IPAM.Config = append(createOpts.IPAM.Config, network.IPAMConfig{
+					Subnet: ipamConfig.Subnet,
+				})
+			}
 		}
 
-		networkName := namespace.Scope(internalName)
-		if nw.Name != "" {
-			networkName = nw.Name
+		networkName := nw.Name
+		if nw.Name == "" {
+			networkName = namespace.Scope(internalName)
 		}
 		result[networkName] = createOpts
 	}
@@ -171,7 +173,7 @@ func driverObjectConfig(namespace Namespace, name string, obj composetypes.FileO
 	return swarmFileObject{
 		Annotations: swarm.Annotations{
 			Name:   name,
-			Labels: AddStackLabel(namespace, obj.Labels),
+			Labels: addStackLabel(namespace, obj.Labels),
 		},
 		Data: []byte{},
 	}
@@ -192,7 +194,7 @@ func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObj
 	return swarmFileObject{
 		Annotations: swarm.Annotations{
 			Name:   name,
-			Labels: AddStackLabel(namespace, obj.Labels),
+			Labels: addStackLabel(namespace, obj.Labels),
 		},
 		Data: data,
 	}, nil
