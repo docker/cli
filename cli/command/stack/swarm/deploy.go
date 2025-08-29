@@ -26,12 +26,17 @@ const (
 //
 // Deprecated: this function was for internal use and will be removed in the next release.
 func RunDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *options.Deploy, cfg *composetypes.Config) error {
-	if err := validateResolveImageFlag(opts); err != nil {
-		return err
+	switch opts.ResolveImage {
+	case ResolveImageAlways, ResolveImageChanged, ResolveImageNever:
+		// valid options.
+	default:
+		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
 	}
+
 	// client side image resolution should not be done when the supported
 	// server version is older than 1.30
 	if versions.LessThan(dockerCLI.Client().ClientVersion(), "1.30") {
+		// TODO(thaJeztah): should this error if "opts.ResolveImage" is already other (unsupported) values?
 		opts.ResolveImage = ResolveImageNever
 	}
 
@@ -41,16 +46,6 @@ func RunDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	}
 
 	return deployCompose(ctx, dockerCLI, opts, cfg)
-}
-
-// validateResolveImageFlag validates the opts.resolveImage command line option
-func validateResolveImageFlag(opts *options.Deploy) error {
-	switch opts.ResolveImage {
-	case ResolveImageAlways, ResolveImageChanged, ResolveImageNever:
-		return nil
-	default:
-		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.ResolveImage)
-	}
 }
 
 // checkDaemonIsSwarmManager does an Info API call to verify that the daemon is

@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/cli/opts"
+	"github.com/moby/moby/api/types/filters"
 )
 
 // validateStackName checks if the provided string is a valid stack name (namespace).
@@ -28,4 +32,10 @@ func validateStackNames(namespaces []string) error {
 
 func quotesOrWhitespace(r rune) bool {
 	return unicode.IsSpace(r) || r == '"' || r == '\''
+}
+
+func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) filters.Args {
+	filter := opt.Value()
+	filter.Add("label", convert.LabelNamespace+"="+namespace)
+	return filter
 }

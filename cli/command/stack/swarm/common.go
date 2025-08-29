@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/docker/cli/cli/compose/convert"
-	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
@@ -13,12 +12,6 @@ import (
 
 func getStackFilter(namespace string) filters.Args {
 	filter := filters.NewArgs()
-	filter.Add("label", convert.LabelNamespace+"="+namespace)
-	return filter
-}
-
-func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) filters.Args {
-	filter := opt.Value()
 	filter.Add("label", convert.LabelNamespace+"="+namespace)
 	return filter
 }

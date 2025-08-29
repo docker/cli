@@ -9,16 +9,18 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/stack/formatter"
-	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
 
-type listOptions = options.List
+// listOptions holds docker stack ls options
+type listOptions struct {
+	format string
+}
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := listOptions{}
 
 	cmd := &cobra.Command{
@@ -27,21 +29,14 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List stacks",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd.Context(), dockerCli, opts)
+			return runList(cmd.Context(), dockerCLI, opts)
 		},
 		ValidArgsFunction: completion.NoComplete,
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&opts.Format, "format", "", flagsHelper.FormatHelp)
+	flags.StringVar(&opts.format, "format", "", flagsHelper.FormatHelp)
 	return cmd
-}
-
-// RunList performs a stack list against the specified swarm cluster
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunList(ctx context.Context, dockerCLI command.Cli, opts options.List) error {
-	return runList(ctx, dockerCLI, opts)
 }
 
 // runList performs a stack list against the specified swarm cluster
@@ -54,7 +49,7 @@ func runList(ctx context.Context, dockerCLI command.Cli, opts listOptions) error
 }
 
 func format(out io.Writer, opts listOptions, stacks []formatter.Stack) error {
-	fmt := formatter.Format(opts.Format)
+	fmt := formatter.Format(opts.format)
 	if fmt == "" || fmt == formatter.TableFormatKey {
 		fmt = formatter.SwarmStackTableFormat
 	}
