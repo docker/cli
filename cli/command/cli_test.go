@@ -354,11 +354,11 @@ func TestHooksEnabled(t *testing.T) {
 	})
 }
 
-func TestAllowNegativex509(t *testing.T) {
+func TestSetGoDebug(t *testing.T) {
 	t.Run("GODEBUG already set", func(t *testing.T) {
 		t.Setenv("GODEBUG", "val1,val2")
 		meta := store.Metadata{}
-		setAllowNegativex509(meta)
+		setGoDebug(meta)
 		assert.Equal(t, "val1,val2", os.Getenv("GODEBUG"))
 	})
 	t.Run("GODEBUG in context metadata can set env", func(t *testing.T) {
@@ -369,7 +369,7 @@ func TestAllowNegativex509(t *testing.T) {
 				},
 			},
 		}
-		setAllowNegativex509(meta)
+		setGoDebug(meta)
 		assert.Equal(t, "val1,val2=1", os.Getenv("GODEBUG"))
 	})
 }
