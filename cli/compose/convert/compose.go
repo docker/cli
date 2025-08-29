@@ -42,6 +42,11 @@ func NewNamespace(name string) Namespace {
 
 // AddStackLabel returns labels with the namespace label added
 func AddStackLabel(namespace Namespace, labels map[string]string) map[string]string {
+	return addStackLabel(namespace, labels)
+}
+
+// addStackLabel returns labels with the namespace label added
+func addStackLabel(namespace Namespace, labels map[string]string) map[string]string {
 	if labels == nil {
 		labels = make(map[string]string)
 	}
@@ -67,7 +72,7 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 		}
 
 		createOpts := client.NetworkCreateOptions{
-			Labels:     AddStackLabel(namespace, nw.Labels),
+			Labels:     addStackLabel(namespace, nw.Labels),
 			Driver:     nw.Driver,
 			Options:    nw.DriverOpts,
 			Internal:   nw.Internal,
@@ -171,7 +176,7 @@ func driverObjectConfig(namespace Namespace, name string, obj composetypes.FileO
 	return swarmFileObject{
 		Annotations: swarm.Annotations{
 			Name:   name,
-			Labels: AddStackLabel(namespace, obj.Labels),
+			Labels: addStackLabel(namespace, obj.Labels),
 		},
 		Data: []byte{},
 	}
@@ -192,7 +197,7 @@ func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObj
 	return swarmFileObject{
 		Annotations: swarm.Annotations{
 			Name:   name,
-			Labels: AddStackLabel(namespace, obj.Labels),
+			Labels: addStackLabel(namespace, obj.Labels),
 		},
 		Data: data,
 	}, nil
