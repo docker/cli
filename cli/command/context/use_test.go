@@ -23,9 +23,9 @@ func TestUse(t *testing.T) {
 	configFilePath := filepath.Join(configDir, "config.json")
 	testCfg := configfile.New(configFilePath)
 	cli := makeFakeCli(t, withCliConfig(testCfg))
-	err := RunCreate(cli, &CreateOptions{
-		Name:   "test",
-		Docker: map[string]string{},
+	err := runCreate(cli, &createOptions{
+		name:     "test",
+		endpoint: map[string]string{},
 	})
 	assert.NilError(t, err)
 	assert.NilError(t, newUseCommand(cli).RunE(nil, []string{"test"}))
@@ -89,9 +89,9 @@ func TestUseHostOverride(t *testing.T) {
 	configFilePath := filepath.Join(configDir, "config.json")
 	testCfg := configfile.New(configFilePath)
 	cli := makeFakeCli(t, withCliConfig(testCfg))
-	err := RunCreate(cli, &CreateOptions{
-		Name:   "test",
-		Docker: map[string]string{},
+	err := runCreate(cli, &createOptions{
+		name:     "test",
+		endpoint: map[string]string{},
 	})
 	assert.NilError(t, err)
 
@@ -136,9 +136,9 @@ func TestUseHostOverrideEmpty(t *testing.T) {
 		assert.NilError(t, cli.Initialize(flags.NewClientOptions()))
 	}
 	loadCli()
-	err := RunCreate(cli, &CreateOptions{
-		Name:   "test",
-		Docker: map[string]string{"host": socketPath},
+	err := runCreate(cli, &createOptions{
+		name:     "test",
+		endpoint: map[string]string{"host": socketPath},
 	})
 	assert.NilError(t, err)
 

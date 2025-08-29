@@ -60,7 +60,7 @@ func TestCreate(t *testing.T) {
 	assert.NilError(t, cli.ContextStore().CreateOrUpdate(store.Metadata{Name: "existing-context"}))
 	tests := []struct {
 		doc         string
-		options     CreateOptions
+		options     createOptions
 		expecterErr string
 	}{
 		{
@@ -69,30 +69,30 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			doc: "reserved name",
-			options: CreateOptions{
-				Name: "default",
+			options: createOptions{
+				name: "default",
 			},
 			expecterErr: `"default" is a reserved context name`,
 		},
 		{
 			doc: "whitespace-only name",
-			options: CreateOptions{
-				Name: " ",
+			options: createOptions{
+				name: " ",
 			},
 			expecterErr: `context name " " is invalid`,
 		},
 		{
 			doc: "existing context",
-			options: CreateOptions{
-				Name: "existing-context",
+			options: createOptions{
+				name: "existing-context",
 			},
 			expecterErr: `context "existing-context" already exists`,
 		},
 		{
 			doc: "invalid docker host",
-			options: CreateOptions{
-				Name: "invalid-docker-host",
-				Docker: map[string]string{
+			options: createOptions{
+				name: "invalid-docker-host",
+				endpoint: map[string]string{
 					"host": "some///invalid/host",
 				},
 			},
@@ -100,27 +100,27 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			doc: "ssh host with skip-tls-verify=false",
-			options: CreateOptions{
-				Name: "skip-tls-verify-false",
-				Docker: map[string]string{
+			options: createOptions{
+				name: "skip-tls-verify-false",
+				endpoint: map[string]string{
 					"host": "ssh://example.com,skip-tls-verify=false",
 				},
 			},
 		},
 		{
 			doc: "ssh host with skip-tls-verify=true",
-			options: CreateOptions{
-				Name: "skip-tls-verify-true",
-				Docker: map[string]string{
+			options: createOptions{
+				name: "skip-tls-verify-true",
+				endpoint: map[string]string{
 					"host": "ssh://example.com,skip-tls-verify=true",
 				},
 			},
 		},
 		{
 			doc: "ssh host with skip-tls-verify=INVALID",
-			options: CreateOptions{
-				Name: "skip-tls-verify-invalid",
-				Docker: map[string]string{
+			options: createOptions{
+				name: "skip-tls-verify-invalid",
+				endpoint: map[string]string{
 					"host":            "ssh://example.com",
 					"skip-tls-verify": "INVALID",
 				},
@@ -129,9 +129,9 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			doc: "unknown option",
-			options: CreateOptions{
-				Name: "unknown-option",
-				Docker: map[string]string{
+			options: createOptions{
+				name: "unknown-option",
+				endpoint: map[string]string{
 					"UNKNOWN": "value",
 				},
 			},
@@ -140,7 +140,7 @@ func TestCreate(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
-			err := RunCreate(cli, &tc.options)
+			err := runCreate(cli, &tc.options)
 			if tc.expecterErr == "" {
 				assert.NilError(t, err)
 			} else {
@@ -159,9 +159,9 @@ func assertContextCreateLogging(t *testing.T, cli *test.FakeCli, n string) {
 func TestCreateOrchestratorEmpty(t *testing.T) {
 	cli := makeFakeCli(t)
 
-	err := RunCreate(cli, &CreateOptions{
-		Name:   "test",
-		Docker: map[string]string{},
+	err := runCreate(cli, &createOptions{
+		name:     "test",
+		endpoint: map[string]string{},
 	})
 	assert.NilError(t, err)
 	assertContextCreateLogging(t, cli, "test")
@@ -187,20 +187,20 @@ func TestCreateFromContext(t *testing.T) {
 
 	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
-		Name:        "original",
-		Description: "original description",
-		Docker: map[string]string{
+	assert.NilError(t, runCreate(cli, &createOptions{
+		name:        "original",
+		description: "original description",
+		endpoint: map[string]string{
 			keyHost: "tcp://42.42.42.42:2375",
 		},
 	}))
 	assertContextCreateLogging(t, cli, "original")
 
 	cli.ResetOutputBuffers()
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
-		Name:        "dummy",
-		Description: "dummy description",
-		Docker: map[string]string{
+	assert.NilError(t, runCreate(cli, &createOptions{
+		name:        "dummy",
+		description: "dummy description",
+		endpoint: map[string]string{
 			keyHost: "tcp://24.24.24.24:2375",
 		},
 	}))
@@ -211,11 +211,11 @@ func TestCreateFromContext(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
-			err := RunCreate(cli, &CreateOptions{
-				From:        "original",
-				Name:        tc.name,
-				Description: tc.description,
-				Docker:      tc.docker,
+			err := runCreate(cli, &createOptions{
+				from:        "original",
+				name:        tc.name,
+				description: tc.description,
+				endpoint:    tc.docker,
 			})
 			assert.NilError(t, err)
 			assertContextCreateLogging(t, cli, tc.name)
@@ -251,10 +251,10 @@ func TestCreateFromCurrent(t *testing.T) {
 
 	cli := makeFakeCli(t)
 	cli.ResetOutputBuffers()
-	assert.NilError(t, RunCreate(cli, &CreateOptions{
-		Name:        "original",
-		Description: "original description",
-		Docker: map[string]string{
+	assert.NilError(t, runCreate(cli, &createOptions{
+		name:        "original",
+		description: "original description",
+		endpoint: map[string]string{
 			keyHost: "tcp://42.42.42.42:2375",
 		},
 	}))
@@ -265,9 +265,9 @@ func TestCreateFromCurrent(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli.ResetOutputBuffers()
-			err := RunCreate(cli, &CreateOptions{
-				Name:        tc.name,
-				Description: tc.description,
+			err := runCreate(cli, &createOptions{
+				name:        tc.name,
+				description: tc.description,
 			})
 			assert.NilError(t, err)
 			assertContextCreateLogging(t, cli, tc.name)
