@@ -18,6 +18,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/client"
@@ -350,5 +351,25 @@ func TestHooksEnabled(t *testing.T) {
 		cli, err := NewDockerCli()
 		assert.NilError(t, err)
 		assert.Check(t, !cli.HooksEnabled())
+	})
+}
+
+func TestSetGoDebug(t *testing.T) {
+	t.Run("GODEBUG already set", func(t *testing.T) {
+		t.Setenv("GODEBUG", "val1,val2")
+		meta := store.Metadata{}
+		setGoDebug(meta)
+		assert.Equal(t, "val1,val2", os.Getenv("GODEBUG"))
+	})
+	t.Run("GODEBUG in context metadata can set env", func(t *testing.T) {
+		meta := store.Metadata{
+			Metadata: DockerContext{
+				AdditionalFields: map[string]any{
+					"GODEBUG": "val1,val2=1",
+				},
+			},
+		}
+		setGoDebug(meta)
+		assert.Equal(t, "val1,val2=1", os.Getenv("GODEBUG"))
 	})
 }
