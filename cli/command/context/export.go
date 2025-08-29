@@ -13,6 +13,8 @@ import (
 )
 
 // ExportOptions are the options used for exporting a context
+//
+// Deprecated: this type was for internal use and will be removed in the next release.
 type ExportOptions struct {
 	ContextName string
 	Dest        string
@@ -24,15 +26,14 @@ func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Export a context to a tar archive FILE or a tar stream on STDOUT.",
 		Args:  cli.RequiresRangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts := &ExportOptions{
-				ContextName: args[0],
-			}
+			contextName := args[0]
+			var dest string
 			if len(args) == 2 {
-				opts.Dest = args[1]
+				dest = args[1]
 			} else {
-				opts.Dest = opts.ContextName + ".dockercontext"
+				dest = contextName + ".dockercontext"
 			}
-			return RunExport(dockerCLI, opts)
+			return runExport(dockerCLI, contextName, dest)
 		},
 		ValidArgsFunction: completeContextNames(dockerCLI, 1, true),
 	}
@@ -65,11 +66,21 @@ func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {
 }
 
 // RunExport exports a Docker context
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunExport(dockerCli command.Cli, opts *ExportOptions) error {
-	if err := store.ValidateContextName(opts.ContextName); err != nil && opts.ContextName != command.DefaultContextName {
+	if opts == nil {
+		opts = &ExportOptions{}
+	}
+	return runExport(dockerCli, opts.ContextName, opts.Dest)
+}
+
+// runExport exports a Docker context.
+func runExport(dockerCLI command.Cli, contextName string, dest string) error {
+	if err := store.ValidateContextName(contextName); err != nil && contextName != command.DefaultContextName {
 		return err
 	}
-	reader := store.Export(opts.ContextName, dockerCli.ContextStore())
+	reader := store.Export(contextName, dockerCLI.ContextStore())
 	defer reader.Close()
-	return writeTo(dockerCli, reader, opts.Dest)
+	return writeTo(dockerCLI, reader, dest)
 }
