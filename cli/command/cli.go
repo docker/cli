@@ -284,7 +284,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 
 	meta, err := cli.contextStore.GetMetadata(cli.currentContext)
 	if err == nil {
-		setAllowNegativex509(meta)
+		setGoDebug(meta)
 	}
 
 	return nil
@@ -480,7 +480,7 @@ func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
 	return resolveDockerEndpoint(cli.contextStore, cn)
 }
 
-// setAllowNegativex509 is an escape hatch that sets the GODEBUG environment
+// setGoDebug is an escape hatch that sets the GODEBUG environment
 // variable value using docker context metadata.
 //
 //	{
@@ -497,7 +497,7 @@ func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
 // This option should only be used for legacy compatibility and never in
 // production environments.
 // Use at your own risk.
-func setAllowNegativex509(meta store.Metadata) {
+func setGoDebug(meta store.Metadata) {
 	fieldName := "GODEBUG"
 	godebugEnv := os.Getenv(fieldName)
 	// early return if GODEBUG is already set. We don't want to override what
