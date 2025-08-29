@@ -282,6 +282,17 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	}
 	filterResourceAttributesEnvvar()
 
+	// early return if GODEBUG is already set or the docker context is
+	// the default context, i.e. is a virtual context where we won't override
+	// any GODEBUG values.
+	if v := os.Getenv("GODEBUG"); cli.currentContext == DefaultContextName || v != "" {
+		return nil
+	}
+	meta, err := cli.contextStore.GetMetadata(cli.currentContext)
+	if err == nil {
+		setGoDebug(meta)
+	}
+
 	return nil
 }
 
@@ -473,6 +484,57 @@ func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
 		return resolveDefaultDockerEndpoint(cli.options)
 	}
 	return resolveDockerEndpoint(cli.contextStore, cn)
+}
+
+// setGoDebug is an escape hatch that sets the GODEBUG environment
+// variable value using docker context metadata.
+//
+//	{
+//	  "Name": "my-context",
+//	  "Metadata": { "GODEBUG": "x509negativeserial=1" }
+//	}
+//
+// WARNING: Setting x509negativeserial=1 allows Go's x509 library to accept
+// X.509 certificates with negative serial numbers.
+// This behavior is deprecated and non-compliant with current security
+// standards (RFC 5280). Accepting negative serial numbers can introduce
+// serious security vulnerabilities, including the risk of certificate
+// collision or bypass attacks.
+// This option should only be used for legacy compatibility and never in
+// production environments.
+// Use at your own risk.
+func setGoDebug(meta store.Metadata) {
+	fieldName := "GODEBUG"
+	godebugEnv := os.Getenv(fieldName)
+	// early return if GODEBUG is already set. We don't want to override what
+	// the user already sets.
+	if godebugEnv != "" {
+		return
+	}
+
+	var cfg any
+	var ok bool
+	switch m := meta.Metadata.(type) {
+	case DockerContext:
+		cfg, ok = m.AdditionalFields[fieldName]
+		if !ok {
+			return
+		}
+	case map[string]any:
+		cfg, ok = m[fieldName]
+		if !ok {
+			return
+		}
+	default:
+		return
+	}
+
+	v, ok := cfg.(string)
+	if !ok {
+		return
+	}
+	// set the GODEBUG environment variable with whatever was in the context
+	_ = os.Setenv(fieldName, v)
 }
 
 func (cli *DockerCli) initialize() error {
