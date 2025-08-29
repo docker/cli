@@ -265,14 +265,13 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 		} else {
 			_, _ = fmt.Fprintln(out, "Creating service", name)
 
-			createOpts := client.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
-
 			// query registry if flag disabling it was not set
-			if resolveImage == ResolveImageAlways || resolveImage == ResolveImageChanged {
-				createOpts.QueryRegistry = true
-			}
+			queryRegistry := resolveImage == ResolveImageAlways || resolveImage == ResolveImageChanged
 
-			response, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts)
+			response, err := apiClient.ServiceCreate(ctx, serviceSpec, client.ServiceCreateOptions{
+				EncodedRegistryAuth: encodedAuth,
+				QueryRegistry:       queryRegistry,
+			})
 			if err != nil {
 				return nil, fmt.Errorf("failed to create service %s: %w", name, err)
 			}
