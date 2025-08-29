@@ -281,6 +281,12 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	}
 	filterResourceAttributesEnvvar()
 
+	// early return if GODEBUG is already set or the docker context is
+	// the default context, i.e. is a virtual context where we won't override
+	// any GODEBUG values.
+	if v := os.Getenv("GODEBUG"); cli.currentContext == DefaultContextName || v != "" {
+		return nil
+	}
 	meta, err := cli.contextStore.GetMetadata(cli.currentContext)
 	if err == nil {
 		setGoDebug(meta)
