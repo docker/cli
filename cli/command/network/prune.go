@@ -43,7 +43,8 @@ func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 			}
 			return nil
 		},
-		Annotations: map[string]string{"version": "1.25"},
+		Annotations:           map[string]string{"version": "1.25"},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

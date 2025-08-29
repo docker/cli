@@ -25,7 +25,8 @@ func newManifestCommand(dockerCLI command.Cli) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			_, _ = fmt.Fprint(dockerCLI.Err(), "\n"+cmd.UsageString())
 		},
-		Annotations: map[string]string{"experimentalCLI": ""},
+		Annotations:           map[string]string{"experimentalCLI": ""},
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newCreateListCommand(dockerCLI),

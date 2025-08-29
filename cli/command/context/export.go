@@ -34,7 +34,8 @@ func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 			}
 			return RunExport(dockerCLI, opts)
 		},
-		ValidArgsFunction: completeContextNames(dockerCLI, 1, true),
+		ValidArgsFunction:     completeContextNames(dockerCLI, 1, true),
+		DisableFlagsInUseLine: true,
 	}
 }
 

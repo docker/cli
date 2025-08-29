@@ -51,6 +51,7 @@ func newImagesCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "7",
 			"aliases":      "docker image ls, docker image list, docker images",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

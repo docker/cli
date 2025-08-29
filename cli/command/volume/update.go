@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	var availability string
 
 	cmd := &cobra.Command{
@@ -20,13 +20,14 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a volume (cluster volumes only)",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(cmd.Context(), dockerCli, args[0], availability, cmd.Flags())
+			return runUpdate(cmd.Context(), dockerCLI, args[0], availability, cmd.Flags())
 		},
 		Annotations: map[string]string{
 			"version": "1.42",
 			"swarm":   "manager",
 		},
-		ValidArgsFunction: completion.VolumeNames(dockerCli),
+		ValidArgsFunction:     completion.VolumeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

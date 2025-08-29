@@ -43,7 +43,8 @@ func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "3",
 			"aliases":      "docker container ls, docker container list, docker container ps, docker ps",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -23,6 +23,7 @@ func newCheckpointCommand(dockerCLI command.Cli) *cobra.Command {
 			"ostype":       "linux",
 			"version":      "1.25",
 		},
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCLI),

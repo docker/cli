@@ -22,7 +22,8 @@ func newDiffCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container diff, docker diff",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, false),
+		DisableFlagsInUseLine: true,
 	}
 }
 

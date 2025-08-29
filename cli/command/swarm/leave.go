@@ -13,7 +13,7 @@ type leaveOptions struct {
 	force bool
 }
 
-func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
+func newLeaveCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := leaveOptions{}
 
 	cmd := &cobra.Command{
@@ -21,13 +21,14 @@ func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Leave the swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLeave(cmd.Context(), dockerCli, opts)
+			return runLeave(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "active",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -17,7 +17,7 @@ type createOptions struct {
 	leaveRunning  bool
 }
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts createOptions
 
 	cmd := &cobra.Command{
@@ -27,9 +27,10 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.container = args[0]
 			opts.checkpoint = args[1]
-			return runCreate(cmd.Context(), dockerCli, opts)
+			return runCreate(cmd.Context(), dockerCLI, opts)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

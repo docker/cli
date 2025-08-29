@@ -35,6 +35,7 @@ func newSignCommand(dockerCLI command.Cli) *cobra.Command {
 			options.imageName = args[0]
 			return runSignImage(cmd.Context(), dockerCLI, options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVar(&options.local, "local", false, "Sign a locally tagged image")

@@ -64,7 +64,7 @@ type pluginCreateOptions struct {
 	compress bool
 }
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	options := pluginCreateOptions{}
 
 	cmd := &cobra.Command{
@@ -74,9 +74,10 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.repoName = args[0]
 			options.context = args[1]
-			return runCreate(cmd.Context(), dockerCli, options)
+			return runCreate(cmd.Context(), dockerCLI, options)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := swarmOptions{}
 
 	cmd := &cobra.Command{
@@ -20,7 +20,7 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update the swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), opts)
+			return runUpdate(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if cmd.Flags().NFlag() == 0 {
@@ -32,7 +32,8 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 			"version": "1.24",
 			"swarm":   "manager",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	cmd.Flags().BoolVar(&opts.autolock, flagAutolock, false, "Change manager autolocking setting (true|false)")

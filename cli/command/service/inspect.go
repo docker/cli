@@ -24,7 +24,7 @@ type inspectOptions struct {
 	pretty bool
 }
 
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -37,9 +37,10 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 			if opts.pretty && len(opts.format) > 0 {
 				return errors.Errorf("--format is incompatible with human friendly format")
 			}
-			return runInspect(cmd.Context(), dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
-		ValidArgsFunction: completeServiceNames(dockerCli),
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -19,7 +19,8 @@ func newUseCommand(dockerCLI command.Cli) *cobra.Command {
 			name := args[0]
 			return RunUse(dockerCLI, name)
 		},
-		ValidArgsFunction: completeContextNames(dockerCLI, 1, false),
+		ValidArgsFunction:     completeContextNames(dockerCLI, 1, false),
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

@@ -17,7 +17,7 @@ import (
 
 var errNoRoleChange = errors.New("role was already set to the requested value")
 
-func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
+func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	options := newNodeOptions()
 
 	cmd := &cobra.Command{
@@ -25,9 +25,10 @@ func newUpdateCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Update a node",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpdate(cmd.Context(), dockerCli, cmd.Flags(), args[0])
+			return runUpdate(cmd.Context(), dockerCLI, cmd.Flags(), args[0])
 		},
-		ValidArgsFunction: completeNodeNames(dockerCli),
+		ValidArgsFunction:     completeNodeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

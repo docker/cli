@@ -68,7 +68,8 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 			return runCreate(cmd.Context(), dockerCLI.Client(), dockerCLI.Out(), options)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -25,7 +25,7 @@ type psOptions struct {
 	filter    opts.FilterOpt
 }
 
-func newPsCommand(dockerCli command.Cli) *cobra.Command {
+func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -39,9 +39,10 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 				options.nodeIDs = args
 			}
 
-			return runPs(cmd.Context(), dockerCli, options)
+			return runPs(cmd.Context(), dockerCLI, options)
 		},
-		ValidArgsFunction: completeNodeNames(dockerCli),
+		ValidArgsFunction:     completeNodeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVar(&options.noTrunc, "no-trunc", false, "Do not truncate output")

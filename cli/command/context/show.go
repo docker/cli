@@ -9,16 +9,17 @@ import (
 )
 
 // newShowCommand creates a new cobra.Command for `docker context sow`
-func newShowCommand(dockerCli command.Cli) *cobra.Command {
+func newShowCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show",
 		Short: "Print the name of the current context",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			runShow(dockerCli)
+			runShow(dockerCLI)
 			return nil
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

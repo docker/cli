@@ -18,6 +18,7 @@ func newRmManifestListCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRemove(cmd.Context(), newManifestStore(dockerCLI), args)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	return cmd

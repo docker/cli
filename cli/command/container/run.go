@@ -48,6 +48,7 @@ func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "1",
 			"aliases":      "docker container run, docker run",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

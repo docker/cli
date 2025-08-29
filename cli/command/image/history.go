@@ -40,6 +40,7 @@ func newHistoryCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker image history, docker history",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

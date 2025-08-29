@@ -15,7 +15,7 @@ type listOptions struct {
 	checkpointDir string
 }
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts listOptions
 
 	cmd := &cobra.Command{
@@ -24,9 +24,10 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List checkpoints for a container",
 		Args:    cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd.Context(), dockerCli, args[0], opts)
+			return runList(cmd.Context(), dockerCLI, args[0], opts)
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, false),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

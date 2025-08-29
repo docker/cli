@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newUpgradeCommand(dockerCli command.Cli) *cobra.Command {
+func newUpgradeCommand(dockerCLI command.Cli) *cobra.Command {
 	var options pluginOptions
 	cmd := &cobra.Command{
 		Use:   "upgrade [OPTIONS] PLUGIN [REMOTE]",
@@ -25,14 +25,15 @@ func newUpgradeCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) == 2 {
 				options.remote = args[1]
 			}
-			return runUpgrade(cmd.Context(), dockerCli, options)
+			return runUpgrade(cmd.Context(), dockerCLI, options)
 		},
-		Annotations: map[string]string{"version": "1.26"},
+		Annotations:           map[string]string{"version": "1.26"},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
 	flags.BoolVar(&options.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
-	flags.Bool("disable-content-trust", dockerCli.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	flags.Bool("disable-content-trust", dockerCLI.ContentTrustEnabled(), "Skip image verification (deprecated)")
 	_ = flags.MarkHidden("disable-content-trust")
 	flags.BoolVar(&options.skipRemoteCheck, "skip-remote-check", false, "Do not check if specified remote plugin matches existing plugin image")
 	return cmd

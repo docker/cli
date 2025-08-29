@@ -58,6 +58,7 @@ func newAttachCommand(dockerCLI command.Cli) *cobra.Command {
 		ValidArgsFunction: completion.ContainerNames(dockerCLI, false, func(ctr container.Summary) bool {
 			return ctr.State != container.StatePaused
 		}),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

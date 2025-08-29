@@ -18,7 +18,7 @@ type scaleOptions struct {
 	detach bool
 }
 
-func newScaleCommand(dockerCli command.Cli) *cobra.Command {
+func newScaleCommand(dockerCLI command.Cli) *cobra.Command {
 	options := &scaleOptions{}
 
 	cmd := &cobra.Command{
@@ -26,9 +26,10 @@ func newScaleCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Scale one or multiple replicated services",
 		Args:  scaleArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScale(cmd.Context(), dockerCli, options, args)
+			return runScale(cmd.Context(), dockerCLI, options, args)
 		},
-		ValidArgsFunction: completeScaleArgs(dockerCli),
+		ValidArgsFunction:     completeScaleArgs(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

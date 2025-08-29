@@ -22,7 +22,7 @@ type createOptions struct {
 	labels         opts.ListOpts
 }
 
-func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newSecretCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	options := createOptions{
 		labels: opts.NewListOpts(opts.ValidateLabel),
 	}
@@ -36,8 +36,9 @@ func newSecretCreateCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) == 2 {
 				options.file = args[1]
 			}
-			return runSecretCreate(cmd.Context(), dockerCli, options)
+			return runSecretCreate(cmd.Context(), dockerCLI, options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.VarP(&options.labels, "label", "l", "Secret labels")

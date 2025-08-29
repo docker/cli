@@ -10,15 +10,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newDemoteCommand(dockerCli command.Cli) *cobra.Command {
+func newDemoteCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:   "demote NODE [NODE...]",
 		Short: "Demote one or more nodes from manager in the swarm",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDemote(cmd.Context(), dockerCli, args)
+			return runDemote(cmd.Context(), dockerCLI, args)
 		},
-		ValidArgsFunction: completeNodeNames(dockerCli),
+		ValidArgsFunction:     completeNodeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 }
 

@@ -24,7 +24,7 @@ type portOptions struct {
 }
 
 // newPortCommand creates a new cobra.Command for "docker container port".
-func newPortCommand(dockerCli command.Cli) *cobra.Command {
+func newPortCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts portOptions
 
 	cmd := &cobra.Command{
@@ -36,12 +36,13 @@ func newPortCommand(dockerCli command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				opts.port = args[1]
 			}
-			return runPort(cmd.Context(), dockerCli, &opts)
+			return runPort(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container port, docker port",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, false),
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

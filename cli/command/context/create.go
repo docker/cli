@@ -52,8 +52,9 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 			opts.Name = args[0]
 			return RunCreate(dockerCLI, opts)
 		},
-		Long:              longCreateDescription(),
-		ValidArgsFunction: cobra.NoFileCompletions,
+		Long:                  longCreateDescription(),
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")

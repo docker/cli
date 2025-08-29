@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newEnableCommand(dockerCli command.Cli) *cobra.Command {
+func newEnableCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts client.PluginEnableOptions
 
 	cmd := &cobra.Command{
@@ -20,12 +20,13 @@ func newEnableCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			if err := runEnable(cmd.Context(), dockerCli, name, opts); err != nil {
+			if err := runEnable(cmd.Context(), dockerCLI, name, opts); err != nil {
 				return err
 			}
-			_, _ = fmt.Fprintln(dockerCli.Out(), name)
+			_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 			return nil
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

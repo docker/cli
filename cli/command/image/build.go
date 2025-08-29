@@ -88,7 +88,7 @@ func NewBuildCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 // newBuildCommand creates a new `docker build` command
-func newBuildCommand(dockerCli command.Cli) *cobra.Command {
+func newBuildCommand(dockerCLI command.Cli) *cobra.Command {
 	options := newBuildOptions()
 
 	cmd := &cobra.Command{
@@ -97,7 +97,7 @@ func newBuildCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.context = args[0]
-			return runBuild(cmd.Context(), dockerCli, options)
+			return runBuild(cmd.Context(), dockerCLI, options)
 		},
 		Annotations: map[string]string{
 			"category-top": "4",
@@ -106,6 +106,7 @@ func newBuildCommand(dockerCli command.Cli) *cobra.Command {
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return nil, cobra.ShellCompDirectiveFilterDirs
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
@@ -146,7 +147,7 @@ func newBuildCommand(dockerCli command.Cli) *cobra.Command {
 	flags.SetAnnotation("target", annotation.ExternalURL, []string{"https://docs.docker.com/reference/cli/docker/buildx/build/#target"})
 	flags.StringVar(&options.imageIDFile, "iidfile", "", "Write the image ID to the file")
 
-	flags.Bool("disable-content-trust", dockerCli.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	flags.Bool("disable-content-trust", dockerCLI.ContentTrustEnabled(), "Skip image verification (deprecated)")
 	_ = flags.MarkHidden("disable-content-trust")
 
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")

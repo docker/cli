@@ -38,7 +38,7 @@ type logsOptions struct {
 	target string
 }
 
-func newLogsCommand(dockerCli command.Cli) *cobra.Command {
+func newLogsCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts logsOptions
 
 	cmd := &cobra.Command{
@@ -47,10 +47,11 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
-			return runLogs(cmd.Context(), dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCLI, &opts)
 		},
-		Annotations:       map[string]string{"version": "1.29"},
-		ValidArgsFunction: completeServiceNames(dockerCli),
+		Annotations:           map[string]string{"version": "1.29"},
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -38,7 +38,8 @@ func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "5",
 			"aliases":      "docker image pull, docker pull",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

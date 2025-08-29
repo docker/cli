@@ -73,7 +73,8 @@ func newInfoCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "12",
 			"aliases":      "docker system info, docker info",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)

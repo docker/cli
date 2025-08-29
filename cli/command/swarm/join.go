@@ -23,7 +23,7 @@ type joinOptions struct {
 	availability  string
 }
 
-func newJoinCommand(dockerCli command.Cli) *cobra.Command {
+func newJoinCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := joinOptions{
 		listenAddr: NewListenAddrOption(),
 	}
@@ -34,12 +34,13 @@ func newJoinCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.remote = args[0]
-			return runJoin(cmd.Context(), dockerCli, cmd.Flags(), opts)
+			return runJoin(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "", // swarm join does not require swarm to be active, and is always available on API 1.24 and up
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

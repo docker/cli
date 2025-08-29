@@ -10,15 +10,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newPromoteCommand(dockerCli command.Cli) *cobra.Command {
+func newPromoteCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:   "promote NODE [NODE...]",
 		Short: "Promote one or more nodes to manager in the swarm",
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPromote(cmd.Context(), dockerCli, args)
+			return runPromote(cmd.Context(), dockerCLI, args)
 		},
-		ValidArgsFunction: completeNodeNames(dockerCli),
+		ValidArgsFunction:     completeNodeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 }
 

@@ -17,7 +17,7 @@ type removeOptions struct {
 	volumes []string
 }
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts removeOptions
 
 	cmd := &cobra.Command{
@@ -28,9 +28,10 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.volumes = args
-			return runRemove(cmd.Context(), dockerCli, &opts)
+			return runRemove(cmd.Context(), dockerCLI, &opts)
 		},
-		ValidArgsFunction: completion.VolumeNames(dockerCli),
+		ValidArgsFunction:     completion.VolumeNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
