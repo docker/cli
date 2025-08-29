@@ -43,30 +43,28 @@ type Stack struct {
 // StackWrite writes formatted stacks using the Context
 //
 // Deprecated: this function was for internal use and will be removed in the next release.
-func StackWrite(ctx formatter.Context, stacks []*Stack) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
+func StackWrite(ctx formatter.Context, stacks []Stack) error {
+	fmtCtx := &stackContext{
+		HeaderContext: formatter.HeaderContext{
+			Header: formatter.SubHeaderContext{
+				"Name":     formatter.NameHeader,
+				"Services": stackServicesHeader,
+			},
+		},
+	}
+	return ctx.Write(fmtCtx, func(format func(subContext formatter.SubContext) error) error {
 		for _, stack := range stacks {
 			if err := format(&stackContext{s: stack}); err != nil {
 				return err
 			}
 		}
 		return nil
-	}
-	return ctx.Write(newStackContext(), render)
+	})
 }
 
 type stackContext struct {
 	formatter.HeaderContext
-	s *Stack
-}
-
-func newStackContext() *stackContext {
-	stackCtx := stackContext{}
-	stackCtx.Header = formatter.SubHeaderContext{
-		"Name":     formatter.NameHeader,
-		"Services": stackServicesHeader,
-	}
-	return &stackCtx
+	s Stack
 }
 
 func (s *stackContext) MarshalJSON() ([]byte, error) {

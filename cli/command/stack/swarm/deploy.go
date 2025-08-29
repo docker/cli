@@ -69,19 +69,19 @@ func checkDaemonIsSwarmManager(ctx context.Context, dockerCli command.Cli) error
 }
 
 // pruneServices removes services that are no longer referenced in the source
-func pruneServices(ctx context.Context, dockerCCLI command.Cli, namespace convert.Namespace, services map[string]struct{}) {
-	apiClient := dockerCCLI.Client()
+func pruneServices(ctx context.Context, dockerCLI command.Cli, namespace convert.Namespace, services map[string]struct{}) {
+	apiClient := dockerCLI.Client()
 
 	oldServices, err := getStackServices(ctx, apiClient, namespace.Name())
 	if err != nil {
-		_, _ = fmt.Fprintln(dockerCCLI.Err(), "Failed to list services:", err)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "Failed to list services:", err)
 	}
 
-	pruneServices := []swarm.Service{}
+	toRemove := make([]swarm.Service, 0, len(oldServices))
 	for _, service := range oldServices {
 		if _, exists := services[namespace.Descope(service.Spec.Name)]; !exists {
-			pruneServices = append(pruneServices, service)
+			toRemove = append(toRemove, service)
 		}
 	}
-	removeServices(ctx, dockerCCLI, pruneServices)
+	removeServices(ctx, dockerCLI, toRemove)
 }
