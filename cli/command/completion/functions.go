@@ -136,8 +136,10 @@ func FromList(options ...string) cobra.CompletionFunc {
 // FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
 // which indicates to let the shell perform its default behavior after
 // completions have been provided.
-func FileNames(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
-	return nil, cobra.ShellCompDirectiveDefault
+func FileNames() cobra.CompletionFunc {
+	return func(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+		return nil, cobra.ShellCompDirectiveDefault
+	}
 }
 
 var commonPlatforms = []string{

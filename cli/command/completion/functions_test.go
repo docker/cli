@@ -185,7 +185,7 @@ func TestCompleteEnvVarNames(t *testing.T) {
 }
 
 func TestCompleteFileNames(t *testing.T) {
-	values, directives := FileNames(nil, nil, "")
+	values, directives := FileNames()(nil, nil, "")
 	assert.Check(t, is.Equal(directives, cobra.ShellCompDirectiveDefault))
 	assert.Check(t, is.Len(values, 0))
 }
