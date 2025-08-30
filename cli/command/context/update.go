@@ -13,10 +13,19 @@ import (
 )
 
 // UpdateOptions are the options used to update a context
+//
+// Deprecated: this type was for internal use and will be removed in the next release.
 type UpdateOptions struct {
 	Name        string
 	Description string
 	Docker      map[string]string
+}
+
+// updateOptions are the options used to update a context.
+type updateOptions struct {
+	name        string
+	description string
+	endpoint    map[string]string
 }
 
 func longUpdateDescription() string {
@@ -33,31 +42,45 @@ func longUpdateDescription() string {
 }
 
 func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
-	opts := &UpdateOptions{}
+	opts := updateOptions{}
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] CONTEXT",
 		Short: "Update a context",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.Name = args[0]
-			return RunUpdate(dockerCLI, opts)
+			opts.name = args[0]
+			return runUpdate(dockerCLI, &opts)
 		},
 		Long:              longUpdateDescription(),
 		ValidArgsFunction: completeContextNames(dockerCLI, 1, false),
 	}
 	flags := cmd.Flags()
-	flags.StringVar(&opts.Description, "description", "", "Description of the context")
-	flags.StringToStringVar(&opts.Docker, "docker", nil, "set the docker endpoint")
+	flags.StringVar(&opts.description, "description", "", "Description of the context")
+	flags.StringToStringVar(&opts.endpoint, "docker", nil, "set the docker endpoint")
 	return cmd
 }
 
 // RunUpdate updates a Docker context
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
 func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
-	if err := store.ValidateContextName(o.Name); err != nil {
+	if o == nil {
+		o = &UpdateOptions{}
+	}
+	return runUpdate(dockerCLI, &updateOptions{
+		name:        o.Name,
+		description: o.Description,
+		endpoint:    o.Docker,
+	})
+}
+
+// runUpdate updates a Docker context.
+func runUpdate(dockerCLI command.Cli, opts *updateOptions) error {
+	if err := store.ValidateContextName(opts.name); err != nil {
 		return err
 	}
 	s := dockerCLI.ContextStore()
-	c, err := s.GetMetadata(o.Name)
+	c, err := s.GetMetadata(opts.name)
 	if err != nil {
 		return err
 	}
@@ -65,16 +88,16 @@ func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
 	if err != nil {
 		return err
 	}
-	if o.Description != "" {
-		dockerContext.Description = o.Description
+	if opts.description != "" {
+		dockerContext.Description = opts.description
 	}
 
 	c.Metadata = dockerContext
 
 	tlsDataToReset := make(map[string]*store.EndpointTLSData)
 
-	if o.Docker != nil {
-		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(s, o.Docker)
+	if opts.endpoint != nil {
+		dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(s, opts.endpoint)
 		if err != nil {
 			return fmt.Errorf("unable to create docker endpoint config: %w", err)
 		}
@@ -88,13 +111,13 @@ func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
 		return err
 	}
 	for ep, tlsData := range tlsDataToReset {
-		if err := s.ResetEndpointTLSMaterial(o.Name, ep, tlsData); err != nil {
+		if err := s.ResetEndpointTLSMaterial(opts.name, ep, tlsData); err != nil {
 			return err
 		}
 	}
 
-	_, _ = fmt.Fprintln(dockerCLI.Out(), o.Name)
-	_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully updated context %q\n", o.Name)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), opts.name)
+	_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully updated context %q\n", opts.name)
 	return nil
 }
 
