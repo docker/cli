@@ -176,7 +176,7 @@ func TestCompleteEnvVarNames(t *testing.T) {
 		"ENV_A": "hello-a",
 		"ENV_B": "hello-b",
 	})
-	values, directives := EnvVarNames(nil, nil, "")
+	values, directives := EnvVarNames()(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 
 	sort.Strings(values)

@@ -116,14 +116,16 @@ func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 //	export MY_VAR=hello
 //	docker run --rm --env MY_VAR alpine printenv MY_VAR
 //	hello
-func EnvVarNames(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
-	envs := os.Environ()
-	names = make([]string, 0, len(envs))
-	for _, env := range envs {
-		name, _, _ := strings.Cut(env, "=")
-		names = append(names, name)
+func EnvVarNames() cobra.CompletionFunc {
+	return func(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
+		envs := os.Environ()
+		names = make([]string, 0, len(envs))
+		for _, env := range envs {
+			name, _, _ := strings.Cut(env, "=")
+			names = append(names, name)
+		}
+		return names, cobra.ShellCompDirectiveNoFileComp
 	}
-	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
 // FromList offers completion for the given list of options.

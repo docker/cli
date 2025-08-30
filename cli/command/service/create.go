@@ -82,7 +82,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	// _ = cmd.RegisterFlagCompletionFunc(flagStopSignal, completeSignals)
 
 	_ = cmd.RegisterFlagCompletionFunc(flagMode, completion.FromList("replicated", "global", "replicated-job", "global-job"))
-	_ = cmd.RegisterFlagCompletionFunc(flagEnv, completion.EnvVarNames) // TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
+	_ = cmd.RegisterFlagCompletionFunc(flagEnv, completion.EnvVarNames()) // TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
 	_ = cmd.RegisterFlagCompletionFunc(flagEnvFile, completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc(flagNetwork, completion.NetworkNames(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc(flagRestartCondition, completion.FromList("none", "on-failure", "any"))
