@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +27,7 @@ func newLeaveCommand(dockerCli command.Cli) *cobra.Command {
 			"version": "1.24",
 			"swarm":   "active",
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	flags := cmd.Flags()

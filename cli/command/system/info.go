@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/debug"
 	flagsHelper "github.com/docker/cli/cli/flags"
@@ -74,7 +73,7 @@ func newInfoCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "12",
 			"aliases":      "docker system info, docker info",
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
