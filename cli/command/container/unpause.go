@@ -17,7 +17,7 @@ type unpauseOptions struct {
 }
 
 // newUnpauseCommand creates a new cobra.Command for "docker container unpause".
-func newUnpauseCommand(dockerCli command.Cli) *cobra.Command {
+func newUnpauseCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts unpauseOptions
 
 	cmd := &cobra.Command{
@@ -26,14 +26,15 @@ func newUnpauseCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.containers = args
-			return runUnpause(cmd.Context(), dockerCli, &opts)
+			return runUnpause(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container unpause, docker unpause",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, false, func(ctr container.Summary) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, false, func(ctr container.Summary) bool {
 			return ctr.State == container.StatePaused
 		}),
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

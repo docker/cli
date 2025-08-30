@@ -23,7 +23,7 @@ type keyGenerateOptions struct {
 	directory string
 }
 
-func newKeyGenerateCommand(dockerCli command.Streams) *cobra.Command {
+func newKeyGenerateCommand(dockerCLI command.Streams) *cobra.Command {
 	options := keyGenerateOptions{}
 	cmd := &cobra.Command{
 		Use:   "generate NAME",
@@ -31,8 +31,9 @@ func newKeyGenerateCommand(dockerCli command.Streams) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.name = args[0]
-			return setupPassphraseAndGenerateKeys(dockerCli, options)
+			return setupPassphraseAndGenerateKeys(dockerCLI, options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&options.directory, "dir", "", "Directory to generate key in, defaults to current directory")

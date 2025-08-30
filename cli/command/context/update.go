@@ -42,8 +42,9 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 			opts.Name = args[0]
 			return RunUpdate(dockerCLI, opts)
 		},
-		Long:              longUpdateDescription(),
-		ValidArgsFunction: completeContextNames(dockerCLI, 1, false),
+		Long:                  longUpdateDescription(),
+		ValidArgsFunction:     completeContextNames(dockerCLI, 1, false),
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.Description, "description", "", "Description of the context")

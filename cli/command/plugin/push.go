@@ -20,6 +20,7 @@ func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 			name := args[0]
 			return runPush(cmd.Context(), dockerCLI, name)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

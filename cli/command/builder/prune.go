@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/system/pruner"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
@@ -51,8 +50,9 @@ func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 			_, _ = fmt.Fprintln(dockerCLI.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 			return nil
 		},
-		Annotations:       map[string]string{"version": "1.39"},
-		ValidArgsFunction: completion.NoComplete,
+		Annotations:           map[string]string{"version": "1.39"},
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

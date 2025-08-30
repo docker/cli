@@ -7,16 +7,18 @@ import (
 )
 
 // newTrustKeyCommand returns a cobra command for `trust key` subcommands
-func newTrustKeyCommand(dockerCli command.Streams) *cobra.Command {
+func newTrustKeyCommand(dockerCLI command.Streams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "key",
 		Short: "Manage keys for signing Docker images",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
-		newKeyGenerateCommand(dockerCli),
-		newKeyLoadCommand(dockerCli),
+		newKeyGenerateCommand(dockerCLI),
+		newKeyLoadCommand(dockerCLI),
 	)
 	return cmd
 }

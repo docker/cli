@@ -26,6 +26,7 @@ func newNodeCommand(dockerCLI command.Cli) *cobra.Command {
 			"version": "1.24",
 			"swarm":   "manager",
 		},
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newDemoteCommand(dockerCLI),

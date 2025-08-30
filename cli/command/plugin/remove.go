@@ -17,7 +17,7 @@ type rmOptions struct {
 	plugins []string
 }
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts rmOptions
 
 	cmd := &cobra.Command{
@@ -27,8 +27,9 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.plugins = args
-			return runRemove(cmd.Context(), dockerCli, &opts)
+			return runRemove(cmd.Context(), dockerCLI, &opts)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

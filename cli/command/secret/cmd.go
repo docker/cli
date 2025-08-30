@@ -24,6 +24,7 @@ func newSecretCommand(dockerCLI command.Cli) *cobra.Command {
 			"version": "1.25",
 			"swarm":   "manager",
 		},
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newSecretListCommand(dockerCLI),

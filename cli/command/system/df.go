@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/client"
@@ -18,7 +17,7 @@ type diskUsageOptions struct {
 }
 
 // newDiskUsageCommand creates a new cobra.Command for `docker df`
-func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
+func newDiskUsageCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts diskUsageOptions
 
 	cmd := &cobra.Command{
@@ -26,10 +25,11 @@ func newDiskUsageCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Show docker disk usage",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDiskUsage(cmd.Context(), dockerCli, opts)
+			return runDiskUsage(cmd.Context(), dockerCLI, opts)
 		},
-		Annotations:       map[string]string{"version": "1.25"},
-		ValidArgsFunction: completion.NoComplete,
+		Annotations:           map[string]string{"version": "1.25"},
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

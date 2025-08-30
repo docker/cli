@@ -27,15 +27,16 @@ type keyLoadOptions struct {
 	keyName string
 }
 
-func newKeyLoadCommand(dockerCli command.Streams) *cobra.Command {
+func newKeyLoadCommand(dockerCLI command.Streams) *cobra.Command {
 	var options keyLoadOptions
 	cmd := &cobra.Command{
 		Use:   "load [OPTIONS] KEYFILE",
 		Short: "Load a private key file for signing",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return loadPrivKey(dockerCli, args[0], options)
+			return loadPrivKey(dockerCLI, args[0], options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&options.keyName, "name", "signer", "Name for the loaded key")

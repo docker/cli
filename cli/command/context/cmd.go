@@ -18,6 +18,8 @@ func newContextCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Manage contexts",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCLI.Err()),
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newCreateCommand(dockerCLI),

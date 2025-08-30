@@ -73,7 +73,8 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
 		// TODO(thaJeztah): should we consider adding completion for common object-types? (images, containers?)
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
@@ -86,7 +87,7 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 		// Set a default completion function if none was set. We don't look
 		// up if it does already have one set, because Cobra does this for
 		// us, and returns an error (which we ignore for this reason).
-		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, cobra.NoFileCompletions)
 	})
 	return cmd
 }

@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/context/docker"
 	flagsHelper "github.com/docker/cli/cli/flags"
@@ -24,7 +23,7 @@ type listOptions struct {
 	quiet  bool
 }
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := &listOptions{}
 	cmd := &cobra.Command{
 		Use:     "ls [OPTIONS]",
@@ -32,9 +31,10 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List contexts",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dockerCli, opts)
+			return runList(dockerCLI, opts)
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

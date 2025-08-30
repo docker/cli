@@ -19,6 +19,8 @@ func newPluginCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:        cli.NoArgs,
 		RunE:        command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{"version": "1.25"},
+
+		DisableFlagsInUseLine: true,
 	}
 
 	cmd.AddCommand(

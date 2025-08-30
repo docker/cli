@@ -28,7 +28,7 @@ type StartOptions struct {
 }
 
 // newStartCommand creates a new cobra.Command for "docker container start".
-func newStartCommand(dockerCli command.Cli) *cobra.Command {
+func newStartCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts StartOptions
 
 	cmd := &cobra.Command{
@@ -37,14 +37,15 @@ func newStartCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.Containers = args
-			return RunStart(cmd.Context(), dockerCli, &opts)
+			return RunStart(cmd.Context(), dockerCLI, &opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container start, docker start",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true, func(ctr container.Summary) bool {
+		ValidArgsFunction: completion.ContainerNames(dockerCLI, true, func(ctr container.Summary) bool {
 			return ctr.State == container.StateExited || ctr.State == container.StateCreated
 		}),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

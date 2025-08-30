@@ -21,7 +21,7 @@ type inspectOptions struct {
 	pretty bool
 }
 
-func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newSecretInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := inspectOptions{}
 	cmd := &cobra.Command{
 		Use:   "inspect [OPTIONS] SECRET [SECRET...]",
@@ -29,11 +29,12 @@ func newSecretInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.names = args
-			return runSecretInspect(cmd.Context(), dockerCli, opts)
+			return runSecretInspect(cmd.Context(), dockerCLI, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return completeNames(dockerCli)(cmd, args, toComplete)
+			return completeNames(dockerCLI)(cmd, args, toComplete)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)

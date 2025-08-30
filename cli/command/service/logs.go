@@ -12,7 +12,6 @@ import (
 	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/internal/logdetails"
@@ -39,7 +38,7 @@ type logsOptions struct {
 	target string
 }
 
-func newLogsCommand(dockerCli command.Cli) *cobra.Command {
+func newLogsCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts logsOptions
 
 	cmd := &cobra.Command{
@@ -48,10 +47,11 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
-			return runLogs(cmd.Context(), dockerCli, &opts)
+			return runLogs(cmd.Context(), dockerCLI, &opts)
 		},
-		Annotations:       map[string]string{"version": "1.29"},
-		ValidArgsFunction: completeServiceNames(dockerCli),
+		Annotations:           map[string]string{"version": "1.29"},
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
@@ -73,7 +73,7 @@ func newLogsCommand(dockerCli command.Cli) *cobra.Command {
 		// Set a default completion function if none was set. We don't look
 		// up if it does already have one set, because Cobra does this for
 		// us, and returns an error (which we ignore for this reason).
-		_ = cmd.RegisterFlagCompletionFunc(flag.Name, completion.NoComplete)
+		_ = cmd.RegisterFlagCompletionFunc(flag.Name, cobra.NoFileCompletions)
 	})
 	return cmd
 }

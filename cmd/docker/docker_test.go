@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/commands"
 	"github.com/docker/cli/cli/debug"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,22 @@ import (
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
+
+func TestDisableFlagsInUseLineIsSet(t *testing.T) {
+	dockerCli, err := command.NewDockerCli(command.WithBaseContext(context.TODO()))
+	assert.NilError(t, err)
+	rootCmd := &cobra.Command{DisableFlagsInUseLine: true}
+	commands.AddCommands(rootCmd, dockerCli)
+
+	var errs []error
+	visitAll(rootCmd, func(c *cobra.Command) {
+		if !c.DisableFlagsInUseLine {
+			errs = append(errs, errors.New("DisableFlagsInUseLine is not set for "+c.CommandPath()))
+		}
+	})
+	err = errors.Join(errs...)
+	assert.NilError(t, err)
+}
 
 func TestClientDebugEnabled(t *testing.T) {
 	defer debug.Disable()

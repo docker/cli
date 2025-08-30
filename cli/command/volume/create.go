@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/volume"
 	"github.com/spf13/cobra"
@@ -36,7 +35,7 @@ type createOptions struct {
 	preferredTopology opts.ListOpts
 }
 
-func newCreateCommand(dockerCli command.Cli) *cobra.Command {
+func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	options := createOptions{
 		driverOpts:        *opts.NewMapOpts(nil, nil),
 		labels:            opts.NewListOpts(opts.ValidateLabel),
@@ -57,9 +56,10 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 				options.name = args[0]
 			}
 			options.cluster = hasClusterVolumeOptionSet(cmd.Flags())
-			return runCreate(cmd.Context(), dockerCli, options)
+			return runCreate(cmd.Context(), dockerCLI, options)
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.StringVarP(&options.driver, "driver", "d", "local", "Specify volume driver name")

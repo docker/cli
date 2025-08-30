@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/pkg/errors"
@@ -17,19 +16,20 @@ import (
 	"golang.org/x/term"
 )
 
-func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
+func newUnlockCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unlock",
 		Short: "Unlock swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlock(cmd.Context(), dockerCli)
+			return runUnlock(cmd.Context(), dockerCLI)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "manager",
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	return cmd
