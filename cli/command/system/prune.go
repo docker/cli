@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/builder"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/container"
 	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/command/network"
@@ -45,7 +44,7 @@ func newPruneCommand(dockerCli command.Cli) *cobra.Command {
 			return runPrune(cmd.Context(), dockerCli, options)
 		},
 		Annotations:       map[string]string{"version": "1.25"},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	flags := cmd.Flags()

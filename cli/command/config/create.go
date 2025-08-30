@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/moby/sys/sequential"
@@ -47,7 +46,7 @@ func newConfigCreateCommand(dockerCLI command.Cli) *cobra.Command {
 			createOpts.file = args[1]
 			return runCreate(cmd.Context(), dockerCLI, createOpts)
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 	flags := cmd.Flags()
 	flags.VarP(&createOpts.labels, "label", "l", "Config labels")
