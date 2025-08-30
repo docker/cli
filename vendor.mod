@@ -6,6 +6,15 @@ module github.com/docker/cli
 
 go 1.23.0
 
+replace (
+	// FIXME(thaJeztah): trying https://github.com/moby/moby/pull/50475
+	github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250828172021-7be0e68004c1+incompatible
+
+	// FIXME(thaJeztah): temporarily need to pin on commits, otherwise go modules won't resolve until these are tagged.
+	github.com/moby/moby/api => github.com/moby/moby/api v1.52.0-alpha.1.0.20250828160303-620b93135e44 // master
+	github.com/moby/moby/client => github.com/moby/moby/client v0.1.0-alpha.0.0.20250828160303-620b93135e44 // master
+)
+
 require (
 	dario.cat/mergo v1.0.2
 	github.com/containerd/errdefs v1.0.0
@@ -18,7 +27,7 @@ require (
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v28.3.4-0.20250828134822-02b4a1a3decc+incompatible // 28.x branch (v28.4.0-dev)
 	github.com/docker/docker-credential-helpers v0.9.3
-	github.com/docker/go-connections v0.5.0
+	github.com/docker/go-connections v0.6.0
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.1.0
 	github.com/go-jose/go-jose/v4 v4.0.5
@@ -85,6 +94,8 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
+	github.com/moby/moby/api v1.52.0-alpha.1 // indirect
+	github.com/moby/moby/client v0.0.0-00010101000000-000000000000 // indirect
 	github.com/moby/sys/user v0.4.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
