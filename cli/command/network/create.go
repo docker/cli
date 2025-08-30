@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -69,7 +68,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 			return runCreate(cmd.Context(), dockerCLI.Client(), dockerCLI.Out(), options)
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	flags := cmd.Flags()

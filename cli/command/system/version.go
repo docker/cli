@@ -10,7 +10,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
 	flagsHelper "github.com/docker/cli/cli/flags"
@@ -129,7 +128,7 @@ func newVersionCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "10",
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	cmd.Flags().StringVarP(&opts.format, "format", "f", "", flagsHelper.InspectFormatHelp)
