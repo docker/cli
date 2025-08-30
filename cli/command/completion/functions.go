@@ -177,6 +177,8 @@ var commonPlatforms = []string{
 //   - we currently exclude architectures that may have unofficial builds,
 //     but don't have wide adoption (and no support), such as loong64, mipsXXX,
 //     ppc64 (non-le) to prevent confusion.
-func Platforms(_ *cobra.Command, _ []string, _ string) (platforms []string, _ cobra.ShellCompDirective) {
-	return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
+func Platforms() cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
+	}
 }

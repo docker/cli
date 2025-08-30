@@ -304,7 +304,7 @@ func TestCompleteNetworkNames(t *testing.T) {
 }
 
 func TestCompletePlatforms(t *testing.T) {
-	values, directives := Platforms(nil, nil, "")
+	values, directives := Platforms()(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 	assert.Check(t, is.DeepEqual(values, commonPlatforms))
 }
