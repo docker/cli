@@ -52,7 +52,7 @@ If the image or the server is not multi-platform capable, the command will error
 'os[/arch[/variant]]': Explicit platform (eg. linux/amd64)`)
 	flags.SetAnnotation("platform", "version", []string{"1.49"})
 
-	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 	return cmd
 }
 

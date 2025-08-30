@@ -47,7 +47,7 @@ func newSaveCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringSliceVar(&opts.platform, "platform", []string{}, `Save only the given platform(s). Formatted as a comma-separated list of "os[/arch[/variant]]" (e.g., "linux/amd64,linux/arm64/v8")`)
 	_ = flags.SetAnnotation("platform", "version", []string{"1.48"})
 
-	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 	return cmd
 }
 
