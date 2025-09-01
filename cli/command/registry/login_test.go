@@ -533,7 +533,7 @@ func TestIsOauthLoginDisabled(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Setenv(OauthLoginEscapeHatchEnvVar, tc.envVar)
+		t.Setenv(oauthLoginEscapeHatchEnvVar, tc.envVar)
 
 		disabled := isOauthLoginDisabled()
 
