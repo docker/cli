@@ -12,15 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// UpdateOptions are the options used to update a context
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type UpdateOptions struct {
-	Name        string
-	Description string
-	Docker      map[string]string
-}
-
 // updateOptions are the options used to update a context.
 type updateOptions struct {
 	name        string
@@ -58,20 +49,6 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&opts.description, "description", "", "Description of the context")
 	flags.StringToStringVar(&opts.endpoint, "docker", nil, "set the docker endpoint")
 	return cmd
-}
-
-// RunUpdate updates a Docker context
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunUpdate(dockerCLI command.Cli, o *UpdateOptions) error {
-	if o == nil {
-		o = &UpdateOptions{}
-	}
-	return runUpdate(dockerCLI, &updateOptions{
-		name:        o.Name,
-		description: o.Description,
-		endpoint:    o.Docker,
-	})
 }
 
 // runUpdate updates a Docker context.

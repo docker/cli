@@ -17,20 +17,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateOptions are the options used for creating a context
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type CreateOptions struct {
-	Name        string
-	Description string
-	Docker      map[string]string
-	From        string
-
-	// Additional Metadata to store in the context. This option is not
-	// currently exposed to the user.
-	metaData map[string]any
-}
-
 // createOptions are the options used for creating a context
 type createOptions struct {
 	name        string
@@ -74,22 +60,6 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringToStringVar(&opts.endpoint, "docker", nil, "set the docker endpoint")
 	flags.StringVar(&opts.from, "from", "", "create context from a named context")
 	return cmd
-}
-
-// RunCreate creates a Docker context
-
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunCreate(dockerCLI command.Cli, o *CreateOptions) error {
-	if o == nil {
-		o = &CreateOptions{}
-	}
-
-	return runCreate(dockerCLI, &createOptions{
-		name:        o.Name,
-		description: o.Description,
-		endpoint:    o.Docker,
-		metaData:    o.metaData,
-	})
 }
 
 // runCreate creates a Docker context

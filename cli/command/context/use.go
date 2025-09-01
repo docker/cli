@@ -24,13 +24,6 @@ func newUseCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-// RunUse set the current Docker context
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunUse(dockerCLI command.Cli, name string) error {
-	return runUse(dockerCLI, name)
-}
-
 // runUse set the current Docker context
 func runUse(dockerCLI command.Cli, name string) error {
 	// configValue uses an empty string for "default"

@@ -12,14 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ExportOptions are the options used for exporting a context
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type ExportOptions struct {
-	ContextName string
-	Dest        string
-}
-
 func newExportCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cobra.Command{
 		Use:   "export [OPTIONS] CONTEXT [FILE|-]",
@@ -63,16 +55,6 @@ func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {
 		fmt.Fprintf(dockerCli.Err(), "Written file %q\n", dest)
 	}
 	return nil
-}
-
-// RunExport exports a Docker context
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunExport(dockerCli command.Cli, opts *ExportOptions) error {
-	if opts == nil {
-		opts = &ExportOptions{}
-	}
-	return runExport(dockerCli, opts.ContextName, opts.Dest)
 }
 
 // runExport exports a Docker context.
