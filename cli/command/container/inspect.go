@@ -21,7 +21,7 @@ type inspectOptions struct {
 }
 
 // newInspectCommand creates a new cobra.Command for `docker container inspect`
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -30,9 +30,10 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.refs = args
-			return runInspect(cmd.Context(), dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCli, true),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, true),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

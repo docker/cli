@@ -13,16 +13,17 @@ import (
 )
 
 // newDialStdioCommand creates a new cobra.Command for `docker system dial-stdio`
-func newDialStdioCommand(dockerCli command.Cli) *cobra.Command {
+func newDialStdioCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "dial-stdio",
 		Short:  "Proxy the stdio stream to the daemon connection. Should not be invoked manually.",
 		Args:   cli.NoArgs,
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDialStdio(cmd.Context(), dockerCli)
+			return runDialStdio(cmd.Context(), dockerCLI)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

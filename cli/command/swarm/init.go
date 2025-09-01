@@ -27,7 +27,7 @@ type initOptions struct {
 	DefaultAddrPoolMaskLength uint32
 }
 
-func newInitCommand(dockerCli command.Cli) *cobra.Command {
+func newInitCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := initOptions{
 		listenAddr: NewListenAddrOption(),
 	}
@@ -37,13 +37,14 @@ func newInitCommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Initialize a swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runInit(cmd.Context(), dockerCli, cmd.Flags(), opts)
+			return runInit(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "", // swarm init does not require swarm to be active, and is always available on API 1.24 and up
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

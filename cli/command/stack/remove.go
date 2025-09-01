@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts options.Remove
 
 	cmd := &cobra.Command{
@@ -21,11 +21,12 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackNames(opts.Namespaces); err != nil {
 				return err
 			}
-			return swarm.RunRemove(cmd.Context(), dockerCli, opts)
+			return swarm.RunRemove(cmd.Context(), dockerCLI, opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return completeNames(dockerCli)(cmd, args, toComplete)
+			return completeNames(dockerCLI)(cmd, args, toComplete)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

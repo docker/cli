@@ -39,7 +39,8 @@ func newStopCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container stop, docker stop",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, false),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

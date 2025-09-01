@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newDeployCommand(dockerCli command.Cli) *cobra.Command {
+func newDeployCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts options.Deploy
 
 	cmd := &cobra.Command{
@@ -22,15 +22,16 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			config, err := loader.LoadComposefile(dockerCli, opts)
+			config, err := loader.LoadComposefile(dockerCLI, opts)
 			if err != nil {
 				return err
 			}
-			return swarm.RunDeploy(cmd.Context(), dockerCli, cmd.Flags(), &opts, config)
+			return swarm.RunDeploy(cmd.Context(), dockerCLI, cmd.Flags(), &opts, config)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return completeNames(dockerCli)(cmd, args, toComplete)
+			return completeNames(dockerCLI)(cmd, args, toComplete)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

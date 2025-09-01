@@ -16,19 +16,20 @@ import (
 	"golang.org/x/term"
 )
 
-func newUnlockCommand(dockerCli command.Cli) *cobra.Command {
+func newUnlockCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unlock",
 		Short: "Unlock swarm",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUnlock(cmd.Context(), dockerCli)
+			return runUnlock(cmd.Context(), dockerCLI)
 		},
 		Annotations: map[string]string{
 			"version": "1.24",
 			"swarm":   "manager",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	return cmd

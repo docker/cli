@@ -33,7 +33,8 @@ func newRenameCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container rename, docker rename",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, true),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, true),
+		DisableFlagsInUseLine: true,
 	}
 	return cmd
 }

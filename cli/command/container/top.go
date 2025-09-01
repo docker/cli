@@ -34,7 +34,8 @@ func newTopCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container top, docker top",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, false),
+		ValidArgsFunction:     completion.ContainerNames(dockerCLI, false),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

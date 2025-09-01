@@ -26,7 +26,7 @@ type psOptions struct {
 	filter    opts.FilterOpt
 }
 
-func newPsCommand(dockerCli command.Cli) *cobra.Command {
+func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 	options := psOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -35,9 +35,10 @@ func newPsCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.services = args
-			return runPS(cmd.Context(), dockerCli, options)
+			return runPS(cmd.Context(), dockerCLI, options)
 		},
-		ValidArgsFunction: completeServiceNames(dockerCli),
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display task IDs")

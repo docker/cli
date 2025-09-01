@@ -10,16 +10,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "rm SERVICE [SERVICE...]",
 		Aliases: []string{"remove"},
 		Short:   "Remove one or more services",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(cmd.Context(), dockerCli, args)
+			return runRemove(cmd.Context(), dockerCLI, args)
 		},
-		ValidArgsFunction: completeServiceNames(dockerCli),
+		ValidArgsFunction:     completeServiceNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 	cmd.Flags()
 

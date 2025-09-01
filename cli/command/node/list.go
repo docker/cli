@@ -22,7 +22,7 @@ type listOptions struct {
 	filter opts.FilterOpt
 }
 
-func newListCommand(dockerCli command.Cli) *cobra.Command {
+func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	options := listOptions{filter: opts.NewFilterOpt()}
 
 	cmd := &cobra.Command{
@@ -31,9 +31,10 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "List nodes in the swarm",
 		Args:    cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd.Context(), dockerCli, options)
+			return runList(cmd.Context(), dockerCLI, options)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display IDs")

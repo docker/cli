@@ -42,7 +42,7 @@ type pushRequest struct {
 	insecure      bool
 }
 
-func newPushListCommand(dockerCli command.Cli) *cobra.Command {
+func newPushListCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := pushOpts{}
 
 	cmd := &cobra.Command{
@@ -51,8 +51,9 @@ func newPushListCommand(dockerCli command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
-			return runPush(cmd.Context(), dockerCli, opts)
+			return runPush(cmd.Context(), dockerCLI, opts)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

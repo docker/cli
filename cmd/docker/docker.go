@@ -163,11 +163,7 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetOut(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
-	visitAll(cmd,
-		setValidateArgs(dockerCli),
-		// prevent adding "[flags]" to the end of the usage line.
-		func(c *cobra.Command) { c.DisableFlagsInUseLine = true },
-	)
+	visitAll(cmd, setValidateArgs(dockerCli))
 
 	// flags must be the top-level command flags, not cmd.Flags()
 	return cli.NewTopLevelCommand(cmd, dockerCli, opts, cmd.Flags())

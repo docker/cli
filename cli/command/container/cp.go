@@ -154,6 +154,7 @@ container source to stdout.`,
 		Annotations: map[string]string{
 			"aliases": "docker container cp, docker cp",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

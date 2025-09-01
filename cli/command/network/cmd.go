@@ -19,6 +19,8 @@ func newNetworkCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:        cli.NoArgs,
 		RunE:        command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{"version": "1.21"},
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newConnectCommand(dockerCLI),

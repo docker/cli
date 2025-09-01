@@ -17,7 +17,7 @@ type disconnectOptions struct {
 	force     bool
 }
 
-func newDisconnectCommand(dockerCli command.Cli) *cobra.Command {
+func newDisconnectCommand(dockerCLI command.Cli) *cobra.Command {
 	opts := disconnectOptions{}
 
 	cmd := &cobra.Command{
@@ -27,15 +27,16 @@ func newDisconnectCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.network = args[0]
 			opts.container = args[1]
-			return runDisconnect(cmd.Context(), dockerCli.Client(), opts)
+			return runDisconnect(cmd.Context(), dockerCLI.Client(), opts)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
-				return completion.NetworkNames(dockerCli)(cmd, args, toComplete)
+				return completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
 			}
 			network := args[0]
-			return completion.ContainerNames(dockerCli, true, isConnected(network))(cmd, args, toComplete)
+			return completion.ContainerNames(dockerCLI, true, isConnected(network))(cmd, args, toComplete)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -29,7 +29,8 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 			}
 			return runCreate(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&opts.mode, flagMode, "replicated", `Service mode ("replicated", "global", "replicated-job", "global-job")`)

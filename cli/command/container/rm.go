@@ -40,6 +40,7 @@ func newRmCommand(dockerCLI command.Cli) *cobra.Command {
 		ValidArgsFunction: completion.ContainerNames(dockerCLI, true, func(ctr container.Summary) bool {
 			return opts.force || ctr.State == container.StateExited || ctr.State == container.StateCreated
 		}),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

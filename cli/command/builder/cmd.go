@@ -24,6 +24,8 @@ func newBuilderCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:        cli.NoArgs,
 		RunE:        command.ShowHelp(dockerCLI.Err()),
 		Annotations: map[string]string{"version": "1.31"},
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newPruneCommand(dockerCLI),
@@ -50,5 +52,6 @@ func newBakeStubCommand(dockerCLI command.Streams) *cobra.Command {
 			"aliases":      "docker buildx bake",
 			"version":      "1.31",
 		},
+		DisableFlagsInUseLine: true,
 	}
 }

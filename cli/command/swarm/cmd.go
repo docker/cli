@@ -23,6 +23,7 @@ func newSwarmCommand(dockerCLI command.Cli) *cobra.Command {
 			"version": "1.24",
 			"swarm":   "", // swarm command itself does not require swarm to be enabled (so swarm init and join is always available on API 1.24 and up)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newInitCommand(dockerCLI),

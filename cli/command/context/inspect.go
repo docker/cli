@@ -35,7 +35,8 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 			}
 			return runInspect(dockerCLI, opts)
 		},
-		ValidArgsFunction: completeContextNames(dockerCLI, -1, false),
+		ValidArgsFunction:     completeContextNames(dockerCLI, -1, false),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

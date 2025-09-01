@@ -22,7 +22,7 @@ type inspectOptions struct {
 }
 
 // NewInspectCommand creates a new `docker manifest inspect` command
-func newInspectCommand(dockerCli command.Cli) *cobra.Command {
+func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts inspectOptions
 
 	cmd := &cobra.Command{
@@ -37,8 +37,9 @@ func newInspectCommand(dockerCli command.Cli) *cobra.Command {
 				opts.list = args[0]
 				opts.ref = args[1]
 			}
-			return runInspect(cmd.Context(), dockerCli, opts)
+			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

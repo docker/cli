@@ -36,7 +36,8 @@ func newConfigCreateCommand(dockerCLI command.Cli) *cobra.Command {
 			createOpts.file = args[1]
 			return runCreate(cmd.Context(), dockerCLI, createOpts)
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	flags.VarP(&createOpts.labels, "label", "l", "Config labels")

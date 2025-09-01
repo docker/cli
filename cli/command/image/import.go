@@ -40,6 +40,7 @@ func newImportCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker image import, docker import",
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

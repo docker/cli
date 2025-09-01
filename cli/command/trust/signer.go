@@ -7,16 +7,18 @@ import (
 )
 
 // newTrustSignerCommand returns a cobra command for `trust signer` subcommands
-func newTrustSignerCommand(dockerCli command.Cli) *cobra.Command {
+func newTrustSignerCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "signer",
 		Short: "Manage entities who can sign Docker images",
 		Args:  cli.NoArgs,
-		RunE:  command.ShowHelp(dockerCli.Err()),
+		RunE:  command.ShowHelp(dockerCLI.Err()),
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
-		newSignerAddCommand(dockerCli),
-		newSignerRemoveCommand(dockerCli),
+		newSignerAddCommand(dockerCLI),
+		newSignerRemoveCommand(dockerCLI),
 	)
 	return cmd
 }

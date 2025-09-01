@@ -22,6 +22,8 @@ func newSystemCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Manage Docker",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCLI.Err()),
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newEventsCommand(dockerCLI),

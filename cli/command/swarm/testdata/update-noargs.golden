@@ -1,7 +1,7 @@
 Update the swarm
 
 Usage:
-  update [OPTIONS] [flags]
+  update [OPTIONS]
 
 Flags:
       --autolock                        Change manager autolocking setting (true|false)

@@ -37,6 +37,7 @@ func newSignerAddCommand(dockerCLI command.Cli) *cobra.Command {
 			options.repos = args[1:]
 			return addSigner(cmd.Context(), dockerCLI, options)
 		},
+		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
 	options.keys = opts.NewListOpts(nil)

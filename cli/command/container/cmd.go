@@ -41,6 +41,8 @@ func newContainerCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Manage containers",
 		Args:  cli.NoArgs,
 		RunE:  command.ShowHelp(dockerCLI.Err()),
+
+		DisableFlagsInUseLine: true,
 	}
 	cmd.AddCommand(
 		newAttachCommand(dockerCLI),

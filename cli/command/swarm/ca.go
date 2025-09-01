@@ -26,7 +26,7 @@ type caOptions struct {
 	quiet      bool
 }
 
-func newCACommand(dockerCli command.Cli) *cobra.Command {
+func newCACommand(dockerCLI command.Cli) *cobra.Command {
 	opts := caOptions{}
 
 	cmd := &cobra.Command{
@@ -34,13 +34,14 @@ func newCACommand(dockerCli command.Cli) *cobra.Command {
 		Short: "Display and rotate the root CA",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCA(cmd.Context(), dockerCli, cmd.Flags(), opts)
+			return runCA(cmd.Context(), dockerCLI, cmd.Flags(), opts)
 		},
 		Annotations: map[string]string{
 			"version": "1.30",
 			"swarm":   "manager",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -15,7 +15,7 @@ type tagOptions struct {
 }
 
 // newTagCommand creates a new "docker image tag" command.
-func newTagCommand(dockerCli command.Cli) *cobra.Command {
+func newTagCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts tagOptions
 
 	cmd := &cobra.Command{
@@ -25,12 +25,13 @@ func newTagCommand(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.image = args[0]
 			opts.name = args[1]
-			return runTag(cmd.Context(), dockerCli, opts)
+			return runTag(cmd.Context(), dockerCLI, opts)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker image tag, docker tag",
 		},
-		ValidArgsFunction: completion.ImageNames(dockerCli, 2),
+		ValidArgsFunction:     completion.ImageNames(dockerCLI, 2),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

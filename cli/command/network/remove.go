@@ -18,7 +18,7 @@ type removeOptions struct {
 	force bool
 }
 
-func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
+func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts removeOptions
 
 	cmd := &cobra.Command{
@@ -27,9 +27,10 @@ func newRemoveCommand(dockerCli command.Cli) *cobra.Command {
 		Short:   "Remove one or more networks",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(cmd.Context(), dockerCli, args, &opts)
+			return runRemove(cmd.Context(), dockerCLI, args, &opts)
 		},
-		ValidArgsFunction: completion.NetworkNames(dockerCli),
+		ValidArgsFunction:     completion.NetworkNames(dockerCLI),
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()

@@ -34,6 +34,7 @@ func newLogoutCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"category-top": "9",
 		},
+		DisableFlagsInUseLine: true,
 		// TODO (thaJeztah) add completion for registries we have authentication stored for
 	}
 

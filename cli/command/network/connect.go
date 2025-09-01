@@ -47,6 +47,7 @@ func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 			nw := args[0]
 			return completion.ContainerNames(dockerCLI, true, not(isConnected(nw)))(cmd, args, toComplete)
 		},
+		DisableFlagsInUseLine: true,
 	}
 
 	flags := cmd.Flags()
