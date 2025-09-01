@@ -23,6 +23,8 @@ const (
 	// used to originally invoke the docker CLI when executing a
 	// plugin. Assuming $PATH and $CWD remain unchanged this should allow
 	// the plugin to re-execute the original CLI.
+	//
+	// Deprecated: use [metadata.ReexecEnvvar]. This alias will be removed in the next release.
 	ReexecEnvvar = metadata.ReexecEnvvar
 )
 
