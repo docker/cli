@@ -42,7 +42,7 @@ func newLoadCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker image load, docker load",
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	flags := cmd.Flags()
