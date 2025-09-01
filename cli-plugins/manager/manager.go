@@ -37,13 +37,6 @@ func (e errPluginNotFound) Error() string {
 	return "Error: No such CLI plugin: " + string(e)
 }
 
-// IsNotFound is true if the given error is due to a plugin not being found.
-//
-// Deprecated: use [errdefs.IsNotFound].
-func IsNotFound(err error) bool {
-	return errdefs.IsNotFound(err)
-}
-
 // getPluginDirs returns the platform-specific locations to search for plugins
 // in order of preference.
 //
