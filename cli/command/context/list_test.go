@@ -19,8 +19,7 @@ func createTestContexts(t *testing.T, cli command.Cli, name ...string) {
 func createTestContext(t *testing.T, cli command.Cli, name string, metaData map[string]any) {
 	t.Helper()
 
-	err := runCreate(cli, &createOptions{
-		name:        name,
+	err := runCreate(cli, name, createOptions{
 		description: "description of " + name,
 		endpoint:    map[string]string{keyHost: "https://someswarmserver.example.com"},
 

@@ -14,7 +14,6 @@ import (
 
 // updateOptions are the options used to update a context.
 type updateOptions struct {
-	name        string
 	description string
 	endpoint    map[string]string
 }
@@ -39,8 +38,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Update a context",
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.name = args[0]
-			return runUpdate(dockerCLI, &opts)
+			return runUpdate(dockerCLI, args[0], opts)
 		},
 		Long:                  longUpdateDescription(),
 		ValidArgsFunction:     completeContextNames(dockerCLI, 1, false),
@@ -53,12 +51,12 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 // runUpdate updates a Docker context.
-func runUpdate(dockerCLI command.Cli, opts *updateOptions) error {
-	if err := store.ValidateContextName(opts.name); err != nil {
+func runUpdate(dockerCLI command.Cli, name string, opts updateOptions) error {
+	if err := store.ValidateContextName(name); err != nil {
 		return err
 	}
 	s := dockerCLI.ContextStore()
-	c, err := s.GetMetadata(opts.name)
+	c, err := s.GetMetadata(name)
 	if err != nil {
 		return err
 	}
@@ -89,13 +87,13 @@ func runUpdate(dockerCLI command.Cli, opts *updateOptions) error {
 		return err
 	}
 	for ep, tlsData := range tlsDataToReset {
-		if err := s.ResetEndpointTLSMaterial(opts.name, ep, tlsData); err != nil {
+		if err := s.ResetEndpointTLSMaterial(name, ep, tlsData); err != nil {
 			return err
 		}
 	}
 
-	_, _ = fmt.Fprintln(dockerCLI.Out(), opts.name)
-	_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully updated context %q\n", opts.name)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), name)
+	_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully updated context %q\n", name)
 	return nil
 }
 

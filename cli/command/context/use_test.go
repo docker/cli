@@ -23,8 +23,7 @@ func TestUse(t *testing.T) {
 	configFilePath := filepath.Join(configDir, "config.json")
 	testCfg := configfile.New(configFilePath)
 	cli := makeFakeCli(t, withCliConfig(testCfg))
-	err := runCreate(cli, &createOptions{
-		name:     "test",
+	err := runCreate(cli, "test", createOptions{
 		endpoint: map[string]string{},
 	})
 	assert.NilError(t, err)
@@ -89,8 +88,7 @@ func TestUseHostOverride(t *testing.T) {
 	configFilePath := filepath.Join(configDir, "config.json")
 	testCfg := configfile.New(configFilePath)
 	cli := makeFakeCli(t, withCliConfig(testCfg))
-	err := runCreate(cli, &createOptions{
-		name:     "test",
+	err := runCreate(cli, "test", createOptions{
 		endpoint: map[string]string{},
 	})
 	assert.NilError(t, err)
@@ -136,8 +134,7 @@ func TestUseHostOverrideEmpty(t *testing.T) {
 		assert.NilError(t, cli.Initialize(flags.NewClientOptions()))
 	}
 	loadCli()
-	err := runCreate(cli, &createOptions{
-		name:     "test",
+	err := runCreate(cli, "test", createOptions{
 		endpoint: map[string]string{"host": socketPath},
 	})
 	assert.NilError(t, err)
