@@ -11,34 +11,48 @@ import (
 )
 
 // RemoveOptions are the options used to remove contexts
+//
+// Deprecated: this type was for internal use and will be removed in the next release.
 type RemoveOptions struct {
 	Force bool
 }
 
+// removeOptions are the options used to remove contexts.
+type removeOptions struct {
+	force bool
+}
+
 func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
-	var opts RemoveOptions
+	var opts removeOptions
 	cmd := &cobra.Command{
 		Use:     "rm CONTEXT [CONTEXT...]",
 		Aliases: []string{"remove"},
 		Short:   "Remove one or more contexts",
 		Args:    cli.RequiresMinArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunRemove(dockerCLI, opts, args)
+			return runRemove(dockerCLI, opts, args)
 		},
 		ValidArgsFunction: completeContextNames(dockerCLI, -1, false),
 	}
-	cmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "Force the removal of a context in use")
+	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "Force the removal of a context in use")
 	return cmd
 }
 
 // RunRemove removes one or more contexts
-func RunRemove(dockerCLI command.Cli, opts RemoveOptions, names []string) error {
+//
+// Deprecated: this function was for internal use and will be removed in the next release.
+func RunRemove(dockerCLI command.Cli, opts removeOptions, names []string) error {
+	return runRemove(dockerCLI, opts, names)
+}
+
+// runRemove removes one or more contexts.
+func runRemove(dockerCLI command.Cli, opts removeOptions, names []string) error {
 	var errs []error
 	currentCtx := dockerCLI.CurrentContext()
 	for _, name := range names {
 		if name == "default" {
 			errs = append(errs, errors.New(`context "default" cannot be removed`))
-		} else if err := doRemove(dockerCLI, name, name == currentCtx, opts.Force); err != nil {
+		} else if err := doRemove(dockerCLI, name, name == currentCtx, opts.force); err != nil {
 			errs = append(errs, err)
 		} else {
 			_, _ = fmt.Fprintln(dockerCLI.Out(), name)
