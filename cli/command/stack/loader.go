@@ -1,7 +1,7 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
 //go:build go1.23
 
-package loader
+package stack
 
 import (
 	"fmt"
@@ -21,11 +21,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// LoadComposefile parse the composefile specified in the cli and returns its Config and version.
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.Config, error) {
-	configDetails, err := GetConfigDetails(opts.Composefiles, dockerCli.In())
+// loadComposeFile parse the composefile specified in the cli and returns its configOptions and version.
+func loadComposeFile(streams command.Streams, opts options.Deploy) (*composetypes.Config, error) {
+	configDetails, err := getConfigDetails(opts.Composefiles, streams.In())
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +41,13 @@ func LoadComposefile(dockerCli command.Cli, opts options.Deploy) (*composetypes.
 
 	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
 	if len(unsupportedProperties) > 0 {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "Ignoring unsupported options: %s\n\n",
+		_, _ = fmt.Fprintf(streams.Err(), "Ignoring unsupported options: %s\n\n",
 			strings.Join(unsupportedProperties, ", "))
 	}
 
 	deprecatedProperties := loader.GetDeprecatedProperties(dicts...)
 	if len(deprecatedProperties) > 0 {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "Ignoring deprecated options:\n\n%s\n\n",
+		_, _ = fmt.Fprintf(streams.Err(), "Ignoring deprecated options:\n\n%s\n\n",
 			propertyWarnings(deprecatedProperties))
 	}
 
@@ -85,10 +83,8 @@ func propertyWarnings(properties map[string]string) string {
 	return strings.Join(msgs, "\n\n")
 }
 
-// GetConfigDetails parse the composefiles specified in the cli and returns their ConfigDetails
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func GetConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
+// getConfigDetails parse the composefiles specified in the cli and returns their ConfigDetails
+func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.ConfigDetails, error) {
 	var details composetypes.ConfigDetails
 
 	if len(composefiles) == 0 {

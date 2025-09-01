@@ -3,7 +3,6 @@ package stack
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/command/stack/swarm"
 	"github.com/spf13/cobra"
@@ -22,7 +21,7 @@ func newDeployCommand(dockerCLI command.Cli) *cobra.Command {
 			if err := validateStackName(opts.Namespace); err != nil {
 				return err
 			}
-			config, err := loader.LoadComposefile(dockerCLI, opts)
+			config, err := loadComposeFile(dockerCLI, opts)
 			if err != nil {
 				return err
 			}
