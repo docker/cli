@@ -26,13 +26,6 @@ func newImportCommand(dockerCli command.Cli) *cobra.Command {
 	return cmd
 }
 
-// RunImport imports a Docker context
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunImport(dockerCLI command.Cli, name string, source string) error {
-	return runImport(dockerCLI, name, source)
-}
-
 // runImport imports a Docker context.
 func runImport(dockerCLI command.Cli, name string, source string) error {
 	if err := checkContextNameForCreation(dockerCLI.ContextStore(), name); err != nil {

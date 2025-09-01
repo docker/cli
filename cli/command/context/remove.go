@@ -10,13 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RemoveOptions are the options used to remove contexts
-//
-// Deprecated: this type was for internal use and will be removed in the next release.
-type RemoveOptions struct {
-	Force bool
-}
-
 // removeOptions are the options used to remove contexts.
 type removeOptions struct {
 	force bool
@@ -36,13 +29,6 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	}
 	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "Force the removal of a context in use")
 	return cmd
-}
-
-// RunRemove removes one or more contexts
-//
-// Deprecated: this function was for internal use and will be removed in the next release.
-func RunRemove(dockerCLI command.Cli, opts removeOptions, names []string) error {
-	return runRemove(dockerCLI, opts, names)
 }
 
 // runRemove removes one or more contexts.
