@@ -1,4 +1,4 @@
-package formatter
+package stack
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ func TestStackContextWrite(t *testing.T) {
 		},
 		{
 			name:   "table format",
-			format: SwarmStackTableFormat,
+			format: stackTableFormat,
 			expected: `NAME      SERVICES
 baz       2
 bar       1
@@ -56,7 +56,7 @@ bar
 				Format: tc.format,
 				Output: &out,
 			}
-			if err := StackWrite(fmtCtx, []Stack{
+			if err := stackWrite(fmtCtx, []stackSummary{
 				{Name: "baz", Services: 2},
 				{Name: "bar", Services: 1},
 			}); err != nil {
