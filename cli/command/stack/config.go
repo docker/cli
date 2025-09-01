@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/stack/loader"
 	"github.com/docker/cli/cli/command/stack/options"
 	composeLoader "github.com/docker/cli/cli/compose/loader"
@@ -36,7 +35,7 @@ func newConfigCommand(dockerCli command.Cli) *cobra.Command {
 			_, err = fmt.Fprintf(dockerCli.Out(), "%s", cfg)
 			return err
 		},
-		ValidArgsFunction: completion.NoComplete,
+		ValidArgsFunction: cobra.NoFileCompletions,
 	}
 
 	flags := cmd.Flags()
