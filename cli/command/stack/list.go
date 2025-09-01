@@ -2,13 +2,11 @@ package stack
 
 import (
 	"context"
-	"io"
 	"sort"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/formatter"
-	"github.com/docker/cli/cli/command/stack/swarm"
+	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
@@ -40,24 +38,21 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 
 // runList performs a stack list against the specified swarm cluster
 func runList(ctx context.Context, dockerCLI command.Cli, opts listOptions) error {
-	stacks, err := swarm.GetStacks(ctx, dockerCLI.Client())
+	stacks, err := getStacks(ctx, dockerCLI.Client())
 	if err != nil {
 		return err
 	}
-	return format(dockerCLI.Out(), opts, stacks)
-}
 
-func format(out io.Writer, opts listOptions, stacks []formatter.Stack) error {
-	fmt := formatter.Format(opts.format)
-	if fmt == "" || fmt == formatter.TableFormatKey {
-		fmt = formatter.SwarmStackTableFormat
+	format := formatter.Format(opts.format)
+	if format == "" || format == formatter.TableFormatKey {
+		format = stackTableFormat
 	}
 	stackCtx := formatter.Context{
-		Output: out,
-		Format: fmt,
+		Output: dockerCLI.Out(),
+		Format: format,
 	}
 	sort.Slice(stacks, func(i, j int) bool {
 		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name)
 	})
-	return formatter.StackWrite(stackCtx, stacks)
+	return stackWrite(stackCtx, stacks)
 }

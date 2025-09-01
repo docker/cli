@@ -16,12 +16,6 @@ func getStackFilter(namespace string) filters.Args {
 	return filter
 }
 
-func getAllStacksFilter() filters.Args {
-	filter := filters.NewArgs()
-	filter.Add("label", convert.LabelNamespace)
-	return filter
-}
-
 func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Service, error) {
 	return apiclient.ServiceList(ctx, client.ServiceListOptions{Filters: getStackFilter(namespace)})
 }

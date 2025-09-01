@@ -39,3 +39,9 @@ func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) filters.Args {
 	filter.Add("label", convert.LabelNamespace+"="+namespace)
 	return filter
 }
+
+func getAllStacksFilter() filters.Args {
+	filter := filters.NewArgs()
+	filter.Add("label", convert.LabelNamespace)
+	return filter
+}
