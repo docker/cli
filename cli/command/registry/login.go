@@ -184,10 +184,15 @@ func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, auth
 	return response.Status, err
 }
 
+// OauthLoginEscapeHatchEnvVar disables the browser-based OAuth login workflow.
+//
+// Deprecated: this const was only used internally and will be removed in the next release.
 const OauthLoginEscapeHatchEnvVar = "DOCKER_CLI_DISABLE_OAUTH_LOGIN"
 
+const oauthLoginEscapeHatchEnvVar = "DOCKER_CLI_DISABLE_OAUTH_LOGIN"
+
 func isOauthLoginDisabled() bool {
-	if v := os.Getenv(OauthLoginEscapeHatchEnvVar); v != "" {
+	if v := os.Getenv(oauthLoginEscapeHatchEnvVar); v != "" {
 		enabled, err := strconv.ParseBool(v)
 		if err != nil {
 			return false
