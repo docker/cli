@@ -138,13 +138,6 @@ func FileNames(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCom
 	return nil, cobra.ShellCompDirectiveDefault
 }
 
-// NoComplete is used for commands where there's no relevant completion.
-//
-// Deprecated: use [cobra.NoFileCompletions]. This function  will be removed in the next release.
-func NoComplete(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
-	return nil, cobra.ShellCompDirectiveNoFileComp
-}
-
 var commonPlatforms = []string{
 	"linux/386",
 	"linux/amd64",
