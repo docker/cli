@@ -18,16 +18,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	// ReexecEnvvar is the name of an ennvar which is set to the command
-	// used to originally invoke the docker CLI when executing a
-	// plugin. Assuming $PATH and $CWD remain unchanged this should allow
-	// the plugin to re-execute the original CLI.
-	//
-	// Deprecated: use [metadata.ReexecEnvvar]. This alias will be removed in the next release.
-	ReexecEnvvar = metadata.ReexecEnvvar
-)
-
 // errPluginNotFound is the error returned when a plugin could not be found.
 type errPluginNotFound string
 
