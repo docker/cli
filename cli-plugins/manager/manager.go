@@ -169,7 +169,7 @@ func PluginRunCommand(dockerCli config.Provider, name string, rootcmd *cobra.Com
 	// have been provided by cobra to our caller. This is because
 	// they lack e.g. global options which we must propagate here.
 	args := os.Args[1:]
-	if !pluginNameRe.MatchString(name) {
+	if !isValidPluginName(name) {
 		// We treat this as "not found" so that callers will
 		// fallback to their "invalid" command path.
 		return nil, errPluginNotFound(name)

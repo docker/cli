@@ -12,11 +12,8 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/spf13/cobra"
 )
-
-var pluginNameRe = lazyregexp.New("^[a-z][a-z0-9]*$")
 
 // Plugin represents a potential plugin with all it's metadata.
 type Plugin struct {
@@ -85,8 +82,8 @@ func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 	}
 
 	// Now apply the candidate tests, so these update p.Err.
-	if !pluginNameRe.MatchString(p.Name) {
-		p.Err = newPluginError("plugin candidate %q did not match %q", p.Name, pluginNameRe.String())
+	if !isValidPluginName(p.Name) {
+		p.Err = newPluginError("plugin candidate %q did not match %q", p.Name, pluginNameFormat)
 		return p, nil
 	}
 
@@ -146,4 +143,27 @@ func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, 
 	}
 
 	return hookCmdOutput, nil
+}
+
+// pluginNameFormat is used as part of errors for invalid plugin-names.
+// We should consider making this less technical ("must start with "a-z",
+// and only consist of lowercase alphanumeric characters").
+const pluginNameFormat = `^[a-z][a-z0-9]*$`
+
+func isValidPluginName(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	// first character must be a-z
+	if c := s[0]; c < 'a' || c > 'z' {
+		return false
+	}
+	// followed by a-z or 0-9
+	for i := 1; i < len(s); i++ {
+		c := s[i]
+		if (c < 'a' || c > 'z') && (c < '0' || c > '9') {
+			return false
+		}
+	}
+	return true
 }
