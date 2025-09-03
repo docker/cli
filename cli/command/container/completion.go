@@ -122,6 +122,7 @@ func addCompletions(cmd *cobra.Command, dockerCLI completion.APIClientProvider) 
 	_ = cmd.RegisterFlagCompletionFunc("cap-add", completeLinuxCapabilityNames)
 	_ = cmd.RegisterFlagCompletionFunc("cap-drop", completeLinuxCapabilityNames)
 	_ = cmd.RegisterFlagCompletionFunc("cgroupns", completeCgroupns())
+	_ = cmd.RegisterFlagCompletionFunc("device", completeCDIDevices(dockerCLI))
 	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
 	_ = cmd.RegisterFlagCompletionFunc("ipc", completeIpc(dockerCLI))
@@ -151,6 +152,26 @@ func completeCgroupns() cobra.CompletionFunc {
 // completeDetachKeys implements shell completion for the `--detach-keys` option of `run` and `create`.
 func completeDetachKeys(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 	return []string{"ctrl-"}, cobra.ShellCompDirectiveNoSpace
+}
+
+// completeCDIDevices implements shell completion for the '--device' flag
+// to provide completion for CDI devices that were discovered by the daemon.
+func completeCDIDevices(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		info, err := dockerCLI.Client().Info(cmd.Context())
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+		var devices []string
+		// DiscoveredDevices requires Docker v28.2.0 (API 1.50) or above,
+		// but we just check if it's returned.
+		for _, di := range info.DiscoveredDevices {
+			if di.Source == "cdi" {
+				devices = append(devices, di.ID)
+			}
+		}
+		return devices, cobra.ShellCompDirectiveNoFileComp
+	}
 }
 
 // completeIpc implements shell completion for the `--ipc` option of `run` and `create`.
