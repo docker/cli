@@ -46,7 +46,9 @@ func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 			"category-top": "5",
 			"aliases":      "docker image pull, docker pull",
 		},
-		ValidArgsFunction: cobra.NoFileCompletions,
+		// Complete with local images to help pulling the latest version
+		// of images that are in the image cache.
+		ValidArgsFunction: completion.ImageNames(dockerCLI, 1),
 	}
 
 	flags := cmd.Flags()
