@@ -5,7 +5,7 @@ run:
   # which causes it to fallback to go1.17 semantics.
   #
   # TODO(thaJeztah): update "usetesting" settings to enable go1.24 features once our minimum version is go1.24
-  go: "1.24.6"
+  go: "1.24.7"
 
   timeout: 5m
 
