@@ -158,19 +158,24 @@ func completeDetachKeys(_ *cobra.Command, _ []string, _ string) ([]string, cobra
 // to provide completion for CDI devices that were discovered by the daemon.
 func completeCDIDevices(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if strings.HasPrefix(toComplete, "/") {
+			return nil, cobra.ShellCompDirectiveDefault | cobra.ShellCompDirectiveNoSpace
+		}
+
 		info, err := dockerCLI.Client().Info(cmd.Context())
 		if err != nil {
-			return nil, cobra.ShellCompDirectiveError
+			return nil, cobra.ShellCompDirectiveDefault
 		}
 		var devices []string
 		// DiscoveredDevices requires Docker v28.2.0 (API 1.50) or above,
 		// but we just check if it's returned.
 		for _, di := range info.DiscoveredDevices {
 			if di.Source == "cdi" {
-				devices = append(devices, di.ID)
+				devices = append(devices, cobra.CompletionWithDesc(di.ID, "CDI device"))
 			}
 		}
-		return devices, cobra.ShellCompDirectiveNoFileComp
+		devices = append(devices, "/")
+		return devices, cobra.ShellCompDirectiveDefault
 	}
 }
 
