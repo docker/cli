@@ -102,7 +102,22 @@ func (ep *Endpoint) ClientOpts() ([]client.Opt, error) {
 				if err != nil {
 					return nil, err
 				}
-				result = append(result, withHTTPClient(tlsConfig))
+
+				// If there's no tlsConfig available, we use the default HTTPClient.
+				if tlsConfig != nil {
+					result = append(result,
+						client.WithHTTPClient(&http.Client{
+							Transport: &http.Transport{
+								TLSClientConfig: tlsConfig,
+								DialContext: (&net.Dialer{
+									KeepAlive: 30 * time.Second,
+									Timeout:   30 * time.Second,
+								}).DialContext,
+							},
+							CheckRedirect: client.CheckRedirect,
+						}),
+					)
+				}
 			}
 			result = append(result, client.WithHost(ep.Host))
 		} else {
@@ -131,25 +146,6 @@ func isSocket(addr string) bool {
 		return true
 	default:
 		return false
-	}
-}
-
-func withHTTPClient(tlsConfig *tls.Config) func(*client.Client) error {
-	return func(c *client.Client) error {
-		if tlsConfig == nil {
-			// Use the default HTTPClient
-			return nil
-		}
-		return client.WithHTTPClient(&http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: tlsConfig,
-				DialContext: (&net.Dialer{
-					KeepAlive: 30 * time.Second,
-					Timeout:   30 * time.Second,
-				}).DialContext,
-			},
-			CheckRedirect: client.CheckRedirect,
-		})(c)
 	}
 }
 
