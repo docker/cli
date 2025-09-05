@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/distribution/reference"
@@ -359,16 +358,6 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
 		}
 		return err
-	}
-
-	// Windows: show error message about modified file permissions if the
-	// daemon isn't running Windows.
-	if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
-		_, _ = fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
-			"image from Windows against a non-Windows Docker host. All files and "+
-			"directories added to build context will have '-rwxr-xr-x' permissions. "+
-			"It is recommended to double check and reset permissions for sensitive "+
-			"files and directories.")
 	}
 
 	// Everything worked so if -q was provided the output from the daemon
