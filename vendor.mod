@@ -63,7 +63,7 @@ require (
 	golang.org/x/text v0.24.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools/v3 v3.5.2
-	tags.cncf.io/container-device-interface v0.8.0
+	tags.cncf.io/container-device-interface v1.0.1
 )
 
 require (
