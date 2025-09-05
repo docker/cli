@@ -9,10 +9,10 @@ import (
 
 type fakeClient struct {
 	client.Client
-	builderPruneFunc func(ctx context.Context, opts build.CachePruneOptions) (*build.CachePruneReport, error)
+	builderPruneFunc func(ctx context.Context, opts client.BuildCachePruneOptions) (*build.CachePruneReport, error)
 }
 
-func (c *fakeClient) BuildCachePrune(ctx context.Context, opts build.CachePruneOptions) (*build.CachePruneReport, error) {
+func (c *fakeClient) BuildCachePrune(ctx context.Context, opts client.BuildCachePruneOptions) (*build.CachePruneReport, error) {
 	if c.builderPruneFunc != nil {
 		return c.builderPruneFunc(ctx, opts)
 	}

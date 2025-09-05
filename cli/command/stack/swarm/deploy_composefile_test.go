@@ -44,8 +44,12 @@ func TestValidateExternalNetworks(t *testing.T) {
 			expectedMsg: "is not in the right scope",
 		},
 		{
-			network:         "user",
-			inspectResponse: networktypes.Inspect{Scope: "swarm"},
+			network: "user",
+			inspectResponse: networktypes.Inspect{
+				Network: networktypes.Network{
+					Scope: "swarm",
+				},
+			},
 		},
 	}
 

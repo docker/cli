@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
@@ -97,7 +98,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			detachKeys = opts.DetachKeys
 		}
 
-		options := container.AttachOptions{
+		options := client.ContainerAttachOptions{
 			Stream:     true,
 			Stdin:      opts.OpenStdin && c.Config.OpenStdin,
 			Stdout:     true,
@@ -144,7 +145,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		statusChan := waitExitOrRemoved(ctx, dockerCli.Client(), c.ID, c.HostConfig.AutoRemove)
 
 		// 4. Start the container.
-		err = dockerCli.Client().ContainerStart(ctx, c.ID, container.StartOptions{
+		err = dockerCli.Client().ContainerStart(ctx, c.ID, client.ContainerStartOptions{
 			CheckpointID:  opts.Checkpoint,
 			CheckpointDir: opts.CheckpointDir,
 		})
@@ -181,7 +182,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			return errors.New("you cannot restore multiple containers at once")
 		}
 		ctr := opts.Containers[0]
-		return dockerCli.Client().ContainerStart(ctx, ctr, container.StartOptions{
+		return dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{
 			CheckpointID:  opts.Checkpoint,
 			CheckpointDir: opts.CheckpointDir,
 		})
@@ -195,7 +196,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cli, containers []string) error {
 	var failedContainers []string
 	for _, ctr := range containers {
-		if err := dockerCli.Client().ContainerStart(ctx, ctr, container.StartOptions{}); err != nil {
+		if err := dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{}); err != nil {
 			fmt.Fprintln(dockerCli.Err(), err)
 			failedContainers = append(failedContainers, ctr)
 			continue

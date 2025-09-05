@@ -27,7 +27,7 @@ func TestCompleteEventFilter(t *testing.T) {
 	}{
 		{
 			client: &fakeClient{
-				containerListFunc: func(_ context.Context, _ container.ListOptions) ([]container.Summary, error) {
+				containerListFunc: func(_ context.Context, _ client.ContainerListOptions) ([]container.Summary, error) {
 					return []container.Summary{
 						*builders.Container("c1"),
 						*builders.Container("c2"),
@@ -39,7 +39,7 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				containerListFunc: func(_ context.Context, _ container.ListOptions) ([]container.Summary, error) {
+				containerListFunc: func(_ context.Context, _ client.ContainerListOptions) ([]container.Summary, error) {
 					return nil, errors.New("API error")
 				},
 			},

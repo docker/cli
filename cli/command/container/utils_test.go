@@ -60,7 +60,7 @@ func TestWaitExitOrRemoved(t *testing.T) {
 		},
 	}
 
-	apiClient := &fakeClient{waitFunc: waitFn, Version: client.DefaultAPIVersion}
+	apiClient := &fakeClient{waitFunc: waitFn, Version: client.MaxAPIVersion}
 	for _, tc := range tests {
 		t.Run(tc.cid, func(t *testing.T) {
 			statusC := waitExitOrRemoved(context.Background(), apiClient, tc.cid, true)

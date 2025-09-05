@@ -12,8 +12,8 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
-	"github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/api/types/versions"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -25,10 +25,10 @@ func init() {
 }
 
 type pruneOptions struct {
-	force       bool
-	all         bool
-	filter      opts.FilterOpt
-	keepStorage opts.MemBytes
+	force         bool
+	all           bool
+	filter        opts.FilterOpt
+	reservedSpace opts.MemBytes
 }
 
 // newPruneCommand returns a new cobra prune command for images
@@ -59,7 +59,7 @@ func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused build cache, not just dangling ones")
 	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "until=24h")`)
-	flags.Var(&options.keepStorage, "keep-storage", "Amount of disk space to keep for cache")
+	flags.Var(&options.reservedSpace, "keep-storage", "Amount of disk space to keep for cache")
 
 	return cmd
 }
@@ -87,12 +87,9 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().BuildCachePrune(ctx, build.CachePruneOptions{
-		All: options.all,
-		// TODO(austinvazquez): remove when updated to use github.com/moby/moby/client@v0.1.0
-		// See https://github.com/moby/moby/pull/50772 for more details.
-		KeepStorage:   options.keepStorage.Value(),
-		ReservedSpace: options.keepStorage.Value(),
+	report, err := dockerCli.Client().BuildCachePrune(ctx, client.BuildCachePruneOptions{
+		All:           options.all,
+		ReservedSpace: options.reservedSpace.Value(),
 		Filters:       pruneFilters,
 	})
 	if err != nil {

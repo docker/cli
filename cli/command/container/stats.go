@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
@@ -198,7 +197,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// Fetch the initial list of containers and collect stats for them.
 		// After the initial list was collected, we start listening for events
 		// to refresh the list of containers.
-		cs, err := apiClient.ContainerList(ctx, container.ListOptions{
+		cs, err := apiClient.ContainerList(ctx, client.ContainerListOptions{
 			All:     options.All,
 			Filters: *options.Filters,
 		})

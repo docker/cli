@@ -25,6 +25,7 @@ import (
 	buildtypes "github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/api/types/container"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -389,9 +390,9 @@ func validateTag(rawRepo string) (string, error) {
 	return rawRepo, nil
 }
 
-func imageBuildOptions(dockerCli command.Cli, options buildOptions) buildtypes.ImageBuildOptions {
+func imageBuildOptions(dockerCli command.Cli, options buildOptions) client.ImageBuildOptions {
 	configFile := dockerCli.ConfigFile()
-	return buildtypes.ImageBuildOptions{
+	return client.ImageBuildOptions{
 		Memory:         options.memory.Value(),
 		MemorySwap:     options.memorySwap.Value(),
 		Tags:           options.tags.GetSlice(),

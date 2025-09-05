@@ -30,13 +30,13 @@ func (c fakeCLI) Client() client.APIClient {
 
 type fakeClient struct {
 	client.Client
-	containerListFunc func(options container.ListOptions) ([]container.Summary, error)
+	containerListFunc func(options client.ContainerListOptions) ([]container.Summary, error)
 	imageListFunc     func(options client.ImageListOptions) ([]image.Summary, error)
 	networkListFunc   func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
 	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
 }
 
-func (c *fakeClient) ContainerList(_ context.Context, options container.ListOptions) ([]container.Summary, error) {
+func (c *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
 	if c.containerListFunc != nil {
 		return c.containerListFunc(options)
 	}
@@ -54,7 +54,7 @@ func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkList
 	if c.networkListFunc != nil {
 		return c.networkListFunc(ctx, options)
 	}
-	return []network.Inspect{}, nil
+	return []network.Summary{}, nil
 }
 
 func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
@@ -71,7 +71,7 @@ func TestCompleteContainerNames(t *testing.T) {
 		filters          []func(container.Summary) bool
 		containers       []container.Summary
 		expOut           []string
-		expOpts          container.ListOptions
+		expOpts          client.ContainerListOptions
 		expDirective     cobra.ShellCompDirective
 	}{
 		{
@@ -87,7 +87,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
 			},
 			expOut:       []string{"container-c", "container-c/link-b", "container-b", "container-a"},
-			expOpts:      container.ListOptions{All: true},
+			expOpts:      client.ContainerListOptions{All: true},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
 		{
@@ -100,7 +100,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
 			},
 			expOut:       []string{"id-c", "container-c", "container-c/link-b", "id-b", "container-b", "id-a", "container-a"},
-			expOpts:      container.ListOptions{All: true},
+			expOpts:      client.ContainerListOptions{All: true},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
 		{
@@ -124,7 +124,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
 			},
 			expOut:       []string{"container-b"},
-			expOpts:      container.ListOptions{All: true},
+			expOpts:      client.ContainerListOptions{All: true},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
 		{
@@ -140,7 +140,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				{ID: "id-a", State: container.StateCreated, Names: []string{"/container-a"}},
 			},
 			expOut:       []string{"container-a"},
-			expOpts:      container.ListOptions{All: true},
+			expOpts:      client.ContainerListOptions{All: true},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
 		{
@@ -155,8 +155,8 @@ func TestCompleteContainerNames(t *testing.T) {
 				t.Setenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS", "yes")
 			}
 			comp := ContainerNames(fakeCLI{&fakeClient{
-				containerListFunc: func(opts container.ListOptions) ([]container.Summary, error) {
-					assert.Check(t, is.DeepEqual(opts, tc.expOpts, cmpopts.IgnoreUnexported(container.ListOptions{}, filters.Args{})))
+				containerListFunc: func(opts client.ContainerListOptions) ([]container.Summary, error) {
+					assert.Check(t, is.DeepEqual(opts, tc.expOpts, cmpopts.IgnoreUnexported(client.ContainerListOptions{}, filters.Args{})))
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return nil, errors.New("some error occurred")
 					}
@@ -257,9 +257,24 @@ func TestCompleteNetworkNames(t *testing.T) {
 		{
 			doc: "with results",
 			networks: []network.Summary{
-				{ID: "nw-c", Name: "network-c"},
-				{ID: "nw-b", Name: "network-b"},
-				{ID: "nw-a", Name: "network-a"},
+				{
+					Network: network.Network{
+						ID:   "nw-c",
+						Name: "network-c",
+					},
+				},
+				{
+					Network: network.Network{
+						ID:   "nw-b",
+						Name: "network-b",
+					},
+				},
+				{
+					Network: network.Network{
+						ID:   "nw-a",
+						Name: "network-a",
+					},
+				},
 			},
 			expOut:       []string{"network-c", "network-b", "network-a"},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,

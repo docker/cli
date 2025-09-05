@@ -11,10 +11,6 @@
         "Architecture": "",
         "Os": "",
         "Size": 0,
-        "GraphDriver": {
-            "Data": null,
-            "Name": ""
-        },
         "RootFS": {},
         "Metadata": {
             "LastTagTime": "0001-01-01T00:00:00Z"

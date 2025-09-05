@@ -16,7 +16,6 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/internal/logdetails"
 	"github.com/moby/moby/api/pkg/stdcopy"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/pkg/errors"
@@ -87,7 +86,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		tty          bool
 		// logfunc is used to delay the call to logs so that we can do some
 		// processing before we actually get the logs
-		logfunc func(context.Context, string, container.LogsOptions) (io.ReadCloser, error)
+		logfunc func(context.Context, string, client.ContainerLogsOptions) (io.ReadCloser, error)
 	)
 
 	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, client.ServiceInspectOptions{})
@@ -131,7 +130,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 	}
 
 	// now get the logs
-	responseBody, err = logfunc(ctx, opts.target, container.LogsOptions{
+	responseBody, err = logfunc(ctx, opts.target, client.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Since:      opts.since,

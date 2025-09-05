@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
 	"github.com/pkg/errors"
@@ -176,7 +177,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		// ctx should not be cancellable here, as this would kill the stream to the container
 		// and we want to keep the stream open until the process in the container exits or until
 		// the user forcefully terminates the CLI.
-		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, container.AttachOptions{
+		closeFn, err := attachContainer(ctx, dockerCli, containerID, &errCh, config, client.ContainerAttachOptions{
 			Stream:     true,
 			Stdin:      config.AttachStdin,
 			Stdout:     config.AttachStdout,
@@ -196,7 +197,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	statusChan := waitExitOrRemoved(statusCtx, apiClient, containerID, copts.autoRemove)
 
 	// start the container
-	if err := apiClient.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
+	if err := apiClient.ContainerStart(ctx, containerID, client.ContainerStartOptions{}); err != nil {
 		// If we have hijackedIOStreamer, we should notify
 		// hijackedIOStreamer we are going to exit and wait
 		// to avoid the terminal are not restored.
@@ -259,7 +260,7 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	return nil
 }
 
-func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options container.AttachOptions) (func(), error) {
+func attachContainer(ctx context.Context, dockerCli command.Cli, containerID string, errCh *chan error, config *container.Config, options client.ContainerAttachOptions) (func(), error) {
 	resp, errAttach := dockerCli.Client().ContainerAttach(ctx, containerID, options)
 	if errAttach != nil {
 		return nil, errAttach

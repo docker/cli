@@ -8,7 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/pkg/stdcopy"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, container.LogsOptions{
+	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Since:      opts.since,

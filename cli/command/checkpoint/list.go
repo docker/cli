@@ -7,7 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/moby/moby/api/types/checkpoint"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +37,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runList(ctx context.Context, dockerCli command.Cli, container string, opts listOptions) error {
-	checkpoints, err := dockerCli.Client().CheckpointList(ctx, container, checkpoint.ListOptions{
+	checkpoints, err := dockerCli.Client().CheckpointList(ctx, container, client.CheckpointListOptions{
 		CheckpointDir: opts.checkpointDir,
 	})
 	if err != nil {

@@ -8,12 +8,13 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
-var logFn = func(expectedOut string) func(string, container.LogsOptions) (io.ReadCloser, error) {
-	return func(container string, opts container.LogsOptions) (io.ReadCloser, error) {
+var logFn = func(expectedOut string) func(string, client.ContainerLogsOptions) (io.ReadCloser, error) {
+	return func(container string, opts client.ContainerLogsOptions) (io.ReadCloser, error) {
 		return io.NopCloser(strings.NewReader(expectedOut)), nil
 	}
 }

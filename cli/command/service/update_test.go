@@ -847,16 +847,31 @@ func TestRemoveGenericResources(t *testing.T) {
 func TestUpdateNetworks(t *testing.T) {
 	ctx := context.Background()
 	nws := []network.Summary{
-		{Name: "aaa-network", ID: "id555"},
-		{Name: "mmm-network", ID: "id999"},
-		{Name: "zzz-network", ID: "id111"},
+		{
+			Network: network.Network{
+				Name: "aaa-network",
+				ID:   "id555",
+			},
+		},
+		{
+			Network: network.Network{
+				Name: "mmm-network",
+				ID:   "id999",
+			},
+		},
+		{
+			Network: network.Network{
+				Name: "zzz-network",
+				ID:   "id111",
+			},
+		},
 	}
 
 	apiClient := &fakeClient{
 		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
-					return nw, nil
+					return network.Inspect{Network: nw.Network}, nil
 				}
 			}
 			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)

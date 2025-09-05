@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -66,7 +67,7 @@ func runRm(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) error {
 		if ctrID == "" {
 			return errors.New("container name cannot be empty")
 		}
-		return apiClient.ContainerRemove(ctx, ctrID, container.RemoveOptions{
+		return apiClient.ContainerRemove(ctx, ctrID, client.ContainerRemoveOptions{
 			RemoveVolumes: opts.rmVolumes,
 			RemoveLinks:   opts.rmLink,
 			Force:         opts.force,

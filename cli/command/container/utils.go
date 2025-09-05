@@ -91,7 +91,7 @@ func legacyWaitExitOrRemoved(ctx context.Context, apiClient client.APIClient, co
 				// If we are talking to an older daemon, `AutoRemove` is not supported.
 				// We need to fall back to the old behavior, which is client-side removal
 				go func() {
-					removeErr = apiClient.ContainerRemove(ctx, containerID, container.RemoveOptions{RemoveVolumes: true})
+					removeErr = apiClient.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{RemoveVolumes: true})
 					if removeErr != nil {
 						logrus.Errorf("error removing container: %v", removeErr)
 						cancel() // cancel the event Q

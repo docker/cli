@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -26,7 +27,7 @@ func TestCompleteLinuxCapabilityNames(t *testing.T) {
 
 func TestCompletePid(t *testing.T) {
 	tests := []struct {
-		containerListFunc   func(container.ListOptions) ([]container.Summary, error)
+		containerListFunc   func(client.ContainerListOptions) ([]container.Summary, error)
 		toComplete          string
 		expectedCompletions []string
 		expectedDirective   cobra.ShellCompDirective
@@ -42,7 +43,7 @@ func TestCompletePid(t *testing.T) {
 			expectedDirective:   cobra.ShellCompDirectiveNoSpace,
 		},
 		{
-			containerListFunc: func(container.ListOptions) ([]container.Summary, error) {
+			containerListFunc: func(client.ContainerListOptions) ([]container.Summary, error) {
 				return []container.Summary{
 					*builders.Container("c1"),
 					*builders.Container("c2"),

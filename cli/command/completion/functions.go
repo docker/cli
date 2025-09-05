@@ -43,7 +43,7 @@ func ImageNames(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
 // Set DOCKER_COMPLETION_SHOW_CONTAINER_IDS=yes to also complete IDs.
 func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(container.Summary) bool) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().ContainerList(cmd.Context(), container.ListOptions{
+		list, err := dockerCLI.Client().ContainerList(cmd.Context(), client.ContainerListOptions{
 			All: all,
 		})
 		if err != nil {
