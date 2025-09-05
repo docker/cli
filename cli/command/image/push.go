@@ -16,9 +16,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
-	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/auxprogress"
 	"github.com/moby/moby/client"
 	"github.com/morikuni/aec"
@@ -107,12 +105,8 @@ To push the complete multi-platform image, remove the --platform flag.
 		}
 	}
 
-	// Resolve the Repository name from fqn to RepositoryInfo
-	indexInfo := registry.NewIndexInfo(ref)
-
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
-	encodedAuth, err := authconfig.Encode(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
 	if err != nil {
 		return err
 	}
@@ -135,7 +129,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}()
 
 	if !opts.untrusted {
-		return pushTrustedReference(ctx, dockerCli, indexInfo, ref, authConfig, responseBody)
+		return pushTrustedReference(ctx, dockerCli, ref, responseBody)
 	}
 
 	if opts.quiet {
