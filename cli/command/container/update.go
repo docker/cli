@@ -104,28 +104,28 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 		}
 	}
 
-	resources := containertypes.Resources{
-		BlkioWeight:        options.blkioWeight,
-		CpusetCpus:         options.cpusetCpus,
-		CpusetMems:         options.cpusetMems,
-		CPUShares:          options.cpuShares,
-		Memory:             options.memory.Value(),
-		MemoryReservation:  options.memoryReservation.Value(),
-		MemorySwap:         options.memorySwap.Value(),
-		KernelMemory:       options.kernelMemory.Value(),
-		CPUPeriod:          options.cpuPeriod,
-		CPUQuota:           options.cpuQuota,
-		CPURealtimePeriod:  options.cpuRealtimePeriod,
-		CPURealtimeRuntime: options.cpuRealtimeRuntime,
-		NanoCPUs:           options.cpus.Value(),
-	}
-
+	var pidsLimit *int64
 	if options.pidsLimit != 0 {
-		resources.PidsLimit = &options.pidsLimit
+		pidsLimit = &options.pidsLimit
 	}
 
 	updateConfig := containertypes.UpdateConfig{
-		Resources:     resources,
+		Resources: containertypes.Resources{
+			BlkioWeight:        options.blkioWeight,
+			CpusetCpus:         options.cpusetCpus,
+			CpusetMems:         options.cpusetMems,
+			CPUShares:          options.cpuShares,
+			Memory:             options.memory.Value(),
+			MemoryReservation:  options.memoryReservation.Value(),
+			MemorySwap:         options.memorySwap.Value(),
+			KernelMemory:       options.kernelMemory.Value(),
+			CPUPeriod:          options.cpuPeriod,
+			CPUQuota:           options.cpuQuota,
+			CPURealtimePeriod:  options.cpuRealtimePeriod,
+			CPURealtimeRuntime: options.cpuRealtimeRuntime,
+			NanoCPUs:           options.cpus.Value(),
+			PidsLimit:          pidsLimit,
+		},
 		RestartPolicy: restartPolicy,
 	}
 
