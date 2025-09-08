@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registry"
 	"github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/opencontainers/go-digest"
@@ -42,12 +43,18 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (
 }
 
 // pushTrustedReference pushes a canonical reference to the trust server.
-func pushTrustedReference(ctx context.Context, ioStreams command.Streams, indexInfo *registrytypes.IndexInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+func pushTrustedReference(ctx context.Context, dockerCLI command.Cli, ref reference.Named, responseBody io.Reader) error {
+	// Resolve the Repository name from fqn to RepositoryInfo, and create an
+	// IndexInfo. Docker Content Trust uses the IndexInfo.Official field to
+	// select the right domain for Docker Hub's Notary server;
+	// https://github.com/docker/cli/blob/v28.4.0/cli/trust/trust.go#L65-L79
+	indexInfo := registry.NewIndexInfo(ref)
 	repoInfo := &trust.RepositoryInfo{
 		Name:  reference.TrimNamed(ref),
 		Index: indexInfo,
 	}
-	return trust.PushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in, command.UserAgent())
+	authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), indexInfo)
+	return trust.PushTrustedReference(ctx, dockerCLI, repoInfo, ref, authConfig, responseBody, command.UserAgent())
 }
 
 // trustedPull handles content trust pulling of an image

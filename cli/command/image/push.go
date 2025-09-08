@@ -17,11 +17,9 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/docker/api/types/auxprogress"
 	"github.com/docker/docker/api/types/image"
-	registrytypes "github.com/docker/docker/api/types/registry"
 	"github.com/morikuni/aec"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
@@ -114,12 +112,8 @@ To push the complete multi-platform image, remove the --platform flag.
 		}
 	}
 
-	// Resolve the Repository name from fqn to RepositoryInfo
-	indexInfo := registry.NewIndexInfo(ref)
-
 	// Resolve the Auth config relevant for this server
-	authConfig := command.ResolveAuthConfig(dockerCli.ConfigFile(), indexInfo)
-	encodedAuth, err := registrytypes.EncodeAuthConfig(authConfig)
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
 	if err != nil {
 		return err
 	}
@@ -142,7 +136,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}()
 
 	if !opts.untrusted {
-		return pushTrustedReference(ctx, dockerCli, indexInfo, ref, authConfig, responseBody)
+		return pushTrustedReference(ctx, dockerCli, ref, responseBody)
 	}
 
 	if opts.quiet {
