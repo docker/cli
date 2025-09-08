@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,7 +15,6 @@ import (
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -52,7 +52,7 @@ func validateContextDir(contextDir string) (string, error) {
 	}
 
 	if !stat.IsDir() {
-		return "", errors.Errorf("context must be a directory")
+		return "", errors.New("context must be a directory")
 	}
 
 	return absContextDir, nil
