@@ -1,4 +1,4 @@
-package swarm
+package stack
 
 import (
 	"context"
@@ -7,8 +7,7 @@ import (
 
 	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli/command"
-	servicecli "github.com/docker/cli/cli/command/service"
-	"github.com/docker/cli/cli/command/stack/options"
+	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/container"
@@ -17,17 +16,17 @@ import (
 	"github.com/moby/moby/client"
 )
 
-func deployCompose(ctx context.Context, dockerCli command.Cli, opts *options.Deploy, config *composetypes.Config) error {
+func deployCompose(ctx context.Context, dockerCli command.Cli, opts *deployOptions, config *composetypes.Config) error {
 	if err := checkDaemonIsSwarmManager(ctx, dockerCli); err != nil {
 		return err
 	}
 
-	namespace := convert.NewNamespace(opts.Namespace)
+	namespace := convert.NewNamespace(opts.namespace)
 
-	if opts.Prune {
+	if opts.prune {
 		services := map[string]struct{}{}
-		for _, service := range config.Services {
-			services[service.Name] = struct{}{}
+		for _, svc := range config.Services {
+			services[svc.Name] = struct{}{}
 		}
 		pruneServices(ctx, dockerCli, namespace, services)
 	}
@@ -62,16 +61,16 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts *options.Dep
 		return err
 	}
 
-	serviceIDs, err := deployServices(ctx, dockerCli, services, namespace, opts.SendRegistryAuth, opts.ResolveImage)
+	serviceIDs, err := deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.resolveImage)
 	if err != nil {
 		return err
 	}
 
-	if opts.Detach {
+	if opts.detach {
 		return nil
 	}
 
-	return waitOnServices(ctx, dockerCli, serviceIDs, opts.Quiet)
+	return waitOnServices(ctx, dockerCli, serviceIDs, opts.quiet)
 }
 
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
@@ -196,8 +195,8 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 	}
 
 	existingServiceMap := make(map[string]swarm.Service)
-	for _, service := range existingServices {
-		existingServiceMap[service.Spec.Name] = service
+	for _, svc := range existingServices {
+		existingServiceMap[svc.Spec.Name] = svc
 	}
 
 	var serviceIDs []string
@@ -217,17 +216,17 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 			}
 		}
 
-		if service, exists := existingServiceMap[name]; exists {
-			_, _ = fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
+		if svc, exists := existingServiceMap[name]; exists {
+			_, _ = fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, svc.ID)
 
 			updateOpts := client.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
 			switch resolveImage {
-			case ResolveImageAlways:
+			case resolveImageAlways:
 				// image should be updated by the server using QueryRegistry
 				updateOpts.QueryRegistry = true
-			case ResolveImageChanged:
-				if image != service.Spec.Labels[convert.LabelImage] {
+			case resolveImageChanged:
+				if image != svc.Spec.Labels[convert.LabelImage] {
 					// Query the registry to resolve digest for the updated image
 					updateOpts.QueryRegistry = true
 				} else {
@@ -235,24 +234,24 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 					// existing information that was set by QueryRegistry on the
 					// previous deploy. Otherwise this will trigger an incorrect
 					// service update.
-					serviceSpec.TaskTemplate.ContainerSpec.Image = service.Spec.TaskTemplate.ContainerSpec.Image
+					serviceSpec.TaskTemplate.ContainerSpec.Image = svc.Spec.TaskTemplate.ContainerSpec.Image
 				}
 			default:
-				if image == service.Spec.Labels[convert.LabelImage] {
+				if image == svc.Spec.Labels[convert.LabelImage] {
 					// image has not changed; update the serviceSpec with the
 					// existing information that was set by QueryRegistry on the
 					// previous deploy. Otherwise this will trigger an incorrect
 					// service update.
-					serviceSpec.TaskTemplate.ContainerSpec.Image = service.Spec.TaskTemplate.ContainerSpec.Image
+					serviceSpec.TaskTemplate.ContainerSpec.Image = svc.Spec.TaskTemplate.ContainerSpec.Image
 				}
 			}
 
 			// Stack deploy does not have a `--force` option. Preserve existing
 			// ForceUpdate value so that tasks are not re-deployed if not updated.
 			// TODO move this to API client?
-			serviceSpec.TaskTemplate.ForceUpdate = service.Spec.TaskTemplate.ForceUpdate
+			serviceSpec.TaskTemplate.ForceUpdate = svc.Spec.TaskTemplate.ForceUpdate
 
-			response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, serviceSpec, updateOpts)
+			response, err := apiClient.ServiceUpdate(ctx, svc.ID, svc.Version, serviceSpec, updateOpts)
 			if err != nil {
 				return nil, fmt.Errorf("failed to update service %s: %w", name, err)
 			}
@@ -261,12 +260,12 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 				_, _ = fmt.Fprintln(dockerCLI.Err(), warning)
 			}
 
-			serviceIDs = append(serviceIDs, service.ID)
+			serviceIDs = append(serviceIDs, svc.ID)
 		} else {
 			_, _ = fmt.Fprintln(out, "Creating service", name)
 
 			// query registry if flag disabling it was not set
-			queryRegistry := resolveImage == ResolveImageAlways || resolveImage == ResolveImageChanged
+			queryRegistry := resolveImage == resolveImageAlways || resolveImage == resolveImageChanged
 
 			response, err := apiClient.ServiceCreate(ctx, serviceSpec, client.ServiceCreateOptions{
 				EncodedRegistryAuth: encodedAuth,
@@ -286,7 +285,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 func waitOnServices(ctx context.Context, dockerCli command.Cli, serviceIDs []string, quiet bool) error {
 	var errs []error
 	for _, serviceID := range serviceIDs {
-		if err := servicecli.WaitOnService(ctx, dockerCli, serviceID, quiet); err != nil {
+		if err := service.WaitOnService(ctx, dockerCli, serviceID, quiet); err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", serviceID, err))
 		}
 	}

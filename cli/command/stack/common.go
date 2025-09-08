@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"unicode"
@@ -8,6 +9,9 @@ import (
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 // validateStackName checks if the provided string is a valid stack name (namespace).
@@ -34,6 +38,12 @@ func quotesOrWhitespace(r rune) bool {
 	return unicode.IsSpace(r) || r == '"' || r == '\''
 }
 
+func getStackFilter(namespace string) filters.Args {
+	filter := filters.NewArgs()
+	filter.Add("label", convert.LabelNamespace+"="+namespace)
+	return filter
+}
+
 func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) filters.Args {
 	filter := opt.Value()
 	filter.Add("label", convert.LabelNamespace+"="+namespace)
@@ -44,4 +54,24 @@ func getAllStacksFilter() filters.Args {
 	filter := filters.NewArgs()
 	filter.Add("label", convert.LabelNamespace)
 	return filter
+}
+
+func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Service, error) {
+	return apiclient.ServiceList(ctx, client.ServiceListOptions{Filters: getStackFilter(namespace)})
+}
+
+func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) ([]network.Summary, error) {
+	return apiclient.NetworkList(ctx, client.NetworkListOptions{Filters: getStackFilter(namespace)})
+}
+
+func getStackSecrets(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Secret, error) {
+	return apiclient.SecretList(ctx, client.SecretListOptions{Filters: getStackFilter(namespace)})
+}
+
+func getStackConfigs(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Config, error) {
+	return apiclient.ConfigList(ctx, client.ConfigListOptions{Filters: getStackFilter(namespace)})
+}
+
+func getStackTasks(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Task, error) {
+	return apiclient.TaskList(ctx, client.TaskListOptions{Filters: getStackFilter(namespace)})
 }

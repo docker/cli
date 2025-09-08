@@ -14,7 +14,6 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/options"
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/schema"
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -22,8 +21,8 @@ import (
 )
 
 // loadComposeFile parse the composefile specified in the cli and returns its configOptions and version.
-func loadComposeFile(streams command.Streams, opts options.Deploy) (*composetypes.Config, error) {
-	configDetails, err := getConfigDetails(opts.Composefiles, streams.In())
+func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes.Config, error) {
+	configDetails, err := getConfigDetails(opts.composefiles, streams.In())
 	if err != nil {
 		return nil, err
 	}
