@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
