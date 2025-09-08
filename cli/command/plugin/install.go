@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
@@ -94,9 +93,6 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	}
 	responseBody, err := dockerCLI.Client().PluginInstall(ctx, localName, options)
 	if err != nil {
-		if strings.Contains(err.Error(), "(image) when fetching") {
-			return errors.New(err.Error() + " - Use \"docker image pull\"")
-		}
 		return err
 	}
 	defer func() {

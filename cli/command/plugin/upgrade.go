@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
@@ -83,9 +82,6 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 
 	responseBody, err := dockerCLI.Client().PluginUpgrade(ctx, opts.localName, options)
 	if err != nil {
-		if strings.Contains(err.Error(), "target is image") {
-			return errors.New(err.Error() + " - Use `docker image pull`")
-		}
 		return err
 	}
 	defer func() {
