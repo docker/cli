@@ -2,6 +2,8 @@ package image
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/containerd/platforms"
@@ -11,7 +13,6 @@ import (
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/atomicwriter"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -58,7 +59,7 @@ func runSave(ctx context.Context, dockerCLI command.Cli, opts saveOptions) error
 	for _, p := range opts.platform {
 		pp, err := platforms.Parse(p)
 		if err != nil {
-			return errors.Wrap(err, "invalid platform")
+			return fmt.Errorf("invalid platform: %w", err)
 		}
 		platformList = append(platformList, pp)
 	}
@@ -75,7 +76,7 @@ func runSave(ctx context.Context, dockerCLI command.Cli, opts saveOptions) error
 	} else {
 		writer, err := atomicwriter.New(opts.output, 0o600)
 		if err != nil {
-			return errors.Wrap(err, "failed to save image")
+			return fmt.Errorf("failed to save image: %w", err)
 		}
 		defer writer.Close()
 		output = writer

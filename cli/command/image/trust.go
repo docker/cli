@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 
@@ -16,7 +17,6 @@ import (
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	notaryclient "github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -102,7 +102,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
 	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing connection to trust repository")
+		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	ref := imgRefAndAuth.Reference()
@@ -128,7 +128,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 			refs = append(refs, t)
 		}
 		if len(refs) == 0 {
-			return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trusted tags for %s", ref.Name()))
+			return nil, trust.NotaryError(ref.Name(), fmt.Errorf("no trusted tags for %s", ref.Name()))
 		}
 		return refs, nil
 	}
@@ -140,7 +140,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 	// Only get the tag if it's in the top level targets role or the releases delegation role
 	// ignore it if it's in any other delegation roles
 	if t.Role != trust.ReleasesRole && t.Role != data.CanonicalTargetsRole {
-		return nil, trust.NotaryError(ref.Name(), errors.Errorf("No trust data for %s", tagged.Tag()))
+		return nil, trust.NotaryError(ref.Name(), fmt.Errorf("no trust data for %s", tagged.Tag()))
 	}
 
 	logrus.Debugf("retrieving target for %s role", t.Role)
@@ -181,7 +181,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 
 	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
 	if err != nil {
-		return nil, errors.Wrap(err, "error establishing connection to trust repository")
+		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
 
 	t, err := notaryRepo.GetTargetByName(ref.Tag(), trust.ReleasesRole, data.CanonicalTargetsRole)

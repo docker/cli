@@ -2,6 +2,8 @@ package image
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/containerd/platforms"
@@ -12,7 +14,6 @@ import (
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/sequential"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +61,7 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		// To avoid getting stuck, verify that a tar file is given either in
 		// the input flag or through stdin and if not display an error message and exit.
 		if dockerCli.In().IsTerminal() {
-			return errors.Errorf("requested load from stdin, but stdin is empty")
+			return errors.New("requested load from stdin, but stdin is empty")
 		}
 	default:
 		// We use sequential.Open to use sequential file access on Windows, avoiding
@@ -82,7 +83,7 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 	for _, p := range opts.platform {
 		pp, err := platforms.Parse(p)
 		if err != nil {
-			return errors.Wrap(err, "invalid platform")
+			return fmt.Errorf("invalid platform: %w", err)
 		}
 		platformList = append(platformList, pp)
 	}
