@@ -4,6 +4,7 @@
 package stack
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/cli/cli/compose/loader"
 	"github.com/docker/cli/cli/compose/schema"
 	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/pkg/errors"
 )
 
 // loadComposeFile parse the composefile specified in the cli and returns its configOptions and version.
@@ -30,9 +30,10 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 	dicts := getDictsFrom(configDetails.ConfigFiles)
 	config, err := loader.Load(configDetails)
 	if err != nil {
-		if fpe, ok := err.(*loader.ForbiddenPropertiesError); ok {
+		var fpe *loader.ForbiddenPropertiesError
+		if errors.As(err, &fpe) {
 			// this error is intentionally formatted multi-line
-			return nil, errors.Errorf("Compose file contains unsupported options:\n\n%s\n", propertyWarnings(fpe.Properties))
+			return nil, fmt.Errorf("compose file contains unsupported options:\n\n%s\n", propertyWarnings(fpe.Properties)) //nolint:staticcheck // ignore ST1005
 		}
 
 		return nil, err
@@ -53,10 +54,10 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 	// Validate if each service has a valid image-reference.
 	for _, svc := range config.Services {
 		if svc.Image == "" {
-			return nil, errors.Errorf("invalid image reference for service %s: no image specified", svc.Name)
+			return nil, fmt.Errorf("invalid image reference for service %s: no image specified", svc.Name)
 		}
 		if _, err := reference.ParseAnyReference(svc.Image); err != nil {
-			return nil, errors.Wrapf(err, "invalid image reference for service %s", svc.Name)
+			return nil, fmt.Errorf("invalid image reference for service %s: %w", svc.Name, err)
 		}
 	}
 
@@ -87,7 +88,7 @@ func getConfigDetails(composefiles []string, stdin io.Reader) (composetypes.Conf
 	var details composetypes.ConfigDetails
 
 	if len(composefiles) == 0 {
-		return details, errors.New("Specify a Compose file (with --compose-file)")
+		return details, errors.New("specify a Compose file (with --compose-file)")
 	}
 
 	if composefiles[0] == "-" && len(composefiles) == 1 {
@@ -133,7 +134,7 @@ func buildEnvironment(env []string) (map[string]string, error) {
 
 		k, v, ok := strings.Cut(s, "=")
 		if !ok || k == "" {
-			return result, errors.Errorf("unexpected environment variable '%s'", s)
+			return result, fmt.Errorf("unexpected environment variable '%s'", s)
 		}
 		// value may be set, but empty if "s" is like "K=", not "K".
 		result[k] = v

@@ -15,7 +15,7 @@ func TestConfigWithEmptyComposeFile(t *testing.T) {
 	cmd.SetOut(io.Discard)
 	cmd.SetErr(io.Discard)
 
-	assert.ErrorContains(t, cmd.Execute(), `Specify a Compose file`)
+	assert.ErrorContains(t, cmd.Execute(), `specify a Compose file`)
 }
 
 func TestConfigMergeInterpolation(t *testing.T) {
