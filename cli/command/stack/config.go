@@ -6,28 +6,32 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/stack/loader"
-	"github.com/docker/cli/cli/command/stack/options"
 	composeLoader "github.com/docker/cli/cli/compose/loader"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
 
+// configOptions holds docker stack config options
+type configOptions struct {
+	composeFiles      []string
+	skipInterpolation bool
+}
+
 func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
-	var opts options.Config
+	var opts configOptions
 
 	cmd := &cobra.Command{
 		Use:   "config [OPTIONS]",
 		Short: "Outputs the final config file, after doing merges and interpolations",
 		Args:  cli.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			configDetails, err := loader.GetConfigDetails(opts.Composefiles, dockerCLI.In())
+			configDetails, err := getConfigDetails(opts.composeFiles, dockerCLI.In())
 			if err != nil {
 				return err
 			}
 
-			cfg, err := outputConfig(configDetails, opts.SkipInterpolation)
+			cfg, err := outputConfig(configDetails, opts.skipInterpolation)
 			if err != nil {
 				return err
 			}
@@ -40,8 +44,8 @@ func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringSliceVarP(&opts.Composefiles, "compose-file", "c", []string{}, `Path to a Compose file, or "-" to read from stdin`)
-	flags.BoolVar(&opts.SkipInterpolation, "skip-interpolation", false, "Skip interpolation and output only merged config")
+	flags.StringSliceVarP(&opts.composeFiles, "compose-file", "c", []string{}, `Path to a Compose file, or "-" to read from stdin`)
+	flags.BoolVar(&opts.skipInterpolation, "skip-interpolation", false, "Skip interpolation and output only merged config")
 	return cmd
 }
 
