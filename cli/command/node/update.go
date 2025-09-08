@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -64,7 +64,7 @@ func updateNodes(ctx context.Context, apiClient client.NodeAPIClient, nodes []st
 
 		err = mergeNode(&node)
 		if err != nil {
-			if err == errNoRoleChange {
+			if errors.Is(err, errNoRoleChange) {
 				continue
 			}
 			return err
@@ -110,7 +110,7 @@ func mergeNodeUpdate(flags *pflag.FlagSet) func(*swarm.Node) error {
 			for _, k := range keys {
 				// if a key doesn't exist, fail the command explicitly
 				if _, exists := spec.Annotations.Labels[k]; !exists {
-					return errors.Errorf("key %s doesn't exist in node's labels", k)
+					return fmt.Errorf("key %s doesn't exist in node's labels", k)
 				}
 				delete(spec.Annotations.Labels, k)
 			}
