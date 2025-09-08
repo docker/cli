@@ -35,7 +35,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 					},
 				}, nil
 			},
-			expectedError: "This node is not part of a swarm",
+			expectedError: "this node is not part of a swarm",
 		},
 		{
 			name: "is-not-locked",
@@ -46,7 +46,7 @@ func TestSwarmUnlockErrors(t *testing.T) {
 					},
 				}, nil
 			},
-			expectedError: "Error: swarm is not locked",
+			expectedError: "error: swarm is not locked",
 		},
 		{
 			name: "unlockrequest-failed",

@@ -57,7 +57,7 @@ func swarmSpecWithFullCAConfig() *swarm.Spec {
 func TestDisplayTrustRootNoRoot(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	err := displayTrustRoot(buffer, swarm.Swarm{})
-	assert.Error(t, err, "No CA information available")
+	assert.Error(t, err, "no CA information available")
 }
 
 type invalidCATestCases struct {
