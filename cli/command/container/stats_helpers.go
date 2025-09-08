@@ -3,13 +3,13 @@ package container
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"sync"
 	"time"
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
