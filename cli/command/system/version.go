@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"runtime"
 	"sort"
@@ -18,7 +19,6 @@ import (
 	"github.com/docker/cli/templates"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tonistiigi/go-rosetta"
 )
@@ -212,7 +212,7 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	}
 	tmpl, err := templates.New("version").Funcs(template.FuncMap{"getDetailsOrder": getDetailsOrder}).Parse(templateFormat)
 	if err != nil {
-		return nil, errors.Wrap(err, "template parsing error")
+		return nil, fmt.Errorf("template parsing error: %w", err)
 	}
 	return tmpl, nil
 }
