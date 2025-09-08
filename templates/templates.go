@@ -13,18 +13,7 @@ import (
 // basicFunctions are the set of initial
 // functions provided to every template.
 var basicFunctions = template.FuncMap{
-	"json": func(v any) string {
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		enc.SetEscapeHTML(false)
-		err := enc.Encode(v)
-		if err != nil {
-			panic(err)
-		}
-
-		// Remove the trailing new line added by the encoder
-		return strings.TrimSpace(buf.String())
-	},
+	"json":     formatJSON,
 	"split":    strings.Split,
 	"join":     strings.Join,
 	"title":    strings.Title, //nolint:nolintlint,staticcheck // strings.Title is deprecated, but we only use it for ASCII, so replacing with golang.org/x/text is out of scope
@@ -102,4 +91,17 @@ func truncateWithLength(source string, length int) string {
 		return source
 	}
 	return source[:length]
+}
+
+func formatJSON(v any) string {
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	err := enc.Encode(v)
+	if err != nil {
+		panic(err)
+	}
+
+	// Remove the trailing new line added by the encoder
+	return strings.TrimSpace(buf.String())
 }
