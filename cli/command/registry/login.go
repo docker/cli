@@ -164,6 +164,7 @@ func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, auth
 		} else {
 			_, _ = fmt.Fprintln(dockerCLI.Err(), "Login did not succeed, error:", err)
 		}
+		return err
 	}
 
 	if response.IdentityToken != "" {
