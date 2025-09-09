@@ -273,7 +273,7 @@ func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeCo
 			}
 			return v, raw, err
 		}
-		return nil, nil, errors.Errorf("Error: No such object: %s", ref)
+		return nil, nil, errors.Errorf("error: no such object: %s", ref)
 	}
 }
 

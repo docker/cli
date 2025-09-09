@@ -12,7 +12,7 @@ func TestInspectInvalidReference(t *testing.T) {
 	result := icmd.RunCmd(icmd.Command("docker", "inspect", "FooBar"))
 	result.Assert(t, icmd.Expected{
 		Out:      "[]",
-		Err:      "Error: No such object: FooBar",
+		Err:      "error: no such object: FooBar",
 		ExitCode: 1,
 	})
 }
