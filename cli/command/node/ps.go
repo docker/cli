@@ -2,7 +2,7 @@ package node
 
 import (
 	"context"
-	"strings"
+	"errors"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -64,20 +63,20 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 	apiClient := dockerCLI.Client()
 
 	var (
-		errs  []string
+		errs  []error
 		tasks []swarm.Task
 	)
 
 	for _, nodeID := range options.nodeIDs {
 		nodeRef, err := Reference(ctx, apiClient, nodeID)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
 
 		node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeRef)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
 
@@ -86,7 +85,7 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 
 		nodeTasks, err := apiClient.TaskList(ctx, client.TaskListOptions{Filters: filter})
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 			continue
 		}
 
@@ -100,13 +99,9 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 
 	if len(errs) == 0 || len(tasks) != 0 {
 		if err := task.Print(ctx, dockerCLI, tasks, idresolver.New(apiClient, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 		}
 	}
 
-	if len(errs) > 0 {
-		return errors.Errorf("%s", strings.Join(errs, "\n"))
-	}
-
-	return nil
+	return errors.Join(errs...)
 }

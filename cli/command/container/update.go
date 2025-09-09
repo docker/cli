@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	containertypes "github.com/moby/moby/api/types/container"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -131,12 +131,12 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 
 	var (
 		warns []string
-		errs  []string
+		errs  []error
 	)
 	for _, ctr := range options.containers {
 		r, err := dockerCli.Client().ContainerUpdate(ctx, ctr, updateConfig)
 		if err != nil {
-			errs = append(errs, err.Error())
+			errs = append(errs, err)
 		} else {
 			_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
 		}
@@ -145,8 +145,5 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 	if len(warns) > 0 {
 		_, _ = fmt.Fprintln(dockerCli.Out(), strings.Join(warns, "\n"))
 	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-	return nil
+	return errors.Join(errs...)
 }
