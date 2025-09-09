@@ -40,12 +40,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 
 	_ = cmd.RegisterFlagCompletionFunc(flagRole, completion.FromList("worker", "manager"))
 	_ = cmd.RegisterFlagCompletionFunc(flagAvailability, completion.FromList("active", "pause", "drain"))
-	flags.VisitAll(func(flag *pflag.Flag) {
-		// Set a default completion function if none was set. We don't look
-		// up if it does already have one set, because Cobra does this for
-		// us, and returns an error (which we ignore for this reason).
-		_ = cmd.RegisterFlagCompletionFunc(flag.Name, cobra.NoFileCompletions)
-	})
+
 	return cmd
 }
 
