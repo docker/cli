@@ -3,6 +3,7 @@ package swarm
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -47,11 +47,11 @@ func runUnlock(ctx context.Context, dockerCLI command.Cli) error {
 
 	switch info.Swarm.LocalNodeState {
 	case swarm.LocalNodeStateInactive:
-		return errors.New("Error: This node is not part of a swarm")
+		return errors.New("error: this node is not part of a swarm")
 	case swarm.LocalNodeStateLocked:
 		break
 	case swarm.LocalNodeStatePending, swarm.LocalNodeStateActive, swarm.LocalNodeStateError:
-		return errors.New("Error: swarm is not locked")
+		return errors.New("error: swarm is not locked")
 	}
 
 	key, err := readKey(dockerCLI.In(), "Enter unlock key: ")

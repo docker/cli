@@ -2,6 +2,7 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -138,7 +138,7 @@ func attach(ctx context.Context, dockerCLI command.Cli, opts caOptions) error {
 
 func displayTrustRoot(out io.Writer, info swarm.Swarm) error {
 	if info.ClusterInfo.TLSInfo.TrustRoot == "" {
-		return errors.New("No CA information available")
+		return errors.New("no CA information available")
 	}
 	_, _ = fmt.Fprintln(out, strings.TrimSpace(info.ClusterInfo.TLSInfo.TrustRoot))
 	return nil

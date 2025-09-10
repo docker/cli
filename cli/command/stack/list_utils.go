@@ -2,10 +2,10 @@ package stack
 
 import (
 	"context"
+	"errors"
 
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 )
 
 // getStacks lists the swarm stacks with the number of services they contain.

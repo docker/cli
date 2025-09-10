@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,7 +27,6 @@ import (
 	"github.com/moby/moby/api/types/container"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -212,7 +212,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	if options.imageIDFile != "" {
 		// Avoid leaving a stale file if we eventually fail
 		if err := os.Remove(options.imageIDFile); err != nil && !os.IsNotExist(err) {
-			return errors.Wrap(err, "Removing image ID file")
+			return fmt.Errorf("removing image ID file: %w", err)
 		}
 	}
 
@@ -226,13 +226,13 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	case build.ContextTypeLocal:
 		contextDir, relDockerfile, err = build.GetContextFromLocalDir(options.context, options.dockerfileName)
 		if err != nil {
-			return errors.Errorf("unable to prepare context: %s", err)
+			return fmt.Errorf("unable to prepare context: %s", err)
 		}
 		if strings.HasPrefix(relDockerfile, ".."+string(filepath.Separator)) {
-			// Dockerfile is outside of build-context; read the Dockerfile and pass it as dockerfileCtx
+			// Dockerfile is outside build-context; read the Dockerfile and pass it as dockerfileCtx
 			dockerfileCtx, err = os.Open(options.dockerfileName)
 			if err != nil {
-				return errors.Errorf("unable to open Dockerfile: %v", err)
+				return fmt.Errorf("unable to open Dockerfile: %w", err)
 			}
 			defer dockerfileCtx.Close()
 		}
@@ -240,7 +240,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		var tempDir string
 		tempDir, relDockerfile, err = build.GetContextFromGitURL(options.context, options.dockerfileName)
 		if err != nil {
-			return errors.Errorf("unable to prepare context: %s", err)
+			return fmt.Errorf("unable to prepare context: %w", err)
 		}
 		defer func() {
 			_ = os.RemoveAll(tempDir)
@@ -252,7 +252,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
 		}
 	default:
-		return errors.Errorf("unable to prepare context: path %q not found", options.context)
+		return fmt.Errorf("unable to prepare context: path %q not found", options.context)
 	}
 
 	// read from a directory into tar archive
@@ -263,7 +263,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		}
 
 		if err := build.ValidateContextDirectory(contextDir, excludes); err != nil {
-			return errors.Wrap(err, "error checking context")
+			return fmt.Errorf("error checking context: %w", err)
 		}
 
 		// And canonicalize dockerfile name to a platform-independent one
@@ -370,7 +370,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	if options.imageIDFile != "" {
 		if imageID == "" {
-			return errors.Errorf("Server did not provide an image ID. Cannot write %s", options.imageIDFile)
+			return fmt.Errorf("server did not provide an image ID. Cannot write %s", options.imageIDFile)
 		}
 		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0o666); err != nil {
 			return err

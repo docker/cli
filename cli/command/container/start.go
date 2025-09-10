@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
 	"github.com/moby/term"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -162,7 +162,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		// 5. Wait for attachment to break.
 		if c.Config.Tty && dockerCli.Out().IsTerminal() {
 			if err := MonitorTtySize(ctx, dockerCli, c.ID, false); err != nil {
-				fmt.Fprintln(dockerCli.Err(), "Error monitoring TTY size:", err)
+				_, _ = fmt.Fprintln(dockerCli.Err(), "Error monitoring TTY size:", err)
 			}
 		}
 		if attachErr := <-cErr; attachErr != nil {
@@ -197,15 +197,15 @@ func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cl
 	var failedContainers []string
 	for _, ctr := range containers {
 		if err := dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{}); err != nil {
-			fmt.Fprintln(dockerCli.Err(), err)
+			_, _ = fmt.Fprintln(dockerCli.Err(), err)
 			failedContainers = append(failedContainers, ctr)
 			continue
 		}
-		fmt.Fprintln(dockerCli.Out(), ctr)
+		_, _ = fmt.Fprintln(dockerCli.Out(), ctr)
 	}
 
 	if len(failedContainers) > 0 {
-		return errors.Errorf("Error: failed to start containers: %s", strings.Join(failedContainers, ", "))
+		return fmt.Errorf("failed to start containers: %s", strings.Join(failedContainers, ", "))
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/distribution/reference"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -41,11 +41,11 @@ func newUpgradeCommand(dockerCLI command.Cli) *cobra.Command {
 func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) error {
 	p, _, err := dockerCLI.Client().PluginInspectWithRaw(ctx, opts.localName)
 	if err != nil {
-		return errors.Errorf("error reading plugin data: %v", err)
+		return fmt.Errorf("error reading plugin data: %w", err)
 	}
 
 	if p.Enabled {
-		return errors.Errorf("the plugin must be disabled before upgrading")
+		return errors.New("the plugin must be disabled before upgrading")
 	}
 
 	opts.localName = p.Name
@@ -54,13 +54,13 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	}
 	remote, err := reference.ParseNormalizedNamed(opts.remote)
 	if err != nil {
-		return errors.Wrap(err, "error parsing remote upgrade image reference")
+		return fmt.Errorf("error parsing remote upgrade image reference: %w", err)
 	}
 	remote = reference.TagNameOnly(remote)
 
 	old, err := reference.ParseNormalizedNamed(p.PluginReference)
 	if err != nil {
-		return errors.Wrap(err, "error parsing current image reference")
+		return fmt.Errorf("error parsing current image reference: %w", err)
 	}
 	old = reference.TagNameOnly(old)
 

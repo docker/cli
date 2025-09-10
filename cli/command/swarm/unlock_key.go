@@ -2,13 +2,13 @@ package swarm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -68,7 +68,7 @@ func runUnlockKey(ctx context.Context, dockerCLI command.Cli, opts unlockKeyOpti
 
 	unlockKeyResp, err := apiClient.SwarmGetUnlockKey(ctx)
 	if err != nil {
-		return errors.Wrap(err, "could not fetch unlock key")
+		return fmt.Errorf("could not fetch unlock key: %w", err)
 	}
 
 	if unlockKeyResp.UnlockKey == "" {

@@ -17,7 +17,6 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -99,7 +98,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 		typePlugin, typeSecret, typeService, typeTask, typeVolume:
 		elementSearcher = inspectAll(ctx, dockerCli, opts.size, opts.objectType)
 	default:
-		return errors.Errorf(`unknown type: %q: must be one of "%s"`, opts.objectType, strings.Join(allTypes, `", "`))
+		return fmt.Errorf(`unknown type: %q: must be one of "%s"`, opts.objectType, strings.Join(allTypes, `", "`))
 	}
 	return inspect.Inspect(dockerCli.Out(), opts.ids, opts.format, elementSearcher)
 }
@@ -273,7 +272,7 @@ func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeCo
 			}
 			return v, raw, err
 		}
-		return nil, nil, errors.Errorf("Error: No such object: %s", ref)
+		return nil, nil, fmt.Errorf("error: no such object: %s", ref)
 	}
 }
 

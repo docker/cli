@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -65,7 +64,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	if curAutoLock && !prevAutoLock {
 		unlockKeyResp, err := apiClient.SwarmGetUnlockKey(ctx)
 		if err != nil {
-			return errors.Wrap(err, "could not fetch unlock key")
+			return fmt.Errorf("could not fetch unlock key: %w", err)
 		}
 		printUnlockCommand(dockerCLI.Out(), unlockKeyResp.UnlockKey)
 	}

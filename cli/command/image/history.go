@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +61,7 @@ func runHistory(ctx context.Context, dockerCli command.Cli, opts historyOptions)
 	if opts.platform != "" {
 		p, err := platforms.Parse(opts.platform)
 		if err != nil {
-			return errors.Wrap(err, "invalid platform")
+			return fmt.Errorf("invalid platform: %w", err)
 		}
 		options = append(options, client.ImageHistoryWithPlatform(p))
 	}

@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -10,7 +11,6 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/versions"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -80,7 +80,7 @@ func runDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	case resolveImageAlways, resolveImageChanged, resolveImageNever:
 		// valid options.
 	default:
-		return errors.Errorf("Invalid option %s for flag --resolve-image", opts.resolveImage)
+		return fmt.Errorf("invalid option %s for flag --resolve-image", opts.resolveImage)
 	}
 
 	// client side image resolution should not be done when the supported
@@ -108,7 +108,7 @@ func checkDaemonIsSwarmManager(ctx context.Context, dockerCli command.Cli) error
 		return err
 	}
 	if !info.Swarm.ControlAvailable {
-		return errors.New("this node is not a swarm manager. Use \"docker swarm init\" or \"docker swarm join\" to connect this node to swarm and try again")
+		return errors.New(`this node is not a swarm manager. Use "docker swarm init" or "docker swarm join" to connect this node to swarm and try again`)
 	}
 	return nil
 }

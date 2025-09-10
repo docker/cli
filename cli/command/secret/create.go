@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/sys/sequential"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -56,7 +56,7 @@ func runSecretCreate(ctx context.Context, dockerCLI command.Cli, options createO
 	var secretData []byte
 	if options.driver != "" {
 		if options.file != "" {
-			return errors.Errorf("When using secret driver secret data must be empty")
+			return errors.New("when using secret driver secret data must be empty")
 		}
 	} else {
 		var err error

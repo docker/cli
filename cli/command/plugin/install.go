@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -82,7 +81,7 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 			return err
 		}
 		if _, ok := aref.(reference.Canonical); ok {
-			return errors.Errorf("invalid name: %s", opts.localName)
+			return fmt.Errorf("invalid name: %s", opts.localName)
 		}
 		localName = reference.FamiliarString(reference.TagNameOnly(aref))
 	}

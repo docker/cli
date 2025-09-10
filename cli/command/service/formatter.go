@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -16,7 +17,6 @@ import (
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/pkg/errors"
 )
 
 const serviceInspectPrettyTemplate formatter.Format = `
@@ -231,7 +231,7 @@ func inspectFormatWrite(fmtCtx formatter.Context, refs []string, getRef, getNetw
 			}
 			service, ok := serviceI.(swarm.Service)
 			if !ok {
-				return errors.Errorf("got wrong object to inspect")
+				return errors.New("got wrong object to inspect")
 			}
 			if err := format(&serviceInspectContext{
 				Service:      service,

@@ -2,13 +2,14 @@ package container
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/sys/atomicwriter"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +54,7 @@ func runExport(ctx context.Context, dockerCLI command.Cli, opts exportOptions) e
 	} else {
 		writer, err := atomicwriter.New(opts.output, 0o600)
 		if err != nil {
-			return errors.Wrap(err, "failed to export container")
+			return fmt.Errorf("failed to export container: %w", err)
 		}
 		defer writer.Close()
 		output = writer

@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/docker/cli/cli"
@@ -11,7 +12,6 @@ import (
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/templates"
 	"github.com/moby/moby/client"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -84,7 +84,7 @@ func buildContainerListOptions(options *psOptions) (*client.ContainerListOptions
 	if len(options.format) > 0 {
 		tmpl, err := templates.Parse(options.format)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse template")
+			return nil, fmt.Errorf("failed to parse template: %w", err)
 		}
 
 		optionsProcessor := formatter.NewContainerContext()
@@ -92,7 +92,7 @@ func buildContainerListOptions(options *psOptions) (*client.ContainerListOptions
 		// This shouldn't error out but swallowing the error makes it harder
 		// to track down if preProcessor issues come up.
 		if err := tmpl.Execute(io.Discard, optionsProcessor); err != nil {
-			return nil, errors.Wrap(err, "failed to execute template")
+			return nil, fmt.Errorf("failed to execute template: %w", err)
 		}
 
 		// if `size` was not explicitly set to false (with `--size=false`)
