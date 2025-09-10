@@ -176,7 +176,7 @@ func TestCompleteEnvVarNames(t *testing.T) {
 		"ENV_A": "hello-a",
 		"ENV_B": "hello-b",
 	})
-	values, directives := EnvVarNames(nil, nil, "")
+	values, directives := EnvVarNames()(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 
 	sort.Strings(values)
@@ -185,7 +185,7 @@ func TestCompleteEnvVarNames(t *testing.T) {
 }
 
 func TestCompleteFileNames(t *testing.T) {
-	values, directives := FileNames(nil, nil, "")
+	values, directives := FileNames()(nil, nil, "")
 	assert.Check(t, is.Equal(directives, cobra.ShellCompDirectiveDefault))
 	assert.Check(t, is.Len(values, 0))
 }
@@ -304,7 +304,7 @@ func TestCompleteNetworkNames(t *testing.T) {
 }
 
 func TestCompletePlatforms(t *testing.T) {
-	values, directives := Platforms(nil, nil, "")
+	values, directives := Platforms()(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 	assert.Check(t, is.DeepEqual(values, commonPlatforms))
 }

@@ -21,7 +21,7 @@ func newImportCommand(dockerCLI command.Cli) *cobra.Command {
 			return runImport(dockerCLI, args[0], args[1])
 		},
 		// TODO(thaJeztah): this should also include "-"
-		ValidArgsFunction:     completion.FileNames,
+		ValidArgsFunction:     completion.FileNames(),
 		DisableFlagsInUseLine: true,
 	}
 	return cmd

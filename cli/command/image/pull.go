@@ -52,7 +52,7 @@ func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 	addPlatformFlag(flags, &opts.platform)
 	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image verification")
 
-	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 
 	return cmd
 }

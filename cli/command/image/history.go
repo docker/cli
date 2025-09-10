@@ -52,7 +52,7 @@ func newHistoryCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&opts.platform, "platform", "", `Show history for the given platform. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
 	_ = flags.SetAnnotation("platform", "version", []string{"1.48"})
 
-	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 	return cmd
 }
 

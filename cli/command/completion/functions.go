@@ -116,14 +116,16 @@ func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 //	export MY_VAR=hello
 //	docker run --rm --env MY_VAR alpine printenv MY_VAR
 //	hello
-func EnvVarNames(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
-	envs := os.Environ()
-	names = make([]string, 0, len(envs))
-	for _, env := range envs {
-		name, _, _ := strings.Cut(env, "=")
-		names = append(names, name)
+func EnvVarNames() cobra.CompletionFunc {
+	return func(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
+		envs := os.Environ()
+		names = make([]string, 0, len(envs))
+		for _, env := range envs {
+			name, _, _ := strings.Cut(env, "=")
+			names = append(names, name)
+		}
+		return names, cobra.ShellCompDirectiveNoFileComp
 	}
-	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
 // FromList offers completion for the given list of options.
@@ -134,8 +136,10 @@ func FromList(options ...string) cobra.CompletionFunc {
 // FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
 // which indicates to let the shell perform its default behavior after
 // completions have been provided.
-func FileNames(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
-	return nil, cobra.ShellCompDirectiveDefault
+func FileNames() cobra.CompletionFunc {
+	return func(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+		return nil, cobra.ShellCompDirectiveDefault
+	}
 }
 
 var commonPlatforms = []string{
@@ -175,6 +179,8 @@ var commonPlatforms = []string{
 //   - we currently exclude architectures that may have unofficial builds,
 //     but don't have wide adoption (and no support), such as loong64, mipsXXX,
 //     ppc64 (non-le) to prevent confusion.
-func Platforms(_ *cobra.Command, _ []string, _ string) (platforms []string, _ cobra.ShellCompDirective) {
-	return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
+func Platforms() cobra.CompletionFunc {
+	return func(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
+		return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
+	}
 }

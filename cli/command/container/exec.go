@@ -78,8 +78,8 @@ func newExecCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVarP(&options.Workdir, "workdir", "w", "", "Working directory inside the container")
 	flags.SetAnnotation("workdir", "version", []string{"1.35"})
 
-	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames)
-	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames)
+	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames())
+	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames())
 
 	return cmd
 }

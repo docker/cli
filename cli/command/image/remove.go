@@ -47,7 +47,7 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringSliceVar(&options.platforms, "platform", nil, `Remove only the given platform variant. Formatted as "os[/arch[/variant]]" (e.g., "linux/amd64")`)
 	_ = flags.SetAnnotation("platform", "version", []string{"1.50"})
 
-	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms)
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 	return cmd
 }
 

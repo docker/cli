@@ -121,7 +121,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	// _ = cmd.RegisterFlagCompletionFunc(flagCapDrop, completeLinuxCapabilityNames)
 	// _ = cmd.RegisterFlagCompletionFunc(flagStopSignal, completeSignals)
 
-	_ = cmd.RegisterFlagCompletionFunc(flagEnvAdd, completion.EnvVarNames)
+	_ = cmd.RegisterFlagCompletionFunc(flagEnvAdd, completion.EnvVarNames())
 	// TODO(thaJeztah): flagEnvRemove (needs to read current env-vars on the service)
 	_ = cmd.RegisterFlagCompletionFunc("image", completion.ImageNames(dockerCLI, -1))
 	_ = cmd.RegisterFlagCompletionFunc(flagNetworkAdd, completion.NetworkNames(dockerCLI))
