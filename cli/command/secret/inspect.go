@@ -31,9 +31,7 @@ func newSecretInspectCommand(dockerCLI command.Cli) *cobra.Command {
 			opts.names = args
 			return runSecretInspect(cmd.Context(), dockerCLI, opts)
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return completeNames(dockerCLI)(cmd, args, toComplete)
-		},
+		ValidArgsFunction:     completeNames(dockerCLI),
 		DisableFlagsInUseLine: true,
 	}
 

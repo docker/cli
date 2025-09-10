@@ -45,9 +45,7 @@ func newDeployCommand(dockerCLI command.Cli) *cobra.Command {
 			}
 			return runDeploy(cmd.Context(), dockerCLI, cmd.Flags(), &opts, config)
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return completeNames(dockerCLI)(cmd, args, toComplete)
-		},
+		ValidArgsFunction:     completeNames(dockerCLI),
 		DisableFlagsInUseLine: true,
 	}
 

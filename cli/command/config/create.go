@@ -36,7 +36,23 @@ func newConfigCreateCommand(dockerCLI command.Cli) *cobra.Command {
 			createOpts.file = args[1]
 			return runCreate(cmd.Context(), dockerCLI, createOpts)
 		},
-		ValidArgsFunction:     cobra.NoFileCompletions,
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			switch len(args) {
+			case 0:
+				// No completion for the first argument, which is the name for
+				// the new config, but if a non-empty name is given, we return
+				// it as completion to allow "tab"-ing to the next completion.
+				return []string{toComplete}, cobra.ShellCompDirectiveNoFileComp
+			case 1:
+				// Second argument is either "-" or a file to load.
+				//
+				// TODO(thaJeztah): provide completion for "-".
+				return nil, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
+			default:
+				// Command only accepts two arguments.
+				return nil, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
+			}
+		},
 		DisableFlagsInUseLine: true,
 	}
 	flags := cmd.Flags()
