@@ -72,7 +72,7 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 			return runInspect(cmd.Context(), dockerCLI, opts)
 		},
 		// TODO(thaJeztah): should we consider adding completion for common object-types? (images, containers?)
-		ValidArgsFunction:     cobra.NoFileCompletions,
+		ValidArgsFunction:     completeObjectNames(dockerCLI),
 		DisableFlagsInUseLine: true,
 	}
 
