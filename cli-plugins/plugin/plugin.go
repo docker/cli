@@ -164,6 +164,11 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 			DisableDescriptions: os.Getenv("DOCKER_CLI_DISABLE_COMPLETION_DESCRIPTION") != "",
 		},
 	}
+
+	// Disable file-completion by default. Most commands and flags should not
+	// complete with filenames.
+	cmd.CompletionOptions.SetDefaultShellCompDirective(cobra.ShellCompDirectiveNoFileComp)
+
 	opts, _ := cli.SetupPluginRootCommand(cmd)
 
 	cmd.SetIn(dockerCli.In())

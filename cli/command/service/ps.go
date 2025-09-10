@@ -14,7 +14,6 @@ import (
 	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 type psOptions struct {
@@ -47,12 +46,6 @@ func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
-	flags.VisitAll(func(flag *pflag.Flag) {
-		// Set a default completion function if none was set. We don't look
-		// up if it does already have one set, because Cobra does this for
-		// us, and returns an error (which we ignore for this reason).
-		_ = cmd.RegisterFlagCompletionFunc(flag.Name, cobra.NoFileCompletions)
-	})
 	return cmd
 }
 

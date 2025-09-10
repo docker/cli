@@ -20,7 +20,6 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 type logsOptions struct {
@@ -68,12 +67,6 @@ func newLogsCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.SetAnnotation("details", "version", []string{"1.30"})
 	flags.StringVarP(&opts.tail, "tail", "n", "all", "Number of lines to show from the end of the logs")
 
-	flags.VisitAll(func(flag *pflag.Flag) {
-		// Set a default completion function if none was set. We don't look
-		// up if it does already have one set, because Cobra does this for
-		// us, and returns an error (which we ignore for this reason).
-		_ = cmd.RegisterFlagCompletionFunc(flag.Name, cobra.NoFileCompletions)
-	})
 	return cmd
 }
 
