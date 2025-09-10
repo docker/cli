@@ -14,6 +14,7 @@ func newSetCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return dockerCLI.Client().PluginSet(cmd.Context(), args[0], args[1:])
 		},
+		ValidArgsFunction:     completeNames(dockerCLI, stateAny), // TODO(thaJeztah): should only complete for the first arg
 		DisableFlagsInUseLine: true,
 	}
 }

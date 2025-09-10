@@ -29,6 +29,7 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 			opts.plugins = args
 			return runRemove(cmd.Context(), dockerCLI, &opts)
 		},
+		ValidArgsFunction:     completeNames(dockerCLI, stateAny),
 		DisableFlagsInUseLine: true,
 	}
 
