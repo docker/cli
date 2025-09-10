@@ -44,7 +44,7 @@ func completeNames(dockerCLI completion.APIClientProvider) cobra.CompletionFunc 
 		}
 		var names []string
 		for _, secret := range list {
-			names = append(names, secret.ID)
+			names = append(names, secret.Spec.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}
