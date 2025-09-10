@@ -27,6 +27,7 @@ func newUpgradeCommand(dockerCLI command.Cli) *cobra.Command {
 			return runUpgrade(cmd.Context(), dockerCLI, options)
 		},
 		Annotations:           map[string]string{"version": "1.26"},
+		ValidArgsFunction:     completeNames(dockerCLI, stateAny), // TODO(thaJeztah): should only complete for the first arg
 		DisableFlagsInUseLine: true,
 	}
 

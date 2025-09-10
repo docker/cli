@@ -25,6 +25,7 @@ func newEnableCommand(dockerCLI command.Cli) *cobra.Command {
 			_, _ = fmt.Fprintln(dockerCLI.Out(), name)
 			return nil
 		},
+		ValidArgsFunction:     completeNames(dockerCLI, stateDisabled),
 		DisableFlagsInUseLine: true,
 	}
 

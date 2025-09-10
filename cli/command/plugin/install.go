@@ -36,6 +36,7 @@ func newInstallCommand(dockerCLI command.Cli) *cobra.Command {
 			}
 			return runInstall(cmd.Context(), dockerCLI, options)
 		},
+		ValidArgsFunction:     cobra.NoFileCompletions,
 		DisableFlagsInUseLine: true,
 	}
 

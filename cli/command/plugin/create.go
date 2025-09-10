@@ -76,7 +76,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 			options.context = args[1]
 			return runCreate(cmd.Context(), dockerCLI, options)
 		},
-		ValidArgsFunction:     cobra.NoFileCompletions,
+		ValidArgsFunction:     cobra.NoFileCompletions, // TODO(thaJeztah): should provide "directory" completion for the second arg
 		DisableFlagsInUseLine: true,
 	}
 
