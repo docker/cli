@@ -69,14 +69,6 @@ func New(tag string) *template.Template {
 	return template.New(tag).Funcs(basicFunctions)
 }
 
-// NewParse creates a new tagged template with the basic functions
-// and parses the given format.
-//
-// Deprecated: this function is unused and will be removed in the next release. Use [New] if you need to set a tag, or [Parse] instead.
-func NewParse(tag, format string) (*template.Template, error) {
-	return template.New(tag).Funcs(basicFunctions).Parse(format)
-}
-
 // padWithSpace adds whitespace to the input if the input is non-empty
 func padWithSpace(source string, prefix, suffix int) string {
 	if source == "" {
