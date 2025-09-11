@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/internal/test"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestContainerStatsContext(t *testing.T) {
-	containerID := test.RandomID()
+	const actorID = "c74518277ddc15a6afeaaeb06ee5f7433dcb27188224777c1efa7df1e8766d65"
 
 	var ctx statsContext
 	tests := []struct {
@@ -23,11 +22,46 @@ func TestContainerStatsContext(t *testing.T) {
 		call      func() string
 	}{
 		{
-			name:      "Container",
-			stats:     StatsEntry{Container: containerID},
-			expValue:  containerID,
+			name:      "Container id",
+			stats:     StatsEntry{ID: actorID, Container: actorID},
+			expValue:  actorID,
 			expHeader: containerHeader,
 			call:      ctx.Container,
+		},
+		{
+			name:      "Container name",
+			stats:     StatsEntry{ID: actorID, Container: "a-long-container-name"},
+			expValue:  "a-long-container-name",
+			expHeader: containerHeader,
+			call:      ctx.Container,
+		},
+		{
+			name:      "ID",
+			stats:     StatsEntry{ID: actorID},
+			expValue:  actorID,
+			expHeader: formatter.ContainerIDHeader,
+			call:      ctx.ID,
+		},
+		{
+			name:      "Name",
+			stats:     StatsEntry{Name: "/container-name"},
+			expValue:  "container-name",
+			expHeader: formatter.ContainerIDHeader,
+			call:      ctx.Name,
+		},
+		{
+			name:      "Name empty",
+			stats:     StatsEntry{Name: ""},
+			expValue:  "--",
+			expHeader: formatter.ContainerIDHeader,
+			call:      ctx.Name,
+		},
+		{
+			name:      "Name prefix only",
+			stats:     StatsEntry{Name: "/"},
+			expValue:  "--",
+			expHeader: formatter.ContainerIDHeader,
+			call:      ctx.Name,
 		},
 		{
 			name:      "CPUPerc",
