@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registry"
 	"github.com/moby/moby/api/pkg/authconfig"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
@@ -43,12 +44,15 @@ func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (
 }
 
 // pushTrustedReference pushes a canonical reference to the trust server.
-func pushTrustedReference(ctx context.Context, ioStreams command.Streams, indexInfo *registrytypes.IndexInfo, ref reference.Named, authConfig registrytypes.AuthConfig, in io.Reader) error {
+func pushTrustedReference(ctx context.Context, dockerCLI command.Cli, ref reference.Named, responseBody io.Reader) error {
+	// Resolve the Repository name from fqn to RepositoryInfo
+	indexInfo := registry.NewIndexInfo(ref)
 	repoInfo := &trust.RepositoryInfo{
 		Name:  reference.TrimNamed(ref),
 		Index: indexInfo,
 	}
-	return trust.PushTrustedReference(ctx, ioStreams, repoInfo, ref, authConfig, in, command.UserAgent())
+	authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), indexInfo)
+	return trust.PushTrustedReference(ctx, dockerCLI, repoInfo, ref, authConfig, responseBody, command.UserAgent())
 }
 
 // trustedPull handles content trust pulling of an image
@@ -150,6 +154,7 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 
 // imagePullPrivileged pulls the image and displays it to the output
 func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
+	// TODO(thaJeztah): get rid of this trust.ImageRefAndAuth monstrosity; we're wrapping wrappers around wrappers; all we need here is the image ref (or even less: the registry name)
 	encodedAuth, err := authconfig.Encode(*imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return err
