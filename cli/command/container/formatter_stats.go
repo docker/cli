@@ -167,6 +167,7 @@ func (c *statsContext) Container() string {
 }
 
 func (c *statsContext) Name() string {
+	// TODO(thaJeztah): make this explicitly trim the "/" prefix, not just any char.
 	if len(c.s.Name) > 1 {
 		return c.s.Name[1:]
 	}

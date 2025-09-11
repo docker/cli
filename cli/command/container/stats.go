@@ -134,7 +134,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		eh := newEventHandler()
 		if options.All {
 			eh.setHandler(events.ActionCreate, func(e events.Message) {
-				s := NewStats(e.Actor.ID[:12])
+				s := NewStats(e.Actor.ID)
 				if cStats.add(s) {
 					waitFirst.Add(1)
 					go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
@@ -143,7 +143,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		}
 
 		eh.setHandler(events.ActionStart, func(e events.Message) {
-			s := NewStats(e.Actor.ID[:12])
+			s := NewStats(e.Actor.ID)
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
@@ -152,7 +152,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 
 		if !options.All {
 			eh.setHandler(events.ActionDie, func(e events.Message) {
-				cStats.remove(e.Actor.ID[:12])
+				cStats.remove(e.Actor.ID)
 			})
 		}
 
@@ -205,7 +205,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			return err
 		}
 		for _, ctr := range cs {
-			s := NewStats(ctr.ID[:12])
+			s := NewStats(ctr.ID)
 			if cStats.add(s) {
 				waitFirst.Add(1)
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
@@ -358,7 +358,12 @@ func (eh *eventHandler) watch(c <-chan events.Message) {
 		if !exists {
 			continue
 		}
-		logrus.Debugf("event handler: received event: %v", e)
+		if e.Actor.ID == "" {
+			logrus.WithField("event", e).Errorf("event handler: received %s event with empty ID", e.Action)
+			continue
+		}
+
+		logrus.WithField("event", e).Debugf("event handler: received %s event for: %s", e.Action, e.Actor.ID)
 		go h(e)
 	}
 }
