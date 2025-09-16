@@ -93,7 +93,6 @@ type containerOptions struct {
 	memory              opts.MemBytes
 	memoryReservation   opts.MemBytes
 	memorySwap          opts.MemSwapBytes
-	kernelMemory        opts.MemBytes
 	user                string
 	workingDir          string
 	cpuCount            int64
@@ -303,7 +302,6 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.SetAnnotation("io-maxbandwidth", "ostype", []string{"windows"})
 	flags.Uint64Var(&copts.ioMaxIOps, "io-maxiops", 0, "Maximum IOps limit for the system drive (Windows only)")
 	flags.SetAnnotation("io-maxiops", "ostype", []string{"windows"})
-	flags.Var(&copts.kernelMemory, "kernel-memory", "Kernel memory limit")
 	flags.VarP(&copts.memory, "memory", "m", "Memory limit")
 	flags.Var(&copts.memoryReservation, "memory-reservation", "Memory soft limit")
 	flags.Var(&copts.memorySwap, "memory-swap", "Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
@@ -326,6 +324,11 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 
 	flags.Var(copts.annotations, "annotation", "Add an annotation to the container (passed through to the OCI runtime)")
 	flags.SetAnnotation("annotation", "version", []string{"1.43"})
+
+	// TODO(thaJeztah): remove in next release (v30.0, or v29.x)
+	var stub opts.MemBytes
+	flags.Var(&stub, "kernel-memory", "Kernel memory limit (deprecated)")
+	_ = flags.MarkDeprecated("kernel-memory", "and no longer supported by the kernel")
 
 	return copts
 }
@@ -604,7 +607,6 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		MemoryReservation:    copts.memoryReservation.Value(),
 		MemorySwap:           copts.memorySwap.Value(),
 		MemorySwappiness:     &copts.swappiness,
-		KernelMemory:         copts.kernelMemory.Value(),
 		OomKillDisable:       &copts.oomKillDisable,
 		NanoCPUs:             copts.cpus.Value(),
 		CPUCount:             copts.cpuCount,

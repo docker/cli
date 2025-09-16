@@ -26,7 +26,6 @@ type updateOptions struct {
 	memory             opts.MemBytes
 	memoryReservation  opts.MemBytes
 	memorySwap         opts.MemSwapBytes
-	kernelMemory       opts.MemBytes
 	restartPolicy      string
 	pidsLimit          int64
 	cpus               opts.NanoCPUs
@@ -70,12 +69,6 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memoryReservation, "memory-reservation", "Memory soft limit")
 	flags.Var(&options.memorySwap, "memory-swap", `Swap limit equal to memory plus swap: -1 to enable unlimited swap`)
-	flags.Var(&options.kernelMemory, "kernel-memory", "Kernel memory limit (deprecated)")
-	// --kernel-memory is deprecated on API v1.42 and up, but our current annotations
-	// do not support only showing on < API-version. This option is no longer supported
-	// by runc, so hiding it unconditionally.
-	flags.SetAnnotation("kernel-memory", "deprecated", nil)
-	flags.MarkHidden("kernel-memory")
 
 	flags.StringVar(&options.restartPolicy, "restart", "", "Restart policy to apply when a container exits")
 	flags.Int64Var(&options.pidsLimit, "pids-limit", 0, `Tune container pids limit (set -1 for unlimited)`)
@@ -85,6 +78,11 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.SetAnnotation("cpus", "version", []string{"1.29"})
 
 	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
+
+	// TODO(thaJeztah): remove in next release (v30.0, or v29.x)
+	var stub opts.MemBytes
+	flags.Var(&stub, "kernel-memory", "Kernel memory limit (deprecated)")
+	_ = flags.MarkDeprecated("kernel-memory", "and no longer supported by the kernel")
 
 	return cmd
 }
@@ -118,7 +116,6 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 			Memory:             options.memory.Value(),
 			MemoryReservation:  options.memoryReservation.Value(),
 			MemorySwap:         options.memorySwap.Value(),
-			KernelMemory:       options.kernelMemory.Value(),
 			CPUPeriod:          options.cpuPeriod,
 			CPUQuota:           options.cpuQuota,
 			CPURealtimePeriod:  options.cpuRealtimePeriod,
