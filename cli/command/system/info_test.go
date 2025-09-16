@@ -49,7 +49,6 @@ var sampleInfoNoSwarm = system.Info{
 	},
 	MemoryLimit:        true,
 	SwapLimit:          true,
-	KernelMemory:       true,
 	CPUCfsPeriod:       true,
 	CPUCfsQuota:        true,
 	CPUShares:          true,
@@ -235,7 +234,6 @@ func TestPrettyPrintInfo(t *testing.T) {
 	infoWithWarningsLinux := sampleInfoNoSwarm
 	infoWithWarningsLinux.MemoryLimit = false
 	infoWithWarningsLinux.SwapLimit = false
-	infoWithWarningsLinux.KernelMemory = false
 	infoWithWarningsLinux.OomKillDisable = false
 	infoWithWarningsLinux.CPUCfsQuota = false
 	infoWithWarningsLinux.CPUCfsPeriod = false
