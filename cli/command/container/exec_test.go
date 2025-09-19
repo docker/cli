@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -38,10 +39,10 @@ TWO=2
 	testcases := []struct {
 		options    ExecOptions
 		configFile configfile.ConfigFile
-		expected   container.ExecOptions
+		expected   client.ExecCreateOptions
 	}{
 		{
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -49,7 +50,7 @@ TWO=2
 			options: withDefaultOpts(ExecOptions{}),
 		},
 		{
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd:          []string{"command1", "command2"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -64,7 +65,7 @@ TWO=2
 				TTY:         true,
 				User:        "uid",
 			}),
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				User:         "uid",
 				AttachStdin:  true,
 				AttachStdout: true,
@@ -75,7 +76,7 @@ TWO=2
 		},
 		{
 			options: withDefaultOpts(ExecOptions{Detach: true}),
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd: []string{"command"},
 			},
 		},
@@ -85,7 +86,7 @@ TWO=2
 				Interactive: true,
 				Detach:      true,
 			}),
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Tty: true,
 				Cmd: []string{"command"},
 			},
@@ -93,7 +94,7 @@ TWO=2
 		{
 			options:    withDefaultOpts(ExecOptions{Detach: true}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd:        []string{"command"},
 				DetachKeys: "de",
 			},
@@ -104,13 +105,13 @@ TWO=2
 				DetachKeys: "ab",
 			}),
 			configFile: configfile.ConfigFile{DetachKeys: "de"},
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd:        []string{"command"},
 				DetachKeys: "ab",
 			},
 		},
 		{
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -123,7 +124,7 @@ TWO=2
 			}(),
 		},
 		{
-			expected: container.ExecOptions{
+			expected: client.ExecCreateOptions{
 				Cmd:          []string{"command"},
 				AttachStdout: true,
 				AttachStderr: true,
@@ -206,7 +207,7 @@ func TestRunExec(t *testing.T) {
 	}
 }
 
-func execCreateWithID(_ string, _ container.ExecOptions) (container.ExecCreateResponse, error) {
+func execCreateWithID(_ string, _ client.ExecCreateOptions) (container.ExecCreateResponse, error) {
 	return container.ExecCreateResponse{ID: "execid"}, nil
 }
 
@@ -235,9 +236,9 @@ func TestGetExecExitStatus(t *testing.T) {
 
 	for _, testcase := range testcases {
 		apiClient := &fakeClient{
-			execInspectFunc: func(id string) (container.ExecInspect, error) {
+			execInspectFunc: func(id string) (client.ExecInspect, error) {
 				assert.Check(t, is.Equal(execID, id))
-				return container.ExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
+				return client.ExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
 			},
 		}
 		err := getExecExitStatus(context.Background(), apiClient, execID)
