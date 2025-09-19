@@ -119,7 +119,7 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	}
 
 	if options.Detach {
-		return apiClient.ContainerExecStart(ctx, execID, container.ExecStartOptions{
+		return apiClient.ContainerExecStart(ctx, execID, client.ExecStartOptions{
 			Detach:      options.Detach,
 			Tty:         execOptions.Tty,
 			ConsoleSize: execOptions.ConsoleSize,
@@ -128,14 +128,14 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	return interactiveExec(ctx, dockerCLI, execOptions, execID)
 }
 
-func fillConsoleSize(execOptions *container.ExecOptions, dockerCli command.Cli) {
+func fillConsoleSize(execOptions *client.ExecCreateOptions, dockerCli command.Cli) {
 	if execOptions.Tty {
 		height, width := dockerCli.Out().GetTtySize()
 		execOptions.ConsoleSize = &[2]uint{height, width}
 	}
 }
 
-func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *container.ExecOptions, execID string) error {
+func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *client.ExecCreateOptions, execID string) error {
 	// Interactive exec requested.
 	var (
 		out, stderr io.Writer
@@ -158,7 +158,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *co
 	fillConsoleSize(execOptions, dockerCli)
 
 	apiClient := dockerCli.Client()
-	resp, err := apiClient.ContainerExecAttach(ctx, execID, container.ExecAttachOptions{
+	resp, err := apiClient.ContainerExecAttach(ctx, execID, client.ExecAttachOptions{
 		Tty:         execOptions.Tty,
 		ConsoleSize: execOptions.ConsoleSize,
 	})
@@ -218,8 +218,8 @@ func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient,
 
 // parseExec parses the specified args for the specified command and generates
 // an ExecConfig from it.
-func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*container.ExecOptions, error) {
-	execOptions := &container.ExecOptions{
+func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*client.ExecCreateOptions, error) {
+	execOptions := &client.ExecCreateOptions{
 		User:       execOpts.User,
 		Privileged: execOpts.Privileged,
 		Tty:        execOpts.TTY,
