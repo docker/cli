@@ -75,7 +75,7 @@ func runCommit(ctx context.Context, dockerCli command.Cli, options *commitOption
 		Comment:   options.comment,
 		Author:    options.author,
 		Changes:   options.changes.GetSlice(),
-		Pause:     !options.noPause,
+		NoPause:   options.noPause,
 	})
 	if err != nil {
 		return err

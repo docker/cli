@@ -23,7 +23,7 @@ func TestRunCommit(t *testing.T) {
 			assert.Check(t, is.Equal(options.Author, "Author Name <author@name.com>"))
 			assert.Check(t, is.DeepEqual(options.Changes, []string{"EXPOSE 80"}))
 			assert.Check(t, is.Equal(options.Comment, "commit message"))
-			assert.Check(t, is.Equal(options.Pause, false))
+			assert.Check(t, is.Equal(options.NoPause, true))
 			assert.Check(t, is.Equal(ctr, "container-id"))
 
 			return container.CommitResponse{ID: "image-id"}, nil
