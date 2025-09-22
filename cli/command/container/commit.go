@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -17,6 +18,7 @@ type commitOptions struct {
 	reference string
 
 	pause   bool
+	noPause bool
 	comment string
 	author  string
 	changes opts.ListOpts
@@ -35,6 +37,12 @@ func newCommitCommand(dockerCLI command.Cli) *cobra.Command {
 			if len(args) > 1 {
 				options.reference = args[1]
 			}
+			if cmd.Flag("pause").Changed {
+				if cmd.Flag("no-pause").Changed {
+					return errors.New("conflicting options: --no-pause and --pause cannot be used together")
+				}
+				options.noPause = !options.pause
+			}
 			return runCommit(cmd.Context(), dockerCLI, &options)
 		},
 		Annotations: map[string]string{
@@ -47,7 +55,11 @@ func newCommitCommand(dockerCLI command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.SetInterspersed(false)
 
-	flags.BoolVarP(&options.pause, "pause", "p", true, "Pause container during commit")
+	// TODO(thaJeztah): Deprecated: the --pause flag was deprecated in v29 and can be removed in v30.
+	flags.BoolVarP(&options.pause, "pause", "p", true, "Pause container during commit (deprecated: use --no-pause instead)")
+	_ = flags.MarkDeprecated("pause", "and enabled by default. Use --no-pause to disable pausing during commit.")
+
+	flags.BoolVar(&options.noPause, "no-pause", false, "Disable pausing container during commit")
 	flags.StringVarP(&options.comment, "message", "m", "", "Commit message")
 	flags.StringVarP(&options.author, "author", "a", "", `Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")`)
 
@@ -63,12 +75,12 @@ func runCommit(ctx context.Context, dockerCli command.Cli, options *commitOption
 		Comment:   options.comment,
 		Author:    options.author,
 		Changes:   options.changes.GetSlice(),
-		Pause:     options.pause,
+		Pause:     !options.noPause,
 	})
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(dockerCli.Out(), response.ID)
+	_, _ = fmt.Fprintln(dockerCli.Out(), response.ID)
 	return nil
 }
