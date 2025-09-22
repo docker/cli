@@ -31,7 +31,8 @@ Client:{{if ne .Platform nil}}{{if ne .Platform.Name ""}} {{.Platform.Name}}{{en
  Git commit:	{{.GitCommit}}
  Built:	{{.BuildTime}}
  OS/Arch:	{{.Os}}/{{.Arch}}
- Context:	{{.Context}}
+ Context:	{{.Context}} ({{.Context_Reason}})
+ Docker Host:	{{.Docker_Host}}
 {{- end}}
 
 {{- if ne .Server nil}}{{with .Server}}
@@ -82,6 +83,8 @@ type clientVersion struct {
 	Arch              string        `json:"Arch,omitempty"`
 	BuildTime         string        `json:"BuildTime,omitempty"`
 	Context           string        `json:"Context"`
+	Context_Reason    string        `json:"Context_Reason"`
+	Docker_Host       string        `json:"Docker_Host"`
 }
 
 // newClientVersion constructs a new clientVersion. If a dockerCLI is
@@ -104,6 +107,8 @@ func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	}
 	if dockerCli != nil {
 		v.APIVersion = dockerCli.CurrentVersion()
+		v.Context_Reason = dockerCli.CurrentContextReason()
+		v.Docker_Host = dockerCli.DockerEndpoint().EndpointMeta.Host
 	}
 	return v
 }
