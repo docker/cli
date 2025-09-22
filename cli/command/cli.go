@@ -43,7 +43,7 @@ var ContextReasons = struct {
 }{
 	ExplicitContextFlag: "from --context flag",
 	HostFlag:            "from --host flag",
-	HostEnv:             "context disabled because DOCKER_HOST environment is variable set",
+	HostEnv:             "context disabled because DOCKER_HOST environment variable is set",
 	ContextEnv:          "DOCKER_CONTEXT environment variable set",
 	ConfigFile:          "Current context from docker config file",
 	Default:             "from default context",
