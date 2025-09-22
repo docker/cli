@@ -107,6 +107,8 @@ func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opt
 	if opts.format == "" {
 		info.UserName = dockerCli.ConfigFile().AuthConfigs[registry.IndexServer].Username
 		info.ClientInfo.APIVersion = dockerCli.CurrentVersion()
+		info.ClientInfo.Docker_Host = dockerCli.DockerEndpoint().EndpointMeta.Host
+		info.ClientInfo.Context_Reason = dockerCli.CurrentContextReason()
 		return errors.Join(prettyPrintInfo(dockerCli, info), serverConnErr)
 	}
 
@@ -218,8 +220,9 @@ func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 
 func prettyPrintClientInfo(streams command.Streams, info clientInfo) {
 	fprintlnNonEmpty(streams.Out(), " Version:   ", info.Version)
-	fprintln(streams.Out(), " Context:   ", info.Context)
+	fprintln(streams.Out(), " Context:", info.Context+" ("+info.Context_Reason+")")
 	fprintln(streams.Out(), " Debug Mode:", info.Debug)
+	fprintln(streams.Out(), " Docker Host:", info.Docker_Host)
 
 	if len(info.Plugins) > 0 {
 		fprintln(streams.Out(), " Plugins:")
