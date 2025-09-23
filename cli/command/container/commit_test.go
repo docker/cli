@@ -37,7 +37,7 @@ func TestRunCommit(t *testing.T) {
 			"--author", "Author Name <author@name.com>",
 			"--change", "EXPOSE 80",
 			"--message", "commit message",
-			"--pause=false",
+			"--no-pause",
 			"container-id",
 		},
 	)
