@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/containerd/errdefs"
@@ -183,19 +181,6 @@ func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, auth
 	return response.Status, err
 }
 
-const oauthLoginEscapeHatchEnvVar = "DOCKER_CLI_DISABLE_OAUTH_LOGIN"
-
-func isOauthLoginDisabled() bool {
-	if v := os.Getenv(oauthLoginEscapeHatchEnvVar); v != "" {
-		enabled, err := strconv.ParseBool(v)
-		if err != nil {
-			return false
-		}
-		return enabled
-	}
-	return false
-}
-
 func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, defaultUsername, serverAddress string) (msg string, _ error) {
 	// Some links documenting this:
 	// - https://code.google.com/archive/p/mintty/issues/56
@@ -209,7 +194,7 @@ func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, de
 	}
 
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
-	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" && !isOauthLoginDisabled() {
+	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" {
 		var err error
 		msg, err = loginWithDeviceCodeFlow(ctx, dockerCLI)
 		// if the error represents a failure to initiate the device-code flow,

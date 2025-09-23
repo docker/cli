@@ -497,50 +497,6 @@ func TestLoginTermination(t *testing.T) {
 	}
 }
 
-func TestIsOauthLoginDisabled(t *testing.T) {
-	testCases := []struct {
-		envVar   string
-		disabled bool
-	}{
-		{
-			envVar:   "",
-			disabled: false,
-		},
-		{
-			envVar:   "bork",
-			disabled: false,
-		},
-		{
-			envVar:   "0",
-			disabled: false,
-		},
-		{
-			envVar:   "false",
-			disabled: false,
-		},
-		{
-			envVar:   "true",
-			disabled: true,
-		},
-		{
-			envVar:   "TRUE",
-			disabled: true,
-		},
-		{
-			envVar:   "1",
-			disabled: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Setenv(oauthLoginEscapeHatchEnvVar, tc.envVar)
-
-		disabled := isOauthLoginDisabled()
-
-		assert.Equal(t, disabled, tc.disabled)
-	}
-}
-
 func TestLoginValidateFlags(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
