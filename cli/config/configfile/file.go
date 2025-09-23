@@ -43,9 +43,6 @@ type ConfigFile struct {
 	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
 	Aliases              map[string]string            `json:"aliases,omitempty"`
 	Features             map[string]string            `json:"features,omitempty"`
-
-	// Deprecated: experimental CLI features are always enabled and this field is no longer used. Use [Features] instead for optional features. This field will be removed in a future release.
-	Experimental string `json:"experimental,omitempty"`
 }
 
 type configEnvAuth struct {
