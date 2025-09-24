@@ -603,8 +603,10 @@ func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 	ops = append(defaultOps, ops...)
 
 	cli := &DockerCli{baseCtx: context.Background()}
-	if err := cli.Apply(ops...); err != nil {
-		return nil, err
+	for _, op := range ops {
+		if err := op(cli); err != nil {
+			return nil, err
+		}
 	}
 	return cli, nil
 }

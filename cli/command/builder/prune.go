@@ -85,9 +85,12 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	}
 
 	report, err := dockerCli.Client().BuildCachePrune(ctx, build.CachePruneOptions{
-		All:         options.all,
-		KeepStorage: options.keepStorage.Value(), // FIXME(thaJeztah): rewrite to use new options; see https://github.com/moby/moby/pull/48720
-		Filters:     pruneFilters,
+		All: options.all,
+		// TODO(austinvazquez): remove when updated to use github.com/moby/moby/client@v0.1.0
+		// See https://github.com/moby/moby/pull/50772 for more details.
+		KeepStorage:   options.keepStorage.Value(),
+		ReservedSpace: options.keepStorage.Value(),
+		Filters:       pruneFilters,
 	})
 	if err != nil {
 		return 0, "", err
