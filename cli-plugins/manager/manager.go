@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/debug"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -57,9 +59,17 @@ func addPluginCandidatesFromDir(res map[string][]string, d string) {
 		return
 	}
 	for _, dentry := range dentries {
-		switch dentry.Type() & os.ModeType { //nolint:exhaustive,nolintlint // no need to include all possible file-modes in this list
-		case 0, os.ModeSymlink:
-			// Regular file or symlink, keep going
+		switch mode := dentry.Type() & os.ModeType; mode { //nolint:exhaustive,nolintlint // no need to include all possible file-modes in this list
+		case os.ModeSymlink:
+			if !debug.IsEnabled() {
+				// Skip broken symlinks unless debug is enabled. With debug
+				// enabled, this will print a warning in "docker info".
+				if _, err := os.Stat(filepath.Join(d, dentry.Name())); errors.Is(err, os.ErrNotExist) {
+					continue
+				}
+			}
+		case 0:
+			// Regular file, keep going
 		default:
 			// Something else, ignore.
 			continue
