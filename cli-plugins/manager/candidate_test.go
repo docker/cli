@@ -55,6 +55,7 @@ func TestValidateCandidate(t *testing.T) {
 		// Either err or invalid may be non-empty, but not both (both can be empty for a good plugin).
 		err     string
 		invalid string
+		expVer  string
 	}{
 		// Invalid cases.
 		{
@@ -95,12 +96,17 @@ func TestValidateCandidate(t *testing.T) {
 		{
 			name:    "empty schemaversion",
 			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{}`},
-			invalid: `plugin SchemaVersion "" is not valid`,
+			invalid: `plugin SchemaVersion version cannot be empty`,
 		},
 		{
 			name:    "invalid schemaversion",
 			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "xyzzy"}`},
-			invalid: `plugin SchemaVersion "xyzzy" is not valid`,
+			invalid: `plugin SchemaVersion "xyzzy" has wrong format: must be <major>.<minor>.<patch>`,
+		},
+		{
+			name:    "invalid schemaversion major",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "2.0.0"}`},
+			invalid: `plugin SchemaVersion "2.0.0" is not supported: must be lower than 2.0.0`,
 		},
 		{
 			name:    "no vendor",
@@ -117,11 +123,25 @@ func TestValidateCandidate(t *testing.T) {
 		{
 			name:   "valid",
 			plugin: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`},
+			expVer: "0.1.0",
 		},
 		{
 			// Including the deprecated "experimental" field should not break processing.
 			name:   "with legacy experimental",
 			plugin: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing", "Experimental": true}`},
+			expVer: "0.1.0",
+		},
+		{
+			// note that this may not be supported by older CLIs
+			name:   "new minor schema version",
+			plugin: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.2.0", "Vendor": "e2e-testing"}`},
+			expVer: "0.2.0",
+		},
+		{
+			// note that this may not be supported by older CLIs
+			name:   "new major schema version",
+			plugin: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "1.0.0", "Vendor": "e2e-testing"}`},
+			expVer: "1.0.0",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -136,7 +156,7 @@ func TestValidateCandidate(t *testing.T) {
 			default:
 				assert.NilError(t, err)
 				assert.Equal(t, metadata.NamePrefix+p.Name, goodPluginName)
-				assert.Equal(t, p.SchemaVersion, "0.1.0")
+				assert.Equal(t, p.SchemaVersion, tc.expVer)
 				assert.Equal(t, p.Vendor, "e2e-testing")
 			}
 		})
