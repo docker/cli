@@ -1,7 +1,7 @@
 services:
 
   registry:
-    image: 'registry:2'
+    image: 'registry:3'
 
   engine:
       image: 'docker:${ENGINE_VERSION:-28}-dind'
