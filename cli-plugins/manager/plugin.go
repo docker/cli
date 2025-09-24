@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/metadata"
@@ -115,8 +116,8 @@ func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 		p.Err = wrapAsPluginError(err, "invalid metadata")
 		return p, nil
 	}
-	if p.Metadata.SchemaVersion != "0.1.0" {
-		p.Err = newPluginError("plugin SchemaVersion %q is not valid, must be 0.1.0", p.Metadata.SchemaVersion)
+	if err := validateSchemaVersion(p.Metadata.SchemaVersion); err != nil {
+		p.Err = &pluginError{cause: err}
 		return p, nil
 	}
 	if p.Metadata.Vendor == "" {
@@ -124,6 +125,31 @@ func newPlugin(c pluginCandidate, cmds []*cobra.Command) (Plugin, error) {
 		return p, nil
 	}
 	return p, nil
+}
+
+// validateSchemaVersion validates if the plugin's schemaVersion is supported.
+//
+// The current schema-version is "0.1.0", but we don't want to break compatibility
+// until v2.0.0 of the schema version. Check for the major version to be < 2.0.0.
+//
+// Note that CLI versions before 28.4.1 may not support these versions as they were
+// hard-coded to only accept "0.1.0".
+func validateSchemaVersion(version string) error {
+	if version == "0.1.0" {
+		return nil
+	}
+	if version == "" {
+		return errors.New("plugin SchemaVersion version cannot be empty")
+	}
+	major, _, ok := strings.Cut(version, ".")
+	majorVersion, err := strconv.Atoi(major)
+	if !ok || err != nil {
+		return fmt.Errorf("plugin SchemaVersion %q has wrong format: must be <major>.<minor>.<patch>", version)
+	}
+	if majorVersion > 1 {
+		return fmt.Errorf("plugin SchemaVersion %q is not supported: must be lower than 2.0.0", version)
+	}
+	return nil
 }
 
 // RunHook executes the plugin's hooks command
