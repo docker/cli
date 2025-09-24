@@ -15,8 +15,8 @@ import (
 type fakeClient struct {
 	client.Client
 	inspectFunc         func(string) (container.InspectResponse, error)
-	execInspectFunc     func(execID string) (container.ExecInspect, error)
-	execCreateFunc      func(containerID string, options container.ExecOptions) (container.ExecCreateResponse, error)
+	execInspectFunc     func(execID string) (client.ExecInspect, error)
+	execCreateFunc      func(containerID string, options client.ExecCreateOptions) (container.ExecCreateResponse, error)
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
@@ -59,21 +59,21 @@ func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (co
 	return container.InspectResponse{}, nil
 }
 
-func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config container.ExecOptions) (container.ExecCreateResponse, error) {
+func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config client.ExecCreateOptions) (container.ExecCreateResponse, error) {
 	if f.execCreateFunc != nil {
 		return f.execCreateFunc(containerID, config)
 	}
 	return container.ExecCreateResponse{}, nil
 }
 
-func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (container.ExecInspect, error) {
+func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (client.ExecInspect, error) {
 	if f.execInspectFunc != nil {
 		return f.execInspectFunc(execID)
 	}
-	return container.ExecInspect{}, nil
+	return client.ExecInspect{}, nil
 }
 
-func (*fakeClient) ContainerExecStart(context.Context, string, container.ExecStartOptions) error {
+func (*fakeClient) ContainerExecStart(context.Context, string, client.ExecStartOptions) error {
 	return nil
 }
 
