@@ -9,7 +9,10 @@ ARG ALPINE_VERSION=3.22
 ARG BASE_DEBIAN_DISTRO=bookworm
 
 ARG GO_VERSION=1.24.7
-ARG XX_VERSION=1.6.1
+
+# XX_VERSION specifies the version of the xx utility to use.
+# It must be a valid tag in the docker.io/tonistiigi/xx image repository.
+ARG XX_VERSION=1.7.0
 ARG GOVERSIONINFO_VERSION=v1.4.1
 
 # GOTESTSUM_VERSION sets the version of gotestsum to install in the dev container.
