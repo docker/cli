@@ -53,6 +53,7 @@ func newRegistryClient(dockerCLI command.Cli, allowInsecure bool) registryclient
 	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
 		return command.ResolveAuthConfig(dockerCLI.ConfigFile(), index)
 	}
+	// FIXME(thaJeztah): this should use the userAgent as configured on the dockerCLI.
 	return registryclient.NewRegistryClient(resolver, command.UserAgent(), allowInsecure)
 }
 

@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -235,4 +236,15 @@ func withCustomHeadersFromEnv() (client.Opt, error) {
 	// TODO(thaJeztah): add a client.WithExtraHTTPHeaders() function to allow these headers to be _added_ to existing ones, instead of _replacing_
 	//  see https://github.com/docker/cli/pull/5098#issuecomment-2147403871  (when updating, also update the WARNING in the function and env-var GoDoc)
 	return client.WithHTTPHeaders(env), nil
+}
+
+// WithUserAgent configures the User-Agent string for cli HTTP requests.
+func WithUserAgent(userAgent string) CLIOption {
+	return func(cli *DockerCli) error {
+		if userAgent == "" {
+			return errors.New("user agent cannot be blank")
+		}
+		cli.userAgent = userAgent
+		return nil
+	}
 }
