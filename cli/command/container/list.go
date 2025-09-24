@@ -87,7 +87,7 @@ func buildContainerListOptions(options *psOptions) (*container.ListOptions, erro
 
 	// always validate template when `--format` is used, for consistency
 	if len(options.format) > 0 {
-		tmpl, err := templates.NewParse("", options.format)
+		tmpl, err := templates.Parse(options.format)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse template")
 		}
