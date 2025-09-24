@@ -32,14 +32,12 @@ func (c *fakeCandidate) Metadata() ([]byte, error) {
 func TestValidateCandidate(t *testing.T) {
 	const (
 		goodPluginName = metadata.NamePrefix + "goodplugin"
+		builtinName    = metadata.NamePrefix + "builtin"
+		builtinAlias   = metadata.NamePrefix + "alias"
 
-		builtinName  = metadata.NamePrefix + "builtin"
-		builtinAlias = metadata.NamePrefix + "alias"
-
-		badPrefixPath    = "/usr/local/libexec/cli-plugins/wobble"
-		badNamePath      = "/usr/local/libexec/cli-plugins/docker-123456"
-		goodPluginPath   = "/usr/local/libexec/cli-plugins/" + goodPluginName
-		metaExperimental = `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing", "Experimental": true}`
+		badPrefixPath  = "/usr/local/libexec/cli-plugins/wobble"
+		badNamePath    = "/usr/local/libexec/cli-plugins/docker-123456"
+		goodPluginPath = "/usr/local/libexec/cli-plugins/" + goodPluginName
 	)
 
 	fakeroot := &cobra.Command{Use: "docker"}
@@ -51,31 +49,83 @@ func TestValidateCandidate(t *testing.T) {
 	})
 
 	for _, tc := range []struct {
-		name string
-		c    *fakeCandidate
+		name   string
+		plugin *fakeCandidate
 
 		// Either err or invalid may be non-empty, but not both (both can be empty for a good plugin).
 		err     string
 		invalid string
 	}{
-		/* Each failing one of the tests */
-		{name: "empty path", c: &fakeCandidate{path: ""}, err: "plugin candidate path cannot be empty"},
-		{name: "bad prefix", c: &fakeCandidate{path: badPrefixPath}, err: fmt.Sprintf("does not have %q prefix", metadata.NamePrefix)},
-		{name: "bad path", c: &fakeCandidate{path: badNamePath}, invalid: "did not match"},
-		{name: "builtin command", c: &fakeCandidate{path: builtinName}, invalid: `plugin "builtin" duplicates builtin command`},
-		{name: "builtin alias", c: &fakeCandidate{path: builtinAlias}, invalid: `plugin "alias" duplicates an alias of builtin command "builtin"`},
-		{name: "fetch failure", c: &fakeCandidate{path: goodPluginPath, exec: false}, invalid: fmt.Sprintf("failed to fetch metadata: faked a failure to exec %q", goodPluginPath)},
-		{name: "metadata not json", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `xyzzy`}, invalid: "invalid character"},
-		{name: "empty schemaversion", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{}`}, invalid: `plugin SchemaVersion "" is not valid`},
-		{name: "invalid schemaversion", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "xyzzy"}`}, invalid: `plugin SchemaVersion "xyzzy" is not valid`},
-		{name: "no vendor", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0"}`}, invalid: "plugin metadata does not define a vendor"},
-		{name: "empty vendor", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": ""}`}, invalid: "plugin metadata does not define a vendor"},
-		// This one should work
-		{name: "valid", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`}},
-		{name: "experimental + allowing experimental", c: &fakeCandidate{path: goodPluginPath, exec: true, meta: metaExperimental}},
+		// Invalid cases.
+		{
+			name:   "empty path",
+			plugin: &fakeCandidate{path: ""},
+			err:    "plugin candidate path cannot be empty",
+		},
+		{
+			name:   "bad prefix",
+			plugin: &fakeCandidate{path: badPrefixPath},
+			err:    fmt.Sprintf("does not have %q prefix", metadata.NamePrefix),
+		},
+		{
+			name:    "bad path",
+			plugin:  &fakeCandidate{path: badNamePath},
+			invalid: "did not match",
+		},
+		{
+			name:    "builtin command",
+			plugin:  &fakeCandidate{path: builtinName},
+			invalid: `plugin "builtin" duplicates builtin command`,
+		},
+		{
+			name:    "builtin alias",
+			plugin:  &fakeCandidate{path: builtinAlias},
+			invalid: `plugin "alias" duplicates an alias of builtin command "builtin"`,
+		},
+		{
+			name:    "fetch failure",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: false},
+			invalid: fmt.Sprintf("failed to fetch metadata: faked a failure to exec %q", goodPluginPath),
+		},
+		{
+			name:    "metadata not json",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `xyzzy`},
+			invalid: "invalid character",
+		},
+		{
+			name:    "empty schemaversion",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{}`},
+			invalid: `plugin SchemaVersion "" is not valid`,
+		},
+		{
+			name:    "invalid schemaversion",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "xyzzy"}`},
+			invalid: `plugin SchemaVersion "xyzzy" is not valid`,
+		},
+		{
+			name:    "no vendor",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0"}`},
+			invalid: "plugin metadata does not define a vendor",
+		},
+		{
+			name:    "empty vendor",
+			plugin:  &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": ""}`},
+			invalid: "plugin metadata does not define a vendor",
+		},
+
+		// Valid cases.
+		{
+			name:   "valid",
+			plugin: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing"}`},
+		},
+		{
+			// Including the deprecated "experimental" field should not break processing.
+			name:   "with legacy experimental",
+			plugin: &fakeCandidate{path: goodPluginPath, exec: true, meta: `{"SchemaVersion": "0.1.0", "Vendor": "e2e-testing", "Experimental": true}`},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p, err := newPlugin(tc.c, fakeroot.Commands())
+			p, err := newPlugin(tc.plugin, fakeroot.Commands())
 			switch {
 			case tc.err != "":
 				assert.ErrorContains(t, err, tc.err)
