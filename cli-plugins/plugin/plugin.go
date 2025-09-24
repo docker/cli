@@ -80,19 +80,22 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadat
 	return cmd.Execute()
 }
 
-// Run is the top-level entry point to the CLI plugin framework. It should be called from your plugin's `main()` function.
+// Run is the top-level entry point to the CLI plugin framework. It should
+// be called from the plugin's "main()" function. It initializes a new
+// [command.DockerCli] instance before calling makeCmd to construct the
+// plugin command, then invokes the plugin command using [RunPlugin].
 func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata) {
 	otel.SetErrorHandler(debug.OTELErrorHandler)
 
-	dockerCli, err := command.NewDockerCli()
+	dockerCLI, err := command.NewDockerCli()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
-	plugin := makeCmd(dockerCli)
+	plugin := makeCmd(dockerCLI)
 
-	if err := RunPlugin(dockerCli, plugin, meta); err != nil {
+	if err := RunPlugin(dockerCLI, plugin, meta); err != nil {
 		var stErr cli.StatusError
 		if errors.As(err, &stErr) {
 			// StatusError should only be used for errors, and all errors should
@@ -100,10 +103,10 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata) {
 			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.
 				stErr.StatusCode = 1
 			}
-			_, _ = fmt.Fprintln(dockerCli.Err(), stErr)
+			_, _ = fmt.Fprintln(dockerCLI.Err(), stErr)
 			os.Exit(stErr.StatusCode)
 		}
-		_, _ = fmt.Fprintln(dockerCli.Err(), err)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 		os.Exit(1)
 	}
 }
