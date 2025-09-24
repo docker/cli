@@ -39,8 +39,7 @@ jobs:
         engine-version:
           - 28  # latest
           - 27  # latest - 1
-          - 26  # github actions default
-          - 23  # mirantis lts
+          - 25  # mirantis lts
     steps:
       -
         name: Checkout
