@@ -32,6 +32,23 @@ import (
 
 const defaultInitTimeout = 2 * time.Second
 
+// Reasons to show what determined active context
+var ContextReasons = struct {
+	ExplicitContextFlag string
+	HostFlag            string
+	HostEnv             string
+	ContextEnv          string
+	ConfigFile          string
+	Default             string
+}{
+	ExplicitContextFlag: "from --context flag",
+	HostFlag:            "from --host flag",
+	HostEnv:             "context disabled because DOCKER_HOST environment variable is set",
+	ContextEnv:          "DOCKER_CONTEXT environment variable set",
+	ConfigFile:          "Current context from docker config file",
+	Default:             "from default context",
+}
+
 // Streams is an interface which exposes the standard input and output streams
 type Streams interface {
 	In() *streams.In
@@ -53,6 +70,7 @@ type Cli interface {
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
 	CurrentContext() string
+	CurrentContextReason() string
 	DockerEndpoint() docker.Endpoint
 	TelemetryClient
 }
@@ -62,22 +80,23 @@ type Cli interface {
 // constructor to make sure they are properly initialized with defaults
 // set.
 type DockerCli struct {
-	configFile         *configfile.ConfigFile
-	options            *cliflags.ClientOptions
-	in                 *streams.In
-	out                *streams.Out
-	err                *streams.Out
-	client             client.APIClient
-	serverInfo         ServerInfo
-	contentTrust       bool
-	contextStore       store.Store
-	currentContext     string
-	init               sync.Once
-	initErr            error
-	dockerEndpoint     docker.Endpoint
-	contextStoreConfig *store.Config
-	initTimeout        time.Duration
-	res                telemetryResource
+	configFile           *configfile.ConfigFile
+	options              *cliflags.ClientOptions
+	in                   *streams.In
+	out                  *streams.Out
+	err                  *streams.Out
+	client               client.APIClient
+	serverInfo           ServerInfo
+	contentTrust         bool
+	contextStore         store.Store
+	currentContext       string
+	currentContextReason string
+	init                 sync.Once
+	initErr              error
+	dockerEndpoint       docker.Endpoint
+	contextStoreConfig   *store.Config
+	initTimeout          time.Duration
+	res                  telemetryResource
 
 	// baseCtx is the base context used for internal operations. In the future
 	// this may be replaced by explicitly passing a context to functions that
@@ -264,7 +283,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 
 	cli.options = opts
 	cli.configFile = config.LoadDefaultConfigFile(cli.err)
-	cli.currentContext = resolveContextName(cli.options, cli.configFile)
+	cli.currentContext, cli.currentContextReason = resolveContextName(cli.options, cli.configFile)
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), *cli.contextStoreConfig),
 		Resolver: func() (*DefaultContext, error) {
@@ -308,7 +327,8 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 			return ResolveDefaultContext(opts, storeConfig)
 		},
 	}
-	endpoint, err := resolveDockerEndpoint(contextStore, resolveContextName(opts, configFile))
+	ctxName, _ := resolveContextName(opts, configFile)
+	endpoint, err := resolveDockerEndpoint(contextStore, ctxName)
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve docker endpoint: %w", err)
 	}
@@ -448,30 +468,34 @@ func (cli *DockerCli) CurrentContext() string {
 	return cli.currentContext
 }
 
+func (cli *DockerCli) CurrentContextReason() string {
+	return cli.currentContextReason
+}
+
 // CurrentContext returns the current context name, based on flags,
 // environment variables and the cli configuration file. It does not
 // validate if the given context exists or if it's valid; errors may
 // occur when trying to use it.
 //
 // Refer to [DockerCli.CurrentContext] above for further details.
-func resolveContextName(opts *cliflags.ClientOptions, cfg *configfile.ConfigFile) string {
+func resolveContextName(opts *cliflags.ClientOptions, cfg *configfile.ConfigFile) (string, string) {
 	if opts != nil && opts.Context != "" {
-		return opts.Context
+		return opts.Context, ContextReasons.ExplicitContextFlag
 	}
 	if opts != nil && len(opts.Hosts) > 0 {
-		return DefaultContextName
+		return DefaultContextName, ContextReasons.HostFlag
 	}
 	if os.Getenv(client.EnvOverrideHost) != "" {
-		return DefaultContextName
+		return DefaultContextName, ContextReasons.HostEnv
 	}
 	if ctxName := os.Getenv(EnvOverrideContext); ctxName != "" {
-		return ctxName
+		return ctxName, ContextReasons.ContextEnv
 	}
 	if cfg != nil && cfg.CurrentContext != "" {
 		// We don't validate if this context exists: errors may occur when trying to use it.
-		return cfg.CurrentContext
+		return cfg.CurrentContext, ContextReasons.ConfigFile
 	}
-	return DefaultContextName
+	return DefaultContextName, ContextReasons.Default
 }
 
 // DockerEndpoint returns the current docker endpoint
