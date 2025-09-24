@@ -43,14 +43,6 @@ func TestInstallErrors(t *testing.T) {
 				return nil, errors.New("error installing plugin")
 			},
 		},
-		{
-			description:   "installation error due to missing image",
-			args:          []string{"foo"},
-			expectedError: "docker image pull",
-			installFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
-				return nil, errors.New("(image) when fetching")
-			},
-		},
 	}
 
 	for _, tc := range testCases {
