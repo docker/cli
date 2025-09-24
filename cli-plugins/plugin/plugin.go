@@ -82,12 +82,13 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadat
 
 // Run is the top-level entry point to the CLI plugin framework. It should
 // be called from the plugin's "main()" function. It initializes a new
-// [command.DockerCli] instance before calling makeCmd to construct the
-// plugin command, then invokes the plugin command using [RunPlugin].
-func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata) {
+// [command.DockerCli] instance with the given options before calling
+// makeCmd to construct the plugin command, then invokes the plugin command
+// using [RunPlugin].
+func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata, ops ...command.CLIOption) {
 	otel.SetErrorHandler(debug.OTELErrorHandler)
 
-	dockerCLI, err := command.NewDockerCli()
+	dockerCLI, err := command.NewDockerCli(ops...)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
