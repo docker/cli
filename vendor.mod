@@ -31,7 +31,7 @@ require (
 	github.com/moby/moby/api v1.52.0-beta.1.0.20250923190348-e98849831fc4 // master
 	github.com/moby/moby/client v0.1.0-beta.0.0.20250923190348-e98849831fc4 // master
 	github.com/moby/patternmatcher v0.6.0
-	github.com/moby/swarmkit/v2 v2.0.0
+	github.com/moby/swarmkit/v2 v2.1.0
 	github.com/moby/sys/atomicwriter v0.1.0
 	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.6.0
