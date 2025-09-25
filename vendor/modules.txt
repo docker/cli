@@ -65,7 +65,7 @@ github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
 github.com/docker/distribution/uuid
-# github.com/docker/docker v28.4.1-0.20250924162609-d21856f25dbe+incompatible
+# github.com/docker/docker v28.4.1-0.20250924162609-d21856f25dbe+incompatible => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250924230140-e12079ecac1e+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -73,7 +73,6 @@ github.com/docker/docker/api/types/auxprogress
 github.com/docker/docker/api/types/blkiodev
 github.com/docker/docker/api/types/build
 github.com/docker/docker/api/types/checkpoint
-github.com/docker/docker/api/types/common
 github.com/docker/docker/api/types/container
 github.com/docker/docker/api/types/events
 github.com/docker/docker/api/types/filters
@@ -81,10 +80,7 @@ github.com/docker/docker/api/types/image
 github.com/docker/docker/api/types/mount
 github.com/docker/docker/api/types/network
 github.com/docker/docker/api/types/registry
-github.com/docker/docker/api/types/storage
-github.com/docker/docker/api/types/strslice
 github.com/docker/docker/api/types/swarm
-github.com/docker/docker/api/types/swarm/runtime
 github.com/docker/docker/api/types/system
 github.com/docker/docker/api/types/time
 github.com/docker/docker/api/types/versions
@@ -197,6 +193,36 @@ github.com/moby/docker-image-spec/specs-go/v1
 github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/tarheader
+# github.com/moby/moby/api v1.52.0-beta.1 => github.com/moby/moby/api v1.52.0-beta.1.0.20250924115138-dcf5db2464b2
+## explicit; go 1.23.0
+github.com/moby/moby/api/pkg/authconfig
+github.com/moby/moby/api/pkg/progress
+github.com/moby/moby/api/pkg/stdcopy
+github.com/moby/moby/api/types
+github.com/moby/moby/api/types/auxprogress
+github.com/moby/moby/api/types/blkiodev
+github.com/moby/moby/api/types/build
+github.com/moby/moby/api/types/checkpoint
+github.com/moby/moby/api/types/common
+github.com/moby/moby/api/types/container
+github.com/moby/moby/api/types/events
+github.com/moby/moby/api/types/filters
+github.com/moby/moby/api/types/image
+github.com/moby/moby/api/types/jsonstream
+github.com/moby/moby/api/types/mount
+github.com/moby/moby/api/types/network
+github.com/moby/moby/api/types/plugin
+github.com/moby/moby/api/types/registry
+github.com/moby/moby/api/types/storage
+github.com/moby/moby/api/types/swarm
+github.com/moby/moby/api/types/system
+github.com/moby/moby/api/types/versions
+github.com/moby/moby/api/types/volume
+# github.com/moby/moby/client v0.0.0-00010101000000-000000000000 => github.com/moby/moby/client v0.1.0-beta.0.0.20250924115138-dcf5db2464b2
+## explicit; go 1.23.0
+github.com/moby/moby/client
+github.com/moby/moby/client/internal/timestamp
+github.com/moby/moby/client/pkg/security
 # github.com/moby/patternmatcher v0.6.0
 ## explicit; go 1.19
 github.com/moby/patternmatcher
@@ -569,3 +595,6 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v0.8.0
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/docker => github.com/thaJeztah/docker v24.0.0-rc.1.0.20250924230140-e12079ecac1e+incompatible
+# github.com/moby/moby/api => github.com/moby/moby/api v1.52.0-beta.1.0.20250924115138-dcf5db2464b2
+# github.com/moby/moby/client => github.com/moby/moby/client v0.1.0-beta.0.0.20250924115138-dcf5db2464b2
