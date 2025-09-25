@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/distribution/reference"
@@ -42,6 +43,20 @@ var (
 	// ActionsPushAndPull defines the actions for read-write interactions with a Notary Repository
 	ActionsPushAndPull = []string{"pull", "push"}
 )
+
+// Enabled returns whether content-trust is enabled through the DOCKER_CONTENT_TRUST env-var.
+//
+// IMPORTANT: this function is for internal use, and may be removed at any moment.
+func Enabled() bool {
+	var enabled bool
+	if e := os.Getenv("DOCKER_CONTENT_TRUST"); e != "" {
+		if t, err := strconv.ParseBool(e); t || err != nil {
+			// treat any other value as true
+			enabled = true
+		}
+	}
+	return enabled
+}
 
 // NotaryServer is the endpoint serving the Notary trust server
 const NotaryServer = "https://notary.docker.io"

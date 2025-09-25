@@ -25,7 +25,7 @@ func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.Bool("disable-content-trust", dockerCLI.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
 	_ = flags.MarkHidden("disable-content-trust")
 	return cmd
 }

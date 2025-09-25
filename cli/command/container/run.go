@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
@@ -70,7 +71,7 @@ func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 
 	// TODO(thaJeztah): consider adding platform as "image create option" on containerOptions
 	addPlatformFlag(flags, &options.platform)
-	flags.BoolVar(&options.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image verification")
+	flags.BoolVar(&options.untrusted, "disable-content-trust", !trust.Enabled(), "Skip image verification")
 	copts = addFlags(flags)
 
 	_ = cmd.RegisterFlagCompletionFunc("detach-keys", completeDetachKeys)
