@@ -26,7 +26,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
-	github.com/mattn/go-runewidth v0.0.16
+	github.com/mattn/go-runewidth v0.0.17
 	github.com/moby/go-archive v0.1.0
 	github.com/moby/moby/api v1.52.0-beta.1.0.20250923190348-e98849831fc4 // master
 	github.com/moby/moby/client v0.1.0-beta.0.0.20250923190348-e98849831fc4 // master
