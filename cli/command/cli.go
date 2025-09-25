@@ -67,7 +67,6 @@ type DockerCli struct {
 	err                *streams.Out
 	client             client.APIClient
 	serverInfo         ServerInfo
-	contentTrust       bool
 	contextStore       store.Store
 	currentContext     string
 	init               sync.Once
@@ -84,13 +83,6 @@ type DockerCli struct {
 	baseCtx context.Context
 
 	enableGlobalMeter, enableGlobalTracer bool
-}
-
-// DefaultVersion returns [client.MaxAPIVersion].
-//
-// Deprecated: this function is no longer used and will be removed in the next release.
-func (*DockerCli) DefaultVersion() string {
-	return client.MaxAPIVersion
 }
 
 // CurrentVersion returns the API version currently negotiated, or the default
@@ -155,14 +147,6 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 func (cli *DockerCli) ServerInfo() ServerInfo {
 	_ = cli.initialize()
 	return cli.serverInfo
-}
-
-// ContentTrustEnabled returns whether content trust has been enabled by an
-// environment variable.
-//
-// Deprecated: check the value of the DOCKER_CONTENT_TRUST environment variable to detect whether content-trust is enabled.
-func (cli *DockerCli) ContentTrustEnabled() bool {
-	return cli.contentTrust
 }
 
 // BuildKitEnabled returns buildkit is enabled or not.
@@ -601,7 +585,6 @@ type ServerInfo struct {
 // environment.
 func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 	defaultOps := []CLIOption{
-		withContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
 		WithStandardStreams(),
 		WithUserAgent(UserAgent()),
