@@ -15,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
@@ -64,7 +65,7 @@ func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
-	flags.BoolVar(&opts.untrusted, "disable-content-trust", !dockerCLI.ContentTrustEnabled(), "Skip image signing")
+	flags.BoolVar(&opts.untrusted, "disable-content-trust", !trust.Enabled(), "Skip image signing")
 
 	// Don't default to DOCKER_DEFAULT_PLATFORM env variable, always default to
 	// pushing the image as-is. This also avoids forcing the platform selection

@@ -249,6 +249,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DOCKER_CONTENT_TRUST", "true")
 			fakeCLI := test.NewFakeCli(&fakeClient{
 				createContainerFunc: func(config *container.Config,
 					hostConfig *container.HostConfig,
@@ -258,7 +259,7 @@ func TestNewCreateCommandWithContentTrustErrors(t *testing.T) {
 				) (container.CreateResponse, error) {
 					return container.CreateResponse{}, errors.New("shouldn't try to pull image")
 				},
-			}, test.EnableContentTrust)
+			})
 			fakeCLI.SetNotaryClient(tc.notaryFunc)
 			cmd := newCreateCommand(fakeCLI)
 			cmd.SetOut(io.Discard)

@@ -36,7 +36,6 @@ type FakeCli struct {
 	notaryClientFunc NotaryClientFuncType
 	manifestStore    manifeststore.Store
 	registryClient   registryclient.RegistryClient
-	contentTrust     bool
 	contextStore     store.Store
 	currentContext   string
 	dockerEndpoint   docker.Endpoint
@@ -196,16 +195,6 @@ func (c *FakeCli) SetManifestStore(manifestStore manifeststore.Store) {
 // SetRegistryClient on the fake cli
 func (c *FakeCli) SetRegistryClient(registryClient registryclient.RegistryClient) {
 	c.registryClient = registryClient
-}
-
-// ContentTrustEnabled on the fake cli
-func (c *FakeCli) ContentTrustEnabled() bool {
-	return c.contentTrust
-}
-
-// EnableContentTrust on the fake cli
-func EnableContentTrust(c *FakeCli) {
-	c.contentTrust = true
 }
 
 // BuildKitEnabled on the fake cli
