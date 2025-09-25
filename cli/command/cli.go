@@ -48,7 +48,6 @@ type Cli interface {
 	config.Provider
 	ServerInfo() ServerInfo
 	CurrentVersion() string
-	ContentTrustEnabled() bool
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
 	CurrentContext() string
@@ -160,6 +159,8 @@ func (cli *DockerCli) ServerInfo() ServerInfo {
 
 // ContentTrustEnabled returns whether content trust has been enabled by an
 // environment variable.
+//
+// Deprecated: check the value of the DOCKER_CONTENT_TRUST environment variable to detect whether content-trust is enabled.
 func (cli *DockerCli) ContentTrustEnabled() bool {
 	return cli.contentTrust
 }
