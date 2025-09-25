@@ -86,11 +86,12 @@ func TestInstallContentTrustErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
+			t.Setenv("DOCKER_CONTENT_TRUST", "true")
 			cli := test.NewFakeCli(&fakeClient{
 				pluginInstallFunc: func(name string, options types.PluginInstallOptions) (io.ReadCloser, error) {
 					return nil, errors.New("should not try to install plugin")
 				},
-			}, test.EnableContentTrust)
+			})
 			cli.SetNotaryClient(tc.notaryFunc)
 			cmd := newInstallCommand(cli)
 			cmd.SetArgs(tc.args)
