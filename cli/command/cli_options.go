@@ -75,8 +75,8 @@ func WithErrorStream(err io.Writer) CLIOption {
 	}
 }
 
-// WithContentTrustFromEnv enables content trust on a cli from environment variable DOCKER_CONTENT_TRUST value.
-func WithContentTrustFromEnv() CLIOption {
+// withContentTrustFromEnv enables content trust on a cli from environment variable DOCKER_CONTENT_TRUST value.
+func withContentTrustFromEnv() CLIOption {
 	return func(cli *DockerCli) error {
 		cli.contentTrust = false
 		if e := os.Getenv("DOCKER_CONTENT_TRUST"); e != "" {
@@ -89,7 +89,16 @@ func WithContentTrustFromEnv() CLIOption {
 	}
 }
 
+// WithContentTrustFromEnv enables content trust on a cli from environment variable DOCKER_CONTENT_TRUST value.
+//
+// Deprecated: this option is no longer used, and will be removed in the next release.
+func WithContentTrustFromEnv() CLIOption {
+	return withContentTrustFromEnv()
+}
+
 // WithContentTrust enables content trust on a cli.
+//
+// Deprecated: this option is no longer used, and will be removed in the next release.
 func WithContentTrust(enabled bool) CLIOption {
 	return func(cli *DockerCli) error {
 		cli.contentTrust = enabled
