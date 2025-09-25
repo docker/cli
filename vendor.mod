@@ -16,7 +16,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.10.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker v28.4.1-0.20250924162609-d21856f25dbe+incompatible // 28.x branch (v28.5.0+incompatible not yet released)
+	github.com/docker/docker v28.5.0-rc.1+incompatible
 	github.com/docker/docker-credential-helpers v0.9.3
 	github.com/docker/go-connections v0.6.0
 	github.com/docker/go-units v0.5.0
