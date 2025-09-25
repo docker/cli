@@ -44,7 +44,7 @@ func newInstallCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVar(&options.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
 	flags.BoolVar(&options.disable, "disable", false, "Do not enable the plugin on install")
 	flags.StringVar(&options.localName, "alias", "", "Local name for plugin")
-	flags.Bool("disable-content-trust", dockerCLI.ContentTrustEnabled(), "Skip image verification (deprecated)")
+	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
 	_ = flags.MarkHidden("disable-content-trust")
 	return cmd
 }
