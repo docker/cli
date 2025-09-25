@@ -44,7 +44,6 @@ type Cli interface {
 	Client() client.APIClient
 	Streams
 	SetIn(in *streams.In)
-	Apply(ops ...CLIOption) error
 	config.Provider
 	ServerInfo() ServerInfo
 	CurrentVersion() string
@@ -549,18 +548,6 @@ func (cli *DockerCli) initialize() error {
 		cli.initializeFromClient()
 	})
 	return cli.initErr
-}
-
-// Apply all the operation on the cli
-//
-// Deprecated: this method is no longer used and will be removed in the next release if there are no remaining users.
-func (cli *DockerCli) Apply(ops ...CLIOption) error {
-	for _, op := range ops {
-		if err := op(cli); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // ServerInfo stores details about the supported features and platform of the
