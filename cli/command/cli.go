@@ -85,13 +85,6 @@ type DockerCli struct {
 	enableGlobalMeter, enableGlobalTracer bool
 }
 
-// DefaultVersion returns [client.MaxAPIVersion].
-//
-// Deprecated: this function is no longer used and will be removed in the next release.
-func (*DockerCli) DefaultVersion() string {
-	return client.MaxAPIVersion
-}
-
 // CurrentVersion returns the API version currently negotiated, or the default
 // version otherwise.
 func (cli *DockerCli) CurrentVersion() string {
