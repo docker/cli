@@ -568,6 +568,8 @@ func (cli *DockerCli) initialize() error {
 }
 
 // Apply all the operation on the cli
+//
+// Deprecated: this method is no longer used and will be removed in the next release if there are no remaining users.
 func (cli *DockerCli) Apply(ops ...CLIOption) error {
 	for _, op := range ops {
 		if err := op(cli); err != nil {
