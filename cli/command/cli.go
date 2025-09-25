@@ -44,7 +44,6 @@ type Cli interface {
 	Client() client.APIClient
 	Streams
 	SetIn(in *streams.In)
-	Apply(ops ...CLIOption) error
 	config.Provider
 	ServerInfo() ServerInfo
 	CurrentVersion() string
