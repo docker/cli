@@ -157,14 +157,6 @@ func (cli *DockerCli) ServerInfo() ServerInfo {
 	return cli.serverInfo
 }
 
-// ContentTrustEnabled returns whether content trust has been enabled by an
-// environment variable.
-//
-// Deprecated: check the value of the DOCKER_CONTENT_TRUST environment variable to detect whether content-trust is enabled.
-func (cli *DockerCli) ContentTrustEnabled() bool {
-	return cli.contentTrust
-}
-
 // BuildKitEnabled returns buildkit is enabled or not.
 func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 	// use DOCKER_BUILDKIT env var value if set and not empty
