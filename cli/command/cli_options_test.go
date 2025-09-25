@@ -10,7 +10,7 @@ import (
 func contentTrustEnabled(t *testing.T) bool {
 	t.Helper()
 	var cli DockerCli
-	assert.NilError(t, WithContentTrustFromEnv()(&cli))
+	assert.NilError(t, withContentTrustFromEnv()(&cli))
 	return cli.contentTrust
 }
 

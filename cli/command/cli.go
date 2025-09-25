@@ -598,7 +598,7 @@ type ServerInfo struct {
 // environment.
 func NewDockerCli(ops ...CLIOption) (*DockerCli, error) {
 	defaultOps := []CLIOption{
-		WithContentTrustFromEnv(),
+		withContentTrustFromEnv(),
 		WithDefaultContextStoreConfig(),
 		WithStandardStreams(),
 		WithUserAgent(UserAgent()),
