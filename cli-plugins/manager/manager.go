@@ -40,15 +40,25 @@ func (e errPluginNotFound) Error() string {
 //
 // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
 func getPluginDirs(cfg *configfile.ConfigFile) []string {
+	var configPluginDirs []string
 	var pluginDirs []string
-
 	if cfg != nil {
-		pluginDirs = append(pluginDirs, cfg.CLIPluginsExtraDirs...)
+		configPluginDirs = append(configPluginDirs, cfg.CLIPluginsExtraDirs...)
 	}
+	pluginDirs = append(pluginDirs, expandEnvironmentVariablesInPluginDirString(configPluginDirs)...)
 	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	pluginDirs = append(pluginDirs, pluginDir)
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
 	return pluginDirs
+}
+
+// Resolve statements like $HOME in plugin directory paths
+func expandEnvironmentVariablesInPluginDirString(pluginDirs []string) []string {
+	var replacedPluginDirs []string
+	for _, dir := range pluginDirs {
+		replacedPluginDirs = append(replacedPluginDirs, os.ExpandEnv(dir))
+	}
+	return replacedPluginDirs
 }
 
 func addPluginCandidatesFromDir(res map[string][]string, d string) {
