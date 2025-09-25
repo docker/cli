@@ -48,7 +48,6 @@ type Cli interface {
 	Apply(ops ...CLIOption) error
 	config.Provider
 	ServerInfo() ServerInfo
-	DefaultVersion() string
 	CurrentVersion() string
 	BuildKitEnabled() (bool, error)
 	ContextStore() store.Store
@@ -89,6 +88,8 @@ type DockerCli struct {
 }
 
 // DefaultVersion returns [api.DefaultVersion].
+//
+// Deprecated: this function is no longer used and will be removed in the next release.
 func (*DockerCli) DefaultVersion() string {
 	return api.DefaultVersion
 }
