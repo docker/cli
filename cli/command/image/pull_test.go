@@ -118,11 +118,12 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DOCKER_CONTENT_TRUST", "true")
 			cli := test.NewFakeCli(&fakeClient{
 				imagePullFunc: func(ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
 					return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
 				},
-			}, test.EnableContentTrust)
+			})
 			cli.SetNotaryClient(tc.notaryFunc)
 			cmd := newPullCommand(cli)
 			cmd.SetOut(io.Discard)
