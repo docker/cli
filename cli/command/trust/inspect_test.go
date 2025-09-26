@@ -4,7 +4,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
 	"github.com/theupdateframework/notary/client"
@@ -48,7 +47,7 @@ func TestTrustInspectCommandRepositoryErrors(t *testing.T) {
 	testCases := []struct {
 		doc              string
 		args             []string
-		notaryRepository func(trust.ImageRefAndAuth, []string) (client.Repository, error)
+		notaryRepository func() (client.Repository, error)
 		err              string
 		golden           string
 	}{
@@ -100,7 +99,7 @@ func TestTrustInspectCommand(t *testing.T) {
 	testCases := []struct {
 		doc              string
 		args             []string
-		notaryRepository func(trust.ImageRefAndAuth, []string) (client.Repository, error)
+		notaryRepository func() (client.Repository, error)
 		golden           string
 	}{
 		{

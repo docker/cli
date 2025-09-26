@@ -31,16 +31,16 @@ type target struct {
 
 // notaryClientProvider is used in tests to provide a dummy notary client.
 type notaryClientProvider interface {
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+	NotaryClient() (notaryclient.Repository, error)
 }
 
 // newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
-func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (notaryclient.Repository, error) {
+func newNotaryClient(cli command.Streams, repoInfo *trust.RepositoryInfo, authConfig *registrytypes.AuthConfig) (notaryclient.Repository, error) {
 	if ncp, ok := cli.(notaryClientProvider); ok {
 		// notaryClientProvider is used in tests to provide a dummy notary client.
-		return ncp.NotaryClient(imgRefAndAuth, []string{"pull"})
+		return ncp.NotaryClient()
 	}
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), "pull")
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, authConfig, "pull")
 }
 
 // pushTrustedReference pushes a canonical reference to the trust server.
@@ -107,7 +107,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 }
 
 func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
-	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
@@ -186,7 +186,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 		return nil, err
 	}
 
-	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
