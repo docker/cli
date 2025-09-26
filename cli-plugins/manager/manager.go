@@ -40,11 +40,10 @@ func (e errPluginNotFound) Error() string {
 //
 // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
 func getPluginDirs(cfg *configfile.ConfigFile) []string {
-	var configPluginDirs []string
 	var pluginDirs []string
 	if cfg != nil {
 		pluginDirs = append(pluginDirs, expandEnvVars(cfg.CLIPluginsExtraDirs)...)
-}
+	}
 	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	pluginDirs = append(pluginDirs, pluginDir)
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
