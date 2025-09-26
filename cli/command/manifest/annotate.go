@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
@@ -97,7 +98,7 @@ func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	manifestStore := newManifestStore(dockerCLI)
 	imageManifest, err := manifestStore.Get(targetRef, imgRef)
 	switch {
-	case store.IsNotFound(err):
+	case errdefs.IsNotFound(err):
 		return fmt.Errorf("manifest for image %s does not exist in %s", opts.image, opts.target)
 	case err != nil:
 		return err

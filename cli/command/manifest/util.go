@@ -3,9 +3,9 @@ package manifest
 import (
 	"context"
 
+	"github.com/containerd/errdefs"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/manifest/types"
 )
 
@@ -72,7 +72,7 @@ func normalizeReference(ref string) (reference.Named, error) {
 func getManifest(ctx context.Context, dockerCLI command.Cli, listRef, namedRef reference.Named, insecure bool) (types.ImageManifest, error) {
 	data, err := newManifestStore(dockerCLI).Get(listRef, namedRef)
 	switch {
-	case store.IsNotFound(err):
+	case errdefs.IsNotFound(err):
 		return newRegistryClient(dockerCLI, insecure).GetManifest(ctx, namedRef)
 	case err != nil:
 		return types.ImageManifest{}, err
