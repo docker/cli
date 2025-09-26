@@ -1,7 +1,6 @@
 package notary
 
 import (
-	"github.com/docker/cli/cli/trust"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/client/changelist"
 	"github.com/theupdateframework/notary/cryptoservice"
@@ -12,7 +11,7 @@ import (
 )
 
 // GetOfflineNotaryRepository returns a OfflineNotaryRepository
-func GetOfflineNotaryRepository(trust.ImageRefAndAuth, []string) (client.Repository, error) {
+func GetOfflineNotaryRepository() (client.Repository, error) {
 	return OfflineNotaryRepository{}, nil
 }
 
@@ -146,7 +145,7 @@ func (OfflineNotaryRepository) GetGUN() data.GUN {
 }
 
 // GetUninitializedNotaryRepository returns an UninitializedNotaryRepository
-func GetUninitializedNotaryRepository(trust.ImageRefAndAuth, []string) (client.Repository, error) {
+func GetUninitializedNotaryRepository() (client.Repository, error) {
 	return UninitializedNotaryRepository{}, nil
 }
 
@@ -207,7 +206,7 @@ func (UninitializedNotaryRepository) RotateKey(data.RoleName, bool, []string) er
 }
 
 // GetEmptyTargetsNotaryRepository returns an EmptyTargetsNotaryRepository
-func GetEmptyTargetsNotaryRepository(trust.ImageRefAndAuth, []string) (client.Repository, error) {
+func GetEmptyTargetsNotaryRepository() (client.Repository, error) {
 	return EmptyTargetsNotaryRepository{}, nil
 }
 
@@ -285,7 +284,7 @@ func (EmptyTargetsNotaryRepository) RotateKey(data.RoleName, bool, []string) err
 }
 
 // GetLoadedNotaryRepository returns a LoadedNotaryRepository
-func GetLoadedNotaryRepository(trust.ImageRefAndAuth, []string) (client.Repository, error) {
+func GetLoadedNotaryRepository() (client.Repository, error) {
 	return LoadedNotaryRepository{}, nil
 }
 
@@ -511,7 +510,7 @@ func (l LoadedNotaryRepository) GetCryptoService() signed.CryptoService {
 }
 
 // GetLoadedWithNoSignersNotaryRepository returns a LoadedWithNoSignersNotaryRepository
-func GetLoadedWithNoSignersNotaryRepository(trust.ImageRefAndAuth, []string) (client.Repository, error) {
+func GetLoadedWithNoSignersNotaryRepository() (client.Repository, error) {
 	return LoadedWithNoSignersNotaryRepository{}, nil
 }
 

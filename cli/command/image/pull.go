@@ -4,12 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
+	"github.com/docker/cli/internal/jsonstream"
+	"github.com/moby/moby/api/pkg/authconfig"
+	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -84,10 +90,34 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 			return err
 		}
 	} else {
-		if err := imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth, opts); err != nil {
+		if err := imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth.Reference(), imgRefAndAuth.AuthConfig(), opts); err != nil {
 			return err
 		}
 	}
 	_, _ = fmt.Fprintln(dockerCLI.Out(), imgRefAndAuth.Reference().String())
 	return nil
+}
+
+// imagePullPrivileged pulls the image and displays it to the output
+func imagePullPrivileged(ctx context.Context, dockerCLI command.Cli, ref reference.Named, authConfig *registrytypes.AuthConfig, opts pullOptions) error {
+	encodedAuth, err := authconfig.Encode(*authConfig)
+	if err != nil {
+		return err
+	}
+	responseBody, err := dockerCLI.Client().ImagePull(ctx, reference.FamiliarString(ref), client.ImagePullOptions{
+		RegistryAuth:  encodedAuth,
+		PrivilegeFunc: nil,
+		All:           opts.all,
+		Platform:      opts.platform,
+	})
+	if err != nil {
+		return err
+	}
+	defer responseBody.Close()
+
+	out := dockerCLI.Out()
+	if opts.quiet {
+		out = streams.NewOut(io.Discard)
+	}
+	return jsonstream.Display(ctx, responseBody, out)
 }

@@ -52,14 +52,14 @@ type trustKey struct {
 
 // notaryClientProvider is used in tests to provide a dummy notary client.
 type notaryClientProvider interface {
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error)
+	NotaryClient() (client.Repository, error)
 }
 
 // newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
 func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth, actions []string) (client.Repository, error) {
 	if ncp, ok := cli.(notaryClientProvider); ok {
 		// notaryClientProvider is used in tests to provide a dummy notary client.
-		return ncp.NotaryClient(imgRefAndAuth, actions)
+		return ncp.NotaryClient()
 	}
 	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), actions...)
 }
