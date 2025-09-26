@@ -53,7 +53,7 @@ func getPluginDirs(cfg *configfile.ConfigFile) []string {
 }
 
 // Resolve statements like $HOME in plugin directory paths
-func expandEnvironmentVariablesInPluginDirString(pluginDirs []string) []string {
+func expandEnvVars(pluginDirs []string) []string {
 	var replacedPluginDirs []string
 	for _, dir := range pluginDirs {
 		replacedPluginDirs = append(replacedPluginDirs, os.ExpandEnv(dir))
