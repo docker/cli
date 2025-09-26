@@ -84,7 +84,7 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 			return err
 		}
 	} else {
-		if err := imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth, opts); err != nil {
+		if err := imagePullPrivileged(ctx, dockerCLI, imgRefAndAuth.Reference(), imgRefAndAuth.AuthConfig(), opts); err != nil {
 			return err
 		}
 	}

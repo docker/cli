@@ -81,7 +81,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, pullOptions{
+		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth.Reference(), updatedImgRefAndAuth.AuthConfig(), pullOptions{
 			all:      false,
 			platform: opts.platform,
 			quiet:    opts.quiet,
@@ -156,12 +156,12 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 }
 
 // imagePullPrivileged pulls the image and displays it to the output
-func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
-	encodedAuth, err := authconfig.Encode(*imgRefAndAuth.AuthConfig())
+func imagePullPrivileged(ctx context.Context, cli command.Cli, ref reference.Named, authConfig *registrytypes.AuthConfig, opts pullOptions) error {
+	encodedAuth, err := authconfig.Encode(*authConfig)
 	if err != nil {
 		return err
 	}
-	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), client.ImagePullOptions{
+	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(ref), client.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: nil,
 		All:           opts.all,
