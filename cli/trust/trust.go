@@ -79,7 +79,7 @@ func certificateDirectory(server string) (string, error) {
 }
 
 // Server returns the base URL for the trust server.
-func Server(index *registrytypes.IndexInfo) (string, error) {
+func Server(indexName string) (string, error) {
 	if s := os.Getenv("DOCKER_CONTENT_TRUST_SERVER"); s != "" {
 		urlObj, err := url.Parse(s)
 		if err != nil || urlObj.Scheme != "https" {
@@ -88,10 +88,10 @@ func Server(index *registrytypes.IndexInfo) (string, error) {
 
 		return s, nil
 	}
-	if index.Official {
+	if indexName == "docker.io" || indexName == "index.docker.io" {
 		return NotaryServer, nil
 	}
-	return "https://" + index.Name, nil
+	return "https://" + indexName, nil
 }
 
 type simpleCredentialStore struct {
@@ -117,7 +117,7 @@ const dctDeprecation = `WARNING: Docker is retiring DCT for Docker Official Imag
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
 func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo *RepositoryInfo, authConfig *registrytypes.AuthConfig, actions ...string) (client.Repository, error) {
-	server, err := Server(repoInfo.Index)
+	server, err := Server(repoInfo.Index.Name)
 	if err != nil {
 		return nil, err
 	}
