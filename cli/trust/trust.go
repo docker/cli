@@ -108,6 +108,11 @@ func (scs simpleCredentialStore) RefreshToken(*url.URL, string) string {
 
 func (simpleCredentialStore) SetRefreshToken(*url.URL, string, string) {}
 
+const dctDeprecation = `WARNING: Docker is retiring DCT for Docker Official Images (DOI).
+         For details, refer to https://docs.docker.com/go/dct-deprecation/
+
+`
+
 // GetNotaryRepository returns a NotaryRepository which stores all the
 // information needed to operate on a notary repository.
 // It creates an HTTP transport providing authentication support.
@@ -115,6 +120,9 @@ func GetNotaryRepository(in io.Reader, out io.Writer, userAgent string, repoInfo
 	server, err := Server(repoInfo.Index)
 	if err != nil {
 		return nil, err
+	}
+	if server == NotaryServer {
+		_, _ = fmt.Fprint(os.Stderr, dctDeprecation)
 	}
 
 	cfg := tlsconfig.ClientDefault()
