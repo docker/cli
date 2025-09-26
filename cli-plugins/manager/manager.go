@@ -43,9 +43,8 @@ func getPluginDirs(cfg *configfile.ConfigFile) []string {
 	var configPluginDirs []string
 	var pluginDirs []string
 	if cfg != nil {
-		configPluginDirs = append(configPluginDirs, cfg.CLIPluginsExtraDirs...)
-	}
-	pluginDirs = append(pluginDirs, expandEnvironmentVariablesInPluginDirString(configPluginDirs)...)
+		pluginDirs = append(pluginDirs, expandEnvVars(cfg.CLIPluginsExtraDirs)...)
+}
 	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	pluginDirs = append(pluginDirs, pluginDir)
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
