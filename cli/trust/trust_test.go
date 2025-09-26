@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/distribution/reference"
-	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/trustpinning"
@@ -56,8 +55,7 @@ func TestGetSignableRolesError(t *testing.T) {
 
 func TestENVTrustServer(t *testing.T) {
 	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "https://notary-test.example.com:5000")
-	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
-	output, err := Server(indexInfo)
+	output, err := Server("testserver")
 	const expected = "https://notary-test.example.com:5000"
 	assert.NilError(t, err)
 	assert.Equal(t, output, expected)
@@ -65,23 +63,24 @@ func TestENVTrustServer(t *testing.T) {
 
 func TestHTTPENVTrustServer(t *testing.T) {
 	t.Setenv("DOCKER_CONTENT_TRUST_SERVER", "http://notary-test.example.com:5000")
-	indexInfo := &registrytypes.IndexInfo{Name: "testserver"}
-	_, err := Server(indexInfo)
+	_, err := Server("testserver")
 	const expected = "valid https URL required for trust server"
 	assert.ErrorContains(t, err, expected, "Expected error with invalid scheme")
 }
 
 func TestOfficialTrustServer(t *testing.T) {
-	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: true}
-	output, err := Server(indexInfo)
+	output, err := Server("docker.io")
 	const expected = NotaryServer
+	assert.NilError(t, err)
+	assert.Equal(t, output, expected)
+
+	output, err = Server("index.docker.io")
 	assert.NilError(t, err)
 	assert.Equal(t, output, expected)
 }
 
 func TestNonOfficialTrustServer(t *testing.T) {
-	indexInfo := &registrytypes.IndexInfo{Name: "testserver", Official: false}
-	output, err := Server(indexInfo)
+	output, err := Server("testserver")
 	const expected = "https://testserver"
 	assert.NilError(t, err)
 	assert.Equal(t, output, expected)
