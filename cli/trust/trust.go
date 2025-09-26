@@ -348,7 +348,10 @@ func GetImageReferencesAndAuth(ctx context.Context,
 		return ImageRefAndAuth{}, err
 	}
 
-	// Resolve the Repository name from fqn to RepositoryInfo
+	// Resolve the Repository name from fqn to RepositoryInfo, and create an
+	// IndexInfo. Docker Content Trust uses the IndexInfo.Official field to
+	// select the right domain for Docker Hub's Notary server;
+	// https://github.com/docker/cli/blob/v28.4.0/cli/trust/trust.go#L65-L79
 	indexInfo := registry.NewIndexInfo(ref)
 	authConfig := authResolver(ctx, indexInfo)
 	return ImageRefAndAuth{
