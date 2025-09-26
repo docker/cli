@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/manifest/store"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +45,7 @@ func createManifestList(ctx context.Context, dockerCLI command.Cli, args []strin
 	manifestStore := newManifestStore(dockerCLI)
 	_, err = manifestStore.GetList(targetRef)
 	switch {
-	case store.IsNotFound(err):
+	case errdefs.IsNotFound(err):
 		// New manifest list
 	case err != nil:
 		return err

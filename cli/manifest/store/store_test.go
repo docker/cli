@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/containerd/errdefs"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/google/go-cmp/cmp"
@@ -86,7 +87,7 @@ func TestStoreSaveAndGet(t *testing.T) {
 			actual, err := store.Get(tc.listRef, tc.manifestRef)
 			if tc.expectedErr != "" {
 				assert.Error(t, err, tc.expectedErr)
-				assert.Check(t, IsNotFound(err))
+				assert.Check(t, errdefs.IsNotFound(err))
 				return
 			}
 			assert.NilError(t, err)
@@ -117,5 +118,5 @@ func TestStoreGetListDoesNotExist(t *testing.T) {
 	listRef := ref("list")
 	_, err := store.GetList(listRef)
 	assert.Error(t, err, "No such manifest: list")
-	assert.Check(t, IsNotFound(err))
+	assert.Check(t, errdefs.IsNotFound(err))
 }
