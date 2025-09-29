@@ -10,13 +10,9 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/trust"
-	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/registry"
-	"github.com/moby/moby/api/pkg/authconfig"
 	registrytypes "github.com/moby/moby/api/types/registry"
-	"github.com/moby/moby/client"
 	"github.com/opencontainers/go-digest"
 	"github.com/sirupsen/logrus"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -31,16 +27,16 @@ type target struct {
 
 // notaryClientProvider is used in tests to provide a dummy notary client.
 type notaryClientProvider interface {
-	NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+	NotaryClient() (notaryclient.Repository, error)
 }
 
 // newNotaryClient provides a Notary Repository to interact with signed metadata for an image.
-func newNotaryClient(cli command.Streams, imgRefAndAuth trust.ImageRefAndAuth) (notaryclient.Repository, error) {
+func newNotaryClient(cli command.Streams, repoInfo *trust.RepositoryInfo, authConfig *registrytypes.AuthConfig) (notaryclient.Repository, error) {
 	if ncp, ok := cli.(notaryClientProvider); ok {
 		// notaryClientProvider is used in tests to provide a dummy notary client.
-		return ncp.NotaryClient(imgRefAndAuth, []string{"pull"})
+		return ncp.NotaryClient()
 	}
-	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig(), "pull")
+	return trust.GetNotaryRepository(cli.In(), cli.Out(), command.UserAgent(), repoInfo, authConfig, "pull")
 }
 
 // pushTrustedReference pushes a canonical reference to the trust server.
@@ -81,7 +77,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		if err != nil {
 			return err
 		}
-		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth, pullOptions{
+		if err := imagePullPrivileged(ctx, cli, updatedImgRefAndAuth.Reference(), updatedImgRefAndAuth.AuthConfig(), pullOptions{
 			all:      false,
 			platform: opts.platform,
 			quiet:    opts.quiet,
@@ -107,7 +103,7 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 }
 
 func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth) ([]target, error) {
-	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}
@@ -155,30 +151,6 @@ func getTrustedPullTargets(cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth)
 	return []target{r}, err
 }
 
-// imagePullPrivileged pulls the image and displays it to the output
-func imagePullPrivileged(ctx context.Context, cli command.Cli, imgRefAndAuth trust.ImageRefAndAuth, opts pullOptions) error {
-	encodedAuth, err := authconfig.Encode(*imgRefAndAuth.AuthConfig())
-	if err != nil {
-		return err
-	}
-	responseBody, err := cli.Client().ImagePull(ctx, reference.FamiliarString(imgRefAndAuth.Reference()), client.ImagePullOptions{
-		RegistryAuth:  encodedAuth,
-		PrivilegeFunc: nil,
-		All:           opts.all,
-		Platform:      opts.platform,
-	})
-	if err != nil {
-		return err
-	}
-	defer responseBody.Close()
-
-	out := cli.Out()
-	if opts.quiet {
-		out = streams.NewOut(io.Discard)
-	}
-	return jsonstream.Display(ctx, responseBody, out)
-}
-
 // TrustedReference returns the canonical trusted reference for an image reference
 func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedTagged) (reference.Canonical, error) {
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(cli), ref.String())
@@ -186,7 +158,7 @@ func TrustedReference(ctx context.Context, cli command.Cli, ref reference.NamedT
 		return nil, err
 	}
 
-	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth)
+	notaryRepo, err := newNotaryClient(cli, imgRefAndAuth.RepoInfo(), imgRefAndAuth.AuthConfig())
 	if err != nil {
 		return nil, fmt.Errorf("error establishing connection to trust repository: %w", err)
 	}

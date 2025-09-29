@@ -12,14 +12,13 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/registryclient"
 	"github.com/moby/moby/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )
 
 // NotaryClientFuncType defines a function that returns a fake notary client
-type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+type NotaryClientFuncType func() (notaryclient.Repository, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
@@ -169,9 +168,9 @@ func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
 }
 
 // NotaryClient returns an err for testing unless defined
-func (c *FakeCli) NotaryClient(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error) {
+func (c *FakeCli) NotaryClient() (notaryclient.Repository, error) {
 	if c.notaryClientFunc != nil {
-		return c.notaryClientFunc(imgRefAndAuth, actions)
+		return c.notaryClientFunc()
 	}
 	return nil, errors.New("no notary client available unless defined")
 }
