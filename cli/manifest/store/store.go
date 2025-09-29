@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/containerd/errdefs"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/manifest/manifestlist"
@@ -152,27 +153,13 @@ func makeFilesafeName(ref string) string {
 	return strings.ReplaceAll(fileName, "/", "_")
 }
 
-type notFoundError struct {
-	object string
+func newNotFoundError(ref string) error {
+	return errdefs.ErrNotFound.WithMessage("No such manifest: " + ref)
 }
-
-func newNotFoundError(ref string) *notFoundError {
-	return &notFoundError{object: ref}
-}
-
-func (n *notFoundError) Error() string {
-	return "No such manifest: " + n.object
-}
-
-// NotFound interface
-func (*notFoundError) NotFound() {}
 
 // IsNotFound returns true if the error is a not found error
+//
+// Deprecated: use [errdefs.IsNotFound]. This function will be removed in the next release.
 func IsNotFound(err error) bool {
-	_, ok := err.(notFound)
-	return ok
-}
-
-type notFound interface {
-	NotFound()
+	return errdefs.IsNotFound(err)
 }
