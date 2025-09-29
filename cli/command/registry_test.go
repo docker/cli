@@ -58,8 +58,17 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		},
 	}
 	cfg := configfile.New("filename")
-	for _, authconfig := range testAuthConfigs {
-		assert.Check(t, cfg.GetCredentialsStore(authconfig.ServerAddress).Store(configtypes.AuthConfig(authconfig)))
+	for _, authConfig := range testAuthConfigs {
+		assert.Check(t, cfg.GetCredentialsStore(authConfig.ServerAddress).Store(configtypes.AuthConfig{
+			Username:      authConfig.Username,
+			Password:      authConfig.Password,
+			ServerAddress: authConfig.ServerAddress,
+
+			// TODO(thaJeztah): Are these expected to be included?
+			Auth:          authConfig.Auth,
+			IdentityToken: authConfig.IdentityToken,
+			RegistryToken: authConfig.RegistryToken,
+		}))
 	}
 	for _, tc := range testCases {
 		serverAddress := tc.inputServerAddress
