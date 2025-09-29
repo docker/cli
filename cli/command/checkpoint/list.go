@@ -36,8 +36,8 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runList(ctx context.Context, dockerCli command.Cli, container string, opts listOptions) error {
-	checkpoints, err := dockerCli.Client().CheckpointList(ctx, container, client.CheckpointListOptions{
+func runList(ctx context.Context, dockerCLI command.Cli, container string, opts listOptions) error {
+	checkpoints, err := dockerCLI.Client().CheckpointList(ctx, container, client.CheckpointListOptions{
 		CheckpointDir: opts.checkpointDir,
 	})
 	if err != nil {
@@ -45,8 +45,8 @@ func runList(ctx context.Context, dockerCli command.Cli, container string, opts 
 	}
 
 	cpCtx := formatter.Context{
-		Output: dockerCli.Out(),
+		Output: dockerCLI.Out(),
 		Format: newFormat(formatter.TableFormatKey),
 	}
-	return formatWrite(cpCtx, checkpoints)
+	return formatWrite(cpCtx, checkpoints.Checkpoints)
 }

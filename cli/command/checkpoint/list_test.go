@@ -16,7 +16,7 @@ import (
 func TestCheckpointListErrors(t *testing.T) {
 	testCases := []struct {
 		args               []string
-		checkpointListFunc func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error)
+		checkpointListFunc func(container string, options client.CheckpointListOptions) (client.CheckpointListResult, error)
 		expectedError      string
 	}{
 		{
@@ -29,8 +29,8 @@ func TestCheckpointListErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			checkpointListFunc: func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error) {
-				return []checkpoint.Summary{}, errors.New("error getting checkpoints for container foo")
+			checkpointListFunc: func(container string, options client.CheckpointListOptions) (client.CheckpointListResult, error) {
+				return client.CheckpointListResult{}, errors.New("error getting checkpoints for container foo")
 			},
 			expectedError: "error getting checkpoints for container foo",
 		},
@@ -51,11 +51,13 @@ func TestCheckpointListErrors(t *testing.T) {
 func TestCheckpointListWithOptions(t *testing.T) {
 	var containerID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{
-		checkpointListFunc: func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error) {
+		checkpointListFunc: func(container string, options client.CheckpointListOptions) (client.CheckpointListResult, error) {
 			containerID = container
 			checkpointDir = options.CheckpointDir
-			return []checkpoint.Summary{
-				{Name: "checkpoint-foo"},
+			return client.CheckpointListResult{
+				Checkpoints: []checkpoint.Summary{
+					{Name: "checkpoint-foo"},
+				},
 			}, nil
 		},
 	})
