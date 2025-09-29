@@ -50,7 +50,16 @@ func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInf
 	}
 
 	a, _ := cfg.GetAuthConfig(configKey)
-	return registrytypes.AuthConfig(a)
+	return registrytypes.AuthConfig{
+		Username:      a.Username,
+		Password:      a.Password,
+		ServerAddress: a.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          a.Auth,
+		IdentityToken: a.IdentityToken,
+		RegistryToken: a.RegistryToken,
+	}
 }
 
 // GetDefaultAuthConfig gets the default auth config given a serverAddress
@@ -69,9 +78,17 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 			}, err
 		}
 	}
-	authCfg.ServerAddress = serverAddress
-	authCfg.IdentityToken = ""
-	return registrytypes.AuthConfig(authCfg), nil
+
+	return registrytypes.AuthConfig{
+		Username:      authCfg.Username,
+		Password:      authCfg.Password,
+		ServerAddress: serverAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          authCfg.Auth,
+		IdentityToken: "",
+		RegistryToken: authCfg.RegistryToken,
+	}, nil
 }
 
 // PromptUserForCredentials handles the CLI prompt for the user to input
@@ -186,7 +203,16 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 		return "", err
 	}
 
-	encodedAuth, err := authconfig.Encode(registrytypes.AuthConfig(authConfig))
+	encodedAuth, err := authconfig.Encode(registrytypes.AuthConfig{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          authConfig.Auth,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	})
 	if err != nil {
 		return "", err
 	}

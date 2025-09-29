@@ -103,7 +103,16 @@ func getAuth(dockerCLI command.Cli, reposName string) (encodedAuth string, err e
 	// "no credentials found"). We'll get an error when search failed,
 	// so fine to ignore in most situations.
 	authConfig, _ := dockerCLI.ConfigFile().GetAuthConfig(authCfgKey)
-	return authconfig.Encode(registrytypes.AuthConfig(authConfig))
+	return authconfig.Encode(registrytypes.AuthConfig{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          authConfig.Auth,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	})
 }
 
 // splitReposSearchTerm breaks a search term into an index name and remote name
