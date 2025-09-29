@@ -317,8 +317,17 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	configFile := dockerCli.ConfigFile()
 	creds, _ := configFile.GetAllCredentials()
 	authConfigs := make(map[string]registrytypes.AuthConfig, len(creds))
-	for k, auth := range creds {
-		authConfigs[k] = registrytypes.AuthConfig(auth)
+	for k, authConfig := range creds {
+		authConfigs[k] = registrytypes.AuthConfig{
+			Username:      authConfig.Username,
+			Password:      authConfig.Password,
+			ServerAddress: authConfig.ServerAddress,
+
+			// TODO(thaJeztah): Are these expected to be included?
+			Auth:          authConfig.Auth,
+			IdentityToken: authConfig.IdentityToken,
+			RegistryToken: authConfig.RegistryToken,
+		}
 	}
 	buildOpts := imageBuildOptions(dockerCli, options)
 	buildOpts.Version = buildtypes.BuilderV1

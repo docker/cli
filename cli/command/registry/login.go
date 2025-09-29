@@ -238,12 +238,30 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 		return "", err
 	}
 
-	response, err := loginWithRegistry(ctx, dockerCLI.Client(), registrytypes.AuthConfig(*authConfig))
+	response, err := loginWithRegistry(ctx, dockerCLI.Client(), registrytypes.AuthConfig{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          authConfig.Auth,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	})
 	if err != nil {
 		return "", err
 	}
 
-	if err = storeCredentials(dockerCLI.ConfigFile(), registrytypes.AuthConfig(*authConfig)); err != nil {
+	if err = storeCredentials(dockerCLI.ConfigFile(), registrytypes.AuthConfig{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          authConfig.Auth,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	}); err != nil {
 		return "", err
 	}
 
@@ -252,7 +270,16 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 
 func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
 	creds := cfg.GetCredentialsStore(authConfig.ServerAddress)
-	if err := creds.Store(configtypes.AuthConfig(authConfig)); err != nil {
+	if err := creds.Store(configtypes.AuthConfig{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          authConfig.Auth,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	}); err != nil {
 		return fmt.Errorf("error saving credentials: %v", err)
 	}
 
