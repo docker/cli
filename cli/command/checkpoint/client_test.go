@@ -3,7 +3,6 @@ package checkpoint
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/checkpoint"
 	"github.com/moby/moby/client"
 )
 
@@ -11,7 +10,7 @@ type fakeClient struct {
 	client.Client
 	checkpointCreateFunc func(container string, options client.CheckpointCreateOptions) error
 	checkpointDeleteFunc func(container string, options client.CheckpointDeleteOptions) error
-	checkpointListFunc   func(container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error)
+	checkpointListFunc   func(container string, options client.CheckpointListOptions) (client.CheckpointListResult, error)
 }
 
 func (cli *fakeClient) CheckpointCreate(_ context.Context, container string, options client.CheckpointCreateOptions) error {
@@ -28,9 +27,9 @@ func (cli *fakeClient) CheckpointDelete(_ context.Context, container string, opt
 	return nil
 }
 
-func (cli *fakeClient) CheckpointList(_ context.Context, container string, options client.CheckpointListOptions) ([]checkpoint.Summary, error) {
+func (cli *fakeClient) CheckpointList(_ context.Context, container string, options client.CheckpointListOptions) (client.CheckpointListResult, error) {
 	if cli.checkpointListFunc != nil {
 		return cli.checkpointListFunc(container, options)
 	}
-	return []checkpoint.Summary{}, nil
+	return client.CheckpointListResult{}, nil
 }
