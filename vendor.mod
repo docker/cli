@@ -28,8 +28,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.17
 	github.com/moby/go-archive v0.1.0
-	github.com/moby/moby/api v1.52.0-beta.1.0.20250929144731-9a97f59e6e2d // master
-	github.com/moby/moby/client v0.1.0-beta.0.0.20250929144731-9a97f59e6e2d // master
+	github.com/moby/moby/api v1.52.0-beta.1.0.20250930082920-4ca8aedf929f // master
+	github.com/moby/moby/client v0.1.0-beta.0.0.20250930082920-4ca8aedf929f // master
 	github.com/moby/patternmatcher v0.6.0
 	github.com/moby/swarmkit/v2 v2.1.0
 	github.com/moby/sys/atomicwriter v0.1.0
