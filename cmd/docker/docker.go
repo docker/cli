@@ -254,10 +254,7 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 			ccmd.Println(err)
 			return
 		}
-		if err := hideUnsupportedFeatures(ccmd, dockerCli); err != nil {
-			ccmd.Println(err)
-			return
-		}
+		hideUnsupportedFeatures(ccmd, dockerCli)
 
 		defaultHelpFunc(ccmd, args)
 	})
@@ -557,7 +554,7 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 	}
 }
 
-func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
+func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
 	var (
 		notExperimental = func(_ string) bool { return !details.ServerInfo().HasExperimental }
 		notOSType       = func(v string) bool { return details.ServerInfo().OSType != "" && v != details.ServerInfo().OSType }
@@ -613,7 +610,6 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 		hideSubcommandIf(subcmd, notSwarmStatus, "swarm")
 		hideSubcommandIf(subcmd, versionOlderThan, "version")
 	}
-	return nil
 }
 
 // Checks if a command or one of its ancestors is in the list
