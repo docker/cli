@@ -156,10 +156,3 @@ func makeFilesafeName(ref string) string {
 func newNotFoundError(ref string) error {
 	return errdefs.ErrNotFound.WithMessage("No such manifest: " + ref)
 }
-
-// IsNotFound returns true if the error is a not found error
-//
-// Deprecated: use [errdefs.IsNotFound]. This function will be removed in the next release.
-func IsNotFound(err error) bool {
-	return errdefs.IsNotFound(err)
-}
