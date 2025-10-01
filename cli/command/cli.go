@@ -272,7 +272,7 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 	cli.contextStore = &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), *cli.contextStoreConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(cli.options, *cli.contextStoreConfig)
+			return resolveDefaultContext(cli.options, *cli.contextStoreConfig)
 		},
 	}
 
@@ -309,7 +309,7 @@ func NewAPIClientFromFlags(opts *cliflags.ClientOptions, configFile *configfile.
 	contextStore := &ContextStoreWithDefault{
 		Store: store.New(config.ContextStoreDir(), storeConfig),
 		Resolver: func() (*DefaultContext, error) {
-			return ResolveDefaultContext(opts, storeConfig)
+			return resolveDefaultContext(opts, storeConfig)
 		},
 	}
 	endpoint, err := resolveDockerEndpoint(contextStore, resolveContextName(opts, configFile))
