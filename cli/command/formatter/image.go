@@ -202,7 +202,6 @@ func newImageContext() *imageContext {
 		"CreatedAt":    CreatedAtHeader,
 		"Size":         SizeHeader,
 		"Containers":   containersHeader,
-		"VirtualSize":  SizeHeader, // Deprecated: VirtualSize is deprecated, and equivalent to Size.
 		"SharedSize":   sharedSizeHeader,
 		"UniqueSize":   uniqueSizeHeader,
 	}
@@ -255,15 +254,6 @@ func (c *imageContext) Containers() string {
 		return "N/A"
 	}
 	return strconv.FormatInt(c.i.Containers, 10)
-}
-
-// VirtualSize shows the virtual size of the image and all of its parent
-// images. Starting with docker 1.10, images are self-contained, and
-// the VirtualSize is identical to Size.
-//
-// Deprecated: VirtualSize is deprecated, and equivalent to [imageContext.Size].
-func (c *imageContext) VirtualSize() string {
-	return units.HumanSize(float64(c.i.Size))
 }
 
 func (c *imageContext) SharedSize() string {

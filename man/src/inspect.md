@@ -42,23 +42,6 @@ To get information on a container use its ID or instance name:
     },
     "Image": "ded7cd95e059788f2586a51c275a4f151653779d6a7f4dad77c2bd34601d94e4",
     "NetworkSettings": {
-        "Bridge": "",
-        "SandboxID": "6b4851d1903e16dd6a567bd526553a86664361f31036eaaa2f8454d6f4611f6f",
-        "HairpinMode": false,
-        "LinkLocalIPv6Address": "",
-        "LinkLocalIPv6PrefixLen": 0,
-        "Ports": {},
-        "SandboxKey": "/var/run/docker/netns/6b4851d1903e",
-        "SecondaryIPAddresses": null,
-        "SecondaryIPv6Addresses": null,
-        "EndpointID": "7587b82f0dada3656fda26588aee72630c6fab1536d36e394b2bfbcf898c971d",
-        "Gateway": "172.17.0.1",
-        "GlobalIPv6Address": "",
-        "GlobalIPv6PrefixLen": 0,
-        "IPAddress": "172.17.0.2",
-        "IPPrefixLen": 16,
-        "IPv6Gateway": "",
-        "MacAddress": "02:42:ac:12:00:02",
         "Networks": {
             "bridge": {
                 "NetworkID": "7ea29fc1412292a2d7bba362f9253545fecdfa8ce9a6e37dd10ba8bee7129812",
@@ -71,8 +54,21 @@ To get information on a container use its ID or instance name:
                 "GlobalIPv6PrefixLen": 0,
                 "MacAddress": "02:42:ac:12:00:02"
             }
-        }
-
+        },
+        "Ports": {
+            "80/tcp": [
+                {
+                    "HostIp": "0.0.0.0",
+                    "HostPort": "8080"
+                },
+                {
+                    "HostIp": "::",
+                    "HostPort": "8080"
+                }
+            ]
+        },
+        "SandboxID": "6b4851d1903e16dd6a567bd526553a86664361f31036eaaa2f8454d6f4611f6f",
+        "SandboxKey": "/var/run/docker/netns/6b4851d1903e"
     },
     "ResolvConfPath": "/var/lib/docker/containers/d2cc496561d6d520cbc0236b4ba88c362c446a7619992123f11c809cded25b47/resolv.conf",
     "HostnamePath": "/var/lib/docker/containers/d2cc496561d6d520cbc0236b4ba88c362c446a7619992123f11c809cded25b47/hostname",
@@ -212,76 +208,47 @@ https://pkg.go.dev/text/template.
 Use an image's ID or name (e.g., repository/name[:tag]) to get information
 about the image:
 
-    $ docker inspect ded7cd95e059
-    [{
-    "Id": "ded7cd95e059788f2586a51c275a4f151653779d6a7f4dad77c2bd34601d94e4",
-    "Parent": "48ecf305d2cf7046c1f5f8fcbcd4994403173441d4a7f125b1bb0ceead9de731",
-    "Comment": "",
-    "Created": "2015-05-27T16:58:22.937503085Z",
-    "Container": "76cf7f67d83a7a047454b33007d03e32a8f474ad332c3a03c94537edd22b312b",
-    "ContainerConfig": {
-        "Hostname": "76cf7f67d83a",
-        "Domainname": "",
-        "User": "",
-        "AttachStdin": false,
-        "AttachStdout": false,
-        "AttachStderr": false,
-        "ExposedPorts": null,
-        "Tty": false,
-        "OpenStdin": false,
-        "StdinOnce": false,
-        "Env": null,
-        "Cmd": [
-            "/bin/sh",
-            "-c",
-            "#(nop) ADD file:4be46382bcf2b095fcb9fe8334206b584eff60bb3fad8178cbd97697fcb2ea83 in /"
-        ],
-        "Image": "48ecf305d2cf7046c1f5f8fcbcd4994403173441d4a7f125b1bb0ceead9de731",
-        "Volumes": null,
-        "VolumeDriver": "",
-        "WorkingDir": "",
-        "Entrypoint": null,
-        "NetworkDisabled": false,
-        "MacAddress": "",
-        "OnBuild": null,
-        "Labels": {}
-    },
-    "DockerVersion": "1.6.0",
-    "Author": "Lokesh Mandvekar \u003clsm5@fedoraproject.org\u003e",
-    "Config": {
-        "Hostname": "76cf7f67d83a",
-        "Domainname": "",
-        "User": "",
-        "AttachStdin": false,
-        "AttachStdout": false,
-        "AttachStderr": false,
-        "ExposedPorts": null,
-        "Tty": false,
-        "OpenStdin": false,
-        "StdinOnce": false,
-        "Env": null,
-        "Cmd": null,
-        "Image": "48ecf305d2cf7046c1f5f8fcbcd4994403173441d4a7f125b1bb0ceead9de731",
-        "Volumes": null,
-        "VolumeDriver": "",
-        "WorkingDir": "",
-        "Entrypoint": null,
-        "NetworkDisabled": false,
-        "MacAddress": "",
-        "OnBuild": null,
-        "Labels": {}
-    },
-    "Architecture": "amd64",
-    "Os": "linux",
-    "Size": 186507296,
-    "VirtualSize": 186507296,
-    "GraphDriver": {
-        "Data": {
-            "LowerDir": "/var/lib/docker/overlay2/44b1d1f04db6b1b73a86f9a62678673bf5d16d9a6b62c13e859aa34a99cce5ea/diff:/var/lib/docker/overlay2/ef637181eb13e30e84b7382183364ed7fd7ff7be22d8bb87049e36b75fb89a86/diff:/var/lib/docker/overlay2/64fb0f850b1289cd09cbc3b077cab2c0f59a4f540c67f997b094fc3652b9b0d6/diff:/var/lib/docker/overlay2/68c4d1411addc2b2bd07e900ca3a059c9c5f9fa2607efd87d8d715a0080ed242/diff",
-            "MergedDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/merged",
-            "UpperDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/diff",
-            "WorkDir": "/var/lib/docker/overlay2/c7846fe68c6f18247ab9b8672114dde9f506bc164081a895c465716eeb10f2bc/work"
-        },
-        "Name": "overlay2"
-    }
-    }]
+    docker inspect hello-world
+    [
+        {
+            "Id": "sha256:54e66cc1dd1fcb1c3c58bd8017914dbed8701e2d8c74d9262e26bd9cc1642d31",
+            "RepoTags": [
+                "hello-world:latest"
+            ],
+            "RepoDigests": [
+                "hello-world@sha256:54e66cc1dd1fcb1c3c58bd8017914dbed8701e2d8c74d9262e26bd9cc1642d31"
+            ],
+            "Parent": "",
+            "Comment": "buildkit.dockerfile.v0",
+            "Created": "2025-08-08T19:05:17Z",
+            "DockerVersion": "",
+            "Author": "",
+            "Config": {
+                "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                ],
+                "Cmd": [
+                    "/hello"
+                ],
+                "WorkingDir": "/"
+            },
+            "Architecture": "arm64",
+            "Variant": "v8",
+            "Os": "linux",
+            "Size": 16963,
+            "RootFS": {
+                "Type": "layers",
+                "Layers": [
+                    "sha256:50163a6b11927e67829dd6ba5d5ba2b52fae0a17adb18c1967e24c13a62bfffa"
+                ]
+            },
+            "Metadata": {
+                "LastTagTime": "2025-09-30T14:06:24.148634215Z"
+            },
+            "Descriptor": {
+                "mediaType": "application/vnd.oci.image.index.v1+json",
+                "digest": "sha256:54e66cc1dd1fcb1c3c58bd8017914dbed8701e2d8c74d9262e26bd9cc1642d31",
+                "size": 12341
+            }
+        }
+    ]
