@@ -125,6 +125,51 @@ func (opts *ListOpts) WithValidator(validator ValidatorFctType) *ListOpts {
 	return opts
 }
 
+// ListOptsCSV wraps a ListOpts and implements [pflag.SliceValue], allowing
+// comma-separated values to be parsed in a single flag instance.
+//
+// Values passed to Set are split on commas before being validated using the
+// wrapped ListOpts' validator (for example, [ValidateExtraHost]).
+//
+// [pflag.SliceValue]: https://pkg.go.dev/github.com/spf13/pflag#SliceValue
+type ListOptsCSV struct{ *ListOpts }
+
+// NewListOptsCSV returns a new ListOptsCSV using the provided ListOpts.
+func NewListOptsCSV(opts *ListOpts) *ListOptsCSV {
+	return &ListOptsCSV{ListOpts: opts}
+}
+
+// Set splits the value on commas and validates each item using the wrapped
+// ListOpts.
+func (opts *ListOptsCSV) Set(value string) error {
+	for _, v := range strings.Split(value, ",") {
+		v = strings.TrimSpace(v)
+		if v == "" {
+			continue
+		}
+		if err := opts.ListOpts.Set(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Append implements pflag.SliceValue.
+func (opts *ListOptsCSV) Append(value string) error {
+	return opts.Set(value)
+}
+
+// Replace implements pflag.SliceValue.
+func (opts *ListOptsCSV) Replace(values []string) error {
+	*opts.ListOpts.values = (*opts.ListOpts.values)[:0]
+	for _, v := range values {
+		if err := opts.Set(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // MapOpts holds a map of values and a validation function.
 type MapOpts struct {
 	values    map[string]string
