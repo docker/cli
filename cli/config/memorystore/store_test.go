@@ -73,9 +73,9 @@ func TestMemoryStore(t *testing.T) {
 		err = memoryStore.Erase("https://a-new-credential.example.test")
 		assert.NilError(t, err)
 		_, err = memoryStore.Get("https://a-new-credential.example.test")
-		assert.Check(t, is.ErrorIs(err, errValueNotFound))
+		assert.Check(t, IsErrValueNotFound(err))
 		_, err = fallbackStore.Get("https://a-new-credential.example.test")
-		assert.Check(t, is.ErrorIs(err, errValueNotFound))
+		assert.Check(t, IsErrValueNotFound(err))
 	})
 }
 
@@ -126,6 +126,99 @@ func TestMemoryStoreWithoutFallback(t *testing.T) {
 		err = memoryStore.Erase("https://a-new-credential.example.test")
 		assert.NilError(t, err)
 		_, err = memoryStore.Get("https://a-new-credential.example.test")
+		assert.Check(t, IsErrValueNotFound(err))
+	})
+}
+
+func TestMemoryStoreWithPreferFallback(t *testing.T) {
+	config := map[string]types.AuthConfig{
+		"https://example.test": {
+			Username:      "memory-user",
+			ServerAddress: "https://example.test",
+			Auth:          "memory-token",
+		},
+		"https://only-in-memory.example.test": {
+			Username:      "only-memory-user",
+			ServerAddress: "https://only-in-memory.example.test",
+			Auth:          "only-memory-token",
+		},
+	}
+
+	fallbackConfig := map[string]types.AuthConfig{
+		"https://example.test": {
+			Username:      "fallback-user",
+			ServerAddress: "https://example.test",
+			Auth:          "fallback-token",
+		},
+		"https://only-in-file.example.test": {
+			Username:      "something-something",
+			ServerAddress: "https://only-in-file.example.test",
+			Auth:          "super_secret_token",
+		},
+	}
+
+	fallbackStore, err := New(WithAuthConfig(fallbackConfig))
+	assert.NilError(t, err)
+
+	memoryStore, err := New(WithAuthConfig(config), WithFallbackStore(fallbackStore), WithPreferFallback())
+	assert.NilError(t, err)
+
+	t.Run("get credentials prefers fallback store", func(t *testing.T) {
+		// should get from fallback
+		c, err := memoryStore.Get("https://example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c.Username, "fallback-user")
+
+		// should get from fallback (only exists there)
+		c, err = memoryStore.Get("https://only-in-file.example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c.Username, "something-something")
+
+		// should get from memory if not in fallback
+		c, err = memoryStore.Get("https://only-in-memory.example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c.Username, "only-memory-user")
+	})
+
+	t.Run("GetAll prefers fallback store", func(t *testing.T) {
+		all, err := memoryStore.GetAll()
+		assert.NilError(t, err)
+		assert.Equal(t, len(all), 3)
+		// value from fallback store should be present
+		assert.Equal(t, all["https://example.test"].Username, "fallback-user")
+		// value only in fallback should be present
+		assert.Equal(t, all["https://only-in-file.example.test"].Username, "something-something")
+		// value only in memory should be present
+		assert.Equal(t, all["https://only-in-memory.example.test"].Username, "only-memory-user")
+	})
+
+	t.Run("storing credentials writes to both stores", func(t *testing.T) {
+		newCred := types.AuthConfig{
+			Username:      "new-user",
+			ServerAddress: "https://new.example.test",
+			Auth:          "new-token",
+		}
+		err := memoryStore.Store(newCred)
+		assert.NilError(t, err)
+
+		// Check both stores to ensure the credential was written
+		c, err := memoryStore.Get("https://new.example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c, newCred)
+
+		c, err = fallbackStore.Get("https://new.example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c, newCred)
+	})
+
+	t.Run("Erase removes from both stores", func(t *testing.T) {
+		err := memoryStore.Erase("https://example.test")
+		assert.NilError(t, err)
+
+		_, err = memoryStore.Get("https://example.test")
+		assert.Check(t, is.ErrorIs(err, errValueNotFound))
+
+		_, err = fallbackStore.Get("https://example.test")
 		assert.Check(t, is.ErrorIs(err, errValueNotFound))
 	})
 }
