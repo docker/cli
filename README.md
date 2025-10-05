@@ -7,7 +7,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/docker/cli/badge)](https://scorecard.dev/viewer/?uri=github.com/docker/cli)
 [![Codecov](https://img.shields.io/codecov/c/github/docker/cli?logo=codecov)](https://codecov.io/gh/docker/cli)
 
-<img width="396" height="120" alt="docker-logo-blue" src="https://github.com/user-attachments/assets/90d7cb71-7613-4b93-9ab9-d635e00d2f23" />
+<img width="300" height="300" alt="docker-logo" src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" />
 
 ---
 
