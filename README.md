@@ -7,7 +7,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/docker/cli/badge)](https://scorecard.dev/viewer/?uri=github.com/docker/cli)
 [![Codecov](https://img.shields.io/codecov/c/github/docker/cli?logo=codecov)](https://codecov.io/gh/docker/cli)
 
-<img width="396" height="120" alt="image" src="https://github.com/user-attachments/assets/faf50e49-5be0-4436-946b-70398703163c" />
+<img width="396" height="120" alt="docker-logo-blue" src="https://github.com/user-attachments/assets/90d7cb71-7613-4b93-9ab9-d635e00d2f23" />
 
 ---
 
@@ -43,31 +43,31 @@ This repository contains the source code and tooling required to build, test, an
 
 Some of the key features of the Docker CLI include:
 
-- 🐳 **Container Lifecycle Management**  
+-  **Container Lifecycle Management**  
   Create, start, stop, restart, and remove containers with simple commands.
 
-- 📦 **Image Management**  
+-  **Image Management**  
   Build, pull, push, and inspect Docker images across local and remote registries.
 
-- 🔄 **Multi-Platform Builds**  
+-  **Multi-Platform Builds**  
   Cross-compile and build images for multiple platforms using `buildx`.
 
-- ⚙️ **Network and Volume Control**  
+-  **Network and Volume Control**  
   Manage container networking, custom bridge networks, and persistent storage volumes.
 
-- 🔍 **Inspect and Debug**  
+-  **Inspect and Debug**  
   Use commands like `docker inspect`, `logs`, and `exec` to investigate running containers.
 
-- 🧪 **Scriptable and CI/CD Friendly**  
+-  **Scriptable and CI/CD Friendly**  
   Seamless integration with CI/CD tools for automated testing, building, and deployment.
 
-- 📚 **Extensive Documentation and Plugin Support**  
+-  **Extensive Documentation and Plugin Support**  
   Well-documented CLI commands and support for extensions and custom plugins.
 
-- 🐳 **Docker Contexts**  
+-  **Docker Contexts**  
   Easily switch between different Docker endpoints (e.g., local, remote, cloud).
 
-- 🔐 **Secure by Design**  
+-  **Secure by Design**  
   Actively maintained with security in mind and part of the OpenSSF Scorecard program.
 
 
@@ -149,7 +149,6 @@ We welcome contributions, feedback, and collaboration from the community!
 - [Docker Community Forums](https://forums.docker.com) – Join conversations with the broader Docker community.
 - [Docker Community Slack](https://dockr.ly/slack) – Chat with other developers in real time.
 - [Issues](https://github.com/docker/cli/issues) – Found a bug? Report it here.
-- [Code of Conduct](https://github.com/docker/cli/blob/master/CODE_OF_CONDUCT.md)
 
 We’re excited to see what you’ll build and contribute with Docker CLI!
 
