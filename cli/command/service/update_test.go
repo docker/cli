@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/netip"
 	"reflect"
 	"sort"
 	"testing"
@@ -213,7 +214,7 @@ func TestUpdateDNSConfig(t *testing.T) {
 	flags.Set("dns-option-rm", "timeout:3")
 
 	config := &swarm.DNSConfig{
-		Nameservers: []string{"3.3.3.3", "5.5.5.5"},
+		Nameservers: []netip.Addr{netip.MustParseAddr("3.3.3.3"), netip.MustParseAddr("5.5.5.5")},
 		Search:      []string{"localdomain"},
 		Options:     []string{"timeout:3"},
 	}
@@ -272,7 +273,7 @@ func TestUpdatePorts(t *testing.T) {
 	flags.Set("publish-rm", "333/udp")
 
 	portConfigs := []swarm.PortConfig{
-		{TargetPort: 333, Protocol: swarm.PortConfigProtocolUDP},
+		{TargetPort: 333, Protocol: network.UDP},
 		{TargetPort: 555},
 	}
 
@@ -295,7 +296,7 @@ func TestUpdatePortsDuplicate(t *testing.T) {
 		{
 			TargetPort:    80,
 			PublishedPort: 80,
-			Protocol:      swarm.PortConfigProtocolTCP,
+			Protocol:      network.TCP,
 			PublishMode:   swarm.PortConfigPublishModeIngress,
 		},
 	}
@@ -488,7 +489,7 @@ func TestUpdatePortsRmWithProtocol(t *testing.T) {
 		{
 			TargetPort:    80,
 			PublishedPort: 8080,
-			Protocol:      swarm.PortConfigProtocolTCP,
+			Protocol:      network.TCP,
 			PublishMode:   swarm.PortConfigPublishModeIngress,
 		},
 	}

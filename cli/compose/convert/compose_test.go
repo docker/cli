@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"net/netip"
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -89,7 +90,7 @@ func TestNetworks(t *testing.T) {
 				Driver: "driver",
 				Config: []network.IPAMConfig{
 					{
-						Subnet: "10.0.0.0",
+						Subnet: netip.MustParsePrefix("10.0.0.0"),
 					},
 				},
 			},

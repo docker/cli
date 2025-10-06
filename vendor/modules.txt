@@ -72,8 +72,8 @@ github.com/docker/docker-credential-helpers/credentials
 # github.com/docker/go v1.5.1-1.0.20160303222718-d30aec9fd63c
 ## explicit
 github.com/docker/go/canonical/json
-# github.com/docker/go-connections v0.6.0
-## explicit; go 1.18
+# github.com/docker/go-connections v0.6.0 => github.com/austinvazquez/go-connections v0.0.0-20251007024048-9df23d402fa0
+## explicit; go 1.23.0
 github.com/docker/go-connections/nat
 github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
@@ -168,7 +168,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/tarheader
-# github.com/moby/moby/api v1.52.0-beta.1.0.20250930082920-4ca8aedf929f
+# github.com/moby/moby/api v1.52.0-beta.1.0.20251007000938-19e498ea6522
 ## explicit; go 1.23.0
 github.com/moby/moby/api/pkg/authconfig
 github.com/moby/moby/api/pkg/progress
@@ -194,9 +194,10 @@ github.com/moby/moby/api/types/swarm
 github.com/moby/moby/api/types/system
 github.com/moby/moby/api/types/versions
 github.com/moby/moby/api/types/volume
-# github.com/moby/moby/client v0.1.0-beta.0.0.20250930082920-4ca8aedf929f
+# github.com/moby/moby/client v0.1.0-beta.0.0.20251006143509-694e30abff1c
 ## explicit; go 1.23.0
 github.com/moby/moby/client
+github.com/moby/moby/client/internal
 github.com/moby/moby/client/internal/timestamp
 github.com/moby/moby/client/pkg/jsonmessage
 github.com/moby/moby/client/pkg/security
@@ -568,3 +569,4 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v1.0.1
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/docker/go-connections => github.com/austinvazquez/go-connections v0.0.0-20251007024048-9df23d402fa0

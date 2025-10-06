@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
 	"path"
 	"path/filepath"
@@ -431,9 +432,40 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
-	ports, portBindings, err := nat.ParsePortSpecs(convertedOpts)
+	ports, natPortBindings, err := nat.ParsePortSpecs(convertedOpts)
 	if err != nil {
 		return nil, err
+	}
+
+	portBindings := make(map[network.Port][]network.PortBinding)
+	for port, bindings := range natPortBindings {
+		p, err := network.ParsePort(port.String())
+		if err != nil {
+			return nil, err
+		}
+		portBindings[p] = []network.PortBinding{}
+		for _, b := range bindings {
+			var hostIP netip.Addr
+			if b.HostIP.String() != "" {
+				hostIP, err = netip.ParseAddr(b.HostIP.String())
+				if err != nil {
+					return nil, err
+				}
+			}
+			portBindings[p] = append(portBindings[p], network.PortBinding{
+				HostIP:   hostIP,
+				HostPort: b.HostPort,
+			})
+		}
+	}
+
+	exposedPorts := network.PortSet{}
+	for port := range ports {
+		p, err := network.ParsePort(port.String())
+		if err != nil {
+			return nil, err
+		}
+		exposedPorts[p] = struct{}{}
 	}
 
 	// Merge in exposed ports to the map of published ports
@@ -626,7 +658,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	config := &container.Config{
 		Hostname:     copts.hostname,
 		Domainname:   copts.domainname,
-		ExposedPorts: ports,
+		ExposedPorts: exposedPorts,
 		User:         copts.user,
 		Tty:          copts.tty,
 		OpenStdin:    copts.stdin,
@@ -662,7 +694,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		// but pre created containers can still have those nil values.
 		// See https://github.com/docker/docker/pull/17779
 		// for a more detailed explanation on why we don't want that.
-		DNS:            copts.dns.GetAllOrEmpty(),
+		DNS:            toNetipAddrSlice(copts.dns.GetAllOrEmpty()),
 		DNSSearch:      copts.dnsSearch.GetAllOrEmpty(),
 		DNSOptions:     copts.dnsOptions.GetAllOrEmpty(),
 		ExtraHosts:     copts.extraHosts.GetSlice(),
@@ -805,10 +837,10 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if len(n.Links) > 0 && copts.links.Len() > 0 {
 		return invalidParameter(errors.New("conflicting options: cannot specify both --link and per-network links"))
 	}
-	if n.IPv4Address != "" && copts.ipv4Address != "" {
+	if n.IPv4Address.IsValid() && copts.ipv4Address != "" {
 		return invalidParameter(errors.New("conflicting options: cannot specify both --ip and per-network IPv4 address"))
 	}
-	if n.IPv6Address != "" && copts.ipv6Address != "" {
+	if n.IPv6Address.IsValid() && copts.ipv6Address != "" {
 		return invalidParameter(errors.New("conflicting options: cannot specify both --ip6 and per-network IPv6 address"))
 	}
 	if n.MacAddress != "" && copts.macAddress != "" {
@@ -828,17 +860,24 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		copy(n.Links, copts.links.GetSlice())
 	}
 	if copts.ipv4Address != "" {
-		n.IPv4Address = copts.ipv4Address
+		var err error
+		n.IPv4Address, err = netip.ParseAddr(copts.ipv4Address)
+		if err != nil {
+			return err
+		}
 	}
 	if copts.ipv6Address != "" {
-		n.IPv6Address = copts.ipv6Address
+		var err error
+		n.IPv6Address, err = netip.ParseAddr(copts.ipv6Address)
+		if err != nil {
+			return err
+		}
 	}
 	if copts.macAddress != "" {
 		n.MacAddress = copts.macAddress
 	}
 	if copts.linkLocalIPs.Len() > 0 {
-		n.LinkLocalIPs = make([]string, copts.linkLocalIPs.Len())
-		copy(n.LinkLocalIPs, copts.linkLocalIPs.GetSlice())
+		n.LinkLocalIPs = toNetipAddrSlice(copts.linkLocalIPs.GetSlice())
 	}
 	return nil
 }
@@ -867,7 +906,7 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*network.Endpoint
 	if len(ep.Links) > 0 {
 		epConfig.Links = ep.Links
 	}
-	if ep.IPv4Address != "" || ep.IPv6Address != "" || len(ep.LinkLocalIPs) > 0 {
+	if ep.IPv4Address.IsValid() || ep.IPv6Address.IsValid() || len(ep.LinkLocalIPs) > 0 {
 		epConfig.IPAMConfig = &network.EndpointIPAMConfig{
 			IPv4Address:  ep.IPv4Address,
 			IPv6Address:  ep.IPv6Address,
@@ -1130,4 +1169,16 @@ func validateAttach(val string) (string, error) {
 		}
 	}
 	return val, errors.New("valid streams are STDIN, STDOUT and STDERR")
+}
+
+func toNetipAddrSlice(ips []string) []netip.Addr {
+	netips := make([]netip.Addr, 0, len(ips))
+	for _, ip := range ips {
+		addr, err := netip.ParseAddr(ip)
+		if err != nil {
+			continue
+		}
+		netips = append(netips, addr)
+	}
+	return netips
 }

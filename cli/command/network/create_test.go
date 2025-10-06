@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/netip"
 	"strings"
 	"testing"
 
@@ -175,10 +176,10 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	expectedDriver := "foo"
 	expectedOpts := []network.IPAMConfig{
 		{
-			Subnet:     "192.168.4.0/24",
-			IPRange:    "192.168.4.0/24",
-			Gateway:    "192.168.4.1/24",
-			AuxAddress: map[string]string{},
+			Subnet:     netip.MustParsePrefix("192.168.4.0/24"),
+			IPRange:    netip.MustParsePrefix("192.168.4.0/24"),
+			Gateway:    netip.MustParseAddr("192.168.4.1"),
+			AuxAddress: map[string]netip.Addr{},
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{

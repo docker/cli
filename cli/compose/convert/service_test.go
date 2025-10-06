@@ -3,6 +3,7 @@ package convert
 import (
 	"context"
 	"errors"
+	"net/netip"
 	"os"
 	"strings"
 	"testing"
@@ -300,14 +301,15 @@ func TestConvertDNSConfigEmpty(t *testing.T) {
 }
 
 var (
-	nameservers = []string{"8.8.8.8", "9.9.9.9"}
-	search      = []string{"dc1.example.com", "dc2.example.com"}
+	nameservers         = []string{"8.8.8.8", "9.9.9.9"}
+	expectedNameservers = []netip.Addr{netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("9.9.9.9")}
+	search              = []string{"dc1.example.com", "dc2.example.com"}
 )
 
 func TestConvertDNSConfigAll(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: expectedNameservers,
 		Search:      search,
 	}, dnsConfig))
 }
@@ -315,7 +317,7 @@ func TestConvertDNSConfigAll(t *testing.T) {
 func TestConvertDNSConfigNameservers(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, nil)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: expectedNameservers,
 		Search:      nil,
 	}, dnsConfig))
 }

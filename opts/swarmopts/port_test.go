@@ -2,10 +2,11 @@ package swarmopts
 
 import (
 	"bytes"
+	"net/netip"
 	"os"
 	"testing"
 
-	"github.com/moby/moby/api/types/container"
+	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
@@ -347,9 +348,10 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 	var b bytes.Buffer
 	logrus.SetOutput(&b)
 	for _, tc := range testCases {
+		port, _ := nat.NewPort("tcp", "80")
 		t.Run(tc.value, func(t *testing.T) {
-			_, err := ConvertPortToPortConfig("80/tcp", map[container.PortRangeProto][]container.PortBinding{
-				"80/tcp": {{HostIP: tc.value, HostPort: "2345"}},
+			_, err := ConvertPortToPortConfig(port, map[nat.Port][]nat.PortBinding{
+				port: {{HostIP: netip.MustParseAddr(tc.value), HostPort: "2345"}},
 			})
 			assert.NilError(t, err)
 			if tc.expectedWarning == "" {

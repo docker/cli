@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/netip"
 	"os"
 	"runtime"
 	"strings"
@@ -11,7 +12,7 @@ import (
 	"time"
 
 	"github.com/moby/moby/api/types/container"
-	networktypes "github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/network"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -42,7 +43,7 @@ func TestValidateAttach(t *testing.T) {
 	}
 }
 
-func parseRun(args []string) (*container.Config, *container.HostConfig, *networktypes.NetworkingConfig, error) {
+func parseRun(args []string) (*container.Config, *container.HostConfig, *network.NetworkingConfig, error) {
 	flags, copts := setupRunFlags()
 	if err := flags.Parse(args); err != nil {
 		return nil, nil, nil, err
@@ -63,7 +64,7 @@ func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 	return flags, copts
 }
 
-func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig, *networktypes.NetworkingConfig) {
+func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig, *network.NetworkingConfig) {
 	t.Helper()
 	config, hostConfig, nwConfig, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
 	assert.NilError(t, err)
@@ -447,12 +448,12 @@ func TestParseWithExpose(t *testing.T) {
 		}
 	})
 	t.Run("valid", func(t *testing.T) {
-		tests := map[string][]container.PortRangeProto{
-			"8080/tcp":      {"8080/tcp"},
-			"8080/udp":      {"8080/udp"},
-			"8080/ncp":      {"8080/ncp"},
-			"8080-8080/udp": {"8080/udp"},
-			"8080-8082/tcp": {"8080/tcp", "8081/tcp", "8082/tcp"},
+		tests := map[string][]network.Port{
+			"8080/tcp":      {network.MustParsePort("8080/tcp")},
+			"8080/udp":      {network.MustParsePort("8080/udp")},
+			"8080/ncp":      {network.MustParsePort("8080/ncp")},
+			"8080-8080/udp": {network.MustParsePort("8080/udp")},
+			"8080-8082/tcp": {network.MustParsePort("8080/tcp"), network.MustParsePort("8081/tcp"), network.MustParsePort("8082/tcp")},
 		}
 		for expose, exposedPorts := range tests {
 			t.Run(expose, func(t *testing.T) {
@@ -471,7 +472,7 @@ func TestParseWithExpose(t *testing.T) {
 		config, _, _, err := parseRun([]string{"--publish=80", "--expose=80-81/tcp", "img", "cmd"})
 		assert.NilError(t, err)
 		assert.Check(t, is.Len(config.ExposedPorts, 2))
-		ports := []container.PortRangeProto{"80/tcp", "81/tcp"}
+		ports := []network.Port{network.MustParsePort("80/tcp"), network.MustParsePort("81/tcp")}
 		for _, port := range ports {
 			_, ok := config.ExposedPorts[port]
 			assert.Check(t, ok, "missing port %q in exposed ports", port)
@@ -573,7 +574,7 @@ func TestParseNetworkConfig(t *testing.T) {
 	tests := []struct {
 		name            string
 		flags           []string
-		expected        map[string]*networktypes.EndpointSettings
+		expected        map[string]*network.EndpointSettings
 		expectedCfg     container.Config
 		expectedHostCfg container.HostConfig
 		expectedErr     string
@@ -581,13 +582,13 @@ func TestParseNetworkConfig(t *testing.T) {
 		{
 			name:            "single-network-legacy",
 			flags:           []string{"--network", "net1"},
-			expected:        map[string]*networktypes.EndpointSettings{},
+			expected:        map[string]*network.EndpointSettings{},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:            "single-network-advanced",
 			flags:           []string{"--network", "name=net1"},
-			expected:        map[string]*networktypes.EndpointSettings{},
+			expected:        map[string]*network.EndpointSettings{},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
@@ -603,12 +604,12 @@ func TestParseNetworkConfig(t *testing.T) {
 				"--network-alias", "web1",
 				"--network-alias", "web2",
 			},
-			expected: map[string]*networktypes.EndpointSettings{
+			expected: map[string]*network.EndpointSettings{
 				"net1": {
-					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address:  "172.20.88.22",
-						IPv6Address:  "2001:db8::8822",
-						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					IPAMConfig: &network.EndpointIPAMConfig{
+						IPv4Address:  netip.MustParseAddr("172.20.88.22"),
+						IPv6Address:  netip.MustParseAddr("2001:db8::8822"),
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.2.2"), netip.MustParseAddr("fe80::169:254:2:2")},
 					},
 					Links:   []string{"foo:bar", "bar:baz"},
 					Aliases: []string{"web1", "web2"},
@@ -632,13 +633,13 @@ func TestParseNetworkConfig(t *testing.T) {
 				"--network", "name=net3,alias=web3,driver-opt=field3=value3,ip=172.20.88.22,ip6=2001:db8::8822",
 				"--network", "name=net4,mac-address=02:32:1c:23:00:04,link-local-ip=169.254.169.254",
 			},
-			expected: map[string]*networktypes.EndpointSettings{
+			expected: map[string]*network.EndpointSettings{
 				"net1": {
 					DriverOpts: map[string]string{"field1": "value1"},
-					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address:  "172.20.88.22",
-						IPv6Address:  "2001:db8::8822",
-						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+					IPAMConfig: &network.EndpointIPAMConfig{
+						IPv4Address:  netip.MustParseAddr("172.20.88.22"),
+						IPv6Address:  netip.MustParseAddr("2001:db8::8822"),
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.2.2"), netip.MustParseAddr("fe80::169:254:2:2")},
 					},
 					Links:   []string{"foo:bar", "bar:baz"},
 					Aliases: []string{"web1", "web2"},
@@ -646,16 +647,16 @@ func TestParseNetworkConfig(t *testing.T) {
 				"net2": {},
 				"net3": {
 					DriverOpts: map[string]string{"field3": "value3"},
-					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.88.22",
-						IPv6Address: "2001:db8::8822",
+					IPAMConfig: &network.EndpointIPAMConfig{
+						IPv4Address: netip.MustParseAddr("172.20.88.22"),
+						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases: []string{"web3"},
 				},
 				"net4": {
 					MacAddress: "02:32:1c:23:00:04",
-					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						LinkLocalIPs: []string{"169.254.169.254"},
+					IPAMConfig: &network.EndpointIPAMConfig{
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.169.254")},
 					},
 				},
 			},
@@ -664,15 +665,15 @@ func TestParseNetworkConfig(t *testing.T) {
 		{
 			name:  "single-network-advanced-with-options",
 			flags: []string{"--network", "name=net1,alias=web1,alias=web2,driver-opt=field1=value1,driver-opt=field2=value2,ip=172.20.88.22,ip6=2001:db8::8822,mac-address=02:32:1c:23:00:04"},
-			expected: map[string]*networktypes.EndpointSettings{
+			expected: map[string]*network.EndpointSettings{
 				"net1": {
 					DriverOpts: map[string]string{
 						"field1": "value1",
 						"field2": "value2",
 					},
-					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.88.22",
-						IPv6Address: "2001:db8::8822",
+					IPAMConfig: &network.EndpointIPAMConfig{
+						IPv4Address: netip.MustParseAddr("172.20.88.22"),
+						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases:    []string{"web1", "web2"},
 					MacAddress: "02:32:1c:23:00:04",
@@ -684,13 +685,13 @@ func TestParseNetworkConfig(t *testing.T) {
 		{
 			name:            "multiple-networks",
 			flags:           []string{"--network", "net1", "--network", "name=net2"},
-			expected:        map[string]*networktypes.EndpointSettings{"net1": {}, "net2": {}},
+			expected:        map[string]*network.EndpointSettings{"net1": {}, "net2": {}},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
 			name:  "advanced-options-with-standalone-mac-address-flag",
 			flags: []string{"--network=name=net1,alias=foobar", "--mac-address", "52:0f:f3:dc:50:10"},
-			expected: map[string]*networktypes.EndpointSettings{
+			expected: map[string]*network.EndpointSettings{
 				"net1": {
 					Aliases:    []string{"foobar"},
 					MacAddress: "52:0f:f3:dc:50:10",

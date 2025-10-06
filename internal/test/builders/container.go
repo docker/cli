@@ -1,6 +1,7 @@
 package builders
 
 import (
+	"net/netip"
 	"time"
 
 	"github.com/moby/moby/api/types/container"
@@ -73,7 +74,7 @@ func WithSize(size int64) func(*container.Summary) {
 // IP sets the ip of the port
 func IP(ip string) func(*container.PortSummary) {
 	return func(p *container.PortSummary) {
-		p.IP = ip
+		p.IP, _ = netip.ParseAddr(ip)
 	}
 }
 

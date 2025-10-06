@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -660,7 +661,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "0.0.0.0",
+					IP:          netip.MustParseAddr("0.0.0.0"),
 					PrivatePort: 9988,
 					Type:        "tcp",
 				},
@@ -670,7 +671,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "::",
+					IP:          netip.MustParseAddr("::"),
 					PrivatePort: 9988,
 					Type:        "tcp",
 				},
@@ -690,7 +691,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "4.3.2.1",
+					IP:          netip.MustParseAddr("4.3.2.1"),
 					PrivatePort: 9988,
 					PublicPort:  8899,
 					Type:        "tcp",
@@ -701,7 +702,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PrivatePort: 9988,
 					PublicPort:  8899,
 					Type:        "tcp",
@@ -712,7 +713,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "4.3.2.1",
+					IP:          netip.MustParseAddr("4.3.2.1"),
 					PrivatePort: 9988,
 					PublicPort:  9988,
 					Type:        "tcp",
@@ -723,7 +724,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PrivatePort: 9988,
 					PublicPort:  9988,
 					Type:        "tcp",
@@ -746,12 +747,12 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PublicPort:  9998,
 					PrivatePort: 9998,
 					Type:        "udp",
 				}, {
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PublicPort:  9999,
 					PrivatePort: 9999,
 					Type:        "udp",
@@ -762,12 +763,12 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PublicPort:  9998,
 					PrivatePort: 9998,
 					Type:        "udp",
 				}, {
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PublicPort:  9999,
 					PrivatePort: 9999,
 					Type:        "udp",
@@ -778,12 +779,12 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PublicPort:  8887,
 					PrivatePort: 9998,
 					Type:        "udp",
 				}, {
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PublicPort:  8888,
 					PrivatePort: 9999,
 					Type:        "udp",
@@ -794,12 +795,12 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PublicPort:  8887,
 					PrivatePort: 9998,
 					Type:        "udp",
 				}, {
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PublicPort:  8888,
 					PrivatePort: 9999,
 					Type:        "udp",
@@ -822,7 +823,7 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PrivatePort: 6677,
 					PublicPort:  7766,
 					Type:        "tcp",
@@ -837,22 +838,22 @@ func TestDisplayablePorts(t *testing.T) {
 		{
 			ports: []container.PortSummary{
 				{
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PrivatePort: 9988,
 					PublicPort:  8899,
 					Type:        "udp",
 				}, {
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PrivatePort: 9988,
 					PublicPort:  8899,
 					Type:        "tcp",
 				}, {
-					IP:          "4.3.2.1",
+					IP:          netip.MustParseAddr("4.3.2.1"),
 					PrivatePort: 2233,
 					PublicPort:  3322,
 					Type:        "tcp",
 				}, {
-					IP:          "::1",
+					IP:          netip.MustParseAddr("::1"),
 					PrivatePort: 2233,
 					PublicPort:  3322,
 					Type:        "tcp",
@@ -867,12 +868,12 @@ func TestDisplayablePorts(t *testing.T) {
 					PublicPort:  8899,
 					Type:        "udp",
 				}, {
-					IP:          "1.2.3.4",
+					IP:          netip.MustParseAddr("1.2.3.4"),
 					PrivatePort: 6677,
 					PublicPort:  7766,
 					Type:        "tcp",
 				}, {
-					IP:          "4.3.2.1",
+					IP:          netip.MustParseAddr("4.3.2.1"),
 					PrivatePort: 2233,
 					PublicPort:  3322,
 					Type:        "tcp",
@@ -895,42 +896,42 @@ func TestDisplayablePorts(t *testing.T) {
 					PrivatePort: 1024,
 					Type:        "udp",
 				}, {
-					IP:          "1.1.1.1",
+					IP:          netip.MustParseAddr("1.1.1.1"),
 					PublicPort:  80,
 					PrivatePort: 1024,
 					Type:        "tcp",
 				}, {
-					IP:          "1.1.1.1",
-					PublicPort:  80,
-					PrivatePort: 1024,
-					Type:        "udp",
-				}, {
-					IP:          "1.1.1.1",
-					PublicPort:  1024,
-					PrivatePort: 80,
-					Type:        "tcp",
-				}, {
-					IP:          "1.1.1.1",
-					PublicPort:  1024,
-					PrivatePort: 80,
-					Type:        "udp",
-				}, {
-					IP:          "2.1.1.1",
-					PublicPort:  80,
-					PrivatePort: 1024,
-					Type:        "tcp",
-				}, {
-					IP:          "2.1.1.1",
+					IP:          netip.MustParseAddr("1.1.1.1"),
 					PublicPort:  80,
 					PrivatePort: 1024,
 					Type:        "udp",
 				}, {
-					IP:          "2.1.1.1",
+					IP:          netip.MustParseAddr("1.1.1.1"),
 					PublicPort:  1024,
 					PrivatePort: 80,
 					Type:        "tcp",
 				}, {
-					IP:          "2.1.1.1",
+					IP:          netip.MustParseAddr("1.1.1.1"),
+					PublicPort:  1024,
+					PrivatePort: 80,
+					Type:        "udp",
+				}, {
+					IP:          netip.MustParseAddr("2.1.1.1"),
+					PublicPort:  80,
+					PrivatePort: 1024,
+					Type:        "tcp",
+				}, {
+					IP:          netip.MustParseAddr("2.1.1.1"),
+					PublicPort:  80,
+					PrivatePort: 1024,
+					Type:        "udp",
+				}, {
+					IP:          netip.MustParseAddr("2.1.1.1"),
+					PublicPort:  1024,
+					PrivatePort: 80,
+					Type:        "tcp",
+				}, {
+					IP:          netip.MustParseAddr("2.1.1.1"),
 					PublicPort:  1024,
 					PrivatePort: 80,
 					Type:        "udp",

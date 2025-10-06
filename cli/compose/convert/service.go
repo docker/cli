@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/netip"
 	"os"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
@@ -96,7 +98,7 @@ func Service(
 		return swarm.ServiceSpec{}, err
 	}
 
-	dnsConfig := convertDNSConfig(service.DNS, service.DNSSearch)
+	dnsConfig := convertDNSConfig(service.DNS, service.DNSSearch) // TODO(thaJeztah): change service.DNS to a []netip.Addr
 
 	var privileges swarm.Privileges
 	privileges.CredentialSpec, err = convertCredentialSpec(
@@ -578,7 +580,7 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 	portConfigs := []swarm.PortConfig{}
 	for _, port := range source {
 		portConfig := swarm.PortConfig{
-			Protocol:      swarm.PortConfigProtocol(port.Protocol),
+			Protocol:      network.IPProtocol(port.Protocol),
 			TargetPort:    port.Target,
 			PublishedPort: port.Published,
 			PublishMode:   swarm.PortConfigPublishMode(port.Mode),
@@ -641,13 +643,25 @@ func convertDeployMode(mode string, replicas *uint64) (swarm.ServiceMode, error)
 }
 
 func convertDNSConfig(dns []string, dnsSearch []string) *swarm.DNSConfig {
-	if dns != nil || dnsSearch != nil {
+	if len(dns) > 0 || len(dnsSearch) > 0 {
 		return &swarm.DNSConfig{
-			Nameservers: dns,
+			Nameservers: toNetipAddrSlice(dns),
 			Search:      dnsSearch,
 		}
 	}
 	return nil
+}
+
+func toNetipAddrSlice(ips []string) []netip.Addr {
+	netips := make([]netip.Addr, 0, len(ips))
+	for _, ip := range ips {
+		addr, err := netip.ParseAddr(ip)
+		if err != nil {
+			continue
+		}
+		netips = append(netips, addr)
+	}
+	return netips
 }
 
 func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpecConfig, refs []*swarm.ConfigReference) (*swarm.CredentialSpec, error) {

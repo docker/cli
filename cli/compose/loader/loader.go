@@ -25,7 +25,6 @@ import (
 	"github.com/docker/go-units"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/shlex"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -925,15 +924,17 @@ func toServicePortConfigs(value string) ([]any, error) {
 		return nil, err
 	}
 	// We need to sort the key of the ports to make sure it is consistent
-	keys := []string{}
+	keys := make([]string, 0, len(ports))
+	portMap := make(map[string]nat.Port, len(ports))
 	for port := range ports {
-		keys = append(keys, string(port))
+		key := port.String()
+		portMap[key] = port
+		keys = append(keys, key)
 	}
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		// Reuse ConvertPortToPortConfig so that it is consistent
-		portConfig, err := swarmopts.ConvertPortToPortConfig(container.PortRangeProto(key), portBindings)
+		portConfig, err := swarmopts.ConvertPortToPortConfig(portMap[key], portBindings)
 		if err != nil {
 			return nil, err
 		}

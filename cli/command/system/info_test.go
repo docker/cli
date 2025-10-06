@@ -3,7 +3,7 @@ package system
 import (
 	"encoding/base64"
 	"errors"
-	"net"
+	"net/netip"
 	"testing"
 	"time"
 
@@ -69,11 +69,8 @@ var sampleInfoNoSwarm = system.Info{
 	Architecture:       "x86_64",
 	IndexServerAddress: "https://index.docker.io/v1/",
 	RegistryConfig: &registrytypes.ServiceConfig{
-		InsecureRegistryCIDRs: []*registrytypes.NetIPNet{
-			{
-				IP:   net.ParseIP("127.0.0.0"),
-				Mask: net.IPv4Mask(255, 0, 0, 0),
-			},
+		InsecureRegistryCIDRs: []netip.Prefix{
+			netip.PrefixFrom(netip.MustParseAddr("127.0.0.0"), 8),
 		},
 		IndexConfigs: map[string]*registrytypes.IndexInfo{
 			"docker.io": {
@@ -119,7 +116,7 @@ var sampleInfoNoSwarm = system.Info{
 	SecurityOptions: []string{"name=apparmor", "name=seccomp,profile=default"},
 	DefaultAddressPools: []system.NetworkAddressPool{
 		{
-			Base: "10.123.0.0/16",
+			Base: netip.MustParsePrefix("10.123.0.0/16"),
 			Size: 24,
 		},
 	},
