@@ -425,19 +425,12 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		entrypoint = []string{""}
 	}
 
-	publishOpts := copts.publish.GetSlice()
-	var (
-		ports         map[container.PortRangeProto]struct{}
-		portBindings  map[container.PortRangeProto][]container.PortBinding
-		convertedOpts []string
-	)
-
-	convertedOpts, err = convertToStandardNotation(publishOpts)
+	convertedOpts, err := convertToStandardNotation(copts.publish.GetSlice())
 	if err != nil {
 		return nil, err
 	}
 
-	ports, portBindings, err = nat.ParsePortSpecs(convertedOpts)
+	ports, portBindings, err := nat.ParsePortSpecs(convertedOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -471,23 +464,19 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	// device path (as opposed to during flag parsing), as at the time we are
 	// parsing flags, we haven't yet sent a _ping to the daemon to determine
 	// what operating system it is.
-	deviceMappings := []container.DeviceMapping{}
-	var cdiDeviceNames []string
-	for _, device := range copts.devices.GetSlice() {
-		var (
-			validated     string
-			deviceMapping container.DeviceMapping
-			err           error
-		)
+	devices := copts.devices.GetSlice()
+	deviceMappings := make([]container.DeviceMapping, 0, len(devices))
+	cdiDeviceNames := make([]string, 0, len(devices))
+	for _, device := range devices {
 		if cdi.IsQualifiedName(device) {
 			cdiDeviceNames = append(cdiDeviceNames, device)
 			continue
 		}
-		validated, err = validateDevice(device, serverOS)
+		validated, err := validateDevice(device, serverOS)
 		if err != nil {
 			return nil, err
 		}
-		deviceMapping, err = parseDevice(validated, serverOS)
+		deviceMapping, err := parseDevice(validated, serverOS)
 		if err != nil {
 			return nil, err
 		}
