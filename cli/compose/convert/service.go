@@ -210,16 +210,16 @@ func convertServiceNetworks(
 	}
 
 	nets := []swarm.NetworkAttachmentConfig{}
-	for networkName, network := range networks {
+	for networkName, nw := range networks {
 		networkConfig, ok := networkConfigs[networkName]
 		if !ok && networkName != defaultNetwork {
 			return nil, fmt.Errorf("undefined network %q", networkName)
 		}
 		var aliases []string
 		var driverOpts map[string]string
-		if network != nil {
-			aliases = network.Aliases
-			driverOpts = network.DriverOpts
+		if nw != nil {
+			aliases = nw.Aliases
+			driverOpts = nw.DriverOpts
 		}
 		target := namespace.Scope(networkName)
 		if networkConfig.Name != "" {
