@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/netip"
 	"os"
 	"path"
 	"strings"
@@ -25,7 +24,6 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
@@ -361,10 +359,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
-	if warn := localhostDNSWarning(*hostConfig); warn != "" {
-		response.Warnings = append(response.Warnings, warn)
-	}
-
 	containerID = response.ID
 	for _, w := range response.Warnings {
 		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
@@ -383,19 +377,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	return containerID, err
-}
-
-// check the DNS settings passed via --dns against localhost regexp to warn if
-// they are trying to set a DNS to a localhost address.
-//
-// TODO(thaJeztah): move this to the daemon, which can make a better call if it will work or not (depending on networking mode).
-func localhostDNSWarning(hostConfig container.HostConfig) string {
-	for _, dnsIP := range hostConfig.DNS {
-		if addr, err := netip.ParseAddr(dnsIP); err == nil && addr.IsLoopback() {
-			return fmt.Sprintf("Localhost DNS (%s) may fail in containers.", addr)
-		}
-	}
-	return ""
 }
 
 func validatePullOpt(val string) error {

@@ -292,16 +292,6 @@ func TestNewCreateCommandWithWarnings(t *testing.T) {
 			args:     []string{"image:tag"},
 			warnings: []string{"warning from daemon", "another warning from daemon"},
 		},
-		{
-			name:    "container-create-localhost-dns",
-			args:    []string{"--dns=127.0.0.11", "image:tag"},
-			warning: true,
-		},
-		{
-			name:    "container-create-localhost-dns-ipv6",
-			args:    []string{"--dns=::1", "image:tag"},
-			warning: true,
-		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
