@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"net/netip"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -64,8 +65,8 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				{
 					Target:      "docknet1",
 					Aliases:     []string{},
-					IPv4Address: "172.20.88.22",
-					IPv6Address: "2001:db8::8822",
+					IPv4Address: netip.MustParseAddr("172.20.88.22"),
+					IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 				},
 			},
 		},
@@ -94,7 +95,7 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				{
 					Target:       "docknet1",
 					Aliases:      []string{},
-					LinkLocalIPs: []string{"169.254.169.254", "169.254.10.10"},
+					LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.169.254"), netip.MustParseAddr("169.254.10.10")},
 				},
 			},
 		},

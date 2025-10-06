@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/netip"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -34,9 +35,9 @@ type createOptions struct {
 
 type ipamOptions struct {
 	driver       string
-	subnets      []string
-	ipRanges     []string
-	gateways     []string
+	subnets      []string    // TODO(thaJeztah): change to []net.IPNet? This won't accept a bare address (without "/xxx"); we need a flag-type to handle []netip.Prefix directly
+	ipRanges     []net.IPNet // TODO(thaJeztah): we need a flag-type to handle []netip.Prefix directly
+	gateways     []net.IP    // TODO(thaJeztah): we need a flag-type to handle []netip.Addr directly
 	auxAddresses opts.MapOpts
 	driverOpts   opts.MapOpts
 }
@@ -92,8 +93,8 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags.StringVar(&options.ipam.driver, "ipam-driver", "default", "IP Address Management Driver")
 	flags.StringSliceVar(&options.ipam.subnets, "subnet", []string{}, "Subnet in CIDR format that represents a network segment")
-	flags.StringSliceVar(&options.ipam.ipRanges, "ip-range", []string{}, "Allocate container ip from a sub-range")
-	flags.StringSliceVar(&options.ipam.gateways, "gateway", []string{}, "IPv4 or IPv6 Gateway for the master subnet")
+	flags.IPNetSliceVar(&options.ipam.ipRanges, "ip-range", nil, "Allocate container ip from a sub-range")
+	flags.IPSliceVar(&options.ipam.gateways, "gateway", nil, "IPv4 or IPv6 Gateway for the master subnet")
 
 	flags.Var(&options.ipam.auxAddresses, "aux-address", "Auxiliary IPv4 or IPv6 addresses used by Network driver")
 	flags.Var(&options.ipam.driverOpts, "ipam-opt", "Set IPAM driver specific options")
@@ -149,6 +150,7 @@ func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
 
 	// Populate non-overlapping subnets into consolidation map
 	for _, s := range options.subnets {
+		// TODO(thaJeztah): is all this validation needed on the CLI-side?
 		for k := range iData {
 			ok1, err := subnetMatches(s, k)
 			if err != nil {
@@ -162,28 +164,32 @@ func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
 				return nil, errors.New("multiple overlapping subnet configuration is not supported")
 			}
 		}
-		iData[s] = &network.IPAMConfig{Subnet: s, AuxAddress: map[string]string{}}
+		sn, err := parsePrefixOrAddr(s)
+		if err != nil {
+			return nil, err
+		}
+		iData[s] = &network.IPAMConfig{Subnet: sn, AuxAddress: map[string]netip.Addr{}}
 	}
 
 	// Validate and add valid ip ranges
 	for _, r := range options.ipRanges {
+		// TODO(thaJeztah): is all this validation needed on the CLI-side?
 		match := false
 		for _, s := range options.subnets {
-			if _, _, err := net.ParseCIDR(r); err != nil {
-				return nil, err
-			}
-			ok, err := subnetMatches(s, r)
+			ok, err := subnetMatches(s, r.String())
 			if err != nil {
 				return nil, err
 			}
 			if !ok {
 				continue
 			}
-			if iData[s].IPRange != "" {
+
+			// Using "IsValid" to check if a valid IPRange was already set.
+			if iData[s].IPRange.IsValid() {
 				return nil, fmt.Errorf("cannot configure multiple ranges (%s, %s) on the same subnet (%s)", r, iData[s].IPRange, s)
 			}
 			d := iData[s]
-			d.IPRange = r
+			d.IPRange = ipNetToPrefix(r)
 			match = true
 		}
 		if !match {
@@ -195,18 +201,19 @@ func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
 	for _, g := range options.gateways {
 		match := false
 		for _, s := range options.subnets {
-			ok, err := subnetMatches(s, g)
+			// TODO(thaJeztah): is all this validation needed on the CLI-side?
+			ok, err := subnetMatches(s, g.String())
 			if err != nil {
 				return nil, err
 			}
 			if !ok {
 				continue
 			}
-			if iData[s].Gateway != "" {
+			if iData[s].Gateway.IsValid() {
 				return nil, fmt.Errorf("cannot configure multiple gateways (%s, %s) for the same subnet (%s)", g, iData[s].Gateway, s)
 			}
 			d := iData[s]
-			d.Gateway = g
+			d.Gateway = toNetipAddr(g)
 			match = true
 		}
 		if !match {
@@ -216,16 +223,20 @@ func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
 
 	// Validate and add aux-addresses
 	for key, aa := range options.auxAddresses.GetAll() {
+		auxAddr, err := netip.ParseAddr(aa)
+		if err != nil {
+			return nil, err
+		}
 		match := false
 		for _, s := range options.subnets {
-			ok, err := subnetMatches(s, aa)
+			ok, err := subnetMatches(s, auxAddr.String())
 			if err != nil {
 				return nil, err
 			}
 			if !ok {
 				continue
 			}
-			iData[s].AuxAddress[key] = aa
+			iData[s].AuxAddress[key] = auxAddr
 			match = true
 		}
 		if !match {
@@ -263,4 +274,21 @@ func subnetMatches(subnet, data string) (bool, error) {
 	}
 
 	return s.Contains(ip), nil
+}
+
+// parsePrefixOrAddr parses s as a subnet in CIDR notation (e.g. "10.0.0.0/24").
+// If s does not include a prefix length, it is interpreted as a single-address
+// subnet using the full address width (/32 for IPv4 or /128 for IPv6).
+//
+// It returns the resulting netip.Prefix or an error if the input is invalid.
+func parsePrefixOrAddr(s string) (netip.Prefix, error) {
+	pfx, err := netip.ParsePrefix(s)
+	if err != nil {
+		addr, err := netip.ParseAddr(s)
+		if err != nil {
+			return netip.Prefix{}, fmt.Errorf("invalid address: %w", err)
+		}
+		pfx = netip.PrefixFrom(addr, addr.BitLen())
+	}
+	return pfx, nil
 }

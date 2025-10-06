@@ -1,6 +1,8 @@
 package convert
 
 import (
+	"fmt"
+	"net/netip"
 	"os"
 	"strings"
 
@@ -84,8 +86,9 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 				Driver: nw.Ipam.Driver,
 			}
 			for _, ipamConfig := range nw.Ipam.Config {
+				sn, _ := parsePrefixOrAddr(ipamConfig.Subnet) // TODO(thaJeztah): change Subnet field to netip.Prefix (but this would break "address only" formats.
 				createOpts.IPAM.Config = append(createOpts.IPAM.Config, network.IPAMConfig{
-					Subnet: ipamConfig.Subnet,
+					Subnet: sn,
 				})
 			}
 		}
@@ -198,4 +201,21 @@ func fileObjectConfig(namespace Namespace, name string, obj composetypes.FileObj
 		},
 		Data: data,
 	}, nil
+}
+
+// parsePrefixOrAddr parses s as a subnet in CIDR notation (e.g. "10.0.0.0/24").
+// If s does not include a prefix length, it is interpreted as a single-address
+// subnet using the full address width (/32 for IPv4 or /128 for IPv6).
+//
+// It returns the resulting netip.Prefix or an error if the input is invalid.
+func parsePrefixOrAddr(s string) (netip.Prefix, error) {
+	pfx, err := netip.ParsePrefix(s)
+	if err != nil {
+		addr, err := netip.ParseAddr(s)
+		if err != nil {
+			return netip.Prefix{}, fmt.Errorf("invalid address: %w", err)
+		}
+		pfx = netip.PrefixFrom(addr, addr.BitLen())
+	}
+	return pfx, nil
 }

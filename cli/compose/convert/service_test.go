@@ -307,7 +307,7 @@ var (
 func TestConvertDNSConfigAll(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: toNetipAddrSlice(nameservers),
 		Search:      search,
 	}, dnsConfig))
 }
@@ -315,7 +315,7 @@ func TestConvertDNSConfigAll(t *testing.T) {
 func TestConvertDNSConfigNameservers(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, nil)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: toNetipAddrSlice(nameservers),
 		Search:      nil,
 	}, dnsConfig))
 }

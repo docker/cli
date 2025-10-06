@@ -12,10 +12,10 @@ Create a network
 | `--config-from`           | `string`      |           | The network from which to copy the configuration        |
 | `--config-only`           | `bool`        |           | Create a configuration only network                     |
 | `-d`, `--driver`          | `string`      | `bridge`  | Driver to manage the Network                            |
-| `--gateway`               | `stringSlice` |           | IPv4 or IPv6 Gateway for the master subnet              |
+| `--gateway`               | `ipSlice`     |           | IPv4 or IPv6 Gateway for the master subnet              |
 | [`--ingress`](#ingress)   | `bool`        |           | Create swarm routing-mesh network                       |
 | [`--internal`](#internal) | `bool`        |           | Restrict external access to the network                 |
-| `--ip-range`              | `stringSlice` |           | Allocate container ip from a sub-range                  |
+| `--ip-range`              | `ipNetSlice`  |           | Allocate container ip from a sub-range                  |
 | `--ipam-driver`           | `string`      | `default` | IP Address Management Driver                            |
 | `--ipam-opt`              | `map`         | `map[]`   | Set IPAM driver specific options                        |
 | `--ipv4`                  | `bool`        | `true`    | Enable or disable IPv4 address assignment               |

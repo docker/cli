@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/netip"
 	"os"
 	"runtime"
 	"strings"
@@ -438,12 +439,12 @@ func TestParseWithExpose(t *testing.T) {
 		"8080-NaN/tcp":        `invalid range format for --expose: 8080-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
 		"1234567890-8080/tcp": `invalid range format for --expose: 1234567890-8080/tcp, error: strconv.ParseUint: parsing "1234567890": value out of range`,
 	}
-	valids := map[string][]container.PortRangeProto{
-		"8080/tcp":      {"8080/tcp"},
-		"8080/udp":      {"8080/udp"},
-		"8080/ncp":      {"8080/ncp"},
-		"8080-8080/udp": {"8080/udp"},
-		"8080-8082/tcp": {"8080/tcp", "8081/tcp", "8082/tcp"},
+	valids := map[string][]networktypes.Port{
+		"8080/tcp":      {networktypes.MustParsePort("8080/tcp")},
+		"8080/udp":      {networktypes.MustParsePort("8080/udp")},
+		"8080/ncp":      {networktypes.MustParsePort("8080/ncp")},
+		"8080-8080/udp": {networktypes.MustParsePort("8080/udp")},
+		"8080-8082/tcp": {networktypes.MustParsePort("8080/tcp"), networktypes.MustParsePort("8081/tcp"), networktypes.MustParsePort("8082/tcp")},
 	}
 	for expose, expectedError := range invalids {
 		if _, _, _, err := parseRun([]string{fmt.Sprintf("--expose=%v", expose), "img", "cmd"}); err == nil || err.Error() != expectedError {
@@ -472,7 +473,7 @@ func TestParseWithExpose(t *testing.T) {
 	if len(config.ExposedPorts) != 2 {
 		t.Fatalf("Expected 2 exposed ports, got %v", config.ExposedPorts)
 	}
-	ports := []container.PortRangeProto{"80/tcp", "81/tcp"}
+	ports := []networktypes.Port{networktypes.MustParsePort("80/tcp"), networktypes.MustParsePort("81/tcp")}
 	for _, port := range ports {
 		if _, ok := config.ExposedPorts[port]; !ok {
 			t.Fatalf("Expected %v, got %v", ports, config.ExposedPorts)
@@ -607,9 +608,9 @@ func TestParseNetworkConfig(t *testing.T) {
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address:  "172.20.88.22",
-						IPv6Address:  "2001:db8::8822",
-						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+						IPv4Address:  netip.MustParseAddr("172.20.88.22"),
+						IPv6Address:  netip.MustParseAddr("2001:db8::8822"),
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.2.2"), netip.MustParseAddr("fe80::169:254:2:2")},
 					},
 					Links:   []string{"foo:bar", "bar:baz"},
 					Aliases: []string{"web1", "web2"},
@@ -637,9 +638,9 @@ func TestParseNetworkConfig(t *testing.T) {
 				"net1": {
 					DriverOpts: map[string]string{"field1": "value1"},
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address:  "172.20.88.22",
-						IPv6Address:  "2001:db8::8822",
-						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+						IPv4Address:  netip.MustParseAddr("172.20.88.22"),
+						IPv6Address:  netip.MustParseAddr("2001:db8::8822"),
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.2.2"), netip.MustParseAddr("fe80::169:254:2:2")},
 					},
 					Links:   []string{"foo:bar", "bar:baz"},
 					Aliases: []string{"web1", "web2"},
@@ -648,15 +649,15 @@ func TestParseNetworkConfig(t *testing.T) {
 				"net3": {
 					DriverOpts: map[string]string{"field3": "value3"},
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.88.22",
-						IPv6Address: "2001:db8::8822",
+						IPv4Address: netip.MustParseAddr("172.20.88.22"),
+						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases: []string{"web3"},
 				},
 				"net4": {
 					MacAddress: "02:32:1c:23:00:04",
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						LinkLocalIPs: []string{"169.254.169.254"},
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.169.254")},
 					},
 				},
 			},
@@ -672,8 +673,8 @@ func TestParseNetworkConfig(t *testing.T) {
 						"field2": "value2",
 					},
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.88.22",
-						IPv6Address: "2001:db8::8822",
+						IPv4Address: netip.MustParseAddr("172.20.88.22"),
+						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases:    []string{"web1", "web2"},
 					MacAddress: "02:32:1c:23:00:04",

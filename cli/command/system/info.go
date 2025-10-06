@@ -372,9 +372,8 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 			}
 		}
 
-		for _, registryConfig := range info.RegistryConfig.InsecureRegistryCIDRs {
-			mask, _ := registryConfig.Mask.Size()
-			fprintf(output, "  %s/%d\n", registryConfig.IP.String(), mask)
+		for _, cidr := range info.RegistryConfig.InsecureRegistryCIDRs {
+			fprintf(output, "  %s\n", cidr)
 		}
 	}
 
@@ -429,7 +428,7 @@ func printSwarmInfo(output io.Writer, info system.Info) {
 		var strAddrPool strings.Builder
 		if info.Swarm.Cluster.DefaultAddrPool != nil {
 			for _, p := range info.Swarm.Cluster.DefaultAddrPool {
-				strAddrPool.WriteString(p + "  ")
+				strAddrPool.WriteString(p.String() + "  ")
 			}
 			fprintln(output, "  Default Address Pool:", strAddrPool.String())
 			fprintln(output, "  SubnetSize:", info.Swarm.Cluster.SubnetSize)
