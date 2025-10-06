@@ -3,12 +3,14 @@ package convert
 import (
 	"context"
 	"errors"
+	"net/netip"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
@@ -307,17 +309,17 @@ var (
 func TestConvertDNSConfigAll(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: toNetipAddrSlice(nameservers),
 		Search:      search,
-	}, dnsConfig))
+	}, dnsConfig, cmpopts.IgnoreUnexported(netip.Addr{})))
 }
 
 func TestConvertDNSConfigNameservers(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, nil)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: toNetipAddrSlice(nameservers),
 		Search:      nil,
-	}, dnsConfig))
+	}, dnsConfig, cmpopts.IgnoreUnexported(netip.Addr{})))
 }
 
 func TestConvertDNSConfigSearch(t *testing.T) {
@@ -325,7 +327,7 @@ func TestConvertDNSConfigSearch(t *testing.T) {
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nil,
 		Search:      search,
-	}, dnsConfig))
+	}, dnsConfig, cmpopts.IgnoreUnexported(netip.Addr{})))
 }
 
 func TestConvertCredentialSpec(t *testing.T) {

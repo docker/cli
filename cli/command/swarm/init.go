@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/netip"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -67,9 +68,22 @@ func newInitCommand(dockerCLI command.Cli) *cobra.Command {
 func runInit(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts initOptions) error {
 	apiClient := dockerCLI.Client()
 
-	defaultAddrPool := make([]string, 0, len(opts.defaultAddrPools))
+	// TODO(thaJeztah): should we change opts.defaultAddrPools to be the right type? What formats does it accept?
+	defaultAddrPool := make([]netip.Prefix, 0, len(opts.defaultAddrPools))
 	for _, p := range opts.defaultAddrPools {
-		defaultAddrPool = append(defaultAddrPool, p.String())
+		if len(p.IP) == 0 {
+			continue
+		}
+		ip := p.IP.To4()
+		if ip == nil {
+			ip = p.IP.To16()
+		}
+		addr, ok := netip.AddrFromSlice(ip)
+		if !ok {
+			return fmt.Errorf("invalid IP address: %s", p.IP)
+		}
+		ones, _ := p.Mask.Size()
+		defaultAddrPool = append(defaultAddrPool, netip.PrefixFrom(addr, ones))
 	}
 	req := swarm.InitRequest{
 		ListenAddr:       opts.listenAddr.String(),

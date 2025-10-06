@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/netip"
 	"os"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
 	networktypes "github.com/moby/moby/api/types/network"
 	"github.com/spf13/pflag"
@@ -430,14 +432,14 @@ func TestParseHostnameDomainname(t *testing.T) {
 func TestParseWithExpose(t *testing.T) {
 	t.Run("invalid", func(t *testing.T) {
 		tests := map[string]string{
-			":":                   "invalid port format for --expose: :",
-			"8080:9090":           "invalid port format for --expose: 8080:9090",
-			"/tcp":                "invalid range format for --expose: /tcp, error: empty string specified for ports",
-			"/udp":                "invalid range format for --expose: /udp, error: empty string specified for ports",
-			"NaN/tcp":             `invalid range format for --expose: NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
-			"NaN-NaN/tcp":         `invalid range format for --expose: NaN-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
-			"8080-NaN/tcp":        `invalid range format for --expose: 8080-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
-			"1234567890-8080/tcp": `invalid range format for --expose: 1234567890-8080/tcp, error: strconv.ParseUint: parsing "1234567890": value out of range`,
+			":":                   `invalid port format for --expose: invalid start port ':': invalid syntax`,
+			"8080:9090":           `invalid port format for --expose: invalid start port '8080:9090': invalid syntax`,
+			"/tcp":                `invalid port format for --expose: invalid start port '': value is empty`,
+			"/udp":                `invalid port format for --expose: invalid start port '': value is empty`,
+			"NaN/tcp":             `invalid port format for --expose: invalid start port 'NaN': invalid syntax`,
+			"NaN-NaN/tcp":         `invalid port format for --expose: invalid start port 'NaN': invalid syntax`,
+			"8080-NaN/tcp":        `invalid port format for --expose: invalid end port 'NaN': invalid syntax`,
+			"1234567890-8080/tcp": `invalid port format for --expose: invalid start port '1234567890': value out of range`,
 		}
 		for expose, expectedError := range tests {
 			t.Run(expose, func(t *testing.T) {
@@ -447,12 +449,12 @@ func TestParseWithExpose(t *testing.T) {
 		}
 	})
 	t.Run("valid", func(t *testing.T) {
-		tests := map[string][]container.PortRangeProto{
-			"8080/tcp":      {"8080/tcp"},
-			"8080/udp":      {"8080/udp"},
-			"8080/ncp":      {"8080/ncp"},
-			"8080-8080/udp": {"8080/udp"},
-			"8080-8082/tcp": {"8080/tcp", "8081/tcp", "8082/tcp"},
+		tests := map[string][]networktypes.Port{
+			"8080/tcp":      {networktypes.MustParsePort("8080/tcp")},
+			"8080/udp":      {networktypes.MustParsePort("8080/udp")},
+			"8080/ncp":      {networktypes.MustParsePort("8080/ncp")},
+			"8080-8080/udp": {networktypes.MustParsePort("8080/udp")},
+			"8080-8082/tcp": {networktypes.MustParsePort("8080/tcp"), networktypes.MustParsePort("8081/tcp"), networktypes.MustParsePort("8082/tcp")},
 		}
 		for expose, exposedPorts := range tests {
 			t.Run(expose, func(t *testing.T) {
@@ -460,7 +462,7 @@ func TestParseWithExpose(t *testing.T) {
 				assert.NilError(t, err)
 				for _, port := range exposedPorts {
 					_, ok := config.ExposedPorts[port]
-					assert.Check(t, ok, "missing port %q in exposed ports", port)
+					assert.Check(t, ok, "missing port %q in exposed ports: %#+v", port, config.ExposedPorts[port])
 				}
 			})
 		}
@@ -471,10 +473,10 @@ func TestParseWithExpose(t *testing.T) {
 		config, _, _, err := parseRun([]string{"--publish=80", "--expose=80-81/tcp", "img", "cmd"})
 		assert.NilError(t, err)
 		assert.Check(t, is.Len(config.ExposedPorts, 2))
-		ports := []container.PortRangeProto{"80/tcp", "81/tcp"}
+		ports := []networktypes.Port{networktypes.MustParsePort("80/tcp"), networktypes.MustParsePort("81/tcp")}
 		for _, port := range ports {
 			_, ok := config.ExposedPorts[port]
-			assert.Check(t, ok, "missing port %q in exposed ports", port)
+			assert.Check(t, ok, "missing port %q in exposed ports: %#+v", port, config.ExposedPorts[port])
 		}
 	})
 }
@@ -606,9 +608,9 @@ func TestParseNetworkConfig(t *testing.T) {
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address:  "172.20.88.22",
-						IPv6Address:  "2001:db8::8822",
-						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+						IPv4Address:  netip.MustParseAddr("172.20.88.22"),
+						IPv6Address:  netip.MustParseAddr("2001:db8::8822"),
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.2.2"), netip.MustParseAddr("fe80::169:254:2:2")},
 					},
 					Links:   []string{"foo:bar", "bar:baz"},
 					Aliases: []string{"web1", "web2"},
@@ -636,9 +638,9 @@ func TestParseNetworkConfig(t *testing.T) {
 				"net1": {
 					DriverOpts: map[string]string{"field1": "value1"},
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address:  "172.20.88.22",
-						IPv6Address:  "2001:db8::8822",
-						LinkLocalIPs: []string{"169.254.2.2", "fe80::169:254:2:2"},
+						IPv4Address:  netip.MustParseAddr("172.20.88.22"),
+						IPv6Address:  netip.MustParseAddr("2001:db8::8822"),
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.2.2"), netip.MustParseAddr("fe80::169:254:2:2")},
 					},
 					Links:   []string{"foo:bar", "bar:baz"},
 					Aliases: []string{"web1", "web2"},
@@ -647,15 +649,15 @@ func TestParseNetworkConfig(t *testing.T) {
 				"net3": {
 					DriverOpts: map[string]string{"field3": "value3"},
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.88.22",
-						IPv6Address: "2001:db8::8822",
+						IPv4Address: netip.MustParseAddr("172.20.88.22"),
+						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases: []string{"web3"},
 				},
 				"net4": {
 					MacAddress: "02:32:1c:23:00:04",
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						LinkLocalIPs: []string{"169.254.169.254"},
+						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.169.254")},
 					},
 				},
 			},
@@ -671,8 +673,8 @@ func TestParseNetworkConfig(t *testing.T) {
 						"field2": "value2",
 					},
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.88.22",
-						IPv6Address: "2001:db8::8822",
+						IPv4Address: netip.MustParseAddr("172.20.88.22"),
+						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases:    []string{"web1", "web2"},
 					MacAddress: "02:32:1c:23:00:04",
@@ -753,7 +755,7 @@ func TestParseNetworkConfig(t *testing.T) {
 			assert.NilError(t, err)
 			assert.DeepEqual(t, config.MacAddress, tc.expectedCfg.MacAddress) //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
 			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedHostCfg.NetworkMode)
-			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected)
+			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected, cmpopts.IgnoreUnexported(netip.Addr{}))
 		})
 	}
 }

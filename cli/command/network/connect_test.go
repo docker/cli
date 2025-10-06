@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/netip"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/network"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -46,9 +48,9 @@ func TestNetworkConnectErrors(t *testing.T) {
 func TestNetworkConnectWithFlags(t *testing.T) {
 	expectedConfig := &network.EndpointSettings{
 		IPAMConfig: &network.EndpointIPAMConfig{
-			IPv4Address:  "192.168.4.1",
-			IPv6Address:  "fdef:f401:8da0:1234::5678",
-			LinkLocalIPs: []string{"169.254.42.42"},
+			IPv4Address:  netip.MustParseAddr("192.168.4.1"),
+			IPv6Address:  netip.MustParseAddr("fdef:f401:8da0:1234::5678"),
+			LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.42.42")},
 		},
 		Links:   []string{"otherctr"},
 		Aliases: []string{"poor-yorick"},
@@ -60,7 +62,7 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 	}
 	cli := test.NewFakeCli(&fakeClient{
 		networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-			assert.Check(t, is.DeepEqual(expectedConfig, config))
+			assert.Check(t, is.DeepEqual(expectedConfig, config, cmpopts.IgnoreUnexported(netip.Addr{})))
 			return nil
 		},
 	})

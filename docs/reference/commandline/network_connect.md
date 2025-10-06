@@ -10,10 +10,10 @@ Connect a container to a network
 | [`--alias`](#alias) | `stringSlice` |         | Add network-scoped alias for the container                                              |
 | `--driver-opt`      | `stringSlice` |         | driver options for the network                                                          |
 | `--gw-priority`     | `int`         | `0`     | Highest gw-priority provides the default gateway. Accepts positive and negative values. |
-| [`--ip`](#ip)       | `string`      |         | IPv4 address (e.g., `172.30.100.104`)                                                   |
-| `--ip6`             | `string`      |         | IPv6 address (e.g., `2001:db8::33`)                                                     |
+| [`--ip`](#ip)       | `ip`          | `<nil>` | IPv4 address (e.g., `172.30.100.104`)                                                   |
+| `--ip6`             | `ip`          | `<nil>` | IPv6 address (e.g., `2001:db8::33`)                                                     |
 | [`--link`](#link)   | `list`        |         | Add link to another container                                                           |
-| `--link-local-ip`   | `stringSlice` |         | Add a link-local address for the container                                              |
+| `--link-local-ip`   | `ipSlice`     |         | Add a link-local address for the container                                              |
 
 
 <!---MARKER_GEN_END-->

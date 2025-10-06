@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
+	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
@@ -164,7 +165,7 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 					PublishMode:   swarm.PortConfigPublishModeIngress,
 					PublishedPort: 0,
 					TargetPort:    3232,
-					Protocol:      swarm.PortConfigProtocolTCP,
+					Protocol:      network.TCP,
 				}),
 			)}, nil
 		},
