@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
@@ -109,7 +108,7 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 // that don't have ServiceStatus set, and perform a lookup for those.
 func AppendServiceStatus(ctx context.Context, c client.APIClient, services []swarm.Service) ([]swarm.Service, error) {
 	status := map[string]*swarm.ServiceStatus{}
-	taskFilter := filters.NewArgs()
+	taskFilter := make(client.Filters)
 	for i, s := range services {
 		// there is no need in this switch to check for job modes. jobs are not
 		// supported until after ServiceStatus was introduced.

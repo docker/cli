@@ -13,7 +13,6 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -133,8 +132,8 @@ func TestConfigListWithFormat(t *testing.T) {
 func TestConfigListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
-			assert.Check(t, is.Equal("foo", options.Filters.Get("name")[0]))
-			assert.Check(t, is.Equal("lbl1=Label-bar", options.Filters.Get("label")[0]))
+			assert.Check(t, options.Filters["name"]["foo"])
+			assert.Check(t, options.Filters["label"]["lbl1=Label-bar"])
 			return []swarm.Config{
 				*builders.Config(builders.ConfigID("ID-foo"),
 					builders.ConfigName("foo"),

@@ -68,13 +68,9 @@ func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 
 	// set up a function to use as the list function
 	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
-		f := opts.Filters
-
 		// we're expecting the filter to have names "foo" and "bar"
-		names := f.Get("name")
-		assert.Equal(t, len(names), 2)
-		assert.Assert(t, is.Contains(names, "foo"))
-		assert.Assert(t, is.Contains(names, "bar"))
+		expected := make(client.Filters).Add("name", "foo", "bar")
+		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
 
 		return []swarm.Config{
 			{
@@ -148,11 +144,8 @@ func TestSetConfigsOnlyCredSpec(t *testing.T) {
 
 	// set up a function to use as the list function
 	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
-		f := opts.Filters
-
-		names := f.Get("name")
-		assert.Equal(t, len(names), 1)
-		assert.Assert(t, is.Contains(names, "foo"))
+		expected := make(client.Filters).Add("name", "foo")
+		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
 
 		return []swarm.Config{
 			{
@@ -199,11 +192,8 @@ func TestSetConfigsOnlyConfigs(t *testing.T) {
 	}
 
 	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
-		f := opts.Filters
-
-		names := f.Get("name")
-		assert.Equal(t, len(names), 1)
-		assert.Assert(t, is.Contains(names, "bar"))
+		expected := make(client.Filters).Add("name", "bar")
+		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
 
 		return []swarm.Config{
 			{

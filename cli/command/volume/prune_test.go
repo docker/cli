@@ -11,8 +11,8 @@ import (
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -24,7 +24,7 @@ func TestVolumePruneErrors(t *testing.T) {
 		name            string
 		args            []string
 		flags           map[string]string
-		volumePruneFunc func(args filters.Args) (volume.PruneReport, error)
+		volumePruneFunc func(args client.Filters) (volume.PruneReport, error)
 		expectedError   string
 	}{
 		{
@@ -37,7 +37,7 @@ func TestVolumePruneErrors(t *testing.T) {
 			flags: map[string]string{
 				"force": "true",
 			},
-			volumePruneFunc: func(args filters.Args) (volume.PruneReport, error) {
+			volumePruneFunc: func(args client.Filters) (volume.PruneReport, error) {
 				return volume.PruneReport{}, errors.New("error pruning volumes")
 			},
 			expectedError: "error pruning volumes",
@@ -74,21 +74,21 @@ func TestVolumePruneSuccess(t *testing.T) {
 		name            string
 		args            []string
 		input           string
-		volumePruneFunc func(args filters.Args) (volume.PruneReport, error)
+		volumePruneFunc func(args client.Filters) (volume.PruneReport, error)
 	}{
 		{
 			name:  "all",
 			args:  []string{"--all"},
 			input: "y",
-			volumePruneFunc: func(pruneFilter filters.Args) (volume.PruneReport, error) {
-				assert.Check(t, is.DeepEqual([]string{"true"}, pruneFilter.Get("all")))
+			volumePruneFunc: func(pruneFilter client.Filters) (volume.PruneReport, error) {
+				assert.Check(t, is.DeepEqual(pruneFilter["all"], map[string]bool{"true": true}))
 				return volume.PruneReport{}, nil
 			},
 		},
 		{
 			name: "all-forced",
 			args: []string{"--all", "--force"},
-			volumePruneFunc: func(pruneFilter filters.Args) (volume.PruneReport, error) {
+			volumePruneFunc: func(pruneFilter client.Filters) (volume.PruneReport, error) {
 				return volume.PruneReport{}, nil
 			},
 		},
@@ -96,8 +96,8 @@ func TestVolumePruneSuccess(t *testing.T) {
 			name:  "label-filter",
 			args:  []string{"--filter", "label=foobar"},
 			input: "y",
-			volumePruneFunc: func(pruneFilter filters.Args) (volume.PruneReport, error) {
-				assert.Check(t, is.DeepEqual([]string{"foobar"}, pruneFilter.Get("label")))
+			volumePruneFunc: func(pruneFilter client.Filters) (volume.PruneReport, error) {
+				assert.Check(t, is.DeepEqual(pruneFilter["label"], map[string]bool{"foobar": true}))
 				return volume.PruneReport{}, nil
 			},
 		},
@@ -121,7 +121,7 @@ func TestVolumePruneSuccess(t *testing.T) {
 func TestVolumePruneForce(t *testing.T) {
 	testCases := []struct {
 		name            string
-		volumePruneFunc func(args filters.Args) (volume.PruneReport, error)
+		volumePruneFunc func(args client.Filters) (volume.PruneReport, error)
 	}{
 		{
 			name: "empty",
@@ -180,7 +180,7 @@ func TestVolumePrunePromptNo(t *testing.T) {
 	}
 }
 
-func simplePruneFunc(filters.Args) (volume.PruneReport, error) {
+func simplePruneFunc(client.Filters) (volume.PruneReport, error) {
 	return volume.PruneReport{
 		VolumesDeleted: []string{
 			"foo", "bar", "baz",
@@ -194,7 +194,7 @@ func TestVolumePrunePromptTerminate(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		volumePruneFunc: func(filter filters.Args) (volume.PruneReport, error) {
+		volumePruneFunc: func(filter client.Filters) (volume.PruneReport, error) {
 			return volume.PruneReport{}, errors.New("fakeClient volumePruneFunc should not be called")
 		},
 	})

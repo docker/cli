@@ -6,9 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/volume"
@@ -33,7 +31,7 @@ type fakeClient struct {
 	containerListFunc func(options client.ContainerListOptions) ([]container.Summary, error)
 	imageListFunc     func(options client.ImageListOptions) ([]image.Summary, error)
 	networkListFunc   func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
-	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
+	volumeListFunc    func(filter client.Filters) (volume.ListResponse, error)
 }
 
 func (c *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
@@ -156,7 +154,7 @@ func TestCompleteContainerNames(t *testing.T) {
 			}
 			comp := ContainerNames(fakeCLI{&fakeClient{
 				containerListFunc: func(opts client.ContainerListOptions) ([]container.Summary, error) {
-					assert.Check(t, is.DeepEqual(opts, tc.expOpts, cmpopts.IgnoreUnexported(client.ContainerListOptions{}, filters.Args{})))
+					assert.Check(t, is.DeepEqual(opts, tc.expOpts))
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return nil, errors.New("some error occurred")
 					}
@@ -339,7 +337,7 @@ func TestCompleteVolumeNames(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := VolumeNames(fakeCLI{&fakeClient{
-				volumeListFunc: func(filter filters.Args) (volume.ListResponse, error) {
+				volumeListFunc: func(filter client.Filters) (volume.ListResponse, error) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return volume.ListResponse{}, errors.New("some error occurred")
 					}

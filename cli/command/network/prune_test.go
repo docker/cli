@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 )
 
 func TestNetworkPrunePromptTermination(t *testing.T) {
@@ -16,7 +16,7 @@ func TestNetworkPrunePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		networkPruneFunc: func(ctx context.Context, pruneFilters filters.Args) (network.PruneReport, error) {
+		networkPruneFunc: func(ctx context.Context, pruneFilters client.Filters) (network.PruneReport, error) {
 			return network.PruneReport{}, errors.New("fakeClient networkPruneFunc should not be called")
 		},
 	})

@@ -1,9 +1,11 @@
 package convert
 
 import (
+	"net/netip"
 	"testing"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
@@ -57,7 +59,7 @@ func TestNetworks(t *testing.T) {
 				Driver: "driver",
 				Config: []*composetypes.IPAMPool{
 					{
-						Subnet: "10.0.0.0",
+						Subnet: "10.0.0.0/32",
 					},
 				},
 			},
@@ -89,7 +91,7 @@ func TestNetworks(t *testing.T) {
 				Driver: "driver",
 				Config: []network.IPAMConfig{
 					{
-						Subnet: "10.0.0.0",
+						Subnet: netip.MustParsePrefix("10.0.0.0/32"),
 					},
 				},
 			},
@@ -114,7 +116,7 @@ func TestNetworks(t *testing.T) {
 	}
 
 	networks, externals := Networks(namespace, source, serviceNetworks)
-	assert.DeepEqual(t, expected, networks)
+	assert.DeepEqual(t, expected, networks, cmpopts.EquateComparable(netip.Addr{}, netip.Prefix{}))
 	assert.DeepEqual(t, []string{"special"}, externals)
 }
 

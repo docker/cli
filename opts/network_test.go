@@ -1,8 +1,10 @@
 package opts
 
 import (
+	"net/netip"
 	"testing"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -24,7 +26,7 @@ func TestNetworkOptLegacySyntax(t *testing.T) {
 	for _, tc := range testCases {
 		var network NetworkOpt
 		assert.NilError(t, network.Set(tc.value))
-		assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
+		assert.Check(t, is.DeepEqual(tc.expected, network.Value(), cmpopts.EquateComparable(netip.Addr{})))
 	}
 }
 
@@ -64,8 +66,8 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				{
 					Target:      "docknet1",
 					Aliases:     []string{},
-					IPv4Address: "172.20.88.22",
-					IPv6Address: "2001:db8::8822",
+					IPv4Address: netip.MustParseAddr("172.20.88.22"),
+					IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 				},
 			},
 		},
@@ -94,7 +96,7 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 				{
 					Target:       "docknet1",
 					Aliases:      []string{},
-					LinkLocalIPs: []string{"169.254.169.254", "169.254.10.10"},
+					LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.169.254"), netip.MustParseAddr("169.254.10.10")},
 				},
 			},
 		},
@@ -127,7 +129,7 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 		t.Run(tc.value, func(t *testing.T) {
 			var network NetworkOpt
 			assert.NilError(t, network.Set(tc.value))
-			assert.Check(t, is.DeepEqual(tc.expected, network.Value()))
+			assert.Check(t, is.DeepEqual(tc.expected, network.Value(), cmpopts.EquateComparable(netip.Addr{})))
 		})
 	}
 }

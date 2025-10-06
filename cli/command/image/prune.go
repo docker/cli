@@ -69,9 +69,8 @@ Are you sure you want to continue?`
 )
 
 func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
-	pruneFilters := options.filter.Value().Clone()
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 	pruneFilters.Add("dangling", strconv.FormatBool(!options.all))
-	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
 
 	warning := danglingWarning
 	if options.all {

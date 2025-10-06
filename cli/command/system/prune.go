@@ -161,11 +161,11 @@ func dryRun(ctx context.Context, dockerCli command.Cli, options pruneOptions) (s
 
 	var filters []string
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
-	if pruneFilters.Len() > 0 {
+	if len(pruneFilters) > 0 {
 		// TODO remove fixed list of filters, and print all filters instead,
 		// because the list of filters that is supported by the engine may evolve over time.
 		for _, name := range []string{"label", "label!", "until"} {
-			for _, v := range pruneFilters.Get(name) {
+			for v := range pruneFilters[name] {
 				filters = append(filters, name+"="+v)
 			}
 		}

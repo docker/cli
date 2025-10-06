@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 )
@@ -15,7 +14,7 @@ type fakeClient struct {
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
 	networkListFunc       func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
-	networkPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (network.PruneReport, error)
+	networkPruneFunc      func(ctx context.Context, pruneFilters client.Filters) (network.PruneReport, error)
 	networkInspectFunc    func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, []byte, error)
 }
 
@@ -61,7 +60,7 @@ func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string
 	return network.Inspect{}, nil, nil
 }
 
-func (c *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error) {
+func (c *fakeClient) NetworksPrune(ctx context.Context, pruneFilter client.Filters) (network.PruneReport, error) {
 	if c.networkPruneFunc != nil {
 		return c.networkPruneFunc(ctx, pruneFilter)
 	}

@@ -57,7 +57,7 @@ func newSearchCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runSearch(ctx context.Context, dockerCli command.Cli, options searchOptions) error {
-	if options.filter.Value().Contains("is-automated") {
+	if _, ok := options.filter.Value()["is-automated"]; ok {
 		_, _ = fmt.Fprintln(dockerCli.Err(), `WARNING: the "is-automated" filter is deprecated, and searching for "is-automated=true" will not yield any results in future.`)
 	}
 	encodedAuth, err := getAuth(dockerCli, options.term)

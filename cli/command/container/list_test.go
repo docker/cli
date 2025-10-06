@@ -26,7 +26,7 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 		expectedAll     bool
 		expectedSize    bool
 		expectedLimit   int
-		expectedFilters map[string]string
+		expectedFilters client.Filters
 	}{
 		{
 			psOpts: &psOptions{
@@ -35,13 +35,10 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				last:   5,
 				filter: filters,
 			},
-			expectedAll:   true,
-			expectedSize:  true,
-			expectedLimit: 5,
-			expectedFilters: map[string]string{
-				"foo": "bar",
-				"baz": "foo",
-			},
+			expectedAll:     true,
+			expectedSize:    true,
+			expectedLimit:   5,
+			expectedFilters: make(client.Filters).Add("foo", "bar").Add("baz", "foo"),
 		},
 		{
 			psOpts: &psOptions{
@@ -50,10 +47,9 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				last:    -1,
 				nLatest: true,
 			},
-			expectedAll:     true,
-			expectedSize:    true,
-			expectedLimit:   1,
-			expectedFilters: make(map[string]string),
+			expectedAll:   true,
+			expectedSize:  true,
+			expectedLimit: 1,
 		},
 		{
 			psOpts: &psOptions{
@@ -64,13 +60,10 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				// With .Size, size should be true
 				format: "{{.Size}}",
 			},
-			expectedAll:   true,
-			expectedSize:  true,
-			expectedLimit: 5,
-			expectedFilters: map[string]string{
-				"foo": "bar",
-				"baz": "foo",
-			},
+			expectedAll:     true,
+			expectedSize:    true,
+			expectedLimit:   5,
+			expectedFilters: make(client.Filters).Add("foo", "bar").Add("baz", "foo"),
 		},
 		{
 			psOpts: &psOptions{
@@ -81,13 +74,10 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				// With .Size, size should be true
 				format: "{{.Size}} {{.CreatedAt}} {{upper .Networks}}",
 			},
-			expectedAll:   true,
-			expectedSize:  true,
-			expectedLimit: 5,
-			expectedFilters: map[string]string{
-				"foo": "bar",
-				"baz": "foo",
-			},
+			expectedAll:     true,
+			expectedSize:    true,
+			expectedLimit:   5,
+			expectedFilters: make(client.Filters).Add("foo", "bar").Add("baz", "foo"),
 		},
 		{
 			psOpts: &psOptions{
@@ -98,13 +88,10 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 				// Without .Size, size should be false
 				format: "{{.CreatedAt}} {{.Networks}}",
 			},
-			expectedAll:   true,
-			expectedSize:  false,
-			expectedLimit: 5,
-			expectedFilters: map[string]string{
-				"foo": "bar",
-				"baz": "foo",
-			},
+			expectedAll:     true,
+			expectedSize:    false,
+			expectedLimit:   5,
+			expectedFilters: make(client.Filters).Add("foo", "bar").Add("baz", "foo"),
 		},
 	}
 
@@ -115,14 +102,7 @@ func TestContainerListBuildContainerListOptions(t *testing.T) {
 		assert.Check(t, is.Equal(c.expectedAll, options.All))
 		assert.Check(t, is.Equal(c.expectedSize, options.Size))
 		assert.Check(t, is.Equal(c.expectedLimit, options.Limit))
-		assert.Check(t, is.Equal(len(c.expectedFilters), options.Filters.Len()))
-
-		for k, v := range c.expectedFilters {
-			f := options.Filters
-			if !f.ExactMatch(k, v) {
-				t.Fatalf("Expected filter with key %s to be %s but got %s", k, v, f.Get(k))
-			}
-		}
+		assert.Check(t, is.DeepEqual(c.expectedFilters, options.Filters))
 	}
 }
 

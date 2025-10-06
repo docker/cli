@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/docker/go-connections/nat"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/sirupsen/logrus"
 )
@@ -43,7 +43,7 @@ func (p *PortOpt) Set(value string) error {
 		}
 
 		pConfig := swarm.PortConfig{
-			Protocol:    swarm.PortConfigProtocolTCP,
+			Protocol:    network.TCP,
 			PublishMode: swarm.PortConfigPublishModeIngress,
 		}
 		for _, field := range fields {
@@ -54,9 +54,9 @@ func (p *PortOpt) Set(value string) error {
 			}
 			switch key {
 			case portOptProtocol:
-				switch swarm.PortConfigProtocol(val) {
-				case swarm.PortConfigProtocolTCP, swarm.PortConfigProtocolUDP, swarm.PortConfigProtocolSCTP:
-					pConfig.Protocol = swarm.PortConfigProtocol(val)
+				switch proto := network.IPProtocol(val); proto {
+				case network.TCP, network.UDP, network.SCTP:
+					pConfig.Protocol = proto
 				default:
 					return fmt.Errorf("invalid protocol value '%s'", val)
 				}
@@ -115,7 +115,11 @@ func (p *PortOpt) Set(value string) error {
 
 		var portConfigs []swarm.PortConfig
 		for port := range ports {
-			portConfig, err := ConvertPortToPortConfig(port, portBindingMap)
+			portProto, err := network.ParsePort(string(port))
+			if err != nil {
+				return err
+			}
+			portConfig, err := ConvertPortToPortConfig(portProto, portBindingMap)
 			if err != nil {
 				return err
 			}
@@ -148,31 +152,27 @@ func (p *PortOpt) Value() []swarm.PortConfig {
 
 // ConvertPortToPortConfig converts ports to the swarm type
 func ConvertPortToPortConfig(
-	portRangeProto container.PortRangeProto,
-	portBindings map[container.PortRangeProto][]container.PortBinding,
+	portProto network.Port,
+	portBindings map[nat.Port][]nat.PortBinding,
 ) ([]swarm.PortConfig, error) {
-	proto, port := nat.SplitProtoPort(string(portRangeProto))
-	portInt, _ := strconv.ParseUint(port, 10, 16)
-	proto = strings.ToLower(proto)
-
 	ports := make([]swarm.PortConfig, 0, len(portBindings))
-	for _, binding := range portBindings[portRangeProto] {
+	for _, binding := range portBindings[nat.Port(portProto.String())] {
 		if p := net.ParseIP(binding.HostIP); p != nil && !p.IsUnspecified() {
 			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
-			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), portRangeProto)
+			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), portProto.String())
 		}
 
 		startHostPort, endHostPort, err := nat.ParsePortRange(binding.HostPort)
 
 		if err != nil && binding.HostPort != "" {
-			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%s)", binding.HostPort, port)
+			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%d)", binding.HostPort, portProto.Num())
 		}
 
 		for i := startHostPort; i <= endHostPort; i++ {
 			ports = append(ports, swarm.PortConfig{
 				// TODO Name: ?
-				Protocol:      swarm.PortConfigProtocol(proto),
-				TargetPort:    uint32(portInt),
+				Protocol:      portProto.Proto(),
+				TargetPort:    uint32(portProto.Num()),
 				PublishedPort: uint32(i),
 				PublishMode:   swarm.PortConfigPublishModeIngress,
 			})

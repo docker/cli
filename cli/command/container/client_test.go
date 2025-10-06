@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -36,7 +35,7 @@ type fakeClient struct {
 	containerRestartFunc    func(ctx context.Context, containerID string, options client.ContainerStopOptions) error
 	containerStopFunc       func(ctx context.Context, containerID string, options client.ContainerStopOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
-	containerPruneFunc      func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
+	containerPruneFunc      func(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error)
 	containerAttachFunc     func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error)
 	containerDiffFunc       func(ctx context.Context, containerID string) ([]container.FilesystemChange, error)
 	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
@@ -172,7 +171,7 @@ func (f *fakeClient) ContainerKill(ctx context.Context, containerID, signal stri
 	return nil
 }
 
-func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error) {
+func (f *fakeClient) ContainersPrune(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error) {
 	if f.containerPruneFunc != nil {
 		return f.containerPruneFunc(ctx, pruneFilters)
 	}

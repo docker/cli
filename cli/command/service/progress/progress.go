@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/pkg/progress"
 	"github.com/moby/moby/api/pkg/streamformatter"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
@@ -142,10 +141,9 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			return nil
 		}
 
-		tasks, err := apiClient.TaskList(ctx, client.TaskListOptions{Filters: filters.NewArgs(
-			filters.KeyValuePair{Key: "service", Value: service.ID},
-			filters.KeyValuePair{Key: "_up-to-date", Value: "true"},
-		)})
+		tasks, err := apiClient.TaskList(ctx, client.TaskListOptions{
+			Filters: make(client.Filters).Add("service", service.ID).Add("_up-to-date", "true"),
+		})
 		if err != nil {
 			return err
 		}

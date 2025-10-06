@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
 	"path"
 	"path/filepath"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
@@ -52,7 +52,7 @@ type containerOptions struct {
 	deviceWriteBps      opts.ThrottledeviceOpt
 	links               opts.ListOpts
 	aliases             opts.ListOpts
-	linkLocalIPs        opts.ListOpts
+	linkLocalIPs        opts.ListOpts // TODO(thaJeztah): we need a flag-type to handle []netip.Addr directly
 	deviceReadIOps      opts.ThrottledeviceOpt
 	deviceWriteIOps     opts.ThrottledeviceOpt
 	env                 opts.ListOpts
@@ -64,7 +64,7 @@ type containerOptions struct {
 	sysctls             *opts.MapOpts
 	publish             opts.ListOpts
 	expose              opts.ListOpts
-	dns                 opts.ListOpts
+	dns                 opts.ListOpts // TODO(thaJeztah): we need a flag-type to handle []netip.Addr directly
 	dnsSearch           opts.ListOpts
 	dnsOptions          opts.ListOpts
 	extraHosts          opts.ListOpts
@@ -112,8 +112,8 @@ type containerOptions struct {
 	swappiness          int64
 	netMode             opts.NetworkOpt
 	macAddress          string
-	ipv4Address         string
-	ipv6Address         string
+	ipv4Address         net.IP // TODO(thaJeztah): we need a flag-type to handle netip.Addr directly
+	ipv6Address         net.IP // TODO(thaJeztah): we need a flag-type to handle netip.Addr directly
 	ipcMode             string
 	pidsLimit           int64
 	restartPolicy       string
@@ -239,8 +239,8 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.MarkHidden("dns-opt")
 	flags.Var(&copts.dnsSearch, "dns-search", "Set custom DNS search domains")
 	flags.Var(&copts.expose, "expose", "Expose a port or a range of ports")
-	flags.StringVar(&copts.ipv4Address, "ip", "", "IPv4 address (e.g., 172.30.100.104)")
-	flags.StringVar(&copts.ipv6Address, "ip6", "", "IPv6 address (e.g., 2001:db8::33)")
+	flags.IPVar(&copts.ipv4Address, "ip", nil, "IPv4 address (e.g., 172.30.100.104)")
+	flags.IPVar(&copts.ipv6Address, "ip6", nil, "IPv6 address (e.g., 2001:db8::33)")
 	flags.Var(&copts.links, "link", "Add link to another container")
 	flags.Var(&copts.linkLocalIPs, "link-local-ip", "Container IPv4/IPv6 link-local addresses")
 	flags.StringVar(&copts.macAddress, "mac-address", "", "Container MAC address (e.g., 92:d0:c6:0a:29:33)")
@@ -426,38 +426,60 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		entrypoint = []string{""}
 	}
 
+	// TODO(thaJeztah): remove uses of go-connections/nat here.
 	convertedOpts, err := convertToStandardNotation(copts.publish.GetSlice())
 	if err != nil {
 		return nil, err
 	}
 
-	ports, portBindings, err := nat.ParsePortSpecs(convertedOpts)
+	ports, natPortBindings, err := nat.ParsePortSpecs(convertedOpts)
 	if err != nil {
 		return nil, err
+	}
+	portBindings := network.PortMap{}
+	for port, bindings := range natPortBindings {
+		p, err := network.ParsePort(string(port))
+		if err != nil {
+			return nil, err
+		}
+		portBindings[p] = []network.PortBinding{}
+		for _, b := range bindings {
+			var hostIP netip.Addr
+			if b.HostIP != "" {
+				hostIP, err = netip.ParseAddr(b.HostIP)
+				if err != nil {
+					return nil, err
+				}
+			}
+			portBindings[p] = append(portBindings[p], network.PortBinding{
+				HostIP:   hostIP,
+				HostPort: b.HostPort,
+			})
+		}
+	}
+
+	// Add published ports as exposed ports.
+	exposedPorts := network.PortSet{}
+	for port := range ports {
+		p, err := network.ParsePort(string(port))
+		if err != nil {
+			return nil, err
+		}
+		exposedPorts[p] = struct{}{}
 	}
 
 	// Merge in exposed ports to the map of published ports
 	for _, e := range copts.expose.GetSlice() {
-		if strings.Contains(e, ":") {
-			return nil, fmt.Errorf("invalid port format for --expose: %s", e)
-		}
 		// support two formats for expose, original format <portnum>/[<proto>]
 		// or <startport-endport>/[<proto>]
-		proto, port := nat.SplitProtoPort(e)
+		pr, err := network.ParsePortRange(e)
+		if err != nil {
+			return nil, fmt.Errorf("invalid range format for --expose: %w", err)
+		}
 		// parse the start and end port and create a sequence of ports to expose
 		// if expose a port, the start and end port are the same
-		start, end, err := nat.ParsePortRange(port)
-		if err != nil {
-			return nil, fmt.Errorf("invalid range format for --expose: %s, error: %w", e, err)
-		}
-		for i := start; i <= end; i++ {
-			p, err := nat.NewPort(proto, strconv.FormatUint(i, 10))
-			if err != nil {
-				return nil, err
-			}
-			if _, exists := ports[p]; !exists {
-				ports[p] = struct{}{}
-			}
+		for p := range pr.All() {
+			exposedPorts[p] = struct{}{}
 		}
 	}
 
@@ -626,7 +648,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	config := &container.Config{
 		Hostname:     copts.hostname,
 		Domainname:   copts.domainname,
-		ExposedPorts: ports,
+		ExposedPorts: exposedPorts,
 		User:         copts.user,
 		Tty:          copts.tty,
 		OpenStdin:    copts.stdin,
@@ -662,7 +684,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		// but pre created containers can still have those nil values.
 		// See https://github.com/docker/docker/pull/17779
 		// for a more detailed explanation on why we don't want that.
-		DNS:            copts.dns.GetAllOrEmpty(),
+		DNS:            toNetipAddrSlice(copts.dns.GetAllOrEmpty()),
 		DNSSearch:      copts.dnsSearch.GetAllOrEmpty(),
 		DNSOptions:     copts.dnsOptions.GetAllOrEmpty(),
 		ExtraHosts:     copts.extraHosts.GetSlice(),
@@ -805,10 +827,10 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 	if len(n.Links) > 0 && copts.links.Len() > 0 {
 		return invalidParameter(errors.New("conflicting options: cannot specify both --link and per-network links"))
 	}
-	if n.IPv4Address != "" && copts.ipv4Address != "" {
+	if n.IPv4Address.IsValid() && copts.ipv4Address != nil {
 		return invalidParameter(errors.New("conflicting options: cannot specify both --ip and per-network IPv4 address"))
 	}
-	if n.IPv6Address != "" && copts.ipv6Address != "" {
+	if n.IPv6Address.IsValid() && copts.ipv6Address != nil {
 		return invalidParameter(errors.New("conflicting options: cannot specify both --ip6 and per-network IPv6 address"))
 	}
 	if n.MacAddress != "" && copts.macAddress != "" {
@@ -827,18 +849,21 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		n.Links = make([]string, copts.links.Len())
 		copy(n.Links, copts.links.GetSlice())
 	}
-	if copts.ipv4Address != "" {
-		n.IPv4Address = copts.ipv4Address
+	if copts.ipv4Address != nil {
+		if ipv4, ok := netip.AddrFromSlice(copts.ipv4Address.To4()); ok {
+			n.IPv4Address = ipv4
+		}
 	}
-	if copts.ipv6Address != "" {
-		n.IPv6Address = copts.ipv6Address
+	if copts.ipv6Address != nil {
+		if ipv6, ok := netip.AddrFromSlice(copts.ipv6Address.To16()); ok {
+			n.IPv6Address = ipv6
+		}
 	}
 	if copts.macAddress != "" {
 		n.MacAddress = copts.macAddress
 	}
 	if copts.linkLocalIPs.Len() > 0 {
-		n.LinkLocalIPs = make([]string, copts.linkLocalIPs.Len())
-		copy(n.LinkLocalIPs, copts.linkLocalIPs.GetSlice())
+		n.LinkLocalIPs = toNetipAddrSlice(copts.linkLocalIPs.GetSlice())
 	}
 	return nil
 }
@@ -867,7 +892,7 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*network.Endpoint
 	if len(ep.Links) > 0 {
 		epConfig.Links = ep.Links
 	}
-	if ep.IPv4Address != "" || ep.IPv6Address != "" || len(ep.LinkLocalIPs) > 0 {
+	if ep.IPv4Address.IsValid() || ep.IPv6Address.IsValid() || len(ep.LinkLocalIPs) > 0 {
 		epConfig.IPAMConfig = &network.EndpointIPAMConfig{
 			IPv4Address:  ep.IPv4Address,
 			IPv6Address:  ep.IPv6Address,
@@ -1130,4 +1155,19 @@ func validateAttach(val string) (string, error) {
 		}
 	}
 	return val, errors.New("valid streams are STDIN, STDOUT and STDERR")
+}
+
+func toNetipAddrSlice(ips []string) []netip.Addr {
+	if len(ips) == 0 {
+		return nil
+	}
+	netIPs := make([]netip.Addr, 0, len(ips))
+	for _, ip := range ips {
+		addr, err := netip.ParseAddr(ip)
+		if err != nil {
+			continue
+		}
+		netIPs = append(netIPs, addr)
+	}
+	return netIPs
 }

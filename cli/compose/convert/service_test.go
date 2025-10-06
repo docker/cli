@@ -3,12 +3,14 @@ package convert
 import (
 	"context"
 	"errors"
+	"net/netip"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
@@ -307,17 +309,17 @@ var (
 func TestConvertDNSConfigAll(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, search)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: toNetipAddrSlice(nameservers),
 		Search:      search,
-	}, dnsConfig))
+	}, dnsConfig, cmpopts.EquateComparable(netip.Addr{})))
 }
 
 func TestConvertDNSConfigNameservers(t *testing.T) {
 	dnsConfig := convertDNSConfig(nameservers, nil)
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
-		Nameservers: nameservers,
+		Nameservers: toNetipAddrSlice(nameservers),
 		Search:      nil,
-	}, dnsConfig))
+	}, dnsConfig, cmpopts.EquateComparable(netip.Addr{})))
 }
 
 func TestConvertDNSConfigSearch(t *testing.T) {
@@ -325,7 +327,7 @@ func TestConvertDNSConfigSearch(t *testing.T) {
 	assert.Check(t, is.DeepEqual(&swarm.DNSConfig{
 		Nameservers: nil,
 		Search:      search,
-	}, dnsConfig))
+	}, dnsConfig, cmpopts.EquateComparable(netip.Addr{})))
 }
 
 func TestConvertCredentialSpec(t *testing.T) {
@@ -514,8 +516,8 @@ func TestConvertServiceSecrets(t *testing.T) {
 	}
 	apiClient := &fakeClient{
 		secretListFunc: func(opts client.SecretListOptions) ([]swarm.Secret, error) {
-			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_secret"))
-			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_secret"))
+			assert.Check(t, opts.Filters["name"]["foo_secret"])
+			assert.Check(t, opts.Filters["name"]["bar_secret"])
 			return []swarm.Secret{
 				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo_secret"}}},
 				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "bar_secret"}}},
@@ -572,9 +574,9 @@ func TestConvertServiceConfigs(t *testing.T) {
 	}
 	apiClient := &fakeClient{
 		configListFunc: func(opts client.ConfigListOptions) ([]swarm.Config, error) {
-			assert.Check(t, is.Contains(opts.Filters.Get("name"), "foo_config"))
-			assert.Check(t, is.Contains(opts.Filters.Get("name"), "bar_config"))
-			assert.Check(t, is.Contains(opts.Filters.Get("name"), "baz_config"))
+			assert.Check(t, opts.Filters["name"]["foo_config"])
+			assert.Check(t, opts.Filters["name"]["bar_config"])
+			assert.Check(t, opts.Filters["name"]["baz_config"])
 			return []swarm.Config{
 				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
 				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},

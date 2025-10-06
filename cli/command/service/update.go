@@ -1,9 +1,14 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.23
+
 package service
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"net/netip"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -15,6 +20,7 @@ import (
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
@@ -999,9 +1005,9 @@ func updateGroups(flags *pflag.FlagSet, groups *[]string) error {
 	return nil
 }
 
-func removeDuplicates(entries []string) []string {
-	hit := map[string]bool{}
-	newEntries := []string{}
+func removeDuplicates[T comparable](entries []T) []T {
+	hit := map[T]bool{}
+	newEntries := []T{}
 	for _, v := range entries {
 		if !hit[v] {
 			newEntries = append(newEntries, v)
@@ -1017,24 +1023,34 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 	nameservers := (*config).Nameservers
 	if flags.Changed(flagDNSAdd) {
 		values := flags.Lookup(flagDNSAdd).Value.(*opts.ListOpts).GetSlice()
-		nameservers = append(nameservers, values...)
+		var ips []netip.Addr
+		for _, ip := range values {
+			a, err := netip.ParseAddr(ip)
+			if err != nil {
+				return err
+			}
+			ips = append(ips, a)
+		}
+		nameservers = append(nameservers, ips...)
 	}
 	nameservers = removeDuplicates(nameservers)
 	toRemove := buildToRemoveSet(flags, flagDNSRemove)
 	for _, nameserver := range nameservers {
-		if _, exists := toRemove[nameserver]; !exists {
+		if _, exists := toRemove[nameserver.String()]; !exists {
 			newConfig.Nameservers = append(newConfig.Nameservers, nameserver)
 		}
 	}
 	// Sort so that result is predictable.
-	sort.Strings(newConfig.Nameservers)
+	slices.SortFunc(newConfig.Nameservers, func(a, b netip.Addr) int {
+		return a.Compare(b)
+	})
 
 	search := (*config).Search
 	if flags.Changed(flagDNSSearchAdd) {
 		values := flags.Lookup(flagDNSSearchAdd).Value.(*opts.ListOpts).GetSlice()
 		search = append(search, values...)
 	}
-	search = removeDuplicates(search)
+	search = slices.Compact(search)
 	toRemove = buildToRemoveSet(flags, flagDNSSearchRemove)
 	for _, entry := range search {
 		if _, exists := toRemove[entry]; !exists {
@@ -1049,7 +1065,7 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 		values := flags.Lookup(flagDNSOptionAdd).Value.(*opts.ListOpts).GetSlice()
 		options = append(options, values...)
 	}
-	options = removeDuplicates(options)
+	options = slices.Compact(options)
 	toRemove = buildToRemoveSet(flags, flagDNSOptionRemove)
 	for _, option := range options {
 		if _, exists := toRemove[option]; !exists {
@@ -1120,16 +1136,16 @@ portLoop:
 	return nil
 }
 
-func equalProtocol(prot1, prot2 swarm.PortConfigProtocol) bool {
+func equalProtocol(prot1, prot2 network.IPProtocol) bool {
 	return prot1 == prot2 ||
-		(prot1 == swarm.PortConfigProtocol("") && prot2 == swarm.PortConfigProtocolTCP) ||
-		(prot2 == swarm.PortConfigProtocol("") && prot1 == swarm.PortConfigProtocolTCP)
+		(prot1 == "" && prot2 == network.TCP) ||
+		(prot2 == "" && prot1 == network.TCP)
 }
 
 func equalPublishMode(mode1, mode2 swarm.PortConfigPublishMode) bool {
 	return mode1 == mode2 ||
-		(mode1 == swarm.PortConfigPublishMode("") && mode2 == swarm.PortConfigPublishModeIngress) ||
-		(mode2 == swarm.PortConfigPublishMode("") && mode1 == swarm.PortConfigPublishModeIngress)
+		(mode1 == "" && mode2 == swarm.PortConfigPublishModeIngress) ||
+		(mode2 == "" && mode1 == swarm.PortConfigPublishModeIngress)
 }
 
 func updateReplicas(flags *pflag.FlagSet, serviceMode *swarm.ServiceMode) error {

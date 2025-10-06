@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"net/netip"
 	"os"
 	"strings"
 
@@ -84,8 +85,9 @@ func Networks(namespace Namespace, networks networkMap, servicesNetworks map[str
 				Driver: nw.Ipam.Driver,
 			}
 			for _, ipamConfig := range nw.Ipam.Config {
+				sn, _ := netip.ParsePrefix(ipamConfig.Subnet)
 				createOpts.IPAM.Config = append(createOpts.IPAM.Config, network.IPAMConfig{
-					Subnet: ipamConfig.Subnet,
+					Subnet: sn,
 				})
 			}
 		}

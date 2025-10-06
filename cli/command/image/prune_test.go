@@ -10,10 +10,9 @@ import (
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -22,7 +21,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 		name            string
 		args            []string
 		expectedError   string
-		imagesPruneFunc func(pruneFilter filters.Args) (image.PruneReport, error)
+		imagesPruneFunc func(pruneFilter client.Filters) (image.PruneReport, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -33,7 +32,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 			name:          "prune-error",
 			args:          []string{"--force"},
 			expectedError: "something went wrong",
-			imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
+			imagesPruneFunc: func(pruneFilter client.Filters) (image.PruneReport, error) {
 				return image.PruneReport{}, errors.New("something went wrong")
 			},
 		},
@@ -55,21 +54,21 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name            string
 		args            []string
-		imagesPruneFunc func(pruneFilter filters.Args) (image.PruneReport, error)
+		imagesPruneFunc func(pruneFilter client.Filters) (image.PruneReport, error)
 	}{
 		{
 			name: "all",
 			args: []string{"--all"},
-			imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
-				assert.Check(t, is.Equal("false", pruneFilter.Get("dangling")[0]))
+			imagesPruneFunc: func(pruneFilter client.Filters) (image.PruneReport, error) {
+				assert.Check(t, pruneFilter["dangling"]["false"])
 				return image.PruneReport{}, nil
 			},
 		},
 		{
 			name: "force-deleted",
 			args: []string{"--force"},
-			imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
-				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
+			imagesPruneFunc: func(pruneFilter client.Filters) (image.PruneReport, error) {
+				assert.Check(t, pruneFilter["dangling"]["true"])
 				return image.PruneReport{
 					ImagesDeleted:  []image.DeleteResponse{{Deleted: "image1"}},
 					SpaceReclaimed: 1,
@@ -79,16 +78,16 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		{
 			name: "label-filter",
 			args: []string{"--force", "--filter", "label=foobar"},
-			imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
-				assert.Check(t, is.Equal("foobar", pruneFilter.Get("label")[0]))
+			imagesPruneFunc: func(pruneFilter client.Filters) (image.PruneReport, error) {
+				assert.Check(t, pruneFilter["label"]["foobar"])
 				return image.PruneReport{}, nil
 			},
 		},
 		{
 			name: "force-untagged",
 			args: []string{"--force"},
-			imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
-				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
+			imagesPruneFunc: func(pruneFilter client.Filters) (image.PruneReport, error) {
+				assert.Check(t, pruneFilter["dangling"]["true"])
 				return image.PruneReport{
 					ImagesDeleted:  []image.DeleteResponse{{Untagged: "image1"}},
 					SpaceReclaimed: 2,
@@ -117,7 +116,7 @@ func TestPrunePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		imagesPruneFunc: func(pruneFilter filters.Args) (image.PruneReport, error) {
+		imagesPruneFunc: func(pruneFilter client.Filters) (image.PruneReport, error) {
 			return image.PruneReport{}, errors.New("fakeClient imagesPruneFunc should not be called")
 		},
 	})

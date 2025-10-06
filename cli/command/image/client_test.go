@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -19,8 +18,8 @@ type fakeClient struct {
 	imageRemoveFunc  func(image string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error)
 	imagePushFunc    func(ref string, options client.ImagePushOptions) (io.ReadCloser, error)
 	infoFunc         func() (system.Info, error)
-	imagePullFunc    func(ref string, options client.ImagePullOptions) (io.ReadCloser, error)
-	imagesPruneFunc  func(pruneFilter filters.Args) (image.PruneReport, error)
+	imagePullFunc    func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error)
+	imagesPruneFunc  func(pruneFilter client.Filters) (image.PruneReport, error)
 	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error)
 	imageListFunc    func(options client.ImageListOptions) ([]image.Summary, error)
 	imageInspectFunc func(img string) (image.InspectResponse, error)
@@ -66,14 +65,14 @@ func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
+func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.ImagePullOptions) (client.ImagePullResponse, error) {
 	if cli.imagePullFunc != nil {
 		return cli.imagePullFunc(ref, options)
 	}
-	return io.NopCloser(strings.NewReader("")), nil
+	return client.ImagePullResponse{}, nil
 }
 
-func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter filters.Args) (image.PruneReport, error) {
+func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter client.Filters) (image.PruneReport, error) {
 	if cli.imagesPruneFunc != nil {
 		return cli.imagesPruneFunc(pruneFilter)
 	}

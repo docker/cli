@@ -7,7 +7,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/moby/moby/api/types/events"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
@@ -240,7 +239,7 @@ func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []str
 // pluginNames contacts the API to get a list of plugin names.
 // In case of an error, an empty list is returned.
 func pluginNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().PluginList(cmd.Context(), filters.Args{})
+	list, err := dockerCLI.Client().PluginList(cmd.Context(), nil)
 	if err != nil {
 		return []string{}
 	}

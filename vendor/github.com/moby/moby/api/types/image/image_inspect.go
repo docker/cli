@@ -2,7 +2,6 @@ package image
 
 import (
 	dockerspec "github.com/moby/docker-image-spec/specs-go/v1"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/storage"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -43,16 +42,9 @@ type InspectResponse struct {
 	// the manifest is generated and its digest calculated.
 	RepoDigests []string
 
-	// Parent is the ID of the parent image.
-	//
-	// Depending on how the image was created, this field may be empty and
-	// is only set for images that were built/created locally. This field
-	// is empty if the image was pulled from an image registry.
-	Parent string
-
 	// Comment is an optional message that can be set when committing or
-	// importing the image.
-	Comment string
+	// importing the image. This field is omitted if not set.
+	Comment string `json:",omitempty"`
 
 	// Created is the date and time at which the image was created, formatted in
 	// RFC 3339 nano-seconds (time.RFC3339Nano).
@@ -61,30 +53,10 @@ type InspectResponse struct {
 	// and omitted otherwise.
 	Created string `json:",omitempty"`
 
-	// Container is the ID of the container that was used to create the image.
-	//
-	// Depending on how the image was created, this field may be empty.
-	//
-	// Deprecated: this field is omitted in API v1.45, but kept for backward compatibility.
-	Container string `json:",omitempty"`
-
-	// ContainerConfig is an optional field containing the configuration of the
-	// container that was last committed when creating the image.
-	//
-	// Previous versions of Docker builder used this field to store build cache,
-	// and it is not in active use anymore.
-	//
-	// Deprecated: this field is omitted in API v1.45, but kept for backward compatibility.
-	ContainerConfig *container.Config `json:",omitempty"`
-
-	// DockerVersion is the version of Docker that was used to build the image.
-	//
-	// Depending on how the image was created, this field may be empty.
-	DockerVersion string
-
 	// Author is the name of the author that was specified when committing the
 	// image, or as specified through MAINTAINER (deprecated) in the Dockerfile.
-	Author string
+	// This field is omitted if not set.
+	Author string `json:",omitempty"`
 	Config *dockerspec.DockerOCIImageConfig
 
 	// Architecture is the hardware CPU architecture that the image runs on.
@@ -102,12 +74,6 @@ type InspectResponse struct {
 
 	// Size is the total size of the image including all layers it is composed of.
 	Size int64
-
-	// VirtualSize is the total size of the image including all layers it is
-	// composed of.
-	//
-	// Deprecated: this field is omitted in API v1.44, but kept for backward compatibility. Use Size instead.
-	VirtualSize int64 `json:"VirtualSize,omitempty"`
 
 	// GraphDriver holds information about the storage driver used to store the
 	// container's and image's filesystem.

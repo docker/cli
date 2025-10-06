@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/netip"
 	"sort"
 	"strconv"
 	"strings"
@@ -762,7 +763,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 				Mounts:     options.mounts.Value(),
 				Init:       &options.init,
 				DNSConfig: &swarm.DNSConfig{
-					Nameservers: options.dns.GetSlice(),
+					Nameservers: toNetipAddrSlice(options.dns.GetSlice()),
 					Search:      options.dnsSearch.GetSlice(),
 					Options:     options.dnsOption.GetSlice(),
 				},
@@ -1073,3 +1074,18 @@ const (
 	flagUlimitRemove            = "ulimit-rm"
 	flagOomScoreAdj             = "oom-score-adj"
 )
+
+func toNetipAddrSlice(ips []string) []netip.Addr {
+	if len(ips) == 0 {
+		return nil
+	}
+	netIPs := make([]netip.Addr, 0, len(ips))
+	for _, ip := range ips {
+		addr, err := netip.ParseAddr(ip)
+		if err != nil {
+			continue
+		}
+		netIPs = append(netIPs, addr)
+	}
+	return netIPs
+}

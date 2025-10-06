@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
@@ -27,7 +26,7 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 		secretRefs[secret.File.Name] = secretRef
 	}
 
-	args := filters.NewArgs()
+	args := make(client.Filters)
 	for _, s := range secretRefs {
 		args.Add("name", s.SecretName)
 	}
@@ -104,7 +103,7 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 		configRefs[config.File.Name] = configRef
 	}
 
-	args := filters.NewArgs()
+	args := make(client.Filters)
 	for _, s := range configRefs {
 		args.Add("name", s.ConfigName)
 	}

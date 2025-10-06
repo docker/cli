@@ -74,7 +74,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	warning := unusedVolumesWarning
 	if versions.GreaterThanOrEqualTo(dockerCli.CurrentVersion(), "1.42") {
 		if options.all {
-			if pruneFilters.Contains("all") {
+			if _, ok := pruneFilters["all"]; ok {
 				return 0, "", invalidParamErr{errors.New("conflicting options: cannot specify both --all and --filter all=1")}
 			}
 			pruneFilters.Add("all", "true")
@@ -124,7 +124,7 @@ func pruneFn(ctx context.Context, dockerCli command.Cli, options pruner.PruneOpt
 	// TODO version this once "until" filter is supported for volumes
 	// Ideally, this check wasn't done on the CLI because the list of
 	// filters that is supported by the daemon may evolve over time.
-	if options.Filter.Value().Contains("until") {
+	if _, ok := options.Filter.Value()["until"]; ok {
 		return 0, "", errors.New(`ERROR: The "until" filter is not supported with "--volumes"`)
 	}
 	if !options.Confirmed {
