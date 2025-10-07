@@ -33,8 +33,8 @@ func newDisconnectCommand(dockerCLI command.Cli) *cobra.Command {
 			if len(args) == 0 {
 				return completion.NetworkNames(dockerCLI)(cmd, args, toComplete)
 			}
-			network := args[0]
-			return completion.ContainerNames(dockerCLI, true, isConnected(network))(cmd, args, toComplete)
+			nw := args[0]
+			return completion.ContainerNames(dockerCLI, true, isConnected(nw))(cmd, args, toComplete)
 		},
 		DisableFlagsInUseLine: true,
 	}

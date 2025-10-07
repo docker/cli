@@ -545,25 +545,25 @@ func LoadNetworks(source map[string]any, version string) (map[string]types.Netwo
 	if err != nil {
 		return networks, err
 	}
-	for name, network := range networks {
-		if !network.External.External {
+	for name, nw := range networks {
+		if !nw.External.External {
 			continue
 		}
 		switch {
-		case network.External.Name != "":
-			if network.Name != "" {
+		case nw.External.Name != "":
+			if nw.Name != "" {
 				return nil, fmt.Errorf("network %s: network.external.name and network.name conflict; only use network.name", name)
 			}
 			if versions.GreaterThanOrEqualTo(version, "3.5") {
 				logrus.Warnf("network %s: network.external.name is deprecated in favor of network.name", name)
 			}
-			network.Name = network.External.Name
-			network.External.Name = ""
-		case network.Name == "":
-			network.Name = name
+			nw.Name = nw.External.Name
+			nw.External.Name = ""
+		case nw.Name == "":
+			nw.Name = name
 		}
-		network.Extras = loadExtras(name, source)
-		networks[name] = network
+		nw.Extras = loadExtras(name, source)
+		networks[name] = nw
 	}
 	return networks, nil
 }
