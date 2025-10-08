@@ -117,7 +117,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 			VirtualIPs: []swarm.EndpointVirtualIP{
 				{
 					NetworkID: "6o4107cj2jx9tihgb0jyts6pj",
-					Addr:      netip.MustParseAddr("10.255.0.4/16"), // FIXME(thaJeztah): this was testing with "10.255.0.4/16"
+					Addr:      netip.MustParsePrefix("10.255.0.4/16"), // FIXME(thaJeztah): this was testing with "10.255.0.4/16"
 				},
 			},
 		},
