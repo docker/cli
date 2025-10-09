@@ -194,10 +194,10 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	cmd := newCreateCommand(cli)
 
 	cmd.SetArgs(args)
-	cmd.Flags().Set("driver", "foo")
-	cmd.Flags().Set("ip-range", "192.168.4.0/24")
-	cmd.Flags().Set("gateway", "192.168.4.1/24")
-	cmd.Flags().Set("subnet", "192.168.4.0/24")
+	assert.Check(t, cmd.Flags().Set("driver", "foo"))
+	assert.Check(t, cmd.Flags().Set("ip-range", "192.168.4.0/24"))
+	assert.Check(t, cmd.Flags().Set("gateway", "192.168.4.1/24"))
+	assert.Check(t, cmd.Flags().Set("subnet", "192.168.4.0/24"))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("banana", strings.TrimSpace(cli.OutBuffer().String())))
 }
