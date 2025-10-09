@@ -24,7 +24,7 @@ func TestRemove(t *testing.T) {
 func deployFullStack(t *testing.T, stackname string) {
 	t.Helper()
 	// TODO: this stack should have full options not minimal options
-	result := icmd.RunCommand("docker", "stack", "deploy",
+	result := icmd.RunCommand("docker", "stack", "deploy", "--detach=false",
 		"--compose-file=./testdata/full-stack.yml", stackname)
 	result.Assert(t, icmd.Success)
 
