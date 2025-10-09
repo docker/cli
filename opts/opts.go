@@ -191,6 +191,8 @@ func ValidateIPAddress(val string) (string, error) {
 }
 
 // ValidateMACAddress validates a MAC address.
+//
+// Deprecated: use [net.ParseMAC]. This function will be removed in the next release.
 func ValidateMACAddress(val string) (string, error) {
 	_, err := net.ParseMAC(strings.TrimSpace(val))
 	if err != nil {
