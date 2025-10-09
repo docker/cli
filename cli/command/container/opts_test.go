@@ -47,7 +47,7 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 	if err := flags.Parse(args); err != nil {
 		return nil, nil, nil, err
 	}
-	// TODO: fix tests to accept ContainerConfig
+	// TODO(dnephin): fix tests to accept ContainerConfig; see https://github.com/moby/moby/pull/31621
 	containerCfg, err := parse(flags, copts, runtime.GOOS)
 	if err != nil {
 		return nil, nil, nil, err
@@ -428,56 +428,55 @@ func TestParseHostnameDomainname(t *testing.T) {
 }
 
 func TestParseWithExpose(t *testing.T) {
-	invalids := map[string]string{
-		":":                   "invalid port format for --expose: :",
-		"8080:9090":           "invalid port format for --expose: 8080:9090",
-		"/tcp":                "invalid range format for --expose: /tcp, error: empty string specified for ports",
-		"/udp":                "invalid range format for --expose: /udp, error: empty string specified for ports",
-		"NaN/tcp":             `invalid range format for --expose: NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
-		"NaN-NaN/tcp":         `invalid range format for --expose: NaN-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
-		"8080-NaN/tcp":        `invalid range format for --expose: 8080-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
-		"1234567890-8080/tcp": `invalid range format for --expose: 1234567890-8080/tcp, error: strconv.ParseUint: parsing "1234567890": value out of range`,
-	}
-	valids := map[string][]container.PortRangeProto{
-		"8080/tcp":      {"8080/tcp"},
-		"8080/udp":      {"8080/udp"},
-		"8080/ncp":      {"8080/ncp"},
-		"8080-8080/udp": {"8080/udp"},
-		"8080-8082/tcp": {"8080/tcp", "8081/tcp", "8082/tcp"},
-	}
-	for expose, expectedError := range invalids {
-		if _, _, _, err := parseRun([]string{fmt.Sprintf("--expose=%v", expose), "img", "cmd"}); err == nil || err.Error() != expectedError {
-			t.Fatalf("Expected error '%v' with '--expose=%v', got '%v'", expectedError, expose, err)
+	t.Run("invalid", func(t *testing.T) {
+		tests := map[string]string{
+			":":                   "invalid port format for --expose: :",
+			"8080:9090":           "invalid port format for --expose: 8080:9090",
+			"/tcp":                "invalid range format for --expose: /tcp, error: empty string specified for ports",
+			"/udp":                "invalid range format for --expose: /udp, error: empty string specified for ports",
+			"NaN/tcp":             `invalid range format for --expose: NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
+			"NaN-NaN/tcp":         `invalid range format for --expose: NaN-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
+			"8080-NaN/tcp":        `invalid range format for --expose: 8080-NaN/tcp, error: strconv.ParseUint: parsing "NaN": invalid syntax`,
+			"1234567890-8080/tcp": `invalid range format for --expose: 1234567890-8080/tcp, error: strconv.ParseUint: parsing "1234567890": value out of range`,
 		}
-	}
-	for expose, exposedPorts := range valids {
-		config, _, _, err := parseRun([]string{fmt.Sprintf("--expose=%v", expose), "img", "cmd"})
-		if err != nil {
-			t.Fatal(err)
+		for expose, expectedError := range tests {
+			t.Run(expose, func(t *testing.T) {
+				_, _, _, err := parseRun([]string{fmt.Sprintf("--expose=%v", expose), "img", "cmd"})
+				assert.Error(t, err, expectedError)
+			})
 		}
-		if len(config.ExposedPorts) != len(exposedPorts) {
-			t.Fatalf("Expected %v exposed port, got %v", len(exposedPorts), len(config.ExposedPorts))
+	})
+	t.Run("valid", func(t *testing.T) {
+		tests := map[string][]container.PortRangeProto{
+			"8080/tcp":      {"8080/tcp"},
+			"8080/udp":      {"8080/udp"},
+			"8080/ncp":      {"8080/ncp"},
+			"8080-8080/udp": {"8080/udp"},
+			"8080-8082/tcp": {"8080/tcp", "8081/tcp", "8082/tcp"},
 		}
-		for _, port := range exposedPorts {
-			if _, ok := config.ExposedPorts[port]; !ok {
-				t.Fatalf("Expected %v, got %v", exposedPorts, config.ExposedPorts)
-			}
+		for expose, exposedPorts := range tests {
+			t.Run(expose, func(t *testing.T) {
+				config, _, _, err := parseRun([]string{fmt.Sprintf("--expose=%v", expose), "img", "cmd"})
+				assert.NilError(t, err)
+				for _, port := range exposedPorts {
+					_, ok := config.ExposedPorts[port]
+					assert.Check(t, ok, "missing port %q in exposed ports", port)
+				}
+			})
 		}
-	}
-	// Merge with actual published port
-	config, _, _, err := parseRun([]string{"--publish=80", "--expose=80-81/tcp", "img", "cmd"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(config.ExposedPorts) != 2 {
-		t.Fatalf("Expected 2 exposed ports, got %v", config.ExposedPorts)
-	}
-	ports := []container.PortRangeProto{"80/tcp", "81/tcp"}
-	for _, port := range ports {
-		if _, ok := config.ExposedPorts[port]; !ok {
-			t.Fatalf("Expected %v, got %v", ports, config.ExposedPorts)
+	})
+
+	t.Run("merge with published", func(t *testing.T) {
+		// Merge with actual published port
+		config, _, _, err := parseRun([]string{"--publish=80", "--expose=80-81/tcp", "img", "cmd"})
+		assert.NilError(t, err)
+		assert.Check(t, is.Len(config.ExposedPorts, 2))
+		ports := []container.PortRangeProto{"80/tcp", "81/tcp"}
+		for _, port := range ports {
+			_, ok := config.ExposedPorts[port]
+			assert.Check(t, ok, "missing port %q in exposed ports", port)
 		}
-	}
+	})
 }
 
 func TestParseDevice(t *testing.T) {
