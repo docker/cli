@@ -47,7 +47,7 @@ func parseRun(args []string) (*container.Config, *container.HostConfig, *network
 	if err := flags.Parse(args); err != nil {
 		return nil, nil, nil, err
 	}
-	// TODO: fix tests to accept ContainerConfig
+	// TODO(dnephin): fix tests to accept ContainerConfig; see https://github.com/moby/moby/pull/31621
 	containerCfg, err := parse(flags, copts, runtime.GOOS)
 	if err != nil {
 		return nil, nil, nil, err
