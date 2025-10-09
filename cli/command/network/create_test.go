@@ -137,18 +137,37 @@ func TestNetworkCreateErrors(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := newCreateCommand(
-			test.NewFakeCli(&fakeClient{
-				networkCreateFunc: tc.networkCreateFunc,
-			}),
-		)
-		cmd.SetArgs(tc.args)
-		for key, value := range tc.flags {
-			assert.NilError(t, cmd.Flags().Set(key, value))
+		var args []string
+		for flag, val := range tc.flags {
+			args = append(args, flag+"="+val)
 		}
-		cmd.SetOut(io.Discard)
-		cmd.SetErr(io.Discard)
-		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		if len(tc.args) > 0 {
+			args = append(args, tc.args...)
+		}
+		var name string
+		if len(args) == 0 {
+			name = "no args"
+		} else {
+			name = strings.Join(args, ",")
+		}
+		t.Run(name, func(t *testing.T) {
+			cmd := newCreateCommand(
+				test.NewFakeCli(&fakeClient{
+					networkCreateFunc: tc.networkCreateFunc,
+				}),
+			)
+			if len(tc.args) == 0 {
+				cmd.SetArgs([]string{})
+			} else {
+				cmd.SetArgs(tc.args)
+			}
+			for key, value := range tc.flags {
+				assert.NilError(t, cmd.Flags().Set(key, value))
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
 	}
 }
 
