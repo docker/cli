@@ -20,7 +20,7 @@ VERSION_QUAD=$(printf "%s" "$VERSION" | sed -re 's/^([0-9.]*).*$/\1/' | sed -re 
 # Generate versioninfo.json to be able to create a syso file which contains
 # Microsoft Windows Version Information and an icon using goversioninfo.
 # https://docs.microsoft.com/en-us/windows/win32/menurc/stringfileinfo-block
-# https://github.com/josephspurrier/goversioninfo/blob/master/testdata/resource/versioninfo.json
+# https://github.com/josephspurrier/goversioninfo/blob/v1.5.0/testdata/resource/versioninfo.json
 cat > ./cmd/docker/winresources/versioninfo.json <<EOL
 {
   "FixedFileInfo":
