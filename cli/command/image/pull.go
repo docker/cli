@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
@@ -54,10 +55,9 @@ func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Download all tagged images in the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
-
-	addPlatformFlag(flags, &opts.platform)
 	flags.BoolVar(&opts.untrusted, "disable-content-trust", !trust.Enabled(), "Skip image verification")
-
+	flags.StringVar(&opts.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
+	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 
 	return cmd
