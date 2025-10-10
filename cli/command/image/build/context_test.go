@@ -291,7 +291,7 @@ func TestIsArchive(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
-			assert.Check(t, is.Equal(tc.expected, IsArchive(tc.header)), tc.doc)
+			assert.Check(t, is.Equal(tc.expected, isArchive(tc.header)), tc.doc)
 		})
 	}
 }
