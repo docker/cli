@@ -6,6 +6,7 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"net/netip"
 	"strings"
 	"testing"
 	"time"
@@ -27,7 +28,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 		Mode: "vip",
 		Ports: []swarm.PortConfig{
 			{
-				Protocol:   swarm.PortConfigProtocolTCP,
+				Protocol:   network.TCP,
 				TargetPort: 5000,
 			},
 		},
@@ -108,7 +109,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 			Spec: *endpointSpec,
 			Ports: []swarm.PortConfig{
 				{
-					Protocol:      swarm.PortConfigProtocolTCP,
+					Protocol:      network.TCP,
 					TargetPort:    5000,
 					PublishedPort: 30000,
 				},
@@ -116,7 +117,7 @@ func formatServiceInspect(t *testing.T, format formatter.Format, now time.Time) 
 			VirtualIPs: []swarm.EndpointVirtualIP{
 				{
 					NetworkID: "6o4107cj2jx9tihgb0jyts6pj",
-					Addr:      "10.255.0.4/16",
+					Addr:      netip.MustParsePrefix("10.255.0.4/16"), // FIXME(thaJeztah): this was testing with "10.255.0.4/16"
 				},
 			},
 		},

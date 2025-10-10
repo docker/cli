@@ -8,8 +8,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/google/go-cmp/cmp"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
@@ -57,9 +55,9 @@ func TestNetworkList(t *testing.T) {
 			golden: "network-list.golden",
 			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
 				expectedOpts := client.NetworkListOptions{
-					Filters: filters.NewArgs(filters.Arg("image.name", "ubuntu")),
+					Filters: make(client.Filters).Add("image.name", "ubuntu"),
 				}
-				assert.Check(t, is.DeepEqual(expectedOpts, options, cmp.AllowUnexported(filters.Args{})))
+				assert.Check(t, is.DeepEqual(expectedOpts, options))
 
 				return []network.Summary{*builders.NetworkResource(builders.NetworkResourceID("123454321"),
 					builders.NetworkResourceName("network_1"),

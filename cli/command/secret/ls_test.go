@@ -13,7 +13,6 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -135,8 +134,8 @@ func TestSecretListWithFormat(t *testing.T) {
 func TestSecretListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
-			assert.Check(t, is.Equal("foo", options.Filters.Get("name")[0]), "foo")
-			assert.Check(t, is.Equal("lbl1=Label-bar", options.Filters.Get("label")[0]))
+			assert.Check(t, options.Filters["name"]["foo"])
+			assert.Check(t, options.Filters["label"]["lbl1=Label-bar"])
 			return []swarm.Secret{
 				*builders.Secret(builders.SecretID("ID-foo"),
 					builders.SecretName("foo"),

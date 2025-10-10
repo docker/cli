@@ -11,7 +11,6 @@ import (
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -69,7 +68,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			name: "match-name",
 			args: []string{"image"},
 			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
-				assert.Check(t, is.Equal("image", options.Filters.Get("reference")[0]))
+				assert.Check(t, options.Filters["reference"]["image"])
 				return []image.Summary{}, nil
 			},
 		},
@@ -77,7 +76,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			name: "filters",
 			args: []string{"--filter", "name=value"},
 			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
-				assert.Check(t, is.Equal("value", options.Filters.Get("name")[0]))
+				assert.Check(t, options.Filters["name"]["value"])
 				return []image.Summary{}, nil
 			},
 		},

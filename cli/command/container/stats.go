@@ -10,13 +10,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/api/types/events"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -60,7 +60,7 @@ type StatsOptions struct {
 	// filter options may be added in future (within the constraints described
 	// above), but may require daemon-side validation as the list of accepted
 	// filters can differ between daemon- and API versions.
-	Filters *filters.Args
+	Filters client.Filters
 }
 
 // newStatsCommand creates a new [cobra.Command] for "docker container stats".
@@ -101,6 +101,24 @@ var acceptedStatsFilters = map[string]bool{
 	"label": true,
 }
 
+// cloneFilters returns a deep copy of f.
+//
+// TODO(thaJeztah): add this as a "Clone" method on client.Filters.
+func cloneFilters(f client.Filters) client.Filters {
+	if f == nil {
+		return nil
+	}
+	out := make(client.Filters, len(f))
+	for term, values := range f {
+		inner := make(map[string]bool, len(values))
+		for v, ok := range values {
+			inner[v] = ok
+		}
+		out[term] = inner
+	}
+	return out
+}
+
 // RunStats displays a live stream of resource usage statistics for one or more containers.
 // This shows real-time information on CPU usage, memory usage, and network I/O.
 //
@@ -123,12 +141,14 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		started := make(chan struct{})
 
 		if options.Filters == nil {
-			f := filters.NewArgs()
-			options.Filters = &f
+			options.Filters = make(client.Filters)
 		}
 
-		if err := options.Filters.Validate(acceptedStatsFilters); err != nil {
-			return err
+		// FIXME(thaJeztah): any way we can (and should?) validate allowed filters?
+		for filter := range options.Filters {
+			if _, ok := acceptedStatsFilters[filter]; !ok {
+				return errdefs.ErrInvalidArgument.WithMessage("invalid filter '" + filter + "'")
+			}
 		}
 
 		eh := newEventHandler()
@@ -163,7 +183,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			// the original set of filters. Custom filters are used both
 			// to list containers and to filter events, but the "type" filter
 			// is not valid for filtering containers.
-			f := options.Filters.Clone()
+			f := cloneFilters(options.Filters)
 			f.Add("type", string(events.ContainerEventType))
 			eventChan, errChan := apiClient.Events(ctx, client.EventsListOptions{
 				Filters: f,
@@ -199,7 +219,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// to refresh the list of containers.
 		cs, err := apiClient.ContainerList(ctx, client.ContainerListOptions{
 			All:     options.All,
-			Filters: *options.Filters,
+			Filters: options.Filters,
 		})
 		if err != nil {
 			return err
@@ -219,7 +239,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// only a single code-path is needed, and custom filters can be combined
 		// with a list of container names/IDs.
 
-		if options.Filters != nil && options.Filters.Len() > 0 {
+		if len(options.Filters) > 0 {
 			return errors.New("filtering is not supported when specifying a list of containers")
 		}
 

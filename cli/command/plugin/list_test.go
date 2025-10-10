@@ -6,11 +6,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/plugin"
+	"github.com/moby/moby/client"
 
 	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
 )
 
@@ -20,7 +19,7 @@ func TestListErrors(t *testing.T) {
 		args          []string
 		flags         map[string]string
 		expectedError string
-		listFunc      func(filter filters.Args) (plugin.ListResponse, error)
+		listFunc      func(filter client.Filters) (plugin.ListResponse, error)
 	}{
 		{
 			description:   "too many arguments",
@@ -31,7 +30,7 @@ func TestListErrors(t *testing.T) {
 			description:   "error listing plugins",
 			args:          []string{},
 			expectedError: "error listing plugins",
-			listFunc: func(filter filters.Args) (plugin.ListResponse, error) {
+			listFunc: func(filter client.Filters) (plugin.ListResponse, error) {
 				return plugin.ListResponse{}, errors.New("error listing plugins")
 			},
 		},
@@ -61,7 +60,7 @@ func TestListErrors(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	singlePluginListFunc := func(_ filters.Args) (plugin.ListResponse, error) {
+	singlePluginListFunc := func(_ client.Filters) (plugin.ListResponse, error) {
 		return plugin.ListResponse{
 			{
 				ID:      "id-foo",
@@ -79,7 +78,7 @@ func TestList(t *testing.T) {
 		args        []string
 		flags       map[string]string
 		golden      string
-		listFunc    func(filter filters.Args) (plugin.ListResponse, error)
+		listFunc    func(filter client.Filters) (plugin.ListResponse, error)
 	}{
 		{
 			description: "list with no additional flags",
@@ -94,8 +93,8 @@ func TestList(t *testing.T) {
 				"filter": "foo=bar",
 			},
 			golden: "plugin-list-without-format.golden",
-			listFunc: func(filter filters.Args) (plugin.ListResponse, error) {
-				assert.Check(t, is.Equal("bar", filter.Get("foo")[0]))
+			listFunc: func(filter client.Filters) (plugin.ListResponse, error) {
+				assert.Check(t, filter["foo"]["bar"])
 				return singlePluginListFunc(filter)
 			},
 		},
@@ -116,7 +115,7 @@ func TestList(t *testing.T) {
 				"format":   "{{ .ID }}",
 			},
 			golden: "plugin-list-with-no-trunc-option.golden",
-			listFunc: func(_ filters.Args) (plugin.ListResponse, error) {
+			listFunc: func(_ client.Filters) (plugin.ListResponse, error) {
 				return plugin.ListResponse{
 					{
 						ID:      "xyg4z2hiSLO5yTnBJfg4OYia9gKA6Qjd",
@@ -145,7 +144,7 @@ func TestList(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-list-sort.golden",
-			listFunc: func(_ filters.Args) (plugin.ListResponse, error) {
+			listFunc: func(_ client.Filters) (plugin.ListResponse, error) {
 				return plugin.ListResponse{
 					{
 						ID:   "id-1",

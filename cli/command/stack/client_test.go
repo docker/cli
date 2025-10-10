@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/moby/moby/api/types"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
@@ -226,8 +225,13 @@ func configFromName(name string) swarm.Config {
 	}
 }
 
-func namespaceFromFilters(fltrs filters.Args) string {
-	label := fltrs.Get("label")[0]
+func namespaceFromFilters(fltrs client.Filters) string {
+	// FIXME(thaJeztah): more elegant way for this? Should we have a utility for this?
+	var label string
+	for fltr := range fltrs["label"] {
+		label = fltr
+		break
+	}
 	return strings.TrimPrefix(label, convert.LabelNamespace+"=")
 }
 

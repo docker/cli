@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ const (
 // - "disabled": all disabled plugins
 func completeNames(dockerCLI completion.APIClientProvider, state pluginState) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		f := filters.NewArgs()
+		f := make(client.Filters)
 		switch state {
 		case stateEnabled:
 			f.Add("enabled", "true")

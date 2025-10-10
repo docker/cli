@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/go-units"
-	"github.com/moby/moby/api/types/filters"
+	"github.com/moby/moby/client"
 )
 
 var (
@@ -279,20 +280,20 @@ func ValidateSysctl(val string) (string, error) {
 
 // FilterOpt is a flag type for validating filters
 type FilterOpt struct {
-	filter filters.Args
+	filter client.Filters
 }
 
 // NewFilterOpt returns a new FilterOpt
 func NewFilterOpt() FilterOpt {
-	return FilterOpt{filter: filters.NewArgs()}
+	return FilterOpt{filter: make(client.Filters)}
 }
 
 func (o *FilterOpt) String() string {
-	repr, err := filters.ToJSON(o.filter)
+	repr, err := json.Marshal(o.filter)
 	if err != nil {
 		return "invalid filters"
 	}
-	return repr
+	return string(repr)
 }
 
 // Set sets the value of the opt by parsing the command line value
@@ -318,7 +319,7 @@ func (*FilterOpt) Type() string {
 }
 
 // Value returns the value of this option
-func (o *FilterOpt) Value() filters.Args {
+func (o *FilterOpt) Value() client.Filters {
 	return o.filter
 }
 

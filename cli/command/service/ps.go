@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/command/node"
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -81,11 +80,11 @@ func runPS(ctx context.Context, dockerCli command.Cli, options psOptions) error 
 	return nil
 }
 
-func createFilter(ctx context.Context, apiClient client.APIClient, options psOptions) (filters.Args, []string, error) {
+func createFilter(ctx context.Context, apiClient client.APIClient, options psOptions) (client.Filters, []string, error) {
 	filter := options.filter.Value()
 
-	serviceIDFilter := filters.NewArgs()
-	serviceNameFilter := filters.NewArgs()
+	serviceIDFilter := make(client.Filters)
+	serviceNameFilter := make(client.Filters)
 	for _, service := range options.services {
 		serviceIDFilter.Add("id", service)
 		serviceNameFilter.Add("name", service)
@@ -139,15 +138,15 @@ loop:
 	return filter, notfound, err
 }
 
-func updateNodeFilter(ctx context.Context, apiClient client.APIClient, filter filters.Args) error {
-	if filter.Contains("node") {
-		nodeFilters := filter.Get("node")
-		for _, nodeFilter := range nodeFilters {
+func updateNodeFilter(ctx context.Context, apiClient client.APIClient, filter client.Filters) error {
+	if nodeFilters, ok := filter["node"]; ok {
+		for nodeFilter := range nodeFilters {
 			nodeReference, err := node.Reference(ctx, apiClient, nodeFilter)
 			if err != nil {
 				return err
 			}
-			filter.Del("node", nodeFilter)
+			// TODO(thaJeztah): add utility to remove?
+			delete(filter["node"], nodeFilter)
 			filter.Add("node", nodeReference)
 		}
 	}

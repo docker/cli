@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -74,9 +73,9 @@ func TestNewPullCommandSuccess(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				imagePullFunc: func(ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
+				imagePullFunc: func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error) {
 					assert.Check(t, is.Equal(tc.expectedTag, ref), tc.name)
-					return io.NopCloser(strings.NewReader("")), nil
+					return client.ImagePullResponse{}, nil
 				},
 			})
 			cmd := newPullCommand(cli)
@@ -120,8 +119,8 @@ func TestNewPullCommandWithContentTrustErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Setenv("DOCKER_CONTENT_TRUST", "true")
 			cli := test.NewFakeCli(&fakeClient{
-				imagePullFunc: func(ref string, options client.ImagePullOptions) (io.ReadCloser, error) {
-					return io.NopCloser(strings.NewReader("")), errors.New("shouldn't try to pull image")
+				imagePullFunc: func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error) {
+					return client.ImagePullResponse{}, errors.New("shouldn't try to pull image")
 				},
 			})
 			cli.SetNotaryClient(tc.notaryFunc)

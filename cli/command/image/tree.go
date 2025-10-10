@@ -17,7 +17,6 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/go-units"
-	"github.com/moby/moby/api/types/filters"
 	imagetypes "github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"github.com/morikuni/aec"
@@ -26,7 +25,7 @@ import (
 
 type treeOptions struct {
 	all     bool
-	filters filters.Args
+	filters client.Filters
 }
 
 type treeView struct {

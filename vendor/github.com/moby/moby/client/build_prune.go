@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/moby/moby/api/types/build"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/versions"
 )
 
@@ -18,11 +17,17 @@ type BuildCachePruneOptions struct {
 	ReservedSpace int64
 	MaxUsedSpace  int64
 	MinFreeSpace  int64
-	Filters       filters.Args
+	Filters       Filters
+}
+
+// BuildCachePruneResult holds the result from the BuildCachePrune method.
+type BuildCachePruneResult struct {
+	Report build.CachePruneReport
 }
 
 // BuildCachePrune requests the daemon to delete unused cache data.
-func (cli *Client) BuildCachePrune(ctx context.Context, opts BuildCachePruneOptions) (*build.CachePruneReport, error) {
+func (cli *Client) BuildCachePrune(ctx context.Context, opts BuildCachePruneOptions) (BuildCachePruneResult, error) {
+	var out BuildCachePruneResult
 	query := url.Values{}
 	if opts.All {
 		query.Set("all", "1")
@@ -43,23 +48,20 @@ func (cli *Client) BuildCachePrune(ctx context.Context, opts BuildCachePruneOpti
 	if opts.MinFreeSpace != 0 {
 		query.Set("min-free-space", strconv.Itoa(int(opts.MinFreeSpace)))
 	}
-	f, err := filters.ToJSON(opts.Filters)
-	if err != nil {
-		return nil, fmt.Errorf("prune could not marshal filters option: %w", err)
-	}
-	query.Set("filters", f)
+	opts.Filters.updateURLValues(query)
 
 	resp, err := cli.post(ctx, "/build/prune", query, nil, nil)
 	defer ensureReaderClosed(resp)
 
 	if err != nil {
-		return nil, err
+		return BuildCachePruneResult{}, err
 	}
 
 	report := build.CachePruneReport{}
 	if err := json.NewDecoder(resp.Body).Decode(&report); err != nil {
-		return nil, fmt.Errorf("error retrieving disk usage: %w", err)
+		return BuildCachePruneResult{}, fmt.Errorf("error retrieving disk usage: %w", err)
 	}
 
-	return &report, nil
+	out.Report = report
+	return out, nil
 }

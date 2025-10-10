@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
@@ -38,22 +37,18 @@ func quotesOrWhitespace(r rune) bool {
 	return unicode.IsSpace(r) || r == '"' || r == '\''
 }
 
-func getStackFilter(namespace string) filters.Args {
-	filter := filters.NewArgs()
-	filter.Add("label", convert.LabelNamespace+"="+namespace)
-	return filter
+func getStackFilter(namespace string) client.Filters {
+	return make(client.Filters).Add("label", convert.LabelNamespace+"="+namespace)
 }
 
-func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) filters.Args {
+func getStackFilterFromOpt(namespace string, opt opts.FilterOpt) client.Filters {
 	filter := opt.Value()
 	filter.Add("label", convert.LabelNamespace+"="+namespace)
 	return filter
 }
 
-func getAllStacksFilter() filters.Args {
-	filter := filters.NewArgs()
-	filter.Add("label", convert.LabelNamespace)
-	return filter
+func getAllStacksFilter() client.Filters {
+	return make(client.Filters).Add("label", convert.LabelNamespace)
 }
 
 func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Service, error) {

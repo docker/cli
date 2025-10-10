@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"net"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	"github.com/spf13/cobra"
 )
 
@@ -60,24 +59,21 @@ func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) erro
 
 	var out []string
 	if opts.port != "" {
-		port, proto, _ := strings.Cut(opts.port, "/")
-		if proto == "" {
-			proto = "tcp"
+		port, err := network.ParsePort(opts.port)
+		if err != nil {
+			return err
 		}
-		if _, err = strconv.ParseUint(port, 10, 16); err != nil {
-			return fmt.Errorf("invalid port (%s): %w", port, err)
-		}
-		frontends, exists := c.NetworkSettings.Ports[container.PortRangeProto(port+"/"+proto)]
+		frontends, exists := c.NetworkSettings.Ports[port]
 		if !exists || len(frontends) == 0 {
 			return fmt.Errorf("no public port '%s' published for %s", opts.port, opts.container)
 		}
 		for _, frontend := range frontends {
-			out = append(out, net.JoinHostPort(frontend.HostIP, frontend.HostPort))
+			out = append(out, net.JoinHostPort(frontend.HostIP.String(), frontend.HostPort))
 		}
 	} else {
 		for from, frontends := range c.NetworkSettings.Ports {
 			for _, frontend := range frontends {
-				out = append(out, fmt.Sprintf("%s -> %s", from, net.JoinHostPort(frontend.HostIP, frontend.HostPort)))
+				out = append(out, fmt.Sprintf("%s -> %s", from, net.JoinHostPort(frontend.HostIP.String(), frontend.HostPort)))
 			}
 		}
 	}

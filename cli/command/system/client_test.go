@@ -6,7 +6,6 @@ import (
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/events"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
@@ -20,12 +19,12 @@ type fakeClient struct {
 
 	version            string
 	containerListFunc  func(context.Context, client.ContainerListOptions) ([]container.Summary, error)
-	containerPruneFunc func(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
+	containerPruneFunc func(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error)
 	eventsFn           func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error)
 	imageListFunc      func(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error)
 	infoFunc           func(ctx context.Context) (system.Info, error)
 	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
-	networkPruneFunc   func(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
+	networkPruneFunc   func(ctx context.Context, pruneFilter client.Filters) (network.PruneReport, error)
 	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error)
 	serverVersion      func(ctx context.Context) (types.Version, error)
 	volumeListFunc     func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error)
@@ -42,7 +41,7 @@ func (cli *fakeClient) ContainerList(ctx context.Context, options client.Contain
 	return []container.Summary{}, nil
 }
 
-func (cli *fakeClient) ContainersPrune(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error) {
+func (cli *fakeClient) ContainersPrune(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error) {
 	if cli.containerPruneFunc != nil {
 		return cli.containerPruneFunc(ctx, pruneFilters)
 	}
@@ -74,7 +73,7 @@ func (cli *fakeClient) NetworkList(ctx context.Context, options client.NetworkLi
 	return []network.Summary{}, nil
 }
 
-func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error) {
+func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter client.Filters) (network.PruneReport, error) {
 	if cli.networkPruneFunc != nil {
 		return cli.networkPruneFunc(ctx, pruneFilter)
 	}

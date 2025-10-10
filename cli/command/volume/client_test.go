@@ -3,7 +3,6 @@ package volume
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"
 )
@@ -12,9 +11,9 @@ type fakeClient struct {
 	client.Client
 	volumeCreateFunc  func(volume.CreateOptions) (volume.Volume, error)
 	volumeInspectFunc func(volumeID string) (volume.Volume, error)
-	volumeListFunc    func(filter filters.Args) (volume.ListResponse, error)
+	volumeListFunc    func(filter client.Filters) (volume.ListResponse, error)
 	volumeRemoveFunc  func(volumeID string, force bool) error
-	volumePruneFunc   func(filter filters.Args) (volume.PruneReport, error)
+	volumePruneFunc   func(filter client.Filters) (volume.PruneReport, error)
 }
 
 func (c *fakeClient) VolumeCreate(_ context.Context, options volume.CreateOptions) (volume.Volume, error) {
@@ -38,7 +37,7 @@ func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOpti
 	return volume.ListResponse{}, nil
 }
 
-func (c *fakeClient) VolumesPrune(_ context.Context, filter filters.Args) (volume.PruneReport, error) {
+func (c *fakeClient) VolumesPrune(_ context.Context, filter client.Filters) (volume.PruneReport, error) {
 	if c.volumePruneFunc != nil {
 		return c.volumePruneFunc(filter)
 	}

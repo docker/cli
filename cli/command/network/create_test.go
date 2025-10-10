@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/netip"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
@@ -35,24 +37,15 @@ func TestNetworkCreateErrors(t *testing.T) {
 			args: []string{"toto"},
 			flags: map[string]string{
 				"ip-range": "255.255.0.0/24",
-				"gateway":  "255.0.255.0/24",
+				"gateway":  "255.0.255.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.0.255.0/24")
 				"subnet":   "10.1.2.0.30.50",
 			},
-			expectedError: "invalid CIDR address: 10.1.2.0.30.50",
+			expectedError: `netip.ParsePrefix("10.1.2.0.30.50"): no '/'`,
 		},
 		{
 			args: []string{"toto"},
 			flags: map[string]string{
-				"ip-range": "255.255.0.0.30/24",
-				"gateway":  "255.0.255.0/24",
-				"subnet":   "255.0.0.0/24",
-			},
-			expectedError: "invalid CIDR address: 255.255.0.0.30/24",
-		},
-		{
-			args: []string{"toto"},
-			flags: map[string]string{
-				"gateway": "255.0.0.0/24",
+				"gateway": "255.0.0.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.0.0.0/24")
 			},
 			expectedError: "every ip-range or gateway must have a corresponding subnet",
 		},
@@ -67,7 +60,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 			args: []string{"toto"},
 			flags: map[string]string{
 				"ip-range": "255.0.0.0/24",
-				"gateway":  "255.0.0.0/24",
+				"gateway":  "255.0.0.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.0.0.0/24")
 			},
 			expectedError: "every ip-range or gateway must have a corresponding subnet",
 		},
@@ -75,7 +68,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 			args: []string{"toto"},
 			flags: map[string]string{
 				"ip-range": "255.255.0.0/24",
-				"gateway":  "255.0.255.0/24",
+				"gateway":  "255.0.255.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.0.0.0/24")
 				"subnet":   "10.1.2.0/23,10.1.3.248/30",
 			},
 			expectedError: "multiple overlapping subnet configuration is not supported",
@@ -83,17 +76,17 @@ func TestNetworkCreateErrors(t *testing.T) {
 		{
 			args: []string{"toto"},
 			flags: map[string]string{
-				"ip-range": "192.168.1.0/24,192.168.1.200/24",
+				"ip-range": "192.168.1.0/25,192.168.1.128/25",
 				"gateway":  "192.168.1.1,192.168.1.4",
 				"subnet":   "192.168.2.0/24,192.168.1.250/24",
 			},
-			expectedError: "cannot configure multiple ranges (192.168.1.200/24, 192.168.1.0/24) on the same subnet (192.168.1.250/24)",
+			expectedError: "cannot configure multiple ranges (192.168.1.128/25, 192.168.1.0/25) on the same subnet (192.168.1.250/24)",
 		},
 		{
 			args: []string{"toto"},
 			flags: map[string]string{
 				"ip-range": "255.255.200.0/24,255.255.120.0/24",
-				"gateway":  "255.0.255.0/24",
+				"gateway":  "255.0.255.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.0.0.0/24")
 				"subnet":   "255.255.255.0/24,255.255.0.255/24",
 			},
 			expectedError: "no matching subnet for range 255.255.200.0/24",
@@ -119,20 +112,11 @@ func TestNetworkCreateErrors(t *testing.T) {
 		{
 			args: []string{"toto"},
 			flags: map[string]string{
-				"gateway":     "255.255.0.0/24",
+				"gateway":     "255.255.0.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.255.0.0/24")
 				"subnet":      "255.255.0.0/24",
-				"aux-address": "255.255.0.30/24",
+				"aux-address": "router=255.255.1.30", // outside 255.255.0.0/24  // FIXME(thaJeztah): this used to accept a CIDR ("255.255.0.30/24")
 			},
 			expectedError: "no matching subnet for aux-address",
-		},
-		{
-			args: []string{"toto"},
-			flags: map[string]string{
-				"ip-range": "192.168.83.1-192.168.83.254",
-				"gateway":  "192.168.80.1",
-				"subnet":   "192.168.80.0/20",
-			},
-			expectedError: "invalid CIDR address: 192.168.83.1-192.168.83.254",
 		},
 	}
 
@@ -175,16 +159,16 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	expectedDriver := "foo"
 	expectedOpts := []network.IPAMConfig{
 		{
-			Subnet:     "192.168.4.0/24",
-			IPRange:    "192.168.4.0/24",
-			Gateway:    "192.168.4.1/24",
-			AuxAddress: map[string]string{},
+			Subnet:     netip.MustParsePrefix("192.168.4.0/24"),
+			IPRange:    netip.MustParsePrefix("192.168.4.0/24"),
+			Gateway:    netip.MustParseAddr("192.168.4.1"), // FIXME(thaJeztah): this used to accept a CIDR ("192.168.4.1/24")
+			AuxAddress: map[string]netip.Addr{},
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{
 		networkCreateFunc: func(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error) {
 			assert.Check(t, is.Equal(expectedDriver, options.Driver), "not expected driver error")
-			assert.Check(t, is.DeepEqual(expectedOpts, options.IPAM.Config), "not expected driver error")
+			assert.Check(t, is.DeepEqual(expectedOpts, options.IPAM.Config, cmpopts.EquateComparable(netip.Addr{}, netip.Prefix{})), "not expected driver error")
 			return network.CreateResponse{
 				ID: name,
 			}, nil
@@ -196,7 +180,7 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 	cmd.SetArgs(args)
 	assert.Check(t, cmd.Flags().Set("driver", "foo"))
 	assert.Check(t, cmd.Flags().Set("ip-range", "192.168.4.0/24"))
-	assert.Check(t, cmd.Flags().Set("gateway", "192.168.4.1/24"))
+	assert.Check(t, cmd.Flags().Set("gateway", "192.168.4.1")) // FIXME(thaJeztah): this used to accept a CIDR ("192.168.4.1/24")
 	assert.Check(t, cmd.Flags().Set("subnet", "192.168.4.0/24"))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("banana", strings.TrimSpace(cli.OutBuffer().String())))

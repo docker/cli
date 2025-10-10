@@ -360,13 +360,13 @@ func DisplayablePorts(ports []container.PortSummary) string {
 	for _, port := range ports {
 		current := port.PrivatePort
 		portKey := port.Type
-		if port.IP != "" {
+		if port.IP.IsValid() {
 			if port.PublicPort != current {
-				hAddrPort := net.JoinHostPort(port.IP, strconv.Itoa(int(port.PublicPort)))
+				hAddrPort := net.JoinHostPort(port.IP.String(), strconv.Itoa(int(port.PublicPort)))
 				hostMappings = append(hostMappings, fmt.Sprintf("%s->%d/%s", hAddrPort, port.PrivatePort, port.Type))
 				continue
 			}
-			portKey = port.IP + "/" + port.Type
+			portKey = port.IP.String() + "/" + port.Type
 		}
 		group := groupMap[portKey]
 
@@ -416,7 +416,7 @@ func comparePorts(i, j container.PortSummary) bool {
 	}
 
 	if i.IP != j.IP {
-		return i.IP < j.IP
+		return i.IP.String() < j.IP.String()
 	}
 
 	if i.PublicPort != j.PublicPort {

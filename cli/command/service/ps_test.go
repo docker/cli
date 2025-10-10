@@ -6,8 +6,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
-	"github.com/google/go-cmp/cmp"
-	"github.com/moby/moby/api/types/filters"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -38,13 +36,8 @@ func TestCreateFilter(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(notfound, []string{"no such service: notfound"}))
 
-	expected := filters.NewArgs(
-		filters.Arg("service", "idmatch"),
-		filters.Arg("service", "idprefixmatch"),
-		filters.Arg("service", "cccccccc"),
-		filters.Arg("node", "somenode"),
-	)
-	assert.DeepEqual(t, expected, actual, cmpFilters)
+	expected := make(client.Filters).Add("service", "idmatch").Add("service", "idprefixmatch").Add("service", "cccccccc").Add("node", "somenode")
+	assert.DeepEqual(t, expected, actual)
 }
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
@@ -114,11 +107,7 @@ func TestRunPSQuiet(t *testing.T) {
 
 func TestUpdateNodeFilter(t *testing.T) {
 	selfNodeID := "foofoo"
-	filter := filters.NewArgs(
-		filters.Arg("node", "one"),
-		filters.Arg("node", "two"),
-		filters.Arg("node", "self"),
-	)
+	filter := make(client.Filters).Add("node", "one", "two", "self")
 
 	apiClient := &fakeClient{
 		infoFunc: func(_ context.Context) (system.Info, error) {
@@ -129,12 +118,6 @@ func TestUpdateNodeFilter(t *testing.T) {
 	err := updateNodeFilter(context.Background(), apiClient, filter)
 	assert.NilError(t, err)
 
-	expected := filters.NewArgs(
-		filters.Arg("node", "one"),
-		filters.Arg("node", "two"),
-		filters.Arg("node", selfNodeID),
-	)
-	assert.DeepEqual(t, expected, filter, cmpFilters)
+	expected := make(client.Filters).Add("node", "one", "two", selfNodeID)
+	assert.DeepEqual(t, expected, filter)
 }
-
-var cmpFilters = cmp.AllowUnexported(filters.Args{})

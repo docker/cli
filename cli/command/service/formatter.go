@@ -735,7 +735,7 @@ type portRange struct {
 	pEnd     uint32
 	tStart   uint32
 	tEnd     uint32
-	protocol swarm.PortConfigProtocol
+	protocol network.IPProtocol
 }
 
 func (pr portRange) String() string {

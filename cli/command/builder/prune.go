@@ -70,8 +70,7 @@ const (
 )
 
 func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
-	pruneFilters := options.filter.Value()
-	pruneFilters = command.PruneFilters(dockerCli, pruneFilters)
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	warning := normalWarning
 	if options.all {
@@ -87,7 +86,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().BuildCachePrune(ctx, client.BuildCachePruneOptions{
+	resp, err := dockerCli.Client().BuildCachePrune(ctx, client.BuildCachePruneOptions{
 		All:           options.all,
 		ReservedSpace: options.reservedSpace.Value(),
 		Filters:       pruneFilters,
@@ -95,7 +94,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	if err != nil {
 		return 0, "", err
 	}
-
+	report := resp.Report
 	if len(report.CachesDeleted) > 0 {
 		var sb strings.Builder
 		sb.WriteString("Deleted build cache objects:\n")
