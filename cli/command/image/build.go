@@ -181,7 +181,6 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 //nolint:gocyclo
 func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) error {
 	var (
-		err           error
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
 		contextDir    string
@@ -263,7 +262,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		}
 
 		if err := build.ValidateContextDirectory(contextDir, excludes); err != nil {
-			return fmt.Errorf("error checking context: %w", err)
+			return fmt.Errorf("checking context: %w", err)
 		}
 
 		// And canonicalize dockerfile name to a platform-independent one
@@ -286,9 +285,6 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			return err
 		}
 	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
 	if options.compress {
 		buildCtx, err = build.Compress(buildCtx)
@@ -330,17 +326,18 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		}
 	}
 	buildOpts := imageBuildOptions(dockerCli, options)
-	buildOpts.Version = buildtypes.BuilderV1
 	buildOpts.Dockerfile = relDockerfile
 	buildOpts.AuthConfigs = authConfigs
 	buildOpts.RemoteContext = remote
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	response, err := dockerCli.Client().ImageBuild(ctx, body, buildOpts)
 	if err != nil {
 		if options.quiet {
 			_, _ = fmt.Fprintf(dockerCli.Err(), "%s", progBuff)
 		}
-		cancel()
 		return err
 	}
 	defer response.Body.Close()
@@ -357,7 +354,8 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	err = jsonstream.Display(ctx, response.Body, streams.NewOut(buildBuff), jsonstream.WithAuxCallback(aux))
 	if err != nil {
-		if jerr, ok := err.(*jsonstream.JSONError); ok {
+		var jerr *jsonstream.JSONError
+		if errors.As(err, &jerr) {
 			// If no error code is set, default to 1
 			if jerr.Code == 0 {
 				jerr.Code = 1
@@ -402,6 +400,7 @@ func validateTag(rawRepo string) (string, error) {
 func imageBuildOptions(dockerCli command.Cli, options buildOptions) client.ImageBuildOptions {
 	configFile := dockerCli.ConfigFile()
 	return client.ImageBuildOptions{
+		Version:        buildtypes.BuilderV1,
 		Memory:         options.memory.Value(),
 		MemorySwap:     options.memorySwap.Value(),
 		Tags:           options.tags.GetSlice(),
