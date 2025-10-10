@@ -16,7 +16,6 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 )
 
@@ -44,7 +43,7 @@ func Services(
 			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
 
-		serviceSpec, err := Service(apiClient.ClientVersion(), namespace, service, config.Networks, config.Volumes, secrets, configs)
+		serviceSpec, err := Service(namespace, service, config.Networks, config.Volumes, secrets, configs)
 		if err != nil {
 			return nil, fmt.Errorf("service %s: %w", service.Name, err)
 		}
@@ -56,7 +55,6 @@ func Services(
 
 // Service converts a ServiceConfig into a swarm ServiceSpec
 func Service(
-	apiVersion string,
 	namespace Namespace,
 	service composetypes.ServiceConfig,
 	networkConfigs map[string]composetypes.NetworkConfig,
@@ -161,6 +159,7 @@ func Service(
 				Preferences: getPlacementPreference(service.Deploy.Placement.Preferences),
 				MaxReplicas: service.Deploy.Placement.MaxReplicas,
 			},
+			Networks: networks,
 		},
 		EndpointSpec:   endpoint,
 		Mode:           mode,
@@ -171,18 +170,6 @@ func Service(
 	// add an image label to serviceSpec
 	serviceSpec.Labels[LabelImage] = service.Image
 
-	// ServiceSpec.Networks is deprecated and should not have been used by
-	// this package. It is possible to update TaskTemplate.Networks, but it
-	// is not possible to update ServiceSpec.Networks. Unfortunately, we
-	// can't unconditionally start using TaskTemplate.Networks, because that
-	// will break with older daemons that don't support migrating from
-	// ServiceSpec.Networks to TaskTemplate.Networks. So which field to use
-	// is conditional on daemon version.
-	if versions.LessThan(apiVersion, "1.29") {
-		serviceSpec.Networks = networks //nolint:staticcheck // ignore SA1019: field is deprecated.
-	} else {
-		serviceSpec.TaskTemplate.Networks = networks
-	}
 	return serviceSpec, nil
 }
 
@@ -670,7 +657,6 @@ func toNetipAddrSlice(ips []string) []netip.Addr {
 func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpecConfig, refs []*swarm.ConfigReference) (*swarm.CredentialSpec, error) {
 	var o []string
 
-	// Config was added in API v1.40
 	if spec.Config != "" {
 		o = append(o, `"Config"`)
 	}

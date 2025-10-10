@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -61,20 +60,14 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions) e
 			return err
 		}
 
-		var secrets []swarm.Secret
-		if versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.25") {
-			secrets, err = getStackSecrets(ctx, apiClient, namespace)
-			if err != nil {
-				return err
-			}
+		secrets, err := getStackSecrets(ctx, apiClient, namespace)
+		if err != nil {
+			return err
 		}
 
-		var configs []swarm.Config
-		if versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
-			configs, err = getStackConfigs(ctx, apiClient, namespace)
-			if err != nil {
-				return err
-			}
+		configs, err := getStackConfigs(ctx, apiClient, namespace)
+		if err != nil {
+			return err
 		}
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {

@@ -351,11 +351,7 @@ func TestParseWithMacAddress(t *testing.T) {
 	if _, _, _, err := parseRun([]string{invalidMacAddress, "img", "cmd"}); err != nil && err.Error() != "invalidMacAddress is not a valid mac address" {
 		t.Fatalf("Expected an error with %v mac-address, got %v", invalidMacAddress, err)
 	}
-	config, hostConfig, nwConfig := mustParse(t, validMacAddress)
-	if config.MacAddress != "92:d0:c6:0a:29:33" { //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
-		t.Fatalf("Expected the config to have '92:d0:c6:0a:29:33' as container-wide MacAddress, got '%v'",
-			config.MacAddress) //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
-	}
+	_, hostConfig, nwConfig := mustParse(t, validMacAddress)
 	defaultNw := hostConfig.NetworkMode.NetworkName()
 	if nwConfig.EndpointsConfig[defaultNw].MacAddress != "92:d0:c6:0a:29:33" {
 		t.Fatalf("Expected the default endpoint to have the MacAddress '92:d0:c6:0a:29:33' set, got '%v'", nwConfig.EndpointsConfig[defaultNw].MacAddress)
@@ -576,7 +572,6 @@ func TestParseNetworkConfig(t *testing.T) {
 		name            string
 		flags           []string
 		expected        map[string]*networktypes.EndpointSettings
-		expectedCfg     container.Config
 		expectedHostCfg container.HostConfig
 		expectedErr     string
 	}{
@@ -680,7 +675,6 @@ func TestParseNetworkConfig(t *testing.T) {
 					MacAddress: "02:32:1c:23:00:04",
 				},
 			},
-			expectedCfg:     container.Config{MacAddress: "02:32:1c:23:00:04"},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
@@ -698,7 +692,6 @@ func TestParseNetworkConfig(t *testing.T) {
 					MacAddress: "52:0f:f3:dc:50:10",
 				},
 			},
-			expectedCfg:     container.Config{MacAddress: "52:0f:f3:dc:50:10"},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
@@ -745,7 +738,7 @@ func TestParseNetworkConfig(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			config, hConfig, nwConfig, err := parseRun(tc.flags)
+			_, hConfig, nwConfig, err := parseRun(tc.flags)
 
 			if tc.expectedErr != "" {
 				assert.Error(t, err, tc.expectedErr)
@@ -753,7 +746,6 @@ func TestParseNetworkConfig(t *testing.T) {
 			}
 
 			assert.NilError(t, err)
-			assert.DeepEqual(t, config.MacAddress, tc.expectedCfg.MacAddress) //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
 			assert.DeepEqual(t, hConfig.NetworkMode, tc.expectedHostCfg.NetworkMode)
 			assert.DeepEqual(t, nwConfig.EndpointsConfig, tc.expected, cmpopts.EquateComparable(netip.Addr{}))
 		})

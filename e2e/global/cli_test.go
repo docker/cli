@@ -16,7 +16,6 @@ import (
 	"github.com/docker/cli/e2e/testutils"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/environment"
-	"github.com/moby/moby/api/types/versions"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/poll"
@@ -144,7 +143,6 @@ func TestPromptExitCode(t *testing.T) {
 			run: func(t *testing.T) icmd.Cmd {
 				t.Helper()
 				t.Skip("flaky test: see https://github.com/docker/cli/issues/6248")
-				skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 
 				const plugin = "registry:5000/plugin-install-test:latest"
 
@@ -162,7 +160,6 @@ func TestPromptExitCode(t *testing.T) {
 			run: func(t *testing.T) icmd.Cmd {
 				t.Helper()
 				t.Skip("flaky test: see https://github.com/docker/cli/issues/6248")
-				skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.44"))
 
 				const plugin = "registry:5000/plugin-upgrade-test"
 

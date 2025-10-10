@@ -495,7 +495,7 @@ func TestServiceConvertsIsolation(t *testing.T) {
 	src := composetypes.ServiceConfig{
 		Isolation: "hyperv",
 	}
-	result, err := Service("1.35", Namespace{name: "foo"}, src, nil, nil, nil, nil)
+	result, err := Service(Namespace{name: "foo"}, src, nil, nil, nil, nil)
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(container.IsolationHyperV, result.TaskTemplate.ContainerSpec.Isolation))
 }
@@ -692,7 +692,7 @@ func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.title, func(t *testing.T) {
-			result, err := Service("1.41", Namespace{name: "foo"}, tc.in, nil, nil, nil, nil)
+			result, err := Service(Namespace{name: "foo"}, tc.in, nil, nil, nil, nil)
 			assert.NilError(t, err)
 			assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityAdd, tc.out.CapAdd))
 			assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.CapabilityDrop, tc.out.CapDrop))

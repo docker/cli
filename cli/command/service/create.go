@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -132,9 +131,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	}
 
 	// query registry if flag disabling it was not set
-	if !opts.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
-		createOpts.QueryRegistry = true
-	}
+	createOpts.QueryRegistry = !opts.noResolveImage
 
 	response, err := apiClient.ServiceCreate(ctx, service, createOpts)
 	if err != nil {
@@ -147,7 +144,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 
 	_, _ = fmt.Fprintln(dockerCLI.Out(), response.ID)
 
-	if opts.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if opts.detach {
 		return nil
 	}
 

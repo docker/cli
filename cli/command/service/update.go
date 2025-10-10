@@ -22,7 +22,6 @@ import (
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/moby/swarmkit/v2/api/defaults"
 	"github.com/spf13/cobra"
@@ -165,14 +164,6 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	// There are two ways to do user-requested rollback. The old way is
-	// client-side, but with a sufficiently recent daemon we prefer
-	// server-side, because it will honor the rollback parameters.
-	var (
-		clientSideRollback bool
-		serverSideRollback bool
-	)
-
 	spec := &service.Spec
 	if rollback {
 		// Rollback can't be combined with other flags.
@@ -188,20 +179,10 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		if otherFlagsPassed {
 			return errors.New("other flags may not be combined with --rollback")
 		}
-
-		if versions.LessThan(apiClient.ClientVersion(), "1.28") {
-			clientSideRollback = true
-			spec = service.PreviousSpec
-			if spec == nil {
-				return errors.New("service does not have a previous specification to roll back to")
-			}
-		} else {
-			serverSideRollback = true
-		}
 	}
 
 	updateOpts := client.ServiceUpdateOptions{}
-	if serverSideRollback {
+	if rollback {
 		updateOpts.Rollback = "previous"
 	}
 
@@ -214,9 +195,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		if err := resolveServiceImageDigestContentTrust(dockerCLI, spec); err != nil {
 			return err
 		}
-		if !options.noResolveImage && versions.GreaterThanOrEqualTo(apiClient.ClientVersion(), "1.30") {
-			updateOpts.QueryRegistry = true
-		}
+		updateOpts.QueryRegistry = !options.noResolveImage
 	}
 
 	updatedSecrets, err := getUpdatedSecrets(ctx, apiClient, flags, spec.TaskTemplate.ContainerSpec.Secrets)
@@ -243,8 +222,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	if err != nil {
 		return err
 	}
-	switch {
-	case sendAuth:
+	if sendAuth {
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		image := spec.TaskTemplate.ContainerSpec.Image
@@ -253,9 +231,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 			return err
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
-	case clientSideRollback:
-		updateOpts.RegistryAuthFrom = swarm.RegistryAuthFromPreviousSpec
-	default:
+	} else {
 		updateOpts.RegistryAuthFrom = swarm.RegistryAuthFromSpec
 	}
 
@@ -270,7 +246,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 
 	_, _ = fmt.Fprintln(dockerCLI.Out(), serviceID)
 
-	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if options.detach {
 		return nil
 	}
 

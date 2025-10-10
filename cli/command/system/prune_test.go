@@ -22,24 +22,8 @@ import (
 	_ "github.com/docker/cli/cli/command/volume"
 )
 
-func TestPrunePromptPre131DoesNotIncludeBuildCache(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{version: "1.30"})
-	cmd := newPruneCommand(cli)
-	cmd.SetArgs([]string{})
-	cmd.SetOut(io.Discard)
-	cmd.SetErr(io.Discard)
-	assert.ErrorContains(t, cmd.Execute(), "system prune has been cancelled")
-	expected := `WARNING! This will remove:
-  - all stopped containers
-  - all networks not used by at least one container
-  - all dangling images
-
-Are you sure you want to continue? [y/N] `
-	assert.Check(t, is.Equal(expected, cli.OutBuffer().String()))
-}
-
 func TestPrunePromptFilters(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{version: "1.31"})
+	cli := test.NewFakeCli(&fakeClient{version: "1.51"})
 	cli.SetConfigFile(&configfile.ConfigFile{
 		PruneFilters: []string{"label!=never=remove-me", "label=remove=me"},
 	})

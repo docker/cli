@@ -61,7 +61,7 @@ func TestRunLabel(t *testing.T) {
 				ID: "id",
 			}, nil
 		},
-		Version: "1.36",
+		Version: client.MaxAPIVersion,
 	})
 	cmd := newRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"--detach=true", "--label", "foo", "busybox"})
@@ -103,8 +103,8 @@ func TestRunAttach(t *testing.T) {
 			return responseChan, errChan
 		},
 		// use new (non-legacy) wait API
-		// see: 38591f20d07795aaef45d400df89ca12f29c603b
-		Version: "1.30",
+		// see: https://github.com/docker/cli/commit/38591f20d07795aaef45d400df89ca12f29c603b
+		Version: client.MaxAPIVersion,
 	}, func(fc *test.FakeCli) {
 		fc.SetOut(streams.NewOut(tty))
 		fc.SetIn(streams.NewIn(tty))
@@ -180,8 +180,8 @@ func TestRunAttachTermination(t *testing.T) {
 			return responseChan, errChan
 		},
 		// use new (non-legacy) wait API
-		// see: 38591f20d07795aaef45d400df89ca12f29c603b
-		Version: "1.30",
+		// see: https://github.com/docker/cli/commit/38591f20d07795aaef45d400df89ca12f29c603b
+		Version: client.MaxAPIVersion,
 	}, func(fc *test.FakeCli) {
 		fc.SetOut(streams.NewOut(tty))
 		fc.SetIn(streams.NewIn(tty))
@@ -262,7 +262,7 @@ func TestRunPullTermination(t *testing.T) {
 			attachCh <- struct{}{}
 			return respReader, nil
 		},
-		Version: "1.30",
+		Version: client.MaxAPIVersion,
 	})
 
 	cmd := newRunCommand(fakeCLI)

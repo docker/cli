@@ -164,7 +164,7 @@ func TestInitializeFromClient(t *testing.T) {
 		{
 			doc: "successful ping",
 			pingFunc: func() (types.Ping, error) {
-				return types.Ping{Experimental: true, OSType: "linux", APIVersion: "v1.30"}, nil
+				return types.Ping{Experimental: true, OSType: "linux", APIVersion: "v1.44"}, nil
 			},
 			expectedServer: ServerInfo{HasExperimental: true, OSType: "linux"},
 			negotiated:     true,
@@ -179,7 +179,7 @@ func TestInitializeFromClient(t *testing.T) {
 		{
 			doc: "failed ping, with API version",
 			pingFunc: func() (types.Ping, error) {
-				return types.Ping{APIVersion: "v1.33"}, errors.New("failed")
+				return types.Ping{APIVersion: "v1.44"}, errors.New("failed")
 			},
 			expectedServer: ServerInfo{HasExperimental: true},
 			negotiated:     true,

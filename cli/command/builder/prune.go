@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -112,17 +111,9 @@ type cancelledErr struct{ error }
 
 func (cancelledErr) Cancelled() {}
 
-type errNotImplemented struct{ error }
-
-func (errNotImplemented) NotImplemented() {}
-
 // pruneFn prunes the build cache for use in "docker system prune" and
 // returns the amount of space reclaimed and a detailed output string.
 func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
-	if ver := dockerCLI.Client().ClientVersion(); ver != "" && versions.LessThan(ver, "1.31") {
-		// Not supported on older daemons.
-		return 0, "", errNotImplemented{errors.New("builder prune requires API version 1.31 or greater")}
-	}
 	if !options.Confirmed {
 		// Dry-run: perform validation and produce confirmation before pruning.
 		var confirmMsg string

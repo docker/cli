@@ -38,29 +38,29 @@ machine running Docker Desktop:
 $ docker version
 
 Client: Docker Engine - Community
- Version:           23.0.3
- API version:       1.42
- Go version:        go1.19.7
- Git commit:        3e7cbfd
- Built:             Tue Apr  4 22:05:41 2023
- OS/Arch:           darwin/amd64
- Context:           default
+ Version:           28.5.1
+ API version:       1.51
+ Go version:        go1.24.8
+ Git commit:        e180ab8
+ Built:             Wed Oct  8 12:16:17 2025
+ OS/Arch:           darwin/arm64
+ Context:           remote-test-server
 
 Server: Docker Desktop 4.19.0 (12345)
  Engine:
-  Version:          23.0.3
-  API version:      1.42 (minimum version 1.12)
-  Go version:       go1.19.7
-  Git commit:       59118bf
-  Built:            Tue Apr  4 22:05:41 2023
+  Version:          27.5.1
+  API version:      1.47 (minimum version 1.24)
+  Go version:       go1.22.11
+  Git commit:       4c9b3b0
+  Built:            Wed Jan 22 13:41:24 2025
   OS/Arch:          linux/amd64
-  Experimental:     false
+  Experimental:     true
  containerd:
-  Version:          1.6.20
-  GitCommit:        2806fc1057397dbaeefbea0e4e17bddfbd388f38
+  Version:          v1.7.25
+  GitCommit:        bcc810d6b9066471b0b6fa75f557a15a1cbf31bb
  runc:
-  Version:          1.1.5
-  GitCommit:        v1.1.5-0-gf19387a
+  Version:          1.2.4
+  GitCommit:        v1.2.4-0-g6c52b3f
  docker-init:
   Version:          0.19.0
   GitCommit:        de40ad0
@@ -83,31 +83,32 @@ remote-test-server
 $ docker version
 
 Client: Docker Engine - Community
- Version:           23.0.3
- API version:       1.40 (downgraded from 1.42)
- Go version:        go1.19.7
- Git commit:        3e7cbfd
- Built:             Tue Apr  4 22:05:41 2023
- OS/Arch:           darwin/amd64
+ Version:           28.5.1
+ API version:       1.51
+ Go version:        go1.24.8
+ Git commit:        e180ab8
+ Built:             Wed Oct  8 12:16:17 2025
+ OS/Arch:           darwin/arm64
  Context:           remote-test-server
 
 Server: Docker Engine - Community
  Engine:
-  Version:          19.03.8
-  API version:      1.40 (minimum version 1.12)
-  Go version:       go1.12.17
-  Git commit:       afacb8b
-  Built:            Wed Mar 11 01:29:16 2020
+  Version:          27.5.1
+  API version:      1.47 (minimum version 1.24)
+  Go version:       go1.22.11
+  Git commit:       4c9b3b0
+  Built:            Wed Jan 22 13:41:24 2025
   OS/Arch:          linux/amd64
+  Experimental:     true
  containerd:
-  Version:          v1.2.13
-  GitCommit:        7ad184331fa3e55e52b890ea95e65ba581ae3429
+  Version:          v1.7.25
+  GitCommit:        bcc810d6b9066471b0b6fa75f557a15a1cbf31bb
  runc:
-  Version:          1.0.0-rc10
-  GitCommit:        dc9208a3303feef5b3839f4323d9beb36df0a9dd
+  Version:          1.2.4
+  GitCommit:        v1.2.4-0-g6c52b3f
  docker-init:
-  Version:          0.18.0
-  GitCommit:        fec3683
+  Version:          0.19.0
+  GitCommit:        de40ad0
 ```
 
 ### API version and version negotiation
@@ -117,14 +118,14 @@ CLI is connecting with. When connecting with the Docker Engine, the Docker CLI
 and Docker Engine perform API version negotiation, and select the highest API
 version that is supported by both the Docker CLI and the Docker Engine.
 
-For example, if the CLI is connecting with Docker Engine version 19.03, it downgrades
-to API version 1.40 (refer to the [API version matrix](https://docs.docker.com/reference/api/engine/#api-version-matrix)
+For example, if the CLI is connecting with Docker Engine version 27.5, it downgrades
+to API version 1.47 (refer to the [API version matrix](https://docs.docker.com/reference/api/engine/#api-version-matrix)
 to learn about the supported API versions for Docker Engine):
 
 ```console
 $ docker version --format '{{.Client.APIVersion}}'
 
-1.40
+1.47
 ```
 
 Be aware that API version can also be overridden using the `DOCKER_API_VERSION`
@@ -135,14 +136,14 @@ variable removes the override, and re-enables API version negotiation:
 
 ```console
 $ env | grep DOCKER_API_VERSION
-DOCKER_API_VERSION=1.39
+DOCKER_API_VERSION=1.50
 
 $ docker version --format '{{.Client.APIVersion}}'
-1.39
+1.50
 
 $ unset DOCKER_API_VERSION
 $ docker version --format '{{.Client.APIVersion}}'
-1.42
+1.51
 ```
 
 ## Examples
@@ -159,7 +160,7 @@ page for details of the format.
 ```console
 $ docker version --format '{{.Server.Version}}'
 
-23.0.3
+28.5.1
 ```
 
 ### Get the client API version
@@ -169,7 +170,7 @@ The following example prints the API version that is used by the client:
 ```console
 $ docker version --format '{{.Client.APIVersion}}'
 
-1.42
+1.51
 ```
 
 The version shown is the API version that is negotiated between the client
@@ -181,5 +182,5 @@ above for more information.
 ```console
 $ docker version --format '{{json .}}'
 
-{"Client":"Version":"23.0.3","ApiVersion":"1.42", ...}
+{"Client":"Version":"28.5.1","ApiVersion":"1.51", ...}
 ```

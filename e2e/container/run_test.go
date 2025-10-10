@@ -210,7 +210,6 @@ func TestRunWithCgroupNamespace(t *testing.T) {
 
 func TestMountSubvolume(t *testing.T) {
 	skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.45"))
-
 	volName := "test-volume-" + t.Name()
 	icmd.RunCommand("docker", "volume", "create", volName).Assert(t, icmd.Success)
 

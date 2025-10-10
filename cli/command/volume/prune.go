@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/spf13/cobra"
 )
 
@@ -72,16 +71,11 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	warning := unusedVolumesWarning
-	if versions.GreaterThanOrEqualTo(dockerCli.CurrentVersion(), "1.42") {
-		if options.all {
-			if _, ok := pruneFilters["all"]; ok {
-				return 0, "", invalidParamErr{errors.New("conflicting options: cannot specify both --all and --filter all=1")}
-			}
-			pruneFilters.Add("all", "true")
-			warning = allVolumesWarning
+	if options.all {
+		if _, ok := pruneFilters["all"]; ok {
+			return 0, "", invalidParamErr{errors.New("conflicting options: cannot specify both --all and --filter all=1")}
 		}
-	} else {
-		// API < v1.42 removes all volumes (anonymous and named) by default.
+		pruneFilters.Add("all", "true")
 		warning = allVolumesWarning
 	}
 	if !options.force {

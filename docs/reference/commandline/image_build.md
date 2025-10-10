@@ -195,22 +195,22 @@ line in the `Engine` section:
 
 ```console
 Client: Docker Engine - Community
- Version:           23.0.3
- API version:       1.42
- Go version:        go1.19.7
- Git commit:        3e7cbfd
- Built:             Tue Apr  4 22:05:41 2023
- OS/Arch:           darwin/amd64
- Context:           default
+ Version:           28.5.1
+ API version:       1.51
+ Go version:        go1.24.8
+ Git commit:        e180ab8
+ Built:             Wed Oct  8 12:16:17 2025
+ OS/Arch:           darwin/arm64
+ Context:           desktop-linux
 
 Server: Docker Engine - Community
  Engine:
-  Version:          23.0.3
-  API version:      1.42 (minimum version 1.12)
-  Go version:       go1.19.7
-  Git commit:       59118bf
-  Built:            Tue Apr  4 22:05:41 2023
-  OS/Arch:          linux/amd64
+  Version:          28.5.1
+  API version:      1.51 (minimum version 1.24)
+  Go version:       go1.24.8
+  Git commit:       f8215cc
+  Built:            Wed Oct  8 12:18:25 2025
+  OS/Arch:          linux/arm64
   Experimental:     true
  [...]
 ```
