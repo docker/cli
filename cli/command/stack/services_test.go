@@ -21,8 +21,6 @@ func TestStackServicesErrors(t *testing.T) {
 		args            []string
 		flags           map[string]string
 		serviceListFunc func(options client.ServiceListOptions) ([]swarm.Service, error)
-		nodeListFunc    func(options client.NodeListOptions) ([]swarm.Node, error)
-		taskListFunc    func(options client.TaskListOptions) ([]swarm.Task, error)
 		expectedError   string
 	}{
 		{
@@ -31,29 +29,6 @@ func TestStackServicesErrors(t *testing.T) {
 				return nil, errors.New("error getting services")
 			},
 			expectedError: "error getting services",
-		},
-		{
-			args: []string{"foo"},
-			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{*builders.Service(builders.GlobalService())}, nil
-			},
-			nodeListFunc: func(options client.NodeListOptions) ([]swarm.Node, error) {
-				return nil, errors.New("error getting nodes")
-			},
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task()}, nil
-			},
-			expectedError: "error getting nodes",
-		},
-		{
-			args: []string{"foo"},
-			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{*builders.Service(builders.GlobalService())}, nil
-			},
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return nil, errors.New("error getting tasks")
-			},
-			expectedError: "error getting tasks",
 		},
 		{
 			args: []string{"foo"},
@@ -71,8 +46,6 @@ func TestStackServicesErrors(t *testing.T) {
 		t.Run(tc.expectedError, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				serviceListFunc: tc.serviceListFunc,
-				nodeListFunc:    tc.nodeListFunc,
-				taskListFunc:    tc.taskListFunc,
 			})
 			cmd := newServicesCommand(cli)
 			cmd.SetArgs(tc.args)

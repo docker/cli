@@ -8,7 +8,6 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -43,42 +42,17 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
-	var (
-		apiClient = dockerCLI.Client()
-		err       error
-	)
-
-	listOpts := client.ServiceListOptions{
+	apiClient := dockerCLI.Client()
+	services, err := apiClient.ServiceList(ctx, client.ServiceListOptions{
 		Filters: options.filter.Value(),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and
 		// up; older API versions ignore this option, and we will have to collect
 		// the information manually below.
 		Status: !options.quiet,
-	}
-
-	services, err := apiClient.ServiceList(ctx, listOpts)
+	})
 	if err != nil {
 		return err
-	}
-
-	if listOpts.Status {
-		// Now that a request was made, we know what API version was used (either
-		// through configuration, or after client and daemon negotiated a version).
-		// If API version v1.41 or up was used; the daemon should already have done
-		// the legwork for us, and we don't have to calculate the number of desired
-		// and running tasks. On older API versions, we need to do some extra requests
-		// to get that information.
-		//
-		// So theoretically, this step can be skipped based on API version, however,
-		// some of our unit tests don't set the API version, and there may be other
-		// situations where the client uses the "default" version. To account for
-		// these situations, we do a quick check for services that do not have
-		// a ServiceStatus set, and perform a lookup for those.
-		services, err = AppendServiceStatus(ctx, apiClient, services)
-		if err != nil {
-			return err
-		}
 	}
 
 	format := options.format
@@ -95,95 +69,4 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		Format: NewListFormat(format, options.quiet),
 	}
 	return ListFormatWrite(servicesCtx, services)
-}
-
-// AppendServiceStatus propagates the ServiceStatus field for "services".
-//
-// If API version v1.41 or up is used, this information is already set by the
-// daemon. On older API versions, we need to do some extra requests to get
-// that information. Theoretically, this function can be skipped based on API
-// version, however, some of our unit tests don't set the API version, and
-// there may be other situations where the client uses the "default" version.
-// To take these situations into account, we do a quick check for services
-// that don't have ServiceStatus set, and perform a lookup for those.
-func AppendServiceStatus(ctx context.Context, c client.APIClient, services []swarm.Service) ([]swarm.Service, error) {
-	status := map[string]*swarm.ServiceStatus{}
-	taskFilter := make(client.Filters)
-	for i, s := range services {
-		// there is no need in this switch to check for job modes. jobs are not
-		// supported until after ServiceStatus was introduced.
-		switch {
-		case s.ServiceStatus != nil:
-			// Server already returned service-status, so we don't
-			// have to look-up tasks for this service.
-			continue
-		case s.Spec.Mode.Replicated != nil:
-			// For replicated services, set the desired number of tasks;
-			// that way we can present this information in case we're unable
-			// to get a list of tasks from the server.
-			services[i].ServiceStatus = &swarm.ServiceStatus{DesiredTasks: *s.Spec.Mode.Replicated.Replicas}
-			status[s.ID] = &swarm.ServiceStatus{}
-			taskFilter.Add("service", s.ID)
-		case s.Spec.Mode.Global != nil:
-			// No such thing as number of desired tasks for global services
-			services[i].ServiceStatus = &swarm.ServiceStatus{}
-			status[s.ID] = &swarm.ServiceStatus{}
-			taskFilter.Add("service", s.ID)
-		default:
-			// Unknown task type
-		}
-	}
-	if len(status) == 0 {
-		// All services have their ServiceStatus set, so we're done
-		return services, nil
-	}
-
-	tasks, err := c.TaskList(ctx, client.TaskListOptions{Filters: taskFilter})
-	if err != nil {
-		return nil, err
-	}
-	if len(tasks) == 0 {
-		return services, nil
-	}
-	activeNodes, err := getActiveNodes(ctx, c)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, task := range tasks {
-		if status[task.ServiceID] == nil {
-			// This should not happen in practice; either all services have
-			// a ServiceStatus set, or none of them.
-			continue
-		}
-		// TODO: this should only be needed for "global" services. Replicated
-		// services have `Spec.Mode.Replicated.Replicas`, which should give this value.
-		if task.DesiredState != swarm.TaskStateShutdown {
-			status[task.ServiceID].DesiredTasks++
-		}
-		if _, nodeActive := activeNodes[task.NodeID]; nodeActive && task.Status.State == swarm.TaskStateRunning {
-			status[task.ServiceID].RunningTasks++
-		}
-	}
-
-	for i, service := range services {
-		if s := status[service.ID]; s != nil {
-			services[i].ServiceStatus = s
-		}
-	}
-	return services, nil
-}
-
-func getActiveNodes(ctx context.Context, c client.NodeAPIClient) (map[string]struct{}, error) {
-	nodes, err := c.NodeList(ctx, client.NodeListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	activeNodes := make(map[string]struct{})
-	for _, n := range nodes {
-		if n.Status.State != swarm.NodeStateDown {
-			activeNodes[n.ID] = struct{}{}
-		}
-	}
-	return activeNodes, nil
 }
