@@ -14,8 +14,6 @@ import (
 type fakeClient struct {
 	client.Client
 
-	version string
-
 	services []string
 	networks []string
 	secrets  []string
@@ -49,8 +47,8 @@ func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
 	}, nil
 }
 
-func (cli *fakeClient) ClientVersion() string {
-	return cli.version
+func (*fakeClient) ClientVersion() string {
+	return client.MaxAPIVersion
 }
 
 func (cli *fakeClient) ServiceList(_ context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {

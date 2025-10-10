@@ -25,7 +25,6 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/mount"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -306,11 +305,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	var platform *ocispec.Platform
-	// Engine API version 1.41 first introduced the option to specify platform on
-	// create. It will produce an error if you try to set a platform on older API
-	// versions, so check the API version here to maintain backwards
-	// compatibility for CLI users.
-	if options.platform != "" && versions.GreaterThanOrEqualTo(dockerCli.Client().ClientVersion(), "1.41") {
+	if options.platform != "" {
 		p, err := platforms.Parse(options.platform)
 		if err != nil {
 			return "", invalidParameter(fmt.Errorf("error parsing specified platform: %w", err))

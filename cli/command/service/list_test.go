@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -64,58 +63,11 @@ func TestServiceListServiceStatus(t *testing.T) {
 			expected: []listResponse{},
 		},
 		{
-			// Services are running, but no active nodes were found. On API v1.40
-			// and below, this will cause looking up the "running" tasks to fail,
-			// as well as looking up "desired" tasks for global services.
-			doc: "API v1.40 no active nodes",
-			opts: clusterOpts{
-				apiVersion:   "1.40",
-				activeNodes:  0,
-				runningTasks: 2,
-				desiredTasks: 4,
-			},
-			expected: []listResponse{
-				{ID: "replicated", Replicas: "0/4"},
-				{ID: "global", Replicas: "0/0"},
-				{ID: "none-id", Replicas: "0/0"},
-			},
-		},
-		{
-			doc: "API v1.40 3 active nodes, 1 task running",
-			opts: clusterOpts{
-				apiVersion:   "1.40",
-				activeNodes:  3,
-				runningTasks: 1,
-				desiredTasks: 2,
-			},
-			expected: []listResponse{
-				{ID: "replicated", Replicas: "1/2"},
-				{ID: "global", Replicas: "1/3"},
-				{ID: "none-id", Replicas: "0/0"},
-			},
-		},
-		{
-			doc: "API v1.40 3 active nodes, all tasks running",
-			opts: clusterOpts{
-				apiVersion:   "1.40",
-				activeNodes:  3,
-				runningTasks: 3,
-				desiredTasks: 3,
-			},
-			expected: []listResponse{
-				{ID: "replicated", Replicas: "3/3"},
-				{ID: "global", Replicas: "3/3"},
-				{ID: "none-id", Replicas: "0/0"},
-			},
-		},
-
-		{
 			// Services are running, but no active nodes were found. On API v1.41
 			// and up, the ServiceStatus is sent by the daemon, so this should not
 			// affect the results.
-			doc: "API v1.41 no active nodes",
+			doc: "no active nodes",
 			opts: clusterOpts{
-				apiVersion:   "1.41",
 				activeNodes:  0,
 				runningTasks: 2,
 				desiredTasks: 4,
@@ -127,9 +79,8 @@ func TestServiceListServiceStatus(t *testing.T) {
 			},
 		},
 		{
-			doc: "API v1.41 3 active nodes, 1 task running",
+			doc: "active nodes, 1 task running",
 			opts: clusterOpts{
-				apiVersion:   "1.41",
 				activeNodes:  3,
 				runningTasks: 1,
 				desiredTasks: 2,
@@ -141,9 +92,8 @@ func TestServiceListServiceStatus(t *testing.T) {
 			},
 		},
 		{
-			doc: "API v1.41 3 active nodes, all tasks running",
+			doc: "active nodes, all tasks running",
 			opts: clusterOpts{
-				apiVersion:   "1.41",
 				activeNodes:  3,
 				runningTasks: 3,
 				desiredTasks: 3,
@@ -174,7 +124,7 @@ func TestServiceListServiceStatus(t *testing.T) {
 			}
 			cli := test.NewFakeCli(&fakeClient{
 				serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
-					if !options.Status || versions.LessThan(tc.opts.apiVersion, "1.41") {
+					if !options.Status {
 						// Don't return "ServiceStatus" if not requested, or on older API versions
 						for i := range tc.cluster.services {
 							tc.cluster.services[i].ServiceStatus = nil
@@ -214,7 +164,6 @@ func TestServiceListServiceStatus(t *testing.T) {
 }
 
 type clusterOpts struct {
-	apiVersion   string
 	activeNodes  uint64
 	desiredTasks uint64
 	runningTasks uint64

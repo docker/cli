@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -79,13 +78,6 @@ func runDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		// valid options.
 	default:
 		return fmt.Errorf("invalid option %s for flag --resolve-image", opts.resolveImage)
-	}
-
-	// client side image resolution should not be done when the supported
-	// server version is older than 1.30
-	if versions.LessThan(dockerCLI.Client().ClientVersion(), "1.30") {
-		// TODO(thaJeztah): should this error if "opts.ResolveImage" is already other (unsupported) values?
-		opts.resolveImage = resolveImageNever
 	}
 
 	if opts.detach && !flags.Changed("detach") {

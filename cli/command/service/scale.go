@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -83,7 +82,7 @@ func runScale(ctx context.Context, dockerCLI command.Cli, options *scaleOptions,
 		serviceIDs = append(serviceIDs, serviceID)
 	}
 
-	if len(serviceIDs) > 0 && !options.detach && versions.GreaterThanOrEqualTo(dockerCLI.Client().ClientVersion(), "1.29") {
+	if len(serviceIDs) > 0 && !options.detach {
 		for _, serviceID := range serviceIDs {
 			if err := WaitOnService(ctx, dockerCLI, serviceID, false); err != nil {
 				errs = append(errs, fmt.Errorf("%s: %v", serviceID, err))

@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/versions"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -54,7 +53,7 @@ func runRollback(ctx context.Context, dockerCLI command.Cli, options *serviceOpt
 
 	_, _ = fmt.Fprintln(dockerCLI.Out(), serviceID)
 
-	if options.detach || versions.LessThan(apiClient.ClientVersion(), "1.29") {
+	if options.detach {
 		return nil
 	}
 
