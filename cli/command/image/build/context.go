@@ -80,7 +80,7 @@ func ValidateContextDirectory(srcPath string, excludes []string) error {
 			if err != nil && os.IsPermission(err) {
 				return errors.Errorf("no permission to read from '%s'", filePath)
 			}
-			currentFile.Close()
+			_ = currentFile.Close()
 		}
 		return nil
 	})
@@ -97,10 +97,10 @@ func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool,
 
 // DetectArchiveReader detects whether the input stream is an archive or a
 // Dockerfile and returns a buffered version of input, safe to consume in lieu
-// of input. If an archive is detected, isArchive is set to true, and to false
+// of input. If an archive is detected, ok is set to true, and to false
 // otherwise, in which case it is safe to assume input represents the contents
 // of a Dockerfile.
-func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, isArchive bool, err error) {
+func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
 	buf := bufio.NewReader(input)
 
 	magic, err := buf.Peek(archiveHeaderSize * 2)
@@ -141,12 +141,12 @@ func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 // Dockerfile or tar archive. Returns a tar archive used as a context and a
 // path to the Dockerfile inside the tar.
 func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadCloser, relDockerfile string, err error) {
-	rc, isArchive, err := DetectArchiveReader(rc)
+	rc, ok, err := DetectArchiveReader(rc)
 	if err != nil {
 		return nil, "", err
 	}
 
-	if isArchive {
+	if ok {
 		return rc, dockerfileName, nil
 	}
 
@@ -171,7 +171,7 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 
 	return newReadCloserWrapper(tarArchive, func() error {
 		err := tarArchive.Close()
-		os.RemoveAll(dockerfileDir)
+		_ = os.RemoveAll(dockerfileDir)
 		return err
 	}), DefaultDockerfileName, nil
 }
@@ -242,7 +242,7 @@ func getWithStatusError(url string) (resp *http.Response, err error) {
 	}
 	msg := fmt.Sprintf("failed to GET %s with status %s", url, resp.Status)
 	body, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if err != nil {
 		return nil, errors.Wrapf(err, "%s: error reading body", msg)
 	}
@@ -374,7 +374,7 @@ func isUNC(path string) bool {
 // the relative path to the dockerfile in the context.
 func AddDockerfileToBuildContext(dockerfileCtx io.ReadCloser, buildCtx io.ReadCloser) (io.ReadCloser, string, error) {
 	file, err := io.ReadAll(dockerfileCtx)
-	dockerfileCtx.Close()
+	_ = dockerfileCtx.Close()
 	if err != nil {
 		return nil, "", err
 	}
@@ -438,17 +438,19 @@ func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
 	go func() {
 		compressWriter, err := compression.CompressStream(pipeWriter, archive.Gzip)
 		if err != nil {
-			pipeWriter.CloseWithError(err)
+			_ = pipeWriter.CloseWithError(err)
 		}
-		defer buildCtx.Close()
+		defer func() {
+			_ = buildCtx.Close()
+		}()
 
 		if _, err := io.Copy(compressWriter, buildCtx); err != nil {
-			pipeWriter.CloseWithError(errors.Wrap(err, "failed to compress context"))
-			compressWriter.Close()
+			_ = pipeWriter.CloseWithError(errors.Wrap(err, "failed to compress context"))
+			_ = compressWriter.Close()
 			return
 		}
-		compressWriter.Close()
-		pipeWriter.Close()
+		_ = compressWriter.Close()
+		_ = pipeWriter.Close()
 	}()
 
 	return pipeReader, nil
