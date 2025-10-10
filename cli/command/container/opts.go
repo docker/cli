@@ -659,7 +659,6 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		Cmd:          runCmd,
 		Image:        copts.Image,
 		Volumes:      volumes,
-		MacAddress:   copts.macAddress,
 		Entrypoint:   entrypoint,
 		WorkingDir:   copts.workingDir,
 		Labels:       opts.ConvertKVStringsToMap(labels),
@@ -730,25 +729,17 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		config.StdinOnce = true
 	}
 
-	networkingConfig := &network.NetworkingConfig{
-		EndpointsConfig: make(map[string]*network.EndpointSettings),
-	}
-
-	networkingConfig.EndpointsConfig, err = parseNetworkOpts(copts)
+	epCfg, err := parseNetworkOpts(copts)
 	if err != nil {
 		return nil, err
 	}
 
-	// Put the endpoint-specific MacAddress of the "main" network attachment into the container Config for backward
-	// compatibility with older daemons.
-	if nw, ok := networkingConfig.EndpointsConfig[hostConfig.NetworkMode.NetworkName()]; ok {
-		config.MacAddress = nw.MacAddress //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
-	}
-
 	return &containerConfig{
-		Config:           config,
-		HostConfig:       hostConfig,
-		NetworkingConfig: networkingConfig,
+		Config:     config,
+		HostConfig: hostConfig,
+		NetworkingConfig: &network.NetworkingConfig{
+			EndpointsConfig: epCfg,
+		},
 	}, nil
 }
 
