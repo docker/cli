@@ -17,29 +17,29 @@ machine running Docker Desktop:
 
     $ docker version
     Client: Docker Engine - Community
-     Version:           23.0.3
-     API version:       1.42
-     Go version:        go1.19.7
-     Git commit:        3e7cbfd
-     Built:             Tue Apr  4 22:05:41 2023
-     OS/Arch:           darwin/amd64
-     Context:           default
+     Version:           28.5.1
+     API version:       1.51
+     Go version:        go1.24.8
+     Git commit:        e180ab8
+     Built:             Wed Oct  8 12:16:17 2025
+     OS/Arch:           darwin/arm64
+     Context:           desktop-linux
     
-    Server: Docker Desktop 4.19.0 (12345)
+    Server: Docker Desktop 4.49.0 (12345)
      Engine:
-      Version:          23.0.3
-      API version:      1.42 (minimum version 1.12)
-      Go version:       go1.19.7
-      Git commit:       59118bf
-      Built:            Tue Apr  4 22:05:41 2023
-      OS/Arch:          linux/amd64
+      Version:          28.5.1
+      API version:      1.51 (minimum version 1.24)
+      Go version:       go1.24.8
+      Git commit:       f8215cc
+      Built:            Wed Oct  8 12:18:25 2025
+      OS/Arch:          linux/arm64
       Experimental:     false
      containerd:
-      Version:          1.6.20
-      GitCommit:        2806fc1057397dbaeefbea0e4e17bddfbd388f38
+      Version:          1.7.27
+      GitCommit:        05044ec0a9a75232cad458027ca83437aae3f4da
      runc:
-      Version:          1.1.5
-      GitCommit:        v1.1.5-0-gf19387a
+      Version:          1.2.5
+      GitCommit:        v1.2.5-0-g59923ef
      docker-init:
       Version:          0.19.0
       GitCommit:        de40ad0
@@ -47,11 +47,11 @@ machine running Docker Desktop:
 Get server version:
 
     $ docker version --format '{{.Server.Version}}'
-    23.0.3
+    28.5.1
 
 Dump raw data:
 
 To view all available fields, you can use the format `{{json .}}`.
 
     $ docker version --format '{{json .}}'
-    {"Client":"Version":"23.0.3","ApiVersion":"1.42", ...}
+    {"Client":"Version":"28.5.1","ApiVersion":"1.51", ...}
