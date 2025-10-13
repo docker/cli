@@ -8,7 +8,7 @@ Remove unused images
 | Name                  | Type     | Default | Description                                      |
 |:----------------------|:---------|:--------|:-------------------------------------------------|
 | `-a`, `--all`         | `bool`   |         | Remove all unused images, not just dangling ones |
-| [`--filter`](#filter) | `filter` | `{}`    | Provide filter values (e.g. `until=<timestamp>`) |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `until=<timestamp>`) |
 | `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                   |
 
 

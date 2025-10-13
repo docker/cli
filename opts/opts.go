@@ -291,6 +291,9 @@ func NewFilterOpt() FilterOpt {
 }
 
 func (o *FilterOpt) String() string {
+	if o == nil || len(o.filter) == 0 {
+		return ""
+	}
 	repr, err := json.Marshal(o.filter)
 	if err != nil {
 		return "invalid filters"
