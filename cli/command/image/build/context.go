@@ -130,7 +130,16 @@ func detectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err er
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
 // name specified by defaultDockerfileName and returns the path to the
 // temporary directory containing the Dockerfile.
+//
+// Deprecated: this utility was only used internally, and will be removed in the next release.
 func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
+	return writeTempDockerfile(rc)
+}
+
+// writeTempDockerfile writes a Dockerfile stream to a temporary file with a
+// name specified by defaultDockerfileName and returns the path to the
+// temporary directory containing the Dockerfile.
+func writeTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 	// err is a named return value, due to the defer call below.
 	dockerfileDir, err = os.MkdirTemp("", "docker-build-tempdockerfile-")
 	if err != nil {
@@ -175,7 +184,7 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		return nil, "", errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
 	}
 
-	dockerfileDir, err := WriteTempDockerfile(rc)
+	dockerfileDir, err := writeTempDockerfile(rc)
 	if err != nil {
 		return nil, "", err
 	}
