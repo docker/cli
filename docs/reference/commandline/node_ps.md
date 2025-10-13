@@ -7,7 +7,7 @@ List tasks running on one or more nodes, defaults to current node
 
 | Name                                   | Type     | Default | Description                                |
 |:---------------------------------------|:---------|:--------|:-------------------------------------------|
-| [`-f`](#filter), [`--filter`](#filter) | `filter` | `{}`    | Filter output based on conditions provided |
+| [`-f`](#filter), [`--filter`](#filter) | `filter` |         | Filter output based on conditions provided |
 | [`--format`](#format)                  | `string` |         | Pretty-print tasks using a Go template     |
 | `--no-resolve`                         | `bool`   |         | Do not map IDs to Names                    |
 | `--no-trunc`                           | `bool`   |         | Do not truncate output                     |
