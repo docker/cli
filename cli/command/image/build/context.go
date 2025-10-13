@@ -105,7 +105,18 @@ func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool,
 // of input. If an archive is detected, ok is set to true, and to false
 // otherwise, in which case it is safe to assume input represents the contents
 // of a Dockerfile.
+//
+// Deprecated: this utility was only used internally, and will be removed in the next release.
 func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
+	return detectArchiveReader(input)
+}
+
+// detectArchiveReader detects whether the input stream is an archive or a
+// Dockerfile and returns a buffered version of input, safe to consume in lieu
+// of input. If an archive is detected, ok is set to true, and to false
+// otherwise, in which case it is safe to assume input represents the contents
+// of a Dockerfile.
+func detectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
 	buf := bufio.NewReader(input)
 
 	magic, err := buf.Peek(archiveHeaderSize * 2)
@@ -146,7 +157,7 @@ func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 // Dockerfile or tar archive. Returns a tar archive used as a context and a
 // path to the Dockerfile inside the tar.
 func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadCloser, relDockerfile string, err error) {
-	rc, ok, err := DetectArchiveReader(rc)
+	rc, ok, err := detectArchiveReader(rc)
 	if err != nil {
 		return nil, "", err
 	}
