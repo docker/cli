@@ -8,7 +8,7 @@ ARG BASE_VARIANT=alpine
 ARG ALPINE_VERSION=3.22
 ARG BASE_DEBIAN_DISTRO=bookworm
 
-ARG GO_VERSION=1.24.8
+ARG GO_VERSION=1.25.2
 
 # XX_VERSION specifies the version of the xx utility to use.
 # It must be a valid tag in the docker.io/tonistiigi/xx image repository.
