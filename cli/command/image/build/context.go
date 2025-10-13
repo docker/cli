@@ -25,9 +25,14 @@ import (
 	"github.com/moby/patternmatcher"
 )
 
+// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
+//
+// Deprecated: this const is no longer used and will be removed in the next release.
+const DefaultDockerfileName string = "Dockerfile"
+
 const (
-	// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
-	DefaultDockerfileName string = "Dockerfile"
+	// defaultDockerfileName is the Default filename with Docker commands, read by docker build
+	defaultDockerfileName string = "Dockerfile"
 	// archiveHeaderSize is the number of bytes in an archive header
 	archiveHeaderSize = 512
 )
@@ -112,7 +117,7 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err er
 }
 
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
-// name specified by DefaultDockerfileName and returns the path to the
+// name specified by defaultDockerfileName and returns the path to the
 // temporary directory containing the Dockerfile.
 func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 	// err is a named return value, due to the defer call below.
@@ -126,7 +131,7 @@ func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 		}
 	}()
 
-	f, err := os.Create(filepath.Join(dockerfileDir, DefaultDockerfileName))
+	f, err := os.Create(filepath.Join(dockerfileDir, defaultDockerfileName))
 	if err != nil {
 		return "", err
 	}
@@ -173,7 +178,7 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		err := tarArchive.Close()
 		_ = os.RemoveAll(dockerfileDir)
 		return err
-	}), DefaultDockerfileName, nil
+	}), defaultDockerfileName, nil
 }
 
 // IsArchive checks for the magic bytes of a tar or any supported compression
@@ -326,12 +331,12 @@ func getDockerfileRelPath(absContextDir, givenDockerfile string) (string, error)
 	if absDockerfile == "" {
 		// No -f/--file was specified so use the default relative to the
 		// context directory.
-		absDockerfile = filepath.Join(absContextDir, DefaultDockerfileName)
+		absDockerfile = filepath.Join(absContextDir, defaultDockerfileName)
 
 		// Just to be nice ;-) look for 'dockerfile' too but only
 		// use it if we found it, otherwise ignore this check
 		if _, err = os.Lstat(absDockerfile); os.IsNotExist(err) {
-			altPath := filepath.Join(absContextDir, strings.ToLower(DefaultDockerfileName))
+			altPath := filepath.Join(absContextDir, strings.ToLower(defaultDockerfileName))
 			if _, err = os.Lstat(altPath); err == nil {
 				absDockerfile = altPath
 			}
