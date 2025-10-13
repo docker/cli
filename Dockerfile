@@ -13,7 +13,10 @@ ARG GO_VERSION=1.24.8
 # XX_VERSION specifies the version of the xx utility to use.
 # It must be a valid tag in the docker.io/tonistiigi/xx image repository.
 ARG XX_VERSION=1.7.0
-ARG GOVERSIONINFO_VERSION=v1.4.1
+
+# GOVERSIONINFO_VERSION is the version of GoVersionInfo to install.
+# It must be a valid tag from https://github.com/josephspurrier/goversioninfo
+ARG GOVERSIONINFO_VERSION=v1.5.0
 
 # GOTESTSUM_VERSION sets the version of gotestsum to install in the dev container.
 # It must be a valid tag in the https://github.com/gotestyourself/gotestsum repository.

@@ -35,7 +35,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GO111MODULE=on go install gotest.tools/gotestsum@${GOTESTSUM_VERSION}
 
 FROM golang AS goversioninfo
-ARG GOVERSIONINFO_VERSION=v1.4.1
+# GOVERSIONINFO_VERSION is the version of GoVersionInfo to install.
+# It must be a valid tag from https://github.com/josephspurrier/goversioninfo
+ARG GOVERSIONINFO_VERSION=v1.5.0
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
