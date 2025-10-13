@@ -326,7 +326,7 @@ func TestDetectArchiveReader(t *testing.T) {
 				_ = content.Close()
 			}()
 
-			_, isArchive, err := DetectArchiveReader(content)
+			_, isArchive, err := detectArchiveReader(content)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(tc.expected, isArchive), tc.file)
 		})
