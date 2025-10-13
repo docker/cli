@@ -141,15 +141,11 @@ func TestListOptsWithoutValidator(t *testing.T) {
 	if o.Get("baz") {
 		t.Error(`o.Get("baz") == true`)
 	}
-	o.Delete("foo")
-	if o.String() != "[bar bar]" {
-		t.Errorf("%s != [bar bar]", o.String())
+	if listOpts := o.GetSlice(); len(listOpts) != 3 || listOpts[0] != "foo" || listOpts[1] != "bar" || listOpts[2] != "bar" {
+		t.Errorf("Expected [[foo bar bar]], got [%v]", listOpts)
 	}
-	if listOpts := o.GetSlice(); len(listOpts) != 2 || listOpts[0] != "bar" || listOpts[1] != "bar" {
-		t.Errorf("Expected [[bar bar]], got [%v]", listOpts)
-	}
-	if mapListOpts := o.GetMap(); len(mapListOpts) != 1 {
-		t.Errorf("Expected [map[bar:{}]], got [%v]", mapListOpts)
+	if mapListOpts := o.GetMap(); len(mapListOpts) != 2 {
+		t.Errorf("Expected [map[bar:{} foo:{}]], got [%v]", mapListOpts)
 	}
 }
 
@@ -182,9 +178,8 @@ func TestListOptsWithValidator(t *testing.T) {
 	if o.Get("baz") {
 		t.Error(`o.Get("baz") == true`)
 	}
-	o.Delete("valid-option2=2")
-	if o.String() != "" {
-		t.Errorf(`%s != ""`, o.String())
+	if expected := "[valid-option2=2]"; o.String() != expected {
+		t.Errorf(`%s != %q`, o.String(), expected)
 	}
 }
 
