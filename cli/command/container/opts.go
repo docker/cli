@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -350,7 +351,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 
 	// Validate the input mac address
 	if copts.macAddress != "" {
-		if _, err := opts.ValidateMACAddress(copts.macAddress); err != nil {
+		if _, err := net.ParseMAC(strings.TrimSpace(copts.macAddress)); err != nil {
 			return nil, errors.Errorf("%s is not a valid mac address", copts.macAddress)
 		}
 	}
@@ -883,7 +884,7 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*networktypes.End
 		}
 	}
 	if ep.MacAddress != "" {
-		if _, err := opts.ValidateMACAddress(ep.MacAddress); err != nil {
+		if _, err := net.ParseMAC(strings.TrimSpace(ep.MacAddress)); err != nil {
 			return nil, errors.Errorf("%s is not a valid mac address", ep.MacAddress)
 		}
 		epConfig.MacAddress = ep.MacAddress
