@@ -31,7 +31,7 @@ func prepareNoFiles(t *testing.T) string {
 func prepareOneFile(t *testing.T) string {
 	t.Helper()
 	contextDir := createTestTempDir(t)
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 	return contextDir
 }
 
@@ -66,7 +66,7 @@ func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
 
 func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
 	contextDir := createTestTempDir(t)
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 
 	chdir(t, contextDir)
 
@@ -74,23 +74,23 @@ func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
 	assert.NilError(t, err)
 
 	assert.Check(t, is.Equal(contextDir, absContextDir))
-	assert.Check(t, is.Equal(DefaultDockerfileName, relDockerfile))
+	assert.Check(t, is.Equal(defaultDockerfileName, relDockerfile))
 }
 
 func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
 	contextDir := createTestTempDir(t)
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
 	assert.NilError(t, err)
 
 	assert.Check(t, is.Equal(contextDir, absContextDir))
-	assert.Check(t, is.Equal(DefaultDockerfileName, relDockerfile))
+	assert.Check(t, is.Equal(defaultDockerfileName, relDockerfile))
 }
 
 func TestGetContextFromLocalDirLocalFile(t *testing.T) {
 	contextDir := createTestTempDir(t)
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 	testFilename := createTestTempFile(t, contextDir, "tmpTest", "test")
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(testFilename, "")
@@ -112,13 +112,13 @@ func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
 	contextDir := createTestTempDir(t)
 	chdir(t, contextDir)
 
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 
-	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, DefaultDockerfileName)
+	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, defaultDockerfileName)
 	assert.NilError(t, err)
 
 	assert.Check(t, is.Equal(contextDir, absContextDir))
-	assert.Check(t, is.Equal(DefaultDockerfileName, relDockerfile))
+	assert.Check(t, is.Equal(defaultDockerfileName, relDockerfile))
 }
 
 func TestGetContextFromReaderString(t *testing.T) {
@@ -150,8 +150,8 @@ func TestGetContextFromReaderString(t *testing.T) {
 		t.Fatalf("Uncompressed tar archive does not equal: %s, got: %s", dockerfileContents, contents)
 	}
 
-	if relDockerfile != DefaultDockerfileName {
-		t.Fatalf("Relative path not equals %s, got: %s", DefaultDockerfileName, relDockerfile)
+	if relDockerfile != defaultDockerfileName {
+		t.Fatalf("Relative path not equals %s, got: %s", defaultDockerfileName, relDockerfile)
 	}
 }
 
@@ -164,12 +164,12 @@ func TestGetContextFromReaderStringConflict(t *testing.T) {
 
 func TestGetContextFromReaderTar(t *testing.T) {
 	contextDir := createTestTempDir(t)
-	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents)
+	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 
 	tarStream, err := archive.Tar(contextDir, compression.None)
 	assert.NilError(t, err)
 
-	tarArchive, relDockerfile, err := GetContextFromReader(tarStream, DefaultDockerfileName)
+	tarArchive, relDockerfile, err := GetContextFromReader(tarStream, defaultDockerfileName)
 	assert.NilError(t, err)
 
 	tarReader := tar.NewReader(tarArchive)
@@ -177,8 +177,8 @@ func TestGetContextFromReaderTar(t *testing.T) {
 	header, err := tarReader.Next()
 	assert.NilError(t, err)
 
-	if header.Name != DefaultDockerfileName {
-		t.Fatalf("Dockerfile name should be: %s, got: %s", DefaultDockerfileName, header.Name)
+	if header.Name != defaultDockerfileName {
+		t.Fatalf("Dockerfile name should be: %s, got: %s", defaultDockerfileName, header.Name)
 	}
 
 	buff := new(bytes.Buffer)
@@ -197,8 +197,8 @@ func TestGetContextFromReaderTar(t *testing.T) {
 		t.Fatalf("Uncompressed tar archive does not equal: %s, got: %s", dockerfileContents, contents)
 	}
 
-	if relDockerfile != DefaultDockerfileName {
-		t.Fatalf("Relative path not equals %s, got: %s", DefaultDockerfileName, relDockerfile)
+	if relDockerfile != defaultDockerfileName {
+		t.Fatalf("Relative path not equals %s, got: %s", defaultDockerfileName, relDockerfile)
 	}
 }
 
@@ -223,7 +223,7 @@ func TestValidateContextDirectoryWithOneFile(t *testing.T) {
 }
 
 func TestValidateContextDirectoryWithOneFileExcludes(t *testing.T) {
-	testValidateContextDirectory(t, prepareOneFile, []string{DefaultDockerfileName})
+	testValidateContextDirectory(t, prepareOneFile, []string{defaultDockerfileName})
 }
 
 // createTestTempDir creates a temporary directory for testing. It returns the
