@@ -101,24 +101,6 @@ var acceptedStatsFilters = map[string]bool{
 	"label": true,
 }
 
-// cloneFilters returns a deep copy of f.
-//
-// TODO(thaJeztah): add this as a "Clone" method on client.Filters.
-func cloneFilters(f client.Filters) client.Filters {
-	if f == nil {
-		return nil
-	}
-	out := make(client.Filters, len(f))
-	for term, values := range f {
-		inner := make(map[string]bool, len(values))
-		for v, ok := range values {
-			inner[v] = ok
-		}
-		out[term] = inner
-	}
-	return out
-}
-
 // RunStats displays a live stream of resource usage statistics for one or more containers.
 // This shows real-time information on CPU usage, memory usage, and network I/O.
 //
@@ -183,8 +165,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			// the original set of filters. Custom filters are used both
 			// to list containers and to filter events, but the "type" filter
 			// is not valid for filtering containers.
-			f := cloneFilters(options.Filters)
-			f.Add("type", string(events.ContainerEventType))
+			f := options.Filters.Clone().Add("type", string(events.ContainerEventType))
 			eventChan, errChan := apiClient.Events(ctx, client.EventsListOptions{
 				Filters: f,
 			})
