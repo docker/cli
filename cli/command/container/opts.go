@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -1133,10 +1134,8 @@ func validateLinuxPath(val string, validator func(string) bool) (string, error) 
 // validateAttach validates that the specified string is a valid attach option.
 func validateAttach(val string) (string, error) {
 	s := strings.ToLower(val)
-	for _, str := range []string{"stdin", "stdout", "stderr"} {
-		if s == str {
-			return s, nil
-		}
+	if slices.Contains([]string{"stdin", "stdout", "stderr"}, s) {
+		return s, nil
 	}
 	return val, errors.New("valid streams are STDIN, STDOUT and STDERR")
 }
