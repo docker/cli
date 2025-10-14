@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 
 	"github.com/containerd/errdefs"
@@ -105,6 +106,16 @@ func verifyLoginOptions(dockerCLI command.Streams, opts *loginOptions) error {
 
 		opts.password = strings.TrimSuffix(string(contents), "\n")
 		opts.password = strings.TrimSuffix(opts.password, "\r")
+	}
+
+	if opts.serverAddress != "" {
+		u, err := url.Parse(opts.serverAddress)
+		if err != nil {
+			return errors.Errorf("Invalid server address: %s", opts.serverAddress)
+		}
+		if u.Host == "" {
+			return errors.Errorf("Server address must include a hostname: %s", opts.serverAddress)
+		}
 	}
 	return nil
 }
