@@ -39,8 +39,8 @@ Update a service
 | `--health-start-interval`                     | `duration`        |         | Time between running the check during the start period (ms\|s\|m\|h)                                |
 | `--health-start-period`                       | `duration`        |         | Start period for the container to initialize before counting retries towards unstable (ms\|s\|m\|h) |
 | `--health-timeout`                            | `duration`        |         | Maximum time to allow one check to run (ms\|s\|m\|h)                                                |
-| `--host-add`                                  | `list`            |         | Add a custom host-to-IP mapping (`host:ip`)                                                         |
-| `--host-rm`                                   | `list`            |         | Remove a custom host-to-IP mapping (`host:ip`)                                                      |
+| `--host-add`                                  | `list`            |         | Add a custom host-to-IP mapping (`host:ip`). Multiple entries can be separated by comma |
+| `--host-rm`                                   | `list`            |         | Remove a custom host-to-IP mapping (`host:ip`) |
 | `--hostname`                                  | `string`          |         | Container hostname                                                                                  |
 | `--image`                                     | `string`          |         | Service image tag                                                                                   |
 | `--init`                                      | `bool`            |         | Use an init inside each service container to forward signals and reap processes                     |
