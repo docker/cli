@@ -23,7 +23,7 @@ import (
 // (i.e., "label=some-value" conflicts with "label!=some-value", and vice versa),
 // then the filter defined in config.json is omitted.
 func PruneFilters(dockerCLI config.Provider, filters client.Filters) client.Filters {
-	pruneFilters := cloneFilters(filters)
+	pruneFilters := filters.Clone()
 
 	cfg := dockerCLI.ConfigFile()
 	if cfg == nil {
@@ -56,21 +56,6 @@ func PruneFilters(dockerCLI config.Provider, filters client.Filters) client.Filt
 	}
 
 	return pruneFilters
-}
-
-// cloneFilters returns a deep copy of f, creating a new filter if f is nil.
-//
-// TODO(thaJeztah): add this as a "Clone" method on client.Filters.
-func cloneFilters(f client.Filters) client.Filters {
-	out := make(client.Filters, len(f))
-	for term, values := range f {
-		inner := make(map[string]bool, len(values))
-		for v, ok := range values {
-			inner[v] = ok
-		}
-		out[term] = inner
-	}
-	return out
 }
 
 // ValidateOutputPath validates the output paths of the "docker cp" command.
