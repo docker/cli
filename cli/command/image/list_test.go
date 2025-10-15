@@ -39,7 +39,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 			cmd := newImagesCommand(test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
-			cmd.SetArgs(tc.args)
+			cmd.SetArgs(nilToEmptySlice(tc.args))
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -88,7 +88,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			cmd := newImagesCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
-			cmd.SetArgs(tc.args)
+			cmd.SetArgs(nilToEmptySlice(tc.args))
 			err := cmd.Execute()
 			assert.NilError(t, err)
 			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("list-command-success.%s.golden", tc.name))
@@ -98,6 +98,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 
 func TestNewListCommandAlias(t *testing.T) {
 	cmd := newListCommand(test.NewFakeCli(&fakeClient{}))
+	cmd.SetArgs([]string{""})
 	assert.Check(t, cmd.HasAlias("list"))
 	assert.Check(t, !cmd.HasAlias("other"))
 }
@@ -114,4 +115,11 @@ func TestNewListCommandAmbiguous(t *testing.T) {
 	err := cmd.Execute()
 	assert.NilError(t, err)
 	golden.Assert(t, cli.ErrBuffer().String(), "list-command-ambiguous.golden")
+}
+
+func nilToEmptySlice[T any](s []T) []T {
+	if s == nil {
+		return []T{}
+	}
+	return s
 }
