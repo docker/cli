@@ -26,7 +26,6 @@ type imagesOptions struct {
 	showDigests bool
 	format      string
 	filter      opts.FilterOpt
-	calledAs    string
 	tree        bool
 }
 
@@ -42,11 +41,14 @@ func newImagesCommand(dockerCLI command.Cli) *cobra.Command {
 			if len(args) > 0 {
 				options.matchName = args[0]
 			}
-			// Pass through how the command was invoked. We use this to print
-			// warnings when an ambiguous argument was passed when using the
-			// legacy (top-level) "docker images" subcommand.
-			options.calledAs = cmd.CalledAs()
-			return runImages(cmd.Context(), dockerCLI, options)
+			numImages, err := runImages(cmd.Context(), dockerCLI, options)
+			if err != nil {
+				return err
+			}
+			if numImages == 0 && options.matchName != "" && cmd.CalledAs() == "images" {
+				printAmbiguousHint(dockerCLI.Err(), options.matchName)
+			}
+			return nil
 		},
 		Annotations: map[string]string{
 			"category-top": "7",
@@ -79,7 +81,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions) error {
+func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions) (int, error) {
 	filters := options.filter.Value()
 	if options.matchName != "" {
 		filters.Add("reference", options.matchName)
@@ -87,7 +89,7 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 
 	useTree, err := shouldUseTree(options)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if useTree {
@@ -103,7 +105,7 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		Filters: filters,
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	format := options.format
@@ -124,12 +126,9 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		Digest: options.showDigests,
 	}
 	if err := formatter.ImageWrite(imageCtx, images); err != nil {
-		return err
+		return 0, err
 	}
-	if options.matchName != "" && len(images) == 0 && options.calledAs == "images" {
-		printAmbiguousHint(dockerCLI.Err(), options.matchName)
-	}
-	return nil
+	return len(images), nil
 }
 
 func shouldUseTree(options imagesOptions) (bool, error) {

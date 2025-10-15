@@ -36,14 +36,14 @@ type treeView struct {
 	imageSpacing bool
 }
 
-func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error {
+func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) (int, error) {
 	images, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
 		All:       opts.all,
 		Filters:   opts.filters,
 		Manifests: true,
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if !opts.all {
 		images = slices.DeleteFunc(images, isDangling)
@@ -115,7 +115,8 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		return view.images[i].created > view.images[j].created
 	})
 
-	return printImageTree(dockerCLI, view)
+	printImageTree(dockerCLI, view)
+	return len(view.images), nil
 }
 
 type imageDetails struct {
@@ -198,7 +199,7 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 	return possible
 }
 
-func printImageTree(dockerCLI command.Cli, view treeView) error {
+func printImageTree(dockerCLI command.Cli, view treeView) {
 	if streamRedirected(dockerCLI.Out()) {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
 	}
@@ -305,8 +306,6 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 		printChildren(out, columns, img, normalColor)
 		_, _ = fmt.Fprintln(out)
 	}
-
-	return nil
 }
 
 // adjustColumns adjusts the width of the first column to maximize the space
@@ -348,7 +347,6 @@ func generateLegend(out tui.Output, width uint) string {
 			legend += " |"
 		}
 	}
-	legend += " "
 
 	r := int(width) - tui.Width(legend)
 	if r < 0 {
