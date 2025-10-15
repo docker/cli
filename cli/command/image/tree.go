@@ -24,8 +24,9 @@ import (
 )
 
 type treeOptions struct {
-	all     bool
-	filters client.Filters
+	all      bool
+	filters  client.Filters
+	expanded bool
 }
 
 type treeView struct {
@@ -35,14 +36,14 @@ type treeView struct {
 	imageSpacing bool
 }
 
-func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error {
+func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) (int, error) {
 	images, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
 		All:       opts.all,
 		Filters:   opts.filters,
 		Manifests: true,
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if !opts.all {
 		images = slices.DeleteFunc(images, isDangling)
@@ -54,7 +55,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 	attested := make(map[digest.Digest]bool)
 
 	for _, img := range images {
-		details := imageDetails{
+		topDetails := imageDetails{
 			ID:        img.ID,
 			DiskUsage: units.HumanSizeWithPrecision(float64(img.Size), 3),
 			InUse:     img.Containers > 0,
@@ -73,20 +74,25 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				continue
 			}
 
+			inUse := len(im.ImageData.Containers) > 0
+			if inUse {
+				// Mark top-level parent image as used if any of its subimages are used.
+				topDetails.InUse = true
+			}
+
+			if !opts.expanded {
+				continue
+			}
+
 			sub := subImage{
 				Platform:  platforms.Format(im.ImageData.Platform),
 				Available: im.Available,
 				Details: imageDetails{
 					ID:          im.ID,
 					DiskUsage:   units.HumanSizeWithPrecision(float64(im.Size.Total), 3),
-					InUse:       len(im.ImageData.Containers) > 0,
+					InUse:       inUse,
 					ContentSize: units.HumanSizeWithPrecision(float64(im.Size.Content), 3),
 				},
-			}
-
-			if sub.Details.InUse {
-				// Mark top-level parent image as used if any of its subimages are used.
-				details.InUse = true
 			}
 
 			children = append(children, sub)
@@ -95,11 +101,11 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 			view.imageSpacing = true
 		}
 
-		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
+		topDetails.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
 
 		view.images = append(view.images, topImage{
 			Names:    img.RepoTags,
-			Details:  details,
+			Details:  topDetails,
 			Children: children,
 			created:  img.Created,
 		})
@@ -109,7 +115,8 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		return view.images[i].created > view.images[j].created
 	})
 
-	return printImageTree(dockerCLI, view)
+	printImageTree(dockerCLI, view)
+	return len(view.images), nil
 }
 
 type imageDetails struct {
@@ -192,7 +199,7 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 	return possible
 }
 
-func printImageTree(dockerCLI command.Cli, view treeView) error {
+func printImageTree(dockerCLI command.Cli, view treeView) {
 	if streamRedirected(dockerCLI.Out()) {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
 	}
@@ -299,8 +306,6 @@ func printImageTree(dockerCLI command.Cli, view treeView) error {
 		printChildren(out, columns, img, normalColor)
 		_, _ = fmt.Fprintln(out)
 	}
-
-	return nil
 }
 
 // adjustColumns adjusts the width of the first column to maximize the space
@@ -342,7 +347,6 @@ func generateLegend(out tui.Output, width uint) string {
 			legend += " |"
 		}
 	}
-	legend += " "
 
 	r := int(width) - tui.Width(legend)
 	if r < 0 {
