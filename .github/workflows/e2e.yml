@@ -37,6 +37,7 @@ jobs:
           - alpine
           - debian
         engine-version:
+          - 29-rc  # latest rc
           - 28  # latest
           - 27  # latest - 1
           - 25  # mirantis lts
