@@ -24,9 +24,10 @@ import (
 )
 
 type treeOptions struct {
-	images  []imagetypes.Summary
-	all     bool
-	filters client.Filters
+	images   []imagetypes.Summary
+	all      bool
+	filters  client.Filters
+	expanded bool
 }
 
 type treeView struct {
@@ -48,7 +49,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		details := imageDetails{
+		topDetails := imageDetails{
 			ID:        img.ID,
 			DiskUsage: units.HumanSizeWithPrecision(float64(img.Size), 3),
 			InUse:     img.Containers > 0,
@@ -67,20 +68,25 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 				continue
 			}
 
+			inUse := len(im.ImageData.Containers) > 0
+			if inUse {
+				// Mark top-level parent image as used if any of its subimages are used.
+				topDetails.InUse = true
+			}
+
+			if !opts.expanded {
+				continue
+			}
+
 			sub := subImage{
 				Platform:  platforms.Format(im.ImageData.Platform),
 				Available: im.Available,
 				Details: imageDetails{
 					ID:          im.ID,
 					DiskUsage:   units.HumanSizeWithPrecision(float64(im.Size.Total), 3),
-					InUse:       len(im.ImageData.Containers) > 0,
+					InUse:       inUse,
 					ContentSize: units.HumanSizeWithPrecision(float64(im.Size.Content), 3),
 				},
-			}
-
-			if sub.Details.InUse {
-				// Mark top-level parent image as used if any of its subimages are used.
-				details.InUse = true
 			}
 
 			children = append(children, sub)
@@ -89,19 +95,31 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 			view.imageSpacing = true
 		}
 
-		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
+		topDetails.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
 
 		// Sort tags for this image
 		sortedTags := make([]string, len(img.RepoTags))
 		copy(sortedTags, img.RepoTags)
 		slices.Sort(sortedTags)
 
-		view.images = append(view.images, topImage{
-			Names:    sortedTags,
-			Details:  details,
-			Children: children,
-			created:  img.Created,
-		})
+		if opts.expanded {
+			view.images = append(view.images, topImage{
+				Names:    sortedTags,
+				Details:  topDetails,
+				Children: children,
+				created:  img.Created,
+			})
+			continue
+		}
+
+		for _, tag := range sortedTags {
+			view.images = append(view.images, topImage{
+				Names:    []string{tag},
+				Details:  topDetails,
+				Children: children,
+				created:  img.Created,
+			})
+		}
 	}
 
 	slices.SortFunc(view.images, func(a, b topImage) int {

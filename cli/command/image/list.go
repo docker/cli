@@ -82,38 +82,28 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cmd
 }
 
-//nolint:gocyclo
 func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions) error {
 	filters := options.filter.Value()
 	if options.matchName != "" {
 		filters.Add("reference", options.matchName)
 	}
 
-	if options.tree {
-		if options.quiet {
-			return errors.New("--quiet is not yet supported with --tree")
-		}
-		if options.noTrunc {
-			return errors.New("--no-trunc is not yet supported with --tree")
-		}
-		if options.showDigests {
-			return errors.New("--show-digest is not yet supported with --tree")
-		}
-		if options.format != "" {
-			return errors.New("--format is not yet supported with --tree")
-		}
+	useTree, err := shouldUseTree(options)
+	if err != nil {
+		return err
 	}
 
 	listOpts := client.ImageListOptions{
 		All:       options.all,
 		Filters:   filters,
-		Manifests: options.tree,
+		Manifests: useTree,
 	}
 
 	res, err := dockerCLI.Client().ImageList(ctx, listOpts)
 	if err != nil {
 		return err
 	}
+
 	images := res.Items
 	if !options.all {
 		if _, ok := filters["dangling"]; !ok {
@@ -121,11 +111,12 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		}
 	}
 
-	if options.tree {
+	if useTree {
 		return runTree(ctx, dockerCLI, treeOptions{
-			images:  images,
-			all:     options.all,
-			filters: filters,
+			images:   images,
+			all:      options.all,
+			filters:  filters,
+			expanded: options.tree,
 		})
 	}
 
@@ -153,6 +144,34 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		printAmbiguousHint(dockerCLI.Err(), options.matchName)
 	}
 	return nil
+}
+
+func shouldUseTree(options imagesOptions) (bool, error) {
+	if options.quiet {
+		if options.tree {
+			return false, errors.New("--quiet is not yet supported with --tree")
+		}
+		return false, nil
+	}
+	if options.noTrunc {
+		if options.tree {
+			return false, errors.New("--no-trunc is not yet supported with --tree")
+		}
+		return false, nil
+	}
+	if options.showDigests {
+		if options.tree {
+			return false, errors.New("--show-digest is not yet supported with --tree")
+		}
+		return false, nil
+	}
+	if options.format != "" {
+		if options.tree {
+			return false, errors.New("--format is not yet supported with --tree")
+		}
+		return false, nil
+	}
+	return true, nil
 }
 
 // isDangling is a copy of [formatter.isDangling].
