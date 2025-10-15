@@ -6,7 +6,10 @@ services:
   engine:
       image: 'docker:${ENGINE_VERSION:-28}-dind'
       privileged: true
-      command: ['--insecure-registry=registry:5000', '--experimental']
+      command:
+        - '--insecure-registry=registry:5000'
+        - '--experimental'
+#        - '--feature=containerd-snapshotter=false'
       environment:
         - DOCKER_TLS_CERTDIR=
 

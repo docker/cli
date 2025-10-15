@@ -50,6 +50,8 @@ func TestPushAllTags(t *testing.T) {
 		9:  output.Equals("v1.0: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 		12: output.Equals("v1.0.1: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 	})
+	fmt.Println("--------OUTPUT---------------")
+	fmt.Println(result.Stdout())
 }
 
 func TestPushWithContentTrust(t *testing.T) {

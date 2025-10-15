@@ -7,3 +7,4 @@ while ! docker version > /dev/null; do
 done
 
 docker version
+docker info
