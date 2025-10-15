@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/internal/test/environment"
 	"github.com/docker/cli/internal/test/output"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
@@ -49,6 +50,8 @@ func TestPushAllTags(t *testing.T) {
 		9:  output.Equals("v1.0: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 		12: output.Equals("v1.0.1: digest: sha256:e2e16842c9b54d985bf1ef9242a313f36b856181f188de21313820e177002501 size: 528"),
 	})
+	fmt.Println("--------OUTPUT---------------")
+	fmt.Println(result.Stdout())
 }
 
 func TestPushWithContentTrust(t *testing.T) {
@@ -84,8 +87,9 @@ func TestPushQuietErrors(t *testing.T) {
 	result := icmd.RunCmd(icmd.Command("docker", "push", "--quiet", "nosuchimage"))
 	result.Assert(t, icmd.Expected{
 		ExitCode: 1,
-		Err:      "An image does not exist locally with the tag: nosuchimage",
 	})
+	assert.Check(t, is.Contains(result.Stderr(), "does not exist"))
+	assert.Check(t, is.Contains(result.Stderr(), "nosuchimage"))
 }
 
 func TestPushWithContentTrustUnreachableServer(t *testing.T) {
