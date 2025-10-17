@@ -19,12 +19,12 @@ type fakeClient struct {
 
 	version            string
 	containerListFunc  func(context.Context, client.ContainerListOptions) ([]container.Summary, error)
-	containerPruneFunc func(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error)
+	containerPruneFunc func(ctx context.Context, options client.ContainerPruneOptions) (client.ContainerPruneResult, error)
 	eventsFn           func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error)
 	imageListFunc      func(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error)
 	infoFunc           func(ctx context.Context) (system.Info, error)
 	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
-	networkPruneFunc   func(ctx context.Context, pruneFilter client.Filters) (network.PruneReport, error)
+	networkPruneFunc   func(ctx context.Context, options client.NetworkPruneOptions) (client.NetworkPruneResult, error)
 	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error)
 	serverVersion      func(ctx context.Context) (types.Version, error)
 	volumeListFunc     func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error)
@@ -41,11 +41,11 @@ func (cli *fakeClient) ContainerList(ctx context.Context, options client.Contain
 	return []container.Summary{}, nil
 }
 
-func (cli *fakeClient) ContainersPrune(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error) {
+func (cli *fakeClient) ContainersPrune(ctx context.Context, opts client.ContainerPruneOptions) (client.ContainerPruneResult, error) {
 	if cli.containerPruneFunc != nil {
-		return cli.containerPruneFunc(ctx, pruneFilters)
+		return cli.containerPruneFunc(ctx, opts)
 	}
-	return container.PruneReport{}, nil
+	return client.ContainerPruneResult{}, nil
 }
 
 func (cli *fakeClient) Events(ctx context.Context, opts client.EventsListOptions) (<-chan events.Message, <-chan error) {
@@ -73,11 +73,11 @@ func (cli *fakeClient) NetworkList(ctx context.Context, options client.NetworkLi
 	return []network.Summary{}, nil
 }
 
-func (cli *fakeClient) NetworksPrune(ctx context.Context, pruneFilter client.Filters) (network.PruneReport, error) {
+func (cli *fakeClient) NetworksPrune(ctx context.Context, opts client.NetworkPruneOptions) (client.NetworkPruneResult, error) {
 	if cli.networkPruneFunc != nil {
-		return cli.networkPruneFunc(ctx, pruneFilter)
+		return cli.networkPruneFunc(ctx, opts)
 	}
-	return network.PruneReport{}, nil
+	return client.NetworkPruneResult{}, nil
 }
 
 func (cli *fakeClient) NodeList(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error) {

@@ -19,7 +19,7 @@ func TestListErrors(t *testing.T) {
 		args          []string
 		flags         map[string]string
 		expectedError string
-		listFunc      func(filter client.Filters) (plugin.ListResponse, error)
+		listFunc      func(client.PluginListOptions) (plugin.ListResponse, error)
 	}{
 		{
 			description:   "too many arguments",
@@ -30,7 +30,7 @@ func TestListErrors(t *testing.T) {
 			description:   "error listing plugins",
 			args:          []string{},
 			expectedError: "error listing plugins",
-			listFunc: func(filter client.Filters) (plugin.ListResponse, error) {
+			listFunc: func(client.PluginListOptions) (plugin.ListResponse, error) {
 				return plugin.ListResponse{}, errors.New("error listing plugins")
 			},
 		},
@@ -60,7 +60,7 @@ func TestListErrors(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	singlePluginListFunc := func(_ client.Filters) (plugin.ListResponse, error) {
+	singlePluginListFunc := func(client.PluginListOptions) (plugin.ListResponse, error) {
 		return plugin.ListResponse{
 			{
 				ID:      "id-foo",
@@ -78,7 +78,7 @@ func TestList(t *testing.T) {
 		args        []string
 		flags       map[string]string
 		golden      string
-		listFunc    func(filter client.Filters) (plugin.ListResponse, error)
+		listFunc    func(client.PluginListOptions) (plugin.ListResponse, error)
 	}{
 		{
 			description: "list with no additional flags",
@@ -93,9 +93,9 @@ func TestList(t *testing.T) {
 				"filter": "foo=bar",
 			},
 			golden: "plugin-list-without-format.golden",
-			listFunc: func(filter client.Filters) (plugin.ListResponse, error) {
-				assert.Check(t, filter["foo"]["bar"])
-				return singlePluginListFunc(filter)
+			listFunc: func(opts client.PluginListOptions) (plugin.ListResponse, error) {
+				assert.Check(t, opts.Filters["foo"]["bar"])
+				return singlePluginListFunc(opts)
 			},
 		},
 		{
@@ -115,7 +115,7 @@ func TestList(t *testing.T) {
 				"format":   "{{ .ID }}",
 			},
 			golden: "plugin-list-with-no-trunc-option.golden",
-			listFunc: func(_ client.Filters) (plugin.ListResponse, error) {
+			listFunc: func(client.PluginListOptions) (plugin.ListResponse, error) {
 				return plugin.ListResponse{
 					{
 						ID:      "xyg4z2hiSLO5yTnBJfg4OYia9gKA6Qjd",
@@ -144,7 +144,7 @@ func TestList(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-list-sort.golden",
-			listFunc: func(_ client.Filters) (plugin.ListResponse, error) {
+			listFunc: func(client.PluginListOptions) (plugin.ListResponse, error) {
 				return plugin.ListResponse{
 					{
 						ID:   "id-1",

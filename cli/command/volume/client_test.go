@@ -13,7 +13,7 @@ type fakeClient struct {
 	volumeInspectFunc func(volumeID string) (volume.Volume, error)
 	volumeListFunc    func(filter client.Filters) (volume.ListResponse, error)
 	volumeRemoveFunc  func(volumeID string, force bool) error
-	volumePruneFunc   func(filter client.Filters) (volume.PruneReport, error)
+	volumePruneFunc   func(opts client.VolumePruneOptions) (client.VolumePruneResult, error)
 }
 
 func (c *fakeClient) VolumeCreate(_ context.Context, options volume.CreateOptions) (volume.Volume, error) {
@@ -37,11 +37,11 @@ func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOpti
 	return volume.ListResponse{}, nil
 }
 
-func (c *fakeClient) VolumesPrune(_ context.Context, filter client.Filters) (volume.PruneReport, error) {
+func (c *fakeClient) VolumesPrune(_ context.Context, opts client.VolumePruneOptions) (client.VolumePruneResult, error) {
 	if c.volumePruneFunc != nil {
-		return c.volumePruneFunc(filter)
+		return c.volumePruneFunc(opts)
 	}
-	return volume.PruneReport{}, nil
+	return client.VolumePruneResult{}, nil
 }
 
 func (c *fakeClient) VolumeRemove(_ context.Context, volumeID string, force bool) error {

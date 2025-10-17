@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -88,17 +89,19 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().VolumesPrune(ctx, pruneFilters)
+	res, err := dockerCli.Client().VolumesPrune(ctx, client.VolumePruneOptions{
+		Filters: pruneFilters,
+	})
 	if err != nil {
 		return 0, "", err
 	}
 
-	if len(report.VolumesDeleted) > 0 {
+	if len(res.Report.VolumesDeleted) > 0 {
 		output = "Deleted Volumes:\n"
-		for _, id := range report.VolumesDeleted {
+		for _, id := range res.Report.VolumesDeleted {
 			output += id + "\n"
 		}
-		spaceReclaimed = report.SpaceReclaimed
+		spaceReclaimed = res.Report.SpaceReclaimed
 	}
 
 	return spaceReclaimed, output, nil

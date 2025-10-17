@@ -239,7 +239,7 @@ func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []str
 // pluginNames contacts the API to get a list of plugin names.
 // In case of an error, an empty list is returned.
 func pluginNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().PluginList(cmd.Context(), nil)
+	list, err := dockerCLI.Client().PluginList(cmd.Context(), client.PluginListOptions{})
 	if err != nil {
 		return []string{}
 	}
