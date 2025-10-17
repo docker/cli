@@ -32,7 +32,9 @@ func completeNames(dockerCLI completion.APIClientProvider, state pluginState) co
 			// no filter
 		}
 
-		list, err := dockerCLI.Client().PluginList(cmd.Context(), f)
+		list, err := dockerCLI.Client().PluginList(cmd.Context(), client.PluginListOptions{
+			Filters: f,
+		})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

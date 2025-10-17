@@ -19,7 +19,7 @@ type fakeClient struct {
 	imagePushFunc    func(ref string, options client.ImagePushOptions) (io.ReadCloser, error)
 	infoFunc         func() (system.Info, error)
 	imagePullFunc    func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error)
-	imagesPruneFunc  func(pruneFilter client.Filters) (image.PruneReport, error)
+	imagesPruneFunc  func(options client.ImagePruneOptions) (client.ImagePruneResult, error)
 	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error)
 	imageListFunc    func(options client.ImageListOptions) ([]image.Summary, error)
 	imageInspectFunc func(img string) (image.InspectResponse, error)
@@ -72,11 +72,11 @@ func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.I
 	return client.ImagePullResponse{}, nil
 }
 
-func (cli *fakeClient) ImagesPrune(_ context.Context, pruneFilter client.Filters) (image.PruneReport, error) {
+func (cli *fakeClient) ImagesPrune(_ context.Context, opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
 	if cli.imagesPruneFunc != nil {
-		return cli.imagesPruneFunc(pruneFilter)
+		return cli.imagesPruneFunc(opts)
 	}
-	return image.PruneReport{}, nil
+	return client.ImagePruneResult{}, nil
 }
 
 func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {

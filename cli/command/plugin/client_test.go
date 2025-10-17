@@ -11,54 +11,54 @@ import (
 
 type fakeClient struct {
 	client.Client
-	pluginCreateFunc  func(createContext io.Reader, createOptions client.PluginCreateOptions) error
-	pluginDisableFunc func(name string, disableOptions client.PluginDisableOptions) error
+	pluginCreateFunc  func(createContext io.Reader, options client.PluginCreateOptions) error
+	pluginDisableFunc func(name string, options client.PluginDisableOptions) error
 	pluginEnableFunc  func(name string, options client.PluginEnableOptions) error
 	pluginRemoveFunc  func(name string, options client.PluginRemoveOptions) error
 	pluginInstallFunc func(name string, options client.PluginInstallOptions) (io.ReadCloser, error)
-	pluginListFunc    func(filter client.Filters) (plugin.ListResponse, error)
+	pluginListFunc    func(options client.PluginListOptions) (plugin.ListResponse, error)
 	pluginInspectFunc func(name string) (*plugin.Plugin, []byte, error)
 	pluginUpgradeFunc func(name string, options client.PluginInstallOptions) (io.ReadCloser, error)
 }
 
-func (c *fakeClient) PluginCreate(_ context.Context, createContext io.Reader, createOptions client.PluginCreateOptions) error {
+func (c *fakeClient) PluginCreate(_ context.Context, createContext io.Reader, options client.PluginCreateOptions) error {
 	if c.pluginCreateFunc != nil {
-		return c.pluginCreateFunc(createContext, createOptions)
+		return c.pluginCreateFunc(createContext, options)
 	}
 	return nil
 }
 
-func (c *fakeClient) PluginEnable(_ context.Context, name string, enableOptions client.PluginEnableOptions) error {
+func (c *fakeClient) PluginEnable(_ context.Context, name string, options client.PluginEnableOptions) error {
 	if c.pluginEnableFunc != nil {
-		return c.pluginEnableFunc(name, enableOptions)
+		return c.pluginEnableFunc(name, options)
 	}
 	return nil
 }
 
-func (c *fakeClient) PluginDisable(_ context.Context, name string, disableOptions client.PluginDisableOptions) error {
+func (c *fakeClient) PluginDisable(_ context.Context, name string, options client.PluginDisableOptions) error {
 	if c.pluginDisableFunc != nil {
-		return c.pluginDisableFunc(name, disableOptions)
+		return c.pluginDisableFunc(name, options)
 	}
 	return nil
 }
 
-func (c *fakeClient) PluginRemove(_ context.Context, name string, removeOptions client.PluginRemoveOptions) error {
+func (c *fakeClient) PluginRemove(_ context.Context, name string, options client.PluginRemoveOptions) error {
 	if c.pluginRemoveFunc != nil {
-		return c.pluginRemoveFunc(name, removeOptions)
+		return c.pluginRemoveFunc(name, options)
 	}
 	return nil
 }
 
-func (c *fakeClient) PluginInstall(_ context.Context, name string, installOptions client.PluginInstallOptions) (io.ReadCloser, error) {
+func (c *fakeClient) PluginInstall(_ context.Context, name string, options client.PluginInstallOptions) (io.ReadCloser, error) {
 	if c.pluginInstallFunc != nil {
-		return c.pluginInstallFunc(name, installOptions)
+		return c.pluginInstallFunc(name, options)
 	}
 	return nil, nil
 }
 
-func (c *fakeClient) PluginList(_ context.Context, filter client.Filters) (plugin.ListResponse, error) {
+func (c *fakeClient) PluginList(_ context.Context, options client.PluginListOptions) (plugin.ListResponse, error) {
 	if c.pluginListFunc != nil {
-		return c.pluginListFunc(filter)
+		return c.pluginListFunc(options)
 	}
 
 	return plugin.ListResponse{}, nil

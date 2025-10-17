@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -73,17 +74,19 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().ContainersPrune(ctx, pruneFilters)
+	res, err := dockerCli.Client().ContainersPrune(ctx, client.ContainerPruneOptions{
+		Filters: pruneFilters,
+	})
 	if err != nil {
 		return 0, "", err
 	}
 
-	if len(report.ContainersDeleted) > 0 {
+	if len(res.Report.ContainersDeleted) > 0 {
 		output = "Deleted Containers:\n"
-		for _, id := range report.ContainersDeleted {
+		for _, id := range res.Report.ContainersDeleted {
 			output += id + "\n"
 		}
-		spaceReclaimed = report.SpaceReclaimed
+		spaceReclaimed = res.Report.SpaceReclaimed
 	}
 
 	return spaceReclaimed, output, nil

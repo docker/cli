@@ -14,7 +14,7 @@ type fakeClient struct {
 	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
 	networkListFunc       func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
-	networkPruneFunc      func(ctx context.Context, pruneFilters client.Filters) (network.PruneReport, error)
+	networkPruneFunc      func(ctx context.Context, options client.NetworkPruneOptions) (client.NetworkPruneResult, error)
 	networkInspectFunc    func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, []byte, error)
 }
 
@@ -60,9 +60,9 @@ func (c *fakeClient) NetworkInspectWithRaw(ctx context.Context, networkID string
 	return network.Inspect{}, nil, nil
 }
 
-func (c *fakeClient) NetworksPrune(ctx context.Context, pruneFilter client.Filters) (network.PruneReport, error) {
+func (c *fakeClient) NetworksPrune(ctx context.Context, opts client.NetworkPruneOptions) (client.NetworkPruneResult, error) {
 	if c.networkPruneFunc != nil {
-		return c.networkPruneFunc(ctx, pruneFilter)
+		return c.networkPruneFunc(ctx, opts)
 	}
-	return network.PruneReport{}, nil
+	return client.NetworkPruneResult{}, nil
 }
