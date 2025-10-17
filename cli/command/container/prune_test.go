@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 )
 
@@ -16,8 +15,8 @@ func TestContainerPrunePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerPruneFunc: func(ctx context.Context, pruneFilters client.Filters) (container.PruneReport, error) {
-			return container.PruneReport{}, errors.New("fakeClient containerPruneFunc should not be called")
+		containerPruneFunc: func(ctx context.Context, opts client.ContainerPruneOptions) (client.ContainerPruneResult, error) {
+			return client.ContainerPruneResult{}, errors.New("fakeClient containerPruneFunc should not be called")
 		},
 	})
 	cmd := newPruneCommand(cli)

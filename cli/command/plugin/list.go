@@ -10,6 +10,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -46,13 +47,15 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runList(ctx context.Context, dockerCli command.Cli, options listOptions) error {
-	plugins, err := dockerCli.Client().PluginList(ctx, options.filter.Value())
+	resp, err := dockerCli.Client().PluginList(ctx, client.PluginListOptions{
+		Filters: options.filter.Value(),
+	})
 	if err != nil {
 		return err
 	}
 
-	sort.Slice(plugins, func(i, j int) bool {
-		return sortorder.NaturalLess(plugins[i].Name, plugins[j].Name)
+	sort.Slice(resp, func(i, j int) bool {
+		return sortorder.NaturalLess(resp[i].Name, resp[j].Name)
 	})
 
 	format := options.format
@@ -69,5 +72,5 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 		Format: newFormat(format, options.quiet),
 		Trunc:  !options.noTrunc,
 	}
-	return formatWrite(pluginsCtx, plugins)
+	return formatWrite(pluginsCtx, resp)
 }

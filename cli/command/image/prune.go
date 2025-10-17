@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -86,15 +87,17 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().ImagesPrune(ctx, pruneFilters)
+	res, err := dockerCli.Client().ImagesPrune(ctx, client.ImagePruneOptions{
+		Filters: pruneFilters,
+	})
 	if err != nil {
 		return 0, "", err
 	}
 
-	if len(report.ImagesDeleted) > 0 {
-		var sb strings.Builder
+	var sb strings.Builder
+	if len(res.Report.ImagesDeleted) > 0 {
 		sb.WriteString("Deleted Images:\n")
-		for _, st := range report.ImagesDeleted {
+		for _, st := range res.Report.ImagesDeleted {
 			if st.Untagged != "" {
 				sb.WriteString("untagged: ")
 				sb.WriteString(st.Untagged)
@@ -105,11 +108,9 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 				sb.WriteByte('\n')
 			}
 		}
-		output = sb.String()
-		spaceReclaimed = report.SpaceReclaimed
 	}
 
-	return spaceReclaimed, output, nil
+	return res.Report.SpaceReclaimed, sb.String(), nil
 }
 
 type cancelledErr struct{ error }

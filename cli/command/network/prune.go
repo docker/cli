@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/system/pruner"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/opts"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -70,14 +71,16 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	report, err := dockerCli.Client().NetworksPrune(ctx, pruneFilters)
+	res, err := dockerCli.Client().NetworksPrune(ctx, client.NetworkPruneOptions{
+		Filters: pruneFilters,
+	})
 	if err != nil {
 		return "", err
 	}
 
-	if len(report.NetworksDeleted) > 0 {
+	if len(res.Report.NetworksDeleted) > 0 {
 		output = "Deleted Networks:\n"
-		for _, id := range report.NetworksDeleted {
+		for _, id := range res.Report.NetworksDeleted {
 			output += id + "\n"
 		}
 	}

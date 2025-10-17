@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -60,7 +61,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, volumeID, availabilit
 
 	return apiClient.VolumeUpdate(
 		ctx, vol.ClusterVolume.ID, vol.ClusterVolume.Version,
-		volume.UpdateOptions{
+		client.VolumeUpdateOptions{
 			Spec: &vol.ClusterVolume.Spec,
 		},
 	)
