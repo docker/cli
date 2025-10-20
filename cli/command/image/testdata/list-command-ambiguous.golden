@@ -1,2 +1,3 @@
+WARNING: This output is designed for human readability. For machine-readable output, please use --format.
 
 No images found matching "ls": did you mean "docker image ls"?
