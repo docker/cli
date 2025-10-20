@@ -63,14 +63,14 @@ func FormatError(err error) []byte {
 	return []byte(`{"error":"format error"}` + streamNewline)
 }
 
-func (sf *jsonProgressFormatter) formatStatus(id, format string, a ...any) []byte {
+func (*jsonProgressFormatter) formatStatus(id, format string, a ...any) []byte {
 	return FormatStatus(id, format, a...)
 }
 
 // formatProgress formats the progress information for a specified action.
-func (sf *jsonProgressFormatter) formatProgress(id, action string, progress *jsonstream.Progress, aux any) []byte {
-	if progress == nil {
-		progress = &jsonstream.Progress{}
+func (*jsonProgressFormatter) formatProgress(id, action string, p *jsonstream.Progress, aux any) []byte {
+	if p == nil {
+		p = &jsonstream.Progress{}
 	}
 	var auxJSON *json.RawMessage
 	if aux != nil {
@@ -83,7 +83,7 @@ func (sf *jsonProgressFormatter) formatProgress(id, action string, progress *jso
 	}
 	b, err := json.Marshal(&jsonMessage{
 		Status:   action,
-		Progress: progress,
+		Progress: p,
 		ID:       id,
 		Aux:      auxJSON,
 	})
@@ -95,7 +95,7 @@ func (sf *jsonProgressFormatter) formatProgress(id, action string, progress *jso
 
 type rawProgressFormatter struct{}
 
-func (sf *rawProgressFormatter) formatStatus(id, format string, a ...any) []byte {
+func (*rawProgressFormatter) formatStatus(id, format string, a ...any) []byte {
 	return []byte(fmt.Sprintf(format, a...) + streamNewline)
 }
 
@@ -155,12 +155,12 @@ func rawProgressString(p *jsonstream.Progress) string {
 	return pbBox + numbersBox + timeLeftBox
 }
 
-func (sf *rawProgressFormatter) formatProgress(id, action string, progress *jsonstream.Progress, aux any) []byte {
-	if progress == nil {
-		progress = &jsonstream.Progress{}
+func (*rawProgressFormatter) formatProgress(id, action string, p *jsonstream.Progress, aux any) []byte {
+	if p == nil {
+		p = &jsonstream.Progress{}
 	}
 	endl := "\r"
-	out := rawProgressString(progress)
+	out := rawProgressString(p)
 	if out == "" {
 		endl += "\n"
 	}
@@ -181,7 +181,7 @@ func NewJSONProgressOutput(out io.Writer, newLines bool) progress.Output {
 
 type formatProgress interface {
 	formatStatus(id, format string, a ...any) []byte
-	formatProgress(id, action string, progress *jsonstream.Progress, aux any) []byte
+	formatProgress(id, action string, p *jsonstream.Progress, aux any) []byte
 }
 
 type progressOutput struct {
