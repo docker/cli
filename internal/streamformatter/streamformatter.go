@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/docker/cli/internal/progress"
 	"github.com/docker/go-units"
-	"github.com/moby/moby/api/pkg/progress"
 	"github.com/moby/moby/api/types/jsonstream"
 )
 

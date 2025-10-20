@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/docker/cli/internal/progress"
 	"github.com/docker/cli/internal/streamformatter"
-	"github.com/moby/moby/api/pkg/progress"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/opencontainers/go-digest"
