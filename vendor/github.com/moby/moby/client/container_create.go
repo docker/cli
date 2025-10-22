@@ -11,7 +11,6 @@ import (
 	cerrdefs "github.com/containerd/errdefs"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/versions"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
@@ -27,25 +26,6 @@ func (cli *Client) ContainerCreate(ctx context.Context, config *container.Config
 	if hostConfig != nil {
 		hostConfig.CapAdd = normalizeCapabilities(hostConfig.CapAdd)
 		hostConfig.CapDrop = normalizeCapabilities(hostConfig.CapDrop)
-	}
-
-	// FIXME(thaJeztah): remove this once we updated our (integration) tests;
-	//  some integration tests depend on this to test old API versions; see https://github.com/moby/moby/pull/51120#issuecomment-3376224865
-	if config.MacAddress != "" { //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
-		// Make sure we negotiated (if the client is configured to do so),
-		// as code below contains API-version specific handling of options.
-		//
-		// Normally, version-negotiation (if enabled) would not happen until
-		// the API request is made.
-		if err := cli.checkVersion(ctx); err != nil {
-			return response, err
-		}
-		if versions.GreaterThanOrEqualTo(cli.ClientVersion(), "1.44") {
-			// Since API 1.44, the container-wide MacAddress is deprecated and triggers a WARNING if it's specified.
-			//
-			// FIXME(thaJeztah): remove the field from the API
-			config.MacAddress = "" //nolint:staticcheck // ignore SA1019: field is deprecated, but still used on API < v1.44.
-		}
 	}
 
 	query := url.Values{}
@@ -78,7 +58,7 @@ func (cli *Client) ContainerCreate(ctx context.Context, config *container.Config
 // formatPlatform returns a formatted string representing platform (e.g., "linux/arm/v7").
 //
 // It is a fork of [platforms.Format], and does not yet support "os.version",
-// as [[platforms.FormatAll] does.
+// as [platforms.FormatAll] does.
 //
 // [platforms.Format]: https://github.com/containerd/platforms/blob/v1.0.0-rc.1/platforms.go#L309-L316
 // [platforms.FormatAll]: https://github.com/containerd/platforms/blob/v1.0.0-rc.1/platforms.go#L318-L330
@@ -87,19 +67,6 @@ func formatPlatform(platform ocispec.Platform) string {
 		return "unknown"
 	}
 	return path.Join(platform.OS, platform.Architecture, platform.Variant)
-}
-
-// hasEndpointSpecificMacAddress checks whether one of the endpoint in networkingConfig has a MacAddress defined.
-func hasEndpointSpecificMacAddress(networkingConfig *network.NetworkingConfig) bool {
-	if networkingConfig == nil {
-		return false
-	}
-	for _, endpoint := range networkingConfig.EndpointsConfig {
-		if endpoint.MacAddress != "" {
-			return true
-		}
-	}
-	return false
 }
 
 // allCapabilities is a magic value for "all capabilities"
