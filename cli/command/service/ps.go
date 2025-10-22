@@ -89,11 +89,11 @@ func createFilter(ctx context.Context, apiClient client.APIClient, options psOpt
 		serviceIDFilter.Add("id", service)
 		serviceNameFilter.Add("name", service)
 	}
-	serviceByIDList, err := apiClient.ServiceList(ctx, client.ServiceListOptions{Filters: serviceIDFilter})
+	serviceByID, err := apiClient.ServiceList(ctx, client.ServiceListOptions{Filters: serviceIDFilter})
 	if err != nil {
 		return filter, nil, err
 	}
-	serviceByNameList, err := apiClient.ServiceList(ctx, client.ServiceListOptions{Filters: serviceNameFilter})
+	serviceByName, err := apiClient.ServiceList(ctx, client.ServiceListOptions{Filters: serviceNameFilter})
 	if err != nil {
 		return filter, nil, err
 	}
@@ -103,14 +103,14 @@ func createFilter(ctx context.Context, apiClient client.APIClient, options psOpt
 loop:
 	// Match services by 1. Full ID, 2. Full name, 3. ID prefix. An error is returned if the ID-prefix match is ambiguous
 	for _, service := range options.services {
-		for _, s := range serviceByIDList {
+		for _, s := range serviceByID.Items {
 			if s.ID == service {
 				filter.Add("service", s.ID)
 				serviceCount++
 				continue loop
 			}
 		}
-		for _, s := range serviceByNameList {
+		for _, s := range serviceByName.Items {
 			if s.Spec.Annotations.Name == service {
 				filter.Add("service", s.ID)
 				serviceCount++
@@ -118,7 +118,7 @@ loop:
 			}
 		}
 		found := false
-		for _, s := range serviceByIDList {
+		for _, s := range serviceByID.Items {
 			if strings.HasPrefix(s.ID, service) {
 				if found {
 					return filter, nil, errors.New("multiple services found with provided prefix: " + service)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -48,23 +49,25 @@ id_rsa
 		},
 	}
 
-	configs := []swarm.Config{
-		{
-			ID:   "1",
-			Meta: swarm.Meta{CreatedAt: time.Now(), UpdatedAt: time.Now()},
-			Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "passwords"}},
-		},
-		{
-			ID:   "2",
-			Meta: swarm.Meta{CreatedAt: time.Now(), UpdatedAt: time.Now()},
-			Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "id_rsa"}},
+	res := client.ConfigListResult{
+		Items: []swarm.Config{
+			{
+				ID:   "1",
+				Meta: swarm.Meta{CreatedAt: time.Now(), UpdatedAt: time.Now()},
+				Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "passwords"}},
+			},
+			{
+				ID:   "2",
+				Meta: swarm.Meta{CreatedAt: time.Now(), UpdatedAt: time.Now()},
+				Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "id_rsa"}},
+			},
 		},
 	}
 	for _, tc := range cases {
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
-			if err := formatWrite(tc.context, configs); err != nil {
+			if err := formatWrite(tc.context, res); err != nil {
 				assert.ErrorContains(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)

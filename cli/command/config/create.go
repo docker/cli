@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/sequential"
 	"github.com/spf13/cobra"
 )
@@ -84,7 +85,9 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, options createOptions
 			Name: options.templateDriver,
 		}
 	}
-	r, err := apiClient.ConfigCreate(ctx, spec)
+	r, err := apiClient.ConfigCreate(ctx, client.ConfigCreateOptions{
+		Spec: spec,
+	})
 	if err != nil {
 		return err
 	}

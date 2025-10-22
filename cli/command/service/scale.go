@@ -93,12 +93,12 @@ func runScale(ctx context.Context, dockerCLI command.Cli, options *scaleOptions,
 }
 
 func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, serviceID string, scale uint64) (warnings []string, _ error) {
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
+	res, err := apiClient.ServiceInspect(ctx, serviceID, client.ServiceInspectOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	serviceMode := &service.Spec.Mode
+	serviceMode := &res.Service.Spec.Mode
 	switch {
 	case serviceMode.Replicated != nil:
 		serviceMode.Replicated.Replicas = &scale
@@ -108,7 +108,7 @@ func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, ser
 		return nil, errors.New("scale can only be used with replicated or replicated-job mode")
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, client.ServiceUpdateOptions{})
+	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, res.Service.Version, res.Service.Spec, client.ServiceUpdateOptions{})
 	if err != nil {
 		return nil, err
 	}

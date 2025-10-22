@@ -46,7 +46,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	nodes, err := apiClient.NodeList(ctx, client.NodeListOptions{
+	res, err := apiClient.NodeList(ctx, client.NodeListOptions{
 		Filters: options.filter.Value(),
 	})
 	if err != nil {
@@ -54,7 +54,7 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 	}
 
 	var info system.Info
-	if len(nodes) > 0 && !options.quiet {
+	if len(res.Items) > 0 && !options.quiet {
 		// only non-empty nodes and not quiet, should we call /info api
 		info, err = apiClient.Info(ctx)
 		if err != nil {
@@ -74,8 +74,8 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		Output: dockerCLI.Out(),
 		Format: newFormat(format, options.quiet),
 	}
-	sort.Slice(nodes, func(i, j int) bool {
-		return sortorder.NaturalLess(nodes[i].Description.Hostname, nodes[j].Description.Hostname)
+	sort.Slice(res.Items, func(i, j int) bool {
+		return sortorder.NaturalLess(res.Items[i].Description.Hostname, res.Items[j].Description.Hostname)
 	})
-	return formatWrite(nodesCtx, nodes, info)
+	return formatWrite(nodesCtx, res, info)
 }

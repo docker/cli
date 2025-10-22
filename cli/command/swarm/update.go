@@ -43,18 +43,20 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts swarmOptions) error {
 	apiClient := dockerCLI.Client()
 
-	swarmInspect, err := apiClient.SwarmInspect(ctx)
+	sw, err := apiClient.SwarmInspect(ctx, client.SwarmInspectOptions{})
 	if err != nil {
 		return err
 	}
 
-	prevAutoLock := swarmInspect.Spec.EncryptionConfig.AutoLockManagers
+	prevAutoLock := sw.Swarm.Spec.EncryptionConfig.AutoLockManagers
 
-	opts.mergeSwarmSpec(&swarmInspect.Spec, flags, &swarmInspect.ClusterInfo.TLSInfo.TrustRoot)
+	opts.mergeSwarmSpec(&sw.Swarm.Spec, flags, &sw.Swarm.ClusterInfo.TLSInfo.TrustRoot)
 
-	curAutoLock := swarmInspect.Spec.EncryptionConfig.AutoLockManagers
+	curAutoLock := sw.Swarm.Spec.EncryptionConfig.AutoLockManagers
 
-	err = apiClient.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, client.SwarmUpdateFlags{})
+	_, err = apiClient.SwarmUpdate(ctx, sw.Swarm.Version, client.SwarmUpdateOptions{
+		Swarm: sw.Swarm.Spec,
+	})
 	if err != nil {
 		return err
 	}
@@ -62,11 +64,11 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	_, _ = fmt.Fprintln(dockerCLI.Out(), "Swarm updated.")
 
 	if curAutoLock && !prevAutoLock {
-		unlockKeyResp, err := apiClient.SwarmGetUnlockKey(ctx)
+		resp, err := apiClient.SwarmGetUnlockKey(ctx)
 		if err != nil {
 			return fmt.Errorf("could not fetch unlock key: %w", err)
 		}
-		printUnlockCommand(dockerCLI.Out(), unlockKeyResp.UnlockKey)
+		printUnlockCommand(dockerCLI.Out(), resp.Key)
 	}
 
 	return nil

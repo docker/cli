@@ -14,7 +14,6 @@ import (
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/internal/test/output"
-	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
@@ -127,8 +126,8 @@ type fakeClient struct {
 	client.Client
 }
 
-func (*fakeClient) Ping(context.Context) (types.Ping, error) {
-	return types.Ping{OSType: "linux"}, nil
+func (*fakeClient) Ping(context.Context, client.PingOptions) (client.PingResult, error) {
+	return client.PingResult{OSType: "linux"}, nil
 }
 
 func TestBuildkitDisabled(t *testing.T) {
@@ -244,7 +243,12 @@ func TestBuilderBrokenEnforced(t *testing.T) {
 	assert.DeepEqual(t, []string{"build", "."}, args)
 	assert.Check(t, len(envs) == 0)
 
-	output.Assert(t, err.Error(), map[int]func(string) error{
+	assert.Check(t, err != nil)
+	var errStr string
+	if err != nil {
+		errStr = err.Error()
+	}
+	output.Assert(t, errStr, map[int]func(string) error{
 		0: output.Prefix("failed to fetch metadata:"),
 		2: output.Suffix("ERROR: BuildKit is enabled but the buildx component is missing or broken."),
 	})

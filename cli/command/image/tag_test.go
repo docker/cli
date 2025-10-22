@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -28,10 +29,10 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 func TestCliNewTagCommand(t *testing.T) {
 	cmd := newTagCommand(
 		test.NewFakeCli(&fakeClient{
-			imageTagFunc: func(image string, ref string) error {
-				assert.Check(t, is.Equal("image1", image))
-				assert.Check(t, is.Equal("image2", ref))
-				return nil
+			imageTagFunc: func(options client.ImageTagOptions) (client.ImageTagResult, error) {
+				assert.Check(t, is.Equal("image1", options.Source))
+				assert.Check(t, is.Equal("image2", options.Target))
+				return client.ImageTagResult{}, nil
 			},
 		}))
 	cmd.SetArgs([]string{"image1", "image2"})

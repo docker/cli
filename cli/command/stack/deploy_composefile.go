@@ -94,14 +94,14 @@ func validateExternalNetworks(ctx context.Context, apiClient client.NetworkAPICl
 			// local-scoped networks, so there's no need to inspect them.
 			continue
 		}
-		nw, err := apiClient.NetworkInspect(ctx, networkName, client.NetworkInspectOptions{})
+		res, err := apiClient.NetworkInspect(ctx, networkName, client.NetworkInspectOptions{})
 		switch {
 		case errdefs.IsNotFound(err):
 			return fmt.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
 		case err != nil:
 			return err
-		case nw.Scope != "swarm":
-			return fmt.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of \"swarm\"", networkName, nw.Scope)
+		case res.Network.Scope != "swarm":
+			return fmt.Errorf("network %q is declared as external, but it is not in the right scope: %q instead of \"swarm\"", networkName, res.Network.Scope)
 		}
 	}
 	return nil
@@ -111,17 +111,24 @@ func createSecrets(ctx context.Context, dockerCLI command.Cli, secrets []swarm.S
 	apiClient := dockerCLI.Client()
 
 	for _, secretSpec := range secrets {
-		secret, _, err := apiClient.SecretInspectWithRaw(ctx, secretSpec.Name)
+		res, err := apiClient.SecretInspect(ctx, secretSpec.Name, client.SecretInspectOptions{})
 		switch {
 		case err == nil:
 			// secret already exists, then we update that
-			if err := apiClient.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
+			_, err := apiClient.SecretUpdate(ctx, res.Secret.ID, client.SecretUpdateOptions{
+				Version: res.Secret.Meta.Version,
+				Spec:    secretSpec,
+			})
+			if err != nil {
 				return fmt.Errorf("failed to update secret %s: %w", secretSpec.Name, err)
 			}
 		case errdefs.IsNotFound(err):
 			// secret does not exist, then we create a new one.
 			_, _ = fmt.Fprintln(dockerCLI.Out(), "Creating secret", secretSpec.Name)
-			if _, err := apiClient.SecretCreate(ctx, secretSpec); err != nil {
+			_, err := apiClient.SecretCreate(ctx, client.SecretCreateOptions{
+				Spec: secretSpec,
+			})
+			if err != nil {
 				return fmt.Errorf("failed to create secret %s: %w", secretSpec.Name, err)
 			}
 		default:
@@ -135,17 +142,24 @@ func createConfigs(ctx context.Context, dockerCLI command.Cli, configs []swarm.C
 	apiClient := dockerCLI.Client()
 
 	for _, configSpec := range configs {
-		config, _, err := apiClient.ConfigInspectWithRaw(ctx, configSpec.Name)
+		res, err := apiClient.ConfigInspect(ctx, configSpec.Name, client.ConfigInspectOptions{})
 		switch {
 		case err == nil:
 			// config already exists, then we update that
-			if err := apiClient.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
+			_, err := apiClient.ConfigUpdate(ctx, res.Config.ID, client.ConfigUpdateOptions{
+				Version: res.Config.Meta.Version,
+				Spec:    configSpec,
+			})
+			if err != nil {
 				return fmt.Errorf("failed to update config %s: %w", configSpec.Name, err)
 			}
 		case errdefs.IsNotFound(err):
 			// config does not exist, then we create a new one.
 			_, _ = fmt.Fprintln(dockerCLI.Out(), "Creating config", configSpec.Name)
-			if _, err := apiClient.ConfigCreate(ctx, configSpec); err != nil {
+			_, err := apiClient.ConfigCreate(ctx, client.ConfigCreateOptions{
+				Spec: configSpec,
+			})
+			if err != nil {
 				return fmt.Errorf("failed to create config %s: %w", configSpec.Name, err)
 			}
 		default:
@@ -164,7 +178,7 @@ func createNetworks(ctx context.Context, dockerCLI command.Cli, namespace conver
 	}
 
 	existingNetworkMap := make(map[string]network.Summary)
-	for _, nw := range existingNetworks {
+	for _, nw := range existingNetworks.Items {
 		existingNetworkMap[nw.Name] = nw
 	}
 
@@ -195,7 +209,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 	}
 
 	existingServiceMap := make(map[string]swarm.Service)
-	for _, svc := range existingServices {
+	for _, svc := range existingServices.Items {
 		existingServiceMap[svc.Spec.Name] = svc
 	}
 

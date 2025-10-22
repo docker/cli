@@ -12,7 +12,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -50,21 +50,26 @@ func newServicesCommand(dockerCLI command.Cli) *cobra.Command {
 
 // runServices performs a stack services against the specified swarm cluster
 func runServices(ctx context.Context, dockerCLI command.Cli, opts serviceListOptions) error {
-	services, err := getServices(ctx, dockerCLI.Client(), opts)
+	res, err := dockerCLI.Client().ServiceList(ctx, client.ServiceListOptions{
+		Filters: getStackFilterFromOpt(opts.namespace, opts.filter),
+		// When not running "quiet", also get service status (number of running
+		// and desired tasks).
+		Status: !opts.quiet,
+	})
 	if err != nil {
 		return err
 	}
-	return formatWrite(dockerCLI, services, opts)
+	return formatWrite(dockerCLI, res, opts)
 }
 
-func formatWrite(dockerCLI command.Cli, services []swarm.Service, opts serviceListOptions) error {
+func formatWrite(dockerCLI command.Cli, services client.ServiceListResult, opts serviceListOptions) error {
 	// if no services in the stack, print message and exit 0
-	if len(services) == 0 {
+	if len(services.Items) == 0 {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "Nothing found in stack:", opts.namespace)
 		return nil
 	}
-	sort.Slice(services, func(i, j int) bool {
-		return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
+	sort.Slice(services.Items, func(i, j int) bool {
+		return sortorder.NaturalLess(services.Items[i].Spec.Name, services.Items[j].Spec.Name)
 	})
 
 	f := opts.format

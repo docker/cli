@@ -22,9 +22,9 @@ func TestNodePsErrors(t *testing.T) {
 		args            []string
 		flags           map[string]string
 		infoFunc        func() (system.Info, error)
-		nodeInspectFunc func() (swarm.Node, []byte, error)
-		taskListFunc    func(options client.TaskListOptions) ([]swarm.Task, error)
-		taskInspectFunc func(taskID string) (swarm.Task, []byte, error)
+		nodeInspectFunc func() (client.NodeInspectResult, error)
+		taskListFunc    func(options client.TaskListOptions) (client.TaskListResult, error)
+		taskInspectFunc func(taskID string) (client.TaskInspectResult, error)
 		expectedError   string
 	}{
 		{
@@ -35,15 +35,15 @@ func TestNodePsErrors(t *testing.T) {
 		},
 		{
 			args: []string{"nodeID"},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.New("error inspecting the node")
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{}, errors.New("error inspecting the node")
 			},
 			expectedError: "error inspecting the node",
 		},
 		{
 			args: []string{"nodeID"},
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{}, errors.New("error returning the task list")
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{}, errors.New("error returning the task list")
 			},
 			expectedError: "error returning the task list",
 		},
@@ -72,64 +72,76 @@ func TestNodePs(t *testing.T) {
 		args               []string
 		flags              map[string]string
 		infoFunc           func() (system.Info, error)
-		nodeInspectFunc    func() (swarm.Node, []byte, error)
-		taskListFunc       func(options client.TaskListOptions) ([]swarm.Task, error)
-		taskInspectFunc    func(taskID string) (swarm.Task, []byte, error)
-		serviceInspectFunc func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (swarm.Service, []byte, error)
+		nodeInspectFunc    func() (client.NodeInspectResult, error)
+		taskListFunc       func(options client.TaskListOptions) (client.TaskListResult, error)
+		taskInspectFunc    func(taskID string) (client.TaskInspectResult, error)
+		serviceInspectFunc func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (client.ServiceInspectResult, error)
 	}{
 		{
 			name: "simple",
 			args: []string{"nodeID"},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
-			},
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{
-					*builders.Task(builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.PortStatus([]swarm.PortConfig{
-						{
-							TargetPort:    80,
-							PublishedPort: 80,
-							Protocol:      "tcp",
-						},
-					}))),
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
 				}, nil
 			},
-			serviceInspectFunc: func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (swarm.Service, []byte, error) {
-				return swarm.Service{
-					ID: serviceID,
-					Spec: swarm.ServiceSpec{
-						Annotations: swarm.Annotations{
-							Name: serviceID,
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{
+						*builders.Task(builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.PortStatus([]swarm.PortConfig{
+							{
+								TargetPort:    80,
+								PublishedPort: 80,
+								Protocol:      "tcp",
+							},
+						}))),
+					},
+				}, nil
+			},
+			serviceInspectFunc: func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+				return client.ServiceInspectResult{
+					Service: swarm.Service{
+						ID: serviceID,
+						Spec: swarm.ServiceSpec{
+							Annotations: swarm.Annotations{
+								Name: serviceID,
+							},
 						},
 					},
-				}, []byte{}, nil
+				}, nil
 			},
 		},
 		{
 			name: "with-errors",
 			args: []string{"nodeID"},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
-			},
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{
-					*builders.Task(builders.TaskID("taskID1"), builders.TaskServiceID("failure"),
-						builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.StatusErr("a task error"))),
-					*builders.Task(builders.TaskID("taskID2"), builders.TaskServiceID("failure"),
-						builders.WithStatus(builders.Timestamp(time.Now().Add(-3*time.Hour)), builders.StatusErr("a task error"))),
-					*builders.Task(builders.TaskID("taskID3"), builders.TaskServiceID("failure"),
-						builders.WithStatus(builders.Timestamp(time.Now().Add(-4*time.Hour)), builders.StatusErr("a task error"))),
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
 				}, nil
 			},
-			serviceInspectFunc: func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (swarm.Service, []byte, error) {
-				return swarm.Service{
-					ID: serviceID,
-					Spec: swarm.ServiceSpec{
-						Annotations: swarm.Annotations{
-							Name: serviceID,
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{
+						*builders.Task(builders.TaskID("taskID1"), builders.TaskServiceID("failure"),
+							builders.WithStatus(builders.Timestamp(time.Now().Add(-2*time.Hour)), builders.StatusErr("a task error"))),
+						*builders.Task(builders.TaskID("taskID2"), builders.TaskServiceID("failure"),
+							builders.WithStatus(builders.Timestamp(time.Now().Add(-3*time.Hour)), builders.StatusErr("a task error"))),
+						*builders.Task(builders.TaskID("taskID3"), builders.TaskServiceID("failure"),
+							builders.WithStatus(builders.Timestamp(time.Now().Add(-4*time.Hour)), builders.StatusErr("a task error"))),
+					},
+				}, nil
+			},
+			serviceInspectFunc: func(ctx context.Context, serviceID string, opts client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+				return client.ServiceInspectResult{
+					Service: swarm.Service{
+						ID: serviceID,
+						Spec: swarm.ServiceSpec{
+							Annotations: swarm.Annotations{
+								Name: serviceID,
+							},
 						},
 					},
-				}, []byte{}, nil
+				}, nil
 			},
 		},
 	}

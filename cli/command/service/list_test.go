@@ -18,11 +18,13 @@ import (
 
 func TestServiceListOrder(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				newService("a57dbe8", "service-1-foo"),
-				newService("a57dbdd", "service-10-foo"),
-				newService("aaaaaaa", "service-2-foo"),
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{
+					newService("a57dbe8", "service-1-foo"),
+					newService("a57dbdd", "service-10-foo"),
+					newService("aaaaaaa", "service-2-foo"),
+				},
 			}, nil
 		},
 	})
@@ -123,19 +125,19 @@ func TestServiceListServiceStatus(t *testing.T) {
 				tc.cluster = generateCluster(t, tc.opts)
 			}
 			cli := test.NewFakeCli(&fakeClient{
-				serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
+				serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) (client.ServiceListResult, error) {
 					if !options.Status {
 						// Don't return "ServiceStatus" if not requested, or on older API versions
-						for i := range tc.cluster.services {
-							tc.cluster.services[i].ServiceStatus = nil
+						for i := range tc.cluster.services.Items {
+							tc.cluster.services.Items[i].ServiceStatus = nil
 						}
 					}
 					return tc.cluster.services, nil
 				},
-				taskListFunc: func(context.Context, client.TaskListOptions) ([]swarm.Task, error) {
+				taskListFunc: func(context.Context, client.TaskListOptions) (client.TaskListResult, error) {
 					return tc.cluster.tasks, nil
 				},
-				nodeListFunc: func(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error) {
+				nodeListFunc: func(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error) {
 					return tc.cluster.nodes, nil
 				},
 			})
@@ -170,9 +172,9 @@ type clusterOpts struct {
 }
 
 type cluster struct {
-	services []swarm.Service
-	tasks    []swarm.Task
-	nodes    []swarm.Node
+	services client.ServiceListResult
+	tasks    client.TaskListResult
+	nodes    client.NodeListResult
 }
 
 func generateCluster(t *testing.T, opts clusterOpts) *cluster {
@@ -185,7 +187,7 @@ func generateCluster(t *testing.T, opts clusterOpts) *cluster {
 	return &c
 }
 
-func generateServices(t *testing.T, opts clusterOpts) []swarm.Service {
+func generateServices(t *testing.T, opts clusterOpts) client.ServiceListResult {
 	t.Helper()
 
 	// Can't have more global tasks than nodes
@@ -193,32 +195,33 @@ func generateServices(t *testing.T, opts clusterOpts) []swarm.Service {
 	if globalTasks > opts.activeNodes {
 		globalTasks = opts.activeNodes
 	}
-
-	return []swarm.Service{
-		*builders.Service(
-			builders.ServiceID("replicated"),
-			builders.ServiceName("01-replicated-service"),
-			builders.ReplicatedService(opts.desiredTasks),
-			builders.ServiceStatus(opts.desiredTasks, opts.runningTasks),
-		),
-		*builders.Service(
-			builders.ServiceID("global"),
-			builders.ServiceName("02-global-service"),
-			builders.GlobalService(),
-			builders.ServiceStatus(opts.activeNodes, globalTasks),
-		),
-		*builders.Service(
-			builders.ServiceID("none-id"),
-			builders.ServiceName("03-none-service"),
-		),
+	return client.ServiceListResult{
+		Items: []swarm.Service{
+			*builders.Service(
+				builders.ServiceID("replicated"),
+				builders.ServiceName("01-replicated-service"),
+				builders.ReplicatedService(opts.desiredTasks),
+				builders.ServiceStatus(opts.desiredTasks, opts.runningTasks),
+			),
+			*builders.Service(
+				builders.ServiceID("global"),
+				builders.ServiceName("02-global-service"),
+				builders.GlobalService(),
+				builders.ServiceStatus(opts.activeNodes, globalTasks),
+			),
+			*builders.Service(
+				builders.ServiceID("none-id"),
+				builders.ServiceName("03-none-service"),
+			),
+		},
 	}
 }
 
-func generateTasks(t *testing.T, services []swarm.Service, nodes []swarm.Node, opts clusterOpts) []swarm.Task {
+func generateTasks(t *testing.T, services client.ServiceListResult, nodes client.NodeListResult, opts clusterOpts) client.TaskListResult {
 	t.Helper()
-	tasks := make([]swarm.Task, 0)
+	tasks := client.TaskListResult{}
 
-	for _, s := range services {
+	for _, s := range services.Items {
 		if s.Spec.Mode.Replicated == nil && s.Spec.Mode.Global == nil {
 			continue
 		}
@@ -231,9 +234,9 @@ func generateTasks(t *testing.T, services []swarm.Service, nodes []swarm.Node, o
 			desiredTasks = opts.activeNodes
 		}
 
-		for _, n := range nodes {
+		for _, n := range nodes.Items {
 			if runningTasks < opts.runningTasks && n.Status.State != swarm.NodeStateDown {
-				tasks = append(tasks, swarm.Task{
+				tasks.Items = append(tasks.Items, swarm.Task{
 					NodeID:       n.ID,
 					ServiceID:    s.ID,
 					Status:       swarm.TaskStatus{State: swarm.TaskStateRunning},
@@ -248,7 +251,7 @@ func generateTasks(t *testing.T, services []swarm.Service, nodes []swarm.Node, o
 			// and thus will be included when calculating the "desired" tasks
 			// for services.
 			if failedTasks < (desiredTasks - opts.runningTasks) {
-				tasks = append(tasks, swarm.Task{
+				tasks.Items = append(tasks.Items, swarm.Task{
 					NodeID:       n.ID,
 					ServiceID:    s.ID,
 					Status:       swarm.TaskStatus{State: swarm.TaskStateFailed},
@@ -259,7 +262,7 @@ func generateTasks(t *testing.T, services []swarm.Service, nodes []swarm.Node, o
 
 			// Also add tasks with DesiredState: Shutdown. These should not be
 			// counted as running or desired tasks.
-			tasks = append(tasks, swarm.Task{
+			tasks.Items = append(tasks.Items, swarm.Task{
 				NodeID:       n.ID,
 				ServiceID:    s.ID,
 				Status:       swarm.TaskStatus{State: swarm.TaskStateShutdown},
@@ -272,16 +275,16 @@ func generateTasks(t *testing.T, services []swarm.Service, nodes []swarm.Node, o
 
 // generateNodes generates a "nodes" endpoint API response with the requested
 // number of "ready" nodes. In addition, a "down" node is generated.
-func generateNodes(t *testing.T, activeNodes uint64) []swarm.Node {
+func generateNodes(t *testing.T, activeNodes uint64) client.NodeListResult {
 	t.Helper()
-	nodes := make([]swarm.Node, 0)
+	nodes := client.NodeListResult{}
 	var i uint64
 	for i = 0; i < activeNodes; i++ {
-		nodes = append(nodes, swarm.Node{
+		nodes.Items = append(nodes.Items, swarm.Node{
 			ID:     fmt.Sprintf("node-ready-%d", i),
 			Status: swarm.NodeStatus{State: swarm.NodeStateReady},
 		})
-		nodes = append(nodes, swarm.Node{
+		nodes.Items = append(nodes.Items, swarm.Node{
 			ID:     fmt.Sprintf("node-down-%d", i),
 			Status: swarm.NodeStatus{State: swarm.NodeStateDown},
 		})

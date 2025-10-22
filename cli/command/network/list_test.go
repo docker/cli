@@ -17,12 +17,12 @@ import (
 
 func TestNetworkListErrors(t *testing.T) {
 	testCases := []struct {
-		networkListFunc func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
+		networkListFunc func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error)
 		expectedError   string
 	}{
 		{
-			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
-				return []network.Summary{}, errors.New("error creating network")
+			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
+				return client.NetworkListResult{}, errors.New("error creating network")
 			},
 			expectedError: "error creating network",
 		},
@@ -43,7 +43,7 @@ func TestNetworkListErrors(t *testing.T) {
 func TestNetworkList(t *testing.T) {
 	testCases := []struct {
 		doc             string
-		networkListFunc func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
+		networkListFunc func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error)
 		flags           map[string]string
 		golden          string
 	}{
@@ -53,16 +53,22 @@ func TestNetworkList(t *testing.T) {
 				"filter": "image.name=ubuntu",
 			},
 			golden: "network-list.golden",
-			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
+			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
 				expectedOpts := client.NetworkListOptions{
 					Filters: make(client.Filters).Add("image.name", "ubuntu"),
 				}
 				assert.Check(t, is.DeepEqual(expectedOpts, options))
 
-				return []network.Summary{*builders.NetworkResource(builders.NetworkResourceID("123454321"),
-					builders.NetworkResourceName("network_1"),
-					builders.NetworkResourceDriver("09.7.01"),
-					builders.NetworkResourceScope("global"))}, nil
+				return client.NetworkListResult{
+					Items: []network.Summary{
+						*builders.NetworkResource(
+							builders.NetworkResourceID("123454321"),
+							builders.NetworkResourceName("network_1"),
+							builders.NetworkResourceDriver("09.7.01"),
+							builders.NetworkResourceScope("global"),
+						),
+					},
+				}, nil
 			},
 		},
 		{
@@ -71,11 +77,13 @@ func TestNetworkList(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "network-list-sort.golden",
-			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
-				return []network.Summary{
-					*builders.NetworkResource(builders.NetworkResourceName("network-2-foo")),
-					*builders.NetworkResource(builders.NetworkResourceName("network-1-foo")),
-					*builders.NetworkResource(builders.NetworkResourceName("network-10-foo")),
+			networkListFunc: func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
+				return client.NetworkListResult{
+					Items: []network.Summary{
+						*builders.NetworkResource(builders.NetworkResourceName("network-2-foo")),
+						*builders.NetworkResource(builders.NetworkResourceName("network-1-foo")),
+						*builders.NetworkResource(builders.NetworkResourceName("network-10-foo")),
+					},
 				}, nil
 			},
 		},

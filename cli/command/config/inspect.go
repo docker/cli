@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,8 @@ func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions)
 	}
 
 	getRef := func(id string) (any, []byte, error) {
-		return apiClient.ConfigInspectWithRaw(ctx, id)
+		res, err := apiClient.ConfigInspect(ctx, id, client.ConfigInspectOptions{})
+		return res.Config, res.Raw, err
 	}
 
 	// check if the user is trying to apply a template to the pretty format, which

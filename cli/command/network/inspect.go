@@ -45,6 +45,10 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runInspect(ctx context.Context, apiClient client.NetworkAPIClient, output io.Writer, opts inspectOptions) error {
 	return inspect.Inspect(output, opts.names, opts.format, func(name string) (any, []byte, error) {
-		return apiClient.NetworkInspectWithRaw(ctx, name, client.NetworkInspectOptions{Verbose: opts.verbose})
+		res, err := apiClient.NetworkInspect(ctx, name, client.NetworkInspectOptions{Verbose: opts.verbose})
+		if err != nil {
+			return nil, nil, err
+		}
+		return res.Network, res.Raw, nil
 	})
 }

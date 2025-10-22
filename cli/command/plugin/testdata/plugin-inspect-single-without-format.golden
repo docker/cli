@@ -8,7 +8,6 @@
                 "Value": null
             },
             "Description": "plugin foo description",
-            "DockerVersion": "17.12.1-ce",
             "Documentation": "plugin foo documentation",
             "Entrypoint": [
                 "/foo"

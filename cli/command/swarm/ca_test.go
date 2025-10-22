@@ -56,7 +56,7 @@ func swarmSpecWithFullCAConfig() *swarm.Spec {
 
 func TestDisplayTrustRootNoRoot(t *testing.T) {
 	buffer := new(bytes.Buffer)
-	err := displayTrustRoot(buffer, swarm.Swarm{})
+	err := displayTrustRoot(buffer, client.SwarmInspectResult{})
 	assert.Error(t, err, "no CA information available")
 }
 
@@ -65,37 +65,37 @@ type invalidCATestCases struct {
 	errorMsg string
 }
 
-func writeFile(data string) (string, error) {
-	tmpfile, err := os.CreateTemp("", "testfile")
+func writeFile(dir, data string) (string, error) {
+	tmpFile, err := os.CreateTemp(dir, "testfile")
 	if err != nil {
 		return "", err
 	}
-	_, err = tmpfile.WriteString(data)
+	_, err = tmpFile.WriteString(data)
 	if err != nil {
 		return "", err
 	}
-	return tmpfile.Name(), tmpfile.Close()
+	return tmpFile.Name(), tmpFile.Close()
 }
 
 func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 	// we need an actual PEMfile to test
-	tmpfile, err := writeFile(cert)
+	tmpDir := t.TempDir()
+	tmpFile, err := writeFile(tmpDir, cert)
 	assert.NilError(t, err)
-	t.Cleanup(func() { _ = os.Remove(tmpfile) })
 
 	errorTestCases := []invalidCATestCases{
 		{
-			args:     []string{"--ca-cert=" + tmpfile},
+			args:     []string{"--ca-cert=" + tmpFile},
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{
-			args:     []string{"--ca-key=" + tmpfile},
+			args:     []string{"--ca-key=" + tmpFile},
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
 		{ // to make sure we're not erroring because we didn't provide a CA key along with the CA cert
 			args: []string{
-				"--ca-cert=" + tmpfile,
-				"--ca-key=" + tmpfile,
+				"--ca-cert=" + tmpFile,
+				"--ca-key=" + tmpFile,
 			},
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
 		},
@@ -109,7 +109,7 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 		},
 		{ // to make sure we're not erroring because we didn't provide a CA cert and external CA
 			args: []string{
-				"--ca-cert=" + tmpfile,
+				"--ca-cert=" + tmpFile,
 				"--external-ca=protocol=cfssl,url=https://some.example.com/https/url",
 			},
 			errorMsg: "flag requires the `--rotate` flag to update the CA",
@@ -125,7 +125,7 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 		{
 			args: []string{
 				"--rotate",
-				"--ca-cert=" + tmpfile,
+				"--ca-cert=" + tmpFile,
 			},
 			errorMsg: "the --ca-cert flag requires that a --ca-key flag and/or --external-ca flag be provided as well",
 		},
@@ -134,11 +134,13 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 	for _, testCase := range errorTestCases {
 		cmd := newCACommand(
 			test.NewFakeCli(&fakeClient{
-				swarmInspectFunc: func() (swarm.Swarm, error) {
-					return swarm.Swarm{
-						ClusterInfo: swarm.ClusterInfo{
-							TLSInfo: swarm.TLSInfo{
-								TrustRoot: "root",
+				swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+					return client.SwarmInspectResult{
+						Swarm: swarm.Swarm{
+							ClusterInfo: swarm.ClusterInfo{
+								TLSInfo: swarm.TLSInfo{
+									TrustRoot: "root",
+								},
 							},
 						},
 					}, nil
@@ -155,9 +157,11 @@ func TestDisplayTrustRootInvalidFlags(t *testing.T) {
 func TestDisplayTrustRoot(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	trustRoot := "trustme"
-	err := displayTrustRoot(buffer, swarm.Swarm{
-		ClusterInfo: swarm.ClusterInfo{
-			TLSInfo: swarm.TLSInfo{TrustRoot: trustRoot},
+	err := displayTrustRoot(buffer, client.SwarmInspectResult{
+		Swarm: swarm.Swarm{
+			ClusterInfo: swarm.ClusterInfo{
+				TLSInfo: swarm.TLSInfo{TrustRoot: trustRoot},
+			},
 		},
 	})
 	assert.NilError(t, err)
@@ -168,15 +172,17 @@ type swarmUpdateRecorder struct {
 	spec swarm.Spec
 }
 
-func (s *swarmUpdateRecorder) swarmUpdate(sp swarm.Spec, _ client.SwarmUpdateFlags) error {
-	s.spec = sp
-	return nil
+func (s *swarmUpdateRecorder) swarmUpdate(opts client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
+	s.spec = opts.Swarm
+	return client.SwarmUpdateResult{}, nil
 }
 
-func swarmInspectFuncWithFullCAConfig() (swarm.Swarm, error) {
-	return swarm.Swarm{
-		ClusterInfo: swarm.ClusterInfo{
-			Spec: *swarmSpecWithFullCAConfig(),
+func swarmInspectFuncWithFullCAConfig() (client.SwarmInspectResult, error) {
+	return client.SwarmInspectResult{
+		Swarm: swarm.Swarm{
+			ClusterInfo: swarm.ClusterInfo{
+				Spec: *swarmSpecWithFullCAConfig(),
+			},
 		},
 	}, nil
 }
@@ -200,13 +206,12 @@ func TestUpdateSwarmSpecDefaultRotate(t *testing.T) {
 }
 
 func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
-	certfile, err := writeFile(cert)
+	tmpDir := t.TempDir()
+	certFile, err := writeFile(tmpDir, cert)
 	assert.NilError(t, err)
-	defer os.Remove(certfile)
 
-	keyfile, err := writeFile(key)
+	keyFile, err := writeFile(tmpDir, key)
 	assert.NilError(t, err)
-	defer os.Remove(keyfile)
 
 	s := &swarmUpdateRecorder{}
 	cli := test.NewFakeCli(&fakeClient{
@@ -217,8 +222,8 @@ func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
 	cmd.SetArgs([]string{
 		"--rotate",
 		"--detach",
-		"--ca-cert=" + certfile,
-		"--ca-key=" + keyfile,
+		"--ca-cert=" + certFile,
+		"--ca-key=" + keyFile,
 		"--cert-expiry=3m",
 	})
 	cmd.SetOut(cli.OutBuffer())
@@ -232,9 +237,9 @@ func TestUpdateSwarmSpecCertAndKey(t *testing.T) {
 }
 
 func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
-	certfile, err := writeFile(cert)
+	tmpDir := t.TempDir()
+	certFile, err := writeFile(tmpDir, cert)
 	assert.NilError(t, err)
-	defer os.Remove(certfile)
 
 	s := &swarmUpdateRecorder{}
 	cli := test.NewFakeCli(&fakeClient{
@@ -245,7 +250,7 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 	cmd.SetArgs([]string{
 		"--rotate",
 		"--detach",
-		"--ca-cert=" + certfile,
+		"--ca-cert=" + certFile,
 		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com",
 	})
 	cmd.SetOut(cli.OutBuffer())
@@ -266,13 +271,12 @@ func TestUpdateSwarmSpecCertAndExternalCA(t *testing.T) {
 }
 
 func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
-	certfile, err := writeFile(cert)
+	tmpDir := t.TempDir()
+	certFile, err := writeFile(tmpDir, cert)
 	assert.NilError(t, err)
-	defer os.Remove(certfile)
 
-	keyfile, err := writeFile(key)
+	keyFile, err := writeFile(tmpDir, key)
 	assert.NilError(t, err)
-	defer os.Remove(keyfile)
 
 	s := &swarmUpdateRecorder{}
 	cli := test.NewFakeCli(&fakeClient{
@@ -283,8 +287,8 @@ func TestUpdateSwarmSpecCertAndKeyAndExternalCA(t *testing.T) {
 	cmd.SetArgs([]string{
 		"--rotate",
 		"--detach",
-		"--ca-cert=" + certfile,
-		"--ca-key=" + keyfile,
+		"--ca-cert=" + certFile,
+		"--ca-key=" + keyFile,
 		"--external-ca=protocol=cfssl,url=https://some.external.ca.example.com",
 	})
 	cmd.SetOut(cli.OutBuffer())

@@ -19,7 +19,7 @@ func TestListErrors(t *testing.T) {
 		args          []string
 		flags         map[string]string
 		expectedError string
-		listFunc      func(client.PluginListOptions) (plugin.ListResponse, error)
+		listFunc      func(client.PluginListOptions) (client.PluginListResult, error)
 	}{
 		{
 			description:   "too many arguments",
@@ -30,8 +30,8 @@ func TestListErrors(t *testing.T) {
 			description:   "error listing plugins",
 			args:          []string{},
 			expectedError: "error listing plugins",
-			listFunc: func(client.PluginListOptions) (plugin.ListResponse, error) {
-				return plugin.ListResponse{}, errors.New("error listing plugins")
+			listFunc: func(client.PluginListOptions) (client.PluginListResult, error) {
+				return client.PluginListResult{}, errors.New("error listing plugins")
 			},
 		},
 		{
@@ -60,14 +60,16 @@ func TestListErrors(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	singlePluginListFunc := func(client.PluginListOptions) (plugin.ListResponse, error) {
-		return plugin.ListResponse{
-			{
-				ID:      "id-foo",
-				Name:    "name-foo",
-				Enabled: true,
-				Config: plugin.Config{
-					Description: "desc-bar",
+	singlePluginListFunc := func(client.PluginListOptions) (client.PluginListResult, error) {
+		return client.PluginListResult{
+			Items: plugin.ListResponse{
+				{
+					ID:      "id-foo",
+					Name:    "name-foo",
+					Enabled: true,
+					Config: plugin.Config{
+						Description: "desc-bar",
+					},
 				},
 			},
 		}, nil
@@ -78,7 +80,7 @@ func TestList(t *testing.T) {
 		args        []string
 		flags       map[string]string
 		golden      string
-		listFunc    func(client.PluginListOptions) (plugin.ListResponse, error)
+		listFunc    func(client.PluginListOptions) (client.PluginListResult, error)
 	}{
 		{
 			description: "list with no additional flags",
@@ -93,7 +95,7 @@ func TestList(t *testing.T) {
 				"filter": "foo=bar",
 			},
 			golden: "plugin-list-without-format.golden",
-			listFunc: func(opts client.PluginListOptions) (plugin.ListResponse, error) {
+			listFunc: func(opts client.PluginListOptions) (client.PluginListResult, error) {
 				assert.Check(t, opts.Filters["foo"]["bar"])
 				return singlePluginListFunc(opts)
 			},
@@ -115,16 +117,16 @@ func TestList(t *testing.T) {
 				"format":   "{{ .ID }}",
 			},
 			golden: "plugin-list-with-no-trunc-option.golden",
-			listFunc: func(client.PluginListOptions) (plugin.ListResponse, error) {
-				return plugin.ListResponse{
-					{
+			listFunc: func(opts client.PluginListOptions) (client.PluginListResult, error) {
+				return client.PluginListResult{
+					Items: []*plugin.Plugin{{
 						ID:      "xyg4z2hiSLO5yTnBJfg4OYia9gKA6Qjd",
 						Name:    "name-foo",
 						Enabled: true,
 						Config: plugin.Config{
 							Description: "desc-bar",
 						},
-					},
+					}},
 				}, nil
 			},
 		},
@@ -144,19 +146,21 @@ func TestList(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-list-sort.golden",
-			listFunc: func(client.PluginListOptions) (plugin.ListResponse, error) {
-				return plugin.ListResponse{
-					{
-						ID:   "id-1",
-						Name: "plugin-1-foo",
-					},
-					{
-						ID:   "id-2",
-						Name: "plugin-10-foo",
-					},
-					{
-						ID:   "id-3",
-						Name: "plugin-2-foo",
+			listFunc: func(client.PluginListOptions) (client.PluginListResult, error) {
+				return client.PluginListResult{
+					Items: []*plugin.Plugin{
+						{
+							ID:   "id-1",
+							Name: "plugin-1-foo",
+						},
+						{
+							ID:   "id-2",
+							Name: "plugin-10-foo",
+						},
+						{
+							ID:   "id-3",
+							Name: "plugin-2-foo",
+						},
 					},
 				}, nil
 			},

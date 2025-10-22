@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -17,21 +18,21 @@ import (
 
 func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	testCases := []struct {
-		nodeListFunc  func() ([]swarm.Node, error)
+		nodeListFunc  func() (client.NodeListResult, error)
 		infoFunc      func() (system.Info, error)
 		expectedError string
 	}{
 		{
-			nodeListFunc: func() ([]swarm.Node, error) {
-				return []swarm.Node{}, errors.New("error listing nodes")
+			nodeListFunc: func() (client.NodeListResult, error) {
+				return client.NodeListResult{}, errors.New("error listing nodes")
 			},
 			expectedError: "error listing nodes",
 		},
 		{
-			nodeListFunc: func() ([]swarm.Node, error) {
-				return []swarm.Node{
-					{
-						ID: "nodeID",
+			nodeListFunc: func() (client.NodeListResult, error) {
+				return client.NodeListResult{
+					Items: []swarm.Node{
+						{ID: "nodeID"},
 					},
 				}, nil
 			},
@@ -55,11 +56,13 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 
 func TestNodeList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		nodeListFunc: func() ([]swarm.Node, error) {
-			return []swarm.Node{
-				*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("node-2-foo"), builders.Manager(builders.Leader()), builders.EngineVersion(".")),
-				*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("node-10-foo"), builders.Manager(), builders.EngineVersion("18.03.0-ce")),
-				*builders.Node(builders.NodeID("nodeID3"), builders.Hostname("node-1-foo")),
+		nodeListFunc: func() (client.NodeListResult, error) {
+			return client.NodeListResult{
+				Items: []swarm.Node{
+					*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("node-2-foo"), builders.Manager(builders.Leader()), builders.EngineVersion(".")),
+					*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("node-10-foo"), builders.Manager(), builders.EngineVersion("18.03.0-ce")),
+					*builders.Node(builders.NodeID("nodeID3"), builders.Hostname("node-1-foo")),
+				},
 			}, nil
 		},
 		infoFunc: func() (system.Info, error) {
@@ -78,9 +81,11 @@ func TestNodeList(t *testing.T) {
 
 func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		nodeListFunc: func() ([]swarm.Node, error) {
-			return []swarm.Node{
-				*builders.Node(builders.NodeID("nodeID1")),
+		nodeListFunc: func() (client.NodeListResult, error) {
+			return client.NodeListResult{
+				Items: []swarm.Node{
+					*builders.Node(builders.NodeID("nodeID1")),
+				},
 			}, nil
 		},
 	})
@@ -92,11 +97,13 @@ func TestNodeListQuietShouldOnlyPrintIDs(t *testing.T) {
 
 func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		nodeListFunc: func() ([]swarm.Node, error) {
-			return []swarm.Node{
-				*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("nodeHostname1"), builders.Manager(builders.Leader())),
-				*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("nodeHostname2"), builders.Manager()),
-				*builders.Node(builders.NodeID("nodeID3"), builders.Hostname("nodeHostname3")),
+		nodeListFunc: func() (client.NodeListResult, error) {
+			return client.NodeListResult{
+				Items: []swarm.Node{
+					*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("nodeHostname1"), builders.Manager(builders.Leader())),
+					*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("nodeHostname2"), builders.Manager()),
+					*builders.Node(builders.NodeID("nodeID3"), builders.Hostname("nodeHostname3")),
+				},
 			}, nil
 		},
 		infoFunc: func() (system.Info, error) {
@@ -117,10 +124,12 @@ func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 
 func TestNodeListFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		nodeListFunc: func() ([]swarm.Node, error) {
-			return []swarm.Node{
-				*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("nodeHostname1"), builders.Manager(builders.Leader())),
-				*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("nodeHostname2"), builders.Manager()),
+		nodeListFunc: func() (client.NodeListResult, error) {
+			return client.NodeListResult{
+				Items: []swarm.Node{
+					*builders.Node(builders.NodeID("nodeID1"), builders.Hostname("nodeHostname1"), builders.Manager(builders.Leader())),
+					*builders.Node(builders.NodeID("nodeID2"), builders.Hostname("nodeHostname2"), builders.Manager()),
+				},
 			}, nil
 		},
 		infoFunc: func() (system.Info, error) {

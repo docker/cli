@@ -9,7 +9,6 @@ import (
 	"github.com/docker/cli/cli/command/idresolver"
 	"github.com/docker/cli/cli/command/task"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -57,7 +56,7 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 
 	var (
 		errs  []error
-		tasks []swarm.Task
+		tasks = client.TaskListResult{}
 	)
 
 	for _, nodeID := range options.nodeIDs {
@@ -67,14 +66,14 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 			continue
 		}
 
-		node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeRef)
+		res, err := apiClient.NodeInspect(ctx, nodeRef, client.NodeInspectOptions{})
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
 		filter := options.filter.Value()
-		filter.Add("node", node.ID)
+		filter.Add("node", res.Node.ID)
 
 		nodeTasks, err := apiClient.TaskList(ctx, client.TaskListOptions{Filters: filter})
 		if err != nil {
@@ -82,7 +81,7 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 			continue
 		}
 
-		tasks = append(tasks, nodeTasks...)
+		tasks.Items = append(tasks.Items, nodeTasks.Items...)
 	}
 
 	format := options.format
@@ -90,7 +89,7 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options psOptions) error 
 		format = task.DefaultFormat(dockerCLI.ConfigFile(), options.quiet)
 	}
 
-	if len(errs) == 0 || len(tasks) != 0 {
+	if len(errs) == 0 || len(tasks.Items) != 0 {
 		if err := task.Print(ctx, dockerCLI, tasks, idresolver.New(apiClient, options.noResolve), !options.noTrunc, options.quiet, format); err != nil {
 			errs = append(errs, err)
 		}

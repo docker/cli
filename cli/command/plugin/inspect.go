@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/inspect"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -41,6 +42,7 @@ func newInspectCommand(dockerCLI command.Cli) *cobra.Command {
 func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions) error {
 	apiClient := dockerCLI.Client()
 	return inspect.Inspect(dockerCLI.Out(), opts.pluginNames, opts.format, func(ref string) (any, []byte, error) {
-		return apiClient.PluginInspectWithRaw(ctx, ref)
+		res, err := apiClient.PluginInspect(ctx, ref, client.PluginInspectOptions{})
+		return res.Plugin, res.Raw, err
 	})
 }

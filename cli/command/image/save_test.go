@@ -19,7 +19,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		args          []string
 		isTerminal    bool
 		expectedError string
-		imageSaveFunc func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error)
+		imageSaveFunc func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error)
 	}{
 		{
 			name:          "wrong args",
@@ -37,14 +37,14 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			args:          []string{"arg1"},
 			isTerminal:    false,
 			expectedError: "error saving image",
-			imageSaveFunc: func([]string, ...client.ImageSaveOption) (io.ReadCloser, error) {
-				return io.NopCloser(strings.NewReader("")), errors.New("error saving image")
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
+				return client.ImageSaveResult{}, errors.New("error saving image")
 			},
 		},
 		{
 			name:          "output directory does not exist",
-			args:          []string{"-o", "fakedir/out.tar", "arg1"},
-			expectedError: `failed to save image: invalid output path: stat fakedir: no such file or directory`,
+			args:          []string{"-o", "fake-dir/out.tar", "arg1"},
+			expectedError: `failed to save image: invalid output path: stat fake-dir: no such file or directory`,
 		},
 		{
 			name:          "output file is irregular",
@@ -74,16 +74,16 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		args          []string
 		isTerminal    bool
-		imageSaveFunc func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error)
+		imageSaveFunc func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error)
 		deferredFunc  func()
 	}{
 		{
 			args:       []string{"-o", "save_tmp_file", "arg1"},
 			isTerminal: true,
-			imageSaveFunc: func(images []string, _ ...client.ImageSaveOption) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
-				return io.NopCloser(strings.NewReader("")), nil
+				return client.ImageSaveResult{}, nil
 			},
 			deferredFunc: func() {
 				_ = os.Remove("save_tmp_file")
@@ -92,43 +92,43 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		{
 			args:       []string{"arg1", "arg2"},
 			isTerminal: false,
-			imageSaveFunc: func(images []string, _ ...client.ImageSaveOption) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 				assert.Assert(t, is.Len(images, 2))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, is.Equal("arg2", images[1]))
-				return io.NopCloser(strings.NewReader("")), nil
+				return client.ImageSaveResult{}, nil
 			},
 		},
 		{
 			args:       []string{"--platform", "linux/amd64", "arg1"},
 			isTerminal: false,
-			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				// FIXME(thaJeztah): need to find appropriate way to test the result of "ImageHistoryWithPlatform" being applied
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
-				return io.NopCloser(strings.NewReader("")), nil
+				return client.ImageSaveResult{}, nil
 			},
 		},
 		{
 			args:       []string{"--platform", "linux/amd64,linux/arm64/v8,linux/riscv64", "arg1"},
 			isTerminal: false,
-			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, len(options) > 0) // can be 1 or 2 depending on whether a terminal is attached :/
-				return io.NopCloser(strings.NewReader("")), nil
+				return client.ImageSaveResult{}, nil
 			},
 		},
 		{
 			args:       []string{"--platform", "linux/amd64", "--platform", "linux/arm64/v8", "--platform", "linux/riscv64", "arg1"},
 			isTerminal: false,
-			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error) {
+			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, len(options) > 0) // can be 1 or 2 depending on whether a terminal is attached :/
-				return io.NopCloser(strings.NewReader("")), nil
+				return client.ImageSaveResult{}, nil
 			},
 		},
 	}

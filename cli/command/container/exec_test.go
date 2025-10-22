@@ -207,8 +207,8 @@ func TestRunExec(t *testing.T) {
 	}
 }
 
-func execCreateWithID(_ string, _ client.ExecCreateOptions) (container.ExecCreateResponse, error) {
-	return container.ExecCreateResponse{ID: "execid"}, nil
+func execCreateWithID(_ string, _ client.ExecCreateOptions) (client.ExecCreateResult, error) {
+	return client.ExecCreateResult{ExecCreateResponse: container.ExecCreateResponse{ID: "execid"}}, nil
 }
 
 func TestGetExecExitStatus(t *testing.T) {
@@ -236,9 +236,11 @@ func TestGetExecExitStatus(t *testing.T) {
 
 	for _, testcase := range testcases {
 		apiClient := &fakeClient{
-			execInspectFunc: func(id string) (client.ExecInspect, error) {
+			execInspectFunc: func(id string) (client.ExecInspectResult, error) {
 				assert.Check(t, is.Equal(execID, id))
-				return client.ExecInspect{ExitCode: testcase.exitCode}, testcase.inspectError
+				return client.ExecInspectResult{
+					ExecInspect: client.ExecInspect{ExitCode: testcase.exitCode},
+				}, testcase.inspectError
 			},
 		}
 		err := getExecExitStatus(context.Background(), apiClient, execID)

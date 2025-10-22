@@ -87,24 +87,24 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 	)
 
 	for {
-		service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
+		res, err := apiClient.ServiceInspect(ctx, serviceID, client.ServiceInspectOptions{})
 		if err != nil {
 			return err
 		}
 
-		if service.Spec.UpdateConfig != nil && service.Spec.UpdateConfig.Monitor != 0 {
-			monitor = service.Spec.UpdateConfig.Monitor
+		if res.Service.Spec.UpdateConfig != nil && res.Service.Spec.UpdateConfig.Monitor != 0 {
+			monitor = res.Service.Spec.UpdateConfig.Monitor
 		}
 
 		if updater == nil {
-			updater, err = initializeUpdater(service, progressOut)
+			updater, err = initializeUpdater(res.Service, progressOut)
 			if err != nil {
 				return err
 			}
 		}
 
-		if service.UpdateStatus != nil {
-			switch service.UpdateStatus.State {
+		if res.Service.UpdateStatus != nil {
+			switch res.Service.UpdateStatus.State {
 			case swarm.UpdateStateUpdating:
 				rollback = false
 			case swarm.UpdateStateCompleted:
@@ -112,37 +112,37 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 					return nil
 				}
 			case swarm.UpdateStatePaused:
-				return fmt.Errorf("service update paused: %s", service.UpdateStatus.Message)
+				return fmt.Errorf("service update paused: %s", res.Service.UpdateStatus.Message)
 			case swarm.UpdateStateRollbackStarted:
-				if !rollback && service.UpdateStatus.Message != "" {
+				if !rollback && res.Service.UpdateStatus.Message != "" {
 					progressOut.WriteProgress(progress.Progress{
 						ID:     "rollback",
-						Action: service.UpdateStatus.Message,
+						Action: res.Service.UpdateStatus.Message,
 					})
 				}
 				rollback = true
 			case swarm.UpdateStateRollbackPaused:
-				return fmt.Errorf("service rollback paused: %s", service.UpdateStatus.Message)
+				return fmt.Errorf("service rollback paused: %s", res.Service.UpdateStatus.Message)
 			case swarm.UpdateStateRollbackCompleted:
 				if !converged {
-					message = &progress.Progress{ID: "rollback", Message: service.UpdateStatus.Message}
+					message = &progress.Progress{ID: "rollback", Message: res.Service.UpdateStatus.Message}
 				}
 				rollback = true
 			}
 		}
 		if converged && time.Since(convergedAt) >= monitor {
-			progressOut.WriteProgress(progress.Progress{
+			_ = progressOut.WriteProgress(progress.Progress{
 				ID:     "verify",
 				Action: fmt.Sprintf("Service %s converged", serviceID),
 			})
 			if message != nil {
-				progressOut.WriteProgress(*message)
+				_ = progressOut.WriteProgress(*message)
 			}
 			return nil
 		}
 
 		tasks, err := apiClient.TaskList(ctx, client.TaskListOptions{
-			Filters: make(client.Filters).Add("service", service.ID).Add("_up-to-date", "true"),
+			Filters: make(client.Filters).Add("service", res.Service.ID).Add("_up-to-date", "true"),
 		})
 		if err != nil {
 			return err
@@ -153,7 +153,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			return err
 		}
 
-		converged, err = updater.update(service, tasks, activeNodes, rollback)
+		converged, err = updater.update(res.Service, tasks.Items, activeNodes, rollback)
 		if err != nil {
 			return err
 		}
@@ -165,7 +165,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			// only job services have a non-nil job status, which means we can
 			// use the presence of this field to check if the service is a job
 			// here.
-			if service.JobStatus != nil {
+			if res.Service.JobStatus != nil {
 				progress.Message(progressOut, "", "job complete")
 				return nil
 			}
@@ -175,7 +175,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			}
 			wait := monitor - time.Since(convergedAt)
 			if wait >= 0 {
-				progressOut.WriteProgress(progress.Progress{
+				_ = progressOut.WriteProgress(progress.Progress{
 					// Ideally this would have no ID, but
 					// the progress rendering code behaves
 					// poorly on an "action" with no ID. It
@@ -190,7 +190,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			}
 		} else {
 			if !convergedAt.IsZero() {
-				progressOut.WriteProgress(progress.Progress{
+				_ = progressOut.WriteProgress(progress.Progress{
 					ID:     "verify",
 					Action: "Detected task failure",
 				})
@@ -214,13 +214,13 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 //
 // TODO(thaJeztah): this should really be a filter on [apiClient.NodeList] instead of being filtered on the client side.
 func getActiveNodes(ctx context.Context, apiClient client.NodeAPIClient) (map[string]struct{}, error) {
-	nodes, err := apiClient.NodeList(ctx, client.NodeListOptions{})
+	res, err := apiClient.NodeList(ctx, client.NodeListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	activeNodes := make(map[string]struct{})
-	for _, n := range nodes {
+	for _, n := range res.Items {
 		if n.Status.State != swarm.NodeStateDown {
 			activeNodes[n.ID] = struct{}{}
 		}
@@ -650,7 +650,7 @@ func (u *replicatedJobProgressUpdater) update(_ swarm.Service, tasks []swarm.Tas
 }
 
 func (u *replicatedJobProgressUpdater) writeOverallProgress(active, completed int) {
-	u.progressOut.WriteProgress(progress.Progress{
+	_ = u.progressOut.WriteProgress(progress.Progress{
 		ID: "job progress",
 		Action: fmt.Sprintf(
 			// * means "use the next positional arg to compute padding"
@@ -667,7 +667,7 @@ func (u *replicatedJobProgressUpdater) writeOverallProgress(active, completed in
 		actualDesired = u.concurrent
 	}
 
-	u.progressOut.WriteProgress(progress.Progress{
+	_ = u.progressOut.WriteProgress(progress.Progress{
 		ID: "active tasks",
 		Action: fmt.Sprintf(
 			// [n] notation lets us select a specific argument, 1-indexed
@@ -690,14 +690,14 @@ func (u *replicatedJobProgressUpdater) writeTaskProgress(task swarm.Task) {
 	}
 
 	if task.Status.Err != "" {
-		u.progressOut.WriteProgress(progress.Progress{
+		_ = u.progressOut.WriteProgress(progress.Progress{
 			ID:     fmt.Sprintf("%d/%d", task.Slot+1, u.total),
 			Action: truncError(task.Status.Err),
 		})
 		return
 	}
 
-	u.progressOut.WriteProgress(progress.Progress{
+	_ = u.progressOut.WriteProgress(progress.Progress{
 		ID:         fmt.Sprintf("%d/%d", task.Slot+1, u.total),
 		Action:     fmt.Sprintf("%-*s", longestState, task.Status.State),
 		Current:    numberedStates[task.Status.State],
@@ -730,7 +730,7 @@ func (u *globalJobProgressUpdater) update(service swarm.Service, tasks []swarm.T
 	if !u.initialized {
 		// if there are not yet tasks, then return early.
 		if len(tasks) == 0 && len(activeNodes) != 0 {
-			u.progressOut.WriteProgress(progress.Progress{
+			_ = u.progressOut.WriteProgress(progress.Progress{
 				ID:     "job progress",
 				Action: "waiting for tasks",
 			})
@@ -808,14 +808,14 @@ func (u *globalJobProgressUpdater) writeTaskProgress(task swarm.Task) {
 	}
 
 	if task.Status.Err != "" {
-		u.progressOut.WriteProgress(progress.Progress{
+		_ = u.progressOut.WriteProgress(progress.Progress{
 			ID:     task.NodeID,
 			Action: truncError(task.Status.Err),
 		})
 		return
 	}
 
-	u.progressOut.WriteProgress(progress.Progress{
+	_ = u.progressOut.WriteProgress(progress.Progress{
 		ID:         task.NodeID,
 		Action:     fmt.Sprintf("%-*s", longestState, task.Status.State),
 		Current:    numberedStates[task.Status.State],
@@ -827,7 +827,7 @@ func (u *globalJobProgressUpdater) writeTaskProgress(task swarm.Task) {
 func (u *globalJobProgressUpdater) writeOverallProgress(complete int) {
 	// all tasks for a global job are active at once, so we only write out the
 	// total progress.
-	u.progressOut.WriteProgress(progress.Progress{
+	_ = u.progressOut.WriteProgress(progress.Progress{
 		// see (*replicatedJobProgressUpdater).writeOverallProgress for an
 		// explanation of the advanced fmt use in this function.
 		ID: "job progress",

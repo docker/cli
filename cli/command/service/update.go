@@ -154,7 +154,7 @@ func newListOptsVarWithValidator(validator opts.ValidatorFctType) *opts.ListOpts
 func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCLI.Client()
 
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
+	res, err := apiClient.ServiceInspect(ctx, serviceID, client.ServiceInspectOptions{})
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	spec := &service.Spec
+	spec := &res.Service.Spec
 	if rollback {
 		// Rollback can't be combined with other flags.
 		otherFlagsPassed := false
@@ -235,7 +235,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		updateOpts.RegistryAuthFrom = swarm.RegistryAuthFromSpec
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, *spec, updateOpts)
+	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, res.Service.Version, *spec, updateOpts)
 	if err != nil {
 		return err
 	}
@@ -1306,10 +1306,6 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	// spec.Networks field. If spec.Network is in use, we'll migrate those
 	// values to spec.TaskTemplate.Networks.
 	specNetworks := spec.TaskTemplate.Networks
-	if len(specNetworks) == 0 {
-		specNetworks = spec.Networks //nolint:staticcheck // ignore SA1019: field is deprecated.
-	}
-	spec.Networks = nil //nolint:staticcheck // ignore SA1019: field is deprecated.
 
 	toRemove := buildToRemoveSet(flags, flagNetworkRemove)
 	idsToRemove := make(map[string]struct{})
@@ -1318,7 +1314,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 		if err != nil {
 			return err
 		}
-		idsToRemove[nw.ID] = struct{}{}
+		idsToRemove[nw.Network.ID] = struct{}{}
 	}
 
 	existingNetworks := make(map[string]struct{})

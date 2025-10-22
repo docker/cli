@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +37,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions) e
 
 	var errs []error
 	for _, name := range opts.names {
-		if err := apiClient.SecretRemove(ctx, name); err != nil {
+		if _, err := apiClient.SecretRemove(ctx, name, client.SecretRemoveOptions{}); err != nil {
 			errs = append(errs, err)
 			continue
 		}

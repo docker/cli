@@ -52,19 +52,22 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 
 func updateNodes(ctx context.Context, apiClient client.NodeAPIClient, nodes []string, mergeNode func(node *swarm.Node) error, success func(nodeID string)) error {
 	for _, nodeID := range nodes {
-		node, _, err := apiClient.NodeInspectWithRaw(ctx, nodeID)
+		res, err := apiClient.NodeInspect(ctx, nodeID, client.NodeInspectOptions{})
 		if err != nil {
 			return err
 		}
 
-		err = mergeNode(&node)
+		err = mergeNode(&res.Node)
 		if err != nil {
 			if errors.Is(err, errNoRoleChange) {
 				continue
 			}
 			return err
 		}
-		err = apiClient.NodeUpdate(ctx, node.ID, node.Version, node.Spec)
+		_, err = apiClient.NodeUpdate(ctx, res.Node.ID, client.NodeUpdateOptions{
+			Version: res.Node.Version,
+			Node:    res.Node.Spec,
+		})
 		if err != nil {
 			return err
 		}

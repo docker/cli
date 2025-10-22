@@ -48,7 +48,7 @@ func newConfigListCommand(dockerCLI command.Cli) *cobra.Command {
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	configs, err := apiClient.ConfigList(ctx, client.ConfigListOptions{Filters: options.filter.Value()})
+	res, err := apiClient.ConfigList(ctx, client.ConfigListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
@@ -62,13 +62,13 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		}
 	}
 
-	sort.Slice(configs, func(i, j int) bool {
-		return sortorder.NaturalLess(configs[i].Spec.Name, configs[j].Spec.Name)
+	sort.Slice(res.Items, func(i, j int) bool {
+		return sortorder.NaturalLess(res.Items[i].Spec.Name, res.Items[j].Spec.Name)
 	})
 
 	configCtx := formatter.Context{
 		Output: dockerCLI.Out(),
 		Format: newFormat(format, options.quiet),
 	}
-	return formatWrite(configCtx, configs)
+	return formatWrite(configCtx, res)
 }

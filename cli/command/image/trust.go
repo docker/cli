@@ -13,6 +13,7 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/registry"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"github.com/opencontainers/go-digest"
 	"github.com/sirupsen/logrus"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -95,7 +96,11 @@ func trustedPull(ctx context.Context, cli command.Cli, imgRefAndAuth trust.Image
 		familiarRef := reference.FamiliarString(tagged)
 		trustedFamiliarRef := reference.FamiliarString(trustedRef)
 		_, _ = fmt.Fprintf(cli.Err(), "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
-		if err := cli.Client().ImageTag(ctx, trustedFamiliarRef, familiarRef); err != nil {
+		_, err = cli.Client().ImageTag(ctx, client.ImageTagOptions{
+			Source: trustedFamiliarRef,
+			Target: familiarRef,
+		})
+		if err != nil {
 			return err
 		}
 	}

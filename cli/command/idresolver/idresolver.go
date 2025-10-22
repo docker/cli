@@ -30,25 +30,25 @@ func New(apiClient client.APIClient, noResolve bool) *IDResolver {
 func (r *IDResolver) get(ctx context.Context, t any, id string) (string, error) {
 	switch t.(type) {
 	case swarm.Node:
-		node, _, err := r.client.NodeInspectWithRaw(ctx, id)
+		res, err := r.client.NodeInspect(ctx, id, client.NodeInspectOptions{})
 		if err != nil {
 			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
 			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.
 		}
-		if node.Spec.Annotations.Name != "" {
-			return node.Spec.Annotations.Name, nil
+		if res.Node.Spec.Annotations.Name != "" {
+			return res.Node.Spec.Annotations.Name, nil
 		}
-		if node.Description.Hostname != "" {
-			return node.Description.Hostname, nil
+		if res.Node.Description.Hostname != "" {
+			return res.Node.Description.Hostname, nil
 		}
 		return id, nil
 	case swarm.Service:
-		service, _, err := r.client.ServiceInspectWithRaw(ctx, id, client.ServiceInspectOptions{})
+		res, err := r.client.ServiceInspect(ctx, id, client.ServiceInspectOptions{})
 		if err != nil {
 			// TODO(thaJeztah): should error-handling be more specific, or is it ok to ignore any error?
 			return id, nil //nolint:nilerr // ignore nil-error being returned, as this is a best-effort.
 		}
-		return service.Spec.Annotations.Name, nil
+		return res.Service.Spec.Annotations.Name, nil
 	default:
 		return "", errors.New("unsupported type")
 	}

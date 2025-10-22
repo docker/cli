@@ -43,7 +43,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
-	services, err := apiClient.ServiceList(ctx, client.ServiceListOptions{
+	res, err := apiClient.ServiceList(ctx, client.ServiceListOptions{
 		Filters: options.filter.Value(),
 		// When not running "quiet", also get service status (number of running
 		// and desired tasks). Note that this is only supported on API v1.41 and
@@ -68,5 +68,5 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		Output: dockerCLI.Out(),
 		Format: NewListFormat(format, options.quiet),
 	}
-	return ListFormatWrite(servicesCtx, services)
+	return ListFormatWrite(servicesCtx, res)
 }

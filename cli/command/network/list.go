@@ -47,7 +47,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
-	networkResources, err := apiClient.NetworkList(ctx, client.NetworkListOptions{Filters: options.filter.Value()})
+	res, err := apiClient.NetworkList(ctx, client.NetworkListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
@@ -61,8 +61,8 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		}
 	}
 
-	sort.Slice(networkResources, func(i, j int) bool {
-		return sortorder.NaturalLess(networkResources[i].Name, networkResources[j].Name)
+	sort.Slice(res.Items, func(i, j int) bool {
+		return sortorder.NaturalLess(res.Items[i].Name, res.Items[j].Name)
 	})
 
 	networksCtx := formatter.Context{
@@ -70,5 +70,5 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		Format: newFormat(format, options.quiet),
 		Trunc:  !options.noTrunc,
 	}
-	return formatWrite(networksCtx, networkResources)
+	return formatWrite(networksCtx, res)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -17,7 +18,7 @@ func TestSwarmJoinErrors(t *testing.T) {
 	testCases := []struct {
 		name          string
 		args          []string
-		swarmJoinFunc func() error
+		swarmJoinFunc func() (client.SwarmJoinResult, error)
 		infoFunc      func() (system.Info, error)
 		expectedError string
 	}{
@@ -34,8 +35,8 @@ func TestSwarmJoinErrors(t *testing.T) {
 		{
 			name: "join-failed",
 			args: []string{"remote"},
-			swarmJoinFunc: func() error {
-				return errors.New("error joining the swarm")
+			swarmJoinFunc: func() (client.SwarmJoinResult, error) {
+				return client.SwarmJoinResult{}, errors.New("error joining the swarm")
 			},
 			expectedError: "error joining the swarm",
 		},

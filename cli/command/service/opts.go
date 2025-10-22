@@ -400,11 +400,11 @@ func (c *credentialSpecOpt) Value() *swarm.CredentialSpec {
 }
 
 func resolveNetworkID(ctx context.Context, apiClient client.NetworkAPIClient, networkIDOrName string) (string, error) {
-	nw, err := apiClient.NetworkInspect(ctx, networkIDOrName, client.NetworkInspectOptions{Scope: "swarm"})
+	res, err := apiClient.NetworkInspect(ctx, networkIDOrName, client.NetworkInspectOptions{Scope: "swarm"})
 	if err != nil {
 		return "", err
 	}
-	return nw.ID, nil
+	return res.Network.ID, nil
 }
 
 func convertNetworks(networks opts.NetworkOpt) []swarm.NetworkAttachmentConfig {

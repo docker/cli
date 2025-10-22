@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +31,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, names []string) error
 
 	var errs []error
 	for _, name := range names {
-		if err := apiClient.ConfigRemove(ctx, name); err != nil {
+		if _, err := apiClient.ConfigRemove(ctx, name, client.ConfigRemoveOptions{}); err != nil {
 			errs = append(errs, err)
 			continue
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -99,7 +100,7 @@ func newFormat(source string, quiet bool) formatter.Format {
 }
 
 // formatWrite writes the context.
-func formatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info) error {
+func formatWrite(fmtCtx formatter.Context, nodes client.NodeListResult, info system.Info) error {
 	nodeCtx := &nodeContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -115,7 +116,7 @@ func formatWrite(fmtCtx formatter.Context, nodes []swarm.Node, info system.Info)
 		},
 	}
 	return fmtCtx.Write(nodeCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, node := range nodes {
+		for _, node := range nodes.Items {
 			if err := format(&nodeContext{
 				n:    node,
 				info: info,

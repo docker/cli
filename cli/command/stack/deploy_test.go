@@ -48,28 +48,30 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	)
 
 	fakeCli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				{
-					Spec: swarm.ServiceSpec{
-						Annotations: swarm.Annotations{
-							Name:   namespace.Name() + "_myservice",
-							Labels: map[string]string{"com.docker.stack.image": "foobar:1.2.3"},
-						},
-						TaskTemplate: swarm.TaskSpec{
-							ContainerSpec: &swarm.ContainerSpec{
-								Image: "foobar:1.2.3@sha256:deadbeef",
+		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{
+					{
+						Spec: swarm.ServiceSpec{
+							Annotations: swarm.Annotations{
+								Name:   namespace.Name() + "_myservice",
+								Labels: map[string]string{"com.docker.stack.image": "foobar:1.2.3"},
 							},
-							ForceUpdate: 123,
+							TaskTemplate: swarm.TaskSpec{
+								ContainerSpec: &swarm.ContainerSpec{
+									Image: "foobar:1.2.3@sha256:deadbeef",
+								},
+								ForceUpdate: 123,
+							},
 						},
 					},
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
+		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
 			receivedOptions = options
 			receivedService = service
-			return swarm.ServiceUpdateResponse{}, nil
+			return client.ServiceUpdateResult{}, nil
 		},
 	})
 

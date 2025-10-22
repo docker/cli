@@ -20,7 +20,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
-	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
@@ -80,7 +79,7 @@ func TestNewAPIClientFromFlagsWithCustomHeaders(t *testing.T) {
 		"My-Header":  "Custom-Value",
 		"User-Agent": UserAgent(),
 	}
-	_, err = apiClient.Ping(context.Background())
+	_, err = apiClient.Ping(context.TODO(), client.PingOptions{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, received, expectedHeaders)
 }
@@ -115,7 +114,7 @@ func TestNewAPIClientFromFlagsWithCustomHeadersFromEnv(t *testing.T) {
 		"Four":       []string{"four-value-override"},
 		"User-Agent": []string{UserAgent()},
 	}
-	_, err = apiClient.Ping(context.Background())
+	_, err = apiClient.Ping(context.TODO(), client.PingOptions{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, received, expectedHeaders)
 }
@@ -135,12 +134,12 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 
 type fakeClient struct {
 	client.Client
-	pingFunc   func() (types.Ping, error)
+	pingFunc   func() (client.PingResult, error)
 	version    string
 	negotiated bool
 }
 
-func (c *fakeClient) Ping(_ context.Context) (types.Ping, error) {
+func (c *fakeClient) Ping(_ context.Context, _ client.PingOptions) (client.PingResult, error) {
 	return c.pingFunc()
 }
 
@@ -148,7 +147,7 @@ func (c *fakeClient) ClientVersion() string {
 	return c.version
 }
 
-func (c *fakeClient) NegotiateAPIVersionPing(types.Ping) {
+func (c *fakeClient) NegotiateAPIVersionPing(client.PingResult) {
 	c.negotiated = true
 }
 
@@ -157,29 +156,29 @@ func TestInitializeFromClient(t *testing.T) {
 
 	testcases := []struct {
 		doc            string
-		pingFunc       func() (types.Ping, error)
+		pingFunc       func() (client.PingResult, error)
 		expectedServer ServerInfo
 		negotiated     bool
 	}{
 		{
 			doc: "successful ping",
-			pingFunc: func() (types.Ping, error) {
-				return types.Ping{Experimental: true, OSType: "linux", APIVersion: "v1.44"}, nil
+			pingFunc: func() (client.PingResult, error) {
+				return client.PingResult{Experimental: true, OSType: "linux", APIVersion: "v1.44"}, nil
 			},
 			expectedServer: ServerInfo{HasExperimental: true, OSType: "linux"},
 			negotiated:     true,
 		},
 		{
 			doc: "failed ping, no API version",
-			pingFunc: func() (types.Ping, error) {
-				return types.Ping{}, errors.New("failed")
+			pingFunc: func() (client.PingResult, error) {
+				return client.PingResult{}, errors.New("failed")
 			},
 			expectedServer: ServerInfo{HasExperimental: true},
 		},
 		{
 			doc: "failed ping, with API version",
-			pingFunc: func() (types.Ping, error) {
-				return types.Ping{APIVersion: "v1.44"}, errors.New("failed")
+			pingFunc: func() (client.PingResult, error) {
+				return client.PingResult{APIVersion: "v1.44"}, errors.New("failed")
 			},
 			expectedServer: ServerInfo{HasExperimental: true},
 			negotiated:     true,
@@ -211,7 +210,7 @@ func TestInitializeFromClientHangs(t *testing.T) {
 	assert.NilError(t, err)
 
 	receiveReqCh := make(chan bool)
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	timeoutCtx, cancel := context.WithTimeout(context.TODO(), time.Second)
 	defer cancel()
 
 	// Simulate a server that hangs on connections.
@@ -385,7 +384,7 @@ func TestNewDockerCliWithCustomUserAgent(t *testing.T) {
 	cli.options = opts
 	cli.configFile = &configfile.ConfigFile{}
 
-	_, err = cli.Client().Ping(context.Background())
+	_, err = cli.Client().Ping(context.TODO(), client.PingOptions{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, received, "fake-agent/0.0.1")
 }

@@ -38,5 +38,6 @@ func runEnable(ctx context.Context, dockerCli command.Cli, name string, opts cli
 	if opts.Timeout < 0 {
 		return fmt.Errorf("negative timeout %d is invalid", opts.Timeout)
 	}
-	return dockerCli.Client().PluginEnable(ctx, name, opts)
+	_, err := dockerCli.Client().PluginEnable(ctx, name, opts)
+	return err
 }

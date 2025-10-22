@@ -20,13 +20,13 @@ func TestStackServicesErrors(t *testing.T) {
 	testCases := []struct {
 		args            []string
 		flags           map[string]string
-		serviceListFunc func(options client.ServiceListOptions) ([]swarm.Service, error)
+		serviceListFunc func(options client.ServiceListOptions) (client.ServiceListResult, error)
 		expectedError   string
 	}{
 		{
 			args: []string{"foo"},
-			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-				return nil, errors.New("error getting services")
+			serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+				return client.ServiceListResult{}, errors.New("error getting services")
 			},
 			expectedError: "error getting services",
 		},
@@ -35,8 +35,10 @@ func TestStackServicesErrors(t *testing.T) {
 			flags: map[string]string{
 				"format": "{{invalid format}}",
 			},
-			serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-				return []swarm.Service{*builders.Service()}, nil
+			serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+				return client.ServiceListResult{
+					Items: []swarm.Service{*builders.Service()},
+				}, nil
 			},
 			expectedError: "template parsing error",
 		},
@@ -70,8 +72,8 @@ func TestRunServicesWithEmptyName(t *testing.T) {
 
 func TestStackServicesEmptyServiceList(t *testing.T) {
 	fakeCli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{}, nil
+		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{}, nil
 		},
 	})
 	cmd := newServicesCommand(fakeCli)
@@ -83,8 +85,10 @@ func TestStackServicesEmptyServiceList(t *testing.T) {
 
 func TestStackServicesWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{*builders.Service(builders.ServiceID("id-foo"))}, nil
+		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{*builders.Service(builders.ServiceID("id-foo"))},
+			}, nil
 		},
 	})
 	cmd := newServicesCommand(cli)
@@ -96,9 +100,9 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 
 func TestStackServicesWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				*builders.Service(builders.ServiceName("service-name-foo")),
+		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{*builders.Service(builders.ServiceName("service-name-foo"))},
 			}, nil
 		},
 	})
@@ -111,9 +115,9 @@ func TestStackServicesWithFormat(t *testing.T) {
 
 func TestStackServicesWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				*builders.Service(builders.ServiceName("service-name-foo")),
+		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{*builders.Service(builders.ServiceName("service-name-foo"))},
 			}, nil
 		},
 	})
@@ -128,19 +132,21 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 
 func TestStackServicesWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serviceListFunc: func(options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{*builders.Service(
-				builders.ServiceName("name-foo"),
-				builders.ServiceID("id-foo"),
-				builders.ReplicatedService(2),
-				builders.ServiceImage("busybox:latest"),
-				builders.ServicePort(swarm.PortConfig{
-					PublishMode:   swarm.PortConfigPublishModeIngress,
-					PublishedPort: 0,
-					TargetPort:    3232,
-					Protocol:      network.TCP,
-				}),
-			)}, nil
+		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{*builders.Service(
+					builders.ServiceName("name-foo"),
+					builders.ServiceID("id-foo"),
+					builders.ReplicatedService(2),
+					builders.ServiceImage("busybox:latest"),
+					builders.ServicePort(swarm.PortConfig{
+						PublishMode:   swarm.PortConfigPublishModeIngress,
+						PublishedPort: 0,
+						TargetPort:    3232,
+						Protocol:      network.TCP,
+					}),
+				)},
+			}, nil
 		},
 	})
 	cmd := newServicesCommand(cli)

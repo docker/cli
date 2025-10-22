@@ -502,27 +502,27 @@ func TestUpdatePortsRmWithProtocol(t *testing.T) {
 }
 
 type secretAPIClientMock struct {
-	listResult []swarm.Secret
+	listResult client.SecretListResult
 }
 
-func (s secretAPIClientMock) SecretList(context.Context, client.SecretListOptions) ([]swarm.Secret, error) {
+func (s secretAPIClientMock) SecretList(context.Context, client.SecretListOptions) (client.SecretListResult, error) {
 	return s.listResult, nil
 }
 
-func (secretAPIClientMock) SecretCreate(context.Context, swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
-	return swarm.SecretCreateResponse{}, nil
+func (secretAPIClientMock) SecretCreate(context.Context, client.SecretCreateOptions) (client.SecretCreateResult, error) {
+	return client.SecretCreateResult{}, nil
 }
 
-func (secretAPIClientMock) SecretRemove(context.Context, string) error {
-	return nil
+func (secretAPIClientMock) SecretRemove(context.Context, string, client.SecretRemoveOptions) (client.SecretRemoveResult, error) {
+	return client.SecretRemoveResult{}, nil
 }
 
-func (secretAPIClientMock) SecretInspectWithRaw(context.Context, string) (swarm.Secret, []byte, error) {
-	return swarm.Secret{}, []byte{}, nil
+func (secretAPIClientMock) SecretInspect(context.Context, string, client.SecretInspectOptions) (client.SecretInspectResult, error) {
+	return client.SecretInspectResult{}, nil
 }
 
-func (secretAPIClientMock) SecretUpdate(context.Context, string, swarm.Version, swarm.SecretSpec) error {
-	return nil
+func (secretAPIClientMock) SecretUpdate(context.Context, string, client.SecretUpdateOptions) (client.SecretUpdateResult, error) {
+	return client.SecretUpdateResult{}, nil
 }
 
 // TestUpdateSecretUpdateInPlace tests the ability to update the "target" of a
@@ -530,11 +530,11 @@ func (secretAPIClientMock) SecretUpdate(context.Context, string, swarm.Version, 
 // "--secret-add" for the same secret.
 func TestUpdateSecretUpdateInPlace(t *testing.T) {
 	apiClient := secretAPIClientMock{
-		listResult: []swarm.Secret{
-			{
+		listResult: client.SecretListResult{
+			Items: []swarm.Secret{{
 				ID:   "tn9qiblgnuuut11eufquw5dev",
 				Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo"}},
-			},
+			}},
 		},
 	}
 
@@ -869,13 +869,15 @@ func TestUpdateNetworks(t *testing.T) {
 	}
 
 	apiClient := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error) {
+		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (client.NetworkInspectResult, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
-					return network.Inspect{Network: nw.Network}, nil
+					return client.NetworkInspectResult{
+						Network: network.Inspect{Network: nw.Network},
+					}, nil
 				}
 			}
-			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)
+			return client.NetworkInspectResult{}, fmt.Errorf("network not found: %s", networkID)
 		},
 	}
 
@@ -1219,16 +1221,16 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 
 			// fakeConfigAPIClientList is actually defined in create_test.go,
 			// but we'll use it here as well
-			var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
+			var fakeConfigClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
 				names := opts.Filters["name"]
 				assert.Equal(t, len(names), len(tc.lookupConfigs))
 
-				configs := []swarm.Config{}
+				configs := client.ConfigListResult{}
 				for _, lookup := range tc.lookupConfigs {
 					assert.Assert(t, names[lookup])
 					cfg, ok := cannedConfigs[lookup]
 					assert.Assert(t, ok)
-					configs = append(configs, *cfg)
+					configs.Items = append(configs.Items, *cfg)
 				}
 				return configs, nil
 			}
@@ -1249,10 +1251,10 @@ func TestUpdateGetUpdatedConfigs(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			finalConfigs, err := getUpdatedConfigs(ctx, fakeClient, flags, containerSpec)
+			finalConfigs, err := getUpdatedConfigs(ctx, fakeConfigClient, flags, containerSpec)
 			assert.NilError(t, err)
 
-			// ensure that the finalConfigs consists of all of the expected
+			// ensure that the finalConfigs consists of all the expected
 			// configs
 			assert.Equal(t, len(finalConfigs), len(tc.expected),
 				"%v final configs, %v expected",

@@ -79,14 +79,14 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 	fatalErr := false
 	var errs []error
 	for _, img := range images {
-		dels, err := apiClient.ImageRemove(ctx, img, options)
+		res, err := apiClient.ImageRemove(ctx, img, options)
 		if err != nil {
 			if !errdefs.IsNotFound(err) {
 				fatalErr = true
 			}
 			errs = append(errs, err)
 		} else {
-			for _, del := range dels {
+			for _, del := range res.Deleted {
 				if del.Deleted != "" {
 					_, _ = fmt.Fprintln(dockerCLI.Out(), "Deleted:", del.Deleted)
 				} else {

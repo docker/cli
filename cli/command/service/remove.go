@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +33,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, serviceIDs []string) 
 
 	var errs []error
 	for _, id := range serviceIDs {
-		if err := apiClient.ServiceRemove(ctx, id); err != nil {
+		if _, err := apiClient.ServiceRemove(ctx, id, client.ServiceRemoveOptions{}); err != nil {
 			errs = append(errs, err)
 			continue
 		}

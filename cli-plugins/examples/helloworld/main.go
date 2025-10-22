@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli-plugins/plugin"
 	"github.com/docker/cli/cli/command"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,7 @@ func main() {
 			Short: "Print the API version of the server",
 			RunE: func(_ *cobra.Command, _ []string) error {
 				apiClient := dockerCLI.Client()
-				ping, err := apiClient.Ping(context.Background())
+				ping, err := apiClient.Ping(context.Background(), client.PingOptions{})
 				if err != nil {
 					return err
 				}

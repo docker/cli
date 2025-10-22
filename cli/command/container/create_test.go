@@ -132,9 +132,9 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 						return container.CreateResponse{ID: containerID}, nil
 					}
 				},
-				imageCreateFunc: func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error) {
+				imageCreateFunc: func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error) {
 					defer func() { pullCounter++ }()
-					return io.NopCloser(strings.NewReader("")), nil
+					return client.ImageCreateResult{Body: io.NopCloser(strings.NewReader(""))}, nil
 				},
 				infoFunc: func() (system.Info, error) {
 					return system.Info{IndexServerAddress: "https://indexserver.example.com"}, nil

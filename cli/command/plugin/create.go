@@ -114,7 +114,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options pluginCreateO
 		return err
 	}
 
-	err = dockerCli.Client().PluginCreate(ctx, createCtx, client.PluginCreateOptions{RepoName: options.repoName})
+	_, err = dockerCli.Client().PluginCreate(ctx, createCtx, client.PluginCreateOptions{RepoName: options.repoName})
 	if err != nil {
 		return err
 	}

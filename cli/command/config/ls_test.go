@@ -19,7 +19,7 @@ import (
 func TestConfigListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
-		configListFunc func(context.Context, client.ConfigListOptions) ([]swarm.Config, error)
+		configListFunc func(context.Context, client.ConfigListOptions) (client.ConfigListResult, error)
 		expectedError  string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestConfigListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
-				return []swarm.Config{}, errors.New("error listing configs")
+			configListFunc: func(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
+				return client.ConfigListResult{}, errors.New("error listing configs")
 			},
 			expectedError: "error listing configs",
 		},
@@ -48,26 +48,28 @@ func TestConfigListErrors(t *testing.T) {
 
 func TestConfigList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
-			return []swarm.Config{
-				*builders.Config(builders.ConfigID("ID-1-foo"),
-					builders.ConfigName("1-foo"),
-					builders.ConfigVersion(swarm.Version{Index: 10}),
-					builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
-				*builders.Config(builders.ConfigID("ID-10-foo"),
-					builders.ConfigName("10-foo"),
-					builders.ConfigVersion(swarm.Version{Index: 11}),
-					builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
-				*builders.Config(builders.ConfigID("ID-2-foo"),
-					builders.ConfigName("2-foo"),
-					builders.ConfigVersion(swarm.Version{Index: 11}),
-					builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
+		configListFunc: func(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
+			return client.ConfigListResult{
+				Items: []swarm.Config{
+					*builders.Config(builders.ConfigID("ID-1-foo"),
+						builders.ConfigName("1-foo"),
+						builders.ConfigVersion(swarm.Version{Index: 10}),
+						builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+					*builders.Config(builders.ConfigID("ID-10-foo"),
+						builders.ConfigName("10-foo"),
+						builders.ConfigVersion(swarm.Version{Index: 11}),
+						builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+					*builders.Config(builders.ConfigID("ID-2-foo"),
+						builders.ConfigName("2-foo"),
+						builders.ConfigVersion(swarm.Version{Index: 11}),
+						builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+				},
 			}, nil
 		},
 	})
@@ -78,12 +80,14 @@ func TestConfigList(t *testing.T) {
 
 func TestConfigListWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
-			return []swarm.Config{
-				*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
-				*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
-					"label": "label-bar",
-				})),
+		configListFunc: func(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
+			return client.ConfigListResult{
+				Items: []swarm.Config{
+					*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
+					*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
+						"label": "label-bar",
+					})),
+				},
 			}, nil
 		},
 	})
@@ -95,12 +99,14 @@ func TestConfigListWithQuietOption(t *testing.T) {
 
 func TestConfigListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
-			return []swarm.Config{
-				*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
-				*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
-					"label": "label-bar",
-				})),
+		configListFunc: func(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
+			return client.ConfigListResult{
+				Items: []swarm.Config{
+					*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
+					*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
+						"label": "label-bar",
+					})),
+				},
 			}, nil
 		},
 	})
@@ -114,12 +120,14 @@ func TestConfigListWithConfigFormat(t *testing.T) {
 
 func TestConfigListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
-			return []swarm.Config{
-				*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
-				*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
-					"label": "label-bar",
-				})),
+		configListFunc: func(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
+			return client.ConfigListResult{
+				Items: []swarm.Config{
+					*builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")),
+					*builders.Config(builders.ConfigID("ID-bar"), builders.ConfigName("bar"), builders.ConfigLabels(map[string]string{
+						"label": "label-bar",
+					})),
+				},
 			}, nil
 		},
 	})
@@ -131,22 +139,24 @@ func TestConfigListWithFormat(t *testing.T) {
 
 func TestConfigListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		configListFunc: func(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
 			assert.Check(t, options.Filters["name"]["foo"])
 			assert.Check(t, options.Filters["label"]["lbl1=Label-bar"])
-			return []swarm.Config{
-				*builders.Config(builders.ConfigID("ID-foo"),
-					builders.ConfigName("foo"),
-					builders.ConfigVersion(swarm.Version{Index: 10}),
-					builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
-				*builders.Config(builders.ConfigID("ID-bar"),
-					builders.ConfigName("bar"),
-					builders.ConfigVersion(swarm.Version{Index: 11}),
-					builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
+			return client.ConfigListResult{
+				Items: []swarm.Config{
+					*builders.Config(builders.ConfigID("ID-foo"),
+						builders.ConfigName("foo"),
+						builders.ConfigVersion(swarm.Version{Index: 10}),
+						builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+					*builders.Config(builders.ConfigID("ID-bar"),
+						builders.ConfigName("bar"),
+						builders.ConfigVersion(swarm.Version{Index: 11}),
+						builders.ConfigCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.ConfigUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+				},
 			}, nil
 		},
 	})

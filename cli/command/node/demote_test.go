@@ -8,14 +8,15 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
 func TestNodeDemoteErrors(t *testing.T) {
 	testCases := []struct {
 		args            []string
-		nodeInspectFunc func() (swarm.Node, []byte, error)
-		nodeUpdateFunc  func(nodeID string, version swarm.Version, node swarm.NodeSpec) error
+		nodeInspectFunc func() (client.NodeInspectResult, error)
+		nodeUpdateFunc  func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error)
 		expectedError   string
 	}{
 		{
@@ -23,15 +24,15 @@ func TestNodeDemoteErrors(t *testing.T) {
 		},
 		{
 			args: []string{"nodeID"},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.New("error inspecting the node")
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{}, errors.New("error inspecting the node")
 			},
 			expectedError: "error inspecting the node",
 		},
 		{
 			args: []string{"nodeID"},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				return errors.New("error updating the node")
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				return client.NodeUpdateResult{}, errors.New("error updating the node")
 			},
 			expectedError: "error updating the node",
 		},
@@ -52,14 +53,16 @@ func TestNodeDemoteErrors(t *testing.T) {
 func TestNodeDemoteNoChange(t *testing.T) {
 	cmd := newDemoteCommand(
 		test.NewFakeCli(&fakeClient{
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if node.Role != swarm.NodeRoleWorker {
-					return errors.New("expected role worker, got " + string(node.Role))
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if options.Node.Role != swarm.NodeRoleWorker {
+					return client.NodeUpdateResult{}, errors.New("expected role worker, got " + string(options.Node.Role))
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID"})
@@ -69,14 +72,16 @@ func TestNodeDemoteNoChange(t *testing.T) {
 func TestNodeDemoteMultipleNode(t *testing.T) {
 	cmd := newDemoteCommand(
 		test.NewFakeCli(&fakeClient{
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(builders.Manager()), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.Manager()),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if node.Role != swarm.NodeRoleWorker {
-					return errors.New("expected role worker, got " + string(node.Role))
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if options.Node.Role != swarm.NodeRoleWorker {
+					return client.NodeUpdateResult{}, errors.New("expected role worker, got " + string(options.Node.Role))
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})

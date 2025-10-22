@@ -15,12 +15,12 @@ import (
 
 func TestInitTtySizeErrors(t *testing.T) {
 	expectedError := "failed to resize tty, using default size\n"
-	fakeContainerExecResizeFunc := func(id string, options client.ContainerResizeOptions) error {
-		return errors.New("Error response from daemon: no such exec")
+	fakeContainerExecResizeFunc := func(id string, options client.ExecResizeOptions) (client.ExecResizeResult, error) {
+		return client.ExecResizeResult{}, errors.New("error response from daemon: no such exec")
 	}
 	fakeResizeTtyFunc := func(ctx context.Context, cli command.Cli, id string, isExec bool) error {
 		height, width := uint(1024), uint(768)
-		return resizeTtyTo(ctx, cli.Client(), id, height, width, isExec)
+		return resizeTTYTo(ctx, cli.Client(), id, height, width, isExec)
 	}
 	ctx := context.Background()
 	cli := test.NewFakeCli(&fakeClient{containerExecResizeFunc: fakeContainerExecResizeFunc})

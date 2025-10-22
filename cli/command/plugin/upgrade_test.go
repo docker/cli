@@ -17,16 +17,18 @@ func TestUpgradePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		pluginUpgradeFunc: func(name string, options client.PluginInstallOptions) (io.ReadCloser, error) {
+		pluginUpgradeFunc: func(name string, options client.PluginUpgradeOptions) (client.PluginUpgradeResult, error) {
 			return nil, errors.New("should not be called")
 		},
-		pluginInspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
-			return &plugin.Plugin{
-				ID:              "5724e2c8652da337ab2eedd19fc6fc0ec908e4bd907c7421bf6a8dfc70c4c078",
-				Name:            "foo/bar",
-				Enabled:         false,
-				PluginReference: "localhost:5000/foo/bar:v0.1.0",
-			}, []byte{}, nil
+		pluginInspectFunc: func(name string) (client.PluginInspectResult, error) {
+			return client.PluginInspectResult{
+				Plugin: plugin.Plugin{
+					ID:              "5724e2c8652da337ab2eedd19fc6fc0ec908e4bd907c7421bf6a8dfc70c4c078",
+					Name:            "foo/bar",
+					Enabled:         false,
+					PluginReference: "localhost:5000/foo/bar:v0.1.0",
+				},
+			}, nil
 		},
 	})
 	cmd := newUpgradeCommand(cli)

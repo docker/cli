@@ -163,12 +163,12 @@ func validEventNames() []string {
 // configNames contacts the API to get a list of config names.
 // In case of an error, an empty list is returned.
 func configNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().ConfigList(cmd.Context(), client.ConfigListOptions{})
+	res, err := dockerCLI.Client().ConfigList(cmd.Context(), client.ConfigListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, v := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, v := range res.Items {
 		names = append(names, v.Spec.Name)
 	}
 	return names
@@ -197,12 +197,12 @@ func daemonNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []s
 // imageNames contacts the API to get a list of image names.
 // In case of an error, an empty list is returned.
 func imageNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
+	res, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, img := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, img := range res.Items {
 		names = append(names, img.RepoTags...)
 	}
 	return names
@@ -211,12 +211,12 @@ func imageNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []st
 // networkNames contacts the API to get a list of network names.
 // In case of an error, an empty list is returned.
 func networkNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
+	res, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, nw := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, nw := range res.Items {
 		names = append(names, nw.Name)
 	}
 	return names
@@ -225,12 +225,12 @@ func networkNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []
 // nodeNames contacts the API to get a list of node names.
 // In case of an error, an empty list is returned.
 func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().NodeList(cmd.Context(), client.NodeListOptions{})
+	res, err := dockerCLI.Client().NodeList(cmd.Context(), client.NodeListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, node := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, node := range res.Items {
 		names = append(names, node.Description.Hostname)
 	}
 	return names
@@ -239,12 +239,12 @@ func nodeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []str
 // pluginNames contacts the API to get a list of plugin names.
 // In case of an error, an empty list is returned.
 func pluginNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().PluginList(cmd.Context(), client.PluginListOptions{})
+	res, err := dockerCLI.Client().PluginList(cmd.Context(), client.PluginListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, v := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, v := range res.Items {
 		names = append(names, v.Name)
 	}
 	return names
@@ -253,12 +253,12 @@ func pluginNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []s
 // secretNames contacts the API to get a list of secret names.
 // In case of an error, an empty list is returned.
 func secretNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().SecretList(cmd.Context(), client.SecretListOptions{})
+	res, err := dockerCLI.Client().SecretList(cmd.Context(), client.SecretListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, v := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, v := range res.Items {
 		names = append(names, v.Spec.Name)
 	}
 	return names
@@ -267,12 +267,12 @@ func secretNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []s
 // serviceNames contacts the API to get a list of service names.
 // In case of an error, an empty list is returned.
 func serviceNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().ServiceList(cmd.Context(), client.ServiceListOptions{})
+	res, err := dockerCLI.Client().ServiceList(cmd.Context(), client.ServiceListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list))
-	for _, v := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, v := range res.Items {
 		names = append(names, v.Spec.Name)
 	}
 	return names
@@ -281,14 +281,14 @@ func serviceNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []
 // taskNames contacts the API to get a list of service names.
 // In case of an error, an empty list is returned.
 func taskNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().TaskList(cmd.Context(), client.TaskListOptions{})
-	if err != nil || len(list) == 0 {
+	res, err := dockerCLI.Client().TaskList(cmd.Context(), client.TaskListOptions{})
+	if err != nil || len(res.Items) == 0 {
 		return []string{}
 	}
 
 	resolver := idresolver.New(dockerCLI.Client(), false)
-	names := make([]string, 0, len(list))
-	for _, task := range list {
+	names := make([]string, 0, len(res.Items))
+	for _, task := range res.Items {
 		serviceName, err := resolver.Resolve(cmd.Context(), swarm.Service{}, task.ServiceID)
 		if err != nil {
 			continue
@@ -305,12 +305,12 @@ func taskNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []str
 // volumeNames contacts the API to get a list of volume names.
 // In case of an error, an empty list is returned.
 func volumeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	list, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
+	res, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(list.Volumes))
-	for _, v := range list.Volumes {
+	names := make([]string, 0, len(res.Items.Volumes))
+	for _, v := range res.Items.Volumes {
 		names = append(names, v.Name)
 	}
 	return names

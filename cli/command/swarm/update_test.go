@@ -9,7 +9,6 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -20,9 +19,9 @@ func TestSwarmUpdateErrors(t *testing.T) {
 		name                  string
 		args                  []string
 		flags                 map[string]string
-		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
-		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
+		swarmInspectFunc      func() (client.SwarmInspectResult, error)
+		swarmUpdateFunc       func(client.SwarmUpdateOptions) (client.SwarmUpdateResult, error)
+		swarmGetUnlockKeyFunc func() (client.SwarmGetUnlockKeyResult, error)
 		expectedError         string
 	}{
 		{
@@ -35,8 +34,8 @@ func TestSwarmUpdateErrors(t *testing.T) {
 			flags: map[string]string{
 				flagTaskHistoryLimit: "10",
 			},
-			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.New("error inspecting the swarm")
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{}, errors.New("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
@@ -45,21 +44,23 @@ func TestSwarmUpdateErrors(t *testing.T) {
 			flags: map[string]string{
 				flagTaskHistoryLimit: "10",
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
-				return errors.New("error updating the swarm")
+			swarmUpdateFunc: func(client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
+				return client.SwarmUpdateResult{}, errors.New("error updating the swarm")
 			},
 			expectedError: "error updating the swarm",
 		},
 		{
-			name: "swarm-unlockkey-error",
+			name: "swarm-unlock-key-error",
 			flags: map[string]string{
 				flagAutolock: "true",
 			},
-			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *builders.Swarm(), nil
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
 			},
-			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
-				return swarm.UnlockKeyResponse{}, errors.New("error getting unlock key")
+			swarmGetUnlockKeyFunc: func() (client.SwarmGetUnlockKeyResult, error) {
+				return client.SwarmGetUnlockKeyResult{}, errors.New("error getting unlock key")
 			},
 			expectedError: "error getting unlock key",
 		},
@@ -89,15 +90,15 @@ func TestSwarmUpdateErrors(t *testing.T) {
 
 func TestSwarmUpdate(t *testing.T) {
 	swarmInfo := builders.Swarm()
-	swarmInfo.ClusterInfo.TLSInfo.TrustRoot = "trustroot"
+	swarmInfo.ClusterInfo.TLSInfo.TrustRoot = "trust-root"
 
 	testCases := []struct {
 		name                  string
 		args                  []string
 		flags                 map[string]string
-		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmUpdateFunc       func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error
-		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
+		swarmInspectFunc      func() (client.SwarmInspectResult, error)
+		swarmUpdateFunc       func(client.SwarmUpdateOptions) (client.SwarmUpdateResult, error)
+		swarmGetUnlockKeyFunc func() (client.SwarmGetUnlockKeyResult, error)
 	}{
 		{
 			name: "noargs",
@@ -113,60 +114,64 @@ func TestSwarmUpdate(t *testing.T) {
 				flagSnapshotInterval:    "100",
 				flagAutolock:            "true",
 			},
-			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *swarmInfo, nil
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *swarmInfo,
+				}, nil
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
-				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
-					return errors.New("historyLimit not correctly set")
+			swarmUpdateFunc: func(options client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
+				if *options.Swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
+					return client.SwarmUpdateResult{}, errors.New("historyLimit not correctly set")
 				}
 				heartbeatDuration, err := time.ParseDuration("10s")
 				if err != nil {
-					return err
+					return client.SwarmUpdateResult{}, err
 				}
-				if swarm.Dispatcher.HeartbeatPeriod != heartbeatDuration {
-					return errors.New("heartbeatPeriodLimit not correctly set")
+				if options.Swarm.Dispatcher.HeartbeatPeriod != heartbeatDuration {
+					return client.SwarmUpdateResult{}, errors.New("heartbeatPeriodLimit not correctly set")
 				}
 				certExpiryDuration, err := time.ParseDuration("20s")
 				if err != nil {
-					return err
+					return client.SwarmUpdateResult{}, err
 				}
-				if swarm.CAConfig.NodeCertExpiry != certExpiryDuration {
-					return errors.New("certExpiry not correctly set")
+				if options.Swarm.CAConfig.NodeCertExpiry != certExpiryDuration {
+					return client.SwarmUpdateResult{}, errors.New("certExpiry not correctly set")
 				}
-				if len(swarm.CAConfig.ExternalCAs) != 1 || swarm.CAConfig.ExternalCAs[0].CACert != "trustroot" {
-					return errors.New("externalCA not correctly set")
+				if len(options.Swarm.CAConfig.ExternalCAs) != 1 || options.Swarm.CAConfig.ExternalCAs[0].CACert != "trust-root" {
+					return client.SwarmUpdateResult{}, errors.New("externalCA not correctly set")
 				}
-				if *swarm.Raft.KeepOldSnapshots != 10 {
-					return errors.New("keepOldSnapshots not correctly set")
+				if *options.Swarm.Raft.KeepOldSnapshots != 10 {
+					return client.SwarmUpdateResult{}, errors.New("keepOldSnapshots not correctly set")
 				}
-				if swarm.Raft.SnapshotInterval != 100 {
-					return errors.New("snapshotInterval not correctly set")
+				if options.Swarm.Raft.SnapshotInterval != 100 {
+					return client.SwarmUpdateResult{}, errors.New("snapshotInterval not correctly set")
 				}
-				if !swarm.EncryptionConfig.AutoLockManagers {
-					return errors.New("autolock not correctly set")
+				if !options.Swarm.EncryptionConfig.AutoLockManagers {
+					return client.SwarmUpdateResult{}, errors.New("auto-lock not correctly set")
 				}
-				return nil
+				return client.SwarmUpdateResult{}, nil
 			},
 		},
 		{
-			name: "autolock-unlock-key",
+			name: "auto-lock-unlock-key",
 			flags: map[string]string{
 				flagTaskHistoryLimit: "10",
 				flagAutolock:         "true",
 			},
-			swarmUpdateFunc: func(swarm swarm.Spec, flags client.SwarmUpdateFlags) error {
-				if *swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
-					return errors.New("historyLimit not correctly set")
+			swarmUpdateFunc: func(options client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
+				if *options.Swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
+					return client.SwarmUpdateResult{}, errors.New("historyLimit not correctly set")
 				}
-				return nil
+				return client.SwarmUpdateResult{}, nil
 			},
-			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return *builders.Swarm(), nil
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
 			},
-			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
-				return swarm.UnlockKeyResponse{
-					UnlockKey: "unlock-key",
+			swarmGetUnlockKeyFunc: func() (client.SwarmGetUnlockKeyResult, error) {
+				return client.SwarmGetUnlockKeyResult{
+					Key: "unlock-key",
 				}, nil
 			},
 		},

@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -184,9 +185,11 @@ result2 5
 		},
 	}
 
-	results := []registrytypes.SearchResult{
-		{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
-		{Name: "result2", Description: "Not official", StarCount: 5},
+	results := client.ImageSearchResult{
+		Items: []registrytypes.SearchResult{
+			{Name: "result1", Description: "Official build", StarCount: 5000, IsOfficial: true},
+			{Name: "result2", Description: "Not official", StarCount: 5},
+		},
 	}
 
 	for _, tc := range cases {

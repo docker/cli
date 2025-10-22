@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -113,7 +114,7 @@ func hasClusterVolumeOptionSet(flags *pflag.FlagSet) bool {
 }
 
 func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
-	volOpts := volume.CreateOptions{
+	volOpts := client.VolumeCreateOptions{
 		Driver:     options.driver,
 		DriverOpts: options.driverOpts.GetAll(),
 		Name:       options.name,
@@ -195,11 +196,11 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 		volOpts.ClusterVolumeSpec.AccessibilityRequirements = topology
 	}
 
-	vol, err := dockerCli.Client().VolumeCreate(ctx, volOpts)
+	res, err := dockerCli.Client().VolumeCreate(ctx, volOpts)
 	if err != nil {
 		return err
 	}
 
-	_, _ = fmt.Fprintln(dockerCli.Out(), vol.Name)
+	_, _ = fmt.Fprintln(dockerCli.Out(), res.Volume.Name)
 	return nil
 }

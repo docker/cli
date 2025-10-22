@@ -17,6 +17,7 @@ import (
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 const serviceInspectPrettyTemplate formatter.Format = `
@@ -612,12 +613,12 @@ func NewListFormat(source string, quiet bool) formatter.Format {
 }
 
 // ListFormatWrite writes the context
-func ListFormatWrite(ctx formatter.Context, services []swarm.Service) error {
+func ListFormatWrite(ctx formatter.Context, services client.ServiceListResult) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		sort.Slice(services, func(i, j int) bool {
-			return sortorder.NaturalLess(services[i].Spec.Name, services[j].Spec.Name)
+		sort.Slice(services.Items, func(i, j int) bool {
+			return sortorder.NaturalLess(services.Items[i].Spec.Name, services.Items[j].Spec.Name)
 		})
-		for _, service := range services {
+		for _, service := range services.Items {
 			serviceCtx := &serviceContext{service: service}
 			if err := format(serviceCtx); err != nil {
 				return err

@@ -14,26 +14,26 @@ import (
 // fakeConfigAPIClientList is used to let us pass a closure as a
 // ConfigAPIClient, to use as ConfigList. for all the other methods in the
 // interface, it does nothing, not even return an error, so don't use them
-type fakeConfigAPIClientList func(context.Context, client.ConfigListOptions) ([]swarm.Config, error)
+type fakeConfigAPIClientList func(context.Context, client.ConfigListOptions) (client.ConfigListResult, error)
 
-func (f fakeConfigAPIClientList) ConfigList(ctx context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
+func (f fakeConfigAPIClientList) ConfigList(ctx context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
 	return f(ctx, opts)
 }
 
-func (fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ swarm.ConfigSpec) (swarm.ConfigCreateResponse, error) {
-	return swarm.ConfigCreateResponse{}, nil
+func (fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ client.ConfigCreateOptions) (client.ConfigCreateResult, error) {
+	return client.ConfigCreateResult{}, nil
 }
 
-func (fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string) error {
-	return nil
+func (fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string, _ client.ConfigRemoveOptions) (client.ConfigRemoveResult, error) {
+	return client.ConfigRemoveResult{}, nil
 }
 
-func (fakeConfigAPIClientList) ConfigInspectWithRaw(_ context.Context, _ string) (swarm.Config, []byte, error) {
-	return swarm.Config{}, nil, nil
+func (fakeConfigAPIClientList) ConfigInspect(_ context.Context, _ string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
+	return client.ConfigInspectResult{}, nil
 }
 
-func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ swarm.Version, _ swarm.ConfigSpec) error {
-	return nil
+func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ client.ConfigUpdateOptions) (client.ConfigUpdateResult, error) {
+	return client.ConfigUpdateResult{}, nil
 }
 
 // TestSetConfigsWithCredSpecAndConfigs tests that the setConfigs function for
@@ -67,24 +67,25 @@ func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
 	}
 
 	// set up a function to use as the list function
-	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
+	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
 		// we're expecting the filter to have names "foo" and "bar"
 		expected := make(client.Filters).Add("name", "foo", "bar")
 		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
-
-		return []swarm.Config{
-			{
-				ID: "fooID",
-				Spec: swarm.ConfigSpec{
-					Annotations: swarm.Annotations{
-						Name: "foo",
+		return client.ConfigListResult{
+			Items: []swarm.Config{
+				{
+					ID: "fooID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "foo",
+						},
 					},
-				},
-			}, {
-				ID: "barID",
-				Spec: swarm.ConfigSpec{
-					Annotations: swarm.Annotations{
-						Name: "bar",
+				}, {
+					ID: "barID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "bar",
+						},
 					},
 				},
 			},
@@ -143,21 +144,23 @@ func TestSetConfigsOnlyCredSpec(t *testing.T) {
 	}
 
 	// set up a function to use as the list function
-	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
+	fakeClient := fakeConfigAPIClientList(func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
 		expected := make(client.Filters).Add("name", "foo")
 		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
 
-		return []swarm.Config{
-			{
-				ID: "fooID",
-				Spec: swarm.ConfigSpec{
-					Annotations: swarm.Annotations{
-						Name: "foo",
+		return client.ConfigListResult{
+			Items: []swarm.Config{
+				{
+					ID: "fooID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "foo",
+						},
 					},
 				},
 			},
 		}, nil
-	}
+	})
 
 	// now call setConfigs
 	ctx := context.Background()
@@ -191,25 +194,26 @@ func TestSetConfigsOnlyConfigs(t *testing.T) {
 		},
 	}
 
-	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
+	fakeConfigClient := fakeConfigAPIClientList(func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
 		expected := make(client.Filters).Add("name", "bar")
 		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
-
-		return []swarm.Config{
-			{
-				ID: "barID",
-				Spec: swarm.ConfigSpec{
-					Annotations: swarm.Annotations{
-						Name: "bar",
+		return client.ConfigListResult{
+			Items: []swarm.Config{
+				{
+					ID: "barID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "bar",
+						},
 					},
 				},
 			},
 		}, nil
-	}
+	})
 
 	// now call setConfigs
 	ctx := context.Background()
-	err := setConfigs(ctx, fakeClient, service, opts)
+	err := setConfigs(ctx, fakeConfigClient, service, opts)
 	// verify no error is returned
 	assert.NilError(t, err)
 
@@ -249,17 +253,17 @@ func TestSetConfigsNoConfigs(t *testing.T) {
 		},
 	}
 
-	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) ([]swarm.Config, error) {
+	fakeConfigClient := fakeConfigAPIClientList(func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
 		// assert false -- we should never call this function
 		assert.Assert(t, false, "we should not be listing configs")
-		return nil, nil
-	}
+		return client.ConfigListResult{}, nil
+	})
 
 	ctx := context.Background()
-	err := setConfigs(ctx, fakeClient, service, opts)
+	err := setConfigs(ctx, fakeConfigClient, service, opts)
 	assert.NilError(t, err)
 
-	// ensure that the value of the credentialspec has not changed
+	// ensure that the value of the credential-spec has not changed
 	assert.Equal(t, service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.File, "foo")
 	assert.Equal(t, service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.Config, "")
 }

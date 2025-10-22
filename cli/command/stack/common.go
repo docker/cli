@@ -8,8 +8,6 @@ import (
 
 	"github.com/docker/cli/cli/compose/convert"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
 
@@ -51,22 +49,22 @@ func getAllStacksFilter() client.Filters {
 	return make(client.Filters).Add("label", convert.LabelNamespace)
 }
 
-func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Service, error) {
+func getStackServices(ctx context.Context, apiclient client.APIClient, namespace string) (client.ServiceListResult, error) {
 	return apiclient.ServiceList(ctx, client.ServiceListOptions{Filters: getStackFilter(namespace)})
 }
 
-func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) ([]network.Summary, error) {
+func getStackNetworks(ctx context.Context, apiclient client.APIClient, namespace string) (client.NetworkListResult, error) {
 	return apiclient.NetworkList(ctx, client.NetworkListOptions{Filters: getStackFilter(namespace)})
 }
 
-func getStackSecrets(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Secret, error) {
+func getStackSecrets(ctx context.Context, apiclient client.APIClient, namespace string) (client.SecretListResult, error) {
 	return apiclient.SecretList(ctx, client.SecretListOptions{Filters: getStackFilter(namespace)})
 }
 
-func getStackConfigs(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Config, error) {
+func getStackConfigs(ctx context.Context, apiclient client.APIClient, namespace string) (client.ConfigListResult, error) {
 	return apiclient.ConfigList(ctx, client.ConfigListOptions{Filters: getStackFilter(namespace)})
 }
 
-func getStackTasks(ctx context.Context, apiclient client.APIClient, namespace string) ([]swarm.Task, error) {
+func getStackTasks(ctx context.Context, apiclient client.APIClient, namespace string) (client.TaskListResult, error) {
 	return apiclient.TaskList(ctx, client.TaskListOptions{Filters: getStackFilter(namespace)})
 }

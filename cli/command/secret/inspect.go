@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +49,8 @@ func runSecretInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOp
 	}
 
 	getRef := func(id string) (any, []byte, error) {
-		return apiClient.SecretInspectWithRaw(ctx, id)
+		res, err := apiClient.SecretInspect(ctx, id, client.SecretInspectOptions{})
+		return res.Secret, res.Raw, err
 	}
 
 	// check if the user is trying to apply a template to the pretty format, which

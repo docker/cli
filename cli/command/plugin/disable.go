@@ -18,7 +18,7 @@ func newDisableCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			if err := dockerCLI.Client().PluginDisable(cmd.Context(), name, opts); err != nil {
+			if _, err := dockerCLI.Client().PluginDisable(cmd.Context(), name, opts); err != nil {
 				return err
 			}
 			_, _ = fmt.Fprintln(dockerCLI.Out(), name)

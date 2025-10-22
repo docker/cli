@@ -130,10 +130,10 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		},
 		Digest: options.showDigests,
 	}
-	if err := formatter.ImageWrite(imageCtx, images); err != nil {
+	if err := formatter.ImageWrite(imageCtx, images.Items); err != nil {
 		return err
 	}
-	if options.matchName != "" && len(images) == 0 && options.calledAs == "images" {
+	if options.matchName != "" && len(images.Items) == 0 && options.calledAs == "images" {
 		printAmbiguousHint(dockerCLI.Err(), options.matchName)
 	}
 	return nil

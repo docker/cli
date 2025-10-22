@@ -70,16 +70,16 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions) e
 			return err
 		}
 
-		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
+		if len(services.Items)+len(networks.Items)+len(secrets.Items)+len(configs.Items) == 0 {
 			_, _ = fmt.Fprintln(dockerCli.Err(), "Nothing found in stack:", namespace)
 			continue
 		}
 
 		// TODO(thaJeztah): change this "hasError" boolean to return a (multi-)error for each of these functions instead.
-		hasError := removeServices(ctx, dockerCli, services)
-		hasError = removeSecrets(ctx, dockerCli, secrets) || hasError
-		hasError = removeConfigs(ctx, dockerCli, configs) || hasError
-		hasError = removeNetworks(ctx, dockerCli, networks) || hasError
+		hasError := removeServices(ctx, dockerCli, services.Items)
+		hasError = removeSecrets(ctx, dockerCli, secrets.Items) || hasError
+		hasError = removeConfigs(ctx, dockerCli, configs.Items) || hasError
+		hasError = removeNetworks(ctx, dockerCli, networks.Items) || hasError
 
 		if hasError {
 			errs = append(errs, errors.New("failed to remove some resources from stack: "+namespace))
@@ -107,7 +107,7 @@ func removeServices(ctx context.Context, dockerCLI command.Cli, services []swarm
 	sort.Slice(services, sortServiceByName(services))
 	for _, service := range services {
 		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing service", service.Spec.Name)
-		if err := dockerCLI.Client().ServiceRemove(ctx, service.ID); err != nil {
+		if _, err := dockerCLI.Client().ServiceRemove(ctx, service.ID, client.ServiceRemoveOptions{}); err != nil {
 			hasError = true
 			_, _ = fmt.Fprintf(dockerCLI.Err(), "Failed to remove service %s: %s", service.ID, err)
 		}
@@ -131,7 +131,7 @@ func removeSecrets(ctx context.Context, dockerCli command.Cli, secrets []swarm.S
 	var hasError bool
 	for _, secret := range secrets {
 		_, _ = fmt.Fprintln(dockerCli.Out(), "Removing secret", secret.Spec.Name)
-		if err := dockerCli.Client().SecretRemove(ctx, secret.ID); err != nil {
+		if _, err := dockerCli.Client().SecretRemove(ctx, secret.ID, client.SecretRemoveOptions{}); err != nil {
 			hasError = true
 			_, _ = fmt.Fprintf(dockerCli.Err(), "Failed to remove secret %s: %s", secret.ID, err)
 		}
@@ -143,7 +143,7 @@ func removeConfigs(ctx context.Context, dockerCLI command.Cli, configs []swarm.C
 	var hasError bool
 	for _, config := range configs {
 		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing config", config.Spec.Name)
-		if err := dockerCLI.Client().ConfigRemove(ctx, config.ID); err != nil {
+		if _, err := dockerCLI.Client().ConfigRemove(ctx, config.ID, client.ConfigRemoveOptions{}); err != nil {
 			hasError = true
 			_, _ = fmt.Fprintf(dockerCLI.Err(), "Failed to remove config %s: %s", config.ID, err)
 		}
@@ -174,19 +174,19 @@ func terminalState(state swarm.TaskState) bool {
 func waitOnTasks(ctx context.Context, apiClient client.APIClient, namespace string) error {
 	terminalStatesReached := 0
 	for {
-		tasks, err := getStackTasks(ctx, apiClient, namespace)
+		res, err := getStackTasks(ctx, apiClient, namespace)
 		if err != nil {
 			return fmt.Errorf("failed to get tasks: %w", err)
 		}
 
-		for _, task := range tasks {
+		for _, task := range res.Items {
 			if terminalState(task.Status.State) {
 				terminalStatesReached++
 				break
 			}
 		}
 
-		if terminalStatesReached == len(tasks) {
+		if terminalStatesReached == len(res.Items) {
 			break
 		}
 	}

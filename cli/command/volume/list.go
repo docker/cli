@@ -45,15 +45,15 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", `Provide filter values (e.g. "dangling=true")`)
 	flags.BoolVar(&options.cluster, "cluster", false, "Display only cluster volumes, and use cluster volume list formatting")
-	flags.SetAnnotation("cluster", "version", []string{"1.42"})
-	flags.SetAnnotation("cluster", "swarm", []string{"manager"})
+	_ = flags.SetAnnotation("cluster", "version", []string{"1.42"})
+	_ = flags.SetAnnotation("cluster", "swarm", []string{"manager"})
 
 	return cmd
 }
 
 func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
-	volumes, err := apiClient.VolumeList(ctx, client.VolumeListOptions{Filters: options.filter.Value()})
+	res, err := apiClient.VolumeList(ctx, client.VolumeListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
@@ -71,13 +71,13 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 
 		// trick for filtering in place
 		n := 0
-		for _, vol := range volumes.Volumes {
+		for _, vol := range res.Items.Volumes {
 			if vol.ClusterVolume != nil {
-				volumes.Volumes[n] = vol
+				res.Items.Volumes[n] = vol
 				n++
 			}
 		}
-		volumes.Volumes = volumes.Volumes[:n]
+		res.Items.Volumes = res.Items.Volumes[:n]
 		if !options.quiet {
 			format = clusterTableFormat
 		} else {
@@ -85,13 +85,13 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		}
 	}
 
-	sort.Slice(volumes.Volumes, func(i, j int) bool {
-		return sortorder.NaturalLess(volumes.Volumes[i].Name, volumes.Volumes[j].Name)
+	sort.Slice(res.Items.Volumes, func(i, j int) bool {
+		return sortorder.NaturalLess(res.Items.Volumes[i].Name, res.Items.Volumes[j].Name)
 	})
 
 	volumeCtx := formatter.Context{
 		Output: dockerCLI.Out(),
 		Format: formatter.NewVolumeFormat(format, options.quiet),
 	}
-	return formatter.VolumeWrite(volumeCtx, volumes.Volumes)
+	return formatter.VolumeWrite(volumeCtx, res.Items.Volumes)
 }

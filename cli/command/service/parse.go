@@ -31,7 +31,7 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 		args.Add("name", s.SecretName)
 	}
 
-	secrets, err := apiClient.SecretList(ctx, client.SecretListOptions{
+	res, err := apiClient.SecretList(ctx, client.SecretListOptions{
 		Filters: args,
 	})
 	if err != nil {
@@ -39,12 +39,11 @@ func ParseSecrets(ctx context.Context, apiClient client.SecretAPIClient, request
 	}
 
 	foundSecrets := make(map[string]string)
-	for _, secret := range secrets {
+	for _, secret := range res.Items {
 		foundSecrets[secret.Spec.Annotations.Name] = secret.ID
 	}
 
-	addedSecrets := []*swarm.SecretReference{}
-
+	addedSecrets := make([]*swarm.SecretReference, 0, len(secretRefs))
 	for _, ref := range secretRefs {
 		id, ok := foundSecrets[ref.SecretName]
 		if !ok {
@@ -111,7 +110,7 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 		args.Add("name", s.ConfigName)
 	}
 
-	configs, err := apiClient.ConfigList(ctx, client.ConfigListOptions{
+	res, err := apiClient.ConfigList(ctx, client.ConfigListOptions{
 		Filters: args,
 	})
 	if err != nil {
@@ -119,12 +118,11 @@ func ParseConfigs(ctx context.Context, apiClient client.ConfigAPIClient, request
 	}
 
 	foundConfigs := make(map[string]string)
-	for _, config := range configs {
+	for _, config := range res.Items {
 		foundConfigs[config.Spec.Annotations.Name] = config.ID
 	}
 
-	addedConfigs := []*swarm.ConfigReference{}
-
+	addedConfigs := make([]*swarm.ConfigReference, 0, len(configRefs))
 	for _, ref := range configRefs {
 		id, ok := foundConfigs[ref.ConfigName]
 		if !ok {

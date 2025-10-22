@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/plugin"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -38,7 +39,7 @@ func newFormat(source string, quiet bool) formatter.Format {
 }
 
 // formatWrite writes the context
-func formatWrite(fmtCtx formatter.Context, plugins []*plugin.Plugin) error {
+func formatWrite(fmtCtx formatter.Context, plugins client.PluginListResult) error {
 	pluginCtx := &pluginContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -51,7 +52,7 @@ func formatWrite(fmtCtx formatter.Context, plugins []*plugin.Plugin) error {
 		},
 	}
 	return fmtCtx.Write(pluginCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, p := range plugins {
+		for _, p := range plugins.Items {
 			if err := format(&pluginContext{
 				trunc: fmtCtx.Trunc,
 				p:     *p,

@@ -36,7 +36,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 		name            string
 		args            []string
 		expectedError   string
-		imageRemoveFunc func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error)
+		imageRemoveFunc func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error)
 	}{
 		{
 			name:          "wrong args",
@@ -46,19 +46,19 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 			name:          "ImageRemove fail with force option",
 			args:          []string{"-f", "image1"},
 			expectedError: "error removing image",
-			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, is.Equal("image1", img))
-				return []image.DeleteResponse{}, errors.New("error removing image")
+				return client.ImageRemoveResult{}, errors.New("error removing image")
 			},
 		},
 		{
 			name:          "ImageRemove fail",
 			args:          []string{"arg1"},
 			expectedError: "error removing image",
-			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, !options.Force)
 				assert.Check(t, options.PruneChildren)
-				return []image.DeleteResponse{}, errors.New("error removing image")
+				return client.ImageRemoveResult{}, errors.New("error removing image")
 			},
 		},
 	}
@@ -79,24 +79,26 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 	testCases := []struct {
 		name            string
 		args            []string
-		imageRemoveFunc func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error)
+		imageRemoveFunc func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error)
 		expectedStderr  string
 	}{
 		{
 			name: "Image Deleted",
 			args: []string{"image1"},
-			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, is.Equal("image1", img))
-				return []image.DeleteResponse{{Deleted: img}}, nil
+				return client.ImageRemoveResult{
+					Deleted: []image.DeleteResponse{{Deleted: img}},
+				}, nil
 			},
 		},
 		{
 			name: "Image not found with force option",
 			args: []string{"-f", "image1"},
-			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, is.Equal("image1", img))
 				assert.Check(t, is.Equal(true, options.Force))
-				return []image.DeleteResponse{}, notFound{"image1"}
+				return client.ImageRemoveResult{}, notFound{"image1"}
 			},
 			expectedStderr: "Error: No such image: image1\n",
 		},
@@ -104,19 +106,25 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 		{
 			name: "Image Untagged",
 			args: []string{"image1"},
-			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, is.Equal("image1", img))
-				return []image.DeleteResponse{{Untagged: img}}, nil
+				return client.ImageRemoveResult{
+					Deleted: []image.DeleteResponse{{Untagged: img}},
+				}, nil
 			},
 		},
 		{
 			name: "Image Deleted and Untagged",
 			args: []string{"image1", "image2"},
-			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error) {
+			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				if img == "image1" {
-					return []image.DeleteResponse{{Untagged: img}}, nil
+					return client.ImageRemoveResult{
+						Deleted: []image.DeleteResponse{{Untagged: img}},
+					}, nil
 				}
-				return []image.DeleteResponse{{Deleted: img}}, nil
+				return client.ImageRemoveResult{
+					Deleted: []image.DeleteResponse{{Deleted: img}},
+				}, nil
 			},
 		},
 	}

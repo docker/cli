@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -41,39 +42,41 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		name             string
 		args             []string
 		imageCount       int
-		imageInspectFunc func(img string) (image.InspectResponse, error)
+		imageInspectFunc func(img string) (client.ImageInspectResult, error)
 	}{
 		{
 			name:       "simple",
 			args:       []string{"image"},
 			imageCount: 1,
-			imageInspectFunc: func(img string) (image.InspectResponse, error) {
+			imageInspectFunc: func(img string) (client.ImageInspectResult, error) {
 				imageInspectInvocationCount++
 				assert.Check(t, is.Equal("image", img))
-				return image.InspectResponse{}, nil
+				return client.ImageInspectResult{}, nil
 			},
 		},
 		{
 			name:       "format",
 			imageCount: 1,
 			args:       []string{"--format='{{.ID}}'", "image"},
-			imageInspectFunc: func(img string) (image.InspectResponse, error) {
+			imageInspectFunc: func(img string) (client.ImageInspectResult, error) {
 				imageInspectInvocationCount++
-				return image.InspectResponse{ID: img}, nil
+				return client.ImageInspectResult{
+					InspectResponse: image.InspectResponse{ID: img},
+				}, nil
 			},
 		},
 		{
 			name:       "simple-many",
 			args:       []string{"image1", "image2"},
 			imageCount: 2,
-			imageInspectFunc: func(img string) (image.InspectResponse, error) {
+			imageInspectFunc: func(img string) (client.ImageInspectResult, error) {
 				imageInspectInvocationCount++
 				if imageInspectInvocationCount == 1 {
 					assert.Check(t, is.Equal("image1", img))
 				} else {
 					assert.Check(t, is.Equal("image2", img))
 				}
-				return image.InspectResponse{}, nil
+				return client.ImageInspectResult{}, nil
 			},
 		},
 	}

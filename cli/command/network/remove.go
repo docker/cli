@@ -49,8 +49,8 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, networks []string, op
 	status := 0
 
 	for _, name := range networks {
-		nw, _, err := apiClient.NetworkInspectWithRaw(ctx, name, client.NetworkInspectOptions{})
-		if err == nil && nw.Ingress {
+		res, err := apiClient.NetworkInspect(ctx, name, client.NetworkInspectOptions{})
+		if err == nil && res.Network.Ingress {
 			r, err := prompt.Confirm(ctx, dockerCLI.In(), dockerCLI.Out(), ingressWarning)
 			if err != nil {
 				return err

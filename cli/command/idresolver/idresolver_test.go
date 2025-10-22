@@ -7,14 +7,15 @@ import (
 
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestResolveError(t *testing.T) {
 	apiClient := &fakeClient{
-		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
-			return swarm.Node{}, []byte{}, errors.New("error inspecting node")
+		nodeInspectFunc: func(nodeID string) (client.NodeInspectResult, error) {
+			return client.NodeInspectResult{}, errors.New("error inspecting node")
 		},
 	}
 
@@ -27,13 +28,13 @@ func TestResolveError(t *testing.T) {
 func TestResolveWithNoResolveOption(t *testing.T) {
 	resolved := false
 	apiClient := &fakeClient{
-		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
+		nodeInspectFunc: func(nodeID string) (client.NodeInspectResult, error) {
 			resolved = true
-			return swarm.Node{}, []byte{}, nil
+			return client.NodeInspectResult{}, nil
 		},
-		serviceInspectFunc: func(serviceID string) (swarm.Service, []byte, error) {
+		serviceInspectFunc: func(serviceID string) (client.ServiceInspectResult, error) {
 			resolved = true
-			return swarm.Service{}, []byte{}, nil
+			return client.ServiceInspectResult{}, nil
 		},
 	}
 
@@ -48,9 +49,11 @@ func TestResolveWithNoResolveOption(t *testing.T) {
 func TestResolveWithCache(t *testing.T) {
 	inspectCounter := 0
 	apiClient := &fakeClient{
-		nodeInspectFunc: func(nodeID string) (swarm.Node, []byte, error) {
+		nodeInspectFunc: func(string) (client.NodeInspectResult, error) {
 			inspectCounter++
-			return *builders.Node(builders.NodeName("node-foo")), []byte{}, nil
+			return client.NodeInspectResult{
+				Node: *builders.Node(builders.NodeName("node-foo")),
+			}, nil
 		},
 	}
 
@@ -69,27 +72,31 @@ func TestResolveWithCache(t *testing.T) {
 func TestResolveNode(t *testing.T) {
 	testCases := []struct {
 		nodeID          string
-		nodeInspectFunc func(string) (swarm.Node, []byte, error)
+		nodeInspectFunc func(string) (client.NodeInspectResult, error)
 		expectedID      string
 	}{
 		{
 			nodeID: "nodeID",
-			nodeInspectFunc: func(string) (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.New("error inspecting node")
+			nodeInspectFunc: func(string) (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{}, errors.New("error inspecting node")
 			},
 			expectedID: "nodeID",
 		},
 		{
 			nodeID: "nodeID",
-			nodeInspectFunc: func(string) (swarm.Node, []byte, error) {
-				return *builders.Node(builders.NodeName("node-foo")), []byte{}, nil
+			nodeInspectFunc: func(string) (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.NodeName("node-foo")),
+				}, nil
 			},
 			expectedID: "node-foo",
 		},
 		{
 			nodeID: "nodeID",
-			nodeInspectFunc: func(string) (swarm.Node, []byte, error) {
-				return *builders.Node(builders.NodeName(""), builders.Hostname("node-hostname")), []byte{}, nil
+			nodeInspectFunc: func(string) (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.NodeName(""), builders.Hostname("node-hostname")),
+				}, nil
 			},
 			expectedID: "node-hostname",
 		},
@@ -111,20 +118,22 @@ func TestResolveNode(t *testing.T) {
 func TestResolveService(t *testing.T) {
 	testCases := []struct {
 		serviceID          string
-		serviceInspectFunc func(string) (swarm.Service, []byte, error)
+		serviceInspectFunc func(string) (client.ServiceInspectResult, error)
 		expectedID         string
 	}{
 		{
 			serviceID: "serviceID",
-			serviceInspectFunc: func(string) (swarm.Service, []byte, error) {
-				return swarm.Service{}, []byte{}, errors.New("error inspecting service")
+			serviceInspectFunc: func(string) (client.ServiceInspectResult, error) {
+				return client.ServiceInspectResult{}, errors.New("error inspecting service")
 			},
 			expectedID: "serviceID",
 		},
 		{
 			serviceID: "serviceID",
-			serviceInspectFunc: func(string) (swarm.Service, []byte, error) {
-				return *builders.Service(builders.ServiceName("service-foo")), []byte{}, nil
+			serviceInspectFunc: func(string) (client.ServiceInspectResult, error) {
+				return client.ServiceInspectResult{
+					Service: *builders.Service(builders.ServiceName("service-foo")),
+				}, nil
 			},
 			expectedID: "service-foo",
 		},

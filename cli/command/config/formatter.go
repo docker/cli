@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -44,7 +45,7 @@ func newFormat(source string, quiet bool) formatter.Format {
 }
 
 // formatWrite writes the context
-func formatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
+func formatWrite(fmtCtx formatter.Context, configs client.ConfigListResult) error {
 	cCtx := &configContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -57,7 +58,7 @@ func formatWrite(fmtCtx formatter.Context, configs []swarm.Config) error {
 		},
 	}
 	return fmtCtx.Write(cCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, config := range configs {
+		for _, config := range configs.Items {
 			configCtx := &configContext{c: config}
 			if err := format(configCtx); err != nil {
 				return err
