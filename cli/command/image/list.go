@@ -116,7 +116,9 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 	}
 	images := res.Items
 	if !options.all {
-		images = slices.DeleteFunc(images, isDangling)
+		if _, ok := filters["dangling"]; ok {
+			images = slices.DeleteFunc(images, isDangling)
+		}
 	}
 
 	if options.tree {
