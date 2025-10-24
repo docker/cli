@@ -272,7 +272,6 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 }
 
 func TestSignCommandLocalFlag(t *testing.T) {
-	t.Skip("FIXME(thaJeztah): how to mock this?")
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignCommand(cli)

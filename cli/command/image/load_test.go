@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
+	"strings"
 	"testing"
+	"unsafe"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/client"
@@ -71,8 +74,18 @@ func TestNewLoadCommandInvalidInput(t *testing.T) {
 	assert.ErrorContains(t, err, expectedError)
 }
 
+func mockImageLoadResult(content string, json bool) client.ImageLoadResult {
+	out := client.ImageLoadResult{JSON: json}
+
+	// Set unexported field "body"
+	v := reflect.ValueOf(&out).Elem()
+	f := v.FieldByName("body")
+	r := io.NopCloser(strings.NewReader(content))
+	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(r))
+	return out
+}
+
 func TestNewLoadCommandSuccess(t *testing.T) {
-	t.Skip("FIXME(thaJeztah): how to mock this?")
 	testCases := []struct {
 		name          string
 		args          []string
@@ -84,7 +97,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				// FIXME(thaJeztah): how to mock this?
 				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return client.ImageLoadResult{}, nil
+				return mockImageLoadResult(`Success`, false), nil
 			},
 		},
 		{
@@ -92,12 +105,11 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			args: []string{},
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				// FIXME(thaJeztah): how to mock this?
-				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
 				// return client.ImageLoadResult{
 				// 	Body: io.NopCloser(strings.NewReader(`{"ID": "1"}`)),
 				// 	JSON: true,
 				// }, nil
-				return client.ImageLoadResult{JSON: true}, nil
+				return mockImageLoadResult(`{"ID":"1"}`, true), nil
 			},
 		},
 		{
@@ -106,7 +118,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				// FIXME(thaJeztah): how to mock this?
 				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return client.ImageLoadResult{}, nil
+				return mockImageLoadResult(`Success`, false), nil
 			},
 		},
 		{
@@ -118,7 +130,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
 				// FIXME(thaJeztah): how to mock this?
 				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return client.ImageLoadResult{}, nil
+				return mockImageLoadResult(`Success`, false), nil
 			},
 		},
 		{
@@ -128,7 +140,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// FIXME(thaJeztah): how to mock this?
 				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return client.ImageLoadResult{}, nil
+				return mockImageLoadResult(`Success`, false), nil
 			},
 		},
 		{
@@ -138,7 +150,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// FIXME(thaJeztah): how to mock this?
 				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return client.ImageLoadResult{}, nil
+				return mockImageLoadResult(`Success`, false), nil
 			},
 		},
 	}
