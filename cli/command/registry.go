@@ -44,7 +44,8 @@ const authConfigKey = "https://index.docker.io/v1/"
 //
 // [registry.ResolveAuthConfig]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#ResolveAuthConfig
 func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-	configKey := index.Name
+	indexServer := index.Name
+	configKey := getAuthConfigKey(indexServer)
 	if index.Official {
 		configKey = authConfigKey
 	}
@@ -66,6 +67,7 @@ func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInf
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
 func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
 	if !isDefaultRegistry {
+		// FIXME(thaJeztah): should the same logic be used for getAuthConfigKey ?? Looks like we're normalizing things here, but not elsewhere? why?
 		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
 	authCfg := configtypes.AuthConfig{}
@@ -100,6 +102,8 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 // If defaultUsername is not empty, the username prompt includes that username
 // and the user can hit enter without inputting a username  to use that default
 // username.
+//
+// TODO(thaJeztah): cli Cli could be a Streams if it was not for cli.SetIn to be needed?
 func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
 	// On Windows, force the use of the regular OS stdin stream.
 	//
@@ -190,6 +194,9 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 // complete image reference. The auth configuration is serialized as a
 // base64url encoded ([RFC 4648, Section 5]) JSON string for sending through
 // the "X-Registry-Auth" header.
+//
+// FIXME(thaJeztah): do we need a variant like this, but with "indexServer" (domainName) as input?
+// TODO(thaJeztah): should this accept an image ref-type, and use instead of ResolveAuthConfig
 //
 // [RFC 4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
 func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (string, error) {
