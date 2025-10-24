@@ -54,8 +54,9 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 
 	curAutoLock := sw.Swarm.Spec.EncryptionConfig.AutoLockManagers
 
-	_, err = apiClient.SwarmUpdate(ctx, sw.Swarm.Version, client.SwarmUpdateOptions{
-		Swarm: sw.Swarm.Spec,
+	_, err = apiClient.SwarmUpdate(ctx, client.SwarmUpdateOptions{
+		Version: sw.Swarm.Version,
+		Spec:    sw.Swarm.Spec,
 	})
 	if err != nil {
 		return err

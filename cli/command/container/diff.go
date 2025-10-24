@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func newDiffCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runDiff(ctx context.Context, dockerCLI command.Cli, containerID string) error {
-	changes, err := dockerCLI.Client().ContainerDiff(ctx, containerID)
+	res, err := dockerCLI.Client().ContainerDiff(ctx, containerID, client.ContainerDiffOptions{})
 	if err != nil {
 		return err
 	}
@@ -36,5 +37,5 @@ func runDiff(ctx context.Context, dockerCLI command.Cli, containerID string) err
 		Output: dockerCLI.Out(),
 		Format: newDiffFormat("{{.Type}} {{.Path}}"),
 	}
-	return diffFormatWrite(diffCtx, changes)
+	return diffFormatWrite(diffCtx, res)
 }

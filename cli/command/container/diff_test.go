@@ -9,28 +9,28 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestRunDiff(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerDiffFunc: func(
-			ctx context.Context,
-			containerID string,
-		) ([]container.FilesystemChange, error) {
-			return []container.FilesystemChange{
-				{
-					Kind: container.ChangeModify,
-					Path: "/path/to/file0",
-				},
-				{
-					Kind: container.ChangeAdd,
-					Path: "/path/to/file1",
-				},
-				{
-					Kind: container.ChangeDelete,
-					Path: "/path/to/file2",
+		containerDiffFunc: func(ctx context.Context, containerID string) (client.ContainerDiffResult, error) {
+			return client.ContainerDiffResult{
+				Changes: []container.FilesystemChange{
+					{
+						Kind: container.ChangeModify,
+						Path: "/path/to/file0",
+					},
+					{
+						Kind: container.ChangeAdd,
+						Path: "/path/to/file1",
+					},
+					{
+						Kind: container.ChangeDelete,
+						Path: "/path/to/file2",
+					},
 				},
 			}, nil
 		},
@@ -60,11 +60,8 @@ func TestRunDiffClientError(t *testing.T) {
 	clientError := errors.New("client error")
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerDiffFunc: func(
-			ctx context.Context,
-			containerID string,
-		) ([]container.FilesystemChange, error) {
-			return nil, clientError
+		containerDiffFunc: func(ctx context.Context, containerID string) (client.ContainerDiffResult, error) {
+			return client.ContainerDiffResult{}, clientError
 		},
 	})
 

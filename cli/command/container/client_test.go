@@ -5,22 +5,16 @@ import (
 	"io"
 
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type fakeClient struct {
 	client.Client
-	inspectFunc         func(string) (container.InspectResponse, error)
-	execInspectFunc     func(execID string) (client.ExecInspectResult, error)
-	execCreateFunc      func(containerID string, options client.ExecCreateOptions) (client.ExecCreateResult, error)
-	createContainerFunc func(config *container.Config,
-		hostConfig *container.HostConfig,
-		networkingConfig *network.NetworkingConfig,
-		platform *ocispec.Platform,
-		containerName string) (container.CreateResponse, error)
+	inspectFunc             func(string) (container.InspectResponse, error)
+	execInspectFunc         func(execID string) (client.ExecInspectResult, error)
+	execCreateFunc          func(containerID string, options client.ExecCreateOptions) (client.ExecCreateResult, error)
+	createContainerFunc     func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error)
 	containerStartFunc      func(containerID string, options client.ContainerStartOptions) error
 	imageCreateFunc         func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error)
 	infoFunc                func() (system.Info, error)
@@ -36,10 +30,10 @@ type fakeClient struct {
 	containerStopFunc       func(ctx context.Context, containerID string, options client.ContainerStopOptions) error
 	containerKillFunc       func(ctx context.Context, containerID, signal string) error
 	containerPruneFunc      func(ctx context.Context, options client.ContainerPruneOptions) (client.ContainerPruneResult, error)
-	containerAttachFunc     func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error)
-	containerDiffFunc       func(ctx context.Context, containerID string) ([]container.FilesystemChange, error)
+	containerAttachFunc     func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.ContainerAttachResult, error)
+	containerDiffFunc       func(ctx context.Context, containerID string) (client.ContainerDiffResult, error)
 	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
-	containerCommitFunc     func(ctx context.Context, container string, options client.ContainerCommitOptions) (container.CommitResponse, error)
+	containerCommitFunc     func(ctx context.Context, container string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error)
 	containerPauseFunc      func(ctx context.Context, container string) error
 	Version                 string
 }
@@ -76,18 +70,11 @@ func (*fakeClient) ExecStart(context.Context, string, client.ExecStartOptions) (
 	return client.ExecStartResult{}, nil
 }
 
-func (f *fakeClient) ContainerCreate(
-	_ context.Context,
-	config *container.Config,
-	hostConfig *container.HostConfig,
-	networkingConfig *network.NetworkingConfig,
-	platform *ocispec.Platform,
-	containerName string,
-) (container.CreateResponse, error) {
+func (f *fakeClient) ContainerCreate(_ context.Context, options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
 	if f.createContainerFunc != nil {
-		return f.createContainerFunc(config, hostConfig, networkingConfig, platform, containerName)
+		return f.createContainerFunc(options)
 	}
-	return container.CreateResponse{}, nil
+	return client.ContainerCreateResult{}, nil
 }
 
 func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, options client.ContainerRemoveOptions) error {
@@ -192,19 +179,19 @@ func (f *fakeClient) ContainerStop(ctx context.Context, containerID string, opti
 	return nil
 }
 
-func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
+func (f *fakeClient) ContainerAttach(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.ContainerAttachResult, error) {
 	if f.containerAttachFunc != nil {
 		return f.containerAttachFunc(ctx, containerID, options)
 	}
-	return client.HijackedResponse{}, nil
+	return client.ContainerAttachResult{}, nil
 }
 
-func (f *fakeClient) ContainerDiff(ctx context.Context, containerID string) ([]container.FilesystemChange, error) {
+func (f *fakeClient) ContainerDiff(ctx context.Context, containerID string, _ client.ContainerDiffOptions) (client.ContainerDiffResult, error) {
 	if f.containerDiffFunc != nil {
 		return f.containerDiffFunc(ctx, containerID)
 	}
 
-	return []container.FilesystemChange{}, nil
+	return client.ContainerDiffResult{}, nil
 }
 
 func (f *fakeClient) ContainerRename(ctx context.Context, oldName, newName string) error {
@@ -215,11 +202,11 @@ func (f *fakeClient) ContainerRename(ctx context.Context, oldName, newName strin
 	return nil
 }
 
-func (f *fakeClient) ContainerCommit(ctx context.Context, containerID string, options client.ContainerCommitOptions) (container.CommitResponse, error) {
+func (f *fakeClient) ContainerCommit(ctx context.Context, containerID string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error) {
 	if f.containerCommitFunc != nil {
 		return f.containerCommitFunc(ctx, containerID, options)
 	}
-	return container.CommitResponse{}, nil
+	return client.ContainerCommitResult{}, nil
 }
 
 func (f *fakeClient) ContainerPause(ctx context.Context, containerID string) error {

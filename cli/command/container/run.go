@@ -290,7 +290,7 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 				inputStream:  in,
 				outputStream: out,
 				errorStream:  cerr,
-				resp:         resp,
+				resp:         resp.HijackedResponse,
 				tty:          config.Tty,
 				detachKeys:   options.DetachKeys,
 			}
@@ -301,7 +301,7 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 			return errAttach
 		}()
 	}()
-	return resp.Close, nil
+	return resp.HijackedResponse.Close, nil
 }
 
 // withHelp decorates the error with a suggestion to use "--help".

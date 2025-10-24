@@ -91,8 +91,8 @@ func TestNodeUpdate(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if options.Node.Role != swarm.NodeRoleManager {
-					return client.NodeUpdateResult{}, errors.New("expected role manager, got " + string(options.Node.Role))
+				if options.Spec.Role != swarm.NodeRoleManager {
+					return client.NodeUpdateResult{}, errors.New("expected role manager, got " + string(options.Spec.Role))
 				}
 				return client.NodeUpdateResult{}, nil
 			},
@@ -108,8 +108,8 @@ func TestNodeUpdate(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if options.Node.Availability != swarm.NodeAvailabilityDrain {
-					return client.NodeUpdateResult{}, errors.New("expected drain availability, got " + string(options.Node.Availability))
+				if options.Spec.Availability != swarm.NodeAvailabilityDrain {
+					return client.NodeUpdateResult{}, errors.New("expected drain availability, got " + string(options.Spec.Availability))
 				}
 				return client.NodeUpdateResult{}, nil
 			},
@@ -125,8 +125,8 @@ func TestNodeUpdate(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if _, present := options.Node.Annotations.Labels["lbl"]; !present {
-					return client.NodeUpdateResult{}, fmt.Errorf("expected 'lbl' label, got %v", options.Node.Annotations.Labels)
+				if _, present := options.Spec.Annotations.Labels["lbl"]; !present {
+					return client.NodeUpdateResult{}, fmt.Errorf("expected 'lbl' label, got %v", options.Spec.Annotations.Labels)
 				}
 				return client.NodeUpdateResult{}, nil
 			},
@@ -142,8 +142,8 @@ func TestNodeUpdate(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if value, present := options.Node.Annotations.Labels["key"]; !present || value != "value" {
-					return client.NodeUpdateResult{}, fmt.Errorf("expected 'key' label to be 'value', got %v", options.Node.Annotations.Labels)
+				if value, present := options.Spec.Annotations.Labels["key"]; !present || value != "value" {
+					return client.NodeUpdateResult{}, fmt.Errorf("expected 'key' label to be 'value', got %v", options.Spec.Annotations.Labels)
 				}
 				return client.NodeUpdateResult{}, nil
 			},
@@ -161,8 +161,8 @@ func TestNodeUpdate(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if len(options.Node.Annotations.Labels) > 0 {
-					return client.NodeUpdateResult{}, fmt.Errorf("expected no labels, got %v", options.Node.Annotations.Labels)
+				if len(options.Spec.Annotations.Labels) > 0 {
+					return client.NodeUpdateResult{}, fmt.Errorf("expected no labels, got %v", options.Spec.Annotations.Labels)
 				}
 				return client.NodeUpdateResult{}, nil
 			},

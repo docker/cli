@@ -97,7 +97,7 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 				// 	Body: io.NopCloser(strings.NewReader(`{"ID": "1"}`)),
 				// 	JSON: true,
 				// }, nil
-				return client.ImageLoadResult{}, nil
+				return client.ImageLoadResult{JSON: true}, nil
 			},
 		},
 		{

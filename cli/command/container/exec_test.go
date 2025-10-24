@@ -119,7 +119,7 @@ TWO=2
 			},
 			options: func() ExecOptions {
 				o := withDefaultOpts(ExecOptions{})
-				o.EnvFile.Set(tmpFile.Path())
+				_ = o.EnvFile.Set(tmpFile.Path())
 				return o
 			}(),
 		},
@@ -132,8 +132,8 @@ TWO=2
 			},
 			options: func() ExecOptions {
 				o := withDefaultOpts(ExecOptions{})
-				o.EnvFile.Set(tmpFile.Path())
-				o.Env.Set("ONE=override")
+				_ = o.EnvFile.Set(tmpFile.Path())
+				_ = o.Env.Set("ONE=override")
 				return o
 			}(),
 		},
@@ -150,7 +150,7 @@ TWO=2
 
 func TestParseExecNoSuchFile(t *testing.T) {
 	execOpts := withDefaultOpts(ExecOptions{})
-	execOpts.EnvFile.Set("no-such-env-file")
+	assert.Check(t, execOpts.EnvFile.Set("no-such-env-file"))
 	execConfig, err := parseExec(execOpts, &configfile.ConfigFile{})
 	assert.ErrorContains(t, err, "no-such-env-file")
 	assert.Check(t, os.IsNotExist(err))
@@ -195,7 +195,7 @@ func TestRunExec(t *testing.T) {
 		t.Run(testcase.doc, func(t *testing.T) {
 			fakeCLI := test.NewFakeCli(testcase.client)
 
-			err := RunExec(context.TODO(), fakeCLI, "thecontainer", testcase.options)
+			err := RunExec(context.TODO(), fakeCLI, "the-container", testcase.options)
 			if testcase.expectedError != "" {
 				assert.ErrorContains(t, err, testcase.expectedError)
 			} else if !assert.Check(t, err) {
@@ -208,7 +208,7 @@ func TestRunExec(t *testing.T) {
 }
 
 func execCreateWithID(_ string, _ client.ExecCreateOptions) (client.ExecCreateResult, error) {
-	return client.ExecCreateResult{ExecCreateResponse: container.ExecCreateResponse{ID: "execid"}}, nil
+	return client.ExecCreateResult{ID: "exec-id"}, nil
 }
 
 func TestGetExecExitStatus(t *testing.T) {
@@ -238,9 +238,7 @@ func TestGetExecExitStatus(t *testing.T) {
 		apiClient := &fakeClient{
 			execInspectFunc: func(id string) (client.ExecInspectResult, error) {
 				assert.Check(t, is.Equal(execID, id))
-				return client.ExecInspectResult{
-					ExecInspect: client.ExecInspect{ExitCode: testcase.exitCode},
-				}, testcase.inspectError
+				return client.ExecInspectResult{ExitCode: testcase.exitCode}, testcase.inspectError
 			},
 		}
 		err := getExecExitStatus(context.Background(), apiClient, execID)

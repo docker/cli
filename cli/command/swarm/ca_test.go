@@ -173,7 +173,7 @@ type swarmUpdateRecorder struct {
 }
 
 func (s *swarmUpdateRecorder) swarmUpdate(opts client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
-	s.spec = opts.Swarm
+	s.spec = opts.Spec
 	return client.SwarmUpdateResult{}, nil
 }
 

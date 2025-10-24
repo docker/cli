@@ -310,7 +310,7 @@ func TestCompletePlatforms(t *testing.T) {
 func TestCompleteVolumeNames(t *testing.T) {
 	tests := []struct {
 		doc          string
-		volumes      []*volume.Volume
+		volumes      []volume.Volume
 		expOut       []string
 		expDirective cobra.ShellCompDirective
 	}{
@@ -320,7 +320,7 @@ func TestCompleteVolumeNames(t *testing.T) {
 		},
 		{
 			doc: "with results",
-			volumes: []*volume.Volume{
+			volumes: []volume.Volume{
 				{Name: "volume-c"},
 				{Name: "volume-b"},
 				{Name: "volume-a"},
@@ -341,7 +341,7 @@ func TestCompleteVolumeNames(t *testing.T) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return client.VolumeListResult{}, errors.New("some error occurred")
 					}
-					return client.VolumeListResult{Items: volume.ListResponse{Volumes: tc.volumes}}, nil
+					return client.VolumeListResult{Items: tc.volumes}, nil
 				},
 			}})
 

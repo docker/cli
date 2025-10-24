@@ -309,8 +309,8 @@ func volumeNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []s
 	if err != nil {
 		return []string{}
 	}
-	names := make([]string, 0, len(res.Items.Volumes))
-	for _, v := range res.Items.Volumes {
+	names := make([]string, 0, len(res.Items))
+	for _, v := range res.Items {
 		names = append(names, v.Name)
 	}
 	return names

@@ -116,7 +116,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		if errAttach != nil {
 			return errAttach
 		}
-		defer resp.Close()
+		defer resp.HijackedResponse.Close()
 
 		cErr := make(chan error, 1)
 
@@ -127,7 +127,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 					inputStream:  in,
 					outputStream: dockerCli.Out(),
 					errorStream:  dockerCli.Err(),
-					resp:         resp,
+					resp:         resp.HijackedResponse,
 					tty:          c.Config.Tty,
 					detachKeys:   options.DetachKeys,
 				}
@@ -166,7 +166,8 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			}
 		}
 		if attachErr := <-cErr; attachErr != nil {
-			if _, ok := attachErr.(term.EscapeError); ok {
+			var escapeError term.EscapeError
+			if errors.As(attachErr, &escapeError) {
 				// The user entered the detach escape sequence.
 				return nil
 			}

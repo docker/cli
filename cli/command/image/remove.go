@@ -86,7 +86,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts removeOptions, i
 			}
 			errs = append(errs, err)
 		} else {
-			for _, del := range res.Deleted {
+			for _, del := range res.Items {
 				if del.Deleted != "" {
 					_, _ = fmt.Fprintln(dockerCLI.Out(), "Deleted:", del.Deleted)
 				} else {

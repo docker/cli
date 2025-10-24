@@ -66,7 +66,7 @@ func updateNodes(ctx context.Context, apiClient client.NodeAPIClient, nodes []st
 		}
 		_, err = apiClient.NodeUpdate(ctx, res.Node.ID, client.NodeUpdateOptions{
 			Version: res.Node.Version,
-			Node:    res.Node.Spec,
+			Spec:    res.Node.Spec,
 		})
 		if err != nil {
 			return err

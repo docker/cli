@@ -84,8 +84,9 @@ func runCA(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opt
 	}
 
 	updateSwarmSpec(&res.Swarm.Spec, flags, opts)
-	if _, err := apiClient.SwarmUpdate(ctx, res.Swarm.Version, client.SwarmUpdateOptions{
-		Swarm: res.Swarm.Spec,
+	if _, err := apiClient.SwarmUpdate(ctx, client.SwarmUpdateOptions{
+		Version: res.Swarm.Version,
+		Spec:    res.Swarm.Spec,
 	}); err != nil {
 		return err
 	}
