@@ -325,4 +325,19 @@ func TestMountOptSetBindRecursive(t *testing.T) {
 			},
 		}, m.Value()))
 	})
+
+	t.Run("create-host-path", func(t *testing.T) {
+		var m MountOpt
+		assert.NilError(t, m.Set("type=bind,source=/foo,target=/bar,bind-create-host-path=true"))
+		assert.Check(t, is.DeepEqual([]mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: "/foo",
+				Target: "/bar",
+				BindOptions: &mount.BindOptions{
+					CreateMountpoint: true,
+				},
+			},
+		}, m.Value()))
+	})
 }

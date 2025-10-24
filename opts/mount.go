@@ -131,6 +131,15 @@ func (m *MountOpt) Set(value string) error {
 			default:
 				return fmt.Errorf(`invalid value for %s: %s (must be "enabled", "disabled", "writable", or "readonly")`, key, val)
 			}
+		case "bind-create-host-path":
+			switch val {
+			case "true":
+				bindOptions().CreateMountpoint = true
+			case "false":
+				bindOptions().CreateMountpoint = false
+			default:
+				return fmt.Errorf(`invalid value for %s: %s (must be "true" or "false")`, key, val)
+			}
 		case "volume-subpath":
 			volumeOptions().Subpath = val
 		case "volume-nocopy":
