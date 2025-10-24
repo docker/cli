@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"slices"
 	"sort"
 	"strings"
 
@@ -24,6 +23,7 @@ import (
 )
 
 type treeOptions struct {
+	images  []imagetypes.Summary
 	all     bool
 	filters client.Filters
 }
@@ -36,24 +36,17 @@ type treeView struct {
 }
 
 func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error {
-	res, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
-		All:       opts.all,
-		Filters:   opts.filters,
-		Manifests: true,
-	})
-	if err != nil {
-		return err
-	}
-	if !opts.all {
-		res.Items = slices.DeleteFunc(res.Items, isDangling)
-	}
+	images := opts.images
 
 	view := treeView{
-		images: make([]topImage, 0, len(res.Items)),
+		images: make([]topImage, 0, len(images)),
 	}
 	attested := make(map[digest.Digest]bool)
 
-	for _, img := range res.Items {
+	for _, img := range images {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		details := imageDetails{
 			ID:        img.ID,
 			DiskUsage: units.HumanSizeWithPrecision(float64(img.Size), 3),

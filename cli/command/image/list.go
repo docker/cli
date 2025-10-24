@@ -1,3 +1,5 @@
+//go:build go1.23
+
 package image
 
 import (
@@ -5,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -79,6 +82,7 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cmd
 }
 
+//nolint:gocyclo
 func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions) error {
 	filters := options.filter.Value()
 	if options.matchName != "" {
@@ -98,19 +102,31 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		if options.format != "" {
 			return errors.New("--format is not yet supported with --tree")
 		}
+	}
 
+	listOpts := client.ImageListOptions{
+		All:       options.all,
+		Filters:   filters,
+		Manifests: options.tree,
+	}
+
+	res, err := dockerCLI.Client().ImageList(ctx, listOpts)
+	if err != nil {
+		return err
+	}
+	images := res.Items
+	if !options.all {
+		if _, ok := filters["dangling"]; ok {
+			images = slices.DeleteFunc(images, isDangling)
+		}
+	}
+
+	if options.tree {
 		return runTree(ctx, dockerCLI, treeOptions{
+			images:  images,
 			all:     options.all,
 			filters: filters,
 		})
-	}
-
-	images, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
-		All:     options.all,
-		Filters: filters,
-	})
-	if err != nil {
-		return err
 	}
 
 	format := options.format
@@ -130,10 +146,10 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		},
 		Digest: options.showDigests,
 	}
-	if err := formatter.ImageWrite(imageCtx, images.Items); err != nil {
+	if err := formatter.ImageWrite(imageCtx, images); err != nil {
 		return err
 	}
-	if options.matchName != "" && len(images.Items) == 0 && options.calledAs == "images" {
+	if options.matchName != "" && len(images) == 0 && options.calledAs == "images" {
 		printAmbiguousHint(dockerCLI.Err(), options.matchName)
 	}
 	return nil
