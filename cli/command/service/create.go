@@ -95,7 +95,6 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts *serviceOptions) error {
 	apiClient := dockerCLI.Client()
-	createOpts := client.ServiceCreateOptions{}
 
 	service, err := opts.ToService(ctx, apiClient, flags)
 	if err != nil {
@@ -121,19 +120,22 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	}
 
 	// only send auth if flag was set
+	var encodedAuth string
 	if opts.registryAuth {
 		// Retrieve encoded auth token from the image reference
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), opts.image)
+		var err error
+		encodedAuth, err = command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), opts.image)
 		if err != nil {
 			return err
 		}
-		createOpts.EncodedRegistryAuth = encodedAuth
 	}
 
-	// query registry if flag disabling it was not set
-	createOpts.QueryRegistry = !opts.noResolveImage
+	response, err := apiClient.ServiceCreate(ctx, client.ServiceCreateOptions{
+		Spec: service,
 
-	response, err := apiClient.ServiceCreate(ctx, service, createOpts)
+		EncodedRegistryAuth: encodedAuth,
+		QueryRegistry:       !opts.noResolveImage, // query registry if flag disabling it was not set.
+	})
 	if err != nil {
 		return err
 	}

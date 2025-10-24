@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -15,18 +14,14 @@ import (
 
 func TestRunCommit(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerCommitFunc: func(
-			ctx context.Context,
-			ctr string,
-			options client.ContainerCommitOptions,
-		) (container.CommitResponse, error) {
+		containerCommitFunc: func(ctx context.Context, ctr string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error) {
 			assert.Check(t, is.Equal(options.Author, "Author Name <author@name.com>"))
 			assert.Check(t, is.DeepEqual(options.Changes, []string{"EXPOSE 80"}))
 			assert.Check(t, is.Equal(options.Comment, "commit message"))
 			assert.Check(t, is.Equal(options.NoPause, true))
 			assert.Check(t, is.Equal(ctr, "container-id"))
 
-			return container.CommitResponse{ID: "image-id"}, nil
+			return client.ContainerCommitResult{ID: "image-id"}, nil
 		},
 	})
 
@@ -52,12 +47,8 @@ func TestRunCommitClientError(t *testing.T) {
 	clientError := errors.New("client error")
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCommitFunc: func(
-			ctx context.Context,
-			ctr string,
-			options client.ContainerCommitOptions,
-		) (container.CommitResponse, error) {
-			return container.CommitResponse{}, clientError
+		containerCommitFunc: func(ctx context.Context, ctr string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error) {
+			return client.ContainerCommitResult{}, clientError
 		},
 	})
 

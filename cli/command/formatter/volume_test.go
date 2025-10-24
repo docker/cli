@@ -124,7 +124,7 @@ foobar_bar
 		},
 	}
 
-	volumes := []*volume.Volume{
+	volumes := []volume.Volume{
 		{Name: "foobar_baz", Driver: "foo"},
 		{Name: "foobar_bar", Driver: "bar"},
 	}
@@ -144,7 +144,7 @@ foobar_bar
 }
 
 func TestVolumeContextWriteJSON(t *testing.T) {
-	volumes := []*volume.Volume{
+	volumes := []volume.Volume{
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}
@@ -167,7 +167,7 @@ func TestVolumeContextWriteJSON(t *testing.T) {
 }
 
 func TestVolumeContextWriteJSONField(t *testing.T) {
-	volumes := []*volume.Volume{
+	volumes := []volume.Volume{
 		{Driver: "foo", Name: "foobar_baz"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}

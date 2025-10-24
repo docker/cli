@@ -59,8 +59,8 @@ func TestNodePromoteNoChange(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if options.Node.Role != swarm.NodeRoleManager {
-					return client.NodeUpdateResult{}, errors.New("expected role manager, got" + string(options.Node.Role))
+				if options.Spec.Role != swarm.NodeRoleManager {
+					return client.NodeUpdateResult{}, errors.New("expected role manager, got" + string(options.Spec.Role))
 				}
 				return client.NodeUpdateResult{}, nil
 			},
@@ -78,8 +78,8 @@ func TestNodePromoteMultipleNode(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if options.Node.Role != swarm.NodeRoleManager {
-					return client.NodeUpdateResult{}, errors.New("expected role manager, got" + string(options.Node.Role))
+				if options.Spec.Role != swarm.NodeRoleManager {
+					return client.NodeUpdateResult{}, errors.New("expected role manager, got" + string(options.Spec.Role))
 				}
 				return client.NodeUpdateResult{}, nil
 			},

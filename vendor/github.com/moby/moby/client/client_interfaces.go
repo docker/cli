@@ -12,7 +12,6 @@ import (
 	"github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // APIClient is an interface that clients that talk with a docker server must implement.
@@ -58,10 +57,10 @@ type HijackDialer interface {
 
 // ContainerAPIClient defines API client methods for the containers
 type ContainerAPIClient interface {
-	ContainerAttach(ctx context.Context, container string, options ContainerAttachOptions) (HijackedResponse, error)
-	ContainerCommit(ctx context.Context, container string, options ContainerCommitOptions) (container.CommitResponse, error)
-	ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, platform *ocispec.Platform, containerName string) (container.CreateResponse, error)
-	ContainerDiff(ctx context.Context, container string) ([]container.FilesystemChange, error)
+	ContainerAttach(ctx context.Context, container string, options ContainerAttachOptions) (ContainerAttachResult, error)
+	ContainerCommit(ctx context.Context, container string, options ContainerCommitOptions) (ContainerCommitResult, error)
+	ContainerCreate(ctx context.Context, options ContainerCreateOptions) (ContainerCreateResult, error)
+	ContainerDiff(ctx context.Context, container string, options ContainerDiffOptions) (ContainerDiffResult, error)
 	ExecAPIClient
 	ContainerExport(ctx context.Context, container string) (io.ReadCloser, error)
 	ContainerInspect(ctx context.Context, container string) (container.InspectResponse, error)
@@ -158,11 +157,11 @@ type PluginAPIClient interface {
 
 // ServiceAPIClient defines API client methods for the services
 type ServiceAPIClient interface {
-	ServiceCreate(ctx context.Context, service swarm.ServiceSpec, options ServiceCreateOptions) (ServiceCreateResult, error)
+	ServiceCreate(ctx context.Context, options ServiceCreateOptions) (ServiceCreateResult, error)
 	ServiceInspect(ctx context.Context, serviceID string, options ServiceInspectOptions) (ServiceInspectResult, error)
 	ServiceList(ctx context.Context, options ServiceListOptions) (ServiceListResult, error)
 	ServiceRemove(ctx context.Context, serviceID string, options ServiceRemoveOptions) (ServiceRemoveResult, error)
-	ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options ServiceUpdateOptions) (ServiceUpdateResult, error)
+	ServiceUpdate(ctx context.Context, serviceID string, options ServiceUpdateOptions) (ServiceUpdateResult, error)
 	ServiceLogs(ctx context.Context, serviceID string, options ServiceLogsOptions) (ServiceLogsResult, error)
 	TaskLogs(ctx context.Context, taskID string, options TaskLogsOptions) (TaskLogsResult, error)
 	TaskInspect(ctx context.Context, taskID string, options TaskInspectOptions) (TaskInspectResult, error)
@@ -177,7 +176,7 @@ type SwarmAPIClient interface {
 	SwarmUnlock(ctx context.Context, options SwarmUnlockOptions) (SwarmUnlockResult, error)
 	SwarmLeave(ctx context.Context, options SwarmLeaveOptions) (SwarmLeaveResult, error)
 	SwarmInspect(ctx context.Context, options SwarmInspectOptions) (SwarmInspectResult, error)
-	SwarmUpdate(ctx context.Context, version swarm.Version, options SwarmUpdateOptions) (SwarmUpdateResult, error)
+	SwarmUpdate(ctx context.Context, options SwarmUpdateOptions) (SwarmUpdateResult, error)
 }
 
 // SystemAPIClient defines API client methods for the system

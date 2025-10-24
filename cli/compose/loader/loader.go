@@ -26,7 +26,7 @@ import (
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/shlex"
 	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/versions"
+	"github.com/moby/moby/client/pkg/versions"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )

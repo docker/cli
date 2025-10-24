@@ -18,9 +18,7 @@ import (
 	"github.com/moby/moby/api/pkg/streamformatter"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -56,10 +54,8 @@ func TestRunValidateFlags(t *testing.T) {
 
 func TestRunLabel(t *testing.T) {
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *ocispec.Platform, _ string) (container.CreateResponse, error) {
-			return container.CreateResponse{
-				ID: "id",
-			}, nil
+		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+			return client.ContainerCreateResult{ID: "id"}, nil
 		},
 		Version: client.MaxAPIVersion,
 	})
@@ -79,19 +75,19 @@ func TestRunAttach(t *testing.T) {
 	var conn net.Conn
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *ocispec.Platform, _ string) (container.CreateResponse, error) {
-			return container.CreateResponse{
-				ID: "id",
-			}, nil
+		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+			return client.ContainerCreateResult{ID: "id"}, nil
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
+		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.ContainerAttachResult, error) {
 			server, clientConn := net.Pipe()
 			conn = server
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
 			attachCh <- struct{}{}
-			return client.NewHijackedResponse(clientConn, types.MediaTypeRawStream), nil
+			return client.ContainerAttachResult{
+				HijackedResponse: client.NewHijackedResponse(clientConn, types.MediaTypeRawStream),
+			}, nil
 		},
 		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
 			responseChan := make(chan container.WaitResponse, 1)
@@ -150,10 +146,8 @@ func TestRunAttachTermination(t *testing.T) {
 	killCh := make(chan struct{})
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(_ *container.Config, _ *container.HostConfig, _ *network.NetworkingConfig, _ *ocispec.Platform, _ string) (container.CreateResponse, error) {
-			return container.CreateResponse{
-				ID: "id",
-			}, nil
+		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+			return client.ContainerCreateResult{ID: "id"}, nil
 		},
 		containerKillFunc: func(ctx context.Context, containerID, sig string) error {
 			if sig == "TERM" {
@@ -161,14 +155,16 @@ func TestRunAttachTermination(t *testing.T) {
 			}
 			return nil
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
+		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.ContainerAttachResult, error) {
 			server, clientConn := net.Pipe()
 			conn = server
 			t.Cleanup(func() {
 				_ = server.Close()
 			})
 			attachCh <- struct{}{}
-			return client.NewHijackedResponse(clientConn, types.MediaTypeRawStream), nil
+			return client.ContainerAttachResult{
+				HijackedResponse: client.NewHijackedResponse(clientConn, types.MediaTypeRawStream),
+			}, nil
 		},
 		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
 			responseChan := make(chan container.WaitResponse, 1)
@@ -227,13 +223,11 @@ func TestRunPullTermination(t *testing.T) {
 
 	attachCh := make(chan struct{})
 	fakeCLI := test.NewFakeCli(&fakeClient{
-		createContainerFunc: func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig,
-			platform *ocispec.Platform, containerName string,
-		) (container.CreateResponse, error) {
-			return container.CreateResponse{}, errors.New("shouldn't try to create a container")
+		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+			return client.ContainerCreateResult{}, errors.New("shouldn't try to create a container")
 		},
-		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.HijackedResponse, error) {
-			return client.HijackedResponse{}, errors.New("shouldn't try to attach to a container")
+		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.ContainerAttachResult, error) {
+			return client.ContainerAttachResult{}, errors.New("shouldn't try to attach to a container")
 		},
 		imageCreateFunc: func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error) {
 			server, respReader := net.Pipe()
@@ -325,13 +319,8 @@ func TestRunCommandWithContentTrustErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Setenv("DOCKER_CONTENT_TRUST", "true")
 			fakeCLI := test.NewFakeCli(&fakeClient{
-				createContainerFunc: func(config *container.Config,
-					hostConfig *container.HostConfig,
-					networkingConfig *network.NetworkingConfig,
-					platform *ocispec.Platform,
-					containerName string,
-				) (container.CreateResponse, error) {
-					return container.CreateResponse{}, errors.New("shouldn't try to pull image")
+				createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+					return client.ContainerCreateResult{}, errors.New("shouldn't try to pull image")
 				},
 			})
 			fakeCLI.SetNotaryClient(tc.notaryFunc)

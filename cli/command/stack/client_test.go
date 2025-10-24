@@ -31,7 +31,7 @@ type fakeClient struct {
 	nodeListFunc      func(options client.NodeListOptions) (client.NodeListResult, error)
 	taskListFunc      func(options client.TaskListOptions) (client.TaskListResult, error)
 	nodeInspectFunc   func(ref string) (client.NodeInspectResult, error)
-	serviceUpdateFunc func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
+	serviceUpdateFunc func(serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
 	serviceRemoveFunc func(serviceID string) (client.ServiceRemoveResult, error)
 	networkRemoveFunc func(networkID string) error
 	secretRemoveFunc  func(secretID string) (client.SecretRemoveResult, error)
@@ -130,9 +130,9 @@ func (cli *fakeClient) NodeInspect(_ context.Context, ref string, _ client.NodeI
 	return client.NodeInspectResult{}, nil
 }
 
-func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+func (cli *fakeClient) ServiceUpdate(_ context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
 	if cli.serviceUpdateFunc != nil {
-		return cli.serviceUpdateFunc(serviceID, version, service, options)
+		return cli.serviceUpdateFunc(serviceID, options)
 	}
 
 	return client.ServiceUpdateResult{}, nil

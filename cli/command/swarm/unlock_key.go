@@ -55,8 +55,10 @@ func runUnlockKey(ctx context.Context, dockerCLI command.Cli, opts unlockKeyOpti
 			return errors.New("cannot rotate because autolock is not turned on")
 		}
 
-		_, err = apiClient.SwarmUpdate(ctx, res.Swarm.Version, client.SwarmUpdateOptions{
-			Swarm:                  res.Swarm.Spec,
+		_, err = apiClient.SwarmUpdate(ctx, client.SwarmUpdateOptions{
+			Version: res.Swarm.Version,
+			Spec:    res.Swarm.Spec,
+
 			RotateManagerUnlockKey: true,
 		})
 		if err != nil {

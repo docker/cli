@@ -58,8 +58,9 @@ func runJoinToken(ctx context.Context, dockerCLI command.Cli, opts joinTokenOpti
 			return err
 		}
 
-		_, err = apiClient.SwarmUpdate(ctx, res.Swarm.Version, client.SwarmUpdateOptions{
-			Swarm:              res.Swarm.Spec,
+		_, err = apiClient.SwarmUpdate(ctx, client.SwarmUpdateOptions{
+			Version:            res.Swarm.Version,
+			Spec:               res.Swarm.Spec,
 			RotateWorkerToken:  worker,
 			RotateManagerToken: manager,
 		})

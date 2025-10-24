@@ -3,6 +3,7 @@ package image
 import (
 	"errors"
 	"io"
+	"net/http"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -49,7 +50,6 @@ func TestNewPushCommandErrors(t *testing.T) {
 }
 
 func TestNewPushCommandSuccess(t *testing.T) {
-	t.Skip("FIXME(thaJeztah): how to mock this?")
 	testCases := []struct {
 		name   string
 		args   []string
@@ -72,7 +72,7 @@ func TestNewPushCommandSuccess(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				imagePushFunc: func(ref string, options client.ImagePushOptions) (client.ImagePushResponse, error) {
 					// FIXME(thaJeztah): how to mock this?
-					return nil, nil
+					return fakeStreamResult{ReadCloser: http.NoBody}, nil
 				},
 			})
 			cmd := newPushCommand(cli)

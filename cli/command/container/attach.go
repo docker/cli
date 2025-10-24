@@ -114,11 +114,11 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		defer signal.StopCatch(sigc)
 	}
 
-	resp, errAttach := apiClient.ContainerAttach(ctx, containerID, options)
-	if errAttach != nil {
-		return errAttach
+	res, err := apiClient.ContainerAttach(ctx, containerID, options)
+	if err != nil {
+		return err
 	}
-	defer resp.Close()
+	defer res.HijackedResponse.Close()
 
 	// If use docker attach command to attach to a stop container, it will return
 	// "You cannot attach to a stopped container" error, it's ok, but when
@@ -142,7 +142,7 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		inputStream:  in,
 		outputStream: dockerCLI.Out(),
 		errorStream:  dockerCLI.Err(),
-		resp:         resp,
+		resp:         res.HijackedResponse,
 		tty:          c.Config.Tty,
 		detachKeys:   options.DetachKeys,
 	}

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"errors"
 	"io"
+	"net/http"
 	"testing"
 
 	"github.com/docker/cli/cli/trust"
@@ -27,6 +27,14 @@ type fakeClient struct {
 	client.Client
 }
 
+type fakeStreamResult struct {
+	io.ReadCloser
+	client.ImagePushResponse // same interface as [client.ImagePullResponse]
+}
+
+func (e fakeStreamResult) Read(p []byte) (int, error) { return e.ReadCloser.Read(p) }
+func (e fakeStreamResult) Close() error               { return e.ReadCloser.Close() }
+
 func (*fakeClient) Info(context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
@@ -37,7 +45,7 @@ func (*fakeClient) ImageInspect(context.Context, string, ...client.ImageInspectO
 
 func (*fakeClient) ImagePush(context.Context, string, client.ImagePushOptions) (client.ImagePushResponse, error) {
 	// FIXME(thaJeztah): how to mock this?
-	return nil, errors.New("don't handle response")
+	return fakeStreamResult{ReadCloser: http.NoBody}, nil
 }
 
 func TestTrustInspectPrettyCommandErrors(t *testing.T) {

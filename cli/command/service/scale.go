@@ -108,7 +108,10 @@ func runServiceScale(ctx context.Context, apiClient client.ServiceAPIClient, ser
 		return nil, errors.New("scale can only be used with replicated or replicated-job mode")
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, res.Service.Version, res.Service.Spec, client.ServiceUpdateOptions{})
+	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, client.ServiceUpdateOptions{
+		Version: res.Service.Version,
+		Spec:    res.Service.Spec,
+	})
 	if err != nil {
 		return nil, err
 	}

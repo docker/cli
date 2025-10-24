@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 	"io"
+	"net/http"
 	"strings"
 	"time"
 
@@ -27,6 +28,14 @@ type fakeClient struct {
 	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) (client.ImageHistoryResult, error)
 	imageBuildFunc   func(context.Context, io.Reader, client.ImageBuildOptions) (client.ImageBuildResult, error)
 }
+
+type fakeStreamResult struct {
+	io.ReadCloser
+	client.ImagePushResponse // same interface as [client.ImagePullResponse]
+}
+
+func (e fakeStreamResult) Read(p []byte) (int, error) { return e.ReadCloser.Read(p) }
+func (e fakeStreamResult) Close() error               { return e.ReadCloser.Close() }
 
 func (cli *fakeClient) ImageTag(_ context.Context, options client.ImageTagOptions) (client.ImageTagResult, error) {
 	if cli.imageTagFunc != nil {
@@ -54,7 +63,7 @@ func (cli *fakeClient) ImagePush(_ context.Context, ref string, options client.I
 		return cli.imagePushFunc(ref, options)
 	}
 	// FIXME(thaJeztah): how to mock this?
-	return nil, nil
+	return fakeStreamResult{ReadCloser: http.NoBody}, nil
 }
 
 func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
@@ -69,7 +78,7 @@ func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.I
 		return cli.imagePullFunc(ref, options)
 	}
 	// FIXME(thaJeztah): how to mock this?
-	return nil, nil
+	return fakeStreamResult{ReadCloser: http.NoBody}, nil
 }
 
 func (cli *fakeClient) ImagesPrune(_ context.Context, opts client.ImagePruneOptions) (client.ImagePruneResult, error) {

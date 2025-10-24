@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"io"
+	"net/http"
 
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -78,5 +79,5 @@ func (c *fakeClient) PluginUpgrade(_ context.Context, name string, options clien
 		return c.pluginUpgradeFunc(name, options)
 	}
 	// FIXME(thaJeztah): how to mock this?
-	return nil, nil
+	return http.NoBody, nil
 }

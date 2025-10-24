@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -40,10 +41,12 @@ D: /usr/app/old_app.js
 		},
 	}
 
-	diffs := []container.FilesystemChange{
-		{Kind: container.ChangeModify, Path: "/var/log/app.log"},
-		{Kind: container.ChangeAdd, Path: "/usr/app/app.js"},
-		{Kind: container.ChangeDelete, Path: "/usr/app/old_app.js"},
+	diffs := client.ContainerDiffResult{
+		Changes: []container.FilesystemChange{
+			{Kind: container.ChangeModify, Path: "/var/log/app.log"},
+			{Kind: container.ChangeAdd, Path: "/usr/app/app.js"},
+			{Kind: container.ChangeDelete, Path: "/usr/app/old_app.js"},
+		},
 	}
 
 	for _, tc := range cases {

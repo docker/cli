@@ -233,7 +233,10 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 		if svc, exists := existingServiceMap[name]; exists {
 			_, _ = fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, svc.ID)
 
-			updateOpts := client.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
+			updateOpts := client.ServiceUpdateOptions{
+				Version:             svc.Version,
+				EncodedRegistryAuth: encodedAuth,
+			}
 
 			switch resolveImage {
 			case resolveImageAlways:
@@ -265,7 +268,8 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 			// TODO move this to API client?
 			serviceSpec.TaskTemplate.ForceUpdate = svc.Spec.TaskTemplate.ForceUpdate
 
-			response, err := apiClient.ServiceUpdate(ctx, svc.ID, svc.Version, serviceSpec, updateOpts)
+			updateOpts.Spec = serviceSpec
+			response, err := apiClient.ServiceUpdate(ctx, svc.ID, updateOpts)
 			if err != nil {
 				return nil, fmt.Errorf("failed to update service %s: %w", name, err)
 			}
@@ -281,7 +285,8 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 			// query registry if flag disabling it was not set
 			queryRegistry := resolveImage == resolveImageAlways || resolveImage == resolveImageChanged
 
-			response, err := apiClient.ServiceCreate(ctx, serviceSpec, client.ServiceCreateOptions{
+			response, err := apiClient.ServiceCreate(ctx, client.ServiceCreateOptions{
+				Spec:                serviceSpec,
 				EncodedRegistryAuth: encodedAuth,
 				QueryRegistry:       queryRegistry,
 			})

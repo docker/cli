@@ -115,7 +115,7 @@ func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, vol := range res.Items.Volumes {
+		for _, vol := range res.Items {
 			names = append(names, vol.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp

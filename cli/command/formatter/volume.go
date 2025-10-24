@@ -40,10 +40,10 @@ func NewVolumeFormat(source string, quiet bool) Format {
 }
 
 // VolumeWrite writes formatted volumes using the Context
-func VolumeWrite(ctx Context, volumes []*volume.Volume) error {
+func VolumeWrite(ctx Context, volumes []volume.Volume) error {
 	render := func(format func(subContext SubContext) error) error {
 		for _, vol := range volumes {
-			if err := format(&volumeContext{v: *vol}); err != nil {
+			if err := format(&volumeContext{v: vol}); err != nil {
 				return err
 			}
 		}

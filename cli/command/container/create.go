@@ -332,7 +332,14 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
 
-	response, err := dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
+	response, err := dockerCli.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
+		Name: options.name,
+		// Image:            config.Image, // TODO(thaJeztah): pass image-ref separate
+		Platform:         platform,
+		Config:           config,
+		HostConfig:       hostConfig,
+		NetworkingConfig: networkingConfig,
+	})
 	if err != nil {
 		// Pull image if it does not exist locally and we have the PullImageMissing option. Default behavior.
 		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
@@ -346,7 +353,14 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			}
 
 			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, config, hostConfig, networkingConfig, platform, options.name)
+			response, retryErr = dockerCli.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
+				Name: options.name,
+				// Image:            config.Image, // TODO(thaJeztah): pass image-ref separate
+				Platform:         platform,
+				Config:           config,
+				HostConfig:       hostConfig,
+				NetworkingConfig: networkingConfig,
+			})
 			if retryErr != nil {
 				return "", retryErr
 			}

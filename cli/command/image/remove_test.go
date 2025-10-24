@@ -88,7 +88,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, is.Equal("image1", img))
 				return client.ImageRemoveResult{
-					Deleted: []image.DeleteResponse{{Deleted: img}},
+					Items: []image.DeleteResponse{{Deleted: img}},
 				}, nil
 			},
 		},
@@ -109,7 +109,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				assert.Check(t, is.Equal("image1", img))
 				return client.ImageRemoveResult{
-					Deleted: []image.DeleteResponse{{Untagged: img}},
+					Items: []image.DeleteResponse{{Untagged: img}},
 				}, nil
 			},
 		},
@@ -119,11 +119,11 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			imageRemoveFunc: func(img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 				if img == "image1" {
 					return client.ImageRemoveResult{
-						Deleted: []image.DeleteResponse{{Untagged: img}},
+						Items: []image.DeleteResponse{{Untagged: img}},
 					}, nil
 				}
 				return client.ImageRemoveResult{
-					Deleted: []image.DeleteResponse{{Deleted: img}},
+					Items: []image.DeleteResponse{{Deleted: img}},
 				}, nil
 			},
 		},
