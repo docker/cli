@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/sequential"
 	"github.com/spf13/cobra"
 )
@@ -100,7 +101,9 @@ func runSecretCreate(ctx context.Context, dockerCLI command.Cli, options createO
 			Name: options.templateDriver,
 		}
 	}
-	r, err := apiClient.SecretCreate(ctx, spec)
+	r, err := apiClient.SecretCreate(ctx, client.SecretCreateOptions{
+		Spec: spec,
+	})
 	if err != nil {
 		return err
 	}

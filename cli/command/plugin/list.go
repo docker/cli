@@ -54,8 +54,8 @@ func runList(ctx context.Context, dockerCli command.Cli, options listOptions) er
 		return err
 	}
 
-	sort.Slice(resp, func(i, j int) bool {
-		return sortorder.NaturalLess(resp[i].Name, resp[j].Name)
+	sort.Slice(resp.Items, func(i, j int) bool {
+		return sortorder.NaturalLess(resp.Items[i].Name, resp.Items[j].Name)
 	})
 
 	format := options.format

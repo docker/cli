@@ -6,6 +6,7 @@ import (
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli-plugins/plugin"
 	"github.com/docker/cli/cli/command"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,7 @@ func main() {
 			// PersistentPreRunE: Not specified, we need to test that it works in the absence of an explicit call
 			RunE: func(cmd *cobra.Command, args []string) error {
 				cli := dockerCli.Client()
-				ping, err := cli.Ping(cmd.Context())
+				ping, err := cli.Ping(cmd.Context(), client.PingOptions{})
 				if err != nil {
 					return err
 				}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -26,7 +27,7 @@ func newFormat(source string) formatter.Format {
 }
 
 // formatWrite writes the context.
-func formatWrite(fmtCtx formatter.Context, results []registrytypes.SearchResult) error {
+func formatWrite(fmtCtx formatter.Context, results client.ImageSearchResult) error {
 	searchCtx := &searchContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -38,7 +39,7 @@ func formatWrite(fmtCtx formatter.Context, results []registrytypes.SearchResult)
 		},
 	}
 	return fmtCtx.Write(searchCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, result := range results {
+		for _, result := range results.Items {
 			if err := format(&searchContext{
 				trunc: fmtCtx.Trunc,
 				s:     result,

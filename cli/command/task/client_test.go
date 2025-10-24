@@ -3,26 +3,25 @@ package task
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {
 	client.APIClient
-	nodeInspectWithRaw    func(ref string) (swarm.Node, []byte, error)
-	serviceInspectWithRaw func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error)
+	nodeInspectFunc    func(ref string) (client.NodeInspectResult, error)
+	serviceInspectFunc func(ref string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error)
 }
 
-func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, ref string) (swarm.Node, []byte, error) {
-	if cli.nodeInspectWithRaw != nil {
-		return cli.nodeInspectWithRaw(ref)
+func (cli *fakeClient) NodeInspect(_ context.Context, ref string, _ client.NodeInspectOptions) (client.NodeInspectResult, error) {
+	if cli.nodeInspectFunc != nil {
+		return cli.nodeInspectFunc(ref)
 	}
-	return swarm.Node{}, nil, nil
+	return client.NodeInspectResult{}, nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
-	if cli.serviceInspectWithRaw != nil {
-		return cli.serviceInspectWithRaw(ref, options)
+func (cli *fakeClient) ServiceInspect(_ context.Context, ref string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+	if cli.serviceInspectFunc != nil {
+		return cli.serviceInspectFunc(ref, options)
 	}
-	return swarm.Service{}, nil, nil
+	return client.ServiceInspectResult{}, nil
 }

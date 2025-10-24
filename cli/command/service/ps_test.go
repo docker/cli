@@ -15,12 +15,14 @@ import (
 
 func TestCreateFilter(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				{ID: "idmatch"},
-				{ID: "idprefixmatch"},
-				newService("cccccccc", "namematch"),
-				newService("01010101", "notfoundprefix"),
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{
+					{ID: "idmatch"},
+					{ID: "idprefixmatch"},
+					newService("cccccccc", "namematch"),
+					newService("01010101", "notfoundprefix"),
+				},
 			}, nil
 		},
 	}
@@ -42,18 +44,19 @@ func TestCreateFilter(t *testing.T) {
 
 func TestCreateFilterWithAmbiguousIDPrefixError(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				{ID: "aaaone"},
-				{ID: "aaatwo"},
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{
+					{ID: "aaaone"},
+					{ID: "aaatwo"},
+				},
 			}, nil
 		},
 	}
-	options := psOptions{
+	_, _, err := createFilter(context.Background(), apiClient, psOptions{
 		services: []string{"aaa"},
 		filter:   opts.NewFilterOpt(),
-	}
-	_, _, err := createFilter(context.Background(), apiClient, options)
+	})
 	assert.Error(t, err, "multiple services found with provided prefix: aaa")
 }
 
@@ -69,9 +72,9 @@ func TestCreateFilterNoneFound(t *testing.T) {
 
 func TestRunPSWarnsOnNotFound(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{
-				{ID: "foo"},
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{{ID: "foo"}},
 			}, nil
 		},
 	}
@@ -90,11 +93,15 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 
 func TestRunPSQuiet(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) ([]swarm.Service, error) {
-			return []swarm.Service{{ID: "foo"}}, nil
+		serviceListFunc: func(ctx context.Context, options client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{{ID: "foo"}},
+			}, nil
 		},
-		taskListFunc: func(ctx context.Context, options client.TaskListOptions) ([]swarm.Task, error) {
-			return []swarm.Task{{ID: "sxabyp0obqokwekpun4rjo0b3"}}, nil
+		taskListFunc: func(ctx context.Context, options client.TaskListOptions) (client.TaskListResult, error) {
+			return client.TaskListResult{
+				Items: []swarm.Task{{ID: "sxabyp0obqokwekpun4rjo0b3"}},
+			}, nil
 		},
 	}
 

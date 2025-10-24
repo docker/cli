@@ -38,12 +38,12 @@ func newSecretCommand(dockerCLI command.Cli) *cobra.Command {
 // completeNames offers completion for swarm secrets
 func completeNames(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().SecretList(cmd.Context(), client.SecretListOptions{})
+		res, err := dockerCLI.Client().SecretList(cmd.Context(), client.SecretListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, secret := range list {
+		for _, secret := range res.Items {
 			names = append(names, secret.Spec.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp

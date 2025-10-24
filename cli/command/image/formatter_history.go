@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/image"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -36,7 +37,7 @@ func newHistoryFormat(source string, quiet bool, human bool) formatter.Format {
 }
 
 // historyWrite writes the context
-func historyWrite(fmtCtx formatter.Context, human bool, histories []image.HistoryResponseItem) error {
+func historyWrite(fmtCtx formatter.Context, human bool, history client.ImageHistoryResult) error {
 	historyCtx := &historyContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -50,10 +51,10 @@ func historyWrite(fmtCtx formatter.Context, human bool, histories []image.Histor
 		},
 	}
 	return fmtCtx.Write(historyCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, history := range histories {
+		for _, h := range history.Items {
 			if err := format(&historyContext{
 				trunc: fmtCtx.Trunc,
-				h:     history,
+				h:     h,
 				human: human,
 			}); err != nil {
 				return err

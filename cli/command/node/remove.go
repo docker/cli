@@ -39,7 +39,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, nodeIDs []string, opt
 
 	var errs []error
 	for _, id := range nodeIDs {
-		if err := apiClient.NodeRemove(ctx, id, client.NodeRemoveOptions{Force: opts.force}); err != nil {
+		if _, err := apiClient.NodeRemove(ctx, id, client.NodeRemoveOptions{Force: opts.force}); err != nil {
 			errs = append(errs, err)
 			continue
 		}

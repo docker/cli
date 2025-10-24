@@ -8,28 +8,30 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/plugin"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
 
-var pluginFoo = &plugin.Plugin{
-	ID:   "id-foo",
-	Name: "name-foo",
-	Config: plugin.Config{
-		Description:   "plugin foo description",
-		DockerVersion: "17.12.1-ce",
-		Documentation: "plugin foo documentation",
-		Entrypoint:    []string{"/foo"},
-		Interface: plugin.Interface{
-			Socket: "plugin-foo.sock",
-		},
-		Linux: plugin.LinuxConfig{
-			Capabilities: []string{"CAP_SYS_ADMIN"},
-		},
-		WorkDir: "workdir-foo",
-		Rootfs: &plugin.RootFS{
-			DiffIds: []string{"sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"},
-			Type:    "layers",
+var pluginFoo = client.PluginInspectResult{
+	Plugin: plugin.Plugin{
+		ID:   "id-foo",
+		Name: "name-foo",
+		Config: plugin.Config{
+			Description:   "plugin foo description",
+			Documentation: "plugin foo documentation",
+			Entrypoint:    []string{"/foo"},
+			Interface: plugin.Interface{
+				Socket: "plugin-foo.sock",
+			},
+			Linux: plugin.LinuxConfig{
+				Capabilities: []string{"CAP_SYS_ADMIN"},
+			},
+			WorkDir: "workdir-foo",
+			Rootfs: &plugin.RootFS{
+				DiffIds: []string{"sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"},
+				Type:    "layers",
+			},
 		},
 	},
 }
@@ -40,7 +42,7 @@ func TestInspectErrors(t *testing.T) {
 		args          []string
 		flags         map[string]string
 		expectedError string
-		inspectFunc   func(name string) (*plugin.Plugin, []byte, error)
+		inspectFunc   func(name string) (client.PluginInspectResult, error)
 	}{
 		{
 			description:   "too few arguments",
@@ -51,8 +53,8 @@ func TestInspectErrors(t *testing.T) {
 			description:   "error inspecting plugin",
 			args:          []string{"foo"},
 			expectedError: "error inspecting plugin",
-			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
-				return nil, nil, errors.New("error inspecting plugin")
+			inspectFunc: func(string) (client.PluginInspectResult, error) {
+				return client.PluginInspectResult{}, errors.New("error inspecting plugin")
 			},
 		},
 		{
@@ -62,6 +64,9 @@ func TestInspectErrors(t *testing.T) {
 				"format": "{{invalid format}}",
 			},
 			expectedError: "template parsing error",
+			inspectFunc: func(string) (client.PluginInspectResult, error) {
+				return client.PluginInspectResult{}, errors.New("this function should not be called in this test")
+			},
 		},
 	}
 
@@ -86,7 +91,7 @@ func TestInspect(t *testing.T) {
 		args        []string
 		flags       map[string]string
 		golden      string
-		inspectFunc func(name string) (*plugin.Plugin, []byte, error)
+		inspectFunc func(name string) (client.PluginInspectResult, error)
 	}{
 		{
 			description: "inspect single plugin with format",
@@ -95,19 +100,21 @@ func TestInspect(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-inspect-single-with-format.golden",
-			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
-				return &plugin.Plugin{
-					ID:   "id-foo",
-					Name: "name-foo",
-				}, []byte{}, nil
+			inspectFunc: func(name string) (client.PluginInspectResult, error) {
+				return client.PluginInspectResult{
+					Plugin: plugin.Plugin{
+						ID:   "id-foo",
+						Name: "name-foo",
+					},
+				}, nil
 			},
 		},
 		{
 			description: "inspect single plugin without format",
 			args:        []string{"foo"},
 			golden:      "plugin-inspect-single-without-format.golden",
-			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
-				return pluginFoo, nil, nil
+			inspectFunc: func(name string) (client.PluginInspectResult, error) {
+				return pluginFoo, nil
 			},
 		},
 		{
@@ -117,20 +124,24 @@ func TestInspect(t *testing.T) {
 				"format": "{{ .Name }}",
 			},
 			golden: "plugin-inspect-multiple-with-format.golden",
-			inspectFunc: func(name string) (*plugin.Plugin, []byte, error) {
+			inspectFunc: func(name string) (client.PluginInspectResult, error) {
 				switch name {
 				case "foo":
-					return &plugin.Plugin{
-						ID:   "id-foo",
-						Name: "name-foo",
-					}, []byte{}, nil
+					return client.PluginInspectResult{
+						Plugin: plugin.Plugin{
+							ID:   "id-foo",
+							Name: "name-foo",
+						},
+					}, nil
 				case "bar":
-					return &plugin.Plugin{
-						ID:   "id-bar",
-						Name: "name-bar",
-					}, []byte{}, nil
+					return client.PluginInspectResult{
+						Plugin: plugin.Plugin{
+							ID:   "id-bar",
+							Name: "name-bar",
+						},
+					}, nil
 				default:
-					return nil, nil, fmt.Errorf("unexpected plugin name: %s", name)
+					return client.PluginInspectResult{}, fmt.Errorf("unexpected plugin name: %s", name)
 				}
 			},
 		},

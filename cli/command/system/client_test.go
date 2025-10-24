@@ -6,11 +6,7 @@ import (
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/events"
-	"github.com/moby/moby/api/types/image"
-	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
-	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"
 )
 
@@ -21,13 +17,13 @@ type fakeClient struct {
 	containerListFunc  func(context.Context, client.ContainerListOptions) ([]container.Summary, error)
 	containerPruneFunc func(ctx context.Context, options client.ContainerPruneOptions) (client.ContainerPruneResult, error)
 	eventsFn           func(context.Context, client.EventsListOptions) (<-chan events.Message, <-chan error)
-	imageListFunc      func(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error)
+	imageListFunc      func(ctx context.Context, options client.ImageListOptions) (client.ImageListResult, error)
 	infoFunc           func(ctx context.Context) (system.Info, error)
-	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
+	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error)
 	networkPruneFunc   func(ctx context.Context, options client.NetworkPruneOptions) (client.NetworkPruneResult, error)
-	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error)
+	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error)
 	serverVersion      func(ctx context.Context) (types.Version, error)
-	volumeListFunc     func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error)
+	volumeListFunc     func(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error)
 }
 
 func (cli *fakeClient) ClientVersion() string {
@@ -52,11 +48,11 @@ func (cli *fakeClient) Events(ctx context.Context, opts client.EventsListOptions
 	return cli.eventsFn(ctx, opts)
 }
 
-func (cli *fakeClient) ImageList(ctx context.Context, options client.ImageListOptions) ([]image.Summary, error) {
+func (cli *fakeClient) ImageList(ctx context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
 	if cli.imageListFunc != nil {
 		return cli.imageListFunc(ctx, options)
 	}
-	return []image.Summary{}, nil
+	return client.ImageListResult{}, nil
 }
 
 func (cli *fakeClient) Info(ctx context.Context) (system.Info, error) {
@@ -66,11 +62,11 @@ func (cli *fakeClient) Info(ctx context.Context) (system.Info, error) {
 	return system.Info{}, nil
 }
 
-func (cli *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
+func (cli *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
 	if cli.networkListFunc != nil {
 		return cli.networkListFunc(ctx, options)
 	}
-	return []network.Summary{}, nil
+	return client.NetworkListResult{}, nil
 }
 
 func (cli *fakeClient) NetworksPrune(ctx context.Context, opts client.NetworkPruneOptions) (client.NetworkPruneResult, error) {
@@ -80,20 +76,20 @@ func (cli *fakeClient) NetworksPrune(ctx context.Context, opts client.NetworkPru
 	return client.NetworkPruneResult{}, nil
 }
 
-func (cli *fakeClient) NodeList(ctx context.Context, options client.NodeListOptions) ([]swarm.Node, error) {
+func (cli *fakeClient) NodeList(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error) {
 	if cli.nodeListFunc != nil {
 		return cli.nodeListFunc(ctx, options)
 	}
-	return []swarm.Node{}, nil
+	return client.NodeListResult{}, nil
 }
 
 func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
 	return cli.serverVersion(ctx)
 }
 
-func (cli *fakeClient) VolumeList(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
+func (cli *fakeClient) VolumeList(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {
 	if cli.volumeListFunc != nil {
 		return cli.volumeListFunc(ctx, options)
 	}
-	return volume.ListResponse{}, nil
+	return client.VolumeListResult{}, nil
 }

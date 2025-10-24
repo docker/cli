@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -59,9 +60,10 @@ func runUnlock(ctx context.Context, dockerCLI command.Cli) error {
 		return err
 	}
 
-	return apiClient.SwarmUnlock(ctx, swarm.UnlockRequest{
-		UnlockKey: key,
+	_, err = apiClient.SwarmUnlock(ctx, client.SwarmUnlockOptions{
+		Key: key,
 	})
+	return err
 }
 
 func readKey(in *streams.In, prompt string) (string, error) {

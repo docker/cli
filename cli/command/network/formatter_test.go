@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -182,7 +183,9 @@ foobar_bar 2017-01-01 00:00:00 +0000 UTC
 		t.Run(string(tc.context.Format), func(t *testing.T) {
 			var out bytes.Buffer
 			tc.context.Output = &out
-			err := formatWrite(tc.context, networks)
+			err := formatWrite(tc.context, client.NetworkListResult{
+				Items: networks,
+			})
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -213,7 +216,9 @@ func TestNetworkContextWriteJSON(t *testing.T) {
 	}
 
 	out := bytes.NewBufferString("")
-	err := formatWrite(formatter.Context{Format: "{{json .}}", Output: out}, networks)
+	err := formatWrite(formatter.Context{Format: "{{json .}}", Output: out}, client.NetworkListResult{
+		Items: networks,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +247,9 @@ func TestNetworkContextWriteJSONField(t *testing.T) {
 		},
 	}
 	out := bytes.NewBufferString("")
-	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, networks)
+	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, client.NetworkListResult{
+		Items: networks,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -57,38 +57,35 @@ func newLogsCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.noResolve, "no-resolve", false, "Do not map IDs to Names in output")
 	flags.BoolVar(&opts.noTrunc, "no-trunc", false, "Do not truncate output")
 	flags.BoolVar(&opts.raw, "raw", false, "Do not neatly format logs")
-	flags.SetAnnotation("raw", "version", []string{"1.30"})
+	_ = flags.SetAnnotation("raw", "version", []string{"1.30"})
 	flags.BoolVar(&opts.noTaskIDs, "no-task-ids", false, "Do not include task IDs in output")
 	// options identical to container logs
 	flags.BoolVarP(&opts.follow, "follow", "f", false, "Follow log output")
 	flags.StringVar(&opts.since, "since", "", `Show logs since timestamp (e.g. "2013-01-02T13:23:37Z") or relative (e.g. "42m" for 42 minutes)`)
 	flags.BoolVarP(&opts.timestamps, "timestamps", "t", false, "Show timestamps")
 	flags.BoolVar(&opts.details, "details", false, "Show extra details provided to logs")
-	flags.SetAnnotation("details", "version", []string{"1.30"})
+	_ = flags.SetAnnotation("details", "version", []string{"1.30"})
 	flags.StringVarP(&opts.tail, "tail", "n", "all", "Number of lines to show from the end of the logs")
 
 	return cmd
 }
 
-func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) error {
+func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) error { //nolint:gocyclo
 	apiClient := dockerCli.Client()
 
 	var (
 		maxLength    = 1
 		responseBody io.ReadCloser
 		tty          bool
-		// logfunc is used to delay the call to logs so that we can do some
-		// processing before we actually get the logs
-		logfunc func(context.Context, string, client.ContainerLogsOptions) (io.ReadCloser, error)
 	)
 
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, opts.target, client.ServiceInspectOptions{})
+	service, err := apiClient.ServiceInspect(ctx, opts.target, client.ServiceInspectOptions{})
 	if err != nil {
 		// if it's any error other than service not found, it's Real
 		if !errdefs.IsNotFound(err) {
 			return err
 		}
-		task, _, err := apiClient.TaskInspectWithRaw(ctx, opts.target)
+		res, err := apiClient.TaskInspect(ctx, opts.target, client.TaskInspectOptions{})
 		if err != nil {
 			if errdefs.IsNotFound(err) {
 				// if the task isn't found, rewrite the error to be clear
@@ -98,46 +95,66 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 			return err
 		}
 
-		tty = task.Spec.ContainerSpec.TTY
-		maxLength = getMaxLength(task.Slot)
+		tty = res.Task.Spec.ContainerSpec.TTY
+		maxLength = getMaxLength(res.Task.Slot)
 
-		// use the TaskLogs api function
-		logfunc = apiClient.TaskLogs
+		// we can't prettify tty logs. tell the user that this is the case.
+		// this is why we assign the logs function to a variable and delay calling
+		// it. we want to check this before we make the call and checking twice in
+		// each branch is even sloppier than this CLI disaster already is
+		if tty && !opts.raw {
+			return errors.New("tty service logs only supported with --raw")
+		}
+
+		// now get the logs
+		responseBody, err = apiClient.TaskLogs(ctx, opts.target, client.TaskLogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Since:      opts.since,
+			Timestamps: opts.timestamps,
+			Follow:     opts.follow,
+			Tail:       opts.tail,
+			// get the details if we request it OR if we're not doing raw mode
+			// (we need them for the context to pretty print)
+			Details: opts.details || !opts.raw,
+		})
+		if err != nil {
+			return err
+		}
+		defer responseBody.Close()
 	} else {
-		// use ServiceLogs api function
-		logfunc = apiClient.ServiceLogs
-		tty = service.Spec.TaskTemplate.ContainerSpec.TTY
-		if service.Spec.Mode.Replicated != nil && service.Spec.Mode.Replicated.Replicas != nil {
+		tty = service.Service.Spec.TaskTemplate.ContainerSpec.TTY
+		if service.Service.Spec.Mode.Replicated != nil && service.Service.Spec.Mode.Replicated.Replicas != nil {
 			// if replicas are initialized, figure out if we need to pad them
-			replicas := *service.Spec.Mode.Replicated.Replicas
+			replicas := *service.Service.Spec.Mode.Replicated.Replicas
 			maxLength = getMaxLength(int(replicas))
 		}
-	}
 
-	// we can't prettify tty logs. tell the user that this is the case.
-	// this is why we assign the logs function to a variable and delay calling
-	// it. we want to check this before we make the call and checking twice in
-	// each branch is even sloppier than this CLI disaster already is
-	if tty && !opts.raw {
-		return errors.New("tty service logs only supported with --raw")
-	}
+		// we can't prettify tty logs. tell the user that this is the case.
+		// this is why we assign the logs function to a variable and delay calling
+		// it. we want to check this before we make the call and checking twice in
+		// each branch is even sloppier than this CLI disaster already is
+		if tty && !opts.raw {
+			return errors.New("tty service logs only supported with --raw")
+		}
 
-	// now get the logs
-	responseBody, err = logfunc(ctx, opts.target, client.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Since:      opts.since,
-		Timestamps: opts.timestamps,
-		Follow:     opts.follow,
-		Tail:       opts.tail,
-		// get the details if we request it OR if we're not doing raw mode
-		// (we need them for the context to pretty print)
-		Details: opts.details || !opts.raw,
-	})
-	if err != nil {
-		return err
+		// now get the logs
+		responseBody, err = apiClient.ServiceLogs(ctx, opts.target, client.ServiceLogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Since:      opts.since,
+			Timestamps: opts.timestamps,
+			Follow:     opts.follow,
+			Tail:       opts.tail,
+			// get the details if we request it OR if we're not doing raw mode
+			// (we need them for the context to pretty print)
+			Details: opts.details || !opts.raw,
+		})
+		if err != nil {
+			return err
+		}
+		defer responseBody.Close()
 	}
-	defer responseBody.Close()
 
 	// tty logs get straight copied. they're not muxed with stdcopy
 	if tty {
@@ -202,21 +219,21 @@ func (f *taskFormatter) format(ctx context.Context, logCtx logContext) (string, 
 		return "", err
 	}
 
-	task, _, err := f.client.TaskInspectWithRaw(ctx, logCtx.taskID)
+	res, err := f.client.TaskInspect(ctx, logCtx.taskID, client.TaskInspectOptions{})
 	if err != nil {
 		return "", err
 	}
 
-	taskName := fmt.Sprintf("%s.%d", serviceName, task.Slot)
+	taskName := fmt.Sprintf("%s.%d", serviceName, res.Task.Slot)
 	if !f.opts.noTaskIDs {
 		if f.opts.noTrunc {
-			taskName += "." + task.ID
+			taskName += "." + res.Task.ID
 		} else {
-			taskName += "." + formatter.TruncateID(task.ID)
+			taskName += "." + formatter.TruncateID(res.Task.ID)
 		}
 	}
 
-	paddingCount := f.padding - getMaxLength(task.Slot)
+	paddingCount := f.padding - getMaxLength(res.Task.Slot)
 	padding := ""
 	if paddingCount > 0 {
 		padding = strings.Repeat(" ", paddingCount)

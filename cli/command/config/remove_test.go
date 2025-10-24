@@ -1,12 +1,14 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -14,7 +16,7 @@ import (
 func TestConfigRemoveErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		configRemoveFunc func(string) error
+		configRemoveFunc func(context.Context, string, client.ConfigRemoveOptions) (client.ConfigRemoveResult, error)
 		expectedError    string
 	}{
 		{
@@ -23,8 +25,8 @@ func TestConfigRemoveErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			configRemoveFunc: func(name string) error {
-				return errors.New("error removing config")
+			configRemoveFunc: func(ctx context.Context, name string, options client.ConfigRemoveOptions) (client.ConfigRemoveResult, error) {
+				return client.ConfigRemoveResult{}, errors.New("error removing config")
 			},
 			expectedError: "error removing config",
 		},
@@ -46,9 +48,9 @@ func TestConfigRemoveWithName(t *testing.T) {
 	names := []string{"foo", "bar"}
 	var removedConfigs []string
 	cli := test.NewFakeCli(&fakeClient{
-		configRemoveFunc: func(name string) error {
+		configRemoveFunc: func(_ context.Context, name string, _ client.ConfigRemoveOptions) (client.ConfigRemoveResult, error) {
 			removedConfigs = append(removedConfigs, name)
-			return nil
+			return client.ConfigRemoveResult{}, nil
 		},
 	})
 	cmd := newConfigRemoveCommand(cli)
@@ -63,12 +65,12 @@ func TestConfigRemoveContinueAfterError(t *testing.T) {
 	var removedConfigs []string
 
 	cli := test.NewFakeCli(&fakeClient{
-		configRemoveFunc: func(name string) error {
+		configRemoveFunc: func(_ context.Context, name string, _ client.ConfigRemoveOptions) (client.ConfigRemoveResult, error) {
 			removedConfigs = append(removedConfigs, name)
 			if name == "foo" {
-				return errors.New("error removing config: " + name)
+				return client.ConfigRemoveResult{}, errors.New("error removing config: " + name)
 			}
-			return nil
+			return client.ConfigRemoveResult{}, nil
 		},
 	})
 

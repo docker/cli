@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -57,9 +58,11 @@ foobar_bar foo2
 		},
 	}
 
-	tasks := []swarm.Task{
-		{ID: "taskID1"},
-		{ID: "taskID2"},
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			{ID: "taskID1"},
+			{ID: "taskID2"},
+		},
 	}
 	names := map[string]string{
 		"taskID1": "foobar_baz",
@@ -85,9 +88,11 @@ foobar_bar foo2
 }
 
 func TestTaskContextWriteJSONField(t *testing.T) {
-	tasks := []swarm.Task{
-		{ID: "taskID1"},
-		{ID: "taskID2"},
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			{ID: "taskID1"},
+			{ID: "taskID2"},
+		},
 	}
 	names := map[string]string{
 		"taskID1": "foobar_baz",
@@ -103,6 +108,6 @@ func TestTaskContextWriteJSONField(t *testing.T) {
 		if err := json.Unmarshal([]byte(line), &s); err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, is.Equal(tasks[i].ID, s))
+		assert.Check(t, is.Equal(tasks.Items[i].ID, s))
 	}
 }

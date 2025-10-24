@@ -3,42 +3,41 @@ package secret
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {
 	client.Client
-	secretCreateFunc  func(context.Context, swarm.SecretSpec) (swarm.SecretCreateResponse, error)
-	secretInspectFunc func(context.Context, string) (swarm.Secret, []byte, error)
-	secretListFunc    func(context.Context, client.SecretListOptions) ([]swarm.Secret, error)
-	secretRemoveFunc  func(context.Context, string) error
+	secretCreateFunc  func(context.Context, client.SecretCreateOptions) (client.SecretCreateResult, error)
+	secretInspectFunc func(context.Context, string, client.SecretInspectOptions) (client.SecretInspectResult, error)
+	secretListFunc    func(context.Context, client.SecretListOptions) (client.SecretListResult, error)
+	secretRemoveFunc  func(context.Context, string, client.SecretRemoveOptions) (client.SecretRemoveResult, error)
 }
 
-func (c *fakeClient) SecretCreate(ctx context.Context, spec swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
+func (c *fakeClient) SecretCreate(ctx context.Context, options client.SecretCreateOptions) (client.SecretCreateResult, error) {
 	if c.secretCreateFunc != nil {
-		return c.secretCreateFunc(ctx, spec)
+		return c.secretCreateFunc(ctx, options)
 	}
-	return swarm.SecretCreateResponse{}, nil
+	return client.SecretCreateResult{}, nil
 }
 
-func (c *fakeClient) SecretInspectWithRaw(ctx context.Context, id string) (swarm.Secret, []byte, error) {
+func (c *fakeClient) SecretInspect(ctx context.Context, id string, options client.SecretInspectOptions) (client.SecretInspectResult, error) {
 	if c.secretInspectFunc != nil {
-		return c.secretInspectFunc(ctx, id)
+		return c.secretInspectFunc(ctx, id, options)
 	}
-	return swarm.Secret{}, nil, nil
+	return client.SecretInspectResult{}, nil
 }
 
-func (c *fakeClient) SecretList(ctx context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
+func (c *fakeClient) SecretList(ctx context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
 	if c.secretListFunc != nil {
 		return c.secretListFunc(ctx, options)
 	}
-	return []swarm.Secret{}, nil
+	return client.SecretListResult{}, nil
 }
 
-func (c *fakeClient) SecretRemove(ctx context.Context, name string) error {
+func (c *fakeClient) SecretRemove(ctx context.Context, name string, options client.SecretRemoveOptions) (client.SecretRemoveResult, error) {
 	if c.secretRemoveFunc != nil {
-		return c.secretRemoveFunc(ctx, name)
+		return c.secretRemoveFunc(ctx, name, options)
 	}
-	return nil
+	return client.SecretRemoveResult{}, nil
 }

@@ -18,5 +18,12 @@ func TagTrusted(ctx context.Context, apiClient client.ImageAPIClient, out io.Wri
 	trustedFamiliarRef := reference.FamiliarString(trustedRef)
 
 	_, _ = fmt.Fprintf(out, "Tagging %s as %s\n", trustedFamiliarRef, familiarRef)
-	return apiClient.ImageTag(ctx, trustedFamiliarRef, familiarRef)
+	_, err := apiClient.ImageTag(ctx, client.ImageTagOptions{
+		Source: trustedFamiliarRef,
+		Target: familiarRef,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

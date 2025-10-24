@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -40,18 +41,18 @@ func newUpgradeCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) error {
-	p, _, err := dockerCLI.Client().PluginInspectWithRaw(ctx, opts.localName)
+	res, err := dockerCLI.Client().PluginInspect(ctx, opts.localName, client.PluginInspectOptions{})
 	if err != nil {
 		return fmt.Errorf("error reading plugin data: %w", err)
 	}
 
-	if p.Enabled {
+	if res.Plugin.Enabled {
 		return errors.New("the plugin must be disabled before upgrading")
 	}
 
-	opts.localName = p.Name
+	opts.localName = res.Plugin.Name
 	if opts.remote == "" {
-		opts.remote = p.PluginReference
+		opts.remote = res.Plugin.PluginReference
 	}
 	remote, err := reference.ParseNormalizedNamed(opts.remote)
 	if err != nil {
@@ -59,13 +60,13 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	}
 	remote = reference.TagNameOnly(remote)
 
-	old, err := reference.ParseNormalizedNamed(p.PluginReference)
+	old, err := reference.ParseNormalizedNamed(res.Plugin.PluginReference)
 	if err != nil {
 		return fmt.Errorf("error parsing current image reference: %w", err)
 	}
 	old = reference.TagNameOnly(old)
 
-	_, _ = fmt.Fprintf(dockerCLI.Out(), "Upgrading plugin %s from %s to %s\n", p.Name, reference.FamiliarString(old), reference.FamiliarString(remote))
+	_, _ = fmt.Fprintf(dockerCLI.Out(), "Upgrading plugin %s from %s to %s\n", res.Plugin.Name, reference.FamiliarString(old), reference.FamiliarString(remote))
 	if !opts.skipRemoteCheck && remote.String() != old.String() {
 		r, err := prompt.Confirm(ctx, dockerCLI.In(), dockerCLI.Out(), "Plugin images do not match, are you sure?")
 		if err != nil {
@@ -81,7 +82,7 @@ func runUpgrade(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 		return err
 	}
 
-	responseBody, err := dockerCLI.Client().PluginUpgrade(ctx, opts.localName, options)
+	responseBody, err := dockerCLI.Client().PluginUpgrade(ctx, opts.localName, client.PluginUpgradeOptions(options))
 	if err != nil {
 		return err
 	}

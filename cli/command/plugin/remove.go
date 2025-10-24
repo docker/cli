@@ -43,7 +43,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) erro
 
 	var errs []error
 	for _, name := range opts.plugins {
-		if err := apiClient.PluginRemove(ctx, name, client.PluginRemoveOptions{Force: opts.force}); err != nil {
+		if _, err := apiClient.PluginRemove(ctx, name, client.PluginRemoveOptions{Force: opts.force}); err != nil {
 			errs = append(errs, err)
 			continue
 		}

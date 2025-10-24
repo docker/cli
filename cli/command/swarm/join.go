@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -55,24 +56,24 @@ func newJoinCommand(dockerCLI command.Cli) *cobra.Command {
 func runJoin(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts joinOptions) error {
 	apiClient := dockerCLI.Client()
 
-	req := swarm.JoinRequest{
-		JoinToken:     opts.token,
-		ListenAddr:    opts.listenAddr.String(),
-		AdvertiseAddr: opts.advertiseAddr,
-		DataPathAddr:  opts.dataPathAddr,
-		RemoteAddrs:   []string{opts.remote},
-	}
+	var availability swarm.NodeAvailability
 	if flags.Changed(flagAvailability) {
-		availability := swarm.NodeAvailability(strings.ToLower(opts.availability))
-		switch availability {
+		switch a := swarm.NodeAvailability(strings.ToLower(opts.availability)); a {
 		case swarm.NodeAvailabilityActive, swarm.NodeAvailabilityPause, swarm.NodeAvailabilityDrain:
-			req.Availability = availability
+			availability = a
 		default:
 			return fmt.Errorf("invalid availability %q, only active, pause and drain are supported", opts.availability)
 		}
 	}
 
-	err := apiClient.SwarmJoin(ctx, req)
+	_, err := apiClient.SwarmJoin(ctx, client.SwarmJoinOptions{
+		JoinToken:     opts.token,
+		ListenAddr:    opts.listenAddr.String(),
+		AdvertiseAddr: opts.advertiseAddr,
+		DataPathAddr:  opts.dataPathAddr,
+		RemoteAddrs:   []string{opts.remote},
+		Availability:  availability,
+	})
 	if err != nil {
 		return err
 	}

@@ -111,14 +111,16 @@ func TestNetworkRemovePromptTermination(t *testing.T) {
 		networkRemoveFunc: func(ctx context.Context, networkID string) error {
 			return errors.New("fakeClient networkRemoveFunc should not be called")
 		},
-		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, []byte, error) {
-			return network.Inspect{
-				Network: network.Network{
-					ID:      "existing-network",
-					Name:    "existing-network",
-					Ingress: true,
+		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (client.NetworkInspectResult, error) {
+			return client.NetworkInspectResult{
+				Network: network.Inspect{
+					Network: network.Network{
+						ID:      "existing-network",
+						Name:    "existing-network",
+						Ingress: true,
+					},
 				},
-			}, nil, nil
+			}, nil
 		},
 	})
 	cmd := newRemoveCommand(cli)

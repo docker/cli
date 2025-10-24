@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -65,7 +66,7 @@ id_rsa
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			if err := formatWrite(tc.context, secrets); err != nil {
+			if err := formatWrite(tc.context, client.SecretListResult{Items: secrets}); err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
 				assert.Equal(t, out.String(), tc.expected)

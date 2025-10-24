@@ -18,7 +18,7 @@ func TestRollback(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		args                 []string
-		serviceUpdateFunc    func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
+		serviceUpdateFunc    func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
 		expectedDockerCliErr string
 	}{
 		{
@@ -28,15 +28,13 @@ func TestRollback(t *testing.T) {
 		{
 			name: "rollback-service-with-warnings",
 			args: []string{"service-id"},
-			serviceUpdateFunc: func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
-				response := swarm.ServiceUpdateResponse{}
-
-				response.Warnings = []string{
-					"- warning 1",
-					"- warning 2",
-				}
-
-				return response, nil
+			serviceUpdateFunc: func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+				return client.ServiceUpdateResult{
+					Warnings: []string{
+						"- warning 1",
+						"- warning 2",
+					},
+				}, nil
 			},
 			expectedDockerCliErr: "- warning 1\n- warning 2",
 		},
@@ -58,11 +56,11 @@ func TestRollback(t *testing.T) {
 
 func TestRollbackWithErrors(t *testing.T) {
 	testCases := []struct {
-		name                      string
-		args                      []string
-		serviceInspectWithRawFunc func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (swarm.Service, []byte, error)
-		serviceUpdateFunc         func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, opts client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
-		expectedError             string
+		name               string
+		args               []string
+		serviceInspectFunc func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error)
+		serviceUpdateFunc  func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, opts client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
+		expectedError      string
 	}{
 		{
 			name:          "not-enough-args",
@@ -76,16 +74,16 @@ func TestRollbackWithErrors(t *testing.T) {
 		{
 			name: "service-does-not-exists",
 			args: []string{"service-id"},
-			serviceInspectWithRawFunc: func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
-				return swarm.Service{}, []byte{}, fmt.Errorf("no such services: %s", serviceID)
+			serviceInspectFunc: func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+				return client.ServiceInspectResult{}, fmt.Errorf("no such services: %s", serviceID)
 			},
 			expectedError: "no such services: service-id",
 		},
 		{
 			name: "service-update-failed",
 			args: []string{"service-id"},
-			serviceUpdateFunc: func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, opts client.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
-				return swarm.ServiceUpdateResponse{}, fmt.Errorf("no such services: %s", serviceID)
+			serviceUpdateFunc: func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+				return client.ServiceUpdateResult{}, fmt.Errorf("no such services: %s", serviceID)
 			},
 			expectedError: "no such services: service-id",
 		},
@@ -95,11 +93,11 @@ func TestRollbackWithErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newRollbackCommand(
 				test.NewFakeCli(&fakeClient{
-					serviceInspectWithRawFunc: tc.serviceInspectWithRawFunc,
-					serviceUpdateFunc:         tc.serviceUpdateFunc,
+					serviceInspectFunc: tc.serviceInspectFunc,
+					serviceUpdateFunc:  tc.serviceUpdateFunc,
 				}))
 			cmd.SetArgs(tc.args)
-			cmd.Flags().Set("quiet", "true")
+			assert.NilError(t, cmd.Flags().Set("quiet", "true"))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)

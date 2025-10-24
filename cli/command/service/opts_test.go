@@ -207,13 +207,13 @@ func TestToServiceNetwork(t *testing.T) {
 	}
 
 	apiClient := &fakeClient{
-		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (network.Inspect, error) {
+		networkInspectFunc: func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (client.NetworkInspectResult, error) {
 			for _, nw := range nws {
 				if nw.ID == networkID || nw.Name == networkID {
-					return nw, nil
+					return client.NetworkInspectResult{Network: nw}, nil
 				}
 			}
-			return network.Inspect{}, fmt.Errorf("network not found: %s", networkID)
+			return client.NetworkInspectResult{}, fmt.Errorf("network not found: %s", networkID)
 		},
 	}
 

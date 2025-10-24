@@ -3,26 +3,25 @@ package idresolver
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {
 	client.Client
-	nodeInspectFunc    func(string) (swarm.Node, []byte, error)
-	serviceInspectFunc func(string) (swarm.Service, []byte, error)
+	nodeInspectFunc    func(string) (client.NodeInspectResult, error)
+	serviceInspectFunc func(string) (client.ServiceInspectResult, error)
 }
 
-func (cli *fakeClient) NodeInspectWithRaw(_ context.Context, nodeID string) (swarm.Node, []byte, error) {
+func (cli *fakeClient) NodeInspect(_ context.Context, nodeID string, _ client.NodeInspectOptions) (client.NodeInspectResult, error) {
 	if cli.nodeInspectFunc != nil {
 		return cli.nodeInspectFunc(nodeID)
 	}
-	return swarm.Node{}, []byte{}, nil
+	return client.NodeInspectResult{}, nil
 }
 
-func (cli *fakeClient) ServiceInspectWithRaw(_ context.Context, serviceID string, _ client.ServiceInspectOptions) (swarm.Service, []byte, error) {
+func (cli *fakeClient) ServiceInspect(_ context.Context, serviceID string, _ client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
 	if cli.serviceInspectFunc != nil {
 		return cli.serviceInspectFunc(serviceID)
 	}
-	return swarm.Service{}, []byte{}, nil
+	return client.ServiceInspectResult{}, nil
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -19,37 +20,37 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 	testCases := []struct {
 		name                  string
 		flags                 map[string]string
-		swarmInitFunc         func(swarm.InitRequest) (string, error)
-		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
-		nodeInspectFunc       func() (swarm.Node, []byte, error)
+		swarmInitFunc         func(client.SwarmInitOptions) (client.SwarmInitResult, error)
+		swarmInspectFunc      func() (client.SwarmInspectResult, error)
+		swarmGetUnlockKeyFunc func() (client.SwarmGetUnlockKeyResult, error)
+		nodeInspectFunc       func() (client.NodeInspectResult, error)
 		expectedError         string
 	}{
 		{
 			name: "init-failed",
-			swarmInitFunc: func(swarm.InitRequest) (string, error) {
-				return "", errors.New("error initializing the swarm")
+			swarmInitFunc: func(client.SwarmInitOptions) (client.SwarmInitResult, error) {
+				return client.SwarmInitResult{}, errors.New("error initializing the swarm")
 			},
 			expectedError: "error initializing the swarm",
 		},
 		{
 			name: "init-failed-with-ip-choice",
-			swarmInitFunc: func(swarm.InitRequest) (string, error) {
-				return "", errors.New("could not choose an IP address to advertise")
+			swarmInitFunc: func(client.SwarmInitOptions) (client.SwarmInitResult, error) {
+				return client.SwarmInitResult{}, errors.New("could not choose an IP address to advertise")
 			},
 			expectedError: "could not choose an IP address to advertise - specify one with --advertise-addr",
 		},
 		{
 			name: "swarm-inspect-after-init-failed",
-			swarmInspectFunc: func() (swarm.Swarm, error) {
-				return swarm.Swarm{}, errors.New("error inspecting the swarm")
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{}, errors.New("error inspecting the swarm")
 			},
 			expectedError: "error inspecting the swarm",
 		},
 		{
 			name: "node-inspect-after-init-failed",
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.New("error inspecting the node")
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{}, errors.New("error inspecting the node")
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -58,8 +59,8 @@ func TestSwarmInitErrorOnAPIFailure(t *testing.T) {
 			flags: map[string]string{
 				flagAutolock: "true",
 			},
-			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
-				return swarm.UnlockKeyResponse{}, errors.New("error getting swarm unlock key")
+			swarmGetUnlockKeyFunc: func() (client.SwarmGetUnlockKeyResult, error) {
+				return client.SwarmGetUnlockKeyResult{}, errors.New("error getting swarm unlock key")
 			},
 			expectedError: "could not fetch unlock key: error getting swarm unlock key",
 		},
@@ -88,29 +89,25 @@ func TestSwarmInit(t *testing.T) {
 	testCases := []struct {
 		name                  string
 		flags                 map[string]string
-		swarmInitFunc         func(req swarm.InitRequest) (string, error)
-		swarmInspectFunc      func() (swarm.Swarm, error)
-		swarmGetUnlockKeyFunc func() (swarm.UnlockKeyResponse, error)
-		nodeInspectFunc       func() (swarm.Node, []byte, error)
+		swarmInitFunc         func(client.SwarmInitOptions) (client.SwarmInitResult, error)
+		swarmGetUnlockKeyFunc func() (client.SwarmGetUnlockKeyResult, error)
 	}{
 		{
 			name: "init",
-			swarmInitFunc: func(swarm.InitRequest) (string, error) {
-				return "nodeID", nil
+			swarmInitFunc: func(client.SwarmInitOptions) (client.SwarmInitResult, error) {
+				return client.SwarmInitResult{NodeID: "nodeID"}, nil
 			},
 		},
 		{
-			name: "init-autolock",
+			name: "init-auto-lock",
 			flags: map[string]string{
 				flagAutolock: "true",
 			},
-			swarmInitFunc: func(swarm.InitRequest) (string, error) {
-				return "nodeID", nil
+			swarmInitFunc: func(client.SwarmInitOptions) (client.SwarmInitResult, error) {
+				return client.SwarmInitResult{NodeID: "nodeID"}, nil
 			},
-			swarmGetUnlockKeyFunc: func() (swarm.UnlockKeyResponse, error) {
-				return swarm.UnlockKeyResponse{
-					UnlockKey: "unlock-key",
-				}, nil
+			swarmGetUnlockKeyFunc: func() (client.SwarmGetUnlockKeyResult, error) {
+				return client.SwarmGetUnlockKeyResult{Key: "unlock-key"}, nil
 			},
 		},
 	}
@@ -118,9 +115,7 @@ func TestSwarmInit(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
 				swarmInitFunc:         tc.swarmInitFunc,
-				swarmInspectFunc:      tc.swarmInspectFunc,
 				swarmGetUnlockKeyFunc: tc.swarmGetUnlockKeyFunc,
-				nodeInspectFunc:       tc.nodeInspectFunc,
 			})
 			cmd := newInitCommand(cli)
 			cmd.SetArgs([]string{})
@@ -137,13 +132,13 @@ func TestSwarmInit(t *testing.T) {
 
 func TestSwarmInitWithExternalCA(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		swarmInitFunc: func(req swarm.InitRequest) (string, error) {
-			if assert.Check(t, is.Len(req.Spec.CAConfig.ExternalCAs, 1)) {
-				assert.Equal(t, req.Spec.CAConfig.ExternalCAs[0].CACert, cert)
-				assert.Equal(t, req.Spec.CAConfig.ExternalCAs[0].Protocol, swarm.ExternalCAProtocolCFSSL)
-				assert.Equal(t, req.Spec.CAConfig.ExternalCAs[0].URL, "https://example.com")
+		swarmInitFunc: func(options client.SwarmInitOptions) (client.SwarmInitResult, error) {
+			if assert.Check(t, is.Len(options.Spec.CAConfig.ExternalCAs, 1)) {
+				assert.Equal(t, options.Spec.CAConfig.ExternalCAs[0].CACert, cert)
+				assert.Equal(t, options.Spec.CAConfig.ExternalCAs[0].Protocol, swarm.ExternalCAProtocolCFSSL)
+				assert.Equal(t, options.Spec.CAConfig.ExternalCAs[0].URL, "https://example.com")
 			}
-			return "nodeID", nil
+			return client.SwarmInitResult{NodeID: "nodeID"}, nil
 		},
 	})
 

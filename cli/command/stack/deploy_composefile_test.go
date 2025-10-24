@@ -19,7 +19,7 @@ func (notFound) NotFound() {}
 
 func TestValidateExternalNetworks(t *testing.T) {
 	testcases := []struct {
-		inspectResponse networktypes.Inspect
+		inspectResponse client.NetworkInspectResult
 		inspectError    error
 		expectedMsg     string
 		network         string
@@ -45,9 +45,11 @@ func TestValidateExternalNetworks(t *testing.T) {
 		},
 		{
 			network: "user",
-			inspectResponse: networktypes.Inspect{
-				Network: networktypes.Network{
-					Scope: "swarm",
+			inspectResponse: client.NetworkInspectResult{
+				Network: networktypes.Inspect{
+					Network: networktypes.Network{
+						Scope: "swarm",
+					},
 				},
 			},
 		},
@@ -55,7 +57,7 @@ func TestValidateExternalNetworks(t *testing.T) {
 
 	for _, testcase := range testcases {
 		fakeAPIClient := &network.FakeClient{
-			NetworkInspectFunc: func(_ context.Context, _ string, _ client.NetworkInspectOptions) (networktypes.Inspect, error) {
+			NetworkInspectFunc: func(_ context.Context, _ string, _ client.NetworkInspectOptions) (client.NetworkInspectResult, error) {
 				return testcase.inspectResponse, testcase.inspectError
 			},
 		}

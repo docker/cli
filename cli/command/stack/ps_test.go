@@ -19,7 +19,7 @@ import (
 func TestStackPsErrors(t *testing.T) {
 	testCases := []struct {
 		args          []string
-		taskListFunc  func(options client.TaskListOptions) ([]swarm.Task, error)
+		taskListFunc  func(options client.TaskListOptions) (client.TaskListResult, error)
 		expectedError string
 	}{
 		{
@@ -32,8 +32,8 @@ func TestStackPsErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return nil, errors.New("error getting tasks")
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{}, errors.New("error getting tasks")
 			},
 			expectedError: "error getting tasks",
 		},
@@ -54,14 +54,14 @@ func TestStackPsErrors(t *testing.T) {
 
 func TestStackPs(t *testing.T) {
 	testCases := []struct {
-		doc                string
-		taskListFunc       func(client.TaskListOptions) ([]swarm.Task, error)
-		nodeInspectWithRaw func(string) (swarm.Node, []byte, error)
-		config             configfile.ConfigFile
-		args               []string
-		flags              map[string]string
-		expectedErr        string
-		golden             string
+		doc             string
+		taskListFunc    func(client.TaskListOptions) (client.TaskListResult, error)
+		nodeInspectFunc func(ref string) (client.NodeInspectResult, error)
+		config          configfile.ConfigFile
+		args            []string
+		flags           map[string]string
+		expectedErr     string
+		golden          string
 	}{
 		{
 			doc:         "WithEmptyName",
@@ -70,16 +70,20 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithEmptyStack",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{}, nil
 			},
 			args:        []string{"foo"},
 			expectedErr: "nothing found in stack: foo",
 		},
 		{
 			doc: "WithQuietOption",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task(builders.TaskID("id-foo"))}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{
+						*builders.Task(builders.TaskID("id-foo")),
+					},
+				}, nil
 			},
 			args: []string{"foo"},
 			flags: map[string]string{
@@ -89,8 +93,12 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithNoTruncOption",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task(builders.TaskID("xn4cypcov06f2w8gsbaf2lst3"))}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{
+						*builders.Task(builders.TaskID("xn4cypcov06f2w8gsbaf2lst3")),
+					},
+				}, nil
 			},
 			args: []string{"foo"},
 			flags: map[string]string{
@@ -101,13 +109,17 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithNoResolveOption",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task(
-					builders.TaskNodeID("id-node-foo"),
-				)}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{*builders.Task(
+						builders.TaskNodeID("id-node-foo"),
+					)},
+				}, nil
 			},
-			nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
-				return *builders.Node(builders.NodeName("node-name-bar")), nil, nil
+			nodeInspectFunc: func(ref string) (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.NodeName("node-name-bar")),
+				}, nil
 			},
 			args: []string{"foo"},
 			flags: map[string]string{
@@ -118,8 +130,10 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithFormat",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task(builders.TaskServiceID("service-id-foo"))}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{*builders.Task(builders.TaskServiceID("service-id-foo"))},
+				}, nil
 			},
 			args: []string{"foo"},
 			flags: map[string]string{
@@ -129,8 +143,10 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithConfigFormat",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task(builders.TaskServiceID("service-id-foo"))}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{*builders.Task(builders.TaskServiceID("service-id-foo"))},
+				}, nil
 			},
 			config: configfile.ConfigFile{
 				TasksFormat: "{{ .Name }}",
@@ -140,18 +156,22 @@ func TestStackPs(t *testing.T) {
 		},
 		{
 			doc: "WithoutFormat",
-			taskListFunc: func(options client.TaskListOptions) ([]swarm.Task, error) {
-				return []swarm.Task{*builders.Task(
-					builders.TaskID("id-foo"),
-					builders.TaskServiceID("service-id-foo"),
-					builders.TaskNodeID("id-node"),
-					builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
-					builders.TaskDesiredState(swarm.TaskStateReady),
-					builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
-				)}, nil
+			taskListFunc: func(options client.TaskListOptions) (client.TaskListResult, error) {
+				return client.TaskListResult{
+					Items: []swarm.Task{*builders.Task(
+						builders.TaskID("id-foo"),
+						builders.TaskServiceID("service-id-foo"),
+						builders.TaskNodeID("id-node"),
+						builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+						builders.TaskDesiredState(swarm.TaskStateReady),
+						builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
+					)},
+				}, nil
 			},
-			nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
-				return *builders.Node(builders.NodeName("node-name-bar")), nil, nil
+			nodeInspectFunc: func(ref string) (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.NodeName("node-name-bar")),
+				}, nil
 			},
 			args:   []string{"foo"},
 			golden: "stack-ps-without-format.golden",
@@ -161,8 +181,8 @@ func TestStackPs(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				taskListFunc:       tc.taskListFunc,
-				nodeInspectWithRaw: tc.nodeInspectWithRaw,
+				taskListFunc:    tc.taskListFunc,
+				nodeInspectFunc: tc.nodeInspectFunc,
 			})
 			cli.SetConfigFile(&tc.config)
 

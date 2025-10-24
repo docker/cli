@@ -15,7 +15,7 @@ func TestPluginEnableErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
 		flags            map[string]string
-		pluginEnableFunc func(name string, options client.PluginEnableOptions) error
+		pluginEnableFunc func(name string, options client.PluginEnableOptions) (client.PluginEnableResult, error)
 		expectedError    string
 	}{
 		{
@@ -28,8 +28,8 @@ func TestPluginEnableErrors(t *testing.T) {
 		},
 		{
 			args: []string{"plugin-foo"},
-			pluginEnableFunc: func(name string, options client.PluginEnableOptions) error {
-				return errors.New("failed to enable plugin")
+			pluginEnableFunc: func(name string, options client.PluginEnableOptions) (client.PluginEnableResult, error) {
+				return client.PluginEnableResult{}, errors.New("failed to enable plugin")
 			},
 			expectedError: "failed to enable plugin",
 		},
@@ -58,8 +58,8 @@ func TestPluginEnableErrors(t *testing.T) {
 
 func TestPluginEnable(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		pluginEnableFunc: func(name string, options client.PluginEnableOptions) error {
-			return nil
+		pluginEnableFunc: func(name string, options client.PluginEnableOptions) (client.PluginEnableResult, error) {
+			return client.PluginEnableResult{}, nil
 		},
 	})
 

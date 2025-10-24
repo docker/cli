@@ -19,7 +19,7 @@ import (
 func TestSecretListErrors(t *testing.T) {
 	testCases := []struct {
 		args           []string
-		secretListFunc func(context.Context, client.SecretListOptions) ([]swarm.Secret, error)
+		secretListFunc func(context.Context, client.SecretListOptions) (client.SecretListResult, error)
 		expectedError  string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestSecretListErrors(t *testing.T) {
 			expectedError: "accepts no argument",
 		},
 		{
-			secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
-				return []swarm.Secret{}, errors.New("error listing secrets")
+			secretListFunc: func(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
+				return client.SecretListResult{}, errors.New("error listing secrets")
 			},
 			expectedError: "error listing secrets",
 		},
@@ -48,28 +48,30 @@ func TestSecretListErrors(t *testing.T) {
 
 func TestSecretList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
-			return []swarm.Secret{
-				*builders.Secret(builders.SecretID("ID-1-foo"),
-					builders.SecretName("1-foo"),
-					builders.SecretVersion(swarm.Version{Index: 10}),
-					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
-				*builders.Secret(builders.SecretID("ID-10-foo"),
-					builders.SecretName("10-foo"),
-					builders.SecretVersion(swarm.Version{Index: 11}),
-					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-					builders.SecretDriver("driver"),
-				),
-				*builders.Secret(builders.SecretID("ID-2-foo"),
-					builders.SecretName("2-foo"),
-					builders.SecretVersion(swarm.Version{Index: 11}),
-					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-					builders.SecretDriver("driver"),
-				),
+		secretListFunc: func(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
+			return client.SecretListResult{
+				Items: []swarm.Secret{
+					*builders.Secret(builders.SecretID("ID-1-foo"),
+						builders.SecretName("1-foo"),
+						builders.SecretVersion(swarm.Version{Index: 10}),
+						builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+					*builders.Secret(builders.SecretID("ID-10-foo"),
+						builders.SecretName("10-foo"),
+						builders.SecretVersion(swarm.Version{Index: 11}),
+						builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+						builders.SecretDriver("driver"),
+					),
+					*builders.Secret(builders.SecretID("ID-2-foo"),
+						builders.SecretName("2-foo"),
+						builders.SecretVersion(swarm.Version{Index: 11}),
+						builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+						builders.SecretDriver("driver"),
+					),
+				},
 			}, nil
 		},
 	})
@@ -80,12 +82,14 @@ func TestSecretList(t *testing.T) {
 
 func TestSecretListWithQuietOption(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
-			return []swarm.Secret{
-				*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
-				*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
-					"label": "label-bar",
-				})),
+		secretListFunc: func(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
+			return client.SecretListResult{
+				Items: []swarm.Secret{
+					*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+					*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
+						"label": "label-bar",
+					})),
+				},
 			}, nil
 		},
 	})
@@ -97,12 +101,14 @@ func TestSecretListWithQuietOption(t *testing.T) {
 
 func TestSecretListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
-			return []swarm.Secret{
-				*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
-				*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
-					"label": "label-bar",
-				})),
+		secretListFunc: func(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
+			return client.SecretListResult{
+				Items: []swarm.Secret{
+					*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+					*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
+						"label": "label-bar",
+					})),
+				},
 			}, nil
 		},
 	})
@@ -116,12 +122,14 @@ func TestSecretListWithConfigFormat(t *testing.T) {
 
 func TestSecretListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
-			return []swarm.Secret{
-				*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
-				*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
-					"label": "label-bar",
-				})),
+		secretListFunc: func(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
+			return client.SecretListResult{
+				Items: []swarm.Secret{
+					*builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+					*builders.Secret(builders.SecretID("ID-bar"), builders.SecretName("bar"), builders.SecretLabels(map[string]string{
+						"label": "label-bar",
+					})),
+				},
 			}, nil
 		},
 	})
@@ -133,22 +141,24 @@ func TestSecretListWithFormat(t *testing.T) {
 
 func TestSecretListWithFilter(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		secretListFunc: func(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
 			assert.Check(t, options.Filters["name"]["foo"])
 			assert.Check(t, options.Filters["label"]["lbl1=Label-bar"])
-			return []swarm.Secret{
-				*builders.Secret(builders.SecretID("ID-foo"),
-					builders.SecretName("foo"),
-					builders.SecretVersion(swarm.Version{Index: 10}),
-					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
-				*builders.Secret(builders.SecretID("ID-bar"),
-					builders.SecretName("bar"),
-					builders.SecretVersion(swarm.Version{Index: 11}),
-					builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
-					builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
-				),
+			return client.SecretListResult{
+				Items: []swarm.Secret{
+					*builders.Secret(builders.SecretID("ID-foo"),
+						builders.SecretName("foo"),
+						builders.SecretVersion(swarm.Version{Index: 10}),
+						builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+					*builders.Secret(builders.SecretID("ID-bar"),
+						builders.SecretName("bar"),
+						builders.SecretVersion(swarm.Version{Index: 11}),
+						builders.SecretCreatedAt(time.Now().Add(-2*time.Hour)),
+						builders.SecretUpdatedAt(time.Now().Add(-1*time.Hour)),
+					),
+				},
 			}, nil
 		},
 	})

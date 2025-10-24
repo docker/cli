@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -15,7 +16,7 @@ func TestSwarmLeaveErrors(t *testing.T) {
 	testCases := []struct {
 		name           string
 		args           []string
-		swarmLeaveFunc func() error
+		swarmLeaveFunc func() (client.SwarmLeaveResult, error)
 		expectedError  string
 	}{
 		{
@@ -26,8 +27,8 @@ func TestSwarmLeaveErrors(t *testing.T) {
 		{
 			name: "leave-failed",
 			args: []string{},
-			swarmLeaveFunc: func() error {
-				return errors.New("error leaving the swarm")
+			swarmLeaveFunc: func() (client.SwarmLeaveResult, error) {
+				return client.SwarmLeaveResult{}, errors.New("error leaving the swarm")
 			},
 			expectedError: "error leaving the swarm",
 		},

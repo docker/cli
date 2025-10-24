@@ -35,12 +35,12 @@ func newRollbackCommand(dockerCLI command.Cli) *cobra.Command {
 func runRollback(ctx context.Context, dockerCLI command.Cli, options *serviceOptions, serviceID string) error {
 	apiClient := dockerCLI.Client()
 
-	service, _, err := apiClient.ServiceInspectWithRaw(ctx, serviceID, client.ServiceInspectOptions{})
+	res, err := apiClient.ServiceInspect(ctx, serviceID, client.ServiceInspectOptions{})
 	if err != nil {
 		return err
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, service.ID, service.Version, service.Spec, client.ServiceUpdateOptions{
+	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, res.Service.Version, res.Service.Spec, client.ServiceUpdateOptions{
 		Rollback: "previous", // TODO(thaJeztah): this should have a const defined
 	})
 	if err != nil {

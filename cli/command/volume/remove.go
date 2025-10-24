@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +46,10 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) 
 
 	var errs []error
 	for _, name := range opts.volumes {
-		if err := apiClient.VolumeRemove(ctx, name, opts.force); err != nil {
+		err := apiClient.VolumeRemove(ctx, name, client.VolumeRemoveOptions{
+			Force: opts.force,
+		})
+		if err != nil {
 			errs = append(errs, err)
 			continue
 		}

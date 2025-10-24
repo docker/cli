@@ -515,12 +515,14 @@ func TestConvertServiceSecrets(t *testing.T) {
 		},
 	}
 	apiClient := &fakeClient{
-		secretListFunc: func(opts client.SecretListOptions) ([]swarm.Secret, error) {
+		secretListFunc: func(opts client.SecretListOptions) (client.SecretListResult, error) {
 			assert.Check(t, opts.Filters["name"]["foo_secret"])
 			assert.Check(t, opts.Filters["name"]["bar_secret"])
-			return []swarm.Secret{
-				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo_secret"}}},
-				{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "bar_secret"}}},
+			return client.SecretListResult{
+				Items: []swarm.Secret{
+					{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "foo_secret"}}},
+					{Spec: swarm.SecretSpec{Annotations: swarm.Annotations{Name: "bar_secret"}}},
+				},
 			}, nil
 		},
 	}
@@ -573,14 +575,16 @@ func TestConvertServiceConfigs(t *testing.T) {
 		},
 	}
 	apiClient := &fakeClient{
-		configListFunc: func(opts client.ConfigListOptions) ([]swarm.Config, error) {
+		configListFunc: func(opts client.ConfigListOptions) (client.ConfigListResult, error) {
 			assert.Check(t, opts.Filters["name"]["foo_config"])
 			assert.Check(t, opts.Filters["name"]["bar_config"])
 			assert.Check(t, opts.Filters["name"]["baz_config"])
-			return []swarm.Config{
-				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
-				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},
-				{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "baz_config"}}},
+			return client.ConfigListResult{
+				Items: []swarm.Config{
+					{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "foo_config"}}},
+					{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "bar_config"}}},
+					{Spec: swarm.ConfigSpec{Annotations: swarm.Annotations{Name: "baz_config"}}},
+				},
 			}, nil
 		},
 	}
@@ -616,22 +620,22 @@ func TestConvertServiceConfigs(t *testing.T) {
 
 type fakeClient struct {
 	client.Client
-	secretListFunc func(client.SecretListOptions) ([]swarm.Secret, error)
-	configListFunc func(client.ConfigListOptions) ([]swarm.Config, error)
+	secretListFunc func(client.SecretListOptions) (client.SecretListResult, error)
+	configListFunc func(client.ConfigListOptions) (client.ConfigListResult, error)
 }
 
-func (c *fakeClient) SecretList(_ context.Context, options client.SecretListOptions) ([]swarm.Secret, error) {
+func (c *fakeClient) SecretList(_ context.Context, options client.SecretListOptions) (client.SecretListResult, error) {
 	if c.secretListFunc != nil {
 		return c.secretListFunc(options)
 	}
-	return []swarm.Secret{}, nil
+	return client.SecretListResult{}, nil
 }
 
-func (c *fakeClient) ConfigList(_ context.Context, options client.ConfigListOptions) ([]swarm.Config, error) {
+func (c *fakeClient) ConfigList(_ context.Context, options client.ConfigListOptions) (client.ConfigListResult, error) {
 	if c.configListFunc != nil {
 		return c.configListFunc(options)
 	}
-	return []swarm.Config{}, nil
+	return client.ConfigListResult{}, nil
 }
 
 func TestConvertUpdateConfigParallelism(t *testing.T) {

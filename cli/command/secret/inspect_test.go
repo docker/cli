@@ -10,7 +10,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -19,7 +19,7 @@ func TestSecretInspectErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		secretInspectFunc func(ctx context.Context, secretID string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(ctx context.Context, secretID string, _ client.SecretInspectOptions) (client.SecretInspectResult, error)
 		expectedError     string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestSecretInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			secretInspectFunc: func(_ context.Context, secretID string) (swarm.Secret, []byte, error) {
-				return swarm.Secret{}, nil, errors.New("error while inspecting the secret")
+			secretInspectFunc: func(_ context.Context, secretID string, _ client.SecretInspectOptions) (client.SecretInspectResult, error) {
+				return client.SecretInspectResult{}, errors.New("error while inspecting the secret")
 			},
 			expectedError: "error while inspecting the secret",
 		},
@@ -41,11 +41,13 @@ func TestSecretInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo", "bar"},
-			secretInspectFunc: func(_ context.Context, secretID string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, secretID string, _ client.SecretInspectOptions) (client.SecretInspectResult, error) {
 				if secretID == "foo" {
-					return *builders.Secret(builders.SecretName("foo")), nil, nil
+					return client.SecretInspectResult{
+						Secret: *builders.Secret(builders.SecretName("foo")),
+					}, nil
 				}
-				return swarm.Secret{}, nil, errors.New("error while inspecting the secret")
+				return client.SecretInspectResult{}, errors.New("error while inspecting the secret")
 			},
 			expectedError: "error while inspecting the secret",
 		},
@@ -70,25 +72,29 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 	testCases := []struct {
 		name              string
 		args              []string
-		secretInspectFunc func(ctx context.Context, secretID string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(ctx context.Context, secretID string, _ client.SecretInspectOptions) (client.SecretInspectResult, error)
 	}{
 		{
 			name: "single-secret",
 			args: []string{"foo"},
-			secretInspectFunc: func(_ context.Context, name string) (swarm.Secret, []byte, error) {
+			secretInspectFunc: func(_ context.Context, name string, _ client.SecretInspectOptions) (client.SecretInspectResult, error) {
 				if name != "foo" {
-					return swarm.Secret{}, nil, fmt.Errorf("invalid name, expected %s, got %s", "foo", name)
+					return client.SecretInspectResult{}, fmt.Errorf("invalid name, expected %s, got %s", "foo", name)
 				}
-				return *builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")), nil, nil
+				return client.SecretInspectResult{
+					Secret: *builders.Secret(builders.SecretID("ID-foo"), builders.SecretName("foo")),
+				}, nil
 			},
 		},
 		{
 			name: "multiple-secrets-with-labels",
 			args: []string{"foo", "bar"},
-			secretInspectFunc: func(_ context.Context, name string) (swarm.Secret, []byte, error) {
-				return *builders.Secret(builders.SecretID("ID-"+name), builders.SecretName(name), builders.SecretLabels(map[string]string{
-					"label1": "label-foo",
-				})), nil, nil
+			secretInspectFunc: func(_ context.Context, name string, _ client.SecretInspectOptions) (client.SecretInspectResult, error) {
+				return client.SecretInspectResult{
+					Secret: *builders.Secret(builders.SecretID("ID-"+name), builders.SecretName(name), builders.SecretLabels(map[string]string{
+						"label1": "label-foo",
+					})),
+				}, nil
 			},
 		},
 	}
@@ -106,16 +112,21 @@ func TestSecretInspectWithoutFormat(t *testing.T) {
 }
 
 func TestSecretInspectWithFormat(t *testing.T) {
-	secretInspectFunc := func(_ context.Context, name string) (swarm.Secret, []byte, error) {
-		return *builders.Secret(builders.SecretName("foo"), builders.SecretLabels(map[string]string{
-			"label1": "label-foo",
-		})), nil, nil
+	secretInspectFunc := func(_ context.Context, name string, _ client.SecretInspectOptions) (client.SecretInspectResult, error) {
+		return client.SecretInspectResult{
+			Secret: *builders.Secret(
+				builders.SecretName("foo"),
+				builders.SecretLabels(map[string]string{
+					"label1": "label-foo",
+				}),
+			),
+		}, nil
 	}
 	testCases := []struct {
 		name              string
 		format            string
 		args              []string
-		secretInspectFunc func(_ context.Context, name string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(_ context.Context, name string, _ client.SecretInspectOptions) (client.SecretInspectResult, error)
 	}{
 		{
 			name:              "simple-template",
@@ -147,21 +158,23 @@ func TestSecretInspectWithFormat(t *testing.T) {
 func TestSecretInspectPretty(t *testing.T) {
 	testCases := []struct {
 		name              string
-		secretInspectFunc func(context.Context, string) (swarm.Secret, []byte, error)
+		secretInspectFunc func(context.Context, string, client.SecretInspectOptions) (client.SecretInspectResult, error)
 	}{
 		{
 			name: "simple",
-			secretInspectFunc: func(_ context.Context, id string) (swarm.Secret, []byte, error) {
-				return *builders.Secret(
-					builders.SecretLabels(map[string]string{
-						"lbl1": "value1",
-					}),
-					builders.SecretID("secretID"),
-					builders.SecretName("secretName"),
-					builders.SecretDriver("driver"),
-					builders.SecretCreatedAt(time.Time{}),
-					builders.SecretUpdatedAt(time.Time{}),
-				), []byte{}, nil
+			secretInspectFunc: func(_ context.Context, id string, _ client.SecretInspectOptions) (client.SecretInspectResult, error) {
+				return client.SecretInspectResult{
+					Secret: *builders.Secret(
+						builders.SecretLabels(map[string]string{
+							"lbl1": "value1",
+						}),
+						builders.SecretID("secretID"),
+						builders.SecretName("secretName"),
+						builders.SecretDriver("driver"),
+						builders.SecretCreatedAt(time.Time{}),
+						builders.SecretUpdatedAt(time.Time{}),
+					),
+				}, nil
 			},
 		},
 	}

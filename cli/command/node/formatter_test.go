@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -166,37 +167,39 @@ foobar_boo  Unknown
 		},
 	}
 
-	nodes := []swarm.Node{
-		{
-			ID: "nodeID1",
-			Description: swarm.NodeDescription{
-				Hostname: "foobar_baz",
-				TLSInfo:  swarm.TLSInfo{TrustRoot: "no"},
-				Engine:   swarm.EngineDescription{EngineVersion: "18.03.0-ce"},
+	nodes := client.NodeListResult{
+		Items: []swarm.Node{
+			{
+				ID: "nodeID1",
+				Description: swarm.NodeDescription{
+					Hostname: "foobar_baz",
+					TLSInfo:  swarm.TLSInfo{TrustRoot: "no"},
+					Engine:   swarm.EngineDescription{EngineVersion: "18.03.0-ce"},
+				},
+				Status:        swarm.NodeStatus{State: swarm.NodeState("foo")},
+				Spec:          swarm.NodeSpec{Availability: swarm.NodeAvailability("drain")},
+				ManagerStatus: &swarm.ManagerStatus{Leader: true},
 			},
-			Status:        swarm.NodeStatus{State: swarm.NodeState("foo")},
-			Spec:          swarm.NodeSpec{Availability: swarm.NodeAvailability("drain")},
-			ManagerStatus: &swarm.ManagerStatus{Leader: true},
-		},
-		{
-			ID: "nodeID2",
-			Description: swarm.NodeDescription{
-				Hostname: "foobar_bar",
-				TLSInfo:  swarm.TLSInfo{TrustRoot: "hi"},
-				Engine:   swarm.EngineDescription{EngineVersion: "1.2.3"},
+			{
+				ID: "nodeID2",
+				Description: swarm.NodeDescription{
+					Hostname: "foobar_bar",
+					TLSInfo:  swarm.TLSInfo{TrustRoot: "hi"},
+					Engine:   swarm.EngineDescription{EngineVersion: "1.2.3"},
+				},
+				Status: swarm.NodeStatus{State: swarm.NodeState("bar")},
+				Spec:   swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
+				ManagerStatus: &swarm.ManagerStatus{
+					Leader:       false,
+					Reachability: swarm.Reachability("Reachable"),
+				},
 			},
-			Status: swarm.NodeStatus{State: swarm.NodeState("bar")},
-			Spec:   swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
-			ManagerStatus: &swarm.ManagerStatus{
-				Leader:       false,
-				Reachability: swarm.Reachability("Reachable"),
+			{
+				ID:          "nodeID3",
+				Description: swarm.NodeDescription{Hostname: "foobar_boo"},
+				Status:      swarm.NodeStatus{State: swarm.NodeState("boo")},
+				Spec:        swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
 			},
-		},
-		{
-			ID:          "nodeID3",
-			Description: swarm.NodeDescription{Hostname: "foobar_boo"},
-			Status:      swarm.NodeStatus{State: swarm.NodeState("boo")},
-			Spec:        swarm.NodeSpec{Availability: swarm.NodeAvailability("active")},
 		},
 	}
 
@@ -246,10 +249,12 @@ func TestNodeContextWriteJSON(t *testing.T) {
 	}
 
 	for _, testcase := range cases {
-		nodes := []swarm.Node{
-			{ID: "nodeID1", Description: swarm.NodeDescription{Hostname: "foobar_baz", TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}, Engine: swarm.EngineDescription{EngineVersion: "1.2.3"}}},
-			{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar", TLSInfo: swarm.TLSInfo{TrustRoot: "no"}}},
-			{ID: "nodeID3", Description: swarm.NodeDescription{Hostname: "foobar_boo", Engine: swarm.EngineDescription{EngineVersion: "18.03.0-ce"}}},
+		nodes := client.NodeListResult{
+			Items: []swarm.Node{
+				{ID: "nodeID1", Description: swarm.NodeDescription{Hostname: "foobar_baz", TLSInfo: swarm.TLSInfo{TrustRoot: "hi"}, Engine: swarm.EngineDescription{EngineVersion: "1.2.3"}}},
+				{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar", TLSInfo: swarm.TLSInfo{TrustRoot: "no"}}},
+				{ID: "nodeID3", Description: swarm.NodeDescription{Hostname: "foobar_boo", Engine: swarm.EngineDescription{EngineVersion: "18.03.0-ce"}}},
+			},
 		}
 		out := bytes.NewBufferString("")
 		err := formatWrite(formatter.Context{Format: "{{json .}}", Output: out}, nodes, testcase.info)
@@ -267,9 +272,11 @@ func TestNodeContextWriteJSON(t *testing.T) {
 }
 
 func TestNodeContextWriteJSONField(t *testing.T) {
-	nodes := []swarm.Node{
-		{ID: "nodeID1", Description: swarm.NodeDescription{Hostname: "foobar_baz"}},
-		{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar"}},
+	nodes := client.NodeListResult{
+		Items: []swarm.Node{
+			{ID: "nodeID1", Description: swarm.NodeDescription{Hostname: "foobar_baz"}},
+			{ID: "nodeID2", Description: swarm.NodeDescription{Hostname: "foobar_bar"}},
+		},
 	}
 	out := bytes.NewBufferString("")
 	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, system.Info{})
@@ -281,7 +288,7 @@ func TestNodeContextWriteJSONField(t *testing.T) {
 		var s string
 		err := json.Unmarshal([]byte(line), &s)
 		assert.NilError(t, err, msg)
-		assert.Check(t, is.Equal(nodes[i].ID, s), msg)
+		assert.Check(t, is.Equal(nodes.Items[i].ID, s), msg)
 	}
 }
 

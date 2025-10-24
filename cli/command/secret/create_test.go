@@ -13,6 +13,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -22,7 +23,7 @@ const secretDataFile = "secret-create-with-name.golden"
 func TestSecretCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		secretCreateFunc func(context.Context, swarm.SecretSpec) (swarm.SecretCreateResponse, error)
+		secretCreateFunc func(context.Context, client.SecretCreateOptions) (client.SecretCreateResult, error)
 		expectedError    string
 	}{
 		{
@@ -35,8 +36,8 @@ func TestSecretCreateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"name", filepath.Join("testdata", secretDataFile)},
-			secretCreateFunc: func(_ context.Context, secretSpec swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
-				return swarm.SecretCreateResponse{}, errors.New("error creating secret")
+			secretCreateFunc: func(context.Context, client.SecretCreateOptions) (client.SecretCreateResult, error) {
+				return client.SecretCreateResult{}, errors.New("error creating secret")
 			},
 			expectedError: "error creating secret",
 		},
@@ -68,12 +69,12 @@ func TestSecretCreateWithName(t *testing.T) {
 	}
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
-			if !reflect.DeepEqual(spec, expected) {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected %+v, got %+v", expected, spec)
+		secretCreateFunc: func(_ context.Context, options client.SecretCreateOptions) (client.SecretCreateResult, error) {
+			if !reflect.DeepEqual(options.Spec, expected) {
+				return client.SecretCreateResult{}, fmt.Errorf("expected %+v, got %+v", expected, options.Spec)
 			}
-			return swarm.SecretCreateResponse{
-				ID: "ID-" + spec.Name,
+			return client.SecretCreateResult{
+				ID: "ID-" + options.Spec.Name,
 			}, nil
 		},
 	})
@@ -91,17 +92,17 @@ func TestSecretCreateWithDriver(t *testing.T) {
 	const name = "secret-with-driver"
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
-			if spec.Name != name {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected name %q, got %q", name, spec.Name)
+		secretCreateFunc: func(_ context.Context, options client.SecretCreateOptions) (client.SecretCreateResult, error) {
+			if options.Spec.Name != name {
+				return client.SecretCreateResult{}, fmt.Errorf("expected name %q, got %q", name, options.Spec.Name)
 			}
 
-			if spec.Driver.Name != expectedDriver.Name {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected driver %v, got %v", expectedDriver, spec.Labels)
+			if options.Spec.Driver.Name != expectedDriver.Name {
+				return client.SecretCreateResult{}, fmt.Errorf("expected driver %v, got %v", expectedDriver, options.Spec.Labels)
 			}
 
-			return swarm.SecretCreateResponse{
-				ID: "ID-" + spec.Name,
+			return client.SecretCreateResult{
+				ID: "ID-" + options.Spec.Name,
 			}, nil
 		},
 	})
@@ -120,17 +121,17 @@ func TestSecretCreateWithTemplatingDriver(t *testing.T) {
 	const name = "secret-with-template-driver"
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
-			if spec.Name != name {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected name %q, got %q", name, spec.Name)
+		secretCreateFunc: func(_ context.Context, options client.SecretCreateOptions) (client.SecretCreateResult, error) {
+			if options.Spec.Name != name {
+				return client.SecretCreateResult{}, fmt.Errorf("expected name %q, got %q", name, options.Spec.Name)
 			}
 
-			if spec.Templating.Name != expectedDriver.Name {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected driver %v, got %v", expectedDriver, spec.Labels)
+			if options.Spec.Templating.Name != expectedDriver.Name {
+				return client.SecretCreateResult{}, fmt.Errorf("expected driver %v, got %v", expectedDriver, options.Spec.Labels)
 			}
 
-			return swarm.SecretCreateResponse{
-				ID: "ID-" + spec.Name,
+			return client.SecretCreateResult{
+				ID: "ID-" + options.Spec.Name,
 			}, nil
 		},
 	})
@@ -150,17 +151,17 @@ func TestSecretCreateWithLabels(t *testing.T) {
 	const name = "secret-with-labels"
 
 	cli := test.NewFakeCli(&fakeClient{
-		secretCreateFunc: func(_ context.Context, spec swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
-			if spec.Name != name {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected name %q, got %q", name, spec.Name)
+		secretCreateFunc: func(_ context.Context, options client.SecretCreateOptions) (client.SecretCreateResult, error) {
+			if options.Spec.Name != name {
+				return client.SecretCreateResult{}, fmt.Errorf("expected name %q, got %q", name, options.Spec.Name)
 			}
 
-			if !reflect.DeepEqual(spec.Labels, expectedLabels) {
-				return swarm.SecretCreateResponse{}, fmt.Errorf("expected labels %v, got %v", expectedLabels, spec.Labels)
+			if !reflect.DeepEqual(options.Spec.Labels, expectedLabels) {
+				return client.SecretCreateResult{}, fmt.Errorf("expected labels %v, got %v", expectedLabels, options.Spec.Labels)
 			}
 
-			return swarm.SecretCreateResponse{
-				ID: "ID-" + spec.Name,
+			return client.SecretCreateResult{
+				ID: "ID-" + options.Spec.Name,
 			}, nil
 		},
 	})

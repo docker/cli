@@ -59,17 +59,17 @@ func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions)
 
 	getRef := func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		service, _, err := apiClient.ServiceInspectWithRaw(ctx, ref, client.ServiceInspectOptions{InsertDefaults: true})
+		res, err := apiClient.ServiceInspect(ctx, ref, client.ServiceInspectOptions{InsertDefaults: true})
 		if err == nil || !errdefs.IsNotFound(err) {
-			return service, nil, err
+			return res.Service, res.Raw, err
 		}
 		return nil, nil, fmt.Errorf("no such service: %s", ref)
 	}
 
 	getNetwork := func(ref string) (any, []byte, error) {
-		nw, _, err := apiClient.NetworkInspectWithRaw(ctx, ref, client.NetworkInspectOptions{Scope: "swarm"})
+		res, err := apiClient.NetworkInspect(ctx, ref, client.NetworkInspectOptions{Scope: "swarm"})
 		if err == nil || !errdefs.IsNotFound(err) {
-			return nw, nil, err
+			return res.Network, res.Raw, err
 		}
 		return nil, nil, fmt.Errorf("no such network: %s", ref)
 	}

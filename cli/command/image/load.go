@@ -91,16 +91,16 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		options = append(options, client.ImageLoadWithPlatforms(platformList...))
 	}
 
-	response, err := dockerCli.Client().ImageLoad(ctx, input, options...)
+	res, err := dockerCli.Client().ImageLoad(ctx, input, options...)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer res.Close()
 
-	if response.Body != nil && response.JSON {
-		return jsonstream.Display(ctx, response.Body, dockerCli.Out())
+	if res.JSON {
+		return jsonstream.Display(ctx, res, dockerCli.Out())
 	}
 
-	_, err = io.Copy(dockerCli.Out(), response.Body)
+	_, err = io.Copy(dockerCli.Out(), res)
 	return err
 }

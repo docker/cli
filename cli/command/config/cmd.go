@@ -38,12 +38,12 @@ func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 // completeNames offers completion for swarm configs
 func completeNames(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().ConfigList(cmd.Context(), client.ConfigListOptions{})
+		res, err := dockerCLI.Client().ConfigList(cmd.Context(), client.ConfigListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, config := range list {
+		for _, config := range res.Items {
 			names = append(names, config.ID)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp

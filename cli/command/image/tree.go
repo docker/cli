@@ -36,7 +36,7 @@ type treeView struct {
 }
 
 func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error {
-	images, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
+	res, err := dockerCLI.Client().ImageList(ctx, client.ImageListOptions{
 		All:       opts.all,
 		Filters:   opts.filters,
 		Manifests: true,
@@ -45,15 +45,15 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 		return err
 	}
 	if !opts.all {
-		images = slices.DeleteFunc(images, isDangling)
+		res.Items = slices.DeleteFunc(res.Items, isDangling)
 	}
 
 	view := treeView{
-		images: make([]topImage, 0, len(images)),
+		images: make([]topImage, 0, len(res.Items)),
 	}
 	attested := make(map[digest.Digest]bool)
 
-	for _, img := range images {
+	for _, img := range res.Items {
 		details := imageDetails{
 			ID:        img.ID,
 			DiskUsage: units.HumanSizeWithPrecision(float64(img.Size), 3),

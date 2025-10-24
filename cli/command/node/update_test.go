@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -16,8 +17,8 @@ func TestNodeUpdateErrors(t *testing.T) {
 	testCases := []struct {
 		args            []string
 		flags           map[string]string
-		nodeInspectFunc func() (swarm.Node, []byte, error)
-		nodeUpdateFunc  func(nodeID string, version swarm.Version, node swarm.NodeSpec) error
+		nodeInspectFunc func() (client.NodeInspectResult, error)
+		nodeUpdateFunc  func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error)
 		expectedError   string
 	}{
 		{
@@ -29,29 +30,31 @@ func TestNodeUpdateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"nodeID"},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return swarm.Node{}, []byte{}, errors.New("error inspecting the node")
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{}, errors.New("error inspecting the node")
 			},
 			expectedError: "error inspecting the node",
 		},
 		{
 			args: []string{"nodeID"},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				return errors.New("error updating the node")
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				return client.NodeUpdateResult{}, errors.New("error updating the node")
 			},
 			expectedError: "error updating the node",
 		},
 		{
 			args: []string{"nodeID"},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(builders.NodeLabels(map[string]string{
-					"key": "value",
-				})), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.NodeLabels(map[string]string{
+						"key": "value",
+					})),
+				}, nil
 			},
 			flags: map[string]string{
-				"label-rm": "notpresent",
+				"label-rm": "not-present",
 			},
-			expectedError: "key notpresent doesn't exist in node's labels",
+			expectedError: "key not-present doesn't exist in node's labels",
 		},
 	}
 	for _, tc := range testCases {
@@ -74,22 +77,24 @@ func TestNodeUpdate(t *testing.T) {
 	testCases := []struct {
 		args            []string
 		flags           map[string]string
-		nodeInspectFunc func() (swarm.Node, []byte, error)
-		nodeUpdateFunc  func(nodeID string, version swarm.Version, node swarm.NodeSpec) error
+		nodeInspectFunc func() (client.NodeInspectResult, error)
+		nodeUpdateFunc  func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error)
 	}{
 		{
 			args: []string{"nodeID"},
 			flags: map[string]string{
 				"role": "manager",
 			},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if node.Role != swarm.NodeRoleManager {
-					return errors.New("expected role manager, got " + string(node.Role))
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if options.Node.Role != swarm.NodeRoleManager {
+					return client.NodeUpdateResult{}, errors.New("expected role manager, got " + string(options.Node.Role))
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		},
 		{
@@ -97,14 +102,16 @@ func TestNodeUpdate(t *testing.T) {
 			flags: map[string]string{
 				"availability": "drain",
 			},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if node.Availability != swarm.NodeAvailabilityDrain {
-					return errors.New("expected drain availability, got " + string(node.Availability))
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if options.Node.Availability != swarm.NodeAvailabilityDrain {
+					return client.NodeUpdateResult{}, errors.New("expected drain availability, got " + string(options.Node.Availability))
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		},
 		{
@@ -112,14 +119,16 @@ func TestNodeUpdate(t *testing.T) {
 			flags: map[string]string{
 				"label-add": "lbl",
 			},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if _, present := node.Annotations.Labels["lbl"]; !present {
-					return fmt.Errorf("expected 'lbl' label, got %v", node.Annotations.Labels)
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if _, present := options.Node.Annotations.Labels["lbl"]; !present {
+					return client.NodeUpdateResult{}, fmt.Errorf("expected 'lbl' label, got %v", options.Node.Annotations.Labels)
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		},
 		{
@@ -127,14 +136,16 @@ func TestNodeUpdate(t *testing.T) {
 			flags: map[string]string{
 				"label-add": "key=value",
 			},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if value, present := node.Annotations.Labels["key"]; !present || value != "value" {
-					return fmt.Errorf("expected 'key' label to be 'value', got %v", node.Annotations.Labels)
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if value, present := options.Node.Annotations.Labels["key"]; !present || value != "value" {
+					return client.NodeUpdateResult{}, fmt.Errorf("expected 'key' label to be 'value', got %v", options.Node.Annotations.Labels)
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		},
 		{
@@ -142,16 +153,18 @@ func TestNodeUpdate(t *testing.T) {
 			flags: map[string]string{
 				"label-rm": "key",
 			},
-			nodeInspectFunc: func() (swarm.Node, []byte, error) {
-				return *builders.Node(builders.NodeLabels(map[string]string{
-					"key": "value",
-				})), []byte{}, nil
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.NodeLabels(map[string]string{
+						"key": "value",
+					})),
+				}, nil
 			},
-			nodeUpdateFunc: func(nodeID string, version swarm.Version, node swarm.NodeSpec) error {
-				if len(node.Annotations.Labels) > 0 {
-					return fmt.Errorf("expected no labels, got %v", node.Annotations.Labels)
+			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
+				if len(options.Node.Annotations.Labels) > 0 {
+					return client.NodeUpdateResult{}, fmt.Errorf("expected no labels, got %v", options.Node.Annotations.Labels)
 				}
-				return nil
+				return client.NodeUpdateResult{}, nil
 			},
 		},
 	}

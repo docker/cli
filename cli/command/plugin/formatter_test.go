@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/plugin"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -146,9 +147,11 @@ foobar_bar
 		},
 	}
 
-	plugins := []*plugin.Plugin{
-		{ID: "pluginID1", Name: "foobar_baz", Config: plugin.Config{Description: "description 1"}, Enabled: true},
-		{ID: "pluginID2", Name: "foobar_bar", Config: plugin.Config{Description: "description 2"}, Enabled: false},
+	plugins := client.PluginListResult{
+		Items: []*plugin.Plugin{
+			{ID: "pluginID1", Name: "foobar_baz", Config: plugin.Config{Description: "description 1"}, Enabled: true},
+			{ID: "pluginID2", Name: "foobar_bar", Config: plugin.Config{Description: "description 2"}, Enabled: false},
+		},
 	}
 
 	for _, tc := range tests {
@@ -167,9 +170,11 @@ foobar_bar
 }
 
 func TestPluginContextWriteJSON(t *testing.T) {
-	plugins := []*plugin.Plugin{
-		{ID: "pluginID1", Name: "foobar_baz"},
-		{ID: "pluginID2", Name: "foobar_bar"},
+	plugins := client.PluginListResult{
+		Items: []*plugin.Plugin{
+			{ID: "pluginID1", Name: "foobar_baz"},
+			{ID: "pluginID2", Name: "foobar_bar"},
+		},
 	}
 	expectedJSONs := []map[string]any{
 		{"Description": "", "Enabled": false, "ID": "pluginID1", "Name": "foobar_baz", "PluginReference": ""},
@@ -191,9 +196,11 @@ func TestPluginContextWriteJSON(t *testing.T) {
 }
 
 func TestPluginContextWriteJSONField(t *testing.T) {
-	plugins := []*plugin.Plugin{
-		{ID: "pluginID1", Name: "foobar_baz"},
-		{ID: "pluginID2", Name: "foobar_bar"},
+	plugins := client.PluginListResult{
+		Items: []*plugin.Plugin{
+			{ID: "pluginID1", Name: "foobar_baz"},
+			{ID: "pluginID2", Name: "foobar_bar"},
+		},
 	}
 	out := bytes.NewBufferString("")
 	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, plugins)
@@ -205,6 +212,6 @@ func TestPluginContextWriteJSONField(t *testing.T) {
 		if err := json.Unmarshal([]byte(line), &s); err != nil {
 			t.Fatal(err)
 		}
-		assert.Check(t, is.Equal(plugins[i].ID, s))
+		assert.Check(t, is.Equal(plugins.Items[i].ID, s))
 	}
 }

@@ -112,8 +112,8 @@ func pruneServices(ctx context.Context, dockerCLI command.Cli, namespace convert
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "Failed to list services:", err)
 	}
 
-	toRemove := make([]swarm.Service, 0, len(oldServices))
-	for _, service := range oldServices {
+	toRemove := make([]swarm.Service, 0, len(oldServices.Items))
+	for _, service := range oldServices.Items {
 		if _, exists := services[namespace.Descope(service.Spec.Name)]; !exists {
 			toRemove = append(toRemove, service)
 		}

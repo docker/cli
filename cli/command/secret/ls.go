@@ -46,7 +46,7 @@ func newSecretListCommand(dockerCLI command.Cli) *cobra.Command {
 func runSecretList(ctx context.Context, dockerCLI command.Cli, options listOptions) error {
 	apiClient := dockerCLI.Client()
 
-	secrets, err := apiClient.SecretList(ctx, client.SecretListOptions{Filters: options.filter.Value()})
+	res, err := apiClient.SecretList(ctx, client.SecretListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
@@ -59,13 +59,13 @@ func runSecretList(ctx context.Context, dockerCLI command.Cli, options listOptio
 		}
 	}
 
-	sort.Slice(secrets, func(i, j int) bool {
-		return sortorder.NaturalLess(secrets[i].Spec.Name, secrets[j].Spec.Name)
+	sort.Slice(res.Items, func(i, j int) bool {
+		return sortorder.NaturalLess(res.Items[i].Spec.Name, res.Items[j].Spec.Name)
 	})
 
 	secretCtx := formatter.Context{
 		Output: dockerCLI.Out(),
 		Format: newFormat(format, options.quiet),
 	}
-	return formatWrite(secretCtx, secrets)
+	return formatWrite(secretCtx, res)
 }

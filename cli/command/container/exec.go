@@ -72,11 +72,11 @@ func newExecCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVarP(&options.User, "user", "u", "", `Username or UID (format: "<name|uid>[:<group|gid>]")`)
 	flags.BoolVar(&options.Privileged, "privileged", false, "Give extended privileges to the command")
 	flags.VarP(&options.Env, "env", "e", "Set environment variables")
-	flags.SetAnnotation("env", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("env", "version", []string{"1.25"})
 	flags.Var(&options.EnvFile, "env-file", "Read in a file of environment variables")
-	flags.SetAnnotation("env-file", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("env-file", "version", []string{"1.25"})
 	flags.StringVarP(&options.Workdir, "workdir", "w", "", "Working directory inside the container")
-	flags.SetAnnotation("workdir", "version", []string{"1.35"})
+	_ = flags.SetAnnotation("workdir", "version", []string{"1.35"})
 
 	_ = cmd.RegisterFlagCompletionFunc("env", completion.EnvVarNames())
 	_ = cmd.RegisterFlagCompletionFunc("env-file", completion.FileNames())
@@ -108,7 +108,7 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 
 	fillConsoleSize(execOptions, dockerCLI)
 
-	response, err := apiClient.ContainerExecCreate(ctx, containerIDorName, *execOptions)
+	response, err := apiClient.ExecCreate(ctx, containerIDorName, *execOptions)
 	if err != nil {
 		return err
 	}
@@ -119,11 +119,12 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	}
 
 	if options.Detach {
-		return apiClient.ContainerExecStart(ctx, execID, client.ExecStartOptions{
+		_, err := apiClient.ExecStart(ctx, execID, client.ExecStartOptions{
 			Detach:      options.Detach,
 			Tty:         execOptions.Tty,
 			ConsoleSize: execOptions.ConsoleSize,
 		})
+		return err
 	}
 	return interactiveExec(ctx, dockerCLI, execOptions, execID)
 }
@@ -158,7 +159,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 	fillConsoleSize(execOptions, dockerCli)
 
 	apiClient := dockerCli.Client()
-	resp, err := apiClient.ContainerExecAttach(ctx, execID, client.ExecAttachOptions{
+	resp, err := apiClient.ExecAttach(ctx, execID, client.ExecAttachOptions{
 		Tty:         execOptions.Tty,
 		ConsoleSize: execOptions.ConsoleSize,
 	})
@@ -177,7 +178,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 				inputStream:  in,
 				outputStream: out,
 				errorStream:  stderr,
-				resp:         resp,
+				resp:         resp.HijackedResponse,
 				tty:          execOptions.Tty,
 				detachKeys:   execOptions.DetachKeys,
 			}
@@ -201,7 +202,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 }
 
 func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient, execID string) error {
-	resp, err := apiClient.ContainerExecInspect(ctx, execID)
+	resp, err := apiClient.ExecInspect(ctx, execID, client.ExecInspectOptions{})
 	if err != nil {
 		// If we can't connect, then the daemon probably died.
 		if !client.IsErrConnectionFailed(err) {

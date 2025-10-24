@@ -53,14 +53,14 @@ func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 // runPS is the swarm implementation of docker stack ps
 func runPS(ctx context.Context, dockerCLI command.Cli, opts psOptions) error {
 	apiClient := dockerCLI.Client()
-	tasks, err := apiClient.TaskList(ctx, client.TaskListOptions{
+	res, err := apiClient.TaskList(ctx, client.TaskListOptions{
 		Filters: getStackFilterFromOpt(opts.namespace, opts.filter),
 	})
 	if err != nil {
 		return err
 	}
 
-	if len(tasks) == 0 {
+	if len(res.Items) == 0 {
 		return fmt.Errorf("nothing found in stack: %s", opts.namespace)
 	}
 
@@ -68,5 +68,5 @@ func runPS(ctx context.Context, dockerCLI command.Cli, opts psOptions) error {
 		opts.format = task.DefaultFormat(dockerCLI.ConfigFile(), opts.quiet)
 	}
 
-	return task.Print(ctx, dockerCLI, tasks, idresolver.New(apiClient, opts.noResolve), !opts.noTrunc, opts.quiet, opts.format)
+	return task.Print(ctx, dockerCLI, res, idresolver.New(apiClient, opts.noResolve), !opts.noTrunc, opts.quiet, opts.format)
 }

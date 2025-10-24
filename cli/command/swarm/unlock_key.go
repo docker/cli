@@ -46,18 +46,20 @@ func runUnlockKey(ctx context.Context, dockerCLI command.Cli, opts unlockKeyOpti
 	apiClient := dockerCLI.Client()
 
 	if opts.rotate {
-		flags := client.SwarmUpdateFlags{RotateManagerUnlockKey: true}
-
-		sw, err := apiClient.SwarmInspect(ctx)
+		res, err := apiClient.SwarmInspect(ctx, client.SwarmInspectOptions{})
 		if err != nil {
 			return err
 		}
 
-		if !sw.Spec.EncryptionConfig.AutoLockManagers {
+		if !res.Swarm.Spec.EncryptionConfig.AutoLockManagers {
 			return errors.New("cannot rotate because autolock is not turned on")
 		}
 
-		if err := apiClient.SwarmUpdate(ctx, sw.Version, sw.Spec, flags); err != nil {
+		_, err = apiClient.SwarmUpdate(ctx, res.Swarm.Version, client.SwarmUpdateOptions{
+			Swarm:                  res.Swarm.Spec,
+			RotateManagerUnlockKey: true,
+		})
+		if err != nil {
 			return err
 		}
 
@@ -66,21 +68,21 @@ func runUnlockKey(ctx context.Context, dockerCLI command.Cli, opts unlockKeyOpti
 		}
 	}
 
-	unlockKeyResp, err := apiClient.SwarmGetUnlockKey(ctx)
+	resp, err := apiClient.SwarmGetUnlockKey(ctx)
 	if err != nil {
 		return fmt.Errorf("could not fetch unlock key: %w", err)
 	}
 
-	if unlockKeyResp.UnlockKey == "" {
+	if resp.Key == "" {
 		return errors.New("no unlock key is set")
 	}
 
 	if opts.quiet {
-		_, _ = fmt.Fprintln(dockerCLI.Out(), unlockKeyResp.UnlockKey)
+		_, _ = fmt.Fprintln(dockerCLI.Out(), resp.Key)
 		return nil
 	}
 
-	printUnlockCommand(dockerCLI.Out(), unlockKeyResp.UnlockKey)
+	printUnlockCommand(dockerCLI.Out(), resp.Key)
 	return nil
 }
 

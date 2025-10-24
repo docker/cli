@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +46,9 @@ func runPush(ctx context.Context, dockerCli command.Cli, name string) error {
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().PluginPush(ctx, reference.FamiliarString(named), encodedAuth)
+	responseBody, err := dockerCli.Client().PluginPush(ctx, reference.FamiliarString(named), client.PluginPushOptions{
+		RegistryAuth: encodedAuth,
+	})
 	if err != nil {
 		return err
 	}

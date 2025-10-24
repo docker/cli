@@ -8,7 +8,6 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -19,7 +18,7 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		name          string
 		args          []string
 		expectedError string
-		imageListFunc func(options client.ImageListOptions) ([]image.Summary, error)
+		imageListFunc func(options client.ImageListOptions) (client.ImageListResult, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -29,8 +28,8 @@ func TestNewImagesCommandErrors(t *testing.T) {
 		{
 			name:          "failed-list",
 			expectedError: "something went wrong",
-			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
-				return []image.Summary{}, errors.New("something went wrong")
+			imageListFunc: func(options client.ImageListOptions) (client.ImageListResult, error) {
+				return client.ImageListResult{}, errors.New("something went wrong")
 			},
 		},
 	}
@@ -50,7 +49,7 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		name          string
 		args          []string
 		imageFormat   string
-		imageListFunc func(options client.ImageListOptions) ([]image.Summary, error)
+		imageListFunc func(options client.ImageListOptions) (client.ImageListResult, error)
 	}{
 		{
 			name: "simple",
@@ -67,17 +66,17 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 		{
 			name: "match-name",
 			args: []string{"image"},
-			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options client.ImageListOptions) (client.ImageListResult, error) {
 				assert.Check(t, options.Filters["reference"]["image"])
-				return []image.Summary{}, nil
+				return client.ImageListResult{}, nil
 			},
 		},
 		{
 			name: "filters",
 			args: []string{"--filter", "name=value"},
-			imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
+			imageListFunc: func(options client.ImageListOptions) (client.ImageListResult, error) {
 				assert.Check(t, options.Filters["name"]["value"])
-				return []image.Summary{}, nil
+				return client.ImageListResult{}, nil
 			},
 		},
 	}

@@ -14,7 +14,7 @@ import (
 func TestRemoveErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
-		pluginRemoveFunc func(name string, options client.PluginRemoveOptions) error
+		pluginRemoveFunc func(name string, options client.PluginRemoveOptions) (client.PluginRemoveResult, error)
 		expectedError    string
 	}{
 		{
@@ -23,8 +23,8 @@ func TestRemoveErrors(t *testing.T) {
 		},
 		{
 			args: []string{"plugin-foo"},
-			pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) error {
-				return errors.New("error removing plugin")
+			pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) (client.PluginRemoveResult, error) {
+				return client.PluginRemoveResult{}, errors.New("error removing plugin")
 			},
 			expectedError: "error removing plugin",
 		},
@@ -43,11 +43,7 @@ func TestRemoveErrors(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	cli := test.NewFakeCli(&fakeClient{
-		pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) error {
-			return nil
-		},
-	})
+	cli := test.NewFakeCli(&fakeClient{})
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo"})
 	assert.NilError(t, cmd.Execute())
@@ -57,9 +53,9 @@ func TestRemove(t *testing.T) {
 func TestRemoveWithForceOption(t *testing.T) {
 	force := false
 	cli := test.NewFakeCli(&fakeClient{
-		pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) error {
+		pluginRemoveFunc: func(name string, options client.PluginRemoveOptions) (client.PluginRemoveResult, error) {
 			force = options.Force
-			return nil
+			return client.PluginRemoveResult{}, nil
 		},
 	})
 	cmd := newRemoveCommand(cli)

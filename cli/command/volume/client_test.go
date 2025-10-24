@@ -3,38 +3,37 @@ package volume
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {
 	client.Client
-	volumeCreateFunc  func(volume.CreateOptions) (volume.Volume, error)
-	volumeInspectFunc func(volumeID string) (volume.Volume, error)
-	volumeListFunc    func(filter client.Filters) (volume.ListResponse, error)
+	volumeCreateFunc  func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error)
+	volumeInspectFunc func(volumeID string) (client.VolumeInspectResult, error)
+	volumeListFunc    func(client.VolumeListOptions) (client.VolumeListResult, error)
 	volumeRemoveFunc  func(volumeID string, force bool) error
 	volumePruneFunc   func(opts client.VolumePruneOptions) (client.VolumePruneResult, error)
 }
 
-func (c *fakeClient) VolumeCreate(_ context.Context, options volume.CreateOptions) (volume.Volume, error) {
+func (c *fakeClient) VolumeCreate(_ context.Context, options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
 	if c.volumeCreateFunc != nil {
 		return c.volumeCreateFunc(options)
 	}
-	return volume.Volume{}, nil
+	return client.VolumeCreateResult{}, nil
 }
 
-func (c *fakeClient) VolumeInspect(_ context.Context, volumeID string) (volume.Volume, error) {
+func (c *fakeClient) VolumeInspect(_ context.Context, volumeID string, options client.VolumeInspectOptions) (client.VolumeInspectResult, error) {
 	if c.volumeInspectFunc != nil {
 		return c.volumeInspectFunc(volumeID)
 	}
-	return volume.Volume{}, nil
+	return client.VolumeInspectResult{}, nil
 }
 
-func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
+func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {
 	if c.volumeListFunc != nil {
-		return c.volumeListFunc(options.Filters)
+		return c.volumeListFunc(options)
 	}
-	return volume.ListResponse{}, nil
+	return client.VolumeListResult{}, nil
 }
 
 func (c *fakeClient) VolumesPrune(_ context.Context, opts client.VolumePruneOptions) (client.VolumePruneResult, error) {
@@ -44,9 +43,9 @@ func (c *fakeClient) VolumesPrune(_ context.Context, opts client.VolumePruneOpti
 	return client.VolumePruneResult{}, nil
 }
 
-func (c *fakeClient) VolumeRemove(_ context.Context, volumeID string, force bool) error {
+func (c *fakeClient) VolumeRemove(_ context.Context, volumeID string, options client.VolumeRemoveOptions) error {
 	if c.volumeRemoveFunc != nil {
-		return c.volumeRemoveFunc(volumeID, force)
+		return c.volumeRemoveFunc(volumeID, options.Force)
 	}
 	return nil
 }

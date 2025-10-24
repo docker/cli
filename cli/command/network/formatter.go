@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -35,7 +36,7 @@ func newFormat(source string, quiet bool) formatter.Format {
 }
 
 // formatWrite writes the context.
-func formatWrite(fmtCtx formatter.Context, networks []network.Summary) error {
+func formatWrite(fmtCtx formatter.Context, networks client.NetworkListResult) error {
 	networkCtx := networkContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -52,7 +53,7 @@ func formatWrite(fmtCtx formatter.Context, networks []network.Summary) error {
 		},
 	}
 	return fmtCtx.Write(&networkCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, nw := range networks {
+		for _, nw := range networks.Items {
 			if err := format(&networkContext{
 				trunc: fmtCtx.Trunc,
 				n:     nw,

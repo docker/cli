@@ -33,8 +33,8 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVar(&availability, "availability", "active", `Cluster Volume availability ("active", "pause", "drain")`)
-	flags.SetAnnotation("availability", "version", []string{"1.42"})
-	flags.SetAnnotation("availability", "swarm", []string{"manager"})
+	_ = flags.SetAnnotation("availability", "version", []string{"1.42"})
+	_ = flags.SetAnnotation("availability", "swarm", []string{"manager"})
 
 	return cmd
 }
@@ -46,23 +46,23 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, volumeID, availabilit
 
 	apiClient := dockerCli.Client()
 
-	vol, _, err := apiClient.VolumeInspectWithRaw(ctx, volumeID)
+	res, err := apiClient.VolumeInspect(ctx, volumeID, client.VolumeInspectOptions{})
 	if err != nil {
 		return err
 	}
 
-	if vol.ClusterVolume == nil {
+	if res.Volume.ClusterVolume == nil {
 		return errors.New("can only update cluster volumes")
 	}
 
 	if flags.Changed("availability") {
-		vol.ClusterVolume.Spec.Availability = volume.Availability(availability)
+		res.Volume.ClusterVolume.Spec.Availability = volume.Availability(availability)
 	}
 
 	return apiClient.VolumeUpdate(
-		ctx, vol.ClusterVolume.ID, vol.ClusterVolume.Version,
+		ctx, res.Volume.ClusterVolume.ID, res.Volume.ClusterVolume.Version,
 		client.VolumeUpdateOptions{
-			Spec: &vol.ClusterVolume.Spec,
+			Spec: &res.Volume.ClusterVolume.Spec,
 		},
 	)
 }

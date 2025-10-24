@@ -13,49 +13,48 @@ import (
 
 type fakeClient struct {
 	client.Client
-	imageTagFunc     func(string, string) error
-	imageSaveFunc    func(images []string, options ...client.ImageSaveOption) (io.ReadCloser, error)
-	imageRemoveFunc  func(image string, options client.ImageRemoveOptions) ([]image.DeleteResponse, error)
-	imagePushFunc    func(ref string, options client.ImagePushOptions) (io.ReadCloser, error)
+	imageTagFunc     func(options client.ImageTagOptions) (client.ImageTagResult, error)
+	imageSaveFunc    func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error)
+	imageRemoveFunc  func(image string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error)
+	imagePushFunc    func(ref string, options client.ImagePushOptions) (client.ImagePushResponse, error)
 	infoFunc         func() (system.Info, error)
 	imagePullFunc    func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error)
 	imagesPruneFunc  func(options client.ImagePruneOptions) (client.ImagePruneResult, error)
-	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error)
-	imageListFunc    func(options client.ImageListOptions) ([]image.Summary, error)
-	imageInspectFunc func(img string) (image.InspectResponse, error)
-	imageImportFunc  func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (io.ReadCloser, error)
-	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error)
-	imageBuildFunc   func(context.Context, io.Reader, client.ImageBuildOptions) (client.ImageBuildResponse, error)
+	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error)
+	imageListFunc    func(options client.ImageListOptions) (client.ImageListResult, error)
+	imageInspectFunc func(img string) (client.ImageInspectResult, error)
+	imageImportFunc  func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error)
+	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) (client.ImageHistoryResult, error)
+	imageBuildFunc   func(context.Context, io.Reader, client.ImageBuildOptions) (client.ImageBuildResult, error)
 }
 
-func (cli *fakeClient) ImageTag(_ context.Context, img, ref string) error {
+func (cli *fakeClient) ImageTag(_ context.Context, options client.ImageTagOptions) (client.ImageTagResult, error) {
 	if cli.imageTagFunc != nil {
-		return cli.imageTagFunc(img, ref)
+		return cli.imageTagFunc(options)
 	}
-	return nil
+	return client.ImageTagResult{}, nil
 }
 
-func (cli *fakeClient) ImageSave(_ context.Context, images []string, options ...client.ImageSaveOption) (io.ReadCloser, error) {
+func (cli *fakeClient) ImageSave(_ context.Context, images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 	if cli.imageSaveFunc != nil {
 		return cli.imageSaveFunc(images, options...)
 	}
-	return io.NopCloser(strings.NewReader("")), nil
+	return client.ImageSaveResult{}, nil
 }
 
-func (cli *fakeClient) ImageRemove(_ context.Context, img string,
-	options client.ImageRemoveOptions,
-) ([]image.DeleteResponse, error) {
+func (cli *fakeClient) ImageRemove(_ context.Context, img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
 	if cli.imageRemoveFunc != nil {
 		return cli.imageRemoveFunc(img, options)
 	}
-	return []image.DeleteResponse{}, nil
+	return client.ImageRemoveResult{}, nil
 }
 
-func (cli *fakeClient) ImagePush(_ context.Context, ref string, options client.ImagePushOptions) (io.ReadCloser, error) {
+func (cli *fakeClient) ImagePush(_ context.Context, ref string, options client.ImagePushOptions) (client.ImagePushResponse, error) {
 	if cli.imagePushFunc != nil {
 		return cli.imagePushFunc(ref, options)
 	}
-	return io.NopCloser(strings.NewReader("")), nil
+	// FIXME(thaJeztah): how to mock this?
+	return nil, nil
 }
 
 func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
@@ -69,7 +68,8 @@ func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.I
 	if cli.imagePullFunc != nil {
 		return cli.imagePullFunc(ref, options)
 	}
-	return client.ImagePullResponse{}, nil
+	// FIXME(thaJeztah): how to mock this?
+	return nil, nil
 }
 
 func (cli *fakeClient) ImagesPrune(_ context.Context, opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
@@ -79,46 +79,46 @@ func (cli *fakeClient) ImagesPrune(_ context.Context, opts client.ImagePruneOpti
 	return client.ImagePruneResult{}, nil
 }
 
-func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...client.ImageLoadOption) (client.LoadResponse, error) {
+func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 	if cli.imageLoadFunc != nil {
 		return cli.imageLoadFunc(input, options...)
 	}
-	return client.LoadResponse{}, nil
+	return client.ImageLoadResult{}, nil
 }
 
-func (cli *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) ([]image.Summary, error) {
+func (cli *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
 	if cli.imageListFunc != nil {
 		return cli.imageListFunc(options)
 	}
-	return []image.Summary{}, nil
+	return client.ImageListResult{}, nil
 }
 
-func (cli *fakeClient) ImageInspect(_ context.Context, img string, _ ...client.ImageInspectOption) (image.InspectResponse, error) {
+func (cli *fakeClient) ImageInspect(_ context.Context, img string, _ ...client.ImageInspectOption) (client.ImageInspectResult, error) {
 	if cli.imageInspectFunc != nil {
 		return cli.imageInspectFunc(img)
 	}
-	return image.InspectResponse{}, nil
+	return client.ImageInspectResult{}, nil
 }
 
-func (cli *fakeClient) ImageImport(_ context.Context, source client.ImageImportSource, ref string,
-	options client.ImageImportOptions,
-) (io.ReadCloser, error) {
+func (cli *fakeClient) ImageImport(_ context.Context, source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error) {
 	if cli.imageImportFunc != nil {
 		return cli.imageImportFunc(source, ref, options)
 	}
-	return io.NopCloser(strings.NewReader("")), nil
+	return client.ImageImportResult{}, nil
 }
 
-func (cli *fakeClient) ImageHistory(_ context.Context, img string, options ...client.ImageHistoryOption) ([]image.HistoryResponseItem, error) {
+func (cli *fakeClient) ImageHistory(_ context.Context, img string, options ...client.ImageHistoryOption) (client.ImageHistoryResult, error) {
 	if cli.imageHistoryFunc != nil {
 		return cli.imageHistoryFunc(img, options...)
 	}
-	return []image.HistoryResponseItem{{ID: img, Created: time.Now().Unix()}}, nil
+	return client.ImageHistoryResult{
+		Items: []image.HistoryResponseItem{{ID: img, Created: time.Now().Unix()}},
+	}, nil
 }
 
-func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResponse, error) {
+func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResult, error) {
 	if cli.imageBuildFunc != nil {
 		return cli.imageBuildFunc(ctx, buildContext, options)
 	}
-	return client.ImageBuildResponse{Body: io.NopCloser(strings.NewReader(""))}, nil
+	return client.ImageBuildResult{Body: io.NopCloser(strings.NewReader(""))}, nil
 }

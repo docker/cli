@@ -116,50 +116,58 @@ func inspectImages(ctx context.Context, dockerCli command.Cli) inspect.GetRefFun
 
 func inspectNetwork(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().NetworkInspectWithRaw(ctx, ref, client.NetworkInspectOptions{})
+		res, err := dockerCli.Client().NetworkInspect(ctx, ref, client.NetworkInspectOptions{})
+		return res.Network, res.Raw, err
 	}
 }
 
 func inspectNode(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().NodeInspectWithRaw(ctx, ref)
+		res, err := dockerCli.Client().NodeInspect(ctx, ref, client.NodeInspectOptions{})
+		return res.Node, res.Raw, err
 	}
 }
 
 func inspectService(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
 		// Service inspect shows defaults values in empty fields.
-		return dockerCli.Client().ServiceInspectWithRaw(ctx, ref, client.ServiceInspectOptions{InsertDefaults: true})
+		res, err := dockerCli.Client().ServiceInspect(ctx, ref, client.ServiceInspectOptions{InsertDefaults: true})
+		return res.Service, res.Raw, err
 	}
 }
 
 func inspectTasks(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().TaskInspectWithRaw(ctx, ref)
+		res, err := dockerCli.Client().TaskInspect(ctx, ref, client.TaskInspectOptions{})
+		return res.Task, res.Raw, err
 	}
 }
 
 func inspectVolume(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().VolumeInspectWithRaw(ctx, ref)
+		res, err := dockerCli.Client().VolumeInspect(ctx, ref, client.VolumeInspectOptions{})
+		return res.Volume, res.Raw, err
 	}
 }
 
 func inspectPlugin(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().PluginInspectWithRaw(ctx, ref)
+		res, err := dockerCli.Client().PluginInspect(ctx, ref, client.PluginInspectOptions{})
+		return res.Plugin, res.Raw, err
 	}
 }
 
 func inspectSecret(ctx context.Context, dockerCli command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().SecretInspectWithRaw(ctx, ref)
+		res, err := dockerCli.Client().SecretInspect(ctx, ref, client.SecretInspectOptions{})
+		return res.Secret, res.Raw, err
 	}
 }
 
 func inspectConfig(ctx context.Context, dockerCLI command.Cli) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCLI.Client().ConfigInspectWithRaw(ctx, ref)
+		res, err := dockerCLI.Client().ConfigInspect(ctx, ref, client.ConfigInspectOptions{})
+		return res.Config, res.Raw, err
 	}
 }
 

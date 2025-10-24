@@ -17,13 +17,13 @@ func completeNodeNames(dockerCLI completion.APIClientProvider) cobra.CompletionF
 	// https://github.com/docker/cli/blob/f9ced58158d5e0b358052432244b483774a1983d/contrib/completion/bash/docker#L41-L43
 	showIDs := os.Getenv("DOCKER_COMPLETION_SHOW_NODE_IDS") == "yes"
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().NodeList(cmd.Context(), client.NodeListOptions{})
+		res, err := dockerCLI.Client().NodeList(cmd.Context(), client.NodeListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 
-		names := make([]string, 0, len(list)+1)
-		for _, node := range list {
+		names := make([]string, 0, len(res.Items)+1)
+		for _, node := range res.Items {
 			if showIDs {
 				names = append(names, node.Description.Hostname, node.ID)
 			} else {

@@ -17,35 +17,41 @@ import (
 
 func TestTaskPrintSorted(t *testing.T) {
 	apiClient := &fakeClient{
-		serviceInspectWithRaw: func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
+		serviceInspectFunc: func(ref string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
 			if ref == "service-id-one" {
-				return *builders.Service(builders.ServiceName("service-name-1")), nil, nil
+				return client.ServiceInspectResult{
+					Service: *builders.Service(builders.ServiceName("service-name-1")),
+				}, nil
 			}
-			return *builders.Service(builders.ServiceName("service-name-10")), nil, nil
+			return client.ServiceInspectResult{
+				Service: *builders.Service(builders.ServiceName("service-name-10")),
+			}, nil
 		},
 	}
 
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{
-		*builders.Task(
-			builders.TaskID("id-foo"),
-			builders.TaskServiceID("service-id-ten"),
-			builders.TaskNodeID("id-node"),
-			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
-			builders.TaskDesiredState(swarm.TaskStateReady),
-			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
-		),
-		*builders.Task(
-			builders.TaskID("id-bar"),
-			builders.TaskServiceID("service-id-one"),
-			builders.TaskNodeID("id-node"),
-			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
-			builders.TaskDesiredState(swarm.TaskStateReady),
-			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
-		),
+	res := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(
+				builders.TaskID("id-foo"),
+				builders.TaskServiceID("service-id-ten"),
+				builders.TaskNodeID("id-node"),
+				builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+				builders.TaskDesiredState(swarm.TaskStateReady),
+				builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
+			),
+			*builders.Task(
+				builders.TaskID("id-bar"),
+				builders.TaskServiceID("service-id-one"),
+				builders.TaskNodeID("id-node"),
+				builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+				builders.TaskDesiredState(swarm.TaskStateReady),
+				builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
+			),
+		},
 	}
 
-	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, false), false, false, formatter.TableFormatKey)
+	err := Print(context.Background(), cli, res, idresolver.New(apiClient, false), false, false, formatter.TableFormatKey)
 	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-sorted.golden")
 }
@@ -56,7 +62,11 @@ func TestTaskPrintWithQuietOption(t *testing.T) {
 	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{*builders.Task(builders.TaskID("id-foo"))}
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(builders.TaskID("id-foo")),
+		},
+	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, formatter.TableFormatKey)
 	assert.NilError(t, err)
 	golden.Assert(t, cli.OutBuffer().String(), "task-print-with-quiet-option.golden")
@@ -68,8 +78,10 @@ func TestTaskPrintWithNoTruncOption(t *testing.T) {
 	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{
-		*builders.Task(builders.TaskID("id-foo-yov6omdek8fg3k5stosyp2m50")),
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(builders.TaskID("id-foo-yov6omdek8fg3k5stosyp2m50")),
+		},
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .ID }}")
 	assert.NilError(t, err)
@@ -82,8 +94,10 @@ func TestTaskPrintWithGlobalService(t *testing.T) {
 	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{
-		*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskNodeID("node-id-bar"), builders.TaskSlot(0)),
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskNodeID("node-id-bar"), builders.TaskSlot(0)),
+		},
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }}")
 	assert.NilError(t, err)
@@ -96,8 +110,10 @@ func TestTaskPrintWithReplicatedService(t *testing.T) {
 	const noResolve = true
 	apiClient := &fakeClient{}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{
-		*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskSlot(1)),
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskSlot(1)),
+		},
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }}")
 	assert.NilError(t, err)
@@ -109,31 +125,37 @@ func TestTaskPrintWithIndentation(t *testing.T) {
 	const trunc = false
 	const noResolve = false
 	apiClient := &fakeClient{
-		serviceInspectWithRaw: func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
-			return *builders.Service(builders.ServiceName("service-name-foo")), nil, nil
+		serviceInspectFunc: func(ref string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+			return client.ServiceInspectResult{
+				Service: *builders.Service(builders.ServiceName("service-name-foo")),
+			}, nil
 		},
-		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
-			return *builders.Node(builders.NodeName("node-name-bar")), nil, nil
+		nodeInspectFunc: func(ref string) (client.NodeInspectResult, error) {
+			return client.NodeInspectResult{
+				Node: *builders.Node(builders.NodeName("node-name-bar")),
+			}, nil
 		},
 	}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{
-		*builders.Task(
-			builders.TaskID("id-foo"),
-			builders.TaskServiceID("service-id-foo"),
-			builders.TaskNodeID("id-node"),
-			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
-			builders.TaskDesiredState(swarm.TaskStateReady),
-			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
-		),
-		*builders.Task(
-			builders.TaskID("id-bar"),
-			builders.TaskServiceID("service-id-foo"),
-			builders.TaskNodeID("id-node"),
-			builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
-			builders.TaskDesiredState(swarm.TaskStateReady),
-			builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
-		),
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(
+				builders.TaskID("id-foo"),
+				builders.TaskServiceID("service-id-foo"),
+				builders.TaskNodeID("id-node"),
+				builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+				builders.TaskDesiredState(swarm.TaskStateReady),
+				builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
+			),
+			*builders.Task(
+				builders.TaskID("id-bar"),
+				builders.TaskServiceID("service-id-foo"),
+				builders.TaskNodeID("id-node"),
+				builders.WithTaskSpec(builders.TaskImage("myimage:mytag")),
+				builders.TaskDesiredState(swarm.TaskStateReady),
+				builders.WithStatus(builders.TaskState(swarm.TaskStateFailed), builders.Timestamp(time.Now().Add(-2*time.Hour))),
+			),
+		},
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, formatter.TableFormatKey)
 	assert.NilError(t, err)
@@ -145,16 +167,22 @@ func TestTaskPrintWithResolution(t *testing.T) {
 	const trunc = false
 	const noResolve = false
 	apiClient := &fakeClient{
-		serviceInspectWithRaw: func(ref string, options client.ServiceInspectOptions) (swarm.Service, []byte, error) {
-			return *builders.Service(builders.ServiceName("service-name-foo")), nil, nil
+		serviceInspectFunc: func(ref string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+			return client.ServiceInspectResult{
+				Service: *builders.Service(builders.ServiceName("service-name-foo")),
+			}, nil
 		},
-		nodeInspectWithRaw: func(ref string) (swarm.Node, []byte, error) {
-			return *builders.Node(builders.NodeName("node-name-bar")), nil, nil
+		nodeInspectFunc: func(ref string) (client.NodeInspectResult, error) {
+			return client.NodeInspectResult{
+				Node: *builders.Node(builders.NodeName("node-name-bar")),
+			}, nil
 		},
 	}
 	cli := test.NewFakeCli(apiClient)
-	tasks := []swarm.Task{
-		*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskSlot(1)),
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			*builders.Task(builders.TaskServiceID("service-id-foo"), builders.TaskSlot(1)),
+		},
 	}
 	err := Print(context.Background(), cli, tasks, idresolver.New(apiClient, noResolve), trunc, quiet, "{{ .Name }} {{ .Node }}")
 	assert.NilError(t, err)

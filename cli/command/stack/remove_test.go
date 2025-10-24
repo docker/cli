@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -113,20 +114,20 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	allConfigs := []string{objectName("foo", "config1"), objectName("bar", "config1")}
 	allConfigIDs := buildObjectIDs(allConfigs)
 
-	removedServices := []string{}
+	var removedServices []string
 	apiClient := &fakeClient{
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
 		configs:  allConfigs,
 
-		serviceRemoveFunc: func(serviceID string) error {
+		serviceRemoveFunc: func(serviceID string) (client.ServiceRemoveResult, error) {
 			removedServices = append(removedServices, serviceID)
 
 			if strings.Contains(serviceID, "foo") {
-				return errors.New("")
+				return client.ServiceRemoveResult{}, errors.New("")
 			}
-			return nil
+			return client.ServiceRemoveResult{}, nil
 		},
 	}
 	cmd := newRemoveCommand(test.NewFakeCli(apiClient))

@@ -69,10 +69,12 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				imageListFunc: func(_ context.Context, _ client.ImageListOptions) ([]image.Summary, error) {
-					return []image.Summary{
-						{RepoTags: []string{"img:1"}},
-						{RepoTags: []string{"img:2"}},
+				imageListFunc: func(ctx context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
+					return client.ImageListResult{
+						Items: []image.Summary{
+							{RepoTags: []string{"img:1"}},
+							{RepoTags: []string{"img:2"}},
+						},
 					}, nil
 				},
 			},
@@ -81,8 +83,8 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				imageListFunc: func(_ context.Context, _ client.ImageListOptions) ([]image.Summary, error) {
-					return []image.Summary{}, errors.New("API error")
+				imageListFunc: func(ctx context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
+					return client.ImageListResult{}, errors.New("API error")
 				},
 			},
 			toComplete: "image=",
@@ -90,10 +92,12 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				networkListFunc: func(_ context.Context, _ client.NetworkListOptions) ([]network.Summary, error) {
-					return []network.Summary{
-						*builders.NetworkResource(builders.NetworkResourceName("nw1")),
-						*builders.NetworkResource(builders.NetworkResourceName("nw2")),
+				networkListFunc: func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
+					return client.NetworkListResult{
+						Items: []network.Summary{
+							*builders.NetworkResource(builders.NetworkResourceName("nw1")),
+							*builders.NetworkResource(builders.NetworkResourceName("nw2")),
+						},
 					}, nil
 				},
 			},
@@ -102,8 +106,8 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				networkListFunc: func(_ context.Context, _ client.NetworkListOptions) ([]network.Summary, error) {
-					return nil, errors.New("API error")
+				networkListFunc: func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
+					return client.NetworkListResult{}, errors.New("API error")
 				},
 			},
 			toComplete: "network=",
@@ -111,9 +115,11 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				nodeListFunc: func(_ context.Context, _ client.NodeListOptions) ([]swarm.Node, error) {
-					return []swarm.Node{
-						*builders.Node(builders.Hostname("n1")),
+				nodeListFunc: func(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error) {
+					return client.NodeListResult{
+						Items: []swarm.Node{
+							*builders.Node(builders.Hostname("n1")),
+						},
 					}, nil
 				},
 			},
@@ -122,8 +128,8 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				nodeListFunc: func(_ context.Context, _ client.NodeListOptions) ([]swarm.Node, error) {
-					return []swarm.Node{}, errors.New("API error")
+				nodeListFunc: func(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error) {
+					return client.NodeListResult{}, errors.New("API error")
 				},
 			},
 			toComplete: "node=",
@@ -131,11 +137,13 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
-					return volume.ListResponse{
-						Volumes: []*volume.Volume{
-							builders.Volume(builders.VolumeName("v1")),
-							builders.Volume(builders.VolumeName("v2")),
+				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {
+					return client.VolumeListResult{
+						Items: volume.ListResponse{
+							Volumes: []*volume.Volume{
+								builders.Volume(builders.VolumeName("v1")),
+								builders.Volume(builders.VolumeName("v2")),
+							},
 						},
 					}, nil
 				},
@@ -145,8 +153,8 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
-					return volume.ListResponse{}, errors.New("API error")
+				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {
+					return client.VolumeListResult{}, errors.New("API error")
 				},
 			},
 			toComplete: "volume=",

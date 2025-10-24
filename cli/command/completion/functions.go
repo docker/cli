@@ -27,12 +27,12 @@ func ImageNames(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
 		if limit > 0 && len(args) >= limit {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		list, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
+		res, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, img := range list {
+		for _, img := range res.Items {
 			names = append(names, img.RepoTags...)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
@@ -47,13 +47,13 @@ func ImageNamesWithBase(dockerCLI APIClientProvider, limit int) cobra.Completion
 		if limit > 0 && len(args) >= limit {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		list, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
+		res, err := dockerCLI.Client().ImageList(cmd.Context(), client.ImageListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
 		baseNameCounts := make(map[string]int)
-		for _, img := range list {
+		for _, img := range res.Items {
 			names = append(names, img.RepoTags...)
 			for _, tag := range img.RepoTags {
 				ref, err := reference.ParseNormalizedNamed(tag)
@@ -110,12 +110,12 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(conta
 // VolumeNames offers completion for volumes
 func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
+		res, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, vol := range list.Volumes {
+		for _, vol := range res.Items.Volumes {
 			names = append(names, vol.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
@@ -125,12 +125,12 @@ func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 // NetworkNames offers completion for networks
 func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
+		res, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}
 		var names []string
-		for _, nw := range list {
+		for _, nw := range res.Items {
 			names = append(names, nw.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp

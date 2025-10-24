@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 type tasksSortable []swarm.Task
@@ -34,7 +35,7 @@ func (t tasksSortable) Less(i, j int) bool {
 // Print task information in a format.
 // Besides this, command `docker node ps <node>`
 // and `docker stack ps` will call this, too.
-func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resolver *idresolver.IDResolver, trunc, quiet bool, format string) error {
+func Print(ctx context.Context, dockerCli command.Cli, tasks client.TaskListResult, resolver *idresolver.IDResolver, trunc, quiet bool, format string) error {
 	tasks, err := generateTaskNames(ctx, tasks, resolver)
 	if err != nil {
 		return err
@@ -43,7 +44,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 	// First sort tasks, so that all tasks (including previous ones) of the same
 	// service and slot are together. This must be done first, to print "previous"
 	// tasks indented
-	sort.Stable(tasksSortable(tasks))
+	sort.Stable(tasksSortable(tasks.Items))
 
 	names := map[string]string{}
 	nodes := map[string]string{}
@@ -59,7 +60,7 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 		indent = ` \_ `
 	}
 	prevName := ""
-	for _, task := range tasks {
+	for _, task := range tasks.Items {
 		if task.Name == prevName {
 			// Indent previous tasks of the same slot
 			names[task.ID] = indent + task.Name
@@ -87,15 +88,15 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks []swarm.Task, resol
 // - ServiceName.NodeName or ServiceID.NodeID for tasks that are part of a global service
 //
 // Task-names are not unique in cases where "tasks" contains previous/rotated tasks.
-func generateTaskNames(ctx context.Context, tasks []swarm.Task, resolver *idresolver.IDResolver) ([]swarm.Task, error) {
+func generateTaskNames(ctx context.Context, tasks client.TaskListResult, resolver *idresolver.IDResolver) (client.TaskListResult, error) {
 	// Use a copy of the tasks list, to not modify the original slice
 	// see https://github.com/go101/go101/wiki/How-to-efficiently-clone-a-slice%3F
-	t := append(tasks[:0:0], tasks...) //nolint:gocritic // ignore appendAssign: append result not assigned to the same slice
+	t := append(tasks.Items[:0:0], tasks.Items...) //nolint:gocritic // ignore appendAssign: append result not assigned to the same slice
 
 	for i, task := range t {
 		serviceName, err := resolver.Resolve(ctx, swarm.Service{}, task.ServiceID)
 		if err != nil {
-			return nil, err
+			return client.TaskListResult{}, err
 		}
 		if task.Slot != 0 {
 			t[i].Name = fmt.Sprintf("%v.%v", serviceName, task.Slot)
@@ -103,7 +104,7 @@ func generateTaskNames(ctx context.Context, tasks []swarm.Task, resolver *idreso
 			t[i].Name = fmt.Sprintf("%v.%v", serviceName, task.NodeID)
 		}
 	}
-	return t, nil
+	return client.TaskListResult{Items: t}, nil
 }
 
 // DefaultFormat returns the default format from the config file, or table

@@ -135,7 +135,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().ImageCreate(ctx, img, client.ImageCreateOptions{
+	resp, err := dockerCli.Client().ImageCreate(ctx, img, client.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
 		Platform:     options.platform,
 	})
@@ -143,14 +143,14 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		return err
 	}
 	defer func() {
-		_ = responseBody.Close()
+		_ = resp.Body.Close()
 	}()
 
 	out := dockerCli.Err()
 	if options.quiet {
 		out = streams.NewOut(io.Discard)
 	}
-	return jsonstream.Display(ctx, responseBody, out)
+	return jsonstream.Display(ctx, resp.Body, out)
 }
 
 type cidFile struct {

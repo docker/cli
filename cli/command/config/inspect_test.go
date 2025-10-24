@@ -10,7 +10,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
-	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -19,7 +19,7 @@ func TestConfigInspectErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		configInspectFunc func(_ context.Context, configID string) (swarm.Config, []byte, error)
+		configInspectFunc func(_ context.Context, configID string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error)
 		expectedError     string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestConfigInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo"},
-			configInspectFunc: func(_ context.Context, configID string) (swarm.Config, []byte, error) {
-				return swarm.Config{}, nil, errors.New("error while inspecting the config")
+			configInspectFunc: func(context.Context, string, client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
+				return client.ConfigInspectResult{}, errors.New("error while inspecting the config")
 			},
 			expectedError: "error while inspecting the config",
 		},
@@ -41,11 +41,13 @@ func TestConfigInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo", "bar"},
-			configInspectFunc: func(_ context.Context, configID string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, configID string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
 				if configID == "foo" {
-					return *builders.Config(builders.ConfigName("foo")), nil, nil
+					return client.ConfigInspectResult{
+						Config: *builders.Config(builders.ConfigName("foo")),
+					}, nil
 				}
-				return swarm.Config{}, nil, errors.New("error while inspecting the config")
+				return client.ConfigInspectResult{}, errors.New("error while inspecting the config")
 			},
 			expectedError: "error while inspecting the config",
 		},
@@ -70,25 +72,34 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 	testCases := []struct {
 		name              string
 		args              []string
-		configInspectFunc func(_ context.Context, configID string) (swarm.Config, []byte, error)
+		configInspectFunc func(_ context.Context, configID string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error)
 	}{
 		{
 			name: "single-config",
 			args: []string{"foo"},
-			configInspectFunc: func(_ context.Context, name string) (swarm.Config, []byte, error) {
+			configInspectFunc: func(_ context.Context, name string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
 				if name != "foo" {
-					return swarm.Config{}, nil, fmt.Errorf("invalid name, expected %s, got %s", "foo", name)
+					return client.ConfigInspectResult{}, fmt.Errorf("invalid name, expected %s, got %s", "foo", name)
 				}
-				return *builders.Config(builders.ConfigID("ID-foo"), builders.ConfigName("foo")), nil, nil
+				return client.ConfigInspectResult{
+					Config: *builders.Config(
+						builders.ConfigID("ID-foo"),
+						builders.ConfigName("foo"),
+					),
+				}, nil
 			},
 		},
 		{
 			name: "multiple-configs-with-labels",
 			args: []string{"foo", "bar"},
-			configInspectFunc: func(_ context.Context, name string) (swarm.Config, []byte, error) {
-				return *builders.Config(builders.ConfigID("ID-"+name), builders.ConfigName(name), builders.ConfigLabels(map[string]string{
-					"label1": "label-foo",
-				})), nil, nil
+			configInspectFunc: func(_ context.Context, name string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
+				return client.ConfigInspectResult{
+					Config: *builders.Config(
+						builders.ConfigID("ID-"+name),
+						builders.ConfigName(name),
+						builders.ConfigLabels(map[string]string{"label1": "label-foo"}),
+					),
+				}, nil
 			},
 		},
 	}
@@ -102,16 +113,19 @@ func TestConfigInspectWithoutFormat(t *testing.T) {
 }
 
 func TestConfigInspectWithFormat(t *testing.T) {
-	configInspectFunc := func(_ context.Context, name string) (swarm.Config, []byte, error) {
-		return *builders.Config(builders.ConfigName("foo"), builders.ConfigLabels(map[string]string{
-			"label1": "label-foo",
-		})), nil, nil
+	configInspectFunc := func(_ context.Context, name string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
+		return client.ConfigInspectResult{
+			Config: *builders.Config(
+				builders.ConfigName("foo"),
+				builders.ConfigLabels(map[string]string{"label1": "label-foo"}),
+			),
+		}, nil
 	}
 	testCases := []struct {
 		name              string
 		format            string
 		args              []string
-		configInspectFunc func(_ context.Context, name string) (swarm.Config, []byte, error)
+		configInspectFunc func(_ context.Context, name string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error)
 	}{
 		{
 			name:              "simple-template",
@@ -141,21 +155,23 @@ func TestConfigInspectWithFormat(t *testing.T) {
 func TestConfigInspectPretty(t *testing.T) {
 	testCases := []struct {
 		name              string
-		configInspectFunc func(context.Context, string) (swarm.Config, []byte, error)
+		configInspectFunc func(context.Context, string, client.ConfigInspectOptions) (client.ConfigInspectResult, error)
 	}{
 		{
 			name: "simple",
-			configInspectFunc: func(_ context.Context, id string) (swarm.Config, []byte, error) {
-				return *builders.Config(
-					builders.ConfigLabels(map[string]string{
-						"lbl1": "value1",
-					}),
-					builders.ConfigID("configID"),
-					builders.ConfigName("configName"),
-					builders.ConfigCreatedAt(time.Time{}),
-					builders.ConfigUpdatedAt(time.Time{}),
-					builders.ConfigData([]byte("payload here")),
-				), []byte{}, nil
+			configInspectFunc: func(_ context.Context, id string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
+				return client.ConfigInspectResult{
+					Config: *builders.Config(
+						builders.ConfigLabels(map[string]string{
+							"lbl1": "value1",
+						}),
+						builders.ConfigID("configID"),
+						builders.ConfigName("configName"),
+						builders.ConfigCreatedAt(time.Time{}),
+						builders.ConfigUpdatedAt(time.Time{}),
+						builders.ConfigData([]byte("payload here")),
+					),
+				}, nil
 			},
 		},
 	}

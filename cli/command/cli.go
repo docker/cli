@@ -25,7 +25,6 @@ import (
 	"github.com/docker/cli/cli/version"
 	dopts "github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/build"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -378,7 +377,7 @@ func (cli *DockerCli) initializeFromClient() {
 	ctx, cancel := context.WithTimeout(cli.baseCtx, cli.getInitTimeout())
 	defer cancel()
 
-	ping, err := cli.client.Ping(ctx)
+	ping, err := cli.client.Ping(ctx, client.PingOptions{})
 	if err != nil {
 		// Default to true if we fail to connect to daemon
 		cli.serverInfo = ServerInfo{HasExperimental: true}
@@ -564,7 +563,7 @@ type ServerInfo struct {
 	// in the ping response, or if an error occurred, in which case the client
 	// should use other ways to get the current swarm status, such as the /swarm
 	// endpoint.
-	SwarmStatus *swarm.Status
+	SwarmStatus *client.SwarmStatus
 }
 
 // NewDockerCli returns a DockerCli instance with all operators applied on it.

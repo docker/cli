@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -19,7 +20,7 @@ func TestVolumeCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args             []string
 		flags            map[string]string
-		volumeCreateFunc func(volume.CreateOptions) (volume.Volume, error)
+		volumeCreateFunc func(client.VolumeCreateOptions) (client.VolumeCreateResult, error)
 		expectedError    string
 	}{
 		{
@@ -34,8 +35,8 @@ func TestVolumeCreateErrors(t *testing.T) {
 			expectedError: "requires at most 1 argument",
 		},
 		{
-			volumeCreateFunc: func(createBody volume.CreateOptions) (volume.Volume, error) {
-				return volume.Volume{}, errors.New("error creating volume")
+			volumeCreateFunc: func(client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
+				return client.VolumeCreateResult{}, errors.New("error creating volume")
 			},
 			expectedError: "error creating volume",
 		},
@@ -59,12 +60,12 @@ func TestVolumeCreateErrors(t *testing.T) {
 func TestVolumeCreateWithName(t *testing.T) {
 	const name = "my-volume-name"
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
-			if body.Name != name {
-				return volume.Volume{}, fmt.Errorf("expected name %q, got %q", name, body.Name)
+		volumeCreateFunc: func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
+			if options.Name != name {
+				return client.VolumeCreateResult{}, fmt.Errorf("expected name %q, got %q", name, options.Name)
 			}
-			return volume.Volume{
-				Name: body.Name,
+			return client.VolumeCreateResult{
+				Volume: volume.Volume{Name: options.Name},
 			}, nil
 		},
 	})
@@ -116,21 +117,23 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 	}
 
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
-			if body.Name != "" {
-				return volume.Volume{}, fmt.Errorf("expected empty name, got %q", body.Name)
+		volumeCreateFunc: func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
+			if options.Name != "" {
+				return client.VolumeCreateResult{}, fmt.Errorf("expected empty name, got %q", options.Name)
 			}
-			if body.Driver != expectedDriver {
-				return volume.Volume{}, fmt.Errorf("expected driver %q, got %q", expectedDriver, body.Driver)
+			if options.Driver != expectedDriver {
+				return client.VolumeCreateResult{}, fmt.Errorf("expected driver %q, got %q", expectedDriver, options.Driver)
 			}
-			if !reflect.DeepEqual(body.DriverOpts, expectedOpts) {
-				return volume.Volume{}, fmt.Errorf("expected drivers opts %v, got %v", expectedOpts, body.DriverOpts)
+			if !reflect.DeepEqual(options.DriverOpts, expectedOpts) {
+				return client.VolumeCreateResult{}, fmt.Errorf("expected drivers opts %v, got %v", expectedOpts, options.DriverOpts)
 			}
-			if !reflect.DeepEqual(body.Labels, expectedLabels) {
-				return volume.Volume{}, fmt.Errorf("expected labels %v, got %v", expectedLabels, body.Labels)
+			if !reflect.DeepEqual(options.Labels, expectedLabels) {
+				return client.VolumeCreateResult{}, fmt.Errorf("expected labels %v, got %v", expectedLabels, options.Labels)
 			}
-			return volume.Volume{
-				Name: name,
+			return client.VolumeCreateResult{
+				Volume: volume.Volume{
+					Name: name,
+				},
 			}, nil
 		},
 	})
@@ -150,14 +153,14 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 
 func TestVolumeCreateCluster(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
-			if body.Driver == "csi" && body.ClusterVolumeSpec == nil {
-				return volume.Volume{}, errors.New("expected ClusterVolumeSpec, but none present")
+		volumeCreateFunc: func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
+			if options.Driver == "csi" && options.ClusterVolumeSpec == nil {
+				return client.VolumeCreateResult{}, errors.New("expected ClusterVolumeSpec, but none present")
 			}
-			if body.Driver == "notcsi" && body.ClusterVolumeSpec != nil {
-				return volume.Volume{}, errors.New("expected no ClusterVolumeSpec, but present")
+			if options.Driver == "notcsi" && options.ClusterVolumeSpec != nil {
+				return client.VolumeCreateResult{}, errors.New("expected no ClusterVolumeSpec, but present")
 			}
-			return volume.Volume{}, nil
+			return client.VolumeCreateResult{}, nil
 		},
 	})
 
@@ -185,7 +188,7 @@ func TestVolumeCreateCluster(t *testing.T) {
 }
 
 func TestVolumeCreateClusterOpts(t *testing.T) {
-	expectedBody := volume.CreateOptions{
+	expectedOptions := client.VolumeCreateOptions{
 		Name:       "name",
 		Driver:     "csi",
 		DriverOpts: map[string]string{},
@@ -223,12 +226,12 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 	}
 
 	cli := test.NewFakeCli(&fakeClient{
-		volumeCreateFunc: func(body volume.CreateOptions) (volume.Volume, error) {
-			sort.SliceStable(body.ClusterVolumeSpec.Secrets, func(i, j int) bool {
-				return body.ClusterVolumeSpec.Secrets[i].Key < body.ClusterVolumeSpec.Secrets[j].Key
+		volumeCreateFunc: func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
+			sort.SliceStable(options.ClusterVolumeSpec.Secrets, func(i, j int) bool {
+				return options.ClusterVolumeSpec.Secrets[i].Key < options.ClusterVolumeSpec.Secrets[j].Key
 			})
-			assert.DeepEqual(t, body, expectedBody)
-			return volume.Volume{}, nil
+			assert.DeepEqual(t, options, expectedOptions)
+			return client.VolumeCreateResult{}, nil
 		},
 	})
 

@@ -177,7 +177,7 @@ func resizeTTY(ctx context.Context, dockerCli command.Cli, containerID string) {
 	// terminal, the only way to get the shell prompt to display for attaches 2+ is to artificially
 	// resize it, then go back to normal. Without this, every attach after the first will
 	// require the user to manually resize or hit enter.
-	resizeTtyTo(ctx, dockerCli.Client(), containerID, height+1, width+1, false)
+	resizeTTYTo(ctx, dockerCli.Client(), containerID, height+1, width+1, false)
 
 	// After the above resizing occurs, the call to MonitorTtySize below will handle resetting back
 	// to the actual size.

@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -40,7 +41,7 @@ func newTaskFormat(source string, quiet bool) formatter.Format {
 }
 
 // formatWrite writes the context.
-func formatWrite(fmtCtx formatter.Context, tasks []swarm.Task, names map[string]string, nodes map[string]string) error {
+func formatWrite(fmtCtx formatter.Context, tasks client.TaskListResult, names map[string]string, nodes map[string]string) error {
 	taskCtx := &taskContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -56,7 +57,7 @@ func formatWrite(fmtCtx formatter.Context, tasks []swarm.Task, names map[string]
 		},
 	}
 	return fmtCtx.Write(taskCtx, func(format func(subContext formatter.SubContext) error) error {
-		for _, task := range tasks {
+		for _, task := range tasks.Items {
 			if err := format(&taskContext{
 				trunc: fmtCtx.Trunc,
 				task:  task,
@@ -140,7 +141,7 @@ func (c *taskContext) Ports() string {
 	if len(c.task.Status.PortStatus.Ports) == 0 {
 		return ""
 	}
-	ports := []string{}
+	ports := make([]string, 0, len(c.task.Status.PortStatus.Ports))
 	for _, pConfig := range c.task.Status.PortStatus.Ports {
 		ports = append(ports, fmt.Sprintf("*:%d->%d/%s",
 			pConfig.PublishedPort,

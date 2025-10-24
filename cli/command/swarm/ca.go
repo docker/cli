@@ -58,7 +58,7 @@ func newCACommand(dockerCLI command.Cli) *cobra.Command {
 func runCA(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opts caOptions) error {
 	apiClient := dockerCLI.Client()
 
-	swarmInspect, err := apiClient.SwarmInspect(ctx)
+	res, err := apiClient.SwarmInspect(ctx, client.SwarmInspectOptions{})
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func runCA(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opt
 				return fmt.Errorf("`--%s` flag requires the `--rotate` flag to update the CA", f)
 			}
 		}
-		return displayTrustRoot(dockerCLI.Out(), swarmInspect)
+		return displayTrustRoot(dockerCLI.Out(), res)
 	}
 
 	if flags.Changed(flagExternalCA) && len(opts.externalCA.Value()) > 0 && !flags.Changed(flagCACert) {
@@ -83,8 +83,10 @@ func runCA(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, opt
 			flagCACert, flagCAKey, flagExternalCA)
 	}
 
-	updateSwarmSpec(&swarmInspect.Spec, flags, opts)
-	if err := apiClient.SwarmUpdate(ctx, swarmInspect.Version, swarmInspect.Spec, client.SwarmUpdateFlags{}); err != nil {
+	updateSwarmSpec(&res.Swarm.Spec, flags, opts)
+	if _, err := apiClient.SwarmUpdate(ctx, res.Swarm.Version, client.SwarmUpdateOptions{
+		Swarm: res.Swarm.Spec,
+	}); err != nil {
 		return err
 	}
 
@@ -129,17 +131,17 @@ func attach(ctx context.Context, dockerCLI command.Cli, opts caOptions) error {
 		return err
 	}
 
-	swarmInspect, err := apiClient.SwarmInspect(ctx)
+	res, err := apiClient.SwarmInspect(ctx, client.SwarmInspectOptions{})
 	if err != nil {
 		return err
 	}
-	return displayTrustRoot(dockerCLI.Out(), swarmInspect)
+	return displayTrustRoot(dockerCLI.Out(), res)
 }
 
-func displayTrustRoot(out io.Writer, info swarm.Swarm) error {
-	if info.ClusterInfo.TLSInfo.TrustRoot == "" {
+func displayTrustRoot(out io.Writer, info client.SwarmInspectResult) error {
+	if info.Swarm.ClusterInfo.TLSInfo.TrustRoot == "" {
 		return errors.New("no CA information available")
 	}
-	_, _ = fmt.Fprintln(out, strings.TrimSpace(info.ClusterInfo.TLSInfo.TrustRoot))
+	_, _ = fmt.Fprintln(out, strings.TrimSpace(info.Swarm.ClusterInfo.TLSInfo.TrustRoot))
 	return nil
 }

@@ -14,15 +14,15 @@ import (
 type fakeClient struct {
 	client.Client
 	inspectFunc         func(string) (container.InspectResponse, error)
-	execInspectFunc     func(execID string) (client.ExecInspect, error)
-	execCreateFunc      func(containerID string, options client.ExecCreateOptions) (container.ExecCreateResponse, error)
+	execInspectFunc     func(execID string) (client.ExecInspectResult, error)
+	execCreateFunc      func(containerID string, options client.ExecCreateOptions) (client.ExecCreateResult, error)
 	createContainerFunc func(config *container.Config,
 		hostConfig *container.HostConfig,
 		networkingConfig *network.NetworkingConfig,
 		platform *ocispec.Platform,
 		containerName string) (container.CreateResponse, error)
 	containerStartFunc      func(containerID string, options client.ContainerStartOptions) error
-	imageCreateFunc         func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error)
+	imageCreateFunc         func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error)
 	infoFunc                func() (system.Info, error)
 	containerStatPathFunc   func(containerID, path string) (container.PathStat, error)
 	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, container.PathStat, error)
@@ -30,7 +30,7 @@ type fakeClient struct {
 	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
 	containerListFunc       func(client.ContainerListOptions) ([]container.Summary, error)
 	containerExportFunc     func(string) (io.ReadCloser, error)
-	containerExecResizeFunc func(id string, options client.ContainerResizeOptions) error
+	containerExecResizeFunc func(id string, options client.ExecResizeOptions) (client.ExecResizeResult, error)
 	containerRemoveFunc     func(ctx context.Context, containerID string, options client.ContainerRemoveOptions) error
 	containerRestartFunc    func(ctx context.Context, containerID string, options client.ContainerStopOptions) error
 	containerStopFunc       func(ctx context.Context, containerID string, options client.ContainerStopOptions) error
@@ -58,22 +58,22 @@ func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (co
 	return container.InspectResponse{}, nil
 }
 
-func (f *fakeClient) ContainerExecCreate(_ context.Context, containerID string, config client.ExecCreateOptions) (container.ExecCreateResponse, error) {
+func (f *fakeClient) ExecCreate(_ context.Context, containerID string, config client.ExecCreateOptions) (client.ExecCreateResult, error) {
 	if f.execCreateFunc != nil {
 		return f.execCreateFunc(containerID, config)
 	}
-	return container.ExecCreateResponse{}, nil
+	return client.ExecCreateResult{}, nil
 }
 
-func (f *fakeClient) ContainerExecInspect(_ context.Context, execID string) (client.ExecInspect, error) {
+func (f *fakeClient) ExecInspect(_ context.Context, execID string, _ client.ExecInspectOptions) (client.ExecInspectResult, error) {
 	if f.execInspectFunc != nil {
 		return f.execInspectFunc(execID)
 	}
-	return client.ExecInspect{}, nil
+	return client.ExecInspectResult{}, nil
 }
 
-func (*fakeClient) ContainerExecStart(context.Context, string, client.ExecStartOptions) error {
-	return nil
+func (*fakeClient) ExecStart(context.Context, string, client.ExecStartOptions) (client.ExecStartResult, error) {
+	return client.ExecStartResult{}, nil
 }
 
 func (f *fakeClient) ContainerCreate(
@@ -97,11 +97,11 @@ func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, op
 	return nil
 }
 
-func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options client.ImageCreateOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error) {
 	if f.imageCreateFunc != nil {
 		return f.imageCreateFunc(ctx, parentReference, options)
 	}
-	return nil, nil
+	return client.ImageCreateResult{}, nil
 }
 
 func (f *fakeClient) Info(_ context.Context) (system.Info, error) {
@@ -157,11 +157,11 @@ func (f *fakeClient) ContainerExport(_ context.Context, containerID string) (io.
 	return nil, nil
 }
 
-func (f *fakeClient) ContainerExecResize(_ context.Context, id string, options client.ContainerResizeOptions) error {
+func (f *fakeClient) ExecResize(_ context.Context, id string, options client.ExecResizeOptions) (client.ExecResizeResult, error) {
 	if f.containerExecResizeFunc != nil {
 		return f.containerExecResizeFunc(id, options)
 	}
-	return nil
+	return client.ExecResizeResult{}, nil
 }
 
 func (f *fakeClient) ContainerKill(ctx context.Context, containerID, signal string) error {

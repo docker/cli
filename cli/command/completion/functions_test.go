@@ -28,38 +28,38 @@ func (c fakeCLI) Client() client.APIClient {
 
 type fakeClient struct {
 	client.Client
-	containerListFunc func(options client.ContainerListOptions) ([]container.Summary, error)
-	imageListFunc     func(options client.ImageListOptions) ([]image.Summary, error)
-	networkListFunc   func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error)
-	volumeListFunc    func(filter client.Filters) (volume.ListResponse, error)
+	containerListFunc func(context.Context, client.ContainerListOptions) ([]container.Summary, error)
+	imageListFunc     func(context.Context, client.ImageListOptions) (client.ImageListResult, error)
+	networkListFunc   func(context.Context, client.NetworkListOptions) (client.NetworkListResult, error)
+	volumeListFunc    func(context.Context, client.VolumeListOptions) (client.VolumeListResult, error)
 }
 
-func (c *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
+func (c *fakeClient) ContainerList(ctx context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
 	if c.containerListFunc != nil {
-		return c.containerListFunc(options)
+		return c.containerListFunc(ctx, options)
 	}
 	return []container.Summary{}, nil
 }
 
-func (c *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) ([]image.Summary, error) {
+func (c *fakeClient) ImageList(ctx context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
 	if c.imageListFunc != nil {
-		return c.imageListFunc(options)
+		return c.imageListFunc(ctx, options)
 	}
-	return []image.Summary{}, nil
+	return client.ImageListResult{}, nil
 }
 
-func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
+func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
 	if c.networkListFunc != nil {
 		return c.networkListFunc(ctx, options)
 	}
-	return []network.Summary{}, nil
+	return client.NetworkListResult{}, nil
 }
 
-func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOptions) (volume.ListResponse, error) {
+func (c *fakeClient) VolumeList(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {
 	if c.volumeListFunc != nil {
-		return c.volumeListFunc(options.Filters)
+		return c.volumeListFunc(ctx, options)
 	}
-	return volume.ListResponse{}, nil
+	return client.VolumeListResult{}, nil
 }
 
 func TestCompleteContainerNames(t *testing.T) {
@@ -153,7 +153,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				t.Setenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS", "yes")
 			}
 			comp := ContainerNames(fakeCLI{&fakeClient{
-				containerListFunc: func(opts client.ContainerListOptions) ([]container.Summary, error) {
+				containerListFunc: func(_ context.Context, opts client.ContainerListOptions) ([]container.Summary, error) {
 					assert.Check(t, is.DeepEqual(opts, tc.expOpts))
 					if tc.expDirective == cobra.ShellCompDirectiveError {
 						return nil, errors.New("some error occurred")
@@ -226,11 +226,11 @@ func TestCompleteImageNames(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := ImageNames(fakeCLI{&fakeClient{
-				imageListFunc: func(options client.ImageListOptions) ([]image.Summary, error) {
+				imageListFunc: func(context.Context, client.ImageListOptions) (client.ImageListResult, error) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
-						return nil, errors.New("some error occurred")
+						return client.ImageListResult{}, errors.New("some error occurred")
 					}
-					return tc.images, nil
+					return client.ImageListResult{Items: tc.images}, nil
 				},
 			}}, -1)
 
@@ -286,11 +286,11 @@ func TestCompleteNetworkNames(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := NetworkNames(fakeCLI{&fakeClient{
-				networkListFunc: func(ctx context.Context, options client.NetworkListOptions) ([]network.Summary, error) {
+				networkListFunc: func(context.Context, client.NetworkListOptions) (client.NetworkListResult, error) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
-						return nil, errors.New("some error occurred")
+						return client.NetworkListResult{}, errors.New("some error occurred")
 					}
-					return tc.networks, nil
+					return client.NetworkListResult{Items: tc.networks}, nil
 				},
 			}})
 
@@ -337,11 +337,11 @@ func TestCompleteVolumeNames(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			comp := VolumeNames(fakeCLI{&fakeClient{
-				volumeListFunc: func(filter client.Filters) (volume.ListResponse, error) {
+				volumeListFunc: func(context.Context, client.VolumeListOptions) (client.VolumeListResult, error) {
 					if tc.expDirective == cobra.ShellCompDirectiveError {
-						return volume.ListResponse{}, errors.New("some error occurred")
+						return client.VolumeListResult{}, errors.New("some error occurred")
 					}
-					return volume.ListResponse{Volumes: tc.volumes}, nil
+					return client.VolumeListResult{Items: volume.ListResponse{Volumes: tc.volumes}}, nil
 				},
 			}})
 
