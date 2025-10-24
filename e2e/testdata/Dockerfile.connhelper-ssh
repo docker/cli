@@ -21,3 +21,7 @@ COPY ./connhelper-ssh/entrypoint.sh /
 EXPOSE 22
 ENTRYPOINT ["/entrypoint.sh"]
 # usage: docker run --privileged -e TEST_CONNHELPER_SSH_ID_RSA_PUB=$(cat ~/.ssh/id_rsa.pub) -p 22 $THIS_IMAGE
+
+RUN mkdir -p /etc/docker \
+ && echo '{"features": {"containerd-snapshotter": false}}' > /etc/docker/daemon.json
+
