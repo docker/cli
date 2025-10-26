@@ -46,14 +46,14 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.String("image", "", "Service image tag")
 	flags.Var(&ShlexOpt{}, "args", "Service command args")
 	flags.Bool(flagRollback, false, "Rollback to previous specification")
-	flags.SetAnnotation(flagRollback, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagRollback, "version", []string{"1.25"})
 	flags.Bool("force", false, "Force update even if no changes require it")
-	flags.SetAnnotation("force", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("force", "version", []string{"1.25"})
 	addServiceFlags(flags, options, nil)
 
 	flags.Var(newListOptsVar(), flagEnvRemove, "Remove an environment variable")
 	flags.Var(newListOptsVar(), flagGroupRemove, "Remove a previously added supplementary user group from the container")
-	flags.SetAnnotation(flagGroupRemove, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagGroupRemove, "version", []string{"1.25"})
 	flags.Var(newListOptsVar(), flagLabelRemove, "Remove a label by its key")
 	flags.Var(newListOptsVar(), flagContainerLabelRemove, "Remove a container label by its key")
 	flags.Var(newListOptsVar(), flagMountRemove, "Remove a mount by its target path")
@@ -61,65 +61,65 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.Var(&swarmopts.PortOpt{}, flagPublishRemove, "Remove a published port by its target port")
 	flags.Var(newListOptsVar(), flagConstraintRemove, "Remove a constraint")
 	flags.Var(newListOptsVar(), flagDNSRemove, "Remove a custom DNS server")
-	flags.SetAnnotation(flagDNSRemove, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagDNSRemove, "version", []string{"1.25"})
 	flags.Var(newListOptsVar(), flagDNSOptionRemove, "Remove a DNS option")
-	flags.SetAnnotation(flagDNSOptionRemove, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagDNSOptionRemove, "version", []string{"1.25"})
 	flags.Var(newListOptsVar(), flagDNSSearchRemove, "Remove a DNS search domain")
-	flags.SetAnnotation(flagDNSSearchRemove, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagDNSSearchRemove, "version", []string{"1.25"})
 	flags.Var(newListOptsVar(), flagHostRemove, `Remove a custom host-to-IP mapping ("host:ip")`)
-	flags.SetAnnotation(flagHostRemove, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagHostRemove, "version", []string{"1.25"})
 	flags.Var(&options.labels, flagLabelAdd, "Add or update a service label")
 	flags.Var(&options.containerLabels, flagContainerLabelAdd, "Add or update a container label")
 	flags.Var(&options.env, flagEnvAdd, "Add or update an environment variable")
 	flags.Var(newListOptsVar(), flagSecretRemove, "Remove a secret")
-	flags.SetAnnotation(flagSecretRemove, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagSecretRemove, "version", []string{"1.25"})
 	flags.Var(&options.secrets, flagSecretAdd, "Add or update a secret on a service")
-	flags.SetAnnotation(flagSecretAdd, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagSecretAdd, "version", []string{"1.25"})
 
 	flags.Var(newListOptsVar(), flagConfigRemove, "Remove a configuration file")
-	flags.SetAnnotation(flagConfigRemove, "version", []string{"1.30"})
+	_ = flags.SetAnnotation(flagConfigRemove, "version", []string{"1.30"})
 	flags.Var(&options.configs, flagConfigAdd, "Add or update a config file on a service")
-	flags.SetAnnotation(flagConfigAdd, "version", []string{"1.30"})
+	_ = flags.SetAnnotation(flagConfigAdd, "version", []string{"1.30"})
 
 	flags.Var(&options.mounts, flagMountAdd, "Add or update a mount on a service")
 	flags.Var(&options.constraints, flagConstraintAdd, "Add or update a placement constraint")
 	flags.Var(&options.placementPrefs, flagPlacementPrefAdd, "Add a placement preference")
-	flags.SetAnnotation(flagPlacementPrefAdd, "version", []string{"1.28"})
+	_ = flags.SetAnnotation(flagPlacementPrefAdd, "version", []string{"1.28"})
 	flags.Var(&placementPrefOpts{}, flagPlacementPrefRemove, "Remove a placement preference")
-	flags.SetAnnotation(flagPlacementPrefRemove, "version", []string{"1.28"})
+	_ = flags.SetAnnotation(flagPlacementPrefRemove, "version", []string{"1.28"})
 	flags.Var(&options.networks, flagNetworkAdd, "Add a network")
-	flags.SetAnnotation(flagNetworkAdd, "version", []string{"1.29"})
+	_ = flags.SetAnnotation(flagNetworkAdd, "version", []string{"1.29"})
 	flags.Var(newListOptsVar(), flagNetworkRemove, "Remove a network")
-	flags.SetAnnotation(flagNetworkRemove, "version", []string{"1.29"})
+	_ = flags.SetAnnotation(flagNetworkRemove, "version", []string{"1.29"})
 	flags.Var(&options.endpoint.publishPorts, flagPublishAdd, "Add or update a published port")
 	flags.Var(&options.groups, flagGroupAdd, "Add an additional supplementary user group to the container")
-	flags.SetAnnotation(flagGroupAdd, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagGroupAdd, "version", []string{"1.25"})
 	flags.Var(&options.dns, flagDNSAdd, "Add or update a custom DNS server")
-	flags.SetAnnotation(flagDNSAdd, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagDNSAdd, "version", []string{"1.25"})
 	flags.Var(&options.dnsOption, flagDNSOptionAdd, "Add or update a DNS option")
-	flags.SetAnnotation(flagDNSOptionAdd, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagDNSOptionAdd, "version", []string{"1.25"})
 	flags.Var(&options.dnsSearch, flagDNSSearchAdd, "Add or update a custom DNS search domain")
-	flags.SetAnnotation(flagDNSSearchAdd, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagDNSSearchAdd, "version", []string{"1.25"})
 	flags.Var(&options.hosts, flagHostAdd, `Add a custom host-to-IP mapping ("host:ip")`)
-	flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
+	_ = flags.SetAnnotation(flagHostAdd, "version", []string{"1.25"})
 	flags.BoolVar(&options.init, flagInit, false, "Use an init inside each service container to forward signals and reap processes")
-	flags.SetAnnotation(flagInit, "version", []string{"1.37"})
+	_ = flags.SetAnnotation(flagInit, "version", []string{"1.37"})
 	flags.Var(&options.sysctls, flagSysCtlAdd, "Add or update a Sysctl option")
-	flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
+	_ = flags.SetAnnotation(flagSysCtlAdd, "version", []string{"1.40"})
 	flags.Var(newListOptsVar(), flagSysCtlRemove, "Remove a Sysctl option")
-	flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
+	_ = flags.SetAnnotation(flagSysCtlRemove, "version", []string{"1.40"})
 	flags.Var(&options.ulimits, flagUlimitAdd, "Add or update a ulimit option")
-	flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
+	_ = flags.SetAnnotation(flagUlimitAdd, "version", []string{"1.41"})
 	flags.Var(newListOptsVar(), flagUlimitRemove, "Remove a ulimit option")
-	flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
+	_ = flags.SetAnnotation(flagUlimitRemove, "version", []string{"1.41"})
 	flags.Int64Var(&options.oomScoreAdj, flagOomScoreAdj, 0, "Tune host's OOM preferences (-1000 to 1000) ")
-	flags.SetAnnotation(flagOomScoreAdj, "version", []string{"1.46"})
+	_ = flags.SetAnnotation(flagOomScoreAdj, "version", []string{"1.46"})
 
 	// Add needs parsing, Remove only needs the key
 	flags.Var(newListOptsVar(), flagGenericResourcesRemove, "Remove a Generic resource")
-	flags.SetAnnotation(flagGenericResourcesRemove, "version", []string{"1.32"})
+	_ = flags.SetAnnotation(flagGenericResourcesRemove, "version", []string{"1.32"})
 	flags.Var(newListOptsVarWithValidator(ValidateSingleGenericResource), flagGenericResourcesAdd, "Add a Generic resource")
-	flags.SetAnnotation(flagGenericResourcesAdd, "version", []string{"1.32"})
+	_ = flags.SetAnnotation(flagGenericResourcesAdd, "version", []string{"1.32"})
 
 	// TODO(thaJeztah): add completion for capabilities, stop-signal (currently non-exported in container package)
 	// _ = cmd.RegisterFlagCompletionFunc(flagCapAdd, completeLinuxCapabilityNames)
@@ -164,7 +164,6 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	spec := &res.Service.Spec
 	if rollback {
 		// Rollback can't be combined with other flags.
 		otherFlagsPassed := false
@@ -182,10 +181,12 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	}
 
 	updateOpts := client.ServiceUpdateOptions{}
+	rollbackAction := "none"
 	if rollback {
-		updateOpts.Rollback = "previous"
+		rollbackAction = "previous"
 	}
 
+	spec := &res.Service.Spec
 	err = updateService(ctx, apiClient, flags, spec)
 	if err != nil {
 		return err
@@ -202,14 +203,12 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	if err != nil {
 		return err
 	}
-
 	spec.TaskTemplate.ContainerSpec.Secrets = updatedSecrets
 
 	updatedConfigs, err := getUpdatedConfigs(ctx, apiClient, flags, spec.TaskTemplate.ContainerSpec)
 	if err != nil {
 		return err
 	}
-
 	spec.TaskTemplate.ContainerSpec.Configs = updatedConfigs
 
 	// set the credential spec value after get the updated configs, because we
@@ -218,24 +217,31 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	updateCredSpecConfig(flags, spec.TaskTemplate.ContainerSpec)
 
 	// only send auth if flag was set
-	sendAuth, err := flags.GetBool(flagRegistryAuth)
-	if err != nil {
+	var encodedAuth string
+	var registryAuthFrom string
+	if ok, err := flags.GetBool(flagRegistryAuth); err != nil {
 		return err
-	}
-	if sendAuth {
+	} else if ok {
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
-		image := spec.TaskTemplate.ContainerSpec.Image
-		encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
+		var err error
+		encodedAuth, err = command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), spec.TaskTemplate.ContainerSpec.Image)
 		if err != nil {
 			return err
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
 	} else {
-		updateOpts.RegistryAuthFrom = swarm.RegistryAuthFromSpec
+		registryAuthFrom = swarm.RegistryAuthFromSpec
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, res.Service.Version, *spec, updateOpts)
+	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, client.ServiceUpdateOptions{
+		Version: res.Service.Version,
+		Spec:    *spec,
+
+		EncodedRegistryAuth: encodedAuth,
+		RegistryAuthFrom:    registryAuthFrom,
+		Rollback:            rollbackAction,
+	})
 	if err != nil {
 		return err
 	}

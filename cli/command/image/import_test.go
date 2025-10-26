@@ -50,7 +50,6 @@ func TestNewImportCommandInvalidFile(t *testing.T) {
 }
 
 func TestNewImportCommandSuccess(t *testing.T) {
-	t.Skip("FIXME(thaJeztah): how to mock this?")
 	testCases := []struct {
 		name            string
 		args            []string

@@ -84,7 +84,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 					return client.VolumeInspectResult{}, fmt.Errorf("invalid volumeID, expected %s, got %s", "foo", volumeID)
 				}
 				return client.VolumeInspectResult{
-					Volume: *builders.Volume(),
+					Volume: builders.Volume(),
 				}, nil
 			},
 		},
@@ -93,7 +93,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 			args: []string{"foo", "bar"},
 			volumeInspectFunc: func(volumeID string) (client.VolumeInspectResult, error) {
 				return client.VolumeInspectResult{
-					Volume: *builders.Volume(builders.VolumeName(volumeID), builders.VolumeLabels(map[string]string{
+					Volume: builders.Volume(builders.VolumeName(volumeID), builders.VolumeLabels(map[string]string{
 						"foo": "bar",
 					})),
 				}, nil
@@ -114,7 +114,7 @@ func TestVolumeInspectWithoutFormat(t *testing.T) {
 func TestVolumeInspectWithFormat(t *testing.T) {
 	volumeInspectFunc := func(volumeID string) (client.VolumeInspectResult, error) {
 		return client.VolumeInspectResult{
-			Volume: *builders.Volume(builders.VolumeLabels(map[string]string{
+			Volume: builders.Volume(builders.VolumeLabels(map[string]string{
 				"foo": "bar",
 			})),
 		}, nil

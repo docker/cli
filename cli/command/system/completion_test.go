@@ -139,11 +139,9 @@ func TestCompleteEventFilter(t *testing.T) {
 			client: &fakeClient{
 				volumeListFunc: func(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {
 					return client.VolumeListResult{
-						Items: volume.ListResponse{
-							Volumes: []*volume.Volume{
-								builders.Volume(builders.VolumeName("v1")),
-								builders.Volume(builders.VolumeName("v2")),
-							},
+						Items: []volume.Volume{
+							builders.Volume(builders.VolumeName("v1")),
+							builders.Volume(builders.VolumeName("v2")),
 						},
 					}, nil
 				},

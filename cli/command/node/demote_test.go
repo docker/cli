@@ -59,8 +59,8 @@ func TestNodeDemoteNoChange(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if options.Node.Role != swarm.NodeRoleWorker {
-					return client.NodeUpdateResult{}, errors.New("expected role worker, got " + string(options.Node.Role))
+				if options.Spec.Role != swarm.NodeRoleWorker {
+					return client.NodeUpdateResult{}, errors.New("expected role worker, got " + string(options.Spec.Role))
 				}
 				return client.NodeUpdateResult{}, nil
 			},
@@ -78,8 +78,8 @@ func TestNodeDemoteMultipleNode(t *testing.T) {
 				}, nil
 			},
 			nodeUpdateFunc: func(nodeID string, options client.NodeUpdateOptions) (client.NodeUpdateResult, error) {
-				if options.Node.Role != swarm.NodeRoleWorker {
-					return client.NodeUpdateResult{}, errors.New("expected role worker, got " + string(options.Node.Role))
+				if options.Spec.Role != swarm.NodeRoleWorker {
+					return client.NodeUpdateResult{}, errors.New("expected role worker, got " + string(options.Spec.Role))
 				}
 				return client.NodeUpdateResult{}, nil
 			},

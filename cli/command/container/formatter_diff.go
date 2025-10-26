@@ -3,6 +3,7 @@ package container
 import (
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -21,9 +22,9 @@ func newDiffFormat(source string) formatter.Format {
 }
 
 // diffFormatWrite writes formatted diff using the [formatter.Context].
-func diffFormatWrite(fmtCtx formatter.Context, changes []container.FilesystemChange) error {
+func diffFormatWrite(fmtCtx formatter.Context, changes client.ContainerDiffResult) error {
 	return fmtCtx.Write(newDiffContext(), func(format func(subContext formatter.SubContext) error) error {
-		for _, change := range changes {
+		for _, change := range changes.Changes {
 			if err := format(&diffContext{c: change}); err != nil {
 				return err
 			}

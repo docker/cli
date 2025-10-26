@@ -42,10 +42,7 @@ func TestPruneServices(t *testing.T) {
 func TestServiceUpdateResolveImageChanged(t *testing.T) {
 	namespace := convert.NewNamespace("mystack")
 
-	var (
-		receivedOptions client.ServiceUpdateOptions
-		receivedService swarm.ServiceSpec
-	)
+	var receivedOptions client.ServiceUpdateOptions
 
 	fakeCli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options client.ServiceListOptions) (client.ServiceListResult, error) {
@@ -68,9 +65,8 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 				},
 			}, nil
 		},
-		serviceUpdateFunc: func(serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+		serviceUpdateFunc: func(serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
 			receivedOptions = options
-			receivedService = service
 			return client.ServiceUpdateResult{}, nil
 		},
 	})
@@ -113,10 +109,9 @@ func TestServiceUpdateResolveImageChanged(t *testing.T) {
 			_, err := deployServices(ctx, fakeCli, spec, namespace, false, resolveImageChanged)
 			assert.NilError(t, err)
 			assert.Check(t, is.Equal(receivedOptions.QueryRegistry, tc.expectedQueryRegistry))
-			assert.Check(t, is.Equal(receivedService.TaskTemplate.ContainerSpec.Image, tc.expectedImage))
-			assert.Check(t, is.Equal(receivedService.TaskTemplate.ForceUpdate, tc.expectedForceUpdate))
+			assert.Check(t, is.Equal(receivedOptions.Spec.TaskTemplate.ContainerSpec.Image, tc.expectedImage))
+			assert.Check(t, is.Equal(receivedOptions.Spec.TaskTemplate.ForceUpdate, tc.expectedForceUpdate))
 
-			receivedService = swarm.ServiceSpec{}
 			receivedOptions = client.ServiceUpdateOptions{}
 		})
 	}

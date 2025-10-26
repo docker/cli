@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -18,7 +17,7 @@ func TestRollback(t *testing.T) {
 	testCases := []struct {
 		name                 string
 		args                 []string
-		serviceUpdateFunc    func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
+		serviceUpdateFunc    func(ctx context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
 		expectedDockerCliErr string
 	}{
 		{
@@ -28,7 +27,7 @@ func TestRollback(t *testing.T) {
 		{
 			name: "rollback-service-with-warnings",
 			args: []string{"service-id"},
-			serviceUpdateFunc: func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+			serviceUpdateFunc: func(ctx context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
 				return client.ServiceUpdateResult{
 					Warnings: []string{
 						"- warning 1",
@@ -59,7 +58,7 @@ func TestRollbackWithErrors(t *testing.T) {
 		name               string
 		args               []string
 		serviceInspectFunc func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error)
-		serviceUpdateFunc  func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, opts client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
+		serviceUpdateFunc  func(ctx context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
 		expectedError      string
 	}{
 		{
@@ -82,7 +81,7 @@ func TestRollbackWithErrors(t *testing.T) {
 		{
 			name: "service-update-failed",
 			args: []string{"service-id"},
-			serviceUpdateFunc: func(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+			serviceUpdateFunc: func(ctx context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
 				return client.ServiceUpdateResult{}, fmt.Errorf("no such services: %s", serviceID)
 			},
 			expectedError: "no such services: service-id",

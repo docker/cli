@@ -52,14 +52,12 @@ func TestVolumeListWithoutFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(client.VolumeListOptions) (client.VolumeListResult, error) {
 			return client.VolumeListResult{
-				Items: volume.ListResponse{
-					Volumes: []*volume.Volume{
-						builders.Volume(),
-						builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
-						builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
-							"foo": "bar",
-						})),
-					},
+				Items: []volume.Volume{
+					builders.Volume(),
+					builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
+					builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
+						"foo": "bar",
+					})),
 				},
 			}, nil
 		},
@@ -73,14 +71,12 @@ func TestVolumeListWithConfigFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(client.VolumeListOptions) (client.VolumeListResult, error) {
 			return client.VolumeListResult{
-				Items: volume.ListResponse{
-					Volumes: []*volume.Volume{
-						builders.Volume(),
-						builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
-						builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
-							"foo": "bar",
-						})),
-					},
+				Items: []volume.Volume{
+					builders.Volume(),
+					builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
+					builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
+						"foo": "bar",
+					})),
 				},
 			}, nil
 		},
@@ -97,14 +93,12 @@ func TestVolumeListWithFormat(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(client.VolumeListOptions) (client.VolumeListResult, error) {
 			return client.VolumeListResult{
-				Items: volume.ListResponse{
-					Volumes: []*volume.Volume{
-						builders.Volume(),
-						builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
-						builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
-							"foo": "bar",
-						})),
-					},
+				Items: []volume.Volume{
+					builders.Volume(),
+					builders.Volume(builders.VolumeName("foo"), builders.VolumeDriver("bar")),
+					builders.Volume(builders.VolumeName("baz"), builders.VolumeLabels(map[string]string{
+						"foo": "bar",
+					})),
 				},
 			}, nil
 		},
@@ -119,12 +113,10 @@ func TestVolumeListSortOrder(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(client.VolumeListOptions) (client.VolumeListResult, error) {
 			return client.VolumeListResult{
-				Items: volume.ListResponse{
-					Volumes: []*volume.Volume{
-						builders.Volume(builders.VolumeName("volume-2-foo")),
-						builders.Volume(builders.VolumeName("volume-10-foo")),
-						builders.Volume(builders.VolumeName("volume-1-foo")),
-					},
+				Items: []volume.Volume{
+					builders.Volume(builders.VolumeName("volume-2-foo")),
+					builders.Volume(builders.VolumeName("volume-10-foo")),
+					builders.Volume(builders.VolumeName("volume-1-foo")),
 				},
 			}, nil
 		},
@@ -139,101 +131,99 @@ func TestClusterVolumeList(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
 		volumeListFunc: func(client.VolumeListOptions) (client.VolumeListResult, error) {
 			return client.VolumeListResult{
-				Items: volume.ListResponse{
-					Volumes: []*volume.Volume{
-						{
-							Name:   "volume1",
-							Scope:  "global",
-							Driver: "driver1",
-							ClusterVolume: &volume.ClusterVolume{
-								Spec: volume.ClusterVolumeSpec{
-									Group: "group1",
-									AccessMode: &volume.AccessMode{
-										Scope:       volume.ScopeSingleNode,
-										Sharing:     volume.SharingOneWriter,
-										MountVolume: &volume.TypeMount{},
-									},
-									Availability: volume.AvailabilityActive,
+				Items: []volume.Volume{
+					{
+						Name:   "volume1",
+						Scope:  "global",
+						Driver: "driver1",
+						ClusterVolume: &volume.ClusterVolume{
+							Spec: volume.ClusterVolumeSpec{
+								Group: "group1",
+								AccessMode: &volume.AccessMode{
+									Scope:       volume.ScopeSingleNode,
+									Sharing:     volume.SharingOneWriter,
+									MountVolume: &volume.TypeMount{},
 								},
+								Availability: volume.AvailabilityActive,
 							},
 						},
-						{
-							Name:   "volume2",
-							Scope:  "global",
-							Driver: "driver1",
-							ClusterVolume: &volume.ClusterVolume{
-								Spec: volume.ClusterVolumeSpec{
-									Group: "group1",
-									AccessMode: &volume.AccessMode{
-										Scope:       volume.ScopeSingleNode,
-										Sharing:     volume.SharingOneWriter,
-										MountVolume: &volume.TypeMount{},
-									},
-									Availability: volume.AvailabilityPause,
-								},
-								Info: &volume.Info{
-									CapacityBytes: 100000000,
-									VolumeID:      "driver1vol2",
-								},
-							},
-						},
-						{
-							Name:   "volume3",
-							Scope:  "global",
-							Driver: "driver2",
-							ClusterVolume: &volume.ClusterVolume{
-								Spec: volume.ClusterVolumeSpec{
-									Group: "group2",
-									AccessMode: &volume.AccessMode{
-										Scope:       volume.ScopeMultiNode,
-										Sharing:     volume.SharingAll,
-										MountVolume: &volume.TypeMount{},
-									},
-									Availability: volume.AvailabilityActive,
-								},
-								PublishStatus: []*volume.PublishStatus{
-									{
-										NodeID: "nodeid1",
-										State:  volume.StatePublished,
-									},
-								},
-								Info: &volume.Info{
-									CapacityBytes: 100000000,
-									VolumeID:      "driver1vol3",
-								},
-							},
-						},
-						{
-							Name:   "volume4",
-							Scope:  "global",
-							Driver: "driver2",
-							ClusterVolume: &volume.ClusterVolume{
-								Spec: volume.ClusterVolumeSpec{
-									Group: "group2",
-									AccessMode: &volume.AccessMode{
-										Scope:       volume.ScopeMultiNode,
-										Sharing:     volume.SharingAll,
-										MountVolume: &volume.TypeMount{},
-									},
-									Availability: volume.AvailabilityActive,
-								},
-								PublishStatus: []*volume.PublishStatus{
-									{
-										NodeID: "nodeid1",
-										State:  volume.StatePublished,
-									}, {
-										NodeID: "nodeid2",
-										State:  volume.StatePublished,
-									},
-								},
-								Info: &volume.Info{
-									CapacityBytes: 100000000,
-									VolumeID:      "driver1vol4",
-								},
-							},
-						},
-						builders.Volume(builders.VolumeName("volume-local-1")),
 					},
+					{
+						Name:   "volume2",
+						Scope:  "global",
+						Driver: "driver1",
+						ClusterVolume: &volume.ClusterVolume{
+							Spec: volume.ClusterVolumeSpec{
+								Group: "group1",
+								AccessMode: &volume.AccessMode{
+									Scope:       volume.ScopeSingleNode,
+									Sharing:     volume.SharingOneWriter,
+									MountVolume: &volume.TypeMount{},
+								},
+								Availability: volume.AvailabilityPause,
+							},
+							Info: &volume.Info{
+								CapacityBytes: 100000000,
+								VolumeID:      "driver1vol2",
+							},
+						},
+					},
+					{
+						Name:   "volume3",
+						Scope:  "global",
+						Driver: "driver2",
+						ClusterVolume: &volume.ClusterVolume{
+							Spec: volume.ClusterVolumeSpec{
+								Group: "group2",
+								AccessMode: &volume.AccessMode{
+									Scope:       volume.ScopeMultiNode,
+									Sharing:     volume.SharingAll,
+									MountVolume: &volume.TypeMount{},
+								},
+								Availability: volume.AvailabilityActive,
+							},
+							PublishStatus: []*volume.PublishStatus{
+								{
+									NodeID: "nodeid1",
+									State:  volume.StatePublished,
+								},
+							},
+							Info: &volume.Info{
+								CapacityBytes: 100000000,
+								VolumeID:      "driver1vol3",
+							},
+						},
+					},
+					{
+						Name:   "volume4",
+						Scope:  "global",
+						Driver: "driver2",
+						ClusterVolume: &volume.ClusterVolume{
+							Spec: volume.ClusterVolumeSpec{
+								Group: "group2",
+								AccessMode: &volume.AccessMode{
+									Scope:       volume.ScopeMultiNode,
+									Sharing:     volume.SharingAll,
+									MountVolume: &volume.TypeMount{},
+								},
+								Availability: volume.AvailabilityActive,
+							},
+							PublishStatus: []*volume.PublishStatus{
+								{
+									NodeID: "nodeid1",
+									State:  volume.StatePublished,
+								}, {
+									NodeID: "nodeid2",
+									State:  volume.StatePublished,
+								},
+							},
+							Info: &volume.Info{
+								CapacityBytes: 100000000,
+								VolumeID:      "driver1vol4",
+							},
+						},
+					},
+					builders.Volume(builders.VolumeName("volume-local-1")),
 				},
 			}, nil
 		},

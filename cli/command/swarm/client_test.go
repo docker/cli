@@ -3,7 +3,6 @@ package swarm
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
@@ -70,7 +69,7 @@ func (cli *fakeClient) SwarmLeave(context.Context, client.SwarmLeaveOptions) (cl
 	return client.SwarmLeaveResult{}, nil
 }
 
-func (cli *fakeClient) SwarmUpdate(_ context.Context, _ swarm.Version, options client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
+func (cli *fakeClient) SwarmUpdate(_ context.Context, options client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
 	if cli.swarmUpdateFunc != nil {
 		return cli.swarmUpdateFunc(options)
 	}

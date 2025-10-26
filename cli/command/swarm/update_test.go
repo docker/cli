@@ -120,33 +120,33 @@ func TestSwarmUpdate(t *testing.T) {
 				}, nil
 			},
 			swarmUpdateFunc: func(options client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
-				if *options.Swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
+				if *options.Spec.Orchestration.TaskHistoryRetentionLimit != 10 {
 					return client.SwarmUpdateResult{}, errors.New("historyLimit not correctly set")
 				}
 				heartbeatDuration, err := time.ParseDuration("10s")
 				if err != nil {
 					return client.SwarmUpdateResult{}, err
 				}
-				if options.Swarm.Dispatcher.HeartbeatPeriod != heartbeatDuration {
+				if options.Spec.Dispatcher.HeartbeatPeriod != heartbeatDuration {
 					return client.SwarmUpdateResult{}, errors.New("heartbeatPeriodLimit not correctly set")
 				}
 				certExpiryDuration, err := time.ParseDuration("20s")
 				if err != nil {
 					return client.SwarmUpdateResult{}, err
 				}
-				if options.Swarm.CAConfig.NodeCertExpiry != certExpiryDuration {
+				if options.Spec.CAConfig.NodeCertExpiry != certExpiryDuration {
 					return client.SwarmUpdateResult{}, errors.New("certExpiry not correctly set")
 				}
-				if len(options.Swarm.CAConfig.ExternalCAs) != 1 || options.Swarm.CAConfig.ExternalCAs[0].CACert != "trust-root" {
+				if len(options.Spec.CAConfig.ExternalCAs) != 1 || options.Spec.CAConfig.ExternalCAs[0].CACert != "trust-root" {
 					return client.SwarmUpdateResult{}, errors.New("externalCA not correctly set")
 				}
-				if *options.Swarm.Raft.KeepOldSnapshots != 10 {
+				if *options.Spec.Raft.KeepOldSnapshots != 10 {
 					return client.SwarmUpdateResult{}, errors.New("keepOldSnapshots not correctly set")
 				}
-				if options.Swarm.Raft.SnapshotInterval != 100 {
+				if options.Spec.Raft.SnapshotInterval != 100 {
 					return client.SwarmUpdateResult{}, errors.New("snapshotInterval not correctly set")
 				}
-				if !options.Swarm.EncryptionConfig.AutoLockManagers {
+				if !options.Spec.EncryptionConfig.AutoLockManagers {
 					return client.SwarmUpdateResult{}, errors.New("auto-lock not correctly set")
 				}
 				return client.SwarmUpdateResult{}, nil
@@ -159,7 +159,7 @@ func TestSwarmUpdate(t *testing.T) {
 				flagAutolock:         "true",
 			},
 			swarmUpdateFunc: func(options client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
-				if *options.Swarm.Orchestration.TaskHistoryRetentionLimit != 10 {
+				if *options.Spec.Orchestration.TaskHistoryRetentionLimit != 10 {
 					return client.SwarmUpdateResult{}, errors.New("historyLimit not correctly set")
 				}
 				return client.SwarmUpdateResult{}, nil
