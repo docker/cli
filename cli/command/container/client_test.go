@@ -11,7 +11,7 @@ import (
 
 type fakeClient struct {
 	client.Client
-	inspectFunc             func(string) (container.InspectResponse, error)
+	inspectFunc             func(string) (client.ContainerInspectResult, error)
 	execInspectFunc         func(execID string) (client.ExecInspectResult, error)
 	execCreateFunc          func(containerID string, options client.ExecCreateOptions) (client.ExecCreateResult, error)
 	createContainerFunc     func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error)
@@ -45,11 +45,11 @@ func (f *fakeClient) ContainerList(_ context.Context, options client.ContainerLi
 	return []container.Summary{}, nil
 }
 
-func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (container.InspectResponse, error) {
+func (f *fakeClient) ContainerInspect(_ context.Context, containerID string, options client.ContainerInspectOptions) (client.ContainerInspectResult, error) {
 	if f.inspectFunc != nil {
 		return f.inspectFunc(containerID)
 	}
-	return container.InspectResponse{}, nil
+	return client.ContainerInspectResult{}, nil
 }
 
 func (f *fakeClient) ExecCreate(_ context.Context, containerID string, config client.ExecCreateOptions) (client.ExecCreateResult, error) {

@@ -20,10 +20,12 @@ var logFn = func(expectedOut string) func(string, client.ContainerLogsOptions) (
 }
 
 func TestRunLogs(t *testing.T) {
-	inspectFn := func(containerID string) (container.InspectResponse, error) {
-		return container.InspectResponse{
-			Config: &container.Config{Tty: true},
-			State:  &container.State{Running: false},
+	inspectFn := func(containerID string) (client.ContainerInspectResult, error) {
+		return client.ContainerInspectResult{
+			Container: container.InspectResponse{
+				Config: &container.Config{Tty: true},
+				State:  &container.State{Running: false},
+			},
 		}, nil
 	}
 

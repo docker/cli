@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -46,7 +47,7 @@ func TestNewPortCommandOutput(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				inspectFunc: func(string) (container.InspectResponse, error) {
+				inspectFunc: func(string) (client.ContainerInspectResult, error) {
 					ci := container.InspectResponse{NetworkSettings: &container.NetworkSettings{}}
 					ci.NetworkSettings.Ports = network.PortMap{
 						network.MustParsePort("80/tcp"):  make([]network.PortBinding, len(tc.ips)),
@@ -64,7 +65,7 @@ func TestNewPortCommandOutput(t *testing.T) {
 							HostIP: ip, HostPort: "5678",
 						}
 					}
-					return ci, nil
+					return client.ContainerInspectResult{Container: ci}, nil
 				},
 			})
 			cmd := newPortCommand(cli)

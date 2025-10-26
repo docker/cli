@@ -97,7 +97,7 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	// otherwise if we error out we will leak execIDs on the server (and
 	// there's no easy way to clean those up). But also in order to make "not
 	// exist" errors take precedence we do a dummy inspect first.
-	if _, err := apiClient.ContainerInspect(ctx, containerIDorName); err != nil {
+	if _, err := apiClient.ContainerInspect(ctx, containerIDorName, client.ContainerInspectOptions{}); err != nil {
 		return err
 	}
 	if !options.Detach {
@@ -119,10 +119,17 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	}
 
 	if options.Detach {
+		var cs client.ConsoleSize
+		if execOptions.ConsoleSize != nil {
+			cs = client.ConsoleSize{
+				Height: execOptions.ConsoleSize[0],
+				Width:  execOptions.ConsoleSize[1],
+			}
+		}
 		_, err := apiClient.ExecStart(ctx, execID, client.ExecStartOptions{
 			Detach:      options.Detach,
-			Tty:         execOptions.Tty,
-			ConsoleSize: execOptions.ConsoleSize,
+			TTY:         execOptions.Tty,
+			ConsoleSize: cs,
 		})
 		return err
 	}
@@ -159,9 +166,16 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 	fillConsoleSize(execOptions, dockerCli)
 
 	apiClient := dockerCli.Client()
+	var cs client.ConsoleSize
+	if execOptions.ConsoleSize != nil {
+		cs = client.ConsoleSize{
+			Height: execOptions.ConsoleSize[0],
+			Width:  execOptions.ConsoleSize[1],
+		}
+	}
 	resp, err := apiClient.ExecAttach(ctx, execID, client.ExecAttachOptions{
-		Tty:         execOptions.Tty,
-		ConsoleSize: execOptions.ConsoleSize,
+		TTY:         execOptions.Tty,
+		ConsoleSize: cs,
 	})
 	if err != nil {
 		return err

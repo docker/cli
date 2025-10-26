@@ -23,21 +23,21 @@ type AttachOptions struct {
 }
 
 func inspectContainerAndCheckState(ctx context.Context, apiClient client.APIClient, args string) (*container.InspectResponse, error) {
-	c, err := apiClient.ContainerInspect(ctx, args)
+	c, err := apiClient.ContainerInspect(ctx, args, client.ContainerInspectOptions{})
 	if err != nil {
 		return nil, err
 	}
-	if !c.State.Running {
+	if !c.Container.State.Running {
 		return nil, errors.New("cannot attach to a stopped container, start it first")
 	}
-	if c.State.Paused {
+	if c.Container.State.Paused {
 		return nil, errors.New("cannot attach to a paused container, unpause it first")
 	}
-	if c.State.Restarting {
+	if c.Container.State.Restarting {
 		return nil, errors.New("cannot attach to a restarting container, wait until it is running")
 	}
 
-	return &c, nil
+	return &c.Container, nil
 }
 
 // newAttachCommand creates a new cobra.Command for `docker attach`

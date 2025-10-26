@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
-	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -177,8 +176,8 @@ func TestRunExec(t *testing.T) {
 			doc:     "inspect error",
 			options: NewExecOptions(),
 			client: &fakeClient{
-				inspectFunc: func(string) (container.InspectResponse, error) {
-					return container.InspectResponse{}, errors.New("failed inspect")
+				inspectFunc: func(string) (client.ContainerInspectResult, error) {
+					return client.ContainerInspectResult{}, errors.New("failed inspect")
 				},
 			},
 			expectedError: "failed inspect",
@@ -251,14 +250,14 @@ func TestNewExecCommandErrors(t *testing.T) {
 		name                 string
 		args                 []string
 		expectedError        string
-		containerInspectFunc func(img string) (container.InspectResponse, error)
+		containerInspectFunc func(img string) (client.ContainerInspectResult, error)
 	}{
 		{
 			name:          "client-error",
 			args:          []string{"5cb5bb5e4a3b", "-t", "-i", "bash"},
 			expectedError: "something went wrong",
-			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
-				return container.InspectResponse{}, errors.New("something went wrong")
+			containerInspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+				return client.ContainerInspectResult{}, errors.New("something went wrong")
 			},
 		},
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
@@ -16,24 +17,26 @@ func TestNewAttachCommandErrors(t *testing.T) {
 		name                 string
 		args                 []string
 		expectedError        string
-		containerInspectFunc func(img string) (container.InspectResponse, error)
+		containerInspectFunc func(img string) (client.ContainerInspectResult, error)
 	}{
 		{
 			name:          "client-error",
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "something went wrong",
-			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
-				return container.InspectResponse{}, errors.New("something went wrong")
+			containerInspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+				return client.ContainerInspectResult{}, errors.New("something went wrong")
 			},
 		},
 		{
 			name:          "client-stopped",
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "cannot attach to a stopped container",
-			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
-				return container.InspectResponse{
-					State: &container.State{
-						Running: false,
+			containerInspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+				return client.ContainerInspectResult{
+					Container: container.InspectResponse{
+						State: &container.State{
+							Running: false,
+						},
 					},
 				}, nil
 			},
@@ -42,11 +45,13 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			name:          "client-paused",
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "cannot attach to a paused container",
-			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
-				return container.InspectResponse{
-					State: &container.State{
-						Running: true,
-						Paused:  true,
+			containerInspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+				return client.ContainerInspectResult{
+					Container: container.InspectResponse{
+						State: &container.State{
+							Running: true,
+							Paused:  true,
+						},
 					},
 				}, nil
 			},
@@ -55,12 +60,14 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			name:          "client-restarting",
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "cannot attach to a restarting container",
-			containerInspectFunc: func(containerID string) (container.InspectResponse, error) {
-				return container.InspectResponse{
-					State: &container.State{
-						Running:    true,
-						Paused:     false,
-						Restarting: true,
+			containerInspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+				return client.ContainerInspectResult{
+					Container: container.InspectResponse{
+						State: &container.State{
+							Running:    true,
+							Paused:     false,
+							Restarting: true,
+						},
 					},
 				}, nil
 			},
