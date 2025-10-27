@@ -70,7 +70,7 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		input = file
 	}
 
@@ -95,12 +95,7 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 	if err != nil {
 		return err
 	}
-	defer res.Close()
+	defer func() { _ = res.Close() }()
 
-	if res.JSON {
-		return jsonstream.Display(ctx, res, dockerCli.Out())
-	}
-
-	_, err = io.Copy(dockerCli.Out(), res)
-	return err
+	return jsonstream.Display(ctx, res, dockerCli.Out())
 }

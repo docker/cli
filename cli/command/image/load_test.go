@@ -74,8 +74,8 @@ func TestNewLoadCommandInvalidInput(t *testing.T) {
 	assert.ErrorContains(t, err, expectedError)
 }
 
-func mockImageLoadResult(content string, json bool) client.ImageLoadResult {
-	out := client.ImageLoadResult{JSON: json}
+func mockImageLoadResult(content string) client.ImageLoadResult {
+	out := client.ImageLoadResult{}
 
 	// Set unexported field "body"
 	v := reflect.ValueOf(&out).Elem()
@@ -96,20 +96,10 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			args: []string{},
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				// FIXME(thaJeztah): how to mock this?
-				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return mockImageLoadResult(`Success`, false), nil
-			},
-		},
-		{
-			name: "json",
-			args: []string{},
-			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
-				// FIXME(thaJeztah): how to mock this?
 				// return client.ImageLoadResult{
-				// 	Body: io.NopCloser(strings.NewReader(`{"ID": "1"}`)),
-				// 	JSON: true,
+				// 	Body: io.NopCloser(strings.NewReader(`{"ID":"simple","Status":"success"}`)),
 				// }, nil
-				return mockImageLoadResult(`{"ID":"1"}`, true), nil
+				return mockImageLoadResult(`{"ID":"simple","Status":"success"}`), nil
 			},
 		},
 		{
@@ -117,8 +107,8 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			args: []string{"--input", "testdata/load-command-success.input.txt"},
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				// FIXME(thaJeztah): how to mock this?
-				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return mockImageLoadResult(`Success`, false), nil
+				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader(`{"ID":"input-file","Status":"success"}`))}, nil
+				return mockImageLoadResult(`{"ID":"input-file","Status":"success"}`), nil
 			},
 		},
 		{
@@ -129,8 +119,8 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
 				// FIXME(thaJeztah): how to mock this?
-				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return mockImageLoadResult(`Success`, false), nil
+				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader(`{"ID":"single-platform","Status":"success"}`))}, nil
+				return mockImageLoadResult(`{"ID":"single-platform","Status":"success"}`), nil
 			},
 		},
 		{
@@ -139,8 +129,8 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// FIXME(thaJeztah): how to mock this?
-				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return mockImageLoadResult(`Success`, false), nil
+				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader(`{"ID":"with-comma-separated-platforms","Status":"success"}`))}, nil
+				return mockImageLoadResult(`{"ID":"with-comma-separated-platforms","Status":"success"}`), nil
 			},
 		},
 		{
@@ -149,8 +139,8 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// FIXME(thaJeztah): how to mock this?
-				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader("Success"))}, nil
-				return mockImageLoadResult(`Success`, false), nil
+				// return client.ImageLoadResult{Body: io.NopCloser(strings.NewReader(`{"ID":"with-multiple-platform-options","Status":"success"}`))}, nil
+				return mockImageLoadResult(`{"ID":"with-multiple-platform-options","Status":"success"}`), nil
 			},
 		},
 	}
