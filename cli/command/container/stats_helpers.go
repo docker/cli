@@ -88,6 +88,12 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 				continue
 			}
 
+			// Daemon versions before v29 did not return per-stats OSType;
+			// fall back to using the daemon's OSType.
+			if v.OSType == "" {
+				v.OSType = daemonOSType
+			}
+
 			if daemonOSType == "windows" {
 				netRx, netTx := calculateNetwork(v.Networks)
 				s.SetStatistics(StatsEntry{
