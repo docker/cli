@@ -109,6 +109,8 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 	apiClient := dockerCLI.Client()
 
 	// Get the daemonOSType to handle platform-specific stats fields.
+	// This value is used as a fallback for docker < v29, which did not
+	// include the OSType field per stats.
 	daemonOSType = dockerCLI.ServerInfo().OSType
 
 	// waitFirst is a WaitGroup to wait first stat data's reach for each container
