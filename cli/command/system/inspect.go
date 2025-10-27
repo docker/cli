@@ -99,7 +99,11 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 
 func inspectContainers(ctx context.Context, dockerCli command.Cli, getSize bool) inspect.GetRefFunc {
 	return func(ref string) (any, []byte, error) {
-		return dockerCli.Client().ContainerInspectWithRaw(ctx, ref, getSize)
+		res, err := dockerCli.Client().ContainerInspect(ctx, ref, client.ContainerInspectOptions{Size: getSize})
+		if err != nil {
+			return nil, nil, err
+		}
+		return res.Container, res.Raw, err
 	}
 }
 

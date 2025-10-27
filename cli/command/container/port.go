@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,7 @@ func newPortCommand(dockerCLI command.Cli) *cobra.Command {
 // proto is specified. We should consider changing this to "any" protocol
 // for the given private port.
 func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) error {
-	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container)
+	c, err := dockerCli.Client().ContainerInspect(ctx, opts.container, client.ContainerInspectOptions{})
 	if err != nil {
 		return err
 	}
@@ -63,7 +64,7 @@ func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) erro
 		if err != nil {
 			return err
 		}
-		frontends, exists := c.NetworkSettings.Ports[port]
+		frontends, exists := c.Container.NetworkSettings.Ports[port]
 		if !exists || len(frontends) == 0 {
 			return fmt.Errorf("no public port '%s' published for %s", opts.port, opts.container)
 		}
@@ -71,7 +72,7 @@ func runPort(ctx context.Context, dockerCli command.Cli, opts *portOptions) erro
 			out = append(out, net.JoinHostPort(frontend.HostIP.String(), frontend.HostPort))
 		}
 	} else {
-		for from, frontends := range c.NetworkSettings.Ports {
+		for from, frontends := range c.Container.NetworkSettings.Ports {
 			for _, frontend := range frontends {
 				out = append(out, fmt.Sprintf("%s -> %s", from, net.JoinHostPort(frontend.HostIP.String(), frontend.HostPort)))
 			}
