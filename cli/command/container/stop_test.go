@@ -62,10 +62,10 @@ func TestStop(t *testing.T) {
 			mutex := new(sync.Mutex)
 
 			cli := test.NewFakeCli(&fakeClient{
-				containerStopFunc: func(ctx context.Context, containerID string, options client.ContainerStopOptions) error {
+				containerStopFunc: func(ctx context.Context, containerID string, options client.ContainerStopOptions) (client.ContainerStopResult, error) {
 					assert.Check(t, is.DeepEqual(options, tc.expectedOpts))
 					if containerID == "nosuchcontainer" {
-						return notFound(errors.New("Error: no such container: " + containerID))
+						return client.ContainerStopResult{}, notFound(errors.New("Error: no such container: " + containerID))
 					}
 
 					// containerStopFunc is called in parallel for each container
@@ -73,7 +73,7 @@ func TestStop(t *testing.T) {
 					mutex.Lock()
 					stopped = append(stopped, containerID)
 					mutex.Unlock()
-					return nil
+					return client.ContainerStopResult{}, nil
 				},
 				Version: "1.36",
 			})

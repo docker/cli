@@ -27,7 +27,7 @@ func TestRemoveForce(t *testing.T) {
 			mutex := new(sync.Mutex)
 
 			cli := test.NewFakeCli(&fakeClient{
-				containerRemoveFunc: func(ctx context.Context, container string, options client.ContainerRemoveOptions) error {
+				containerRemoveFunc: func(ctx context.Context, container string, options client.ContainerRemoveOptions) (client.ContainerRemoveResult, error) {
 					// containerRemoveFunc is called in parallel for each container
 					// by the remove command so append must be synchronized.
 					mutex.Lock()
@@ -35,9 +35,9 @@ func TestRemoveForce(t *testing.T) {
 					mutex.Unlock()
 
 					if container == "nosuchcontainer" {
-						return notFound(errors.New("Error: no such container: " + container))
+						return client.ContainerRemoveResult{}, notFound(errors.New("Error: no such container: " + container))
 					}
-					return nil
+					return client.ContainerRemoveResult{}, nil
 				},
 				Version: "1.36",
 			})

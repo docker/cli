@@ -67,11 +67,12 @@ func runRm(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) error {
 		if ctrID == "" {
 			return errors.New("container name cannot be empty")
 		}
-		return apiClient.ContainerRemove(ctx, ctrID, client.ContainerRemoveOptions{
+		_, err := apiClient.ContainerRemove(ctx, ctrID, client.ContainerRemoveOptions{
 			RemoveVolumes: opts.rmVolumes,
 			RemoveLinks:   opts.rmLink,
 			Force:         opts.force,
 		})
+		return err
 	})
 
 	var errs []error

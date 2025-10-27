@@ -64,10 +64,11 @@ func runStop(ctx context.Context, dockerCLI command.Cli, opts *stopOptions) erro
 
 	apiClient := dockerCLI.Client()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, id string) error {
-		return apiClient.ContainerStop(ctx, id, client.ContainerStopOptions{
+		_, err := apiClient.ContainerStop(ctx, id, client.ContainerStopOptions{
 			Signal:  opts.signal,
 			Timeout: timeout,
 		})
+		return err
 	})
 	var errs []error
 	for _, ctr := range opts.containers {

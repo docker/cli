@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +48,10 @@ func newKillCommand(dockerCLI command.Cli) *cobra.Command {
 func runKill(ctx context.Context, dockerCLI command.Cli, opts *killOptions) error {
 	apiClient := dockerCLI.Client()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, container string) error {
-		return apiClient.ContainerKill(ctx, container, opts.signal)
+		_, err := apiClient.ContainerKill(ctx, container, client.ContainerKillOptions{
+			Signal: opts.signal,
+		})
+		return err
 	})
 
 	var errs []error

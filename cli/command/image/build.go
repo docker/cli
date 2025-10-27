@@ -21,12 +21,12 @@ import (
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
 	"github.com/moby/go-archive"
-	"github.com/moby/moby/api/pkg/progress"
-	"github.com/moby/moby/api/pkg/streamformatter"
 	buildtypes "github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/api/types/container"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
+	"github.com/moby/moby/client/pkg/progress"
+	"github.com/moby/moby/client/pkg/streamformatter"
 	"github.com/spf13/cobra"
 )
 
