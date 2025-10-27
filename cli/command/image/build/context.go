@@ -20,8 +20,8 @@ import (
 	"github.com/docker/cli/cli/command/image/build/internal/git"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
-	"github.com/moby/moby/api/pkg/progress"
-	"github.com/moby/moby/api/pkg/streamformatter"
+	"github.com/moby/moby/client/pkg/progress"
+	"github.com/moby/moby/client/pkg/streamformatter"
 	"github.com/moby/patternmatcher"
 )
 

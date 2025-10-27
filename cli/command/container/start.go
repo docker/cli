@@ -145,7 +145,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		statusChan := waitExitOrRemoved(ctx, dockerCli.Client(), c.Container.ID, c.Container.HostConfig.AutoRemove)
 
 		// 4. Start the container.
-		err = dockerCli.Client().ContainerStart(ctx, c.Container.ID, client.ContainerStartOptions{
+		_, err = dockerCli.Client().ContainerStart(ctx, c.Container.ID, client.ContainerStartOptions{
 			CheckpointID:  opts.Checkpoint,
 			CheckpointDir: opts.CheckpointDir,
 		})
@@ -183,10 +183,11 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			return errors.New("you cannot restore multiple containers at once")
 		}
 		ctr := opts.Containers[0]
-		return dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{
+		_, err := dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{
 			CheckpointID:  opts.Checkpoint,
 			CheckpointDir: opts.CheckpointDir,
 		})
+		return err
 	default:
 		// We're not going to attach to anything.
 		// Start as many containers as we want.
@@ -197,7 +198,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cli, containers []string) error {
 	var failedContainers []string
 	for _, ctr := range containers {
-		if err := dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{}); err != nil {
+		if _, err := dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{}); err != nil {
 			_, _ = fmt.Fprintln(dockerCli.Err(), err)
 			failedContainers = append(failedContainers, ctr)
 			continue

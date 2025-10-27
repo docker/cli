@@ -27,7 +27,7 @@ func resizeTTYTo(ctx context.Context, apiClient client.ContainerAPIClient, id st
 			Width:  width,
 		})
 	} else {
-		err = apiClient.ContainerResize(ctx, id, client.ContainerResizeOptions{
+		_, err = apiClient.ContainerResize(ctx, id, client.ContainerResizeOptions{
 			Height: height,
 			Width:  width,
 		})

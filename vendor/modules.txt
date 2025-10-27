@@ -168,12 +168,10 @@ github.com/moby/docker-image-spec/specs-go/v1
 github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/tarheader
-# github.com/moby/moby/api v1.52.0-beta.2.0.20251026152250-0a134ecc1623
+# github.com/moby/moby/api v1.52.0-beta.2.0.20251028144225-90109a373da9
 ## explicit; go 1.23.0
 github.com/moby/moby/api/pkg/authconfig
-github.com/moby/moby/api/pkg/progress
 github.com/moby/moby/api/pkg/stdcopy
-github.com/moby/moby/api/pkg/streamformatter
 github.com/moby/moby/api/types
 github.com/moby/moby/api/types/auxprogress
 github.com/moby/moby/api/types/blkiodev
@@ -192,13 +190,15 @@ github.com/moby/moby/api/types/storage
 github.com/moby/moby/api/types/swarm
 github.com/moby/moby/api/types/system
 github.com/moby/moby/api/types/volume
-# github.com/moby/moby/client v0.1.0-beta.2.0.20251026152250-0a134ecc1623
+# github.com/moby/moby/client v0.1.0-beta.2.0.20251028144225-90109a373da9
 ## explicit; go 1.23.0
 github.com/moby/moby/client
 github.com/moby/moby/client/internal
 github.com/moby/moby/client/internal/timestamp
 github.com/moby/moby/client/pkg/jsonmessage
+github.com/moby/moby/client/pkg/progress
 github.com/moby/moby/client/pkg/security
+github.com/moby/moby/client/pkg/streamformatter
 github.com/moby/moby/client/pkg/stringid
 github.com/moby/moby/client/pkg/versions
 # github.com/moby/patternmatcher v0.6.0

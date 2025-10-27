@@ -14,11 +14,11 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/notary"
-	"github.com/moby/moby/api/pkg/progress"
-	"github.com/moby/moby/api/pkg/streamformatter"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
+	"github.com/moby/moby/client/pkg/progress"
+	"github.com/moby/moby/client/pkg/streamformatter"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -149,11 +149,11 @@ func TestRunAttachTermination(t *testing.T) {
 		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
 			return client.ContainerCreateResult{ID: "id"}, nil
 		},
-		containerKillFunc: func(ctx context.Context, containerID, sig string) error {
-			if sig == "TERM" {
+		containerKillFunc: func(ctx context.Context, container string, options client.ContainerKillOptions) (client.ContainerKillResult, error) {
+			if options.Signal == "TERM" {
 				close(killCh)
 			}
-			return nil
+			return client.ContainerKillResult{}, nil
 		},
 		containerAttachFunc: func(ctx context.Context, containerID string, options client.ContainerAttachOptions) (client.ContainerAttachResult, error) {
 			server, clientConn := net.Pipe()

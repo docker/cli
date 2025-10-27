@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/moby/moby/api/pkg/progress"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client/pkg/progress"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
