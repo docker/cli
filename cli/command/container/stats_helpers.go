@@ -53,7 +53,7 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 	var getFirst bool
 
 	defer func() {
-		// if error happens and we get nothing of stats, release wait group whatever
+		// if error happens, and we get nothing of stats, release wait group whatever
 		if !getFirst {
 			getFirst = true
 			waitFirst.Done()
@@ -74,14 +74,7 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 			if ctx.Err() != nil {
 				return
 			}
-			var (
-				v                      *container.StatsResponse
-				memPercent, cpuPercent float64
-				blkRead, blkWrite      uint64 // Only used on Linux
-				mem, memLimit          float64
-				pidsStatsCurrent       uint64
-			)
-
+			var v container.StatsResponse
 			if err := dec.Decode(&v); err != nil {
 				dec = json.NewDecoder(io.MultiReader(dec.Buffered(), response.Body))
 				u <- err
@@ -92,33 +85,36 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 				continue
 			}
 
-			if daemonOSType != "windows" {
-				cpuPercent = calculateCPUPercentUnix(v.PreCPUStats, v.CPUStats)
-				blkRead, blkWrite = calculateBlockIO(v.BlkioStats)
-				mem = calculateMemUsageUnixNoCache(v.MemoryStats)
-				memLimit = float64(v.MemoryStats.Limit)
-				memPercent = calculateMemPercentUnixNoCache(memLimit, mem)
-				pidsStatsCurrent = v.PidsStats.Current
+			if daemonOSType == "windows" {
+				netRx, netTx := calculateNetwork(v.Networks)
+				s.SetStatistics(StatsEntry{
+					Name:          v.Name,
+					ID:            v.ID,
+					CPUPercentage: calculateCPUPercentWindows(&v),
+					Memory:        float64(v.MemoryStats.PrivateWorkingSet),
+					NetworkRx:     netRx,
+					NetworkTx:     netTx,
+					BlockRead:     float64(v.StorageStats.ReadSizeBytes),
+					BlockWrite:    float64(v.StorageStats.WriteSizeBytes),
+				})
 			} else {
-				cpuPercent = calculateCPUPercentWindows(v)
-				blkRead = v.StorageStats.ReadSizeBytes
-				blkWrite = v.StorageStats.WriteSizeBytes
-				mem = float64(v.MemoryStats.PrivateWorkingSet)
+				memUsage := calculateMemUsageUnixNoCache(v.MemoryStats)
+				netRx, netTx := calculateNetwork(v.Networks)
+				blkRead, blkWrite := calculateBlockIO(v.BlkioStats)
+				s.SetStatistics(StatsEntry{
+					Name:             v.Name,
+					ID:               v.ID,
+					CPUPercentage:    calculateCPUPercentUnix(v.PreCPUStats, v.CPUStats),
+					Memory:           memUsage,
+					MemoryPercentage: calculateMemPercentUnixNoCache(float64(v.MemoryStats.Limit), memUsage),
+					MemoryLimit:      float64(v.MemoryStats.Limit),
+					NetworkRx:        netRx,
+					NetworkTx:        netTx,
+					BlockRead:        float64(blkRead),
+					BlockWrite:       float64(blkWrite),
+					PidsCurrent:      v.PidsStats.Current,
+				})
 			}
-			netRx, netTx := calculateNetwork(v.Networks)
-			s.SetStatistics(StatsEntry{
-				Name:             v.Name,
-				ID:               v.ID,
-				CPUPercentage:    cpuPercent,
-				Memory:           mem,
-				MemoryPercentage: memPercent,
-				MemoryLimit:      memLimit,
-				NetworkRx:        netRx,
-				NetworkTx:        netTx,
-				BlockRead:        float64(blkRead),
-				BlockWrite:       float64(blkWrite),
-				PidsCurrent:      pidsStatsCurrent,
-			})
 			u <- nil
 			if !streamStats {
 				return
