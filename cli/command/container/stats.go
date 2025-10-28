@@ -251,8 +251,9 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			}
 		}
 
-		// We don't expect any asynchronous errors: closeChan can be closed.
+		// We don't expect any asynchronous errors: closeChan can be closed and disabled.
 		close(closeChan)
+		closeChan = nil
 
 		// make sure each container get at least one valid stat data
 		waitFirst.Wait()
@@ -288,63 +289,55 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		Format: NewStatsFormat(format, daemonOSType),
 	}
 
-	var err error
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
-	for range ticker.C {
-		var ccStats []StatsEntry
-		cStats.mu.RLock()
-		for _, c := range cStats.cs {
-			ccStats = append(ccStats, c.GetStatistics())
-		}
-		cStats.mu.RUnlock()
-
-		if !options.NoStream {
-			// Start by moving the cursor to the top-left
-			_, _ = fmt.Fprint(&statsTextBuffer, "\033[H")
-		}
-
-		if err = statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
-			break
-		}
-
-		if !options.NoStream {
-			for _, line := range strings.Split(statsTextBuffer.String(), "\n") {
-				// In case the new text is shorter than the one we are writing over,
-				// we'll append the "erase line" escape sequence to clear the remaining text.
-				_, _ = fmt.Fprintln(&statsTextBuffer, line, "\033[K")
-			}
-
-			// We might have fewer containers than before, so let's clear the remaining text
-			_, _ = fmt.Fprint(&statsTextBuffer, "\033[J")
-		}
-
-		_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
-		statsTextBuffer.Reset()
-
-		if len(cStats.cs) == 0 && !showAll {
-			break
-		}
-		if options.NoStream {
-			break
-		}
+	for {
 		select {
-		case err, ok := <-closeChan:
-			if ok {
-				if err != nil {
-					// Suppress "unexpected EOF" errors in the CLI so that
-					// it shuts down cleanly when the daemon restarts.
-					if errors.Is(err, io.ErrUnexpectedEOF) {
-						return nil
-					}
-					return err
-				}
+		case <-ticker.C:
+			cStats.mu.RLock()
+			ccStats := make([]StatsEntry, 0, len(cStats.cs))
+			for _, c := range cStats.cs {
+				ccStats = append(ccStats, c.GetStatistics())
 			}
-		default:
-			// just skip
+			cStats.mu.RUnlock()
+
+			if !options.NoStream {
+				// Start by moving the cursor to the top-left
+				_, _ = fmt.Fprint(&statsTextBuffer, "\033[H")
+			}
+
+			if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
+				return err
+			}
+
+			if !options.NoStream {
+				for _, line := range strings.Split(statsTextBuffer.String(), "\n") {
+					// In case the new text is shorter than the one we are writing over,
+					// we'll append the "erase line" escape sequence to clear the remaining text.
+					_, _ = fmt.Fprintln(&statsTextBuffer, line, "\033[K")
+				}
+				// We might have fewer containers than before, so let's clear the remaining text
+				_, _ = fmt.Fprint(&statsTextBuffer, "\033[J")
+			}
+
+			_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
+			statsTextBuffer.Reset()
+
+			if len(ccStats) == 0 && !showAll {
+				return nil
+			}
+			if options.NoStream {
+				return nil
+			}
+		case err, ok := <-closeChan:
+			if !ok || err == nil || errors.Is(err, io.ErrUnexpectedEOF) {
+				// Suppress "unexpected EOF" errors in the CLI so that
+				// it shuts down cleanly when the daemon restarts.
+				return nil
+			}
+			return err
 		}
 	}
-	return err
 }
 
 // newEventHandler initializes and returns an eventHandler
