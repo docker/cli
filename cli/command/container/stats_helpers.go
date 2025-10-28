@@ -95,8 +95,6 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 				continue
 			}
 
-			daemonOSType = response.OSType
-
 			if daemonOSType != "windows" {
 				previousCPU = v.PreCPUStats.CPUUsage.TotalUsage
 				previousSystem = v.PreCPUStats.SystemUsage
