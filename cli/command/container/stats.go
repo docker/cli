@@ -192,6 +192,8 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 				select {
 				case <-stopped:
 					return
+				case <-ctx.Done():
+					return
 				case event := <-eventChan:
 					c <- event
 				case err := <-errChan:
@@ -336,6 +338,8 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 				return nil
 			}
 			return err
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 }
