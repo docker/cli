@@ -113,8 +113,10 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 
 	// waitFirst is a WaitGroup to wait first stat data's reach for each container
 	waitFirst := &sync.WaitGroup{}
-	// closeChan is a non-buffered channel used to collect errors from goroutines.
-	closeChan := make(chan error)
+	// closeChan is used to collect errors from goroutines. It uses a small buffer
+	// to avoid blocking sends when sends occur after closeChan is set to nil or
+	// after the reader has exited, preventing deadlocks.
+	closeChan := make(chan error, 4)
 	cStats := stats{}
 
 	showAll := len(options.Containers) == 0
@@ -197,7 +199,12 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 				case event := <-eventChan:
 					c <- event
 				case err := <-errChan:
-					closeChan <- err
+					// Prevent blocking if closeChan is full or unread
+					select {
+					case closeChan <- err:
+					default:
+						// drop if not read; avoids deadlock
+					}
 					return
 				}
 			}
