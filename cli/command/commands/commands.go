@@ -18,7 +18,6 @@ import (
 	_ "github.com/docker/cli/cli/command/stack"
 	_ "github.com/docker/cli/cli/command/swarm"
 	_ "github.com/docker/cli/cli/command/system"
-	_ "github.com/docker/cli/cli/command/trust"
 	_ "github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/internal/commands"
 	"github.com/spf13/cobra"
