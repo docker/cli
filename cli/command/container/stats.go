@@ -298,6 +298,24 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		Format: NewStatsFormat(format, daemonOSType),
 	}
 
+	if options.NoStream {
+		cStats.mu.RLock()
+		ccStats := make([]StatsEntry, 0, len(cStats.cs))
+		for _, c := range cStats.cs {
+			ccStats = append(ccStats, c.GetStatistics())
+		}
+		cStats.mu.RUnlock()
+
+		if len(ccStats) == 0 {
+			return nil
+		}
+		if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
+			return err
+		}
+		_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
+		return nil
+	}
+
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 	for {
@@ -310,32 +328,25 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			}
 			cStats.mu.RUnlock()
 
-			if !options.NoStream {
-				// Start by moving the cursor to the top-left
-				_, _ = fmt.Fprint(&statsTextBuffer, "\033[H")
-			}
+			// Start by moving the cursor to the top-left
+			_, _ = fmt.Fprint(&statsTextBuffer, "\033[H")
 
 			if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 				return err
 			}
 
-			if !options.NoStream {
-				for _, line := range strings.Split(statsTextBuffer.String(), "\n") {
-					// In case the new text is shorter than the one we are writing over,
-					// we'll append the "erase line" escape sequence to clear the remaining text.
-					_, _ = fmt.Fprintln(&statsTextBuffer, line, "\033[K")
-				}
-				// We might have fewer containers than before, so let's clear the remaining text
-				_, _ = fmt.Fprint(&statsTextBuffer, "\033[J")
+			for _, line := range strings.Split(statsTextBuffer.String(), "\n") {
+				// In case the new text is shorter than the one we are writing over,
+				// we'll append the "erase line" escape sequence to clear the remaining text.
+				_, _ = fmt.Fprintln(&statsTextBuffer, line, "\033[K")
 			}
+			// We might have fewer containers than before, so let's clear the remaining text
+			_, _ = fmt.Fprint(&statsTextBuffer, "\033[J")
 
 			_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
 			statsTextBuffer.Reset()
 
 			if len(ccStats) == 0 && !showAll {
-				return nil
-			}
-			if options.NoStream {
 				return nil
 			}
 		case err, ok := <-closeChan:
