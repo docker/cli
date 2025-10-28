@@ -59,7 +59,8 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, networks []string, op
 				continue
 			}
 		}
-		if err := apiClient.NetworkRemove(ctx, name); err != nil {
+		_, err = apiClient.NetworkRemove(ctx, name, client.NetworkRemoveOptions{})
+		if err != nil {
 			if opts.force && errdefs.IsNotFound(err) {
 				continue
 			}

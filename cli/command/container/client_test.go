@@ -3,11 +3,34 @@ package container
 import (
 	"context"
 	"io"
+	"reflect"
+	"strings"
+	"unsafe"
 
-	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
+
+func mockContainerExportResult(content string) client.ContainerExportResult {
+	out := client.ContainerExportResult{}
+
+	// Set unexported field "rc"
+	v := reflect.ValueOf(&out).Elem()
+	f := v.FieldByName("rc")
+	r := io.NopCloser(strings.NewReader(content))
+	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(r))
+	return out
+}
+
+func mockContainerLogsResult(content string) client.ContainerLogsResult {
+	out := client.ContainerLogsResult{}
+
+	// Set unexported field "rc"
+	v := reflect.ValueOf(&out).Elem()
+	f := v.FieldByName("rc")
+	r := io.NopCloser(strings.NewReader(content))
+	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(r))
+	return out
+}
 
 type fakeClient struct {
 	client.Client
@@ -17,13 +40,13 @@ type fakeClient struct {
 	createContainerFunc     func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error)
 	containerStartFunc      func(containerID string, options client.ContainerStartOptions) (client.ContainerStartResult, error)
 	imageCreateFunc         func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error)
-	infoFunc                func() (system.Info, error)
-	containerStatPathFunc   func(containerID, path string) (container.PathStat, error)
-	containerCopyFromFunc   func(containerID, srcPath string) (io.ReadCloser, container.PathStat, error)
-	logFunc                 func(string, client.ContainerLogsOptions) (io.ReadCloser, error)
-	waitFunc                func(string) (<-chan container.WaitResponse, <-chan error)
-	containerListFunc       func(client.ContainerListOptions) ([]container.Summary, error)
-	containerExportFunc     func(string) (io.ReadCloser, error)
+	infoFunc                func() (client.SystemInfoResult, error)
+	containerStatPathFunc   func(containerID, path string) (client.ContainerStatPathResult, error)
+	containerCopyFromFunc   func(containerID, srcPath string) (client.CopyFromContainerResult, error)
+	logFunc                 func(string, client.ContainerLogsOptions) (client.ContainerLogsResult, error)
+	waitFunc                func(string) client.ContainerWaitResult
+	containerListFunc       func(client.ContainerListOptions) (client.ContainerListResult, error)
+	containerExportFunc     func(string) (client.ContainerExportResult, error)
 	containerExecResizeFunc func(id string, options client.ExecResizeOptions) (client.ExecResizeResult, error)
 	containerRemoveFunc     func(ctx context.Context, containerID string, options client.ContainerRemoveOptions) (client.ContainerRemoveResult, error)
 	containerRestartFunc    func(ctx context.Context, containerID string, options client.ContainerRestartOptions) (client.ContainerRestartResult, error)
@@ -38,14 +61,14 @@ type fakeClient struct {
 	Version                 string
 }
 
-func (f *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
+func (f *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) (client.ContainerListResult, error) {
 	if f.containerListFunc != nil {
 		return f.containerListFunc(options)
 	}
-	return []container.Summary{}, nil
+	return client.ContainerListResult{}, nil
 }
 
-func (f *fakeClient) ContainerInspect(_ context.Context, containerID string, options client.ContainerInspectOptions) (client.ContainerInspectResult, error) {
+func (f *fakeClient) ContainerInspect(_ context.Context, containerID string, _ client.ContainerInspectOptions) (client.ContainerInspectResult, error) {
 	if f.inspectFunc != nil {
 		return f.inspectFunc(containerID)
 	}
@@ -91,43 +114,43 @@ func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, op
 	return client.ImageCreateResult{}, nil
 }
 
-func (f *fakeClient) Info(_ context.Context) (system.Info, error) {
+func (f *fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
 	if f.infoFunc != nil {
 		return f.infoFunc()
 	}
-	return system.Info{}, nil
+	return client.SystemInfoResult{}, nil
 }
 
-func (f *fakeClient) ContainerStatPath(_ context.Context, containerID, path string) (container.PathStat, error) {
+func (f *fakeClient) ContainerStatPath(_ context.Context, containerID string, options client.ContainerStatPathOptions) (client.ContainerStatPathResult, error) {
 	if f.containerStatPathFunc != nil {
-		return f.containerStatPathFunc(containerID, path)
+		return f.containerStatPathFunc(containerID, options.Path)
 	}
-	return container.PathStat{}, nil
+	return client.ContainerStatPathResult{}, nil
 }
 
-func (f *fakeClient) CopyFromContainer(_ context.Context, containerID, srcPath string) (io.ReadCloser, container.PathStat, error) {
+func (f *fakeClient) CopyFromContainer(_ context.Context, containerID string, options client.CopyFromContainerOptions) (client.CopyFromContainerResult, error) {
 	if f.containerCopyFromFunc != nil {
-		return f.containerCopyFromFunc(containerID, srcPath)
+		return f.containerCopyFromFunc(containerID, options.SourcePath)
 	}
-	return nil, container.PathStat{}, nil
+	return client.CopyFromContainerResult{}, nil
 }
 
-func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, options client.ContainerLogsOptions) (io.ReadCloser, error) {
+func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, options client.ContainerLogsOptions) (client.ContainerLogsResult, error) {
 	if f.logFunc != nil {
 		return f.logFunc(containerID, options)
 	}
-	return nil, nil
+	return client.ContainerLogsResult{}, nil
 }
 
 func (f *fakeClient) ClientVersion() string {
 	return f.Version
 }
 
-func (f *fakeClient) ContainerWait(_ context.Context, containerID string, _ container.WaitCondition) (<-chan container.WaitResponse, <-chan error) {
+func (f *fakeClient) ContainerWait(_ context.Context, containerID string, _ client.ContainerWaitOptions) client.ContainerWaitResult {
 	if f.waitFunc != nil {
 		return f.waitFunc(containerID)
 	}
-	return nil, nil
+	return client.ContainerWaitResult{}
 }
 
 func (f *fakeClient) ContainerStart(_ context.Context, containerID string, options client.ContainerStartOptions) (client.ContainerStartResult, error) {
@@ -137,11 +160,11 @@ func (f *fakeClient) ContainerStart(_ context.Context, containerID string, optio
 	return client.ContainerStartResult{}, nil
 }
 
-func (f *fakeClient) ContainerExport(_ context.Context, containerID string) (io.ReadCloser, error) {
+func (f *fakeClient) ContainerExport(_ context.Context, containerID string, _ client.ContainerExportOptions) (client.ContainerExportResult, error) {
 	if f.containerExportFunc != nil {
 		return f.containerExportFunc(containerID)
 	}
-	return nil, nil
+	return client.ContainerExportResult{}, nil
 }
 
 func (f *fakeClient) ExecResize(_ context.Context, id string, options client.ExecResizeOptions) (client.ExecResizeResult, error) {
@@ -194,12 +217,12 @@ func (f *fakeClient) ContainerDiff(ctx context.Context, containerID string, _ cl
 	return client.ContainerDiffResult{}, nil
 }
 
-func (f *fakeClient) ContainerRename(ctx context.Context, oldName, newName string) error {
+func (f *fakeClient) ContainerRename(ctx context.Context, oldName string, options client.ContainerRenameOptions) (client.ContainerRenameResult, error) {
 	if f.containerRenameFunc != nil {
-		return f.containerRenameFunc(ctx, oldName, newName)
+		return client.ContainerRenameResult{}, f.containerRenameFunc(ctx, oldName, options.NewName)
 	}
 
-	return nil
+	return client.ContainerRenameResult{}, nil
 }
 
 func (f *fakeClient) ContainerCommit(ctx context.Context, containerID string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error) {

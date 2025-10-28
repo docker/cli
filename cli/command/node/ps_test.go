@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -21,15 +20,14 @@ func TestNodePsErrors(t *testing.T) {
 	testCases := []struct {
 		args            []string
 		flags           map[string]string
-		infoFunc        func() (system.Info, error)
+		infoFunc        func() (client.SystemInfoResult, error)
 		nodeInspectFunc func() (client.NodeInspectResult, error)
 		taskListFunc    func(options client.TaskListOptions) (client.TaskListResult, error)
-		taskInspectFunc func(taskID string) (client.TaskInspectResult, error)
 		expectedError   string
 	}{
 		{
-			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.New("error asking for node info")
+			infoFunc: func() (client.SystemInfoResult, error) {
+				return client.SystemInfoResult{}, errors.New("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -52,7 +50,6 @@ func TestNodePsErrors(t *testing.T) {
 		cli := test.NewFakeCli(&fakeClient{
 			infoFunc:        tc.infoFunc,
 			nodeInspectFunc: tc.nodeInspectFunc,
-			taskInspectFunc: tc.taskInspectFunc,
 			taskListFunc:    tc.taskListFunc,
 		})
 		cmd := newPsCommand(cli)
@@ -71,7 +68,6 @@ func TestNodePs(t *testing.T) {
 		name               string
 		args               []string
 		flags              map[string]string
-		infoFunc           func() (system.Info, error)
 		nodeInspectFunc    func() (client.NodeInspectResult, error)
 		taskListFunc       func(options client.TaskListOptions) (client.TaskListResult, error)
 		taskInspectFunc    func(taskID string) (client.TaskInspectResult, error)
@@ -148,7 +144,6 @@ func TestNodePs(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				infoFunc:           tc.infoFunc,
 				nodeInspectFunc:    tc.nodeInspectFunc,
 				taskInspectFunc:    tc.taskInspectFunc,
 				taskListFunc:       tc.taskListFunc,

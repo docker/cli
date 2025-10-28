@@ -2,10 +2,10 @@ package container
 
 import (
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"
 )
@@ -15,8 +15,9 @@ func TestContainerExportOutputToFile(t *testing.T) {
 	defer dir.Remove()
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerExportFunc: func(container string) (io.ReadCloser, error) {
-			return io.NopCloser(strings.NewReader("bar")), nil
+		containerExportFunc: func(container string) (client.ContainerExportResult, error) {
+			// FIXME(thaJeztah): how to mock this?
+			return mockContainerExportResult("bar"), nil
 		},
 	})
 	cmd := newExportCommand(cli)
@@ -33,8 +34,9 @@ func TestContainerExportOutputToFile(t *testing.T) {
 
 func TestContainerExportOutputToIrregularFile(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		containerExportFunc: func(container string) (io.ReadCloser, error) {
-			return io.NopCloser(strings.NewReader("foo")), nil
+		containerExportFunc: func(container string) (client.ContainerExportResult, error) {
+			// FIXME(thaJeztah): how to mock this?
+			return mockContainerExportResult("foo"), nil
 		},
 	})
 	cmd := newExportCommand(cli)

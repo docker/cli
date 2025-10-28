@@ -90,12 +90,12 @@ func runJoinToken(ctx context.Context, dockerCLI command.Cli, opts joinTokenOpti
 		return nil
 	}
 
-	info, err := apiClient.Info(ctx)
+	infoResp, err := apiClient.Info(ctx, client.InfoOptions{})
 	if err != nil {
 		return err
 	}
 
-	return printJoinCommand(ctx, dockerCLI, info.Swarm.NodeID, worker, manager)
+	return printJoinCommand(ctx, dockerCLI, infoResp.Info.Swarm.NodeID, worker, manager)
 }
 
 func printJoinCommand(ctx context.Context, dockerCLI command.Cli, nodeID string, worker bool, manager bool) error {

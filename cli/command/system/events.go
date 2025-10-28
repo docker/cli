@@ -65,7 +65,7 @@ func runEvents(ctx context.Context, dockerCLI command.Cli, options *eventsOption
 		}
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	evts, errs := dockerCLI.Client().Events(ctx, client.EventsListOptions{
+	eventRes := dockerCLI.Client().Events(ctx, client.EventsListOptions{
 		Since:   options.since,
 		Until:   options.until,
 		Filters: options.filter.Value(),
@@ -76,11 +76,11 @@ func runEvents(ctx context.Context, dockerCLI command.Cli, options *eventsOption
 
 	for {
 		select {
-		case event := <-evts:
+		case event := <-eventRes.Messages:
 			if err := handleEvent(out, event, tmpl); err != nil {
 				return err
 			}
-		case err := <-errs:
+		case err := <-eventRes.Err:
 			if err == io.EOF {
 				return nil
 			}
@@ -93,8 +93,11 @@ func handleEvent(out io.Writer, event events.Message, tmpl *template.Template) e
 	if tmpl == nil {
 		return prettyPrintEvent(out, event)
 	}
-
-	return formatEvent(out, event, tmpl)
+	if err := tmpl.Execute(out, event); err != nil {
+		return err
+	}
+	_, _ = out.Write([]byte{'\n'})
+	return nil
 }
 
 func makeTemplate(format string) (*template.Template, error) {
@@ -144,9 +147,4 @@ func prettyPrintEvent(out io.Writer, event events.Message) error {
 	}
 	_, _ = fmt.Fprint(out, "\n")
 	return nil
-}
-
-func formatEvent(out io.Writer, event events.Message, tmpl *template.Template) error {
-	defer out.Write([]byte{'\n'})
-	return tmpl.Execute(out, event)
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/docker/cli/cli/command/inspect"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
 
@@ -100,7 +99,7 @@ func newFormat(source string, quiet bool) formatter.Format {
 }
 
 // formatWrite writes the context.
-func formatWrite(fmtCtx formatter.Context, nodes client.NodeListResult, info system.Info) error {
+func formatWrite(fmtCtx formatter.Context, nodes client.NodeListResult, info client.SystemInfoResult) error {
 	nodeCtx := &nodeContext{
 		HeaderContext: formatter.HeaderContext{
 			Header: formatter.SubHeaderContext{
@@ -119,7 +118,7 @@ func formatWrite(fmtCtx formatter.Context, nodes client.NodeListResult, info sys
 		for _, node := range nodes.Items {
 			if err := format(&nodeContext{
 				n:    node,
-				info: info,
+				info: info.Info.Swarm,
 			}); err != nil {
 				return err
 			}
@@ -131,7 +130,7 @@ func formatWrite(fmtCtx formatter.Context, nodes client.NodeListResult, info sys
 type nodeContext struct {
 	formatter.HeaderContext
 	n    swarm.Node
-	info system.Info
+	info swarm.Info
 }
 
 func (c *nodeContext) MarshalJSON() ([]byte, error) {
@@ -143,7 +142,7 @@ func (c *nodeContext) ID() string {
 }
 
 func (c *nodeContext) Self() bool {
-	return c.n.ID == c.info.Swarm.NodeID
+	return c.n.ID == c.info.NodeID
 }
 
 func (c *nodeContext) Hostname() string {
@@ -171,10 +170,10 @@ func (c *nodeContext) ManagerStatus() string {
 }
 
 func (c *nodeContext) TLSStatus() string {
-	if c.info.Swarm.Cluster == nil || reflect.DeepEqual(c.info.Swarm.Cluster.TLSInfo, swarm.TLSInfo{}) || reflect.DeepEqual(c.n.Description.TLSInfo, swarm.TLSInfo{}) {
+	if c.info.Cluster == nil || reflect.DeepEqual(c.info.Cluster.TLSInfo, swarm.TLSInfo{}) || reflect.DeepEqual(c.n.Description.TLSInfo, swarm.TLSInfo{}) {
 		return "Unknown"
 	}
-	if reflect.DeepEqual(c.n.Description.TLSInfo, c.info.Swarm.Cluster.TLSInfo) {
+	if reflect.DeepEqual(c.n.Description.TLSInfo, c.info.Cluster.TLSInfo) {
 		return "Ready"
 	}
 	return "Needs Rotation"

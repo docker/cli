@@ -68,8 +68,8 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	return &cmd
 }
 
-func buildContainerListOptions(options *psOptions) (*client.ContainerListOptions, error) {
-	listOptions := &client.ContainerListOptions{
+func buildContainerListOptions(options *psOptions) (client.ContainerListOptions, error) {
+	listOptions := client.ContainerListOptions{
 		All:     options.all,
 		Limit:   options.last,
 		Size:    options.size,
@@ -84,7 +84,7 @@ func buildContainerListOptions(options *psOptions) (*client.ContainerListOptions
 	if len(options.format) > 0 {
 		tmpl, err := templates.Parse(options.format)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse template: %w", err)
+			return client.ContainerListOptions{}, fmt.Errorf("failed to parse template: %w", err)
 		}
 
 		optionsProcessor := formatter.NewContainerContext()
@@ -92,7 +92,7 @@ func buildContainerListOptions(options *psOptions) (*client.ContainerListOptions
 		// This shouldn't error out but swallowing the error makes it harder
 		// to track down if preProcessor issues come up.
 		if err := tmpl.Execute(io.Discard, optionsProcessor); err != nil {
-			return nil, fmt.Errorf("failed to execute template: %w", err)
+			return client.ContainerListOptions{}, fmt.Errorf("failed to execute template: %w", err)
 		}
 
 		// if `size` was not explicitly set to false (with `--size=false`)
@@ -127,7 +127,7 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options *psOptions) error
 		return err
 	}
 
-	containers, err := dockerCLI.Client().ContainerList(ctx, *listOptions)
+	res, err := dockerCLI.Client().ContainerList(ctx, listOptions)
 	if err != nil {
 		return err
 	}
@@ -137,5 +137,5 @@ func runPs(ctx context.Context, dockerCLI command.Cli, options *psOptions) error
 		Format: formatter.NewContainerFormat(options.format, options.quiet, listOptions.Size),
 		Trunc:  !options.noTrunc,
 	}
-	return formatter.ContainerWrite(containerCtx, containers)
+	return formatter.ContainerWrite(containerCtx, res.Items)
 }

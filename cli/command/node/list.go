@@ -10,7 +10,6 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/fvbommel/sortorder"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -53,10 +52,10 @@ func runList(ctx context.Context, dockerCLI command.Cli, options listOptions) er
 		return err
 	}
 
-	var info system.Info
+	var info client.SystemInfoResult
 	if len(res.Items) > 0 && !options.quiet {
 		// only non-empty nodes and not quiet, should we call /info api
-		info, err = apiClient.Info(ctx)
+		info, err = apiClient.Info(ctx, client.InfoOptions{})
 		if err != nil {
 			return err
 		}

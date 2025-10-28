@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/moby/moby/api/types/image"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
 
@@ -18,7 +17,7 @@ type fakeClient struct {
 	imageSaveFunc    func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error)
 	imageRemoveFunc  func(image string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error)
 	imagePushFunc    func(ref string, options client.ImagePushOptions) (client.ImagePushResponse, error)
-	infoFunc         func() (system.Info, error)
+	infoFunc         func() (client.SystemInfoResult, error)
 	imagePullFunc    func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error)
 	imagesPruneFunc  func(options client.ImagePruneOptions) (client.ImagePruneResult, error)
 	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error)
@@ -66,11 +65,11 @@ func (cli *fakeClient) ImagePush(_ context.Context, ref string, options client.I
 	return fakeStreamResult{ReadCloser: http.NoBody}, nil
 }
 
-func (cli *fakeClient) Info(_ context.Context) (system.Info, error) {
+func (cli *fakeClient) Info(_ context.Context, _ client.InfoOptions) (client.SystemInfoResult, error) {
 	if cli.infoFunc != nil {
 		return cli.infoFunc()
 	}
-	return system.Info{}, nil
+	return client.SystemInfoResult{}, nil
 }
 
 func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.ImagePullOptions) (client.ImagePullResponse, error) {

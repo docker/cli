@@ -20,7 +20,9 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 		condition = container.WaitConditionRemoved
 	}
 
-	resultC, errC := apiClient.ContainerWait(ctx, containerID, condition)
+	waitRes := apiClient.ContainerWait(ctx, containerID, client.ContainerWaitOptions{
+		Condition: condition,
+	})
 
 	statusC := make(chan int)
 	go func() {
@@ -28,14 +30,14 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 		select {
 		case <-ctx.Done():
 			return
-		case result := <-resultC:
+		case result := <-waitRes.Result:
 			if result.Error != nil {
 				logrus.Errorf("Error waiting for container: %v", result.Error.Message)
 				statusC <- 125
 			} else {
 				statusC <- int(result.StatusCode)
 			}
-		case err := <-errC:
+		case err := <-waitRes.Error:
 			if errors.Is(err, context.Canceled) {
 				return
 			}

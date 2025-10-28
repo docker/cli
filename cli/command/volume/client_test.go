@@ -43,9 +43,9 @@ func (c *fakeClient) VolumesPrune(_ context.Context, opts client.VolumePruneOpti
 	return client.VolumePruneResult{}, nil
 }
 
-func (c *fakeClient) VolumeRemove(_ context.Context, volumeID string, options client.VolumeRemoveOptions) error {
+func (c *fakeClient) VolumeRemove(_ context.Context, volumeID string, options client.VolumeRemoveOptions) (client.VolumeRemoveResult, error) {
 	if c.volumeRemoveFunc != nil {
-		return c.volumeRemoveFunc(volumeID, options.Force)
+		return client.VolumeRemoveResult{}, c.volumeRemoveFunc(volumeID, options.Force)
 	}
-	return nil
+	return client.VolumeRemoveResult{}, nil
 }

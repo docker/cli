@@ -233,12 +233,12 @@ func inspectAll(ctx context.Context, dockerCLI command.Cli, getSize bool, typeCo
 	// isSwarmManager does an Info API call to verify that the daemon is
 	// a swarm manager.
 	isSwarmManager := func() bool {
-		info, err := dockerCLI.Client().Info(ctx)
+		res, err := dockerCLI.Client().Info(ctx, client.InfoOptions{})
 		if err != nil {
 			_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 			return false
 		}
-		return info.Swarm.ControlAvailable
+		return res.Info.Swarm.ControlAvailable
 	}
 
 	return func(ref string) (any, []byte, error) {

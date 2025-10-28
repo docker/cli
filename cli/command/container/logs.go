@@ -59,7 +59,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		return err
 	}
 
-	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.Container.ID, client.ContainerLogsOptions{
+	resp, err := dockerCli.Client().ContainerLogs(ctx, c.Container.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Since:      opts.since,
@@ -72,12 +72,12 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 	if err != nil {
 		return err
 	}
-	defer responseBody.Close()
+	defer func() { _ = resp.Close() }()
 
 	if c.Container.Config.Tty {
-		_, err = io.Copy(dockerCli.Out(), responseBody)
+		_, err = io.Copy(dockerCli.Out(), resp)
 	} else {
-		_, err = stdcopy.StdCopy(dockerCli.Out(), dockerCli.Err(), responseBody)
+		_, err = stdcopy.StdCopy(dockerCli.Out(), dockerCli.Err(), resp)
 	}
 	return err
 }

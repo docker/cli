@@ -1,8 +1,6 @@
 package network
 
 import (
-	"context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -12,9 +10,7 @@ import (
 )
 
 type disconnectOptions struct {
-	network   string
-	container string
-	force     bool
+	force bool
 }
 
 func newDisconnectCommand(dockerCLI command.Cli) *cobra.Command {
@@ -25,9 +21,12 @@ func newDisconnectCommand(dockerCLI command.Cli) *cobra.Command {
 		Short: "Disconnect a container from a network",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.network = args[0]
-			opts.container = args[1]
-			return runDisconnect(cmd.Context(), dockerCLI.Client(), opts)
+			network := args[0]
+			_, err := dockerCLI.Client().NetworkDisconnect(cmd.Context(), network, client.NetworkDisconnectOptions{
+				Container: args[1],
+				Force:     opts.force,
+			})
+			return err
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
@@ -43,10 +42,6 @@ func newDisconnectCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.force, "force", "f", false, "Force the container to disconnect from a network")
 
 	return cmd
-}
-
-func runDisconnect(ctx context.Context, apiClient client.NetworkAPIClient, opts disconnectOptions) error {
-	return apiClient.NetworkDisconnect(ctx, opts.network, opts.container, opts.force)
 }
 
 func isConnected(network string) func(container.Summary) bool {

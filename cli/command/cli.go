@@ -377,24 +377,21 @@ func (cli *DockerCli) initializeFromClient() {
 	ctx, cancel := context.WithTimeout(cli.baseCtx, cli.getInitTimeout())
 	defer cancel()
 
-	ping, err := cli.client.Ping(ctx, client.PingOptions{})
+	ping, err := cli.client.Ping(ctx, client.PingOptions{
+		NegotiateAPIVersion: true,
+		ForceNegotiate:      true,
+	})
 	if err != nil {
 		// Default to true if we fail to connect to daemon
 		cli.serverInfo = ServerInfo{HasExperimental: true}
-
-		if ping.APIVersion != "" {
-			cli.client.NegotiateAPIVersionPing(ping)
-		}
 		return
 	}
-
 	cli.serverInfo = ServerInfo{
 		HasExperimental: ping.Experimental,
 		OSType:          ping.OSType,
 		BuildkitVersion: ping.BuilderVersion,
 		SwarmStatus:     ping.SwarmStatus,
 	}
-	cli.client.NegotiateAPIVersionPing(ping)
 }
 
 // ContextStore returns the ContextStore

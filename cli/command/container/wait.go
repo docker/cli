@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -42,12 +44,12 @@ func runWait(ctx context.Context, dockerCLI command.Cli, opts *waitOptions) erro
 
 	var errs []error
 	for _, ctr := range opts.containers {
-		resultC, errC := apiClient.ContainerWait(ctx, ctr, "")
+		res := apiClient.ContainerWait(ctx, ctr, client.ContainerWaitOptions{})
 
 		select {
-		case result := <-resultC:
-			_, _ = fmt.Fprintf(dockerCLI.Out(), "%d\n", result.StatusCode)
-		case err := <-errC:
+		case result := <-res.Result:
+			_, _ = fmt.Fprintln(dockerCLI.Out(), strconv.FormatInt(result.StatusCode, 10))
+		case err := <-res.Error:
 			errs = append(errs, err)
 		}
 	}

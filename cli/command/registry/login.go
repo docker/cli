@@ -160,25 +160,32 @@ func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, auth
 
 	_, _ = fmt.Fprint(dockerCLI.Err(), "\n\n")
 
-	response, err := dockerCLI.Client().RegistryLogin(ctx, authConfig)
+	resp, err := dockerCLI.Client().RegistryLogin(ctx, client.RegistryLoginOptions{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	})
 	if err != nil {
 		if errdefs.IsUnauthorized(err) {
 			_, _ = fmt.Fprintln(dockerCLI.Err(), "Stored credentials invalid or expired")
 		} else {
 			_, _ = fmt.Fprintln(dockerCLI.Err(), "Login did not succeed, error:", err)
 		}
+		// TODO(thaJeztah): should this return the error here, or is there a reasong for continuing?
 	}
 
-	if response.IdentityToken != "" {
+	if resp.Auth.IdentityToken != "" {
 		authConfig.Password = ""
-		authConfig.IdentityToken = response.IdentityToken
+		authConfig.IdentityToken = resp.Auth.IdentityToken
 	}
 
 	if err := storeCredentials(dockerCLI.ConfigFile(), authConfig); err != nil {
 		return "", err
 	}
 
-	return response.Status, err
+	return resp.Auth.Status, err
 }
 
 func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, defaultUsername, serverAddress string) (msg string, _ error) {
@@ -215,20 +222,26 @@ func loginWithUsernameAndPassword(ctx context.Context, dockerCLI command.Cli, op
 		return "", err
 	}
 
-	response, err := loginWithRegistry(ctx, dockerCLI.Client(), authConfig)
+	res, err := loginWithRegistry(ctx, dockerCLI.Client(), client.RegistryLoginOptions{
+		Username:      authConfig.Username,
+		Password:      authConfig.Password,
+		ServerAddress: authConfig.ServerAddress,
+		IdentityToken: authConfig.IdentityToken,
+		RegistryToken: authConfig.RegistryToken,
+	})
 	if err != nil {
 		return "", err
 	}
 
-	if response.IdentityToken != "" {
+	if res.Auth.IdentityToken != "" {
 		authConfig.Password = ""
-		authConfig.IdentityToken = response.IdentityToken
+		authConfig.IdentityToken = res.Auth.IdentityToken
 	}
 	if err = storeCredentials(dockerCLI.ConfigFile(), authConfig); err != nil {
 		return "", err
 	}
 
-	return response.Status, nil
+	return res.Auth.Status, nil
 }
 
 func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg string, _ error) {
@@ -238,13 +251,13 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 		return "", err
 	}
 
-	response, err := loginWithRegistry(ctx, dockerCLI.Client(), registrytypes.AuthConfig{
+	response, err := loginWithRegistry(ctx, dockerCLI.Client(), client.RegistryLoginOptions{
 		Username:      authConfig.Username,
 		Password:      authConfig.Password,
 		ServerAddress: authConfig.ServerAddress,
 
 		// TODO(thaJeztah): Are these expected to be included?
-		Auth:          authConfig.Auth,
+		// Auth:          authConfig.Auth,
 		IdentityToken: authConfig.IdentityToken,
 		RegistryToken: authConfig.RegistryToken,
 	})
@@ -265,7 +278,7 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 		return "", err
 	}
 
-	return response.Status, nil
+	return response.Auth.Status, nil
 }
 
 func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
@@ -286,32 +299,42 @@ func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthC
 	return nil
 }
 
-func loginWithRegistry(ctx context.Context, apiClient client.SystemAPIClient, authConfig registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
-	response, err := apiClient.RegistryLogin(ctx, authConfig)
+func loginWithRegistry(ctx context.Context, apiClient client.SystemAPIClient, options client.RegistryLoginOptions) (client.RegistryLoginResult, error) {
+	res, err := apiClient.RegistryLogin(ctx, options)
 	if err != nil {
 		if client.IsErrConnectionFailed(err) {
 			// daemon isn't responding; attempt to login client side.
-			return loginClientSide(ctx, authConfig)
+			return loginClientSide(ctx, options)
 		}
-		return nil, err
+		return client.RegistryLoginResult{}, err
 	}
 
-	return &response, nil
+	return res, nil
 }
 
-func loginClientSide(ctx context.Context, auth registrytypes.AuthConfig) (*registrytypes.AuthenticateOKBody, error) {
+func loginClientSide(ctx context.Context, options client.RegistryLoginOptions) (client.RegistryLoginResult, error) {
 	svc, err := registry.NewService(registry.ServiceOptions{})
 	if err != nil {
-		return nil, err
+		return client.RegistryLoginResult{}, err
+	}
+
+	auth := registrytypes.AuthConfig{
+		Username:      options.Username,
+		Password:      options.Password,
+		ServerAddress: options.ServerAddress,
+		IdentityToken: options.IdentityToken,
+		RegistryToken: options.RegistryToken,
 	}
 
 	token, err := svc.Auth(ctx, &auth, command.UserAgent())
 	if err != nil {
-		return nil, err
+		return client.RegistryLoginResult{}, err
 	}
 
-	return &registrytypes.AuthenticateOKBody{
-		Status:        "Login Succeeded",
-		IdentityToken: token,
+	return client.RegistryLoginResult{
+		Auth: registrytypes.AuthenticateOKBody{
+			Status:        "Login Succeeded",
+			IdentityToken: token,
+		},
 	}, nil
 }

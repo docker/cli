@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -17,7 +18,7 @@ import (
 func TestNetworkConnectErrors(t *testing.T) {
 	testCases := []struct {
 		args               []string
-		networkConnectFunc func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
+		networkConnectFunc func(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error)
 		expectedError      string
 	}{
 		{
@@ -25,8 +26,8 @@ func TestNetworkConnectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"toto", "titi"},
-			networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-				return errors.New("error connecting network")
+			networkConnectFunc: func(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error) {
+				return client.NetworkConnectResult{}, errors.New("error connecting network")
 			},
 			expectedError: "error connecting network",
 		},
@@ -61,9 +62,9 @@ func TestNetworkConnectWithFlags(t *testing.T) {
 		GwPriority: 100,
 	}
 	cli := test.NewFakeCli(&fakeClient{
-		networkConnectFunc: func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
-			assert.Check(t, is.DeepEqual(expectedConfig, config, cmpopts.EquateComparable(netip.Addr{})))
-			return nil
+		networkConnectFunc: func(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error) {
+			assert.Check(t, is.DeepEqual(expectedConfig, options.EndpointConfig, cmpopts.EquateComparable(netip.Addr{})))
+			return client.NetworkConnectResult{}, nil
 		},
 	})
 	args := []string{"mynet", "myctr"}

@@ -45,11 +45,11 @@ func newNodeCommand(dockerCLI command.Cli) *cobra.Command {
 // the `/info` endpoint.
 func Reference(ctx context.Context, apiClient client.APIClient, ref string) (string, error) {
 	if ref == "self" {
-		info, err := apiClient.Info(ctx)
+		res, err := apiClient.Info(ctx, client.InfoOptions{})
 		if err != nil {
 			return "", err
 		}
-		if info.Swarm.NodeID == "" {
+		if res.Info.Swarm.NodeID == "" {
 			// If there's no node ID in /info, the node probably
 			// isn't a manager. Call a swarm-specific endpoint to
 			// get a more specific error message.
@@ -61,7 +61,7 @@ func Reference(ctx context.Context, apiClient client.APIClient, ref string) (str
 			}
 			return "", errors.New("node ID not found in /info")
 		}
-		return info.Swarm.NodeID, nil
+		return res.Info.Swarm.NodeID, nil
 	}
 	return ref, nil
 }

@@ -3,13 +3,12 @@ package node
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {
 	client.Client
-	infoFunc           func() (system.Info, error)
+	infoFunc           func() (client.SystemInfoResult, error)
 	nodeInspectFunc    func() (client.NodeInspectResult, error)
 	nodeListFunc       func() (client.NodeListResult, error)
 	nodeRemoveFunc     func() (client.NodeRemoveResult, error)
@@ -47,11 +46,11 @@ func (cli *fakeClient) NodeUpdate(_ context.Context, nodeID string, options clie
 	return client.NodeUpdateResult{}, nil
 }
 
-func (cli *fakeClient) Info(context.Context) (system.Info, error) {
+func (cli *fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
 	if cli.infoFunc != nil {
 		return cli.infoFunc()
 	}
-	return system.Info{}, nil
+	return client.SystemInfoResult{}, nil
 }
 
 func (cli *fakeClient) TaskInspect(_ context.Context, taskID string, _ client.TaskInspectOptions) (client.TaskInspectResult, error) {

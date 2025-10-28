@@ -6,11 +6,7 @@ import (
 	"net"
 
 	"github.com/moby/moby/api/types"
-	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/registry"
-	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 )
 
@@ -32,8 +28,6 @@ type stableAPIClient interface {
 	ClientVersion() string
 	DaemonHost() string
 	ServerVersion(ctx context.Context) (types.Version, error)
-	NegotiateAPIVersion(ctx context.Context)
-	NegotiateAPIVersionPing(PingResult)
 	HijackDialer
 	Dialer() func(context.Context) (net.Conn, error)
 	Close() error
@@ -62,26 +56,26 @@ type ContainerAPIClient interface {
 	ContainerCreate(ctx context.Context, options ContainerCreateOptions) (ContainerCreateResult, error)
 	ContainerDiff(ctx context.Context, container string, options ContainerDiffOptions) (ContainerDiffResult, error)
 	ExecAPIClient
-	ContainerExport(ctx context.Context, container string) (io.ReadCloser, error)
+	ContainerExport(ctx context.Context, container string, options ContainerExportOptions) (ContainerExportResult, error)
 	ContainerInspect(ctx context.Context, container string, options ContainerInspectOptions) (ContainerInspectResult, error)
 	ContainerKill(ctx context.Context, container string, options ContainerKillOptions) (ContainerKillResult, error)
-	ContainerList(ctx context.Context, options ContainerListOptions) ([]container.Summary, error)
-	ContainerLogs(ctx context.Context, container string, options ContainerLogsOptions) (io.ReadCloser, error)
+	ContainerList(ctx context.Context, options ContainerListOptions) (ContainerListResult, error)
+	ContainerLogs(ctx context.Context, container string, options ContainerLogsOptions) (ContainerLogsResult, error)
 	ContainerPause(ctx context.Context, container string, options ContainerPauseOptions) (ContainerPauseResult, error)
 	ContainerRemove(ctx context.Context, container string, options ContainerRemoveOptions) (ContainerRemoveResult, error)
-	ContainerRename(ctx context.Context, container, newContainerName string) error
+	ContainerRename(ctx context.Context, container string, options ContainerRenameOptions) (ContainerRenameResult, error)
 	ContainerResize(ctx context.Context, container string, options ContainerResizeOptions) (ContainerResizeResult, error)
 	ContainerRestart(ctx context.Context, container string, options ContainerRestartOptions) (ContainerRestartResult, error)
-	ContainerStatPath(ctx context.Context, container, path string) (container.PathStat, error)
+	ContainerStatPath(ctx context.Context, container string, options ContainerStatPathOptions) (ContainerStatPathResult, error)
 	ContainerStats(ctx context.Context, container string, options ContainerStatsOptions) (ContainerStatsResult, error)
 	ContainerStart(ctx context.Context, container string, options ContainerStartOptions) (ContainerStartResult, error)
 	ContainerStop(ctx context.Context, container string, options ContainerStopOptions) (ContainerStopResult, error)
-	ContainerTop(ctx context.Context, container string, arguments []string) (container.TopResponse, error)
-	ContainerUnpause(ctx context.Context, container string, options ContainerUnPauseOptions) (ContainerUnPauseResult, error)
-	ContainerUpdate(ctx context.Context, container string, updateConfig container.UpdateConfig) (container.UpdateResponse, error)
-	ContainerWait(ctx context.Context, container string, condition container.WaitCondition) (<-chan container.WaitResponse, <-chan error)
-	CopyFromContainer(ctx context.Context, container, srcPath string) (io.ReadCloser, container.PathStat, error)
-	CopyToContainer(ctx context.Context, container, path string, content io.Reader, options CopyToContainerOptions) error
+	ContainerTop(ctx context.Context, container string, options ContainerTopOptions) (ContainerTopResult, error)
+	ContainerUnpause(ctx context.Context, container string, options ContainerUnpauseOptions) (ContainerUnpauseResult, error)
+	ContainerUpdate(ctx context.Context, container string, updateConfig ContainerUpdateOptions) (ContainerUpdateResult, error)
+	ContainerWait(ctx context.Context, container string, options ContainerWaitOptions) ContainerWaitResult
+	CopyFromContainer(ctx context.Context, container string, options CopyFromContainerOptions) (CopyFromContainerResult, error)
+	CopyToContainer(ctx context.Context, container string, options CopyToContainerOptions) (CopyToContainerResult, error)
 	ContainersPrune(ctx context.Context, opts ContainerPruneOptions) (ContainerPruneResult, error)
 }
 
@@ -122,12 +116,12 @@ type ImageAPIClient interface {
 
 // NetworkAPIClient defines API client methods for the networks
 type NetworkAPIClient interface {
-	NetworkConnect(ctx context.Context, network, container string, config *network.EndpointSettings) error
+	NetworkConnect(ctx context.Context, network string, options NetworkConnectOptions) (NetworkConnectResult, error)
 	NetworkCreate(ctx context.Context, name string, options NetworkCreateOptions) (network.CreateResponse, error)
-	NetworkDisconnect(ctx context.Context, network, container string, force bool) error
+	NetworkDisconnect(ctx context.Context, network string, options NetworkDisconnectOptions) (NetworkDisconnectResult, error)
 	NetworkInspect(ctx context.Context, network string, options NetworkInspectOptions) (NetworkInspectResult, error)
 	NetworkList(ctx context.Context, options NetworkListOptions) (NetworkListResult, error)
-	NetworkRemove(ctx context.Context, network string) error
+	NetworkRemove(ctx context.Context, network string, options NetworkRemoveOptions) (NetworkRemoveResult, error)
 	NetworksPrune(ctx context.Context, opts NetworkPruneOptions) (NetworkPruneResult, error)
 }
 
@@ -179,9 +173,9 @@ type SwarmAPIClient interface {
 
 // SystemAPIClient defines API client methods for the system
 type SystemAPIClient interface {
-	Events(ctx context.Context, options EventsListOptions) (<-chan events.Message, <-chan error)
-	Info(ctx context.Context) (system.Info, error)
-	RegistryLogin(ctx context.Context, auth registry.AuthConfig) (registry.AuthenticateOKBody, error)
+	Events(ctx context.Context, options EventsListOptions) EventsResult
+	Info(ctx context.Context, options InfoOptions) (SystemInfoResult, error)
+	RegistryLogin(ctx context.Context, auth RegistryLoginOptions) (RegistryLoginResult, error)
 	DiskUsage(ctx context.Context, options DiskUsageOptions) (system.DiskUsage, error)
 	Ping(ctx context.Context, options PingOptions) (PingResult, error)
 }
@@ -191,9 +185,9 @@ type VolumeAPIClient interface {
 	VolumeCreate(ctx context.Context, options VolumeCreateOptions) (VolumeCreateResult, error)
 	VolumeInspect(ctx context.Context, volumeID string, options VolumeInspectOptions) (VolumeInspectResult, error)
 	VolumeList(ctx context.Context, options VolumeListOptions) (VolumeListResult, error)
-	VolumeRemove(ctx context.Context, volumeID string, options VolumeRemoveOptions) error
-	VolumesPrune(ctx context.Context, opts VolumePruneOptions) (VolumePruneResult, error)
-	VolumeUpdate(ctx context.Context, volumeID string, version swarm.Version, options VolumeUpdateOptions) error
+	VolumeRemove(ctx context.Context, volumeID string, options VolumeRemoveOptions) (VolumeRemoveResult, error)
+	VolumesPrune(ctx context.Context, options VolumePruneOptions) (VolumePruneResult, error)
+	VolumeUpdate(ctx context.Context, volumeID string, options VolumeUpdateOptions) (VolumeUpdateResult, error)
 }
 
 // SecretAPIClient defines API client methods for secrets

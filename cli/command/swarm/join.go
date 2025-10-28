@@ -78,12 +78,12 @@ func runJoin(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, o
 		return err
 	}
 
-	info, err := apiClient.Info(ctx)
+	res, err := apiClient.Info(ctx, client.InfoOptions{})
 	if err != nil {
 		return err
 	}
 
-	if info.Swarm.ControlAvailable {
+	if res.Info.Swarm.ControlAvailable {
 		_, _ = fmt.Fprintln(dockerCLI.Out(), "This node joined a swarm as a manager.")
 	} else {
 		_, _ = fmt.Fprintln(dockerCLI.Out(), "This node joined a swarm as a worker.")

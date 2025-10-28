@@ -37,7 +37,7 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.force, "force", "f", false, "Force the removal of one or more volumes")
-	flags.SetAnnotation("force", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("force", "version", []string{"1.25"})
 	return cmd
 }
 
@@ -46,7 +46,7 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) 
 
 	var errs []error
 	for _, name := range opts.volumes {
-		err := apiClient.VolumeRemove(ctx, name, client.VolumeRemoveOptions{
+		_, err := apiClient.VolumeRemove(ctx, name, client.VolumeRemoveOptions{
 			Force: opts.force,
 		})
 		if err != nil {

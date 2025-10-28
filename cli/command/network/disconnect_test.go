@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
 
 func TestNetworkDisconnectErrors(t *testing.T) {
 	testCases := []struct {
 		args                  []string
-		networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
+		networkDisconnectFunc func(ctx context.Context, networkID string, options client.NetworkDisconnectOptions) (client.NetworkDisconnectResult, error)
 		expectedError         string
 	}{
 		{
@@ -21,8 +22,8 @@ func TestNetworkDisconnectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"toto", "titi"},
-			networkDisconnectFunc: func(ctx context.Context, networkID, container string, force bool) error {
-				return errors.New("error disconnecting network")
+			networkDisconnectFunc: func(ctx context.Context, networkID string, options client.NetworkDisconnectOptions) (client.NetworkDisconnectResult, error) {
+				return client.NetworkDisconnectResult{}, errors.New("error disconnecting network")
 			},
 			expectedError: "error disconnecting network",
 		},

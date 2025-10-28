@@ -208,7 +208,11 @@ foobar_boo  Unknown
 			var out bytes.Buffer
 			tc.context.Output = &out
 
-			err := formatWrite(tc.context, nodes, system.Info{Swarm: swarm.Info{Cluster: &tc.clusterInfo}})
+			err := formatWrite(tc.context, nodes, client.SystemInfoResult{
+				Info: system.Info{
+					Swarm: swarm.Info{Cluster: &tc.clusterInfo},
+				},
+			})
 			if err != nil {
 				assert.Error(t, err, tc.expected)
 			} else {
@@ -221,7 +225,7 @@ foobar_boo  Unknown
 func TestNodeContextWriteJSON(t *testing.T) {
 	cases := []struct {
 		expected []map[string]any
-		info     system.Info
+		info     client.SystemInfoResult
 	}{
 		{
 			expected: []map[string]any{
@@ -229,7 +233,6 @@ func TestNodeContextWriteJSON(t *testing.T) {
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
 			},
-			info: system.Info{},
 		},
 		{
 			expected: []map[string]any{
@@ -237,11 +240,13 @@ func TestNodeContextWriteJSON(t *testing.T) {
 				{"Availability": "", "Hostname": "foobar_bar", "ID": "nodeID2", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Needs Rotation", "EngineVersion": ""},
 				{"Availability": "", "Hostname": "foobar_boo", "ID": "nodeID3", "ManagerStatus": "", "Status": "", "Self": false, "TLSStatus": "Unknown", "EngineVersion": "18.03.0-ce"},
 			},
-			info: system.Info{
-				Swarm: swarm.Info{
-					Cluster: &swarm.ClusterInfo{
-						TLSInfo:                swarm.TLSInfo{TrustRoot: "hi"},
-						RootRotationInProgress: true,
+			info: client.SystemInfoResult{
+				Info: system.Info{
+					Swarm: swarm.Info{
+						Cluster: &swarm.ClusterInfo{
+							TLSInfo:                swarm.TLSInfo{TrustRoot: "hi"},
+							RootRotationInProgress: true,
+						},
 					},
 				},
 			},
@@ -279,7 +284,7 @@ func TestNodeContextWriteJSONField(t *testing.T) {
 		},
 	}
 	out := bytes.NewBufferString("")
-	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, system.Info{})
+	err := formatWrite(formatter.Context{Format: "{{json .ID}}", Output: out}, nodes, client.SystemInfoResult{})
 	if err != nil {
 		t.Fatal(err)
 	}

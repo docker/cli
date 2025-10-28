@@ -410,7 +410,7 @@ func validatePullOpt(val string) error {
 //
 // The path should be an absolute path in the container, commonly
 // /root/.docker/config.json.
-func copyDockerConfigIntoContainer(ctx context.Context, dockerAPI client.APIClient, containerID string, configPath string, config *configfile.ConfigFile) error {
+func copyDockerConfigIntoContainer(ctx context.Context, apiClient client.APIClient, containerID string, configPath string, config *configfile.ConfigFile) error {
 	var configBuf bytes.Buffer
 	if err := config.SaveToWriter(&configBuf); err != nil {
 		return fmt.Errorf("saving creds: %w", err)
@@ -433,8 +433,11 @@ func copyDockerConfigIntoContainer(ctx context.Context, dockerAPI client.APIClie
 		return fmt.Errorf("closing tar for config copy failed: %w", err)
 	}
 
-	if err := dockerAPI.CopyToContainer(ctx, containerID, "/",
-		&tarBuf, client.CopyToContainerOptions{}); err != nil {
+	_, err := apiClient.CopyToContainer(ctx, containerID, client.CopyToContainerOptions{
+		DestinationPath: "/",
+		Content:         &tarBuf,
+	})
+	if err != nil {
 		return fmt.Errorf("copying config.json into container failed: %w", err)
 	}
 
