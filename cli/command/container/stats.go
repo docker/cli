@@ -332,7 +332,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 				return nil
 			}
 		case err, ok := <-closeChan:
-			if !ok || err == nil || errors.Is(err, io.ErrUnexpectedEOF) {
+			if !ok || err == nil || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 				// Suppress "unexpected EOF" errors in the CLI so that
 				// it shuts down cleanly when the daemon restarts.
 				return nil
