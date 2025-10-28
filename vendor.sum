@@ -170,10 +170,10 @@ github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3N
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
 github.com/moby/go-archive v0.1.0 h1:Kk/5rdW/g+H8NHdJW2gsXyZ7UnzvJNOy6VKJqueWdcQ=
 github.com/moby/go-archive v0.1.0/go.mod h1:G9B+YoujNohJmrIYFBpSd54GTUB4lt9S+xVQvsJyFuo=
-github.com/moby/moby/api v1.52.0-beta.2.0.20251026152250-0a134ecc1623 h1:9Ulm1meUBVvvSDB65RmF7VymYBGmZ0peXCVWh6fzdoM=
-github.com/moby/moby/api v1.52.0-beta.2.0.20251026152250-0a134ecc1623/go.mod h1:/ou52HkRydg4+odrUR3vFsGgjIyHvprrpEQEkweL10s=
-github.com/moby/moby/client v0.1.0-beta.2.0.20251026152250-0a134ecc1623 h1:PkaM+LLZasetNAPJX0whFXr1GXjNQWMlyMEeUAeNUnE=
-github.com/moby/moby/client v0.1.0-beta.2.0.20251026152250-0a134ecc1623/go.mod h1:sxVfwGqVgh7n+tdxA4gFToQ/lf+bM7zATnvQjVnsKT4=
+github.com/moby/moby/api v1.52.0-beta.2.0.20251028144225-90109a373da9 h1:DDumCtiHK751YhrY/tbUdMo5BN8dRarxbW4ScVh/KZg=
+github.com/moby/moby/api v1.52.0-beta.2.0.20251028144225-90109a373da9/go.mod h1:v0K/motq8oWmx+rtApG1rBTIpQ8KUONUjpf+U73gags=
+github.com/moby/moby/client v0.1.0-beta.2.0.20251028144225-90109a373da9 h1:iAQD/kAfqMAb2p48advqXGOT8eWyEv+Xge7KbcsZduk=
+github.com/moby/moby/client v0.1.0-beta.2.0.20251028144225-90109a373da9/go.mod h1:1YrJTvhL771Q4xiwwe72NSS17lgsCF67xu8fEfSd77g=
 github.com/moby/patternmatcher v0.6.0 h1:GmP9lR19aU5GqSSFko+5pRqHi+Ohk1O69aFiKkVGiPk=
 github.com/moby/patternmatcher v0.6.0/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
 github.com/moby/swarmkit/v2 v2.1.0 h1:u+cJ5hSyF3HnzsyI+NtegYxdIPQIuibk7IbpXNxuISM=

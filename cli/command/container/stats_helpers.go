@@ -60,7 +60,10 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 		}
 	}()
 
-	response, err := cli.ContainerStats(ctx, s.Container, streamStats)
+	response, err := cli.ContainerStats(ctx, s.Container, client.ContainerStatsOptions{
+		Stream:                streamStats,
+		IncludePreviousSample: !streamStats, // collect previous CPU value for the first result when not streaming.
+	})
 	if err != nil {
 		s.SetError(err)
 		return
@@ -83,6 +86,12 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 				}
 				time.Sleep(100 * time.Millisecond)
 				continue
+			}
+
+			// Daemon versions before v29 did not return per-stats OSType;
+			// fall back to using the daemon's OSType.
+			if v.OSType == "" {
+				v.OSType = daemonOSType
 			}
 
 			if daemonOSType == "windows" {

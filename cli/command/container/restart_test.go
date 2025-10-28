@@ -19,7 +19,7 @@ func TestRestart(t *testing.T) {
 		name         string
 		args         []string
 		restarted    []string
-		expectedOpts client.ContainerStopOptions
+		expectedOpts client.ContainerRestartOptions
 		expectedErr  string
 	}{
 		{
@@ -36,19 +36,19 @@ func TestRestart(t *testing.T) {
 		{
 			name:         "with -t",
 			args:         []string{"-t", "2", "container-1"},
-			expectedOpts: client.ContainerStopOptions{Timeout: func(to int) *int { return &to }(2)},
+			expectedOpts: client.ContainerRestartOptions{Timeout: func(to int) *int { return &to }(2)},
 			restarted:    []string{"container-1"},
 		},
 		{
 			name:         "with --timeout",
 			args:         []string{"--timeout", "2", "container-1"},
-			expectedOpts: client.ContainerStopOptions{Timeout: func(to int) *int { return &to }(2)},
+			expectedOpts: client.ContainerRestartOptions{Timeout: func(to int) *int { return &to }(2)},
 			restarted:    []string{"container-1"},
 		},
 		{
 			name:         "with --time",
 			args:         []string{"--time", "2", "container-1"},
-			expectedOpts: client.ContainerStopOptions{Timeout: func(to int) *int { return &to }(2)},
+			expectedOpts: client.ContainerRestartOptions{Timeout: func(to int) *int { return &to }(2)},
 			restarted:    []string{"container-1"},
 		},
 		{
@@ -62,17 +62,17 @@ func TestRestart(t *testing.T) {
 			mutex := new(sync.Mutex)
 
 			cli := test.NewFakeCli(&fakeClient{
-				containerRestartFunc: func(ctx context.Context, containerID string, options client.ContainerStopOptions) error {
+				containerRestartFunc: func(ctx context.Context, containerID string, options client.ContainerRestartOptions) (client.ContainerRestartResult, error) {
 					assert.Check(t, is.DeepEqual(options, tc.expectedOpts))
 					if containerID == "nosuchcontainer" {
-						return notFound(errors.New("Error: no such container: " + containerID))
+						return client.ContainerRestartResult{}, notFound(errors.New("Error: no such container: " + containerID))
 					}
 
 					// TODO(thaJeztah): consider using parallelOperation for restart, similar to "stop" and "remove"
 					mutex.Lock()
 					restarted = append(restarted, containerID)
 					mutex.Unlock()
-					return nil
+					return client.ContainerRestartResult{}, nil
 				},
 				Version: "1.36",
 			})

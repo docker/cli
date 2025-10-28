@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/signal"
 )
 
@@ -14,9 +15,9 @@ func TestForwardSignals(t *testing.T) {
 	defer cancel()
 
 	called := make(chan struct{})
-	apiClient := &fakeClient{containerKillFunc: func(ctx context.Context, container, signal string) error {
+	apiClient := &fakeClient{containerKillFunc: func(ctx context.Context, container string, options client.ContainerKillOptions) (client.ContainerKillResult, error) {
 		close(called)
-		return nil
+		return client.ContainerKillResult{}, nil
 	}}
 
 	sigc := make(chan os.Signal)

@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +41,10 @@ func newPauseCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runPause(ctx context.Context, dockerCLI command.Cli, opts *pauseOptions) error {
 	apiClient := dockerCLI.Client()
-	errChan := parallelOperation(ctx, opts.containers, apiClient.ContainerPause)
+	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, container string) error {
+		_, err := apiClient.ContainerPause(ctx, container, client.ContainerPauseOptions{})
+		return err
+	})
 
 	var errs []error
 	for _, ctr := range opts.containers {
