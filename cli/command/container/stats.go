@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/containerd/errdefs"
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
@@ -18,7 +19,6 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/client"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -139,24 +139,34 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		eh := newEventHandler()
 		if options.All {
 			eh.setHandler(events.ActionCreate, func(e events.Message) {
-				s := NewStats(e.Actor.ID)
-				if cStats.add(s) {
+				if s := NewStats(e.Actor.ID); cStats.add(s) {
 					waitFirst.Add(1)
+					log.G(ctx).WithFields(map[string]any{
+						"event":     e.Action,
+						"container": e.Actor.ID,
+					}).Debug("collecting stats for container")
 					go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 				}
 			})
 		}
 
 		eh.setHandler(events.ActionStart, func(e events.Message) {
-			s := NewStats(e.Actor.ID)
-			if cStats.add(s) {
+			if s := NewStats(e.Actor.ID); cStats.add(s) {
 				waitFirst.Add(1)
+				log.G(ctx).WithFields(map[string]any{
+					"event":     e.Action,
+					"container": e.Actor.ID,
+				}).Debug("collecting stats for container")
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		})
 
 		if !options.All {
 			eh.setHandler(events.ActionDie, func(e events.Message) {
+				log.G(ctx).WithFields(map[string]any{
+					"event":     e.Action,
+					"container": e.Actor.ID,
+				}).Debug("stop collecting stats for container")
 				cStats.remove(e.Actor.ID)
 			})
 		}
@@ -209,9 +219,11 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			return err
 		}
 		for _, ctr := range cs {
-			s := NewStats(ctr.ID)
-			if cStats.add(s) {
+			if s := NewStats(ctr.ID); cStats.add(s) {
 				waitFirst.Add(1)
+				log.G(ctx).WithFields(map[string]any{
+					"container": ctr.ID,
+				}).Debug("collecting stats for container")
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		}
@@ -230,9 +242,11 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// Create the list of containers, and start collecting stats for all
 		// containers passed.
 		for _, ctr := range options.Containers {
-			s := NewStats(ctr)
-			if cStats.add(s) {
+			if s := NewStats(ctr); cStats.add(s) {
 				waitFirst.Add(1)
+				log.G(ctx).WithFields(map[string]any{
+					"container": ctr,
+				}).Debug("collecting stats for container")
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		}
@@ -257,7 +271,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 	}
 
 	format := options.Format
-	if len(format) == 0 {
+	if format == "" {
 		if len(dockerCLI.ConfigFile().StatsFormat) > 0 {
 			format = dockerCLI.ConfigFile().StatsFormat
 		} else {
@@ -357,11 +371,11 @@ func (eh *eventHandler) watch(c <-chan events.Message) {
 			continue
 		}
 		if e.Actor.ID == "" {
-			logrus.WithField("event", e).Errorf("event handler: received %s event with empty ID", e.Action)
+			log.G(context.TODO()).WithField("event", e).Errorf("event handler: received %s event with empty ID", e.Action)
 			continue
 		}
 
-		logrus.WithField("event", e).Debugf("event handler: received %s event for: %s", e.Action, e.Actor.ID)
+		log.G(context.TODO()).WithField("event", e).Debugf("event handler: received %s event for: %s", e.Action, e.Actor.ID)
 		go h(e)
 	}
 }

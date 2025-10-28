@@ -10,7 +10,6 @@ import (
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
-	"github.com/sirupsen/logrus"
 )
 
 type stats struct {
@@ -51,7 +50,6 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 }
 
 func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, streamStats bool, waitFirst *sync.WaitGroup) {
-	logrus.Debugf("collecting stats for %s", s.Container)
 	var (
 		getFirst       bool
 		previousCPU    uint64
