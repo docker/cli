@@ -89,7 +89,6 @@ func TestPromptExitCode(t *testing.T) {
 
 	defaultCmdOpts := []icmd.CmdOp{
 		fixtures.WithConfig(dir.Path()),
-		fixtures.WithNotary,
 	}
 
 	testCases := []struct {
@@ -129,13 +128,6 @@ func TestPromptExitCode(t *testing.T) {
 			run: func(t *testing.T) icmd.Cmd {
 				t.Helper()
 				return icmd.Command("docker", "system", "prune")
-			},
-		},
-		{
-			name: "revoke trust",
-			run: func(t *testing.T) icmd.Cmd {
-				t.Helper()
-				return icmd.Command("docker", "trust", "revoke", "example/trust-demo")
 			},
 		},
 		{
