@@ -10,7 +10,6 @@ import (
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
-	"github.com/sirupsen/logrus"
 )
 
 type stats struct {
@@ -50,8 +49,7 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 	return -1, false
 }
 
-func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, streamStats bool, waitFirst *sync.WaitGroup) {
-	logrus.Debugf("collecting stats for %s", s.Container)
+func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, streamStats bool, waitFirst *sync.WaitGroup) { //nolint:gocyclo
 	var (
 		getFirst       bool
 		previousCPU    uint64
@@ -72,11 +70,14 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 		s.SetError(err)
 		return
 	}
-	defer response.Body.Close()
 
-	dec := json.NewDecoder(response.Body)
 	go func() {
+		defer response.Body.Close()
+		dec := json.NewDecoder(response.Body)
 		for {
+			if ctx.Err() != nil {
+				return
+			}
 			var (
 				v                      *container.StatsResponse
 				memPercent, cpuPercent float64
@@ -143,8 +144,8 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 			}
 		case err := <-u:
 			s.SetError(err)
-			if err == io.EOF {
-				break
+			if errors.Is(err, io.EOF) {
+				return
 			}
 			if err != nil {
 				continue
@@ -154,6 +155,9 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 				getFirst = true
 				waitFirst.Done()
 			}
+		case <-ctx.Done():
+			s.SetError(ctx.Err())
+			return
 		}
 		if !streamStats {
 			return
