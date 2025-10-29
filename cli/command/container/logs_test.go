@@ -43,6 +43,37 @@ func TestRunLogs(t *testing.T) {
 			options:     &logsOptions{},
 			client:      &fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
 		},
+		{
+			doc:         "clear logs for running container",
+			options:     &logsOptions{clear: true},
+			client: &fakeClient{
+				inspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+					return client.ContainerInspectResult{
+						Container: container.InspectResponse{
+							Config: &container.Config{Tty: true},
+							State:  &container.State{Running: true}, // Running
+						},
+					}, nil
+				},
+			},
+			expectedError: "cannot clear logs for running containers",
+		},
+		{
+			doc:         "clear logs for stopped container as non-root",
+			options:     &logsOptions{clear: true},
+			client: &fakeClient{
+				inspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+					return client.ContainerInspectResult{
+						Container: container.InspectResponse{
+							Config: &container.Config{Tty: true},
+							State:  &container.State{Running: false}, // Stopped
+							LogPath: "/fake/path",                   // Provide a log path
+						},
+					}, nil
+				},
+			},
+			expectedError: "clearing logs requires root permissions", // Assumes test runs as non-root
+		},
 	}
 
 	for _, testcase := range testcases {
