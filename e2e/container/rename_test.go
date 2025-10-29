@@ -26,3 +26,27 @@ func TestContainerRename(t *testing.T) {
 	res.Assert(t, icmd.Success)
 	assert.Equal(t, "/"+newName, strings.TrimSpace(res.Stdout()))
 }
+
+func TestContainerRenameEmptyOldName(t *testing.T) {
+	res := icmd.RunCommand("docker", "container", "rename", "", "newName")
+	res.Assert(t, icmd.Expected{
+		ExitCode: 1,
+		Err:      "invalid container name or ID: value is empty",
+	})
+}
+
+func TestContainerRenameEmptyNewName(t *testing.T) {
+	oldName := "old_name_" + t.Name()
+	res := icmd.RunCommand("docker", "run", "-d", "--name", oldName, fixtures.AlpineImage, "sleep", "60")
+	res.Assert(t, icmd.Success)
+	cID := strings.TrimSpace(res.Stdout())
+	t.Cleanup(func() {
+		icmd.RunCommand("docker", "container", "rm", "-f", cID).Assert(t, icmd.Success)
+	})
+
+	res = icmd.RunCommand("docker", "container", "rename", oldName, "")
+	res.Assert(t, icmd.Expected{
+		ExitCode: 1,
+		Err:      "new name cannot be blank",
+	})
+}
