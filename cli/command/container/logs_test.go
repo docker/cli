@@ -11,7 +11,7 @@ import (
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
-)
+) 
 
 var logFn = func(expectedOut string) func(string, client.ContainerLogsOptions) (io.ReadCloser, error) {
 	return func(container string, opts client.ContainerLogsOptions) (io.ReadCloser, error) {
