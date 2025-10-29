@@ -43,6 +43,21 @@ func TestRunLogs(t *testing.T) {
 			options:     &logsOptions{},
 			client:      &fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
 		},
+		{
+			doc:     "clear logs for running container",
+			options: &logsOptions{clear: true},
+			client: &fakeClient{
+				inspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+					return client.ContainerInspectResult{
+						Container: container.InspectResponse{
+							Config: &container.Config{Tty: true},
+							State:  &container.State{Running: true}, // Running
+						},
+					}, nil
+				},
+			},
+			expectedError: "cannot clear logs for running containers",
+		},
 	}
 
 	for _, testcase := range testcases {
