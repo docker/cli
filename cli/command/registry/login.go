@@ -332,7 +332,7 @@ func loginClientSide(ctx context.Context, options client.RegistryLoginOptions) (
 	}
 
 	return client.RegistryLoginResult{
-		Auth: registrytypes.AuthenticateOKBody{
+		Auth: registrytypes.AuthResponse{
 			Status:        "Login Succeeded",
 			IdentityToken: token,
 		},

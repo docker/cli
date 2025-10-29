@@ -43,7 +43,7 @@ func (*fakeClient) RegistryLogin(_ context.Context, options client.RegistryLogin
 	}
 	if options.Password == useToken {
 		return client.RegistryLoginResult{
-			Auth: registrytypes.AuthenticateOKBody{IdentityToken: options.Password},
+			Auth: registrytypes.AuthResponse{IdentityToken: options.Password},
 		}, nil
 	}
 	if options.Username == unknownUser {
