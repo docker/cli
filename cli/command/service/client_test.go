@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
 
@@ -15,7 +14,7 @@ type fakeClient struct {
 	serviceUpdateFunc  func(ctx context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error)
 	serviceListFunc    func(context.Context, client.ServiceListOptions) (client.ServiceListResult, error)
 	taskListFunc       func(context.Context, client.TaskListOptions) (client.TaskListResult, error)
-	infoFunc           func(ctx context.Context) (system.Info, error)
+	infoFunc           func(ctx context.Context) (client.SystemInfoResult, error)
 	networkInspectFunc func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (client.NetworkInspectResult, error)
 	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error)
 }
@@ -60,11 +59,11 @@ func (f *fakeClient) ServiceUpdate(ctx context.Context, serviceID string, option
 	return client.ServiceUpdateResult{}, nil
 }
 
-func (f *fakeClient) Info(ctx context.Context) (system.Info, error) {
-	if f.infoFunc == nil {
-		return system.Info{}, nil
+func (f *fakeClient) Info(ctx context.Context, _ client.InfoOptions) (client.SystemInfoResult, error) {
+	if f.infoFunc != nil {
+		return f.infoFunc(ctx)
 	}
-	return f.infoFunc(ctx)
+	return client.SystemInfoResult{}, nil
 }
 
 func (f *fakeClient) NetworkInspect(ctx context.Context, networkID string, options client.NetworkInspectOptions) (client.NetworkInspectResult, error) {

@@ -20,7 +20,7 @@ func TestNodeInspectErrors(t *testing.T) {
 		args            []string
 		flags           map[string]string
 		nodeInspectFunc func() (client.NodeInspectResult, error)
-		infoFunc        func() (system.Info, error)
+		infoFunc        func() (client.SystemInfoResult, error)
 		expectedError   string
 	}{
 		{
@@ -28,8 +28,8 @@ func TestNodeInspectErrors(t *testing.T) {
 		},
 		{
 			args: []string{"self"},
-			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.New("error asking for node info")
+			infoFunc: func() (client.SystemInfoResult, error) {
+				return client.SystemInfoResult{}, errors.New("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -38,8 +38,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			nodeInspectFunc: func() (client.NodeInspectResult, error) {
 				return client.NodeInspectResult{}, errors.New("error inspecting the node")
 			},
-			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.New("error asking for node info")
+			infoFunc: func() (client.SystemInfoResult, error) {
+				return client.SystemInfoResult{}, errors.New("error asking for node info")
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -48,8 +48,12 @@ func TestNodeInspectErrors(t *testing.T) {
 			nodeInspectFunc: func() (client.NodeInspectResult, error) {
 				return client.NodeInspectResult{}, errors.New("error inspecting the node")
 			},
-			infoFunc: func() (system.Info, error) {
-				return system.Info{Swarm: swarm.Info{NodeID: "abc"}}, nil
+			infoFunc: func() (client.SystemInfoResult, error) {
+				return client.SystemInfoResult{
+					Info: system.Info{
+						Swarm: swarm.Info{NodeID: "abc"},
+					},
+				}, nil
 			},
 			expectedError: "error inspecting the node",
 		},
@@ -58,8 +62,8 @@ func TestNodeInspectErrors(t *testing.T) {
 			flags: map[string]string{
 				"pretty": "true",
 			},
-			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.New("error asking for node info")
+			infoFunc: func() (client.SystemInfoResult, error) {
+				return client.SystemInfoResult{}, errors.New("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},

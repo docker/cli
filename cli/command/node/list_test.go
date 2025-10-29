@@ -19,7 +19,7 @@ import (
 func TestNodeListErrorOnAPIFailure(t *testing.T) {
 	testCases := []struct {
 		nodeListFunc  func() (client.NodeListResult, error)
-		infoFunc      func() (system.Info, error)
+		infoFunc      func() (client.SystemInfoResult, error)
 		expectedError string
 	}{
 		{
@@ -36,8 +36,8 @@ func TestNodeListErrorOnAPIFailure(t *testing.T) {
 					},
 				}, nil
 			},
-			infoFunc: func() (system.Info, error) {
-				return system.Info{}, errors.New("error asking for node info")
+			infoFunc: func() (client.SystemInfoResult, error) {
+				return client.SystemInfoResult{}, errors.New("error asking for node info")
 			},
 			expectedError: "error asking for node info",
 		},
@@ -65,10 +65,10 @@ func TestNodeList(t *testing.T) {
 				},
 			}, nil
 		},
-		infoFunc: func() (system.Info, error) {
-			return system.Info{
-				Swarm: swarm.Info{
-					NodeID: "nodeID1",
+		infoFunc: func() (client.SystemInfoResult, error) {
+			return client.SystemInfoResult{
+				Info: system.Info{
+					Swarm: swarm.Info{NodeID: "nodeID1"},
 				},
 			}, nil
 		},
@@ -106,10 +106,10 @@ func TestNodeListDefaultFormatFromConfig(t *testing.T) {
 				},
 			}, nil
 		},
-		infoFunc: func() (system.Info, error) {
-			return system.Info{
-				Swarm: swarm.Info{
-					NodeID: "nodeID1",
+		infoFunc: func() (client.SystemInfoResult, error) {
+			return client.SystemInfoResult{
+				Info: system.Info{
+					Swarm: swarm.Info{NodeID: "nodeID1"},
 				},
 			}, nil
 		},
@@ -132,10 +132,10 @@ func TestNodeListFormat(t *testing.T) {
 				},
 			}, nil
 		},
-		infoFunc: func() (system.Info, error) {
-			return system.Info{
-				Swarm: swarm.Info{
-					NodeID: "nodeID1",
+		infoFunc: func() (client.SystemInfoResult, error) {
+			return client.SystemInfoResult{
+				Info: system.Info{
+					Swarm: swarm.Info{NodeID: "nodeID1"},
 				},
 			}, nil
 		},

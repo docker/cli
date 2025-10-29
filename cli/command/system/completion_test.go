@@ -48,10 +48,12 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				infoFunc: func(ctx context.Context) (system.Info, error) {
-					return system.Info{
-						ID:   "daemon-id",
-						Name: "daemon-name",
+				infoFunc: func(_ context.Context, _ client.InfoOptions) (client.SystemInfoResult, error) {
+					return client.SystemInfoResult{
+						Info: system.Info{
+							ID:   "daemon-id",
+							Name: "daemon-name",
+						},
 					}, nil
 				},
 			},
@@ -60,8 +62,8 @@ func TestCompleteEventFilter(t *testing.T) {
 		},
 		{
 			client: &fakeClient{
-				infoFunc: func(ctx context.Context) (system.Info, error) {
-					return system.Info{}, errors.New("API error")
+				infoFunc: func(_ context.Context, _ client.InfoOptions) (client.SystemInfoResult, error) {
+					return client.SystemInfoResult{}, errors.New("API error")
 				},
 			},
 			toComplete: "daemon=",

@@ -147,13 +147,13 @@ func (cli *fakeClient) ServiceRemove(_ context.Context, serviceID string, _ clie
 	return client.ServiceRemoveResult{}, nil
 }
 
-func (cli *fakeClient) NetworkRemove(_ context.Context, networkID string) error {
+func (cli *fakeClient) NetworkRemove(_ context.Context, networkID string, _ client.NetworkRemoveOptions) (client.NetworkRemoveResult, error) {
 	if cli.networkRemoveFunc != nil {
-		return cli.networkRemoveFunc(networkID)
+		return client.NetworkRemoveResult{}, cli.networkRemoveFunc(networkID)
 	}
 
 	cli.removedNetworks = append(cli.removedNetworks, networkID)
-	return nil
+	return client.NetworkRemoveResult{}, nil
 }
 
 func (cli *fakeClient) SecretRemove(_ context.Context, secretID string, _ client.SecretRemoveOptions) (client.SecretRemoveResult, error) {

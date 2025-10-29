@@ -28,17 +28,17 @@ func (c fakeCLI) Client() client.APIClient {
 
 type fakeClient struct {
 	client.Client
-	containerListFunc func(context.Context, client.ContainerListOptions) ([]container.Summary, error)
+	containerListFunc func(context.Context, client.ContainerListOptions) (client.ContainerListResult, error)
 	imageListFunc     func(context.Context, client.ImageListOptions) (client.ImageListResult, error)
 	networkListFunc   func(context.Context, client.NetworkListOptions) (client.NetworkListResult, error)
 	volumeListFunc    func(context.Context, client.VolumeListOptions) (client.VolumeListResult, error)
 }
 
-func (c *fakeClient) ContainerList(ctx context.Context, options client.ContainerListOptions) ([]container.Summary, error) {
+func (c *fakeClient) ContainerList(ctx context.Context, options client.ContainerListOptions) (client.ContainerListResult, error) {
 	if c.containerListFunc != nil {
 		return c.containerListFunc(ctx, options)
 	}
-	return []container.Summary{}, nil
+	return client.ContainerListResult{}, nil
 }
 
 func (c *fakeClient) ImageList(ctx context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
@@ -153,12 +153,12 @@ func TestCompleteContainerNames(t *testing.T) {
 				t.Setenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS", "yes")
 			}
 			comp := ContainerNames(fakeCLI{&fakeClient{
-				containerListFunc: func(_ context.Context, opts client.ContainerListOptions) ([]container.Summary, error) {
+				containerListFunc: func(_ context.Context, opts client.ContainerListOptions) (client.ContainerListResult, error) {
 					assert.Check(t, is.DeepEqual(opts, tc.expOpts))
 					if tc.expDirective == cobra.ShellCompDirectiveError {
-						return nil, errors.New("some error occurred")
+						return client.ContainerListResult{}, errors.New("some error occurred")
 					}
-					return tc.containers, nil
+					return client.ContainerListResult{Items: tc.containers}, nil
 				},
 			}}, tc.showAll, tc.filters...)
 

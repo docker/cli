@@ -43,7 +43,7 @@ func newUnpauseCommand(dockerCLI command.Cli) *cobra.Command {
 func runUnpause(ctx context.Context, dockerCLI command.Cli, opts *unpauseOptions) error {
 	apiClient := dockerCLI.Client()
 	errChan := parallelOperation(ctx, opts.containers, func(ctx context.Context, container string) error {
-		_, err := apiClient.ContainerUnpause(ctx, container, client.ContainerUnPauseOptions{})
+		_, err := apiClient.ContainerUnpause(ctx, container, client.ContainerUnpauseOptions{})
 		return err
 	})
 	var errs []error

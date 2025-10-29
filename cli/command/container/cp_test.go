@@ -11,7 +11,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
-	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -52,9 +52,11 @@ func TestRunCopyFromContainerToStdout(t *testing.T) {
 	tarContent := "the tar content"
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
+		containerCopyFromFunc: func(ctr, srcPath string) (client.CopyFromContainerResult, error) {
 			assert.Check(t, is.Equal("container", ctr))
-			return io.NopCloser(strings.NewReader(tarContent)), container.PathStat{}, nil
+			return client.CopyFromContainerResult{
+				Content: io.NopCloser(strings.NewReader(tarContent)),
+			}, nil
 		},
 	})
 	err := runCopy(context.TODO(), cli, copyOptions{
@@ -73,10 +75,12 @@ func TestRunCopyFromContainerToFilesystem(t *testing.T) {
 	destDir := fs.NewDir(t, "cp-test")
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
+		containerCopyFromFunc: func(ctr, srcPath string) (client.CopyFromContainerResult, error) {
 			assert.Check(t, is.Equal("container", ctr))
 			readCloser, err := archive.Tar(srcDir.Path(), compression.None)
-			return readCloser, container.PathStat{}, err
+			return client.CopyFromContainerResult{
+				Content: readCloser,
+			}, err
 		},
 	})
 	err := runCopy(context.TODO(), cli, copyOptions{
@@ -99,10 +103,12 @@ func TestRunCopyFromContainerToFilesystemMissingDestinationDirectory(t *testing.
 	defer destDir.Remove()
 
 	cli := test.NewFakeCli(&fakeClient{
-		containerCopyFromFunc: func(ctr, srcPath string) (io.ReadCloser, container.PathStat, error) {
+		containerCopyFromFunc: func(ctr, srcPath string) (client.CopyFromContainerResult, error) {
 			assert.Check(t, is.Equal("container", ctr))
 			readCloser, err := archive.TarWithOptions(destDir.Path(), &archive.TarOptions{})
-			return readCloser, container.PathStat{}, err
+			return client.CopyFromContainerResult{
+				Content: readCloser,
+			}, err
 		},
 	})
 	err := runCopy(context.TODO(), cli, copyOptions{

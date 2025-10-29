@@ -183,7 +183,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			// to list containers and to filter events, but the "type" filter
 			// is not valid for filtering containers.
 			f := options.Filters.Clone().Add("type", string(events.ContainerEventType))
-			eventChan, errChan := apiClient.Events(ctx, client.EventsListOptions{
+			res := apiClient.Events(ctx, client.EventsListOptions{
 				Filters: f,
 			})
 
@@ -198,9 +198,9 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 					return
 				case <-ctx.Done():
 					return
-				case event := <-eventChan:
+				case event := <-res.Messages:
 					c <- event
-				case err := <-errChan:
+				case err := <-res.Err:
 					// Prevent blocking if closeChan is full or unread
 					select {
 					case closeChan <- err:
@@ -229,7 +229,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		if err != nil {
 			return err
 		}
-		for _, ctr := range cs {
+		for _, ctr := range cs.Items {
 			if s := NewStats(ctr.ID); cStats.add(s) {
 				waitFirst.Add(1)
 				log.G(ctx).WithFields(map[string]any{

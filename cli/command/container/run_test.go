@@ -89,14 +89,17 @@ func TestRunAttach(t *testing.T) {
 				HijackedResponse: client.NewHijackedResponse(clientConn, types.MediaTypeRawStream),
 			}, nil
 		},
-		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
+		waitFunc: func(_ string) client.ContainerWaitResult {
 			responseChan := make(chan container.WaitResponse, 1)
 			errChan := make(chan error)
 
 			responseChan <- container.WaitResponse{
 				StatusCode: 33,
 			}
-			return responseChan, errChan
+			return client.ContainerWaitResult{
+				Result: responseChan,
+				Error:  errChan,
+			}
 		},
 		// use new (non-legacy) wait API
 		// see: https://github.com/docker/cli/commit/38591f20d07795aaef45d400df89ca12f29c603b
@@ -166,14 +169,17 @@ func TestRunAttachTermination(t *testing.T) {
 				HijackedResponse: client.NewHijackedResponse(clientConn, types.MediaTypeRawStream),
 			}, nil
 		},
-		waitFunc: func(_ string) (<-chan container.WaitResponse, <-chan error) {
+		waitFunc: func(_ string) client.ContainerWaitResult {
 			responseChan := make(chan container.WaitResponse, 1)
 			errChan := make(chan error)
 			<-killCh
 			responseChan <- container.WaitResponse{
 				StatusCode: 130,
 			}
-			return responseChan, errChan
+			return client.ContainerWaitResult{
+				Result: responseChan,
+				Error:  errChan,
+			}
 		},
 		// use new (non-legacy) wait API
 		// see: https://github.com/docker/cli/commit/38591f20d07795aaef45d400df89ca12f29c603b

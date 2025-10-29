@@ -16,7 +16,6 @@ import (
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/test"
 	registrytypes "github.com/moby/moby/api/types/registry"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -34,23 +33,23 @@ type fakeClient struct {
 	client.Client
 }
 
-func (*fakeClient) Info(context.Context) (system.Info, error) {
-	return system.Info{}, nil
+func (*fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
+	return client.SystemInfoResult{}, nil
 }
 
-func (*fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
-	if auth.Password == expiredPassword {
-		return registrytypes.AuthenticateOKBody{}, errors.New("Invalid Username or Password")
+func (*fakeClient) RegistryLogin(_ context.Context, options client.RegistryLoginOptions) (client.RegistryLoginResult, error) {
+	if options.Password == expiredPassword {
+		return client.RegistryLoginResult{}, errors.New("invalid Username or Password")
 	}
-	if auth.Password == useToken {
-		return registrytypes.AuthenticateOKBody{
-			IdentityToken: auth.Password,
+	if options.Password == useToken {
+		return client.RegistryLoginResult{
+			Auth: registrytypes.AuthenticateOKBody{IdentityToken: options.Password},
 		}, nil
 	}
-	if auth.Username == unknownUser {
-		return registrytypes.AuthenticateOKBody{}, errors.New(errUnknownUser)
+	if options.Username == unknownUser {
+		return client.RegistryLoginResult{}, errors.New(errUnknownUser)
 	}
-	return registrytypes.AuthenticateOKBody{}, nil
+	return client.RegistryLoginResult{}, nil
 }
 
 func TestLoginWithCredStoreCreds(t *testing.T) {

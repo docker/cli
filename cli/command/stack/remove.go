@@ -119,7 +119,7 @@ func removeNetworks(ctx context.Context, dockerCLI command.Cli, networks []netwo
 	var hasError bool
 	for _, nw := range networks {
 		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing network", nw.Name)
-		if err := dockerCLI.Client().NetworkRemove(ctx, nw.ID); err != nil {
+		if _, err := dockerCLI.Client().NetworkRemove(ctx, nw.ID, client.NetworkRemoveOptions{}); err != nil {
 			hasError = true
 			_, _ = fmt.Fprintf(dockerCLI.Err(), "Failed to remove network %s: %s", nw.ID, err)
 		}

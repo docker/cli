@@ -117,8 +117,12 @@ func TestUpdateNodeFilter(t *testing.T) {
 	filter := make(client.Filters).Add("node", "one", "two", "self")
 
 	apiClient := &fakeClient{
-		infoFunc: func(_ context.Context) (system.Info, error) {
-			return system.Info{Swarm: swarm.Info{NodeID: selfNodeID}}, nil
+		infoFunc: func(_ context.Context) (client.SystemInfoResult, error) {
+			return client.SystemInfoResult{
+				Info: system.Info{
+					Swarm: swarm.Info{NodeID: selfNodeID},
+				},
+			}, nil
 		},
 	}
 

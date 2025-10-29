@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/capability"
 	"github.com/moby/sys/signal"
 	"github.com/spf13/cobra"
@@ -186,11 +187,11 @@ func completeLink(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 // of the build-in log drivers.
 func completeLogDriver(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		info, err := dockerCLI.Client().Info(cmd.Context())
+		res, err := dockerCLI.Client().Info(cmd.Context(), client.InfoOptions{})
 		if err != nil {
 			return builtInLogDrivers(), cobra.ShellCompDirectiveNoFileComp
 		}
-		drivers := info.Plugins.Log
+		drivers := res.Info.Plugins.Log
 		return drivers, cobra.ShellCompDirectiveNoFileComp
 	}
 }
@@ -279,12 +280,12 @@ func completeUlimit(_ *cobra.Command, _ []string, _ string) ([]string, cobra.She
 // completeVolumeDriver contacts the API to get the built-in and installed volume drivers.
 func completeVolumeDriver(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
-		info, err := dockerCLI.Client().Info(cmd.Context())
+		res, err := dockerCLI.Client().Info(cmd.Context(), client.InfoOptions{})
 		if err != nil {
 			// fallback: the built-in drivers
 			return []string{"local"}, cobra.ShellCompDirectiveNoFileComp
 		}
-		drivers := info.Plugins.Volume
+		drivers := res.Info.Plugins.Volume
 		return drivers, cobra.ShellCompDirectiveNoFileComp
 	}
 }

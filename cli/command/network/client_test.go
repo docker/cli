@@ -10,8 +10,8 @@ import (
 type fakeClient struct {
 	client.Client
 	networkCreateFunc     func(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error)
-	networkConnectFunc    func(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
-	networkDisconnectFunc func(ctx context.Context, networkID, container string, force bool) error
+	networkConnectFunc    func(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error)
+	networkDisconnectFunc func(ctx context.Context, networkID string, options client.NetworkDisconnectOptions) (client.NetworkDisconnectResult, error)
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
 	networkListFunc       func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error)
 	networkPruneFunc      func(ctx context.Context, options client.NetworkPruneOptions) (client.NetworkPruneResult, error)
@@ -25,18 +25,18 @@ func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options cli
 	return network.CreateResponse{}, nil
 }
 
-func (c *fakeClient) NetworkConnect(ctx context.Context, networkID, container string, config *network.EndpointSettings) error {
+func (c *fakeClient) NetworkConnect(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error) {
 	if c.networkConnectFunc != nil {
-		return c.networkConnectFunc(ctx, networkID, container, config)
+		return c.networkConnectFunc(ctx, networkID, options)
 	}
-	return nil
+	return client.NetworkConnectResult{}, nil
 }
 
-func (c *fakeClient) NetworkDisconnect(ctx context.Context, networkID, container string, force bool) error {
+func (c *fakeClient) NetworkDisconnect(ctx context.Context, networkID string, options client.NetworkDisconnectOptions) (client.NetworkDisconnectResult, error) {
 	if c.networkDisconnectFunc != nil {
-		return c.networkDisconnectFunc(ctx, networkID, container, force)
+		return c.networkDisconnectFunc(ctx, networkID, options)
 	}
-	return nil
+	return client.NetworkDisconnectResult{}, nil
 }
 
 func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error) {
@@ -46,11 +46,11 @@ func (c *fakeClient) NetworkList(ctx context.Context, options client.NetworkList
 	return client.NetworkListResult{}, nil
 }
 
-func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string) error {
+func (c *fakeClient) NetworkRemove(ctx context.Context, networkID string, _ client.NetworkRemoveOptions) (client.NetworkRemoveResult, error) {
 	if c.networkRemoveFunc != nil {
-		return c.networkRemoveFunc(ctx, networkID)
+		return client.NetworkRemoveResult{}, c.networkRemoveFunc(ctx, networkID)
 	}
-	return nil
+	return client.NetworkRemoveResult{}, nil
 }
 
 func (c *fakeClient) NetworkInspect(ctx context.Context, networkID string, opts client.NetworkInspectOptions) (client.NetworkInspectResult, error) {

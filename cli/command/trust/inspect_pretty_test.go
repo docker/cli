@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
 	notaryfake "github.com/docker/cli/internal/test/notary"
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 	"github.com/theupdateframework/notary"
 	notaryclient "github.com/theupdateframework/notary/client"
@@ -35,8 +34,8 @@ type fakeStreamResult struct {
 func (e fakeStreamResult) Read(p []byte) (int, error) { return e.ReadCloser.Read(p) }
 func (e fakeStreamResult) Close() error               { return e.ReadCloser.Close() }
 
-func (*fakeClient) Info(context.Context) (system.Info, error) {
-	return system.Info{}, nil
+func (*fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
+	return client.SystemInfoResult{}, nil
 }
 
 func (*fakeClient) ImageInspect(context.Context, string, ...client.ImageInspectOption) (client.ImageInspectResult, error) {

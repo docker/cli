@@ -41,12 +41,12 @@ func runUnlock(ctx context.Context, dockerCLI command.Cli) error {
 
 	// First see if the node is actually part of a swarm, and if it is actually locked first.
 	// If it's in any other state than locked, don't ask for the key.
-	info, err := apiClient.Info(ctx)
+	res, err := apiClient.Info(ctx, client.InfoOptions{})
 	if err != nil {
 		return err
 	}
 
-	switch info.Swarm.LocalNodeState {
+	switch res.Info.Swarm.LocalNodeState {
 	case swarm.LocalNodeStateInactive:
 		return errors.New("error: this node is not part of a swarm")
 	case swarm.LocalNodeStateLocked:

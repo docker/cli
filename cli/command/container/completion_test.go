@@ -27,7 +27,7 @@ func TestCompleteLinuxCapabilityNames(t *testing.T) {
 
 func TestCompletePid(t *testing.T) {
 	tests := []struct {
-		containerListFunc   func(client.ContainerListOptions) ([]container.Summary, error)
+		containerListFunc   func(client.ContainerListOptions) (client.ContainerListResult, error)
 		toComplete          string
 		expectedCompletions []string
 		expectedDirective   cobra.ShellCompDirective
@@ -43,10 +43,12 @@ func TestCompletePid(t *testing.T) {
 			expectedDirective:   cobra.ShellCompDirectiveNoSpace,
 		},
 		{
-			containerListFunc: func(client.ContainerListOptions) ([]container.Summary, error) {
-				return []container.Summary{
-					*builders.Container("c1"),
-					*builders.Container("c2"),
+			containerListFunc: func(client.ContainerListOptions) (client.ContainerListResult, error) {
+				return client.ContainerListResult{
+					Items: []container.Summary{
+						*builders.Container("c1"),
+						*builders.Container("c2"),
+					},
 				}, nil
 			},
 			toComplete:          "container:",

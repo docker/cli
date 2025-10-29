@@ -128,8 +128,10 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 					defer func() { pullCounter++ }()
 					return client.ImageCreateResult{Body: io.NopCloser(strings.NewReader(""))}, nil
 				},
-				infoFunc: func() (system.Info, error) {
-					return system.Info{IndexServerAddress: "https://indexserver.example.com"}, nil
+				infoFunc: func() (client.SystemInfoResult, error) {
+					return client.SystemInfoResult{
+						Info: system.Info{IndexServerAddress: "https://indexserver.example.com"},
+					}, nil
 				},
 			}
 			fakeCLI := test.NewFakeCli(apiClient)

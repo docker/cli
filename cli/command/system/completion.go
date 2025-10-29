@@ -187,11 +187,11 @@ func containerNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command, 
 // daemonNames contacts the API to get name and ID of the current docker daemon.
 // In case of an error, an empty list is returned.
 func daemonNames(dockerCLI completion.APIClientProvider, cmd *cobra.Command) []string {
-	info, err := dockerCLI.Client().Info(cmd.Context())
+	res, err := dockerCLI.Client().Info(cmd.Context(), client.InfoOptions{})
 	if err != nil {
 		return []string{}
 	}
-	return []string{info.Name, info.ID}
+	return []string{res.Info.Name, res.Info.ID}
 }
 
 // imageNames contacts the API to get a list of image names.

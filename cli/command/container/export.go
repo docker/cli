@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/moby/moby/client"
 	"github.com/moby/sys/atomicwriter"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +61,7 @@ func runExport(ctx context.Context, dockerCLI command.Cli, opts exportOptions) e
 		output = writer
 	}
 
-	responseBody, err := dockerCLI.Client().ContainerExport(ctx, opts.container)
+	responseBody, err := dockerCLI.Client().ContainerExport(ctx, opts.container, client.ContainerExportOptions{})
 	if err != nil {
 		return err
 	}

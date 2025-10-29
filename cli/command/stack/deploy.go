@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
 	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -93,11 +94,11 @@ func runDeploy(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 // create services, but the API call for creating a network does not return a
 // proper status code when it can't create a network in the "global" scope.
 func checkDaemonIsSwarmManager(ctx context.Context, dockerCli command.Cli) error {
-	info, err := dockerCli.Client().Info(ctx)
+	res, err := dockerCli.Client().Info(ctx, client.InfoOptions{})
 	if err != nil {
 		return err
 	}
-	if !info.Swarm.ControlAvailable {
+	if !res.Info.Swarm.ControlAvailable {
 		return errors.New(`this node is not a swarm manager. Use "docker swarm init" or "docker swarm join" to connect this node to swarm and try again`)
 	}
 	return nil

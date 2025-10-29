@@ -77,7 +77,7 @@ func ImageNamesWithBase(dockerCLI APIClientProvider, limit int) cobra.Completion
 // Set DOCKER_COMPLETION_SHOW_CONTAINER_IDS=yes to also complete IDs.
 func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(container.Summary) bool) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		list, err := dockerCLI.Client().ContainerList(cmd.Context(), client.ContainerListOptions{
+		res, err := dockerCLI.Client().ContainerList(cmd.Context(), client.ContainerListOptions{
 			All: all,
 		})
 		if err != nil {
@@ -87,7 +87,7 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(conta
 		showContainerIDs := os.Getenv("DOCKER_COMPLETION_SHOW_CONTAINER_IDS") == "yes"
 
 		var names []string
-		for _, ctr := range list {
+		for _, ctr := range res.Items {
 			skip := false
 			for _, fn := range filters {
 				if fn != nil && !fn(ctr) {

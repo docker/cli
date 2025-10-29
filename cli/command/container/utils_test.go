@@ -12,7 +12,7 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func waitFn(cid string) (<-chan container.WaitResponse, <-chan error) {
+func waitFn(cid string) client.ContainerWaitResult {
 	resC := make(chan container.WaitResponse)
 	errC := make(chan error, 1)
 	var res container.WaitResponse
@@ -33,8 +33,10 @@ func waitFn(cid string) (<-chan container.WaitResponse, <-chan error) {
 			resC <- res
 		}
 	}()
-
-	return resC, errC
+	return client.ContainerWaitResult{
+		Result: resC,
+		Error:  errC,
+	}
 }
 
 func TestWaitExitOrRemoved(t *testing.T) {

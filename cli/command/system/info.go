@@ -117,7 +117,7 @@ func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opt
 // if a connection error occurs, it will be returned as an error.
 // other errors are appended to the info.ServerErrors field.
 func addServerInfo(ctx context.Context, dockerCli command.Cli, format string, info *dockerInfo) error {
-	dinfo, err := dockerCli.Client().Info(ctx)
+	res, err := dockerCli.Client().Info(ctx, client.InfoOptions{})
 	if err != nil {
 		// if no format is provided and we have an error, don't print the server info
 		if format == "" {
@@ -137,7 +137,7 @@ func addServerInfo(ctx context.Context, dockerCli command.Cli, format string, in
 	}
 
 	// only assign the server info if we have no error
-	info.Info = &dinfo
+	info.Info = &res.Info
 	return nil
 }
 

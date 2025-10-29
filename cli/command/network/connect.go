@@ -68,18 +68,21 @@ func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options 
 	if err != nil {
 		return err
 	}
-
-	return apiClient.NetworkConnect(ctx, options.network, options.container, &network.EndpointSettings{
-		IPAMConfig: &network.EndpointIPAMConfig{
-			IPv4Address:  toNetipAddr(options.ipaddress),
-			IPv6Address:  toNetipAddr(options.ipv6address),
-			LinkLocalIPs: toNetipAddrSlice(options.linklocalips),
+	_, err = apiClient.NetworkConnect(ctx, options.network, client.NetworkConnectOptions{
+		Container: options.container,
+		EndpointConfig: &network.EndpointSettings{
+			IPAMConfig: &network.EndpointIPAMConfig{
+				IPv4Address:  toNetipAddr(options.ipaddress),
+				IPv6Address:  toNetipAddr(options.ipv6address),
+				LinkLocalIPs: toNetipAddrSlice(options.linklocalips),
+			},
+			Links:      options.links.GetSlice(),
+			Aliases:    options.aliases,
+			DriverOpts: driverOpts,
+			GwPriority: options.gwPriority,
 		},
-		Links:      options.links.GetSlice(),
-		Aliases:    options.aliases,
-		DriverOpts: driverOpts,
-		GwPriority: options.gwPriority,
 	})
+	return err
 }
 
 func convertDriverOpt(options []string) (map[string]string, error) {

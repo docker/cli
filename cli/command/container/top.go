@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/command/formatter/tabwriter"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -45,17 +46,19 @@ func newTopCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runTop(ctx context.Context, dockerCli command.Cli, opts *topOptions) error {
-	procList, err := dockerCli.Client().ContainerTop(ctx, opts.container, opts.args)
+	procList, err := dockerCli.Client().ContainerTop(ctx, opts.container, client.ContainerTopOptions{
+		Arguments: opts.args,
+	})
 	if err != nil {
 		return err
 	}
 
 	w := tabwriter.NewWriter(dockerCli.Out(), 20, 1, 3, ' ', 0)
-	fmt.Fprintln(w, strings.Join(procList.Titles, "\t"))
+	_, _ = fmt.Fprintln(w, strings.Join(procList.Titles, "\t"))
 
 	for _, proc := range procList.Processes {
-		fmt.Fprintln(w, strings.Join(proc, "\t"))
+		_, _ = fmt.Fprintln(w, strings.Join(proc, "\t"))
 	}
-	w.Flush()
+	_ = w.Flush()
 	return nil
 }

@@ -125,7 +125,10 @@ func TestGetExitStatus(t *testing.T) {
 			resultC <- *testcase.result
 		}
 
-		err := getExitStatus(errC, resultC)
+		err := getExitStatus(client.ContainerWaitResult{
+			Result: resultC,
+			Error:  errC,
+		})
 
 		if testcase.expectedError == nil {
 			assert.NilError(t, err)

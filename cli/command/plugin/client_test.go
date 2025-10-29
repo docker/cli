@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 )
 
@@ -70,8 +69,8 @@ func (c *fakeClient) PluginInspect(_ context.Context, name string, _ client.Plug
 	return client.PluginInspectResult{}, nil
 }
 
-func (*fakeClient) Info(context.Context) (system.Info, error) {
-	return system.Info{}, nil
+func (*fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
+	return client.SystemInfoResult{}, nil
 }
 
 func (c *fakeClient) PluginUpgrade(_ context.Context, name string, options client.PluginUpgradeOptions) (client.PluginUpgradeResult, error) {

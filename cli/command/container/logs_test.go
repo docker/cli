@@ -2,8 +2,6 @@ package container
 
 import (
 	"context"
-	"io"
-	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -12,12 +10,6 @@ import (
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
-
-var logFn = func(expectedOut string) func(string, client.ContainerLogsOptions) (io.ReadCloser, error) {
-	return func(container string, opts client.ContainerLogsOptions) (io.ReadCloser, error) {
-		return io.NopCloser(strings.NewReader(expectedOut)), nil
-	}
-}
 
 func TestRunLogs(t *testing.T) {
 	inspectFn := func(containerID string) (client.ContainerInspectResult, error) {
@@ -41,7 +33,13 @@ func TestRunLogs(t *testing.T) {
 			doc:         "successful logs",
 			expectedOut: "foo",
 			options:     &logsOptions{},
-			client:      &fakeClient{logFunc: logFn("foo"), inspectFunc: inspectFn},
+			client: &fakeClient{
+				logFunc: func(container string, opts client.ContainerLogsOptions) (client.ContainerLogsResult, error) {
+					// FIXME(thaJeztah): how to mock this?
+					return mockContainerLogsResult("foo"), nil
+				},
+				inspectFunc: inspectFn,
+			},
 		},
 	}
 

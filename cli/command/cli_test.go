@@ -139,16 +139,20 @@ type fakeClient struct {
 	negotiated bool
 }
 
-func (c *fakeClient) Ping(_ context.Context, _ client.PingOptions) (client.PingResult, error) {
-	return c.pingFunc()
+func (c *fakeClient) Ping(_ context.Context, options client.PingOptions) (client.PingResult, error) {
+	res, err := c.pingFunc()
+	if options.NegotiateAPIVersion {
+		if res.APIVersion != "" {
+			if c.negotiated || options.ForceNegotiate {
+				c.negotiated = true
+			}
+		}
+	}
+	return res, err
 }
 
 func (c *fakeClient) ClientVersion() string {
 	return c.version
-}
-
-func (c *fakeClient) NegotiateAPIVersionPing(client.PingResult) {
-	c.negotiated = true
 }
 
 func TestInitializeFromClient(t *testing.T) {

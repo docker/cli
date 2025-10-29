@@ -58,11 +58,9 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, volumeID, availabilit
 	if flags.Changed("availability") {
 		res.Volume.ClusterVolume.Spec.Availability = volume.Availability(availability)
 	}
-
-	return apiClient.VolumeUpdate(
-		ctx, res.Volume.ClusterVolume.ID, res.Volume.ClusterVolume.Version,
-		client.VolumeUpdateOptions{
-			Spec: &res.Volume.ClusterVolume.Spec,
-		},
-	)
+	_, err = apiClient.VolumeUpdate(ctx, res.Volume.ClusterVolume.ID, client.VolumeUpdateOptions{
+		Version: res.Volume.ClusterVolume.Version,
+		Spec:    &res.Volume.ClusterVolume.Spec,
+	})
+	return err
 }

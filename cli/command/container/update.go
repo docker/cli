@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/opts"
 	containertypes "github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
 
@@ -60,9 +61,9 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.Int64Var(&options.cpuPeriod, "cpu-period", 0, "Limit CPU CFS (Completely Fair Scheduler) period")
 	flags.Int64Var(&options.cpuQuota, "cpu-quota", 0, "Limit CPU CFS (Completely Fair Scheduler) quota")
 	flags.Int64Var(&options.cpuRealtimePeriod, "cpu-rt-period", 0, "Limit the CPU real-time period in microseconds")
-	flags.SetAnnotation("cpu-rt-period", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("cpu-rt-period", "version", []string{"1.25"})
 	flags.Int64Var(&options.cpuRealtimeRuntime, "cpu-rt-runtime", 0, "Limit the CPU real-time runtime in microseconds")
-	flags.SetAnnotation("cpu-rt-runtime", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("cpu-rt-runtime", "version", []string{"1.25"})
 	flags.StringVar(&options.cpusetCpus, "cpuset-cpus", "", "CPUs in which to allow execution (0-3, 0,1)")
 	flags.StringVar(&options.cpusetMems, "cpuset-mems", "", "MEMs in which to allow execution (0-3, 0,1)")
 	flags.Int64VarP(&options.cpuShares, "cpu-shares", "c", 0, "CPU shares (relative weight)")
@@ -72,10 +73,10 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags.StringVar(&options.restartPolicy, "restart", "", "Restart policy to apply when a container exits")
 	flags.Int64Var(&options.pidsLimit, "pids-limit", 0, `Tune container pids limit (set -1 for unlimited)`)
-	flags.SetAnnotation("pids-limit", "version", []string{"1.40"})
+	_ = flags.SetAnnotation("pids-limit", "version", []string{"1.40"})
 
 	flags.Var(&options.cpus, "cpus", "Number of CPUs")
-	flags.SetAnnotation("cpus", "version", []string{"1.29"})
+	_ = flags.SetAnnotation("cpus", "version", []string{"1.29"})
 
 	_ = cmd.RegisterFlagCompletionFunc("restart", completeRestartPolicies)
 
@@ -107,8 +108,8 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 		pidsLimit = &options.pidsLimit
 	}
 
-	updateConfig := containertypes.UpdateConfig{
-		Resources: containertypes.Resources{
+	updateConfig := client.ContainerUpdateOptions{
+		Resources: &containertypes.Resources{
 			BlkioWeight:        options.blkioWeight,
 			CpusetCpus:         options.cpusetCpus,
 			CpusetMems:         options.cpusetMems,
@@ -123,7 +124,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 			NanoCPUs:           options.cpus.Value(),
 			PidsLimit:          pidsLimit,
 		},
-		RestartPolicy: restartPolicy,
+		RestartPolicy: &restartPolicy,
 	}
 
 	var (

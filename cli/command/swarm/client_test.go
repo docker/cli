@@ -20,11 +20,14 @@ type fakeClient struct {
 	swarmUnlockFunc       func(client.SwarmUnlockOptions) (client.SwarmUnlockResult, error)
 }
 
-func (cli *fakeClient) Info(context.Context) (system.Info, error) {
+func (cli *fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
 	if cli.infoFunc != nil {
-		return cli.infoFunc()
+		inf, err := cli.infoFunc()
+		return client.SystemInfoResult{
+			Info: inf,
+		}, err
 	}
-	return system.Info{}, nil
+	return client.SystemInfoResult{}, nil
 }
 
 func (cli *fakeClient) NodeInspect(context.Context, string, client.NodeInspectOptions) (client.NodeInspectResult, error) {
