@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -64,32 +63,23 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		return err
 	}
     if opts.clear {
-        if c.Container.State.Running {
-        // Fallback: Clear screen
-            return fmt.Errorf("cannot clear logs for running containers; stop the container first")
-        } else {
-            // Confirm truncation
-            if os.Geteuid() != 0 {
-                return fmt.Errorf("Warning: Clearing logs requires root permissions. Run it with sudo.")
-            }
-            fmt.Fprint(dockerCli.Err(), "Permanently clear logs for stopped container? (y/N): ")
-            var response string
-            fmt.Scanln(&response)
-            if strings.ToLower(strings.TrimSpace(response)) == "y" {
-                logPath := c.Container.LogPath
-                if logPath != "" {
-                    if err := os.Truncate(logPath, 0); err != nil {
-                        return fmt.Errorf("failed to clear logs: %v", err)
-                    }
-                    fmt.Fprintln(dockerCli.Err(), "Logs cleared permanently.")
-                } else {
-                    fmt.Fprintln(dockerCli.Err(), "Log path not available.")
-                }
-            } else {
-                fmt.Fprintln(dockerCli.Err(), "Clear cancelled.")
-            }
-        }
+    if c.Container.State.Running {
+        return fmt.Errorf("cannot clear logs for running containers; stop the container first")
+    } else {
+    if os.Geteuid() != 0 {
+        return fmt.Errorf("clearing logs requires root permissions; run with sudo")
     }
+    logPath := c.Container.LogPath
+    if logPath != "" {
+        if err := os.Truncate(logPath, 0); err != nil {
+            return fmt.Errorf("failed to clear logs: %v", err)
+        }
+        fmt.Fprintln(dockerCli.Err(), "Logs cleared permanently.")
+    } else {
+        fmt.Fprintln(dockerCli.Err(), "Log path not available.")
+    }
+}
+}
 	responseBody, err := dockerCli.Client().ContainerLogs(ctx, c.Container.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
