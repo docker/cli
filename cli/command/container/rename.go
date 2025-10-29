@@ -1,7 +1,6 @@
 package container
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/docker/cli/cli"
@@ -19,10 +18,6 @@ func newRenameCommand(dockerCLI command.Cli) *cobra.Command {
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			oldName, newName := args[0], args[1]
-			if newName == "" {
-				// TODO(thaJeztah): remove once https://github.com/moby/moby/pull/51336 is merged and vendored.
-				return errors.New("new name cannot be blank")
-			}
 			_, err := dockerCLI.Client().ContainerRename(cmd.Context(), oldName, client.ContainerRenameOptions{
 				NewName: newName,
 			})
