@@ -885,10 +885,11 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*network.Endpoint
 		}
 	}
 	if ep.MacAddress != "" {
-		if _, err := net.ParseMAC(strings.TrimSpace(ep.MacAddress)); err != nil {
+		ma, err := net.ParseMAC(strings.TrimSpace(ep.MacAddress))
+		if err != nil {
 			return nil, fmt.Errorf("%s is not a valid mac address", ep.MacAddress)
 		}
-		epConfig.MacAddress = ep.MacAddress
+		epConfig.MacAddress = network.HardwareAddr(ma)
 	}
 	return epConfig, nil
 }

@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/cli-docs-tool/annotation"
 	"github.com/docker/cli/cli"
@@ -27,6 +28,7 @@ import (
 	"github.com/moby/moby/client"
 	"github.com/moby/moby/client/pkg/progress"
 	"github.com/moby/moby/client/pkg/streamformatter"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -189,6 +191,13 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		buildBuff     io.Writer
 		remote        string
 	)
+
+	if options.platform != "" {
+		_, err := platforms.Parse(options.platform)
+		if err != nil {
+			return err
+		}
+	}
 
 	contextType, err := build.DetectContextType(options.context)
 	if err != nil {
@@ -399,6 +408,12 @@ func validateTag(rawRepo string) (string, error) {
 
 func imageBuildOptions(dockerCli command.Cli, options buildOptions) client.ImageBuildOptions {
 	configFile := dockerCli.ConfigFile()
+
+	var buildPlatforms []ocispec.Platform
+	if options.platform != "" {
+		// Already validated.
+		buildPlatforms = append(buildPlatforms, platforms.MustParse(options.platform))
+	}
 	return client.ImageBuildOptions{
 		Version:        buildtypes.BuilderV1,
 		Memory:         options.memory.Value(),
@@ -426,6 +441,6 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) client.Image
 		Squash:         options.squash,
 		ExtraHosts:     options.extraHosts.GetSlice(),
 		Target:         options.target,
-		Platform:       options.platform,
+		Platforms:      buildPlatforms,
 	}
 }

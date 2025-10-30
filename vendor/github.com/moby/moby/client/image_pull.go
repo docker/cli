@@ -5,17 +5,16 @@ import (
 	"io"
 	"iter"
 	"net/url"
-	"strings"
 
 	cerrdefs "github.com/containerd/errdefs"
 	"github.com/distribution/reference"
+	"github.com/moby/moby/api/types/jsonstream"
 	"github.com/moby/moby/client/internal"
-	"github.com/moby/moby/client/pkg/jsonmessage"
 )
 
 type ImagePullResponse interface {
 	io.ReadCloser
-	JSONMessages(ctx context.Context) iter.Seq2[jsonmessage.JSONMessage, error]
+	JSONMessages(ctx context.Context) iter.Seq2[jsonstream.Message, error]
 	Wait(ctx context.Context) error
 }
 
@@ -44,10 +43,13 @@ func (cli *Client) ImagePull(ctx context.Context, refStr string, options ImagePu
 	if !options.All {
 		query.Set("tag", getAPITagFromNamedRef(ref))
 	}
-	if options.Platform != "" {
-		query.Set("platform", strings.ToLower(options.Platform))
+	if len(options.Platforms) > 0 {
+		if len(options.Platforms) > 1 {
+			// TODO(thaJeztah): update API spec and add equivalent check on the daemon. We need this still for older daemons, which would ignore it.
+			return nil, cerrdefs.ErrInvalidArgument.WithMessage("specifying multiple platforms is not yet supported")
+		}
+		query.Set("platform", formatPlatform(options.Platforms[0]))
 	}
-
 	resp, err := cli.tryImageCreate(ctx, query, staticAuth(options.RegistryAuth))
 	if cerrdefs.IsUnauthorized(err) && options.PrivilegeFunc != nil {
 		resp, err = cli.tryImageCreate(ctx, query, options.PrivilegeFunc)

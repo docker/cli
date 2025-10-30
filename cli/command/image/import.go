@@ -5,12 +5,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/internal/jsonstream"
 	dockeropts "github.com/docker/cli/opts"
 	"github.com/moby/moby/client"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -82,10 +84,20 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 		}
 	}
 
+	// TODO(thaJeztah): add a platform option-type / flag-type.
+	var ociPlatform ocispec.Platform
+	if options.platform != "" {
+		var err error
+		ociPlatform, err = platforms.Parse(options.platform)
+		if err != nil {
+			return err
+		}
+	}
+
 	responseBody, err := dockerCli.Client().ImageImport(ctx, source, options.reference, client.ImageImportOptions{
 		Message:  options.message,
 		Changes:  options.changes.GetSlice(),
-		Platform: options.platform,
+		Platform: ociPlatform,
 	})
 	if err != nil {
 		return err

@@ -123,7 +123,7 @@ func getDockerEndpoint(contextStore store.Reader, config map[string]string) (doc
 		return docker.Endpoint{}, fmt.Errorf("invalid docker endpoint options: %w", err)
 	}
 	// FIXME(thaJeztah): this creates a new client (but discards it) only to validate the options; are the validation steps above not enough?
-	if _, err := client.NewClientWithOpts(opts...); err != nil {
+	if _, err := client.New(opts...); err != nil {
 		return docker.Endpoint{}, fmt.Errorf("unable to apply docker endpoint options: %w", err)
 	}
 	return ep, nil

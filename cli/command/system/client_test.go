@@ -3,7 +3,6 @@ package system
 import (
 	"context"
 
-	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/client"
@@ -21,7 +20,7 @@ type fakeClient struct {
 	networkListFunc    func(ctx context.Context, options client.NetworkListOptions) (client.NetworkListResult, error)
 	networkPruneFunc   func(ctx context.Context, options client.NetworkPruneOptions) (client.NetworkPruneResult, error)
 	nodeListFunc       func(ctx context.Context, options client.NodeListOptions) (client.NodeListResult, error)
-	serverVersion      func(ctx context.Context) (types.Version, error)
+	serverVersion      func(ctx context.Context, options client.ServerVersionOptions) (client.ServerVersionResult, error)
 	volumeListFunc     func(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error)
 }
 
@@ -89,8 +88,8 @@ func (cli *fakeClient) NodeList(ctx context.Context, options client.NodeListOpti
 	return client.NodeListResult{}, nil
 }
 
-func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
-	return cli.serverVersion(ctx)
+func (cli *fakeClient) ServerVersion(ctx context.Context, options client.ServerVersionOptions) (client.ServerVersionResult, error) {
+	return cli.serverVersion(ctx, options)
 }
 
 func (cli *fakeClient) VolumeList(ctx context.Context, options client.VolumeListOptions) (client.VolumeListResult, error) {

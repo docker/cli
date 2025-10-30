@@ -139,7 +139,7 @@ func withPluginClientConn(name string) command.CLIOption {
 		if err != nil {
 			return err
 		}
-		apiClient, err := client.NewClientWithOpts(client.WithDialContext(helper.Dialer))
+		apiClient, err := client.New(client.WithDialContext(helper.Dialer))
 		if err != nil {
 			return err
 		}
