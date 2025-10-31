@@ -140,7 +140,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		// Already validated.
 		ociPlatforms = append(ociPlatforms, platforms.MustParse(options.platform))
 	}
-	resp, err := dockerCli.Client().ImageCreate(ctx, img, client.ImageCreateOptions{
+	resp, err := dockerCli.Client().ImagePull(ctx, img, client.ImagePullOptions{
 		RegistryAuth: encodedAuth,
 		Platforms:    ociPlatforms,
 	})
@@ -148,14 +148,14 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		return err
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		_ = resp.Close()
 	}()
 
 	out := dockerCli.Err()
 	if options.quiet {
 		out = streams.NewOut(io.Discard)
 	}
-	return jsonstream.Display(ctx, resp.Body, out)
+	return jsonstream.Display(ctx, resp, out)
 }
 
 type cidFile struct {

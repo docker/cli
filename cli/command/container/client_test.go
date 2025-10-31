@@ -32,6 +32,14 @@ func mockContainerLogsResult(content string) client.ContainerLogsResult {
 	return out
 }
 
+type fakeStreamResult struct {
+	io.ReadCloser
+	client.ImagePushResponse // same interface as [client.ImagePushResponse]
+}
+
+func (e fakeStreamResult) Read(p []byte) (int, error) { return e.ReadCloser.Read(p) }
+func (e fakeStreamResult) Close() error               { return e.ReadCloser.Close() }
+
 type fakeClient struct {
 	client.Client
 	inspectFunc             func(string) (client.ContainerInspectResult, error)
@@ -39,7 +47,7 @@ type fakeClient struct {
 	execCreateFunc          func(containerID string, options client.ExecCreateOptions) (client.ExecCreateResult, error)
 	createContainerFunc     func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error)
 	containerStartFunc      func(containerID string, options client.ContainerStartOptions) (client.ContainerStartResult, error)
-	imageCreateFunc         func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error)
+	imagePullFunc           func(ctx context.Context, parentReference string, options client.ImagePullOptions) (client.ImagePullResponse, error)
 	infoFunc                func() (client.SystemInfoResult, error)
 	containerStatPathFunc   func(containerID, path string) (client.ContainerStatPathResult, error)
 	containerCopyFromFunc   func(containerID, srcPath string) (client.CopyFromContainerResult, error)
@@ -107,11 +115,11 @@ func (f *fakeClient) ContainerRemove(ctx context.Context, containerID string, op
 	return client.ContainerRemoveResult{}, nil
 }
 
-func (f *fakeClient) ImageCreate(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error) {
-	if f.imageCreateFunc != nil {
-		return f.imageCreateFunc(ctx, parentReference, options)
+func (f *fakeClient) ImagePull(ctx context.Context, parentReference string, options client.ImagePullOptions) (client.ImagePullResponse, error) {
+	if f.imagePullFunc != nil {
+		return f.imagePullFunc(ctx, parentReference, options)
 	}
-	return client.ImageCreateResult{}, nil
+	return fakeStreamResult{}, nil
 }
 
 func (f *fakeClient) Info(context.Context, client.InfoOptions) (client.SystemInfoResult, error) {
