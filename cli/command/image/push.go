@@ -16,7 +16,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/tui"
 	"github.com/moby/moby/api/types/auxprogress"
@@ -27,11 +26,10 @@ import (
 )
 
 type pushOptions struct {
-	all       bool
-	remote    string
-	untrusted bool
-	quiet     bool
-	platform  string
+	all      bool
+	remote   string
+	quiet    bool
+	platform string
 }
 
 // newPushCommand creates a new `docker push` command
@@ -57,7 +55,10 @@ func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.all, "all-tags", "a", false, "Push all tags of an image to the repository")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress verbose output")
-	flags.BoolVar(&opts.untrusted, "disable-content-trust", !trust.Enabled(), "Skip image signing")
+
+	// TODO(thaJeztah): DEPRECATED: remove in v29.1 or v30
+	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
+	_ = flags.MarkDeprecated("disable-content-trust", "support for docker content trust was removed")
 
 	// Don't default to DOCKER_DEFAULT_PLATFORM env variable, always default to
 	// pushing the image as-is. This also avoids forcing the platform selection
@@ -128,10 +129,6 @@ To push the complete multi-platform image, remove the --platform flag.
 			out.PrintNote(note)
 		}
 	}()
-
-	if !opts.untrusted {
-		return pushTrustedReference(ctx, dockerCli, ref, responseBody)
-	}
 
 	if opts.quiet {
 		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux()))

@@ -2,7 +2,6 @@ package test
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"strings"
 
@@ -14,29 +13,24 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/registryclient"
 	"github.com/moby/moby/client"
-	notaryclient "github.com/theupdateframework/notary/client"
 )
-
-// NotaryClientFuncType defines a function that returns a fake notary client
-type NotaryClientFuncType func() (notaryclient.Repository, error)
 
 // FakeCli emulates the default DockerCli
 type FakeCli struct {
 	command.DockerCli
-	client           client.APIClient
-	configfile       *configfile.ConfigFile
-	out              *streams.Out
-	outBuffer        *bytes.Buffer
-	err              *streams.Out
-	errBuffer        *bytes.Buffer
-	in               *streams.In
-	server           command.ServerInfo
-	notaryClientFunc NotaryClientFuncType
-	manifestStore    manifeststore.Store
-	registryClient   registryclient.RegistryClient
-	contextStore     store.Store
-	currentContext   string
-	dockerEndpoint   docker.Endpoint
+	client         client.APIClient
+	configfile     *configfile.ConfigFile
+	out            *streams.Out
+	outBuffer      *bytes.Buffer
+	err            *streams.Out
+	errBuffer      *bytes.Buffer
+	in             *streams.In
+	server         command.ServerInfo
+	manifestStore  manifeststore.Store
+	registryClient registryclient.RegistryClient
+	contextStore   store.Store
+	currentContext string
+	dockerEndpoint docker.Endpoint
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
@@ -160,19 +154,6 @@ func (c *FakeCli) ErrBuffer() *bytes.Buffer {
 func (c *FakeCli) ResetOutputBuffers() {
 	c.outBuffer.Reset()
 	c.errBuffer.Reset()
-}
-
-// SetNotaryClient sets the internal getter for retrieving a NotaryClient
-func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
-	c.notaryClientFunc = notaryClientFunc
-}
-
-// NotaryClient returns an err for testing unless defined
-func (c *FakeCli) NotaryClient() (notaryclient.Repository, error) {
-	if c.notaryClientFunc != nil {
-		return c.notaryClientFunc()
-	}
-	return nil, errors.New("no notary client available unless defined")
 }
 
 // ManifestStore returns a fake store used for testing

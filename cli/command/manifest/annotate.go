@@ -44,6 +44,27 @@ func newManifestStore(dockerCLI command.Cli) store.Store {
 	return store.NewStore(filepath.Join(config.Dir(), "manifests"))
 }
 
+// authConfigKey is the key used to store credentials for Docker Hub. It is
+// a copy of [registry.IndexServer].
+//
+// [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#IndexServer
+const authConfigKey = "https://index.docker.io/v1/"
+
+// getAuthConfigKey special-cases using the full index address of the official
+// index as the AuthConfig key, and uses the (host)name[:port] for private indexes.
+//
+// It is similar to [registry.GetAuthConfigKey], but does not require on
+// [registrytypes.IndexInfo] as intermediate.
+//
+// [registry.GetAuthConfigKey]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#GetAuthConfigKey
+// [registrytypes.IndexInfo]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/api/types/registry#IndexInfo
+func getAuthConfigKey(domainName string) string {
+	if domainName == "docker.io" || domainName == "index.docker.io" {
+		return authConfigKey
+	}
+	return domainName
+}
+
 // newRegistryClient returns a client for communicating with a Docker distribution
 // registry
 func newRegistryClient(dockerCLI command.Cli, allowInsecure bool) registryclient.RegistryClient {
@@ -51,8 +72,20 @@ func newRegistryClient(dockerCLI command.Cli, allowInsecure bool) registryclient
 		// manifestStoreProvider is used in tests to provide a dummy store.
 		return msp.RegistryClient(allowInsecure)
 	}
-	resolver := func(ctx context.Context, index *registry.IndexInfo) registry.AuthConfig {
-		return command.ResolveAuthConfig(dockerCLI.ConfigFile(), index)
+	cfg := dockerCLI.ConfigFile()
+	resolver := func(ctx context.Context, domainName string) registry.AuthConfig {
+		configKey := getAuthConfigKey(domainName)
+		a, _ := cfg.GetAuthConfig(configKey)
+		return registry.AuthConfig{
+			Username:      a.Username,
+			Password:      a.Password,
+			ServerAddress: a.ServerAddress,
+
+			// TODO(thaJeztah): Are these expected to be included?
+			Auth:          a.Auth,
+			IdentityToken: a.IdentityToken,
+			RegistryToken: a.RegistryToken,
+		}
 	}
 	// FIXME(thaJeztah): this should use the userAgent as configured on the dockerCLI.
 	return registryclient.NewRegistryClient(resolver, command.UserAgent(), allowInsecure)

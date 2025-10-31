@@ -193,9 +193,6 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	}
 
 	if flags.Changed("image") {
-		if err := resolveServiceImageDigestContentTrust(dockerCLI, spec); err != nil {
-			return err
-		}
 		updateOpts.QueryRegistry = !options.noResolveImage
 	}
 

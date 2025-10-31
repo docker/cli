@@ -34,7 +34,7 @@ func NewRegistryClient(resolver AuthConfigResolver, userAgent string, insecure b
 }
 
 // AuthConfigResolver returns Auth Configuration for an index
-type AuthConfigResolver func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig
+type AuthConfigResolver func(ctx context.Context, hostName string) registrytypes.AuthConfig
 
 type client struct {
 	authConfigResolver AuthConfigResolver
@@ -146,7 +146,7 @@ func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Na
 
 func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoint repositoryEndpoint) (http.RoundTripper, error) {
 	httpTransport, err := getHTTPTransport(
-		c.authConfigResolver(ctx, repoEndpoint.indexInfo),
+		c.authConfigResolver(ctx, repoEndpoint.indexInfo.Name),
 		repoEndpoint.endpoint,
 		repoEndpoint.repoName,
 		c.userAgent,
