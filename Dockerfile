@@ -140,7 +140,7 @@ COPY --link --from=build /out ./build/
 COPY --link --from=build-plugins /out ./build/
 COPY --link --from=buildx  /buildx         /usr/libexec/docker/cli-plugins/docker-buildx
 COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docker-compose
-COPY --link --from=trust   /docker-trust   /usr/libexec/docker/cli-plugins/docker-trust
+#COPY --link --from=trust   /docker-trust   /usr/libexec/docker/cli-plugins/docker-trust
 COPY --link . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
