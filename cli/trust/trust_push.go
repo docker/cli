@@ -12,7 +12,6 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
-	"github.com/moby/moby/api/types"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
@@ -26,6 +25,15 @@ type Streams interface {
 	In() *streams.In
 	Out() *streams.Out
 	Err() *streams.Out
+}
+
+// PushResult contains the tag, manifest digest, and manifest size from the
+// push. It's used to signal this information to the trust code in the client
+// so it can sign the manifest if necessary.
+type PushResult struct {
+	Tag    string
+	Digest string
+	Size   int
 }
 
 // PushTrustedReference pushes a canonical reference to the trust server.
@@ -45,7 +53,7 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 			return
 		}
 
-		var pushResult types.PushResult
+		var pushResult PushResult
 		err := json.Unmarshal(*msg.Aux, &pushResult)
 		if err == nil && pushResult.Tag != "" {
 			if dgst, err := digest.Parse(pushResult.Digest); err == nil {
