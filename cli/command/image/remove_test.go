@@ -26,6 +26,7 @@ func (notFound) NotFound() {}
 
 func TestNewRemoveCommandAlias(t *testing.T) {
 	cmd := newImageRemoveCommand(test.NewFakeCli(&fakeClient{}))
+	cmd.SetArgs([]string{""})
 	assert.Check(t, cmd.HasAlias("rmi"))
 	assert.Check(t, cmd.HasAlias("remove"))
 	assert.Check(t, !cmd.HasAlias("other"))
@@ -69,7 +70,7 @@ func TestNewRemoveCommandErrors(t *testing.T) {
 			}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
-			cmd.SetArgs(tc.args)
+			cmd.SetArgs(nilToEmptySlice(tc.args))
 			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 		})
 	}
@@ -134,7 +135,7 @@ func TestNewRemoveCommandSuccess(t *testing.T) {
 			cmd := newRemoveCommand(cli)
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
-			cmd.SetArgs(tc.args)
+			cmd.SetArgs(nilToEmptySlice(tc.args))
 			assert.NilError(t, cmd.Execute())
 			assert.Check(t, is.Equal(tc.expectedStderr, cli.ErrBuffer().String()))
 			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("remove-command-success.%s.golden", tc.name))
