@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/trust"
 	"github.com/fvbommel/sortorder"
 	registrytypes "github.com/moby/moby/api/types/registry"
@@ -172,6 +173,39 @@ func matchReleasedSignatures(allTargets []client.TargetSignedStruct) []trustTagR
 // authResolver returns an auth resolver function from a [config.Provider].
 func authResolver(dockerCLI config.Provider) func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	return func(ctx context.Context, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
-		return command.ResolveAuthConfig(dockerCLI.ConfigFile(), index)
+		return resolveAuthConfig(dockerCLI.ConfigFile(), index)
+	}
+}
+
+// authConfigKey is the key used to store credentials for Docker Hub. It is
+// a copy of [registry.IndexServer].
+//
+// [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#IndexServer
+const authConfigKey = "https://index.docker.io/v1/"
+
+// resolveAuthConfig returns auth-config for the given registry from the
+// credential-store. It returns an empty AuthConfig if no credentials were
+// found.
+//
+// It is similar to [registry.ResolveAuthConfig], but uses the credentials-
+// store, instead of looking up credentials from a map.
+//
+// [registry.ResolveAuthConfig]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#ResolveAuthConfig
+func resolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+	configKey := index.Name
+	if index.Official {
+		configKey = authConfigKey
+	}
+
+	a, _ := cfg.GetAuthConfig(configKey)
+	return registrytypes.AuthConfig{
+		Username:      a.Username,
+		Password:      a.Password,
+		ServerAddress: a.ServerAddress,
+
+		// TODO(thaJeztah): Are these expected to be included?
+		Auth:          a.Auth,
+		IdentityToken: a.IdentityToken,
+		RegistryToken: a.RegistryToken,
 	}
 }

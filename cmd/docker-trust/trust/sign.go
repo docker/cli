@@ -92,7 +92,7 @@ func runSignImage(ctx context.Context, dockerCLI command.Cli, options signOption
 			}
 			_, _ = fmt.Fprintf(dockerCLI.Err(), "Signing and pushing trust data for local image %s, may overwrite remote trust data\n", imageName)
 
-			authConfig := command.ResolveAuthConfig(dockerCLI.ConfigFile(), imgRefAndAuth.RepoInfo().Index)
+			authConfig := resolveAuthConfig(dockerCLI.ConfigFile(), imgRefAndAuth.RepoInfo().Index)
 			encodedAuth, err := authconfig.Encode(authConfig)
 			if err != nil {
 				return err

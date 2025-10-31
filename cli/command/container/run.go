@@ -12,7 +12,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
@@ -73,7 +72,10 @@ func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 	// TODO(thaJeztah): consider adding platform as "image create option" on containerOptions
 	flags.StringVar(&options.platform, "platform", os.Getenv("DOCKER_DEFAULT_PLATFORM"), "Set platform if server is multi-platform capable")
 	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
-	flags.BoolVar(&options.untrusted, "disable-content-trust", !trust.Enabled(), "Skip image verification")
+
+	// TODO(thaJeztah): DEPRECATED: remove in v29.1 or v30
+	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
+	_ = flags.MarkDeprecated("disable-content-trust", "support for docker content trust was removed")
 	copts = addFlags(flags)
 
 	_ = cmd.RegisterFlagCompletionFunc("detach-keys", completeDetachKeys)

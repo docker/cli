@@ -17,11 +17,9 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/command/image"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/mount"
@@ -88,7 +86,11 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	_ = flags.SetAnnotation("platform", "version", []string{"1.32"})
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 
-	flags.BoolVar(&options.untrusted, "disable-content-trust", !trust.Enabled(), "Skip image verification")
+	// TODO(thaJeztah): DEPRECATED: remove in v29.1 or v30
+	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
+	_ = flags.MarkDeprecated("disable-content-trust", "support for docker content trust was removed")
+
+	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
 	copts = addFlags(flags)
 
 	addCompletions(cmd, dockerCLI)
@@ -213,10 +215,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
 
-	var (
-		trustedRef reference.Canonical
-		namedRef   reference.Named
-	)
+	var namedRef reference.Named
 
 	// TODO(thaJeztah): add a platform option-type / flag-type.
 	if options.platform != "" {
@@ -240,15 +239,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 	if named, ok := ref.(reference.Named); ok {
 		namedRef = reference.TagNameOnly(named)
-
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && !options.untrusted {
-			var err error
-			trustedRef, err = image.TrustedReference(ctx, dockerCli, taggedRef)
-			if err != nil {
-				return "", err
-			}
-			config.Image = reference.FamiliarString(trustedRef)
-		}
 	}
 
 	const dockerConfigPathInContainer = "/run/secrets/docker/config.json"
@@ -330,9 +320,6 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	pullAndTagImage := func() error {
 		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
 			return err
-		}
-		if taggedRef, ok := namedRef.(reference.NamedTagged); ok && trustedRef != nil {
-			return trust.TagTrusted(ctx, dockerCli.Client(), dockerCli.Err(), trustedRef, taggedRef)
 		}
 		return nil
 	}

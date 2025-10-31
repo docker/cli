@@ -39,10 +39,7 @@ const authConfigKey = "https://index.docker.io/v1/"
 // credential-store. It returns an empty AuthConfig if no credentials were
 // found.
 //
-// It is similar to [registry.ResolveAuthConfig], but uses the credentials-
-// store, instead of looking up credentials from a map.
-//
-// [registry.ResolveAuthConfig]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#ResolveAuthConfig
+// Deprecated: this function is no longer used, and will be removed in the next release.
 func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
 	configKey := index.Name
 	if index.Official {
