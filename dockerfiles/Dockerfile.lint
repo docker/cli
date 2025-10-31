@@ -13,7 +13,7 @@ FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS lint
 ENV GOTOOLCHAIN=local
-ENV GO111MODULE=off
+ENV GO111MODULE=auto
 ENV CGO_ENABLED=0
 ENV GOGC=75
 WORKDIR /go/src/github.com/docker/cli
