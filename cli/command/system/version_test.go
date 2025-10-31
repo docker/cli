@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/golden"
@@ -17,8 +18,8 @@ import (
 
 func TestVersionWithoutServer(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{
-		serverVersion: func(ctx context.Context) (types.Version, error) {
-			return types.Version{}, errors.New("no server")
+		serverVersion: func(ctx context.Context, options client.ServerVersionOptions) (client.ServerVersionResult, error) {
+			return client.ServerVersionResult{}, errors.New("no server")
 		},
 	})
 	cmd := newVersionCommand(cli)
@@ -46,9 +47,9 @@ func TestVersionFormat(t *testing.T) {
 			BuildTime:         "Wed May 30 22:21:05 2018",
 			Context:           "my-context",
 		},
-		Server: &types.Version{
-			Platform: struct{ Name string }{Name: "Docker Enterprise Edition (EE) 2.0"},
-			Components: []types.ComponentVersion{
+		Server: &client.ServerVersionResult{
+			Platform: client.PlatformInfo{Name: "Docker Enterprise Edition (EE) 2.0"},
+			Components: []system.ComponentVersion{
 				{
 					Name:    "Engine",
 					Version: "17.06.2-ee-15",

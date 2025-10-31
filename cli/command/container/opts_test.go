@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/netip"
 	"os"
 	"runtime"
@@ -19,6 +20,14 @@ import (
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/skip"
 )
+
+func mustParseMAC(s string) networktypes.HardwareAddr {
+	mac, err := net.ParseMAC(s)
+	if err != nil {
+		panic(err)
+	}
+	return networktypes.HardwareAddr(mac)
+}
 
 func TestValidateAttach(t *testing.T) {
 	valid := []string{
@@ -353,7 +362,7 @@ func TestParseWithMacAddress(t *testing.T) {
 	}
 	_, hostConfig, nwConfig := mustParse(t, validMacAddress)
 	defaultNw := hostConfig.NetworkMode.NetworkName()
-	if nwConfig.EndpointsConfig[defaultNw].MacAddress != "92:d0:c6:0a:29:33" {
+	if nwConfig.EndpointsConfig[defaultNw].MacAddress.String() != "92:d0:c6:0a:29:33" {
 		t.Fatalf("Expected the default endpoint to have the MacAddress '92:d0:c6:0a:29:33' set, got '%v'", nwConfig.EndpointsConfig[defaultNw].MacAddress)
 	}
 }
@@ -650,7 +659,7 @@ func TestParseNetworkConfig(t *testing.T) {
 					Aliases: []string{"web3"},
 				},
 				"net4": {
-					MacAddress: "02:32:1c:23:00:04",
+					MacAddress: mustParseMAC("02:32:1c:23:00:04"),
 					IPAMConfig: &networktypes.EndpointIPAMConfig{
 						LinkLocalIPs: []netip.Addr{netip.MustParseAddr("169.254.169.254")},
 					},
@@ -672,7 +681,7 @@ func TestParseNetworkConfig(t *testing.T) {
 						IPv6Address: netip.MustParseAddr("2001:db8::8822"),
 					},
 					Aliases:    []string{"web1", "web2"},
-					MacAddress: "02:32:1c:23:00:04",
+					MacAddress: mustParseMAC("02:32:1c:23:00:04"),
 				},
 			},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
@@ -689,7 +698,7 @@ func TestParseNetworkConfig(t *testing.T) {
 			expected: map[string]*networktypes.EndpointSettings{
 				"net1": {
 					Aliases:    []string{"foobar"},
-					MacAddress: "52:0f:f3:dc:50:10",
+					MacAddress: mustParseMAC("52:0f:f3:dc:50:10"),
 				},
 			},
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},

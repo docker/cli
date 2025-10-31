@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -17,6 +18,7 @@ import (
 	"github.com/moby/moby/api/pkg/authconfig"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -78,6 +80,13 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 		}
 	}
 
+	if opts.platform != "" {
+		// TODO(thaJeztah): add a platform option-type / flag-type.
+		if _, err = platforms.Parse(opts.platform); err != nil {
+			return err
+		}
+	}
+
 	imgRefAndAuth, err := trust.GetImageReferencesAndAuth(ctx, authResolver(dockerCLI), distributionRef.String())
 	if err != nil {
 		return err
@@ -104,11 +113,17 @@ func imagePullPrivileged(ctx context.Context, dockerCLI command.Cli, ref referen
 	if err != nil {
 		return err
 	}
+	var ociPlatforms []ocispec.Platform
+	if opts.platform != "" {
+		// Already validated.
+		ociPlatforms = append(ociPlatforms, platforms.MustParse(opts.platform))
+	}
+
 	responseBody, err := dockerCLI.Client().ImagePull(ctx, reference.FamiliarString(ref), client.ImagePullOptions{
 		RegistryAuth:  encodedAuth,
 		PrivilegeFunc: nil,
 		All:           opts.all,
-		Platform:      opts.platform,
+		Platforms:     ociPlatforms,
 	})
 	if err != nil {
 		return err

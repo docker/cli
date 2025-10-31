@@ -33,12 +33,10 @@ func TestDisplay(t *testing.T) {
 				err := enc.Encode(JSONMessage{
 					Status: "Downloading",
 					ID:     fmt.Sprintf("id-%d", i),
-					Progress: &JSONProgress{
-						Progress: jsonstream.Progress{
-							Current: int64(i),
-							Total:   100,
-							Start:   0,
-						},
+					Progress: &jsonstream.Progress{
+						Current: int64(i),
+						Total:   100,
+						Start:   0,
 					},
 				})
 				if err != nil {

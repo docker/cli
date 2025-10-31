@@ -292,7 +292,7 @@ func TestNewDockerCliAndOperators(t *testing.T) {
 func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 	cli, err := NewDockerCli()
 	assert.NilError(t, err)
-	apiClient, err := client.NewClientWithOpts()
+	apiClient, err := client.New()
 	assert.NilError(t, err)
 	assert.NilError(t, cli.Initialize(flags.NewClientOptions(), WithAPIClient(apiClient)))
 	assert.Check(t, cli.ContextStore() != nil)

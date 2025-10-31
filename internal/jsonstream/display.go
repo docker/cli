@@ -11,8 +11,8 @@ import (
 
 type (
 	JSONError    = jsonstream.Error
-	JSONMessage  = jsonmessage.JSONMessage
-	JSONProgress = jsonmessage.JSONProgress
+	JSONMessage  = jsonstream.Message
+	JSONProgress = jsonstream.Progress
 )
 
 type ctxReader struct {

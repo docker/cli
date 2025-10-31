@@ -135,9 +135,14 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		return err
 	}
 
+	var ociPlatforms []ocispec.Platform
+	if options.platform != "" {
+		// Already validated.
+		ociPlatforms = append(ociPlatforms, platforms.MustParse(options.platform))
+	}
 	resp, err := dockerCli.Client().ImageCreate(ctx, img, client.ImageCreateOptions{
 		RegistryAuth: encodedAuth,
-		Platform:     options.platform,
+		Platforms:    ociPlatforms,
 	})
 	if err != nil {
 		return err
@@ -212,6 +217,14 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		trustedRef reference.Canonical
 		namedRef   reference.Named
 	)
+
+	// TODO(thaJeztah): add a platform option-type / flag-type.
+	if options.platform != "" {
+		_, err = platforms.Parse(options.platform)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	containerIDFile, err := newCIDFile(hostConfig.ContainerIDFile)
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"io"
 	"runtime"
 	"sort"
-	"strconv"
 	"text/template"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/cli/templates"
-	"github.com/moby/moby/api/types"
+	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"github.com/tonistiigi/go-rosetta"
@@ -64,7 +63,7 @@ type versionOptions struct {
 // versionInfo contains version information of both the Client, and Server
 type versionInfo struct {
 	Client clientVersion
-	Server *types.Version
+	Server *client.ServerVersionResult
 }
 
 type platformInfo struct {
@@ -153,12 +152,10 @@ func runVersion(ctx context.Context, dockerCli command.Cli, opts *versionOptions
 		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
 
-	// TODO print error if kubernetes is used?
-
 	vd := versionInfo{
 		Client: newClientVersion(dockerCli.CurrentContext(), dockerCli),
 	}
-	sv, err := dockerCli.Client().ServerVersion(ctx)
+	sv, err := dockerCli.Client().ServerVersion(ctx, client.ServerVersionOptions{})
 	if err == nil {
 		vd.Server = &sv
 		foundEngine := false
@@ -173,18 +170,14 @@ func runVersion(ctx context.Context, dockerCli command.Cli, opts *versionOptions
 		}
 
 		if !foundEngine {
-			vd.Server.Components = append(vd.Server.Components, types.ComponentVersion{
+			vd.Server.Components = append(vd.Server.Components, system.ComponentVersion{
 				Name:    "Engine",
 				Version: sv.Version,
 				Details: map[string]string{
 					"ApiVersion":    sv.APIVersion,
 					"MinAPIVersion": sv.MinAPIVersion,
-					"GitCommit":     sv.GitCommit,
-					"GoVersion":     sv.GoVersion,
 					"Os":            sv.Os,
 					"Arch":          sv.Arch,
-					"BuildTime":     reformatDate(vd.Server.BuildTime),
-					"Experimental":  strconv.FormatBool(sv.Experimental),
 				},
 			})
 		}
@@ -217,7 +210,7 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 	return tmpl, nil
 }
 
-func getDetailsOrder(v types.ComponentVersion) []string {
+func getDetailsOrder(v system.ComponentVersion) []string {
 	out := make([]string, 0, len(v.Details))
 	for k := range v.Details {
 		out = append(out, k)

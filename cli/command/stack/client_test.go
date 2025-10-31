@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/compose/convert"
-	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
@@ -38,9 +37,8 @@ type fakeClient struct {
 	configRemoveFunc  func(configID string) (client.ConfigRemoveResult, error)
 }
 
-func (*fakeClient) ServerVersion(context.Context) (types.Version, error) {
-	return types.Version{
-		Version:    "docker-dev",
+func (*fakeClient) ServerVersion(context.Context, client.ServerVersionOptions) (client.ServerVersionResult, error) {
+	return client.ServerVersionResult{
 		APIVersion: client.MaxAPIVersion,
 	}, nil
 }
