@@ -20,7 +20,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args              []string
 		flags             map[string]string
-		networkCreateFunc func(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error)
+		networkCreateFunc func(ctx context.Context, name string, options client.NetworkCreateOptions) (client.NetworkCreateResult, error)
 		expectedError     string
 	}{
 		{
@@ -28,8 +28,8 @@ func TestNetworkCreateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"toto"},
-			networkCreateFunc: func(ctx context.Context, name string, createBody client.NetworkCreateOptions) (network.CreateResponse, error) {
-				return network.CreateResponse{}, errors.New("error creating network")
+			networkCreateFunc: func(ctx context.Context, name string, createBody client.NetworkCreateOptions) (client.NetworkCreateResult, error) {
+				return client.NetworkCreateResult{}, errors.New("error creating network")
 			},
 			expectedError: "error creating network",
 		},
@@ -166,10 +166,10 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 		},
 	}
 	cli := test.NewFakeCli(&fakeClient{
-		networkCreateFunc: func(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error) {
+		networkCreateFunc: func(ctx context.Context, name string, options client.NetworkCreateOptions) (client.NetworkCreateResult, error) {
 			assert.Check(t, is.Equal(expectedDriver, options.Driver), "not expected driver error")
 			assert.Check(t, is.DeepEqual(expectedOpts, options.IPAM.Config, cmpopts.EquateComparable(netip.Addr{}, netip.Prefix{})), "not expected driver error")
-			return network.CreateResponse{
+			return client.NetworkCreateResult{
 				ID: name,
 			}, nil
 		},
@@ -224,9 +224,9 @@ func TestNetworkCreateIPv4(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				networkCreateFunc: func(ctx context.Context, name string, createBody client.NetworkCreateOptions) (network.CreateResponse, error) {
+				networkCreateFunc: func(ctx context.Context, name string, createBody client.NetworkCreateOptions) (client.NetworkCreateResult, error) {
 					assert.Check(t, is.DeepEqual(createBody.EnableIPv4, tc.expected))
-					return network.CreateResponse{ID: name}, nil
+					return client.NetworkCreateResult{ID: name}, nil
 				},
 			})
 			cmd := newCreateCommand(cli)
@@ -278,9 +278,9 @@ func TestNetworkCreateIPv6(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.doc, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{
-				networkCreateFunc: func(ctx context.Context, name string, createBody client.NetworkCreateOptions) (network.CreateResponse, error) {
+				networkCreateFunc: func(ctx context.Context, name string, createBody client.NetworkCreateOptions) (client.NetworkCreateResult, error) {
 					assert.Check(t, is.DeepEqual(tc.expected, createBody.EnableIPv6))
-					return network.CreateResponse{ID: name}, nil
+					return client.NetworkCreateResult{ID: name}, nil
 				},
 			})
 			cmd := newCreateCommand(cli)
