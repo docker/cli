@@ -91,6 +91,19 @@ RUN --mount=type=bind,target=.,ro \
     TARGET=/out ./scripts/build/binary && \
     xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
 
+FROM build-${BASE_VARIANT} AS build-trust
+ARG GO_LINKMODE=static
+ARG GO_BUILDTAGS
+ARG GO_STRIP
+ARG CGO_ENABLED
+ARG VERSION
+RUN --mount=ro --mount=type=cache,target=/root/.cache \
+    xx-go --wrap && \
+    TARGET=/out ./scripts/build/trust-plugin
+
+FROM scratch AS trust
+COPY --link --from=build-trust /out/docker-trust /
+
 FROM build-${BASE_VARIANT} AS test
 COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
 ENV GO111MODULE=auto
@@ -127,6 +140,7 @@ COPY --link --from=build /out ./build/
 COPY --link --from=build-plugins /out ./build/
 COPY --link --from=buildx  /buildx         /usr/libexec/docker/cli-plugins/docker-buildx
 COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docker-compose
+COPY --link --from=trust   /docker-trust   /usr/libexec/docker/cli-plugins/docker-trust
 COPY --link . .
 ENV DOCKER_BUILDKIT=1
 ENV PATH=/go/src/github.com/docker/cli/build:$PATH
