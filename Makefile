@@ -34,12 +34,12 @@ test: test-unit ## run tests
 
 .PHONY: test-unit
 test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit
-	gotestsum -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/')} $(TESTFLAGS)
+	gotestsum -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/|/cmd/docker-trust')} $(TESTFLAGS)
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
 	mkdir -p $(CURDIR)/build/coverage
-	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/') -coverprofile=$(CURDIR)/build/coverage/coverage.txt
+	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/|/cmd/docker-trust') -coverprofile=$(CURDIR)/build/coverage/coverage.txt
 
 .PHONY: lint
 lint: ## run all the lint tools

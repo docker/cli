@@ -13,7 +13,7 @@ import (
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli-plugins/plugin"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/cmd/docker-trust/internal/version"
 	"github.com/docker/cli/cmd/docker-trust/trust"
 	"go.opentelemetry.io/otel"
 )

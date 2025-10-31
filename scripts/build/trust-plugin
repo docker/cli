@@ -13,10 +13,17 @@ export CGO_ENABLED=0
 
 source ./scripts/build/.variables
 
+GO_LDFLAGS="${GO_LDFLAGS:-}"
+GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cmd/docker-trust/internal/version.Version=${VERSION}\""
+
+if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
+  GO_BUILDTAGS="$GO_BUILDTAGS pkcs11"
+fi
+
 TARGET_PLUGIN="$(dirname "${TARGET}")/docker-trust-${GOOS}-${GOARCH}"
 mkdir -p "$(dirname "${TARGET_PLUGIN}")"
 
 echo "Building $GO_LINKMODE $(basename "${TARGET_PLUGIN}")"
-(set -x ; GO111MODULE=auto go build -o "${TARGET_PLUGIN}" -tags "${GO_BUILDTAGS}" -ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE} "github.com/docker/cli/cmd/docker-trust")
+(set -x ; GO111MODULE=auto go -C ./cmd/docker-trust build -o "../../${TARGET_PLUGIN}" -tags "${GO_BUILDTAGS}" -ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE})
 
 ln -sf "$(basename "${TARGET_PLUGIN}")" "$(dirname "${TARGET}")/docker-trust"
