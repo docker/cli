@@ -62,6 +62,7 @@ func TestBuildFromContextDirectoryWithTag(t *testing.T) {
 }
 
 func TestBuildIidFileSquash(t *testing.T) {
+	t.Skip("Not implemented with containerd")
 	environment.SkipIfNotExperimentalDaemon(t)
 	t.Setenv("DOCKER_BUILDKIT", "0")
 

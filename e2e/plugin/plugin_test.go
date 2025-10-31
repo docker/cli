@@ -31,7 +31,6 @@ func TestCreatePushPull(t *testing.T) {
 	icmd.RunCommand("docker", "plugin", "create", pluginName, pluginDir).Assert(t, icmd.Success)
 	result := icmd.RunCmd(icmd.Command("docker", "plugin", "push", pluginName),
 		fixtures.WithConfig(dir.Path()),
-		fixtures.WithPassphrase("foo", "bar"),
 	)
 	result.Assert(t, icmd.Expected{
 		Out: fmt.Sprintf("The push refers to repository [%s]", pluginName),
