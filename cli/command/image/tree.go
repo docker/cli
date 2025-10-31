@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/containerd/platforms"
@@ -422,15 +421,7 @@ func printNames(out tui.Output, headers []imgColumn, img topImage, color, untagg
 		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, "<untagged>"))
 	}
 
-	// TODO: Replace with namesLongestToShortest := slices.SortedFunc(slices.Values(img.Names))
-	// once we move to Go 1.23.
-	namesLongestToShortest := make([]string, len(img.Names))
-	copy(namesLongestToShortest, img.Names)
-	sort.Slice(namesLongestToShortest, func(i, j int) bool {
-		return len(namesLongestToShortest[i]) > len(namesLongestToShortest[j])
-	})
-
-	for nameIdx, name := range namesLongestToShortest {
+	for nameIdx, name := range img.Names {
 		// Don't limit first names to the column width because only the last
 		// name will be printed alongside other columns.
 		if nameIdx < len(img.Names)-1 {
