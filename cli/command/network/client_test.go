@@ -3,13 +3,12 @@ package network
 import (
 	"context"
 
-	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client"
 )
 
 type fakeClient struct {
 	client.Client
-	networkCreateFunc     func(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error)
+	networkCreateFunc     func(ctx context.Context, name string, options client.NetworkCreateOptions) (client.NetworkCreateResult, error)
 	networkConnectFunc    func(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error)
 	networkDisconnectFunc func(ctx context.Context, networkID string, options client.NetworkDisconnectOptions) (client.NetworkDisconnectResult, error)
 	networkRemoveFunc     func(ctx context.Context, networkID string) error
@@ -18,11 +17,11 @@ type fakeClient struct {
 	networkInspectFunc    func(ctx context.Context, networkID string, options client.NetworkInspectOptions) (client.NetworkInspectResult, error)
 }
 
-func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options client.NetworkCreateOptions) (network.CreateResponse, error) {
+func (c *fakeClient) NetworkCreate(ctx context.Context, name string, options client.NetworkCreateOptions) (client.NetworkCreateResult, error) {
 	if c.networkCreateFunc != nil {
 		return c.networkCreateFunc(ctx, name, options)
 	}
-	return network.CreateResponse{}, nil
+	return client.NetworkCreateResult{}, nil
 }
 
 func (c *fakeClient) NetworkConnect(ctx context.Context, networkID string, options client.NetworkConnectOptions) (client.NetworkConnectResult, error) {

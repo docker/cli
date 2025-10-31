@@ -108,12 +108,6 @@ func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io
 		return err
 	}
 
-	var configFrom *network.ConfigReference
-	if options.configFrom != "" {
-		configFrom = &network.ConfigReference{
-			Network: options.configFrom,
-		}
-	}
 	resp, err := apiClient.NetworkCreate(ctx, options.name, client.NetworkCreateOptions{
 		Driver:     options.driver,
 		Options:    options.driverOpts.GetAll(),
@@ -125,7 +119,7 @@ func runCreate(ctx context.Context, apiClient client.NetworkAPIClient, output io
 		Ingress:    options.ingress,
 		Scope:      options.scope,
 		ConfigOnly: options.configOnly,
-		ConfigFrom: configFrom,
+		ConfigFrom: options.configFrom,
 		Labels:     opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 	})
 	if err != nil {
