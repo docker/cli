@@ -115,8 +115,7 @@ Options:
 
 ### Environment variables
 
-The following list of environment variables are supported by the `docker` command
-line:
+The following environment variables control the behavior of the `docker` command-line client:
 
 | Variable                      | Description                                                                                                                                                                                                                                                       |
 | :---------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
