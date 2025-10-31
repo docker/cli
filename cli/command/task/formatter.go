@@ -143,7 +143,10 @@ func (c *taskContext) Ports() string {
 	}
 	ports := make([]string, 0, len(c.task.Status.PortStatus.Ports))
 	for _, pConfig := range c.task.Status.PortStatus.Ports {
-		ports = append(ports, fmt.Sprintf("*:%d->%d/%s",
+		var name = pConfig.Name
+		if name == "" { name = "*" }
+		ports = append(ports, fmt.Sprintf("%s:%d->%d/%s",
+			name,
 			pConfig.PublishedPort,
 			pConfig.TargetPort,
 			pConfig.Protocol,
