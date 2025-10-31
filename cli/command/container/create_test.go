@@ -124,9 +124,9 @@ func TestCreateContainerImagePullPolicy(t *testing.T) {
 						return client.ContainerCreateResult{ID: containerID}, nil
 					}
 				},
-				imageCreateFunc: func(ctx context.Context, parentReference string, options client.ImageCreateOptions) (client.ImageCreateResult, error) {
+				imagePullFunc: func(ctx context.Context, parentReference string, options client.ImagePullOptions) (client.ImagePullResponse, error) {
 					defer func() { pullCounter++ }()
-					return client.ImageCreateResult{Body: io.NopCloser(strings.NewReader(""))}, nil
+					return fakeStreamResult{ReadCloser: io.NopCloser(strings.NewReader(""))}, nil
 				},
 				infoFunc: func() (client.SystemInfoResult, error) {
 					return client.SystemInfoResult{
