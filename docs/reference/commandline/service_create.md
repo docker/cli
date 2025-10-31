@@ -452,7 +452,24 @@ The following options can only be used for bind mounts (`type=bind`):
         Read-only mounts are made recursively read-only if kernel is v5.12 or later.
         Otherwise the Engine raises an error.</li>
       </ul>
-      When the option is not specified, the default behavior correponds to setting <tt>enabled</tt>.
+      When the option is not specified, the default behavior corresponds to setting <tt>enabled</tt>.
+    </td>
+  </tr>
+  <tr>
+    <td><b>bind-create-host-path</b></td>
+    <td>
+      By default, mounts require the mount point to exist on host. This is a significant difference with
+      the <tt>volumes</tt> flag.   
+      Set <tt>bind-create-host-path</tt> to control the behavior of the engine regarding a non-existent
+      mount target.<br />
+      <br />
+      A value is one of:<br />
+      <br />
+      <ul>
+        <li><<tt>true</tt>: Create path on host if it doesn't exists.</li>
+        <li><<tt>false</tt>: Default behavior. If remote path doesn't exists, an error will be reported.</li>
+      </ul>
+      When the option is not specified, the default behavior corresponds to setting <tt>true</tt>.
     </td>
   </tr>
 </table>
