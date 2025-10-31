@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 
@@ -90,16 +91,36 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) error
 
 		details.ContentSize = units.HumanSizeWithPrecision(float64(totalContent), 3)
 
+		// Sort tags for this image
+		sortedTags := make([]string, len(img.RepoTags))
+		copy(sortedTags, img.RepoTags)
+		slices.Sort(sortedTags)
+
 		view.images = append(view.images, topImage{
-			Names:    img.RepoTags,
+			Names:    sortedTags,
 			Details:  details,
 			Children: children,
 			created:  img.Created,
 		})
 	}
 
-	sort.Slice(view.images, func(i, j int) bool {
-		return view.images[i].created > view.images[j].created
+	slices.SortFunc(view.images, func(a, b topImage) int {
+		nameA := ""
+		if len(a.Names) > 0 {
+			nameA = a.Names[0]
+		}
+		nameB := ""
+		if len(b.Names) > 0 {
+			nameB = b.Names[0]
+		}
+		// Empty names sort last
+		if (nameA == "") != (nameB == "") {
+			if nameB == "" {
+				return -1
+			}
+			return 1
+		}
+		return strings.Compare(nameA, nameB)
 	})
 
 	return printImageTree(dockerCLI, view)
