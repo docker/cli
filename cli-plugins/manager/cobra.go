@@ -38,6 +38,7 @@ func AddPluginCommandStubs(dockerCLI config.Provider, rootCmd *cobra.Command) (e
 			rootCmd.AddCommand(&cobra.Command{
 				Use:                p.Name,
 				Short:              p.ShortDescription,
+				Hidden:             p.Hidden,
 				Run:                func(_ *cobra.Command, _ []string) {},
 				Annotations:        annotations,
 				DisableFlagParsing: true,
