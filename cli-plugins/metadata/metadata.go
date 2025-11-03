@@ -33,4 +33,6 @@ type Metadata struct {
 	ShortDescription string `json:",omitempty"`
 	// URL is a pointer to the plugin's homepage.
 	URL string `json:",omitempty"`
+	// Hidden hides the plugin in completion and help message output.
+	Hidden bool `json:",omitempty"`
 }
