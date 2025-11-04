@@ -25,9 +25,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
+//
+// Deprecated: this const is no longer used and will be removed in the next release.
+const DefaultDockerfileName string = "Dockerfile"
+
 const (
-	// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
-	DefaultDockerfileName string = "Dockerfile"
+	// defaultDockerfileName is the Default filename with Docker commands, read by docker build
+	defaultDockerfileName string = "Dockerfile"
 	// archiveHeaderSize is the number of bytes in an archive header
 	archiveHeaderSize = 512
 )
@@ -100,7 +105,18 @@ func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool,
 // of input. If an archive is detected, ok is set to true, and to false
 // otherwise, in which case it is safe to assume input represents the contents
 // of a Dockerfile.
+//
+// Deprecated: this utility was only used internally, and will be removed in the next release.
 func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
+	return detectArchiveReader(input)
+}
+
+// detectArchiveReader detects whether the input stream is an archive or a
+// Dockerfile and returns a buffered version of input, safe to consume in lieu
+// of input. If an archive is detected, ok is set to true, and to false
+// otherwise, in which case it is safe to assume input represents the contents
+// of a Dockerfile.
+func detectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
 	buf := bufio.NewReader(input)
 
 	magic, err := buf.Peek(archiveHeaderSize * 2)
@@ -112,9 +128,18 @@ func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err er
 }
 
 // WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
-// name specified by DefaultDockerfileName and returns the path to the
+// name specified by defaultDockerfileName and returns the path to the
 // temporary directory containing the Dockerfile.
+//
+// Deprecated: this utility was only used internally, and will be removed in the next release.
 func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
+	return writeTempDockerfile(rc)
+}
+
+// writeTempDockerfile writes a Dockerfile stream to a temporary file with a
+// name specified by defaultDockerfileName and returns the path to the
+// temporary directory containing the Dockerfile.
+func writeTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 	// err is a named return value, due to the defer call below.
 	dockerfileDir, err = os.MkdirTemp("", "docker-build-tempdockerfile-")
 	if err != nil {
@@ -126,7 +151,7 @@ func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 		}
 	}()
 
-	f, err := os.Create(filepath.Join(dockerfileDir, DefaultDockerfileName))
+	f, err := os.Create(filepath.Join(dockerfileDir, defaultDockerfileName))
 	if err != nil {
 		return "", err
 	}
@@ -141,7 +166,7 @@ func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
 // Dockerfile or tar archive. Returns a tar archive used as a context and a
 // path to the Dockerfile inside the tar.
 func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadCloser, relDockerfile string, err error) {
-	rc, ok, err := DetectArchiveReader(rc)
+	rc, ok, err := detectArchiveReader(rc)
 	if err != nil {
 		return nil, "", err
 	}
@@ -159,7 +184,7 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		return nil, "", errors.New("ambiguous Dockerfile source: both stdin and flag correspond to Dockerfiles")
 	}
 
-	dockerfileDir, err := WriteTempDockerfile(rc)
+	dockerfileDir, err := writeTempDockerfile(rc)
 	if err != nil {
 		return nil, "", err
 	}
@@ -173,7 +198,7 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		err := tarArchive.Close()
 		_ = os.RemoveAll(dockerfileDir)
 		return err
-	}), DefaultDockerfileName, nil
+	}), defaultDockerfileName, nil
 }
 
 // IsArchive checks for the magic bytes of a tar or any supported compression
@@ -209,7 +234,7 @@ func GetContextFromGitURL(gitURL, dockerfileName string) (string, string, error)
 		return "", "", errors.Wrapf(err, "unable to 'git clone' to temporary context directory")
 	}
 
-	absContextDir, err = ResolveAndValidateContextPath(absContextDir)
+	absContextDir, err = resolveAndValidateContextPath(absContextDir)
 	if err != nil {
 		return "", "", err
 	}
@@ -262,7 +287,7 @@ func getWithStatusError(url string) (resp *http.Response, err error) {
 // the relative path of the dockerfile in that context directory, and a non-nil
 // error on success.
 func GetContextFromLocalDir(localDir, dockerfileName string) (string, string, error) {
-	localDir, err := ResolveAndValidateContextPath(localDir)
+	localDir, err := resolveAndValidateContextPath(localDir)
 	if err != nil {
 		return "", "", err
 	}
@@ -282,7 +307,18 @@ func GetContextFromLocalDir(localDir, dockerfileName string) (string, string, er
 
 // ResolveAndValidateContextPath uses the given context directory for a `docker build`
 // and returns the absolute path to the context directory.
+//
+// Deprecated: this utility was used internally and will be removed in the next
+// release. Use [DetectContextType] to detect the context-type, and use
+// [GetContextFromLocalDir], [GetContextFromLocalDir], [GetContextFromGitURL],
+// or [GetContextFromURL] instead.
 func ResolveAndValidateContextPath(givenContextDir string) (string, error) {
+	return resolveAndValidateContextPath(givenContextDir)
+}
+
+// resolveAndValidateContextPath uses the given context directory for a `docker build`
+// and returns the absolute path to the context directory.
+func resolveAndValidateContextPath(givenContextDir string) (string, error) {
 	absContextDir, err := filepath.Abs(givenContextDir)
 	if err != nil {
 		return "", errors.Errorf("unable to get absolute context directory of given context directory %q: %v", givenContextDir, err)
@@ -326,12 +362,12 @@ func getDockerfileRelPath(absContextDir, givenDockerfile string) (string, error)
 	if absDockerfile == "" {
 		// No -f/--file was specified so use the default relative to the
 		// context directory.
-		absDockerfile = filepath.Join(absContextDir, DefaultDockerfileName)
+		absDockerfile = filepath.Join(absContextDir, defaultDockerfileName)
 
 		// Just to be nice ;-) look for 'dockerfile' too but only
 		// use it if we found it, otherwise ignore this check
 		if _, err = os.Lstat(absDockerfile); os.IsNotExist(err) {
-			altPath := filepath.Join(absContextDir, strings.ToLower(DefaultDockerfileName))
+			altPath := filepath.Join(absContextDir, strings.ToLower(defaultDockerfileName))
 			if _, err = os.Lstat(altPath); err == nil {
 				absDockerfile = altPath
 			}
