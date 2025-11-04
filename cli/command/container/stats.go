@@ -145,7 +145,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			eh.setHandler(events.ActionCreate, func(e events.Message) {
 				if s := NewStats(e.Actor.ID); cStats.add(s) {
 					waitFirst.Add(1)
-					log.G(ctx).WithFields(map[string]any{
+					log.G(ctx).WithFields(log.Fields{
 						"event":     e.Action,
 						"container": e.Actor.ID,
 					}).Debug("collecting stats for container")
@@ -157,7 +157,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		eh.setHandler(events.ActionStart, func(e events.Message) {
 			if s := NewStats(e.Actor.ID); cStats.add(s) {
 				waitFirst.Add(1)
-				log.G(ctx).WithFields(map[string]any{
+				log.G(ctx).WithFields(log.Fields{
 					"event":     e.Action,
 					"container": e.Actor.ID,
 				}).Debug("collecting stats for container")
@@ -167,7 +167,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 
 		if !options.All {
 			eh.setHandler(events.ActionDie, func(e events.Message) {
-				log.G(ctx).WithFields(map[string]any{
+				log.G(ctx).WithFields(log.Fields{
 					"event":     e.Action,
 					"container": e.Actor.ID,
 				}).Debug("stop collecting stats for container")
@@ -232,7 +232,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		for _, ctr := range cs.Items {
 			if s := NewStats(ctr.ID); cStats.add(s) {
 				waitFirst.Add(1)
-				log.G(ctx).WithFields(map[string]any{
+				log.G(ctx).WithFields(log.Fields{
 					"container": ctr.ID,
 				}).Debug("collecting stats for container")
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
@@ -255,7 +255,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		for _, ctr := range options.Containers {
 			if s := NewStats(ctr); cStats.add(s) {
 				waitFirst.Add(1)
-				log.G(ctx).WithFields(map[string]any{
+				log.G(ctx).WithFields(log.Fields{
 					"container": ctr,
 				}).Debug("collecting stats for container")
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
