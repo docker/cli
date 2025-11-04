@@ -34,8 +34,9 @@ func newUpgradeCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVar(&options.grantPerms, "grant-all-permissions", false, "Grant all permissions necessary to run the plugin")
+	// TODO(thaJeztah): DEPRECATED: remove in v29.1 or v30
 	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
-	_ = flags.MarkHidden("disable-content-trust")
+	_ = flags.MarkDeprecated("disable-content-trust", "support for docker content trust was removed")
 	flags.BoolVar(&options.skipRemoteCheck, "skip-remote-check", false, "Do not check if specified remote plugin matches existing plugin image")
 	return cmd
 }

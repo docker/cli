@@ -115,10 +115,6 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		return err
 	}
 
-	if err := resolveServiceImageDigestContentTrust(dockerCLI, &service); err != nil {
-		return err
-	}
-
 	// only send auth if flag was set
 	var encodedAuth string
 	if opts.registryAuth {

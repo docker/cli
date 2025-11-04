@@ -13,7 +13,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/notary"
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
@@ -292,54 +291,6 @@ func TestRunPullTermination(t *testing.T) {
 		})
 	case <-time.After(10 * time.Second):
 		t.Fatal("cmd did not return before the timeout")
-	}
-}
-
-func TestRunCommandWithContentTrustErrors(t *testing.T) {
-	testCases := []struct {
-		name          string
-		args          []string
-		expectedError string
-		notaryFunc    test.NotaryClientFuncType
-	}{
-		{
-			name:          "offline-notary-server",
-			notaryFunc:    notary.GetOfflineNotaryRepository,
-			expectedError: "client is offline",
-			args:          []string{"image:tag"},
-		},
-		{
-			name:          "uninitialized-notary-server",
-			notaryFunc:    notary.GetUninitializedNotaryRepository,
-			expectedError: "remote trust data does not exist",
-			args:          []string{"image:tag"},
-		},
-		{
-			name:          "empty-notary-server",
-			notaryFunc:    notary.GetEmptyTargetsNotaryRepository,
-			expectedError: "No valid trust data for tag",
-			args:          []string{"image:tag"},
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("DOCKER_CONTENT_TRUST", "true")
-			fakeCLI := test.NewFakeCli(&fakeClient{
-				createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
-					return client.ContainerCreateResult{}, errors.New("shouldn't try to pull image")
-				},
-			})
-			fakeCLI.SetNotaryClient(tc.notaryFunc)
-			cmd := newRunCommand(fakeCLI)
-			cmd.SetArgs(tc.args)
-			cmd.SetOut(io.Discard)
-			cmd.SetErr(io.Discard)
-			err := cmd.Execute()
-			statusErr := cli.StatusError{}
-			assert.Check(t, errors.As(err, &statusErr))
-			assert.Check(t, is.Equal(statusErr.StatusCode, 125))
-			assert.Check(t, is.ErrorContains(err, tc.expectedError))
-		})
 	}
 }
 

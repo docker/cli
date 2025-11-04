@@ -26,8 +26,9 @@ func newPushCommand(dockerCLI command.Cli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
+	// TODO(thaJeztah): DEPRECATED: remove in v29.1 or v30
 	flags.Bool("disable-content-trust", true, "Skip image verification (deprecated)")
-	_ = flags.MarkHidden("disable-content-trust")
+	_ = flags.MarkDeprecated("disable-content-trust", "support for docker content trust was removed")
 	return cmd
 }
 
