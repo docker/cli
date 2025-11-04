@@ -241,6 +241,8 @@ func printImageTree(outs command.Streams, view treeView) {
 	topNameColor := out.Color(aec.NewBuilder(aec.BlueF, aec.Bold).ANSI)
 	normalColor := out.Color(tui.ColorSecondary)
 	untaggedColor := out.Color(tui.ColorTertiary)
+	titleColor := out.Color(tui.ColorTitle)
+
 	isTerm := out.IsTerminal()
 
 	out.Println(generateLegend(out, width))
@@ -316,7 +318,7 @@ func printImageTree(outs command.Streams, view treeView) {
 			_, _ = fmt.Fprint(out, strings.Repeat(" ", columnSpacing))
 		}
 
-		_, _ = fmt.Fprint(out, h.Print(tui.ColorTitle, strings.ToUpper(h.Title)))
+		_, _ = fmt.Fprint(out, h.Print(titleColor, strings.ToUpper(h.Title)))
 	}
 	_, _ = fmt.Fprintln(out)
 
