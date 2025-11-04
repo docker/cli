@@ -507,10 +507,10 @@ func convertUpdateConfig(source *composetypes.UpdateConfig) *swarm.UpdateConfig 
 	return &swarm.UpdateConfig{
 		Parallelism:     parallel,
 		Delay:           time.Duration(source.Delay),
-		FailureAction:   source.FailureAction,
+		FailureAction:   swarm.FailureAction(source.FailureAction),
 		Monitor:         time.Duration(source.Monitor),
 		MaxFailureRatio: source.MaxFailureRatio,
-		Order:           source.Order,
+		Order:           swarm.UpdateOrder(source.Order),
 	}
 }
 

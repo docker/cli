@@ -3,33 +3,18 @@ package container
 import (
 	"context"
 	"io"
-	"reflect"
+	"net/http"
 	"strings"
-	"unsafe"
 
 	"github.com/moby/moby/client"
 )
 
 func mockContainerExportResult(content string) client.ContainerExportResult {
-	out := client.ContainerExportResult{}
-
-	// Set unexported field "rc"
-	v := reflect.ValueOf(&out).Elem()
-	f := v.FieldByName("rc")
-	r := io.NopCloser(strings.NewReader(content))
-	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(r))
-	return out
+	return io.NopCloser(strings.NewReader(content))
 }
 
 func mockContainerLogsResult(content string) client.ContainerLogsResult {
-	out := client.ContainerLogsResult{}
-
-	// Set unexported field "rc"
-	v := reflect.ValueOf(&out).Elem()
-	f := v.FieldByName("rc")
-	r := io.NopCloser(strings.NewReader(content))
-	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(r))
-	return out
+	return io.NopCloser(strings.NewReader(content))
 }
 
 type fakeStreamResult struct {
@@ -147,7 +132,7 @@ func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, option
 	if f.logFunc != nil {
 		return f.logFunc(containerID, options)
 	}
-	return client.ContainerLogsResult{}, nil
+	return http.NoBody, nil
 }
 
 func (f *fakeClient) ClientVersion() string {
@@ -172,7 +157,7 @@ func (f *fakeClient) ContainerExport(_ context.Context, containerID string, _ cl
 	if f.containerExportFunc != nil {
 		return f.containerExportFunc(containerID)
 	}
-	return client.ContainerExportResult{}, nil
+	return http.NoBody, nil
 }
 
 func (f *fakeClient) ExecResize(_ context.Context, id string, options client.ExecResizeOptions) (client.ExecResizeResult, error) {
@@ -189,7 +174,7 @@ func (f *fakeClient) ContainerKill(ctx context.Context, containerID string, opti
 	return client.ContainerKillResult{}, nil
 }
 
-func (f *fakeClient) ContainersPrune(ctx context.Context, options client.ContainerPruneOptions) (client.ContainerPruneResult, error) {
+func (f *fakeClient) ContainerPrune(ctx context.Context, options client.ContainerPruneOptions) (client.ContainerPruneResult, error) {
 	if f.containerPruneFunc != nil {
 		return f.containerPruneFunc(ctx, options)
 	}

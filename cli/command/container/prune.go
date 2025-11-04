@@ -75,7 +75,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	res, err := dockerCli.Client().ContainersPrune(ctx, client.ContainerPruneOptions{
+	res, err := dockerCli.Client().ContainerPrune(ctx, client.ContainerPruneOptions{
 		Filters: pruneFilters,
 	})
 	if err != nil {

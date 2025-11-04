@@ -202,9 +202,7 @@ func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 	fprintln(streams.Out())
 	fprintln(streams.Out(), "Server:")
 	if info.Info != nil {
-		for _, err := range prettyPrintServerInfo(streams, &info) {
-			info.ServerErrors = append(info.ServerErrors, err.Error())
-		}
+		prettyPrintServerInfo(streams, &info)
 	}
 	for _, err := range info.ServerErrors {
 		fprintln(streams.Err(), "ERROR:", err)
@@ -240,8 +238,7 @@ func prettyPrintClientInfo(streams command.Streams, info clientInfo) {
 }
 
 //nolint:gocyclo
-func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
-	var errs []error
+func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) {
 	output := streams.Out()
 
 	fprintln(output, " Containers:", info.Containers)
@@ -306,17 +303,14 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 		fprintln(output, " containerd version:", info.ContainerdCommit.ID)
 		fprintln(output, " runc version:", info.RuncCommit.ID)
 		fprintln(output, " init version:", info.InitCommit.ID)
-		if len(info.SecurityOptions) != 0 {
-			if kvs, err := security.DecodeOptions(info.SecurityOptions); err != nil {
-				errs = append(errs, err)
-			} else {
-				fprintln(output, " Security Options:")
-				for _, so := range kvs {
-					fprintln(output, "  "+so.Name)
-					for _, o := range so.Options {
-						if o.Key == "profile" {
-							fprintln(output, "   Profile:", o.Value)
-						}
+		secopts := security.DecodeOptions(info.SecurityOptions)
+		if len(secopts) != 0 {
+			fprintln(output, " Security Options:")
+			for _, so := range secopts {
+				fprintln(output, "  "+so.Name)
+				for _, o := range so.Options {
+					if o.Key == "profile" {
+						fprintln(output, "   Profile:", o.Value)
 					}
 				}
 			}
@@ -407,8 +401,6 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) []error {
 	for _, w := range info.Warnings {
 		fprintln(streams.Err(), w)
 	}
-
-	return errs
 }
 
 //nolint:gocyclo

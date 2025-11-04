@@ -87,7 +87,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	res, err := dockerCli.Client().ImagesPrune(ctx, client.ImagePruneOptions{
+	res, err := dockerCli.Client().ImagePrune(ctx, client.ImagePruneOptions{
 		Filters: pruneFilters,
 	})
 	if err != nil {

@@ -36,7 +36,7 @@ func (c *fakeClient) VolumeList(_ context.Context, options client.VolumeListOpti
 	return client.VolumeListResult{}, nil
 }
 
-func (c *fakeClient) VolumesPrune(_ context.Context, opts client.VolumePruneOptions) (client.VolumePruneResult, error) {
+func (c *fakeClient) VolumePrune(_ context.Context, opts client.VolumePruneOptions) (client.VolumePruneResult, error) {
 	if c.volumePruneFunc != nil {
 		return c.volumePruneFunc(opts)
 	}

@@ -38,7 +38,7 @@ func (cli *fakeClient) ContainerList(ctx context.Context, options client.Contain
 	return client.ContainerListResult{}, nil
 }
 
-func (cli *fakeClient) ContainersPrune(ctx context.Context, opts client.ContainerPruneOptions) (client.ContainerPruneResult, error) {
+func (cli *fakeClient) ContainerPrune(ctx context.Context, opts client.ContainerPruneOptions) (client.ContainerPruneResult, error) {
 	if cli.containerPruneFunc != nil {
 		return cli.containerPruneFunc(ctx, opts)
 	}

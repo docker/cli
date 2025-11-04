@@ -382,11 +382,11 @@ func (ctx *serviceInspectContext) UpdateDelay() time.Duration {
 }
 
 func (ctx *serviceInspectContext) UpdateOnFailure() string {
-	return ctx.Service.Spec.UpdateConfig.FailureAction
+	return string(ctx.Service.Spec.UpdateConfig.FailureAction)
 }
 
 func (ctx *serviceInspectContext) UpdateOrder() string {
-	return ctx.Service.Spec.UpdateConfig.Order
+	return string(ctx.Service.Spec.UpdateConfig.Order)
 }
 
 func (ctx *serviceInspectContext) HasUpdateMonitor() bool {
@@ -418,7 +418,7 @@ func (ctx *serviceInspectContext) RollbackDelay() time.Duration {
 }
 
 func (ctx *serviceInspectContext) RollbackOnFailure() string {
-	return ctx.Service.Spec.RollbackConfig.FailureAction
+	return string(ctx.Service.Spec.RollbackConfig.FailureAction)
 }
 
 func (ctx *serviceInspectContext) HasRollbackMonitor() bool {
@@ -434,7 +434,7 @@ func (ctx *serviceInspectContext) RollbackMaxFailureRatio() float32 {
 }
 
 func (ctx *serviceInspectContext) RollbackOrder() string {
-	return ctx.Service.Spec.RollbackConfig.Order
+	return string(ctx.Service.Spec.RollbackConfig.Order)
 }
 
 func (ctx *serviceInspectContext) ContainerImage() string {

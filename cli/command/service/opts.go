@@ -164,9 +164,9 @@ func updateConfigFromDefaults(defaultUpdateConfig *api.UpdateConfig) *swarm.Upda
 		Parallelism:     defaultUpdateConfig.Parallelism,
 		Delay:           defaultUpdateConfig.Delay,
 		Monitor:         defaultMonitor,
-		FailureAction:   defaultFailureAction,
+		FailureAction:   swarm.FailureAction(defaultFailureAction),
 		MaxFailureRatio: defaultUpdateConfig.MaxFailureRatio,
-		Order:           defaultOrder(defaultUpdateConfig.Order),
+		Order:           swarm.UpdateOrder(defaultOrder(defaultUpdateConfig.Order)),
 	}
 }
 
@@ -187,13 +187,13 @@ func (o updateOptions) updateConfig(flags *pflag.FlagSet) *swarm.UpdateConfig {
 		updateConfig.Monitor = o.monitor
 	}
 	if flags.Changed(flagUpdateFailureAction) {
-		updateConfig.FailureAction = o.onFailure
+		updateConfig.FailureAction = swarm.FailureAction(o.onFailure)
 	}
 	if flags.Changed(flagUpdateMaxFailureRatio) {
 		updateConfig.MaxFailureRatio = o.maxFailureRatio.Value()
 	}
 	if flags.Changed(flagUpdateOrder) {
-		updateConfig.Order = o.order
+		updateConfig.Order = swarm.UpdateOrder(o.order)
 	}
 
 	return updateConfig
@@ -216,13 +216,13 @@ func (o updateOptions) rollbackConfig(flags *pflag.FlagSet) *swarm.UpdateConfig 
 		updateConfig.Monitor = o.monitor
 	}
 	if flags.Changed(flagRollbackFailureAction) {
-		updateConfig.FailureAction = o.onFailure
+		updateConfig.FailureAction = swarm.FailureAction(o.onFailure)
 	}
 	if flags.Changed(flagRollbackMaxFailureRatio) {
 		updateConfig.MaxFailureRatio = o.maxFailureRatio.Value()
 	}
 	if flags.Changed(flagRollbackOrder) {
-		updateConfig.Order = o.order
+		updateConfig.Order = swarm.UpdateOrder(o.order)
 	}
 
 	return updateConfig
@@ -299,9 +299,9 @@ func defaultRestartCondition() swarm.RestartPolicyCondition {
 func defaultOrder(order api.UpdateConfig_UpdateOrder) string {
 	switch order {
 	case api.UpdateConfig_STOP_FIRST:
-		return swarm.UpdateOrderStopFirst
+		return string(swarm.UpdateOrderStopFirst)
 	case api.UpdateConfig_START_FIRST:
-		return swarm.UpdateOrderStartFirst
+		return string(swarm.UpdateOrderStartFirst)
 	default:
 		return ""
 	}

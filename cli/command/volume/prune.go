@@ -90,7 +90,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	res, err := dockerCli.Client().VolumesPrune(ctx, client.VolumePruneOptions{
+	res, err := dockerCli.Client().VolumePrune(ctx, client.VolumePruneOptions{
 		Filters: pruneFilters,
 	})
 	if err != nil {

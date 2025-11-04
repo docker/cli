@@ -228,7 +228,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		}
 		updateOpts.EncodedRegistryAuth = encodedAuth
 	} else {
-		registryAuthFrom = swarm.RegistryAuthFromSpec
+		registryAuthFrom = string(swarm.RegistryAuthFromSpec)
 	}
 
 	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, client.ServiceUpdateOptions{
@@ -236,7 +236,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		Spec:    *spec,
 
 		EncodedRegistryAuth: encodedAuth,
-		RegistryAuthFrom:    registryAuthFrom,
+		RegistryAuthFrom:    swarm.RegistryAuthSource(registryAuthFrom),
 		Rollback:            rollbackAction,
 	})
 	if err != nil {
@@ -433,9 +433,15 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		updateUint64(flagUpdateParallelism, &spec.UpdateConfig.Parallelism)
 		updateDuration(flagUpdateDelay, &spec.UpdateConfig.Delay)
 		updateDuration(flagUpdateMonitor, &spec.UpdateConfig.Monitor)
-		updateString(flagUpdateFailureAction, &spec.UpdateConfig.FailureAction)
+		if flags.Changed(flagUpdateFailureAction) {
+			value, _ := flags.GetString(flagUpdateFailureAction)
+			spec.UpdateConfig.FailureAction = swarm.FailureAction(value)
+		}
 		updateFloatValue(flagUpdateMaxFailureRatio, &spec.UpdateConfig.MaxFailureRatio)
-		updateString(flagUpdateOrder, &spec.UpdateConfig.Order)
+		if flags.Changed(flagUpdateOrder) {
+			value, _ := flags.GetString(flagUpdateOrder)
+			spec.UpdateConfig.Order = swarm.UpdateOrder(value)
+		}
 	}
 
 	if anyChanged(flags, flagRollbackParallelism, flagRollbackDelay, flagRollbackMonitor, flagRollbackFailureAction, flagRollbackMaxFailureRatio, flagRollbackOrder) {
@@ -445,9 +451,15 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		updateUint64(flagRollbackParallelism, &spec.RollbackConfig.Parallelism)
 		updateDuration(flagRollbackDelay, &spec.RollbackConfig.Delay)
 		updateDuration(flagRollbackMonitor, &spec.RollbackConfig.Monitor)
-		updateString(flagRollbackFailureAction, &spec.RollbackConfig.FailureAction)
+		if flags.Changed(flagRollbackFailureAction) {
+			value, _ := flags.GetString(flagRollbackFailureAction)
+			spec.RollbackConfig.FailureAction = swarm.FailureAction(value)
+		}
 		updateFloatValue(flagRollbackMaxFailureRatio, &spec.RollbackConfig.MaxFailureRatio)
-		updateString(flagRollbackOrder, &spec.RollbackConfig.Order)
+		if flags.Changed(flagRollbackOrder) {
+			value, _ := flags.GetString(flagRollbackOrder)
+			spec.RollbackConfig.Order = swarm.UpdateOrder(value)
+		}
 	}
 
 	if flags.Changed(flagEndpointMode) {
