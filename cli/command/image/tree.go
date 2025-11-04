@@ -224,12 +224,12 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 	return possible
 }
 
-func printImageTree(dockerCLI command.Cli, view treeView) {
-	if streamRedirected(dockerCLI.Out()) {
-		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
+func printImageTree(outs command.Streams, view treeView) {
+	if streamRedirected(outs.Out()) {
+		_, _ = fmt.Fprintln(outs.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
 	}
 
-	out := tui.NewOutput(dockerCLI.Out())
+	out := tui.NewOutput(outs.Out())
 	_, width := out.GetTtySize()
 	if width == 0 {
 		width = 80
