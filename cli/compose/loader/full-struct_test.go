@@ -108,6 +108,8 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 							},
 						},
 					},
+					MemswapLimit:  int64Ptr(86000),
+					MemSwappiness: int64Ptr(27),
 				},
 				RestartPolicy: &types.RestartPolicy{
 					Condition:   "on-failure",

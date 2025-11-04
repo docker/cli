@@ -560,6 +560,10 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 			GenericResources: generic,
 		}
 	}
+	// These fields are themselves pointers -- we can simply assign, no need to
+	// nil-check them. Nil is nil.
+	resources.SwapBytes = source.MemswapLimit
+	resources.MemorySwappiness = source.MemSwappiness
 	return resources, nil
 }
 
