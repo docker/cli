@@ -135,7 +135,7 @@ func TestGetContextFromReaderString(t *testing.T) {
 	}
 
 	buff := new(bytes.Buffer)
-	buff.ReadFrom(tarReader)
+	_, _ = buff.ReadFrom(tarReader)
 	contents := buff.String()
 
 	_, err = tarReader.Next()
@@ -182,7 +182,7 @@ func TestGetContextFromReaderTar(t *testing.T) {
 	}
 
 	buff := new(bytes.Buffer)
-	buff.ReadFrom(tarReader)
+	_, _ = buff.ReadFrom(tarReader)
 	contents := buff.String()
 
 	_, err = tarReader.Next()
@@ -263,7 +263,7 @@ func chdir(t *testing.T, dir string) {
 }
 
 func TestIsArchive(t *testing.T) {
-	testcases := []struct {
+	tests := []struct {
 		doc      string
 		header   []byte
 		expected bool
@@ -289,13 +289,15 @@ func TestIsArchive(t *testing.T) {
 			expected: false,
 		},
 	}
-	for _, testcase := range testcases {
-		assert.Check(t, is.Equal(testcase.expected, IsArchive(testcase.header)), testcase.doc)
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			assert.Check(t, is.Equal(tc.expected, isArchive(tc.header)), tc.doc)
+		})
 	}
 }
 
 func TestDetectArchiveReader(t *testing.T) {
-	testcases := []struct {
+	tests := []struct {
 		file     string
 		desc     string
 		expected bool
@@ -316,14 +318,18 @@ func TestDetectArchiveReader(t *testing.T) {
 			expected: false,
 		},
 	}
-	for _, testcase := range testcases {
-		content, err := os.Open(testcase.file)
-		assert.NilError(t, err)
-		defer content.Close()
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			content, err := os.Open(tc.file)
+			assert.NilError(t, err)
+			defer func() {
+				_ = content.Close()
+			}()
 
-		_, isArchive, err := DetectArchiveReader(content)
-		assert.NilError(t, err)
-		assert.Check(t, is.Equal(testcase.expected, isArchive), testcase.file)
+			_, isArchive, err := DetectArchiveReader(content)
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(tc.expected, isArchive), tc.file)
+		})
 	}
 }
 
