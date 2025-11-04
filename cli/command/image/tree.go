@@ -224,12 +224,12 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 	return possible
 }
 
-func printImageTree(dockerCLI command.Cli, view treeView) {
-	if streamRedirected(dockerCLI.Out()) {
-		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
+func printImageTree(outs command.Streams, view treeView) {
+	if streamRedirected(outs.Out()) {
+		_, _ = fmt.Fprintln(outs.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
 	}
 
-	out := tui.NewOutput(dockerCLI.Out())
+	out := tui.NewOutput(outs.Out())
 	_, width := out.GetTtySize()
 	if width == 0 {
 		width = 80
@@ -241,6 +241,8 @@ func printImageTree(dockerCLI command.Cli, view treeView) {
 	topNameColor := out.Color(aec.NewBuilder(aec.BlueF, aec.Bold).ANSI)
 	normalColor := out.Color(tui.ColorSecondary)
 	untaggedColor := out.Color(tui.ColorTertiary)
+	titleColor := out.Color(tui.ColorTitle)
+
 	isTerm := out.IsTerminal()
 
 	out.Println(generateLegend(out, width))
@@ -316,7 +318,7 @@ func printImageTree(dockerCLI command.Cli, view treeView) {
 			_, _ = fmt.Fprint(out, strings.Repeat(" ", columnSpacing))
 		}
 
-		_, _ = fmt.Fprint(out, h.Print(tui.ColorTitle, strings.ToUpper(h.Title)))
+		_, _ = fmt.Fprint(out, h.Print(titleColor, strings.ToUpper(h.Title)))
 	}
 	_, _ = fmt.Fprintln(out)
 
