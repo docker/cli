@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/docker/cli/cli/command/service/internal/genericresource"
 	"github.com/moby/moby/api/types/swarm"
-	swarmapi "github.com/moby/swarmkit/v2/api"
-	"github.com/moby/swarmkit/v2/api/genericresource"
 )
 
 // GenericResource is a concept that a user can use to advertise user-defined
@@ -33,12 +32,11 @@ func ParseGenericResources(value []string) ([]swarm.GenericResource, error) {
 		return nil, nil
 	}
 
-	resources, err := genericresource.Parse(value)
+	swarmResources, err := genericresource.Parse(value)
 	if err != nil {
 		return nil, fmt.Errorf("invalid generic resource specification: %w", err)
 	}
 
-	swarmResources := genericResourcesFromGRPC(resources)
 	for _, res := range swarmResources {
 		if res.NamedResourceSpec != nil {
 			return nil, fmt.Errorf("invalid generic-resource request `%s=%s`, Named Generic Resources is not supported for service create or update",
@@ -48,31 +46,6 @@ func ParseGenericResources(value []string) ([]swarm.GenericResource, error) {
 	}
 
 	return swarmResources, nil
-}
-
-// genericResourcesFromGRPC converts a GRPC GenericResource to a GenericResource
-func genericResourcesFromGRPC(genericRes []*swarmapi.GenericResource) []swarm.GenericResource {
-	generic := make([]swarm.GenericResource, 0, len(genericRes))
-	for _, res := range genericRes {
-		var current swarm.GenericResource
-
-		switch r := res.Resource.(type) {
-		case *swarmapi.GenericResource_DiscreteResourceSpec:
-			current.DiscreteResourceSpec = &swarm.DiscreteGenericResource{
-				Kind:  r.DiscreteResourceSpec.Kind,
-				Value: r.DiscreteResourceSpec.Value,
-			}
-		case *swarmapi.GenericResource_NamedResourceSpec:
-			current.NamedResourceSpec = &swarm.NamedGenericResource{
-				Kind:  r.NamedResourceSpec.Kind,
-				Value: r.NamedResourceSpec.Value,
-			}
-		}
-
-		generic = append(generic, current)
-	}
-
-	return generic
 }
 
 func buildGenericResourceMap(genericRes []swarm.GenericResource) (map[string]swarm.GenericResource, error) {

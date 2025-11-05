@@ -1,3 +1,10 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
+// Package genericresource is a local fork of SwarmKit's [genericresource] package,
+// without protobuf dependencies.
+//
+// [genericresource]: https://github.com/moby/swarmkit/blob/v2.1.1/api/genericresource/parse.go
 package genericresource
 
 import (
@@ -6,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/moby/swarmkit/v2/api"
+	api "github.com/moby/moby/api/types/swarm"
 )
 
-func newParseError(format string, args ...interface{}) error {
+func newParseError(format string, args ...any) error {
 	return fmt.Errorf("could not parse GenericResource: "+format, args...)
 }
 
@@ -32,15 +39,14 @@ func allNamedResources(res []string) bool {
 }
 
 // ParseCmd parses the Generic Resource command line argument
-// and returns a list of *api.GenericResource
-func ParseCmd(cmd string) ([]*api.GenericResource, error) {
+// and returns a list of api.GenericResource
+func ParseCmd(cmd string) ([]api.GenericResource, error) {
 	if strings.Contains(cmd, "\n") {
 		return nil, newParseError("unexpected '\\n' character")
 	}
 
 	r := csv.NewReader(strings.NewReader(cmd))
 	records, err := r.ReadAll()
-
 	if err != nil {
 		return nil, newParseError("%v", err)
 	}
@@ -53,7 +59,7 @@ func ParseCmd(cmd string) ([]*api.GenericResource, error) {
 }
 
 // Parse parses a table of GenericResource resources
-func Parse(cmds []string) ([]*api.GenericResource, error) {
+func Parse(cmds []string) ([]api.GenericResource, error) {
 	tokens := make(map[string][]string)
 
 	for _, term := range cmds {
@@ -69,7 +75,7 @@ func Parse(cmds []string) ([]*api.GenericResource, error) {
 		tokens[key] = append(tokens[key], val)
 	}
 
-	var rs []*api.GenericResource
+	var rs []api.GenericResource
 	for k, v := range tokens {
 		if u, ok := isDiscreteResource(v); ok {
 			if u < 0 {
@@ -107,5 +113,4 @@ func isDiscreteResource(values []string) (int64, bool) {
 	}
 
 	return u, true
-
 }

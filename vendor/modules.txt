@@ -214,7 +214,6 @@ github.com/moby/patternmatcher/ignorefile
 github.com/moby/swarmkit/v2/api
 github.com/moby/swarmkit/v2/api/deepcopy
 github.com/moby/swarmkit/v2/api/defaults
-github.com/moby/swarmkit/v2/api/genericresource
 github.com/moby/swarmkit/v2/manager/raftselector
 github.com/moby/swarmkit/v2/protobuf/plugin
 # github.com/moby/sys/atomicwriter v0.1.0
