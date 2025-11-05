@@ -249,17 +249,17 @@ func TestToServiceUpdateRollback(t *testing.T) {
 			Parallelism:     23,
 			Delay:           34 * time.Second,
 			Monitor:         54321 * time.Nanosecond,
-			FailureAction:   "pause",
+			FailureAction:   swarm.UpdateFailureActionPause,
 			MaxFailureRatio: 0.6,
-			Order:           "stop-first",
+			Order:           swarm.UpdateOrderStopFirst,
 		},
 		RollbackConfig: &swarm.UpdateConfig{
 			Parallelism:     12,
 			Delay:           23 * time.Second,
 			Monitor:         12345 * time.Nanosecond,
-			FailureAction:   "continue",
+			FailureAction:   swarm.UpdateFailureActionContinue,
 			MaxFailureRatio: 0.5,
-			Order:           "start-first",
+			Order:           swarm.UpdateOrderStartFirst,
 		},
 	}
 
@@ -269,16 +269,16 @@ func TestToServiceUpdateRollback(t *testing.T) {
 	flags.Set("update-parallelism", "23")
 	flags.Set("update-delay", "34s")
 	flags.Set("update-monitor", "54321ns")
-	flags.Set("update-failure-action", "pause")
+	flags.Set("update-failure-action", swarm.UpdateFailureActionPause)
 	flags.Set("update-max-failure-ratio", "0.6")
-	flags.Set("update-order", "stop-first")
+	flags.Set("update-order", swarm.UpdateOrderStopFirst)
 
 	flags.Set("rollback-parallelism", "12")
 	flags.Set("rollback-delay", "23s")
 	flags.Set("rollback-monitor", "12345ns")
-	flags.Set("rollback-failure-action", "continue")
+	flags.Set("rollback-failure-action", swarm.UpdateFailureActionContinue)
 	flags.Set("rollback-max-failure-ratio", "0.5")
-	flags.Set("rollback-order", "start-first")
+	flags.Set("rollback-order", swarm.UpdateOrderStartFirst)
 
 	o := newServiceOptions()
 	o.mode = "replicated"
@@ -286,17 +286,17 @@ func TestToServiceUpdateRollback(t *testing.T) {
 		parallelism:     23,
 		delay:           34 * time.Second,
 		monitor:         54321 * time.Nanosecond,
-		onFailure:       "pause",
+		onFailure:       swarm.UpdateFailureActionPause,
 		maxFailureRatio: 0.6,
-		order:           "stop-first",
+		order:           swarm.UpdateOrderStopFirst,
 	}
 	o.rollback = updateOptions{
 		parallelism:     12,
 		delay:           23 * time.Second,
 		monitor:         12345 * time.Nanosecond,
-		onFailure:       "continue",
+		onFailure:       swarm.UpdateFailureActionContinue,
 		maxFailureRatio: 0.5,
-		order:           "start-first",
+		order:           swarm.UpdateOrderStartFirst,
 	}
 
 	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
@@ -307,13 +307,13 @@ func TestToServiceUpdateRollback(t *testing.T) {
 
 func TestToServiceUpdateRollbackOrder(t *testing.T) {
 	flags := newCreateCommand(nil).Flags()
-	flags.Set("update-order", "start-first")
-	flags.Set("rollback-order", "start-first")
+	flags.Set("update-order", swarm.UpdateOrderStartFirst)
+	flags.Set("rollback-order", swarm.UpdateOrderStartFirst)
 
 	o := newServiceOptions()
 	o.mode = "replicated"
-	o.update = updateOptions{order: "start-first"}
-	o.rollback = updateOptions{order: "start-first"}
+	o.update = updateOptions{order: swarm.UpdateOrderStartFirst}
+	o.rollback = updateOptions{order: swarm.UpdateOrderStartFirst}
 
 	service, err := o.ToService(context.Background(), &fakeClient{}, flags)
 	assert.NilError(t, err)

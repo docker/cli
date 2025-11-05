@@ -286,11 +286,11 @@ func defaultRestartPolicy() *swarm.RestartPolicy {
 func defaultRestartCondition() swarm.RestartPolicyCondition {
 	switch defaults.Service.Task.Restart.Condition {
 	case api.RestartOnNone:
-		return "none"
+		return swarm.RestartPolicyConditionNone
 	case api.RestartOnFailure:
-		return "on-failure"
+		return swarm.RestartPolicyConditionOnFailure
 	case api.RestartOnAny:
-		return "any"
+		return swarm.RestartPolicyConditionAny
 	default:
 		return ""
 	}
@@ -299,9 +299,9 @@ func defaultRestartCondition() swarm.RestartPolicyCondition {
 func defaultOrder(order api.UpdateConfig_UpdateOrder) string {
 	switch order {
 	case api.UpdateConfig_STOP_FIRST:
-		return "stop-first"
+		return swarm.UpdateOrderStopFirst
 	case api.UpdateConfig_START_FIRST:
-		return "start-first"
+		return swarm.UpdateOrderStartFirst
 	default:
 		return ""
 	}
