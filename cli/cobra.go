@@ -376,13 +376,10 @@ func orchestratorSubCommands(cmd *cobra.Command) []*cobra.Command {
 func allManagementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range cmd.Commands() {
-		if isPlugin(sub) {
-			if invalidPluginReason(sub) == "" {
-				cmds = append(cmds, sub)
-			}
+		if invalidPluginReason(sub) != "" {
 			continue
 		}
-		if sub.IsAvailableCommand() && sub.HasSubCommands() {
+		if sub.IsAvailableCommand() && (isPlugin(sub) || sub.HasSubCommands()) {
 			cmds = append(cmds, sub)
 		}
 	}
