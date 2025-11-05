@@ -297,15 +297,15 @@ func printImageTree(outs command.Streams, view treeView) {
 			}(),
 			Color: &tui.ColorNone,
 			DetailsValue: func(d *imageDetails) string {
-				var out string
+				var b strings.Builder
 				for _, chip := range possibleChips {
 					if chip.check(d) {
-						out += chip.String(isTerm)
+						b.WriteString(chip.String(isTerm))
 					} else {
-						out += chipPlaceholder.String(isTerm)
+						b.WriteString(chipPlaceholder.String(isTerm))
 					}
 				}
-				return out
+				return b.String()
 			},
 		},
 	}
@@ -368,12 +368,14 @@ func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColu
 func generateLegend(out tui.Output, width uint) string {
 	var legend string
 	legend += out.Sprint(tui.InfoHeader)
+	var legendSb371 strings.Builder
 	for idx, chip := range allChips {
-		legend += " " + out.Sprint(chip) + " " + chip.desc
+		legendSb371.WriteString(" " + out.Sprint(chip) + " " + chip.desc)
 		if idx < len(allChips)-1 {
-			legend += " |"
+			legendSb371.WriteString(" |")
 		}
 	}
+	legend += legendSb371.String()
 
 	r := int(width) - tui.Width(legend)
 	if r < 0 {

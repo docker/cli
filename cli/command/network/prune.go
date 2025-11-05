@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -58,7 +59,7 @@ func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 const warning = `WARNING! This will remove all custom networks not used by at least one container.
 Are you sure you want to continue?`
 
-func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (output string, _ error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force {
@@ -78,14 +79,15 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		return "", err
 	}
 
+	var out strings.Builder
 	if len(res.Report.NetworksDeleted) > 0 {
-		output = "Deleted Networks:\n"
+		out.WriteString("Deleted Networks:\n")
 		for _, id := range res.Report.NetworksDeleted {
-			output += id + "\n"
+			out.WriteString(id + "\n")
 		}
 	}
 
-	return output, nil
+	return out.String(), nil
 }
 
 type cancelledErr struct{ error }
