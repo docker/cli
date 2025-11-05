@@ -6,28 +6,36 @@
 # when the command is finished. This script should be dropped when this
 # repository is a proper Go module with a permanent go.mod.
 
-set -e
+set -euo pipefail
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOTDIR="$(cd "${SCRIPTDIR}/.." && pwd)"
 
-if test -e "${ROOTDIR}/go.mod"; then
-	{
-		scriptname=$(basename "$0")
-		cat >&2 <<- EOF
-			$scriptname: WARN: go.mod exists in the repository root!
-			$scriptname: WARN: Using your go.mod instead of our generated version -- this may misbehave!
-		EOF
-	} >&2
-else
+cleanup_paths=()
+
+create_symlink() {
+	local target="$1"
+	local link="$2"
+
+	if [ -e "$link" ]; then
+		# see https://superuser.com/a/196698
+		if ! [ "$link" -ef "${ROOTDIR}/${target}" ]; then
+			echo "$(basename "$0"): WARN: $link exists but is not the expected symlink!" >&2
+			echo "$(basename "$0"): WARN: Using your version instead of our generated version -- this may misbehave!" >&2
+		fi
+		return
+	fi
+
 	set -x
+	ln -s "$target" "$link"
+	cleanup_paths+=( "$link" )
+}
 
-	tee "${ROOTDIR}/go.mod" >&2 <<- EOF
-		module github.com/docker/cli
+create_symlink "vendor.mod" "${ROOTDIR}/go.mod"
+create_symlink "vendor.sum" "${ROOTDIR}/go.sum"
 
-		go 1.23.0
-	EOF
-	trap 'rm -f "${ROOTDIR}/go.mod"' EXIT
+if [ "${#cleanup_paths[@]}" -gt 0 ]; then
+	trap 'rm -f "${cleanup_paths[@]}"' EXIT
 fi
 
 GO111MODULE=on GOTOOLCHAIN=local "$@"
