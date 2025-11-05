@@ -176,8 +176,8 @@ github.com/moby/moby/client v0.1.0-beta.3 h1:y/ed2VpRmW8As56TFOaXF2zVSli38IS032z
 github.com/moby/moby/client v0.1.0-beta.3/go.mod h1:dvvUX065yfMkFXvPk14AXVz8wmew2MdeXJ/rcYEPr7g=
 github.com/moby/patternmatcher v0.6.0 h1:GmP9lR19aU5GqSSFko+5pRqHi+Ohk1O69aFiKkVGiPk=
 github.com/moby/patternmatcher v0.6.0/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
-github.com/moby/swarmkit/v2 v2.1.0 h1:u+cJ5hSyF3HnzsyI+NtegYxdIPQIuibk7IbpXNxuISM=
-github.com/moby/swarmkit/v2 v2.1.0/go.mod h1:mTTGIAz/59OGZR5Qe+QByIe3Nxc+sSuJkrsStFhr6Lg=
+github.com/moby/swarmkit/v2 v2.1.1 h1:yvTJ8MMCc3f0qTA44J6R59EZ5yZawdYopkpuLk4+ICU=
+github.com/moby/swarmkit/v2 v2.1.1/go.mod h1:mTTGIAz/59OGZR5Qe+QByIe3Nxc+sSuJkrsStFhr6Lg=
 github.com/moby/sys/atomicwriter v0.1.0 h1:kw5D/EqkBwsBFi0ss9v1VG3wIkVhzGvLklJ+w3A14Sw=
 github.com/moby/sys/atomicwriter v0.1.0/go.mod h1:Ul8oqv2ZMNHOceF643P6FKPXeCmYtlQMvpizfsSoaWs=
 github.com/moby/sys/capability v0.4.0 h1:4D4mI6KlNtWMCM1Z/K0i7RV1FkX+DBDHKVJpCndZoHk=
