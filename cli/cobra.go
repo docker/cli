@@ -250,11 +250,12 @@ func commandAliases(cmd *cobra.Command) string {
 	if cmd.HasParent() {
 		parentPath = cmd.Parent().CommandPath() + " "
 	}
-	aliases := cmd.CommandPath()
+	var aliases strings.Builder
+	aliases.WriteString(cmd.CommandPath())
 	for _, alias := range cmd.Aliases {
-		aliases += ", " + parentPath + alias
+		aliases.WriteString(", " + parentPath + alias)
 	}
-	return aliases
+	return aliases.String()
 }
 
 func topCommands(cmd *cobra.Command) []*cobra.Command {

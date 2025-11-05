@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -61,7 +62,7 @@ func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 const warning = `WARNING! This will remove all stopped containers.
 Are you sure you want to continue?`
 
-func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, _ error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	if !options.force {
@@ -81,15 +82,16 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		return 0, "", err
 	}
 
+	var out strings.Builder
 	if len(res.Report.ContainersDeleted) > 0 {
-		output = "Deleted Containers:\n"
+		out.WriteString("Deleted Containers:\n")
 		for _, id := range res.Report.ContainersDeleted {
-			output += id + "\n"
+			out.WriteString(id + "\n")
 		}
 		spaceReclaimed = res.Report.SpaceReclaimed
 	}
 
-	return spaceReclaimed, output, nil
+	return spaceReclaimed, out.String(), nil
 }
 
 type cancelledErr struct{ error }

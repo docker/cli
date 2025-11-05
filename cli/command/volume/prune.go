@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -68,7 +69,7 @@ Are you sure you want to continue?`
 Are you sure you want to continue?`
 )
 
-func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, _ error) {
 	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
 
 	warning := unusedVolumesWarning
@@ -96,15 +97,16 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		return 0, "", err
 	}
 
+	var out strings.Builder
 	if len(res.Report.VolumesDeleted) > 0 {
-		output = "Deleted Volumes:\n"
+		out.WriteString("Deleted Volumes:\n")
 		for _, id := range res.Report.VolumesDeleted {
-			output += id + "\n"
+			out.WriteString(id + "\n")
 		}
 		spaceReclaimed = res.Report.SpaceReclaimed
 	}
 
-	return spaceReclaimed, output, nil
+	return spaceReclaimed, out.String(), nil
 }
 
 type invalidParamErr struct{ error }
