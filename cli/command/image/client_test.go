@@ -19,7 +19,7 @@ type fakeClient struct {
 	imagePushFunc    func(ref string, options client.ImagePushOptions) (client.ImagePushResponse, error)
 	infoFunc         func() (client.SystemInfoResult, error)
 	imagePullFunc    func(ref string, options client.ImagePullOptions) (client.ImagePullResponse, error)
-	imagesPruneFunc  func(options client.ImagePruneOptions) (client.ImagePruneResult, error)
+	imagePruneFunc   func(options client.ImagePruneOptions) (client.ImagePruneResult, error)
 	imageLoadFunc    func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error)
 	imageListFunc    func(options client.ImageListOptions) (client.ImageListResult, error)
 	imageInspectFunc func(img string) (client.ImageInspectResult, error)
@@ -47,7 +47,7 @@ func (cli *fakeClient) ImageSave(_ context.Context, images []string, options ...
 	if cli.imageSaveFunc != nil {
 		return cli.imageSaveFunc(images, options...)
 	}
-	return client.ImageSaveResult{}, nil
+	return http.NoBody, nil
 }
 
 func (cli *fakeClient) ImageRemove(_ context.Context, img string, options client.ImageRemoveOptions) (client.ImageRemoveResult, error) {
@@ -80,9 +80,9 @@ func (cli *fakeClient) ImagePull(_ context.Context, ref string, options client.I
 	return fakeStreamResult{ReadCloser: http.NoBody}, nil
 }
 
-func (cli *fakeClient) ImagesPrune(_ context.Context, opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
-	if cli.imagesPruneFunc != nil {
-		return cli.imagesPruneFunc(opts)
+func (cli *fakeClient) ImagePrune(_ context.Context, opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
+	if cli.imagePruneFunc != nil {
+		return cli.imagePruneFunc(opts)
 	}
 	return client.ImagePruneResult{}, nil
 }
@@ -91,7 +91,7 @@ func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, options ...
 	if cli.imageLoadFunc != nil {
 		return cli.imageLoadFunc(input, options...)
 	}
-	return client.ImageLoadResult{}, nil
+	return http.NoBody, nil
 }
 
 func (cli *fakeClient) ImageList(_ context.Context, options client.ImageListOptions) (client.ImageListResult, error) {
@@ -112,7 +112,7 @@ func (cli *fakeClient) ImageImport(_ context.Context, source client.ImageImportS
 	if cli.imageImportFunc != nil {
 		return cli.imageImportFunc(source, ref, options)
 	}
-	return client.ImageImportResult{}, nil
+	return http.NoBody, nil
 }
 
 func (cli *fakeClient) ImageHistory(_ context.Context, img string, options ...client.ImageHistoryOption) (client.ImageHistoryResult, error) {

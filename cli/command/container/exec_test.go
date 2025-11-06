@@ -69,7 +69,7 @@ TWO=2
 				AttachStdin:  true,
 				AttachStdout: true,
 				AttachStderr: true,
-				Tty:          true,
+				TTY:          true,
 				Cmd:          []string{"command"},
 			},
 		},
@@ -86,7 +86,7 @@ TWO=2
 				Detach:      true,
 			}),
 			expected: client.ExecCreateOptions{
-				Tty: true,
+				TTY: true,
 				Cmd: []string{"command"},
 			},
 		},

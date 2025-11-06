@@ -38,7 +38,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			isTerminal:    false,
 			expectedError: "error saving image",
 			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
-				return client.ImageSaveResult{}, errors.New("error saving image")
+				return nil, errors.New("error saving image")
 			},
 		},
 		{
@@ -83,7 +83,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 			imageSaveFunc: func(images []string, options ...client.ImageSaveOption) (client.ImageSaveResult, error) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
-				return client.ImageSaveResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 			deferredFunc: func() {
 				_ = os.Remove("save_tmp_file")
@@ -96,7 +96,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				assert.Assert(t, is.Len(images, 2))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, is.Equal("arg2", images[1]))
-				return client.ImageSaveResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 		{
@@ -108,7 +108,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				// FIXME(thaJeztah): need to find appropriate way to test the result of "ImageHistoryWithPlatform" being applied
 				assert.Check(t, len(options) > 0) // can be 1 or two depending on whether a terminal is attached :/
 				// assert.Check(t, is.Contains(options, client.ImageHistoryWithPlatform(ocispec.Platform{OS: "linux", Architecture: "amd64"})))
-				return client.ImageSaveResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 		{
@@ -118,7 +118,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, len(options) > 0) // can be 1 or 2 depending on whether a terminal is attached :/
-				return client.ImageSaveResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 		{
@@ -128,7 +128,7 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 				assert.Assert(t, is.Len(images, 1))
 				assert.Check(t, is.Equal("arg1", images[0]))
 				assert.Check(t, len(options) > 0) // can be 1 or 2 depending on whether a terminal is attached :/
-				return client.ImageSaveResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 	}

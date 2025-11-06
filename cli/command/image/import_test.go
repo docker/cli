@@ -3,6 +3,7 @@ package image
 import (
 	"errors"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
@@ -28,7 +29,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 			args:          []string{"testdata/import-command-success.input.txt"},
 			expectedError: "something went wrong",
 			imageImportFunc: func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error) {
-				return client.ImageImportResult{}, errors.New("something went wrong")
+				return nil, errors.New("something went wrong")
 			},
 		},
 	}
@@ -68,7 +69,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 			args: []string{"-", "image:local"},
 			imageImportFunc: func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error) {
 				assert.Check(t, is.Equal("image:local", ref))
-				return client.ImageImportResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 		{
@@ -76,7 +77,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 			args: []string{"--message", "test message", "-"},
 			imageImportFunc: func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error) {
 				assert.Check(t, is.Equal("test message", options.Message))
-				return client.ImageImportResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 		{
@@ -84,7 +85,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 			args: []string{"--change", "ENV DEBUG=true", "-"},
 			imageImportFunc: func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error) {
 				assert.Check(t, is.Equal("ENV DEBUG=true", options.Changes[0]))
-				return client.ImageImportResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 		{
@@ -92,7 +93,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 			args: []string{"--change", "ENV DEBUG true", "-"},
 			imageImportFunc: func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error) {
 				assert.Check(t, is.Equal("ENV DEBUG true", options.Changes[0]))
-				return client.ImageImportResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 	}

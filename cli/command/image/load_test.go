@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"reflect"
 	"strings"
 	"testing"
-	"unsafe"
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/client"
@@ -39,7 +37,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			args:          []string{},
 			expectedError: "something went wrong",
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
-				return client.ImageLoadResult{}, errors.New("something went wrong")
+				return nil, errors.New("something went wrong")
 			},
 		},
 		{
@@ -47,7 +45,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			args:          []string{"--platform", "<invalid>"},
 			expectedError: `invalid platform`,
 			imageLoadFunc: func(input io.Reader, options ...client.ImageLoadOption) (client.ImageLoadResult, error) {
-				return client.ImageLoadResult{}, nil
+				return io.NopCloser(strings.NewReader("")), nil
 			},
 		},
 	}
@@ -75,14 +73,7 @@ func TestNewLoadCommandInvalidInput(t *testing.T) {
 }
 
 func mockImageLoadResult(content string) client.ImageLoadResult {
-	out := client.ImageLoadResult{}
-
-	// Set unexported field "body"
-	v := reflect.ValueOf(&out).Elem()
-	f := v.FieldByName("body")
-	r := io.NopCloser(strings.NewReader(content))
-	reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(r))
-	return out
+	return io.NopCloser(strings.NewReader(content))
 }
 
 func TestNewLoadCommandSuccess(t *testing.T) {

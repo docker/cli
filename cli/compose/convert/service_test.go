@@ -427,19 +427,19 @@ func TestConvertCredentialSpec(t *testing.T) {
 func TestConvertUpdateConfigOrder(t *testing.T) {
 	// test default behavior
 	updateConfig := convertUpdateConfig(&composetypes.UpdateConfig{})
-	assert.Check(t, is.Equal("", updateConfig.Order))
+	assert.Check(t, is.Equal("", string(updateConfig.Order)))
 
 	// test start-first
 	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
 		Order: "start-first",
 	})
-	assert.Check(t, is.Equal(updateConfig.Order, "start-first"))
+	assert.Check(t, is.Equal(string(updateConfig.Order), "start-first"))
 
 	// test stop-first
 	updateConfig = convertUpdateConfig(&composetypes.UpdateConfig{
 		Order: "stop-first",
 	})
-	assert.Check(t, is.Equal(updateConfig.Order, "stop-first"))
+	assert.Check(t, is.Equal(string(updateConfig.Order), "stop-first"))
 }
 
 func TestConvertFileObject(t *testing.T) {

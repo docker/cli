@@ -51,7 +51,7 @@ shared: {{.Shared}}
 	return Format(source)
 }
 
-func buildCacheSort(buildCache []*build.CacheRecord) {
+func buildCacheSort(buildCache []build.CacheRecord) {
 	sort.Slice(buildCache, func(i, j int) bool {
 		lui, luj := buildCache[i].LastUsedAt, buildCache[j].LastUsedAt
 		switch {
@@ -70,7 +70,7 @@ func buildCacheSort(buildCache []*build.CacheRecord) {
 }
 
 // BuildCacheWrite renders the context for a list of containers
-func BuildCacheWrite(ctx Context, buildCaches []*build.CacheRecord) error {
+func BuildCacheWrite(ctx Context, buildCaches []build.CacheRecord) error {
 	render := func(format func(subContext SubContext) error) error {
 		buildCacheSort(buildCaches)
 		for _, bc := range buildCaches {
@@ -87,7 +87,7 @@ func BuildCacheWrite(ctx Context, buildCaches []*build.CacheRecord) error {
 type buildCacheContext struct {
 	HeaderContext
 	trunc bool
-	v     *build.CacheRecord
+	v     build.CacheRecord
 }
 
 func newBuildCacheContext() *buildCacheContext {

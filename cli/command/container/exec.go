@@ -101,7 +101,7 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 		return err
 	}
 	if !options.Detach {
-		if err := dockerCLI.In().CheckTty(execOptions.AttachStdin, execOptions.Tty); err != nil {
+		if err := dockerCLI.In().CheckTty(execOptions.AttachStdin, execOptions.TTY); err != nil {
 			return err
 		}
 	}
@@ -119,17 +119,10 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 	}
 
 	if options.Detach {
-		var cs client.ConsoleSize
-		if execOptions.ConsoleSize != nil {
-			cs = client.ConsoleSize{
-				Height: execOptions.ConsoleSize[0],
-				Width:  execOptions.ConsoleSize[1],
-			}
-		}
 		_, err := apiClient.ExecStart(ctx, execID, client.ExecStartOptions{
 			Detach:      options.Detach,
-			TTY:         execOptions.Tty,
-			ConsoleSize: cs,
+			TTY:         execOptions.TTY,
+			ConsoleSize: client.ConsoleSize{Height: execOptions.ConsoleSize.Height, Width: execOptions.ConsoleSize.Width},
 		})
 		return err
 	}
@@ -137,9 +130,9 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 }
 
 func fillConsoleSize(execOptions *client.ExecCreateOptions, dockerCli command.Cli) {
-	if execOptions.Tty {
+	if execOptions.TTY {
 		height, width := dockerCli.Out().GetTtySize()
-		execOptions.ConsoleSize = &[2]uint{height, width}
+		execOptions.ConsoleSize = client.ConsoleSize{Height: height, Width: width}
 	}
 }
 
@@ -157,7 +150,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 		out = dockerCli.Out()
 	}
 	if execOptions.AttachStderr {
-		if execOptions.Tty {
+		if execOptions.TTY {
 			stderr = dockerCli.Out()
 		} else {
 			stderr = dockerCli.Err()
@@ -166,16 +159,9 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 	fillConsoleSize(execOptions, dockerCli)
 
 	apiClient := dockerCli.Client()
-	var cs client.ConsoleSize
-	if execOptions.ConsoleSize != nil {
-		cs = client.ConsoleSize{
-			Height: execOptions.ConsoleSize[0],
-			Width:  execOptions.ConsoleSize[1],
-		}
-	}
 	resp, err := apiClient.ExecAttach(ctx, execID, client.ExecAttachOptions{
-		TTY:         execOptions.Tty,
-		ConsoleSize: cs,
+		TTY:         execOptions.TTY,
+		ConsoleSize: client.ConsoleSize{Height: execOptions.ConsoleSize.Height, Width: execOptions.ConsoleSize.Width},
 	})
 	if err != nil {
 		return err
@@ -193,7 +179,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 				outputStream: out,
 				errorStream:  stderr,
 				resp:         resp.HijackedResponse,
-				tty:          execOptions.Tty,
+				tty:          execOptions.TTY,
 				detachKeys:   execOptions.DetachKeys,
 			}
 
@@ -201,7 +187,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 		}()
 	}()
 
-	if execOptions.Tty && dockerCli.In().IsTerminal() {
+	if execOptions.TTY && dockerCli.In().IsTerminal() {
 		if err := MonitorTtySize(ctx, dockerCli, execID, true); err != nil {
 			_, _ = fmt.Fprintln(dockerCli.Err(), "Error monitoring TTY size:", err)
 		}
@@ -237,7 +223,7 @@ func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*client
 	execOptions := &client.ExecCreateOptions{
 		User:       execOpts.User,
 		Privileged: execOpts.Privileged,
-		Tty:        execOpts.TTY,
+		TTY:        execOpts.TTY,
 		Cmd:        execOpts.Command,
 		WorkingDir: execOpts.Workdir,
 	}

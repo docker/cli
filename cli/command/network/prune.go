@@ -72,7 +72,7 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
-	res, err := dockerCli.Client().NetworksPrune(ctx, client.NetworkPruneOptions{
+	res, err := dockerCli.Client().NetworkPrune(ctx, client.NetworkPruneOptions{
 		Filters: pruneFilters,
 	})
 	if err != nil {

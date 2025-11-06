@@ -167,7 +167,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/tarheader
-# github.com/moby/moby/api v1.52.0-beta.4
+# github.com/moby/moby/api v1.52.0-beta.4.0.20251106210608-f7fd9c315acf => github.com/moby/moby/api v1.52.0-beta.4.0.20251106221347-217fd7890581
 ## explicit; go 1.23.0
 github.com/moby/moby/api/pkg/authconfig
 github.com/moby/moby/api/pkg/stdcopy
@@ -189,7 +189,7 @@ github.com/moby/moby/api/types/storage
 github.com/moby/moby/api/types/swarm
 github.com/moby/moby/api/types/system
 github.com/moby/moby/api/types/volume
-# github.com/moby/moby/client v0.1.0-beta.3
+# github.com/moby/moby/client v0.1.0-beta.3.0.20251106221347-217fd7890581
 ## explicit; go 1.23.0
 github.com/moby/moby/client
 github.com/moby/moby/client/internal
@@ -543,3 +543,4 @@ gotest.tools/v3/skip
 # tags.cncf.io/container-device-interface v1.0.1
 ## explicit; go 1.20
 tags.cncf.io/container-device-interface/pkg/parser
+# github.com/moby/moby/api => github.com/moby/moby/api v1.52.0-beta.4.0.20251106221347-217fd7890581

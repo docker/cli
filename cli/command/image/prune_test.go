@@ -18,10 +18,10 @@ import (
 
 func TestNewPruneCommandErrors(t *testing.T) {
 	testCases := []struct {
-		name            string
-		args            []string
-		expectedError   string
-		imagesPruneFunc func(client.ImagePruneOptions) (client.ImagePruneResult, error)
+		name           string
+		args           []string
+		expectedError  string
+		imagePruneFunc func(client.ImagePruneOptions) (client.ImagePruneResult, error)
 	}{
 		{
 			name:          "wrong-args",
@@ -32,7 +32,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 			name:          "prune-error",
 			args:          []string{"--force"},
 			expectedError: "something went wrong",
-			imagesPruneFunc: func(client.ImagePruneOptions) (client.ImagePruneResult, error) {
+			imagePruneFunc: func(client.ImagePruneOptions) (client.ImagePruneResult, error) {
 				return client.ImagePruneResult{}, errors.New("something went wrong")
 			},
 		},
@@ -40,7 +40,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newPruneCommand(test.NewFakeCli(&fakeClient{
-				imagesPruneFunc: tc.imagesPruneFunc,
+				imagePruneFunc: tc.imagePruneFunc,
 			}))
 			cmd.SetOut(io.Discard)
 			cmd.SetErr(io.Discard)
@@ -52,14 +52,14 @@ func TestNewPruneCommandErrors(t *testing.T) {
 
 func TestNewPruneCommandSuccess(t *testing.T) {
 	testCases := []struct {
-		name            string
-		args            []string
-		imagesPruneFunc func(client.ImagePruneOptions) (client.ImagePruneResult, error)
+		name           string
+		args           []string
+		imagePruneFunc func(client.ImagePruneOptions) (client.ImagePruneResult, error)
 	}{
 		{
 			name: "all",
 			args: []string{"--all"},
-			imagesPruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
+			imagePruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
 				assert.Check(t, opts.Filters["dangling"]["false"])
 				return client.ImagePruneResult{}, nil
 			},
@@ -67,7 +67,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		{
 			name: "force-deleted",
 			args: []string{"--force"},
-			imagesPruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
+			imagePruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
 				assert.Check(t, opts.Filters["dangling"]["true"])
 				return client.ImagePruneResult{
 					Report: image.PruneReport{
@@ -80,7 +80,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		{
 			name: "label-filter",
 			args: []string{"--force", "--filter", "label=foobar"},
-			imagesPruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
+			imagePruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
 				assert.Check(t, opts.Filters["label"]["foobar"])
 				return client.ImagePruneResult{}, nil
 			},
@@ -88,7 +88,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		{
 			name: "force-untagged",
 			args: []string{"--force"},
-			imagesPruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
+			imagePruneFunc: func(opts client.ImagePruneOptions) (client.ImagePruneResult, error) {
 				assert.Check(t, opts.Filters["dangling"]["true"])
 				return client.ImagePruneResult{
 					Report: image.PruneReport{
@@ -101,7 +101,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cli := test.NewFakeCli(&fakeClient{imagesPruneFunc: tc.imagesPruneFunc})
+			cli := test.NewFakeCli(&fakeClient{imagePruneFunc: tc.imagePruneFunc})
 			// when prompted, answer "Y" to confirm the prune.
 			// will not be prompted if --force is used.
 			cli.SetIn(streams.NewIn(io.NopCloser(strings.NewReader("Y\n"))))
@@ -120,8 +120,8 @@ func TestPrunePromptTermination(t *testing.T) {
 	t.Cleanup(cancel)
 
 	cli := test.NewFakeCli(&fakeClient{
-		imagesPruneFunc: func(client.ImagePruneOptions) (client.ImagePruneResult, error) {
-			return client.ImagePruneResult{}, errors.New("fakeClient imagesPruneFunc should not be called")
+		imagePruneFunc: func(client.ImagePruneOptions) (client.ImagePruneResult, error) {
+			return client.ImagePruneResult{}, errors.New("fakeClient imagePruneFunc should not be called")
 		},
 	})
 	cmd := newPruneCommand(cli)

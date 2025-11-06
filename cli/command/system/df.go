@@ -42,7 +42,9 @@ func newDiskUsageCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runDiskUsage(ctx context.Context, dockerCli command.Cli, opts diskUsageOptions) error {
 	// TODO expose types.DiskUsageOptions.Types as flag on the command-line and/or as separate commands (docker container df / docker container usage)
-	du, err := dockerCli.Client().DiskUsage(ctx, client.DiskUsageOptions{})
+	du, err := dockerCli.Client().DiskUsage(ctx, client.DiskUsageOptions{
+		Verbose: opts.verbose,
+	})
 	if err != nil {
 		return err
 	}
@@ -52,25 +54,16 @@ func runDiskUsage(ctx context.Context, dockerCli command.Cli, opts diskUsageOpti
 		format = formatter.TableFormatKey
 	}
 
-	var bsz int64
-	for _, bc := range du.BuildCache {
-		if !bc.Shared {
-			bsz += bc.Size
-		}
-	}
-
 	duCtx := formatter.DiskUsageContext{
 		Context: formatter.Context{
 			Output: dockerCli.Out(),
 			Format: formatter.NewDiskUsageFormat(format, opts.verbose),
 		},
-		LayersSize:  du.LayersSize,
-		BuilderSize: bsz,
-		BuildCache:  du.BuildCache,
-		Images:      du.Images,
-		Containers:  du.Containers,
-		Volumes:     du.Volumes,
-		Verbose:     opts.verbose,
+		Verbose:             opts.verbose,
+		ImageDiskUsage:      du.Images,
+		BuildCacheDiskUsage: du.BuildCache,
+		ContainerDiskUsage:  du.Containers,
+		VolumeDiskUsage:     du.Volumes,
 	}
 
 	return duCtx.Write()
