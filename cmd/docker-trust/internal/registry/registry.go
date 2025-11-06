@@ -5,47 +5,14 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
-	"strings"
-	"time"
 
-	"github.com/containerd/log"
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/docker/go-connections/tlsconfig"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"github.com/sirupsen/logrus"
 )
-
-// hostCertsDir returns the config directory for a specific host.
-func hostCertsDir(hostnameAndPort string) string {
-	if runtime.GOOS == "windows" {
-		// Ensure that a directory name is valid; hostnameAndPort may contain
-		// a colon (:) if a port is included, and Windows does not allow colons
-		// in directory names.
-		hostnameAndPort = filepath.FromSlash(strings.ReplaceAll(hostnameAndPort, ":", ""))
-	}
-	return filepath.Join(CertsDir(), hostnameAndPort)
-}
-
-// newTLSConfig constructs a client TLS configuration based on server defaults
-func newTLSConfig(ctx context.Context, hostname string, isSecure bool) (*tls.Config, error) {
-	// PreferredServerCipherSuites should have no effect
-	tlsConfig := tlsconfig.ServerDefault()
-	tlsConfig.InsecureSkipVerify = !isSecure
-
-	if isSecure {
-		hostDir := hostCertsDir(hostname)
-		log.G(ctx).Debugf("hostDir: %s", hostDir)
-		if err := loadTLSConfig(ctx, hostDir, tlsConfig); err != nil {
-			return nil, err
-		}
-	}
-
-	return tlsConfig, nil
-}
 
 func hasFile(files []os.DirEntry, name string) bool {
 	for _, f := range files {
@@ -54,6 +21,13 @@ func hasFile(files []os.DirEntry, name string) bool {
 		}
 	}
 	return false
+}
+
+// ReadCertsDirectory reads the directory for TLS certificates
+// including roots and certificate pairs and updates the
+// provided TLS configuration.
+func ReadCertsDirectory(tlsConfig *tls.Config, directory string) error {
+	return loadTLSConfig(context.TODO(), directory, tlsConfig)
 }
 
 // loadTLSConfig reads the directory for TLS certificates including roots and
@@ -81,7 +55,7 @@ func loadTLSConfig(ctx context.Context, directory string, tlsConfig *tls.Config)
 				tlsConfig.RootCAs = systemPool
 			}
 			fileName := filepath.Join(directory, f.Name())
-			log.G(ctx).Debugf("crt: %s", fileName)
+			logrus.Debugf("crt: %s", fileName)
 			data, err := os.ReadFile(fileName)
 			if err != nil {
 				return err
@@ -90,7 +64,7 @@ func loadTLSConfig(ctx context.Context, directory string, tlsConfig *tls.Config)
 		case ".cert":
 			certName := f.Name()
 			keyName := certName[:len(certName)-5] + ".key"
-			log.G(ctx).Debugf("cert: %s", filepath.Join(directory, certName))
+			logrus.Debugf("cert: %s", filepath.Join(directory, certName))
 			if !hasFile(fs, keyName) {
 				return invalidParamf("missing key %s for client certificate %s. CA certificates must use the extension .crt", keyName, certName)
 			}
@@ -102,7 +76,7 @@ func loadTLSConfig(ctx context.Context, directory string, tlsConfig *tls.Config)
 		case ".key":
 			keyName := f.Name()
 			certName := keyName[:len(keyName)-4] + ".cert"
-			log.G(ctx).Debugf("key: %s", filepath.Join(directory, keyName))
+			logrus.Debugf("key: %s", filepath.Join(directory, keyName))
 			if !hasFile(fs, certName) {
 				return invalidParamf("missing client certificate %s for key %s", certName, keyName)
 			}
@@ -124,26 +98,4 @@ func Headers(userAgent string, metaHeaders http.Header) []transport.RequestModif
 		modifiers = append(modifiers, transport.NewHeaderRequestModifier(metaHeaders))
 	}
 	return modifiers
-}
-
-// newTransport returns a new HTTP transport. If tlsConfig is nil, it uses the
-// default TLS configuration.
-func newTransport(tlsConfig *tls.Config) http.RoundTripper {
-	if tlsConfig == nil {
-		tlsConfig = tlsconfig.ServerDefault()
-	}
-
-	return otelhttp.NewTransport(
-		&http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-			}).DialContext,
-			TLSHandshakeTimeout: 10 * time.Second,
-			TLSClientConfig:     tlsConfig,
-			// TODO(dmcgowan): Call close idle connections when complete and use keep alive
-			DisableKeepAlives: true,
-		},
-	)
 }

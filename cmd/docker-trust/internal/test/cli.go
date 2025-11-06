@@ -1,0 +1,128 @@
+package test
+
+import (
+	"bytes"
+	"errors"
+	"io"
+	"strings"
+
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/streams"
+	"github.com/moby/moby/client"
+	notaryclient "github.com/theupdateframework/notary/client"
+)
+
+// NotaryClientFuncType defines a function that returns a fake notary client
+type NotaryClientFuncType func() (notaryclient.Repository, error)
+
+// FakeCli emulates the default DockerCli
+type FakeCli struct {
+	command.DockerCli
+	client           client.APIClient
+	configfile       *configfile.ConfigFile
+	out              *streams.Out
+	outBuffer        *bytes.Buffer
+	err              *streams.Out
+	errBuffer        *bytes.Buffer
+	in               *streams.In
+	server           command.ServerInfo
+	notaryClientFunc NotaryClientFuncType
+	currentContext   string
+}
+
+// NewFakeCli returns a fake for the command.Cli interface
+func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
+	outBuffer := new(bytes.Buffer)
+	errBuffer := new(bytes.Buffer)
+	c := &FakeCli{
+		client:    apiClient,
+		out:       streams.NewOut(outBuffer),
+		outBuffer: outBuffer,
+		err:       streams.NewOut(errBuffer),
+		errBuffer: errBuffer,
+		in:        streams.NewIn(io.NopCloser(strings.NewReader(""))),
+		// Use an empty string for filename so that tests don't create configfiles
+		// Set cli.ConfigFile().Filename to a tempfile to support Save.
+		configfile:     configfile.New(""),
+		currentContext: command.DefaultContextName,
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
+}
+
+// SetIn sets the input of the cli to the specified ReadCloser
+func (c *FakeCli) SetIn(in *streams.In) {
+	c.in = in
+}
+
+// SetErr sets the stderr stream for the cli to the specified io.Writer
+func (c *FakeCli) SetErr(err *streams.Out) {
+	c.err = err
+}
+
+// SetOut sets the stdout stream for the cli to the specified io.Writer
+func (c *FakeCli) SetOut(out *streams.Out) {
+	c.out = out
+}
+
+// Client returns a docker API client
+func (c *FakeCli) Client() client.APIClient {
+	return c.client
+}
+
+// CurrentVersion returns the API version used by FakeCli.
+// func (*FakeCli) CurrentVersion() string {
+// 	return client.MaxAPIVersion
+// }
+
+// Out returns the output stream (stdout) the cli should write on
+func (c *FakeCli) Out() *streams.Out {
+	return c.out
+}
+
+// Err returns the output stream (stderr) the cli should write on
+func (c *FakeCli) Err() *streams.Out {
+	return c.err
+}
+
+// In returns the input stream the cli will use
+func (c *FakeCli) In() *streams.In {
+	return c.in
+}
+
+// ConfigFile returns the cli configfile object (to get client configuration)
+func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
+	return c.configfile
+}
+
+// OutBuffer returns the stdout buffer
+func (c *FakeCli) OutBuffer() *bytes.Buffer {
+	return c.outBuffer
+}
+
+// ErrBuffer Buffer returns the stderr buffer
+func (c *FakeCli) ErrBuffer() *bytes.Buffer {
+	return c.errBuffer
+}
+
+// ResetOutputBuffers resets the .OutBuffer() and.ErrBuffer() back to empty
+func (c *FakeCli) ResetOutputBuffers() {
+	c.outBuffer.Reset()
+	c.errBuffer.Reset()
+}
+
+// SetNotaryClient sets the internal getter for retrieving a NotaryClient
+func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
+	c.notaryClientFunc = notaryClientFunc
+}
+
+// NotaryClient returns an err for testing unless defined
+func (c *FakeCli) NotaryClient() (notaryclient.Repository, error) {
+	if c.notaryClientFunc != nil {
+		return c.notaryClientFunc()
+	}
+	return nil, errors.New("no notary client available unless defined")
+}

@@ -34,12 +34,12 @@ test: test-unit ## run tests
 
 .PHONY: test-unit
 test-unit: ## run unit tests, to change the output format use: GOTESTSUM_FORMAT=(dots|short|standard-quiet|short-verbose|standard-verbose) make test-unit
-	gotestsum -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/')} $(TESTFLAGS)
+	gotestsum -- $${TESTDIRS:-$(shell go list ./... | grep -vE '/vendor/|/e2e/|/cmd/docker-trust')} $(TESTFLAGS)
 
 .PHONY: test-coverage
 test-coverage: ## run test coverage
 	mkdir -p $(CURDIR)/build/coverage
-	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/') -coverprofile=$(CURDIR)/build/coverage/coverage.txt
+	gotestsum -- $(shell go list ./... | grep -vE '/vendor/|/e2e/|/cmd/docker-trust') -coverprofile=$(CURDIR)/build/coverage/coverage.txt
 
 .PHONY: lint
 lint: ## run all the lint tools
@@ -68,6 +68,15 @@ dynbinary: ## build dynamically linked binary
 .PHONY: plugins
 plugins: ## build example CLI plugins
 	scripts/build/plugins
+
+.PHONY: trust-plugin
+trust-plugin: ## build docker-trust CLI plugins
+	scripts/build/trust-plugin
+
+.PHONY: install-trust-plugin
+install-trust-plugin: trust-plugin
+install-trust-plugin: ## install docker-trust CLI plugins
+	install -D -m 0755 "$$(readlink -f build/docker-trust)" /usr/libexec/docker/cli-plugins/docker-trust
 
 .PHONY: vendor
 vendor: ## update vendor with go modules

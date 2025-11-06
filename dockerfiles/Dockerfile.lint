@@ -18,6 +18,9 @@ ENV CGO_ENABLED=0
 ENV GOGC=75
 WORKDIR /go/src/github.com/docker/cli
 COPY --link --from=golangci-lint /usr/bin/golangci-lint /usr/bin/golangci-lint
-RUN --mount=type=bind,target=. \
+RUN --mount=type=bind,target=.,rw \
     --mount=type=cache,target=/root/.cache \
+        rm -f go.mod go.sum && \
+        ln -s vendor.mod go.mod && \
+        ln -s vendor.sum go.sum && \
         golangci-lint run
