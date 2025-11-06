@@ -7,7 +7,10 @@ set -eu
 
 . ./scripts/build/.variables
 
-if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
+if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ] && [ "$GO_LINKMODE" != "static" ]; then
+  # pkcs11 cannot be compiled statically if CGO is enabled (and glibc is used)
+  # see https://github.com/docker/cli/blob/3897c3fa544f1239c2bc2c3af2adcebcb3650c4d/vendor/github.com/miekg/pkcs11/pkcs11.go#L75
+  # see https://github.com/docker/cli/pull/3490#issuecomment-1079711973
   GO_BUILDTAGS="$GO_BUILDTAGS pkcs11"
 fi
 
