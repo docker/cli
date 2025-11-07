@@ -16,11 +16,11 @@ import (
 )
 
 const (
-	defaultDiskUsageImageTableFormat      = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.Size}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
-	defaultDiskUsageContainerTableFormat  = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.LocalVolumes}}\t{{.Size}}\t{{.RunningFor}}\t{{.Status}}\t{{.Names}}"
-	defaultDiskUsageVolumeTableFormat     = "table {{.Name}}\t{{.Links}}\t{{.Size}}"
-	defaultDiskUsageBuildCacheTableFormat = "table {{.ID}}\t{{.CacheType}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}"
-	defaultDiskUsageTableFormat           = "table {{.Type}}\t{{.TotalCount}}\t{{.Active}}\t{{.Size}}\t{{.Reclaimable}}"
+	defaultDiskUsageImageTableFormat      Format = "table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.CreatedSince}}\t{{.Size}}\t{{.SharedSize}}\t{{.UniqueSize}}\t{{.Containers}}"
+	defaultDiskUsageContainerTableFormat  Format = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.LocalVolumes}}\t{{.Size}}\t{{.RunningFor}}\t{{.Status}}\t{{.Names}}"
+	defaultDiskUsageVolumeTableFormat     Format = "table {{.Name}}\t{{.Links}}\t{{.Size}}"
+	defaultDiskUsageBuildCacheTableFormat Format = "table {{.ID}}\t{{.CacheType}}\t{{.Size}}\t{{.CreatedSince}}\t{{.LastUsedSince}}\t{{.UsageCount}}\t{{.Shared}}"
+	defaultDiskUsageTableFormat           Format = "table {{.Type}}\t{{.TotalCount}}\t{{.Active}}\t{{.Size}}\t{{.Reclaimable}}"
 
 	typeHeader        = "TYPE"
 	totalHeader       = "TOTAL"
@@ -42,10 +42,10 @@ type DiskUsageContext struct {
 	VolumeDiskUsage     client.VolumesDiskUsage
 }
 
-func (ctx *DiskUsageContext) startSubsection(format string) (*template.Template, error) {
+func (ctx *DiskUsageContext) startSubsection(format Format) (*template.Template, error) {
 	ctx.buffer = &bytes.Buffer{}
 	ctx.header = ""
-	ctx.Format = Format(format)
+	ctx.Format = format
 	ctx.preFormat()
 
 	return ctx.parseFormat()
@@ -69,7 +69,7 @@ func NewDiskUsageFormat(source string, verbose bool) Format {
 {{end -}}`
 		return format
 	case !verbose && source == TableFormatKey:
-		return Format(defaultDiskUsageTableFormat)
+		return defaultDiskUsageTableFormat
 	case !verbose && source == RawFormatKey:
 		format := `type: {{.Type}}
 total: {{.TotalCount}}
@@ -96,8 +96,8 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	}
 
 	err = ctx.contextFormat(tmpl, &diskUsageImagesContext{
-		totalCount:  ctx.ImageDiskUsage.TotalImages,
-		activeCount: ctx.ImageDiskUsage.ActiveImages,
+		totalCount:  ctx.ImageDiskUsage.TotalCount,
+		activeCount: ctx.ImageDiskUsage.ActiveCount,
 		totalSize:   ctx.ImageDiskUsage.TotalSize,
 		reclaimable: ctx.ImageDiskUsage.Reclaimable,
 		images:      ctx.ImageDiskUsage.Items,
@@ -106,8 +106,8 @@ func (ctx *DiskUsageContext) Write() (err error) {
 		return err
 	}
 	err = ctx.contextFormat(tmpl, &diskUsageContainersContext{
-		totalCount:  ctx.ContainerDiskUsage.TotalContainers,
-		activeCount: ctx.ContainerDiskUsage.ActiveContainers,
+		totalCount:  ctx.ContainerDiskUsage.TotalCount,
+		activeCount: ctx.ContainerDiskUsage.ActiveCount,
 		totalSize:   ctx.ContainerDiskUsage.TotalSize,
 		reclaimable: ctx.ContainerDiskUsage.Reclaimable,
 		containers:  ctx.ContainerDiskUsage.Items,
@@ -117,8 +117,8 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	}
 
 	err = ctx.contextFormat(tmpl, &diskUsageVolumesContext{
-		totalCount:  ctx.VolumeDiskUsage.TotalVolumes,
-		activeCount: ctx.VolumeDiskUsage.ActiveVolumes,
+		totalCount:  ctx.VolumeDiskUsage.TotalCount,
+		activeCount: ctx.VolumeDiskUsage.ActiveCount,
 		totalSize:   ctx.VolumeDiskUsage.TotalSize,
 		reclaimable: ctx.VolumeDiskUsage.Reclaimable,
 		volumes:     ctx.VolumeDiskUsage.Items,
@@ -128,8 +128,8 @@ func (ctx *DiskUsageContext) Write() (err error) {
 	}
 
 	err = ctx.contextFormat(tmpl, &diskUsageBuilderContext{
-		totalCount:  ctx.BuildCacheDiskUsage.TotalBuildCacheRecords,
-		activeCount: ctx.BuildCacheDiskUsage.ActiveBuildCacheRecords,
+		totalCount:  ctx.BuildCacheDiskUsage.TotalCount,
+		activeCount: ctx.BuildCacheDiskUsage.ActiveCount,
 		builderSize: ctx.BuildCacheDiskUsage.TotalSize,
 		reclaimable: ctx.BuildCacheDiskUsage.Reclaimable,
 		buildCache:  ctx.BuildCacheDiskUsage.Items,
@@ -226,7 +226,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 	if err != nil {
 		return err
 	}
-	ctx.Output.Write([]byte("Images space usage:\n\n"))
+	_, _ = ctx.Output.Write([]byte("Images space usage:\n\n"))
 	for _, img := range duc.Images {
 		if err := ctx.contextFormat(tmpl, img); err != nil {
 			return err
@@ -238,7 +238,7 @@ func (ctx *DiskUsageContext) verboseWriteTable(duc *diskUsageContext) error {
 	if err != nil {
 		return err
 	}
-	ctx.Output.Write([]byte("\nContainers space usage:\n\n"))
+	_, _ = ctx.Output.Write([]byte("\nContainers space usage:\n\n"))
 	for _, c := range duc.Containers {
 		if err := ctx.contextFormat(tmpl, c); err != nil {
 			return err
