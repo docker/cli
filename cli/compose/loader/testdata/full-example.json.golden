@@ -182,8 +182,8 @@
               }
             ]
           },
-          "memswap_limit": 86000,
-          "mem_swappiness": 27
+          "memory_swap": 86000,
+          "memory_swappiness": 27
         },
         "restart_policy": {
           "condition": "on-failure",
