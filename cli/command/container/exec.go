@@ -201,7 +201,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 	return getExecExitStatus(ctx, apiClient, execID)
 }
 
-func getExecExitStatus(ctx context.Context, apiClient client.ContainerAPIClient, execID string) error {
+func getExecExitStatus(ctx context.Context, apiClient client.ExecAPIClient, execID string) error {
 	resp, err := apiClient.ExecInspect(ctx, execID, client.ExecInspectOptions{})
 	if err != nil {
 		// If we can't connect, then the daemon probably died.

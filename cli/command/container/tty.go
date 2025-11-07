@@ -14,8 +14,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// TODO(thaJeztah): split resizeTTYTo
+type resizeClient interface {
+	client.ExecAPIClient
+	client.ContainerAPIClient
+}
+
 // resizeTTYTo resizes TTY to specific height and width.
-func resizeTTYTo(ctx context.Context, apiClient client.ContainerAPIClient, id string, height, width uint, isExec bool) error {
+func resizeTTYTo(ctx context.Context, apiClient resizeClient, id string, height, width uint, isExec bool) error {
 	if height == 0 && width == 0 {
 		return nil
 	}
