@@ -53,6 +53,8 @@ Update a service
 | `--log-driver`                                | `string`          |         | Logging driver for service                                                                          |
 | `--log-opt`                                   | `list`            |         | Logging driver options                                                                              |
 | `--max-concurrent`                            | `uint`            |         | Number of job tasks to run concurrently (default equal to --replicas)                               |
+| `--memory-swap`                               | `bytes`           | `0`     | Swap Bytes (-1 for unlimited)                                                                       |
+| `--memory-swappiness`                         | `int64`           | `-1`    | Tune memory swappiness (0-100), -1 to reset to default                                              |
 | [`--mount-add`](#mount-add)                   | `mount`           |         | Add or update a mount on a service                                                                  |
 | `--mount-rm`                                  | `list`            |         | Remove a mount by its target path                                                                   |
 | [`--network-add`](#network-add)               | `network`         |         | Add a network                                                                                       |

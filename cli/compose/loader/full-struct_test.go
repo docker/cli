@@ -11,7 +11,7 @@ import (
 
 func fullExampleConfig(workingDir, homeDir string) *types.Config {
 	return &types.Config{
-		Version:  "3.13",
+		Version:  "3.14",
 		Services: services(workingDir, homeDir),
 		Networks: networks(),
 		Volumes:  volumes(),
@@ -108,6 +108,8 @@ func services(workingDir, homeDir string) []types.ServiceConfig {
 							},
 						},
 					},
+					MemswapLimit:  int64Ptr(86000),
+					MemSwappiness: int64Ptr(27),
 				},
 				RestartPolicy: &types.RestartPolicy{
 					Condition:   "on-failure",

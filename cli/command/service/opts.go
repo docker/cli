@@ -235,15 +235,17 @@ type resourceOptions struct {
 	resCPU              opts.NanoCPUs
 	resMemBytes         opts.MemBytes
 	resGenericResources []string
+	swapBytes           opts.MemBytes
+	memSwappiness       int64
 }
 
-func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements, error) {
+func (r *resourceOptions) ToResourceRequirements(flags *pflag.FlagSet) (*swarm.ResourceRequirements, error) {
 	generic, err := ParseGenericResources(r.resGenericResources)
 	if err != nil {
 		return nil, err
 	}
 
-	return &swarm.ResourceRequirements{
+	resreq := &swarm.ResourceRequirements{
 		Limits: &swarm.Limit{
 			NanoCPUs:    r.limitCPU.Value(),
 			MemoryBytes: r.limitMemBytes.Value(),
@@ -254,7 +256,20 @@ func (r *resourceOptions) ToResourceRequirements() (*swarm.ResourceRequirements,
 			MemoryBytes:      r.resMemBytes.Value(),
 			GenericResources: generic,
 		},
-	}, nil
+	}
+
+	// SwapBytes and MemorySwappiness are *int64 (pointers), so we need to have
+	// a variable we can take a pointer to. Additionally, we need to ensure
+	// that these values are only set if they are set as options.
+	if flags.Changed(flagSwapBytes) {
+		swapBytes := r.swapBytes.Value()
+		resreq.SwapBytes = &swapBytes
+	}
+	if flags.Changed(flagMemSwappiness) {
+		resreq.MemorySwappiness = &r.memSwappiness
+	}
+
+	return resreq, nil
 }
 
 type restartPolicyOptions struct {
@@ -734,7 +749,7 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 		return networks[i].Target < networks[j].Target
 	})
 
-	resources, err := options.resources.ToResourceRequirements()
+	resources, err := options.resources.ToResourceRequirements(flags)
 	if err != nil {
 		return service, err
 	}
@@ -889,6 +904,10 @@ func addServiceFlags(flags *pflag.FlagSet, options *serviceOptions, defaultFlagV
 	flags.Var(&options.resources.resMemBytes, flagReserveMemory, "Reserve Memory")
 	flags.Int64Var(&options.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
 	flags.SetAnnotation(flagLimitPids, "version", []string{"1.41"})
+	flags.Var(&options.resources.swapBytes, flagSwapBytes, "Swap Bytes (-1 for unlimited)")
+	flags.SetAnnotation(flagLimitPids, "version", []string{"1.52"})
+	flags.Int64Var(&options.resources.memSwappiness, flagMemSwappiness, -1, "Tune memory swappiness (0-100), -1 to reset to default")
+	flags.SetAnnotation(flagLimitPids, "version", []string{"1.52"})
 
 	flags.Var(&options.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&options.replicas, flagReplicas, "Number of tasks")
@@ -1073,6 +1092,8 @@ const (
 	flagUlimitAdd               = "ulimit-add"
 	flagUlimitRemove            = "ulimit-rm"
 	flagOomScoreAdj             = "oom-score-adj"
+	flagSwapBytes               = "memory-swap"
+	flagMemSwappiness           = "memory-swappiness"
 )
 
 func toNetipAddrSlice(ips []string) []netip.Addr {
