@@ -49,7 +49,7 @@ type (
 	//		T = Literal
 	//		Z = Literal
 	//
-	//	Note: Nanoseconds are also suported in all formats
+	//	Note: Nanoseconds are also supported in all formats
 	//
 	// http://tools.ietf.org/html/rfc3339#section-5.6
 	DateTimeFormatChecker struct{}
