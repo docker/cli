@@ -40,6 +40,8 @@ Create a new service
 | `--log-driver`                                      | `string`          |              | Logging driver for service                                                                          |
 | `--log-opt`                                         | `list`            |              | Logging driver options                                                                              |
 | `--max-concurrent`                                  | `uint`            |              | Number of job tasks to run concurrently (default equal to --replicas)                               |
+| `--memory-swap`                                     | `bytes`           | `0`          | Swap Bytes (-1 for unlimited)                                                                       |
+| `--memory-swappiness`                               | `int64`           | `-1`         | Tune memory swappiness (0-100), -1 to reset to default                                              |
 | `--mode`                                            | `string`          | `replicated` | Service mode (`replicated`, `global`, `replicated-job`, `global-job`)                               |
 | [`--mount`](#mount)                                 | `mount`           |              | Attach a filesystem mount to the service                                                            |
 | `--name`                                            | `string`          |              | Service name                                                                                        |
