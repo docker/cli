@@ -414,10 +414,10 @@
               },
               "additionalProperties": false
             },
-            "memswap_limit": {
+            "memory_swap": {
               "type": "integer"
             },
-            "mem_swappiness": {
+            "memory_swappiness": {
               "type": "integer"
             }
           },

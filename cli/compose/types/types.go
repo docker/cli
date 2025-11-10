@@ -309,8 +309,8 @@ type UpdateConfig struct {
 type Resources struct {
 	Limits        *ResourceLimit `yaml:",omitempty" json:"limits,omitempty"`
 	Reservations  *Resource      `yaml:",omitempty" json:"reservations,omitempty"`
-	MemswapLimit  *int64         `mapstructure:"memswap_limit" yaml:"memswap_limit,omitempty" json:"memswap_limit,omitempty"`
-	MemSwappiness *int64         `mapstructure:"mem_swappiness" yaml:"mem_swappiness,omitempty" json:"mem_swappiness,omitempty"`
+	MemswapLimit  *int64         `mapstructure:"memory_swap" yaml:"memory_swap,omitempty" json:"memory_swap,omitempty"`
+	MemSwappiness *int64         `mapstructure:"memory_swappiness" yaml:"memory_swappiness,omitempty" json:"memory_swappiness,omitempty"`
 }
 
 // ResourceLimit is a resource to be limited
