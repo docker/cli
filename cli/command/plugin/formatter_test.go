@@ -148,7 +148,7 @@ foobar_bar
 	}
 
 	plugins := client.PluginListResult{
-		Items: []*plugin.Plugin{
+		Items: []plugin.Plugin{
 			{ID: "pluginID1", Name: "foobar_baz", Config: plugin.Config{Description: "description 1"}, Enabled: true},
 			{ID: "pluginID2", Name: "foobar_bar", Config: plugin.Config{Description: "description 2"}, Enabled: false},
 		},
@@ -171,7 +171,7 @@ foobar_bar
 
 func TestPluginContextWriteJSON(t *testing.T) {
 	plugins := client.PluginListResult{
-		Items: []*plugin.Plugin{
+		Items: []plugin.Plugin{
 			{ID: "pluginID1", Name: "foobar_baz"},
 			{ID: "pluginID2", Name: "foobar_bar"},
 		},
@@ -197,7 +197,7 @@ func TestPluginContextWriteJSON(t *testing.T) {
 
 func TestPluginContextWriteJSONField(t *testing.T) {
 	plugins := client.PluginListResult{
-		Items: []*plugin.Plugin{
+		Items: []plugin.Plugin{
 			{ID: "pluginID1", Name: "foobar_baz"},
 			{ID: "pluginID2", Name: "foobar_bar"},
 		},

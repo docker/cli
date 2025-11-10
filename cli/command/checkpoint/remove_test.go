@@ -14,7 +14,7 @@ import (
 func TestCheckpointRemoveErrors(t *testing.T) {
 	testCases := []struct {
 		args                 []string
-		checkpointDeleteFunc func(container string, options client.CheckpointDeleteOptions) error
+		checkpointDeleteFunc func(container string, options client.CheckpointRemoveOptions) (client.CheckpointRemoveResult, error)
 		expectedError        string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo", "bar"},
-			checkpointDeleteFunc: func(container string, options client.CheckpointDeleteOptions) error {
-				return errors.New("error deleting checkpoint")
+			checkpointDeleteFunc: func(container string, options client.CheckpointRemoveOptions) (client.CheckpointRemoveResult, error) {
+				return client.CheckpointRemoveResult{}, errors.New("error deleting checkpoint")
 			},
 			expectedError: "error deleting checkpoint",
 		},
@@ -49,16 +49,16 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 func TestCheckpointRemoveWithOptions(t *testing.T) {
 	var containerID, checkpointID, checkpointDir string
 	cli := test.NewFakeCli(&fakeClient{
-		checkpointDeleteFunc: func(container string, options client.CheckpointDeleteOptions) error {
+		checkpointDeleteFunc: func(container string, options client.CheckpointRemoveOptions) (client.CheckpointRemoveResult, error) {
 			containerID = container
 			checkpointID = options.CheckpointID
 			checkpointDir = options.CheckpointDir
-			return nil
+			return client.CheckpointRemoveResult{}, nil
 		},
 	})
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"container-foo", "checkpoint-bar"})
-	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
+	assert.Check(t, cmd.Flags().Set("checkpoint-dir", "/dir/foo"))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("container-foo", containerID))
 	assert.Check(t, is.Equal("checkpoint-bar", checkpointID))
