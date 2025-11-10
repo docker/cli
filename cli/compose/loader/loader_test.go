@@ -184,7 +184,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
-	Version: "3.14",
+	Version: "3.13",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
@@ -967,10 +967,6 @@ func uint64Ptr(value uint64) *uint64 {
 }
 
 func uint32Ptr(value uint32) *uint32 {
-	return &value
-}
-
-func int64Ptr(value int64) *int64 {
 	return &value
 }
 

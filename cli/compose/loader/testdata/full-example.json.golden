@@ -181,9 +181,7 @@
                 }
               }
             ]
-          },
-          "memswap_limit": 86000,
-          "mem_swappiness": 27
+          }
         },
         "restart_policy": {
           "condition": "on-failure",
@@ -515,7 +513,7 @@
       "working_dir": "/code"
     }
   },
-  "version": "3.14",
+  "version": "3.13",
   "volumes": {
     "another-volume": {
       "name": "user_specified_name",
