@@ -41,7 +41,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 }
 
 func runCreate(ctx context.Context, dockerCLI command.Cli, opts createOptions) error {
-	err := dockerCLI.Client().CheckpointCreate(ctx, opts.container, client.CheckpointCreateOptions{
+	_, err := dockerCLI.Client().CheckpointCreate(ctx, opts.container, client.CheckpointCreateOptions{
 		CheckpointID:  opts.checkpoint,
 		CheckpointDir: opts.checkpointDir,
 		Exit:          !opts.leaveRunning,

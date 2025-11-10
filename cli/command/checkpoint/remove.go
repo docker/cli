@@ -1,8 +1,6 @@
 package checkpoint
 
 import (
-	"context"
-
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/moby/moby/client"
@@ -22,7 +20,12 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 		Short:   "Remove a checkpoint",
 		Args:    cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRemove(cmd.Context(), dockerCLI, args[0], args[1], opts)
+			containerID, checkpointID := args[0], args[1]
+			_, err := dockerCLI.Client().CheckpointRemove(cmd.Context(), containerID, client.CheckpointRemoveOptions{
+				CheckpointID:  checkpointID,
+				CheckpointDir: opts.checkpointDir,
+			})
+			return err
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -31,11 +34,4 @@ func newRemoveCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&opts.checkpointDir, "checkpoint-dir", "", "Use a custom checkpoint storage directory")
 
 	return cmd
-}
-
-func runRemove(ctx context.Context, dockerCli command.Cli, container string, checkpointID string, opts removeOptions) error {
-	return dockerCli.Client().CheckpointDelete(ctx, container, client.CheckpointDeleteOptions{
-		CheckpointID:  checkpointID,
-		CheckpointDir: opts.checkpointDir,
-	})
 }

@@ -55,7 +55,7 @@ func TestCheckpointListWithOptions(t *testing.T) {
 			containerID = container
 			checkpointDir = options.CheckpointDir
 			return client.CheckpointListResult{
-				Checkpoints: []checkpoint.Summary{
+				Items: []checkpoint.Summary{
 					{Name: "checkpoint-foo"},
 				},
 			}, nil
@@ -63,7 +63,7 @@ func TestCheckpointListWithOptions(t *testing.T) {
 	})
 	cmd := newListCommand(cli)
 	cmd.SetArgs([]string{"container-foo"})
-	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
+	assert.Check(t, cmd.Flags().Set("checkpoint-dir", "/dir/foo"))
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Equal("container-foo", containerID))
 	assert.Check(t, is.Equal("/dir/foo", checkpointDir))

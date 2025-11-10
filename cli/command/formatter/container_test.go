@@ -152,7 +152,7 @@ func TestContainerPsContext(t *testing.T) {
 		{
 			container: container.Summary{State: container.StateRunning},
 			trunc:     true,
-			expValue:  container.StateRunning,
+			expValue:  string(container.StateRunning),
 			call:      ctx.State,
 		},
 		{

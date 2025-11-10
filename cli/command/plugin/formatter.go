@@ -55,7 +55,7 @@ func formatWrite(fmtCtx formatter.Context, plugins client.PluginListResult) erro
 		for _, p := range plugins.Items {
 			if err := format(&pluginContext{
 				trunc: fmtCtx.Trunc,
-				p:     *p,
+				p:     p,
 			}); err != nil {
 				return err
 			}

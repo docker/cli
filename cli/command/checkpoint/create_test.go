@@ -16,7 +16,7 @@ import (
 func TestCheckpointCreateErrors(t *testing.T) {
 	testCases := []struct {
 		args                 []string
-		checkpointCreateFunc func(container string, options client.CheckpointCreateOptions) error
+		checkpointCreateFunc func(container string, options client.CheckpointCreateOptions) (client.CheckpointCreateResult, error)
 		expectedError        string
 	}{
 		{
@@ -29,8 +29,8 @@ func TestCheckpointCreateErrors(t *testing.T) {
 		},
 		{
 			args: []string{"foo", "bar"},
-			checkpointCreateFunc: func(container string, options client.CheckpointCreateOptions) error {
-				return errors.New("error creating checkpoint for container foo")
+			checkpointCreateFunc: func(container string, options client.CheckpointCreateOptions) (client.CheckpointCreateResult, error) {
+				return client.CheckpointCreateResult{}, errors.New("error creating checkpoint for container foo")
 			},
 			expectedError: "error creating checkpoint for container foo",
 		},
@@ -61,10 +61,10 @@ func TestCheckpointCreateWithOptions(t *testing.T) {
 			var actualContainerName string
 			var actualOptions client.CheckpointCreateOptions
 			cli := test.NewFakeCli(&fakeClient{
-				checkpointCreateFunc: func(container string, options client.CheckpointCreateOptions) error {
+				checkpointCreateFunc: func(container string, options client.CheckpointCreateOptions) (client.CheckpointCreateResult, error) {
 					actualContainerName = container
 					actualOptions = options
-					return nil
+					return client.CheckpointCreateResult{}, nil
 				},
 			})
 			cmd := newCreateCommand(cli)

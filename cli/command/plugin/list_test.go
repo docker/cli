@@ -119,7 +119,7 @@ func TestList(t *testing.T) {
 			golden: "plugin-list-with-no-trunc-option.golden",
 			listFunc: func(opts client.PluginListOptions) (client.PluginListResult, error) {
 				return client.PluginListResult{
-					Items: []*plugin.Plugin{{
+					Items: []plugin.Plugin{{
 						ID:      "xyg4z2hiSLO5yTnBJfg4OYia9gKA6Qjd",
 						Name:    "name-foo",
 						Enabled: true,
@@ -148,7 +148,7 @@ func TestList(t *testing.T) {
 			golden: "plugin-list-sort.golden",
 			listFunc: func(client.PluginListOptions) (client.PluginListResult, error) {
 				return client.PluginListResult{
-					Items: []*plugin.Plugin{
+					Items: []plugin.Plugin{
 						{
 							ID:   "id-1",
 							Name: "plugin-1-foo",
