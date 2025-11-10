@@ -81,9 +81,6 @@ func TestConvertExtraHosts(t *testing.T) {
 }
 
 func TestConvertResourcesFull(t *testing.T) {
-	// create some variables so we can get pointers
-	memswap := int64(72090)
-	swappiness := int64(27)
 	source := composetypes.Resources{
 		Limits: &composetypes.ResourceLimit{
 			NanoCPUs:    "0.003",
@@ -93,8 +90,6 @@ func TestConvertResourcesFull(t *testing.T) {
 			NanoCPUs:    "0.002",
 			MemoryBytes: composetypes.UnitBytes(200000000),
 		},
-		MemswapLimit:  &memswap,
-		MemSwappiness: &swappiness,
 	}
 	resources, err := convertResources(source)
 	assert.NilError(t, err)
@@ -108,8 +103,6 @@ func TestConvertResourcesFull(t *testing.T) {
 			NanoCPUs:    2000000,
 			MemoryBytes: 200000000,
 		},
-		SwapBytes:        &memswap,
-		MemorySwappiness: &swappiness,
 	}
 	assert.Check(t, is.DeepEqual(expected, resources))
 }

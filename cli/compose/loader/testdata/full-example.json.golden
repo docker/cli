@@ -181,9 +181,7 @@
                 }
               }
             ]
-          },
-          "memswap_limit": 86000,
-          "mem_swappiness": 27
+          }
         },
         "restart_policy": {
           "condition": "on-failure",

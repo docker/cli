@@ -970,10 +970,6 @@ func uint32Ptr(value uint32) *uint32 {
 	return &value
 }
 
-func int64Ptr(value int64) *int64 {
-	return &value
-}
-
 func TestFullExample(t *testing.T) {
 	skip.If(t, runtime.GOOS == "windows", "FIXME: substitutes platform-specific HOME-dirs and requires platform-specific golden files; see https://github.com/docker/cli/pull/4610")
 

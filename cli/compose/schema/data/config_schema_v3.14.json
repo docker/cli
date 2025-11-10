@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "config_schema_v3.14.json",
+  "id": "config_schema_v3.13.json",
   "type": "object",
 
   "properties": {
     "version": {
       "type": "string",
-      "default": "3.14"
+      "default": "3.13"
     },
 
     "services": {
@@ -413,12 +413,6 @@
                 "generic_resources": {"$ref": "#/definitions/generic_resources"}
               },
               "additionalProperties": false
-            },
-            "memswap_limit": {
-              "type": "integer"
-            },
-            "mem_swappiness": {
-              "type": "integer"
             }
           },
           "additionalProperties": false

@@ -163,10 +163,8 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 		},
 	}
 
-	flags := newCreateCommand(nil).Flags()
-
 	for _, opt := range incorrectOptions {
-		_, err := opt.ToResourceRequirements(flags)
+		_, err := opt.ToResourceRequirements()
 		assert.Check(t, is.ErrorContains(err, ""))
 	}
 
@@ -180,39 +178,10 @@ func TestResourceOptionsToResourceRequirements(t *testing.T) {
 	}
 
 	for _, opt := range correctOptions {
-		r, err := opt.ToResourceRequirements(flags)
+		r, err := opt.ToResourceRequirements()
 		assert.NilError(t, err)
 		assert.Check(t, is.Len(r.Reservations.GenericResources, len(opt.resGenericResources)))
 	}
-}
-
-func TestResourceOptionsToResourceRequirementsSwap(t *testing.T) {
-	// first, check that no flag set means no field set in the return
-	flags := newCreateCommand(nil).Flags()
-
-	// These should be the default values of the field.
-	swapOptions := resourceOptions{
-		swapBytes:     0,
-		memSwappiness: -1,
-	}
-
-	r, err := swapOptions.ToResourceRequirements(flags)
-	assert.NilError(t, err)
-	assert.Check(t, is.Nil(r.SwapBytes))
-	assert.Check(t, is.Nil(r.MemorySwappiness))
-
-	// now set the flags and some values
-	flags.Set(flagSwapBytes, "86000")
-	flags.Set(flagMemSwappiness, "23")
-	swapOptions.swapBytes = 86000
-	swapOptions.memSwappiness = 23
-
-	r, err = swapOptions.ToResourceRequirements(flags)
-	assert.NilError(t, err)
-	assert.Check(t, r.SwapBytes != nil)
-	assert.Check(t, is.Equal(*(r.SwapBytes), int64(86000)))
-	assert.Check(t, r.MemorySwappiness != nil)
-	assert.Check(t, is.Equal(*(r.MemorySwappiness), int64(23)))
 }
 
 func TestToServiceNetwork(t *testing.T) {
