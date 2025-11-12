@@ -47,8 +47,18 @@ func TestVersionFormat(t *testing.T) {
 			BuildTime:         "Wed May 30 22:21:05 2018",
 			Context:           "my-context",
 		},
-		Server: &client.ServerVersionResult{
-			Platform: client.PlatformInfo{Name: "Docker Enterprise Edition (EE) 2.0"},
+		Server: &serverVersion{
+			Platform:      client.PlatformInfo{Name: "Docker Enterprise Edition (EE) 2.0"},
+			Version:       "18.99.5-ce",
+			APIVersion:    "1.30",
+			MinAPIVersion: "1.12",
+			Os:            "linux",
+			Arch:          "amd64",
+			GitCommit:     "64ddfa6",
+			GoVersion:     "go1.8.7",
+			KernelVersion: "v1.0.0",
+			Experimental:  false,
+			BuildTime:     "Mon Jul  9 23:38:38 2018",
 			Components: []system.ComponentVersion{
 				{
 					Name:    "Engine",
