@@ -109,6 +109,13 @@ func TestPrintImageTreeAnsiTty(t *testing.T) {
 		imageSpacing: false,
 	}
 
+	prevForceStreamRedirected := testForceStreamRedirected
+	t.Cleanup(func() {
+		testForceStreamRedirected = prevForceStreamRedirected
+	})
+	testForceStreamRedirected = new(bool)
+	*testForceStreamRedirected = false
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(nil)

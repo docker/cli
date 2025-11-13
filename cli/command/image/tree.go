@@ -225,7 +225,8 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 }
 
 func printImageTree(outs command.Streams, view treeView) {
-	if streamRedirected(outs.Out()) {
+	stdoutRedirected := streamRedirected(outs.Out())
+	if stdoutRedirected {
 		_, _ = fmt.Fprintln(outs.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
 	}
 
@@ -245,7 +246,10 @@ func printImageTree(outs command.Streams, view treeView) {
 
 	isTerm := out.IsTerminal()
 
-	out.Println(generateLegend(out, width))
+	// Don't print legend when output is redirected
+	if !stdoutRedirected {
+		out.Println(generateLegend(out, width))
+	}
 
 	possibleChips := getPossibleChips(view)
 	columns := []imgColumn{
@@ -517,7 +521,12 @@ func widestFirstColumnValue(headers []imgColumn, images []topImage) int {
 	return width
 }
 
+var testForceStreamRedirected *bool
+
 func streamRedirected(s *streams.Out) bool {
+	if testForceStreamRedirected != nil {
+		return *testForceStreamRedirected
+	}
 	fd := s.FD()
 	if os.Stdout.Fd() != fd {
 		return true

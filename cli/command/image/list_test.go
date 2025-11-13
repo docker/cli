@@ -80,6 +80,14 @@ func TestNewImagesCommandSuccess(t *testing.T) {
 			},
 		},
 	}
+
+	prevForceStreamRedirected := testForceStreamRedirected
+	t.Cleanup(func() {
+		testForceStreamRedirected = prevForceStreamRedirected
+	})
+	testForceStreamRedirected = new(bool)
+	*testForceStreamRedirected = false
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{imageListFunc: tc.imageListFunc})
