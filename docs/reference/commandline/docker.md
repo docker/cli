@@ -130,6 +130,8 @@ line:
 | `DOCKER_TLS`                  | Enable TLS for connections made by the `docker` CLI (equivalent of the `--tls` command-line option). Set to a non-empty value to enable TLS. Note that TLS is enabled automatically if any of the other TLS options are set.                                      |
 | `DOCKER_TLS_VERIFY`           | When set Docker uses TLS and verifies the remote. This variable is used both by the `docker` CLI and the [`dockerd` daemon](https://docs.docker.com/reference/cli/dockerd/)                                                                                       |
 | `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`, `rawjson`) when [building](https://docs.docker.com/reference/cli/docker/image/build/) with [BuildKit backend](https://docs.docker.com/build/buildkit/). Use plain to show container output (default `auto`). |
+| `NO_COLOR`                    | Disable any ANSI escape codes in the output in accordance with https://no-color.org/
+                                                                                                             |
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:

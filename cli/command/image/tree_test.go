@@ -15,6 +15,7 @@ func TestPrintImageTreeAnsiTty(t *testing.T) {
 		stdoutTty    bool
 		stderrTty    bool
 		expectedAnsi bool
+		noColorEnv   bool
 	}{
 		{
 			name:      "non-terminal",
@@ -80,6 +81,24 @@ func TestPrintImageTreeAnsiTty(t *testing.T) {
 
 			expectedAnsi: false,
 		},
+		{
+			name:      "no-color-env",
+			stdinTty:  false,
+			stdoutTty: false,
+			stderrTty: false,
+
+			noColorEnv:   true,
+			expectedAnsi: false,
+		},
+		{
+			name:      "no-color-env-terminal",
+			stdinTty:  true,
+			stdoutTty: true,
+			stderrTty: true,
+
+			noColorEnv:   true,
+			expectedAnsi: false,
+		},
 	}
 
 	mockView := treeView{
@@ -115,6 +134,11 @@ func TestPrintImageTreeAnsiTty(t *testing.T) {
 			cli.In().SetIsTerminal(tc.stdinTty)
 			cli.Out().SetIsTerminal(tc.stdoutTty)
 			cli.Err().SetIsTerminal(tc.stderrTty)
+			if tc.noColorEnv {
+				t.Setenv("NO_COLOR", "1")
+			} else {
+				t.Setenv("NO_COLOR", "")
+			}
 
 			printImageTree(cli, mockView)
 
@@ -123,9 +147,9 @@ func TestPrintImageTreeAnsiTty(t *testing.T) {
 
 			hasAnsi := strings.Contains(out, "\x1b[")
 			if tc.expectedAnsi {
-				assert.Check(t, hasAnsi, "Output should contain ANSI escape codes")
+				assert.Check(t, hasAnsi, "Output should contain ANSI escape codes, output: %s", out)
 			} else {
-				assert.Check(t, !hasAnsi, "Output should not contain ANSI escape codes")
+				assert.Check(t, !hasAnsi, "Output should not contain ANSI escape codes, output: %s", out)
 			}
 		})
 	}
