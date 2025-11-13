@@ -111,6 +111,13 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) (int,
 			continue
 		}
 
+		if len(sortedTags) == 0 {
+			view.images = append(view.images, topImage{
+				Details:  topDetails,
+				Children: children,
+				created:  img.Created,
+			})
+		}
 		for _, tag := range sortedTags {
 			view.images = append(view.images, topImage{
 				Names:    []string{tag},
