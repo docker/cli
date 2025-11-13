@@ -137,6 +137,7 @@ func newServerVersion(sv client.ServerVersionResult) *serverVersion {
 		Os:            sv.Os,
 		Arch:          sv.Arch,
 		Experimental:  sv.Experimental, //nolint:staticcheck // ignore deprecated field.
+		Components:    make([]system.ComponentVersion, 0, len(sv.Components)),
 	}
 	foundEngine := false
 	for _, component := range sv.Components {
@@ -152,6 +153,7 @@ func newServerVersion(sv client.ServerVersionResult) *serverVersion {
 			out.Experimental = func() bool { b, _ := strconv.ParseBool(component.Details["Experimental"]); return b }()
 			out.BuildTime = reformatDate(component.Details["BuildTime"])
 		}
+		out.Components = append(out.Components, component)
 	}
 
 	if !foundEngine {
