@@ -292,7 +292,7 @@ func printImageTree(outs command.Streams, view treeView) {
 			Width: func() int {
 				maxChipsWidth := 0
 				for _, chip := range possibleChips {
-					s := chip.String(isTerm)
+					s := out.Sprint(chip)
 					l := tui.Width(s)
 					maxChipsWidth += l
 				}
@@ -308,9 +308,9 @@ func printImageTree(outs command.Streams, view treeView) {
 				var b strings.Builder
 				for _, chip := range possibleChips {
 					if chip.check(d) {
-						b.WriteString(chip.String(isTerm))
+						b.WriteString(out.Sprint(chip))
 					} else {
-						b.WriteString(chipPlaceholder.String(isTerm))
+						b.WriteString(out.Sprint(chipPlaceholder))
 					}
 				}
 				return b.String()
