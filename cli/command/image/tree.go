@@ -230,11 +230,11 @@ func printImageTree(outs command.Streams, view treeView) {
 	}
 
 	out := tui.NewOutput(outs.Out())
+	isTerm := out.IsTerminal()
+
 	_, width := out.GetTtySize()
-	if width == 0 {
-		width = 80
-	}
-	if width < 20 {
+	limitWidth := width == 0
+	if isTerm && width < 20 {
 		width = 20
 	}
 
@@ -243,9 +243,10 @@ func printImageTree(outs command.Streams, view treeView) {
 	untaggedColor := out.Color(tui.ColorTertiary)
 	titleColor := out.Color(tui.ColorTitle)
 
-	isTerm := out.IsTerminal()
-
-	out.Println(generateLegend(out, width))
+	// Legend is right-aligned, so don't print it if the width is unlimited
+	if !limitWidth {
+		out.Println(generateLegend(out, width))
+	}
 
 	possibleChips := getPossibleChips(view)
 	columns := []imgColumn{
@@ -340,25 +341,27 @@ func printImageTree(outs command.Streams, view treeView) {
 // to display their content.
 func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColumn {
 	nameWidth := int(width)
-	for idx, h := range columns {
-		if h.Width == 0 {
-			continue
+	if nameWidth > 0 {
+		for idx, h := range columns {
+			if h.Width == 0 {
+				continue
+			}
+			d := h.Width
+			if idx > 0 {
+				d += columnSpacing
+			}
+			// If the first column gets too short, remove remaining columns
+			if nameWidth-d < 12 {
+				columns = columns[:idx]
+				break
+			}
+			nameWidth -= d
 		}
-		d := h.Width
-		if idx > 0 {
-			d += columnSpacing
-		}
-		// If the first column gets too short, remove remaining columns
-		if nameWidth-d < 12 {
-			columns = columns[:idx]
-			break
-		}
-		nameWidth -= d
 	}
 
 	// Try to make the first column as narrow as possible
 	widest := widestFirstColumnValue(columns, images)
-	if nameWidth > widest {
+	if width == 0 || nameWidth > widest {
 		nameWidth = widest
 	}
 	columns[0].Width = nameWidth
