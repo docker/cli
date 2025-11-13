@@ -233,6 +233,7 @@ func printImageTree(outs command.Streams, view treeView) {
 	isTerm := out.IsTerminal()
 
 	_, width := out.GetTtySize()
+	limitWidth := width == 0
 	if isTerm && width < 20 {
 		width = 20
 	}
@@ -242,7 +243,10 @@ func printImageTree(outs command.Streams, view treeView) {
 	untaggedColor := out.Color(tui.ColorTertiary)
 	titleColor := out.Color(tui.ColorTitle)
 
-	out.Println(generateLegend(out, width))
+	// Legend is right-aligned, so don't print it if the width is unlimited
+	if !limitWidth {
+		out.Println(generateLegend(out, width))
+	}
 
 	possibleChips := getPossibleChips(view)
 	columns := []imgColumn{
