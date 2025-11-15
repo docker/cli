@@ -184,7 +184,7 @@ func completeLink(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 
 // completeLogDriver implements shell completion for the `--log-driver` option  of `run` and `create`.
 // The log drivers are collected from a call to the Info endpoint with a fallback to a hard-coded list
-// of the build-in log drivers.
+// of the built-in log drivers.
 func completeLogDriver(dockerCLI completion.APIClientProvider) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		res, err := dockerCLI.Client().Info(cmd.Context(), client.InfoOptions{})
