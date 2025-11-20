@@ -114,6 +114,16 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 		}
 	}
 
+	format := options.format
+	if len(format) == 0 {
+		if len(dockerCLI.ConfigFile().ImagesFormat) > 0 && !options.quiet && !options.tree {
+			format = dockerCLI.ConfigFile().ImagesFormat
+			useTree = false
+		} else {
+			format = formatter.TableFormatKey
+		}
+	}
+
 	if useTree {
 		return runTree(ctx, dockerCLI, treeOptions{
 			images:   images,
@@ -121,15 +131,6 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 			filters:  filters,
 			expanded: options.tree,
 		})
-	}
-
-	format := options.format
-	if len(format) == 0 {
-		if len(dockerCLI.ConfigFile().ImagesFormat) > 0 && !options.quiet {
-			format = dockerCLI.ConfigFile().ImagesFormat
-		} else {
-			format = formatter.TableFormatKey
-		}
 	}
 
 	imageCtx := formatter.ImageContext{
