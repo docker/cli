@@ -151,7 +151,7 @@ func newServerVersion(sv client.ServerVersionResult) *serverVersion {
 			out.GoVersion = component.Details["GoVersion"]
 			out.KernelVersion = component.Details["KernelVersion"]
 			out.Experimental = func() bool { b, _ := strconv.ParseBool(component.Details["Experimental"]); return b }()
-			out.BuildTime = reformatDate(component.Details["BuildTime"])
+			out.BuildTime = buildTime
 		}
 		out.Components = append(out.Components, component)
 	}

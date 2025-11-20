@@ -58,7 +58,7 @@ func TestVersionFormat(t *testing.T) {
 			GoVersion:     "go1.8.7",
 			KernelVersion: "v1.0.0",
 			Experimental:  false,
-			BuildTime:     "Mon Jul  9 23:38:38 2018",
+			BuildTime:     "2018-07-09T22:38:38.000000000+00:00",
 			Components: []system.ComponentVersion{
 				{
 					Name:    "Engine",
