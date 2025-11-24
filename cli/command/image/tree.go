@@ -258,9 +258,10 @@ func printImageTree(outs command.Streams, view treeView) {
 	possibleChips := getPossibleChips(view)
 	columns := []imgColumn{
 		{
-			Title: "Image",
-			Align: alignLeft,
-			Width: 0,
+			Title:      "Image",
+			Align:      alignLeft,
+			Width:      0,
+			NoEllipsis: true,
 		},
 		{
 			Title: "ID",
@@ -436,13 +437,27 @@ func printNames(out tui.Output, headers []imgColumn, img topImage, color, untagg
 	}
 
 	for nameIdx, name := range img.Names {
-		// Don't limit first names to the column width because only the last
-		// name will be printed alongside other columns.
-		if nameIdx < len(img.Names)-1 {
-			_, fullWidth := out.GetTtySize()
-			_, _ = fmt.Fprintln(out, color.Apply(tui.Ellipsis(name, int(fullWidth))))
-		} else {
-			_, _ = fmt.Fprint(out, headers[0].Print(color, name))
+		nameWidth := tui.Width(name)
+		lastName := nameIdx == len(img.Names)-1
+		multiLine := nameWidth > headers[0].Width
+
+		_, _ = fmt.Fprint(out, headers[0].Print(color, name))
+
+		// Print each name on its own line, including the last,
+		// unless the last name fits into the column.
+		//
+		// IMAGE      ID             ...
+		// anImage    171e65262c80   ...
+		// firstName
+		// lastNameIsALongOne
+		//            eade5be814e8   ...
+		// anotherLongName
+		//            bb747ca923a5   ...
+		if !lastName || multiLine {
+			_, _ = fmt.Fprintln(out)
+		}
+		if multiLine && lastName {
+			_, _ = fmt.Fprint(out, strings.Repeat(" ", headers[0].Width))
 		}
 	}
 }
@@ -462,6 +477,7 @@ type imgColumn struct {
 
 	DetailsValue func(*imageDetails) string
 	Color        *aec.ANSI
+	NoEllipsis   bool
 }
 
 func (h imgColumn) Print(clr aec.ANSI, s string) string {
@@ -478,11 +494,15 @@ func (h imgColumn) Print(clr aec.ANSI, s string) string {
 func (h imgColumn) PrintC(clr aec.ANSI, s string) string {
 	ln := tui.Width(s)
 
-	if ln > h.Width {
-		return clr.Apply(tui.Ellipsis(s, h.Width))
-	}
-
 	fill := h.Width - ln
+
+	if fill < 0 {
+		if h.NoEllipsis {
+			fill = 0
+		} else {
+			return clr.Apply(tui.Ellipsis(s, h.Width))
+		}
+	}
 
 	l := fill / 2
 	r := fill - l
@@ -492,20 +512,33 @@ func (h imgColumn) PrintC(clr aec.ANSI, s string) string {
 
 func (h imgColumn) PrintL(clr aec.ANSI, s string) string {
 	ln := tui.Width(s)
-	if ln > h.Width {
-		return clr.Apply(tui.Ellipsis(s, h.Width))
+
+	fill := h.Width - ln
+
+	if fill < 0 {
+		if h.NoEllipsis {
+			fill = 0
+		} else {
+			return clr.Apply(tui.Ellipsis(s, h.Width))
+		}
 	}
 
-	return clr.Apply(s) + strings.Repeat(" ", h.Width-ln)
+	return clr.Apply(s) + strings.Repeat(" ", fill)
 }
 
 func (h imgColumn) PrintR(clr aec.ANSI, s string) string {
 	ln := tui.Width(s)
-	if ln > h.Width {
-		return clr.Apply(tui.Ellipsis(s, h.Width))
+	fill := h.Width - ln
+
+	if fill < 0 {
+		if h.NoEllipsis {
+			fill = 0
+		} else {
+			return clr.Apply(tui.Ellipsis(s, h.Width))
+		}
 	}
 
-	return strings.Repeat(" ", h.Width-ln) + clr.Apply(s)
+	return strings.Repeat(" ", fill) + clr.Apply(s)
 }
 
 // widestFirstColumnValue calculates the width needed to fully display the image names and platforms.
