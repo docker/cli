@@ -120,8 +120,8 @@ func TestNewAPIClientFromFlagsWithCustomHeadersFromEnv(t *testing.T) {
 }
 
 func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
-	const customVersion = "v3.3.3"
-	const expectedVersion = "3.3.3"
+	const customVersion = "v3.3"
+	const expectedVersion = "3.3"
 	t.Setenv("DOCKER_API_VERSION", customVersion)
 	t.Setenv("DOCKER_HOST", ":2375")
 
