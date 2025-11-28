@@ -100,7 +100,9 @@ func (p *PortOpt) Set(value string) error {
 
 		p.ports = append(p.ports, pConfig)
 	} else {
-		// short syntax
+		// short syntax ([ip:]public:private[/proto])
+		//
+		// TODO(thaJeztah): we need an equivalent that handles the "ip-address" part without depending on the nat package.
 		ports, portBindingMap, err := nat.ParsePortSpecs([]string{value})
 		if err != nil {
 			return err

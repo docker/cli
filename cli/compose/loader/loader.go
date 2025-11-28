@@ -918,8 +918,9 @@ var transformStringToDuration TransformerFunc = func(value any) (any, error) {
 }
 
 func toServicePortConfigs(value string) ([]any, error) {
-	var portConfigs []any
-
+	// short syntax ([ip:]public:private[/proto])
+	//
+	// TODO(thaJeztah): we need an equivalent that handles the "ip-address" part without depending on the nat package.
 	ports, portBindings, err := nat.ParsePortSpecs([]string{value})
 	if err != nil {
 		return nil, err
@@ -931,6 +932,7 @@ func toServicePortConfigs(value string) ([]any, error) {
 	}
 	sort.Strings(keys)
 
+	var portConfigs []any
 	for _, key := range keys {
 		// Reuse ConvertPortToPortConfig so that it is consistent
 		port, err := network.ParsePort(key)
