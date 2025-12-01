@@ -137,12 +137,14 @@ func TestPortOptValidSimpleSyntax(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		var port PortOpt
-		assert.NilError(t, port.Set(tc.value))
-		assert.Check(t, is.Len(port.Value(), len(tc.expected)))
-		for _, expectedPortConfig := range tc.expected {
-			assertContains(t, port.Value(), expectedPortConfig)
-		}
+		t.Run(tc.value, func(t *testing.T) {
+			var port PortOpt
+			assert.NilError(t, port.Set(tc.value))
+			assert.Check(t, is.Len(port.Value(), len(tc.expected)))
+			for _, expectedPortConfig := range tc.expected {
+				assertContains(t, port.Value(), expectedPortConfig)
+			}
+		})
 	}
 }
 
@@ -228,12 +230,14 @@ func TestPortOptValidComplexSyntax(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		var port PortOpt
-		assert.NilError(t, port.Set(tc.value))
-		assert.Check(t, is.Len(port.Value(), len(tc.expected)))
-		for _, expectedPortConfig := range tc.expected {
-			assertContains(t, port.Value(), expectedPortConfig)
-		}
+		t.Run(tc.value, func(t *testing.T) {
+			var port PortOpt
+			assert.NilError(t, port.Set(tc.value))
+			assert.Check(t, is.Len(port.Value(), len(tc.expected)))
+			for _, expectedPortConfig := range tc.expected {
+				assertContains(t, port.Value(), expectedPortConfig)
+			}
+		})
 	}
 }
 
@@ -319,8 +323,10 @@ func TestPortOptInvalidSimpleSyntax(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		var port PortOpt
-		assert.Error(t, port.Set(tc.value), tc.expectedError)
+		t.Run(tc.value, func(t *testing.T) {
+			var port PortOpt
+			assert.Error(t, port.Set(tc.value), tc.expectedError)
+		})
 	}
 }
 
