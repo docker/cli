@@ -3,13 +3,13 @@ package memorystore
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestMemoryStore(t *testing.T) {
-	config := map[string]types.AuthConfig{
+	config := map[string]registry.AuthConfig{
 		"https://example.test": {
 			Username:      "something-something",
 			ServerAddress: "https://example.test",
@@ -17,7 +17,7 @@ func TestMemoryStore(t *testing.T) {
 		},
 	}
 
-	fallbackConfig := map[string]types.AuthConfig{
+	fallbackConfig := map[string]registry.AuthConfig{
 		"https://only-in-file.example.test": {
 			Username:      "something-something",
 			ServerAddress: "https://only-in-file.example.test",
@@ -44,7 +44,7 @@ func TestMemoryStore(t *testing.T) {
 	})
 
 	t.Run("storing credentials in memory store should also be in defined fallback store", func(t *testing.T) {
-		err := memoryStore.Store(types.AuthConfig{
+		err := memoryStore.Store(registry.AuthConfig{
 			Username:      "not-in-store",
 			ServerAddress: "https://not-in-store.example.test",
 			Auth:          "not-in-store_token",
@@ -64,7 +64,7 @@ func TestMemoryStore(t *testing.T) {
 	})
 
 	t.Run("delete credentials should remove credentials from memory store and fallback store", func(t *testing.T) {
-		err := memoryStore.Store(types.AuthConfig{
+		err := memoryStore.Store(registry.AuthConfig{
 			Username:      "a-new-credential",
 			ServerAddress: "https://a-new-credential.example.test",
 			Auth:          "a-new-credential_token",
@@ -80,7 +80,7 @@ func TestMemoryStore(t *testing.T) {
 }
 
 func TestMemoryStoreWithoutFallback(t *testing.T) {
-	config := map[string]types.AuthConfig{
+	config := map[string]registry.AuthConfig{
 		"https://example.test": {
 			Username:      "something-something",
 			ServerAddress: "https://example.test",
@@ -103,7 +103,7 @@ func TestMemoryStoreWithoutFallback(t *testing.T) {
 	})
 
 	t.Run("case store credentials", func(t *testing.T) {
-		err := memoryStore.Store(types.AuthConfig{
+		err := memoryStore.Store(registry.AuthConfig{
 			Username:      "not-in-store",
 			ServerAddress: "https://not-in-store.example.test",
 			Auth:          "not-in-store_token",
@@ -117,7 +117,7 @@ func TestMemoryStoreWithoutFallback(t *testing.T) {
 	})
 
 	t.Run("delete credentials should remove credentials from memory store", func(t *testing.T) {
-		err := memoryStore.Store(types.AuthConfig{
+		err := memoryStore.Store(registry.AuthConfig{
 			Username:      "a-new-credential",
 			ServerAddress: "https://a-new-credential.example.test",
 			Auth:          "a-new-credential_token",

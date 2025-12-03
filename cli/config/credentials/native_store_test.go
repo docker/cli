@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
+	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
@@ -91,12 +91,12 @@ func mockCommandFn(args ...string) client.Program {
 }
 
 func TestNativeStoreAddCredentials(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{}}
+	f := &fakeStore{configs: map[string]registry.AuthConfig{}}
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
-	auth := types.AuthConfig{
+	auth := registry.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
 		ServerAddress: validServerAddress,
@@ -107,19 +107,19 @@ func TestNativeStoreAddCredentials(t *testing.T) {
 
 	actual, ok := f.GetAuthConfigs()[validServerAddress]
 	assert.Check(t, ok)
-	expected := types.AuthConfig{
+	expected := registry.AuthConfig{
 		ServerAddress: auth.ServerAddress,
 	}
 	assert.Check(t, is.DeepEqual(expected, actual))
 }
 
 func TestNativeStoreAddInvalidCredentials(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{}}
+	f := &fakeStore{configs: map[string]registry.AuthConfig{}}
 	s := &nativeStore{
 		programFunc: mockCommandFn,
 		fileStore:   NewFileStore(f),
 	}
-	err := s.Store(types.AuthConfig{
+	err := s.Store(registry.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
 		ServerAddress: invalidServerAddress,
@@ -129,7 +129,7 @@ func TestNativeStoreAddInvalidCredentials(t *testing.T) {
 }
 
 func TestNativeStoreGet(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress: {
 			Username: "foo@example.com",
 		},
@@ -141,7 +141,7 @@ func TestNativeStoreGet(t *testing.T) {
 	actual, err := s.Get(validServerAddress)
 	assert.NilError(t, err)
 
-	expected := types.AuthConfig{
+	expected := registry.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
 		ServerAddress: validServerAddress,
@@ -150,7 +150,7 @@ func TestNativeStoreGet(t *testing.T) {
 }
 
 func TestNativeStoreGetIdentityToken(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress2: {},
 	}}
 
@@ -161,7 +161,7 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 	actual, err := s.Get(validServerAddress2)
 	assert.NilError(t, err)
 
-	expected := types.AuthConfig{
+	expected := registry.AuthConfig{
 		IdentityToken: "abcd1234",
 		ServerAddress: validServerAddress2,
 	}
@@ -169,7 +169,7 @@ func TestNativeStoreGetIdentityToken(t *testing.T) {
 }
 
 func TestNativeStoreGetAll(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress: {},
 	}}
 
@@ -180,7 +180,7 @@ func TestNativeStoreGetAll(t *testing.T) {
 	as, err := s.GetAll()
 	assert.NilError(t, err)
 	assert.Check(t, is.Len(as, 2))
-	expected := types.AuthConfig{
+	expected := registry.AuthConfig{
 		Username:      "foo",
 		Password:      "bar",
 		ServerAddress: "https://index.docker.io/v1",
@@ -192,7 +192,7 @@ func TestNativeStoreGetAll(t *testing.T) {
 }
 
 func TestNativeStoreGetMissingCredentials(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress: {},
 	}}
 
@@ -205,7 +205,7 @@ func TestNativeStoreGetMissingCredentials(t *testing.T) {
 }
 
 func TestNativeStoreGetInvalidAddress(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress: {},
 	}}
 
@@ -218,7 +218,7 @@ func TestNativeStoreGetInvalidAddress(t *testing.T) {
 }
 
 func TestNativeStoreErase(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress: {},
 	}}
 
@@ -232,7 +232,7 @@ func TestNativeStoreErase(t *testing.T) {
 }
 
 func TestNativeStoreEraseInvalidAddress(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		validServerAddress: {},
 	}}
 

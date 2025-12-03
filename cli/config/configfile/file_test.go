@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
@@ -16,10 +16,10 @@ import (
 )
 
 func TestEncodeAuth(t *testing.T) {
-	newAuthConfig := &types.AuthConfig{Username: "ken", Password: "test"}
+	newAuthConfig := &registry.AuthConfig{Username: "ken", Password: "test"}
 	authStr := encodeAuth(newAuthConfig)
 
-	expected := &types.AuthConfig{}
+	expected := &registry.AuthConfig{}
 	var err error
 	expected.Username, expected.Password, err = decodeAuth(authStr)
 	assert.NilError(t, err)
@@ -168,7 +168,7 @@ func TestConfigFile(t *testing.T) {
 
 type mockNativeStore struct {
 	GetAllCallCount  int
-	authConfigs      map[string]types.AuthConfig
+	authConfigs      map[string]registry.AuthConfig
 	authConfigErrors map[string]error
 }
 
@@ -177,29 +177,29 @@ func (c *mockNativeStore) Erase(registryHostname string) error {
 	return nil
 }
 
-func (c *mockNativeStore) Get(registryHostname string) (types.AuthConfig, error) {
+func (c *mockNativeStore) Get(registryHostname string) (registry.AuthConfig, error) {
 	return c.authConfigs[registryHostname], c.authConfigErrors[registryHostname]
 }
 
-func (c *mockNativeStore) GetAll() (map[string]types.AuthConfig, error) {
+func (c *mockNativeStore) GetAll() (map[string]registry.AuthConfig, error) {
 	c.GetAllCallCount++
 	return c.authConfigs, nil
 }
 
-func (*mockNativeStore) Store(_ types.AuthConfig) error {
+func (*mockNativeStore) Store(_ registry.AuthConfig) error {
 	return nil
 }
 
 // make sure it satisfies the interface
 var _ credentials.Store = (*mockNativeStore)(nil)
 
-func NewMockNativeStore(authConfigs map[string]types.AuthConfig, authConfigErrors map[string]error) credentials.Store {
+func NewMockNativeStore(authConfigs map[string]registry.AuthConfig, authConfigErrors map[string]error) credentials.Store {
 	return &mockNativeStore{authConfigs: authConfigs, authConfigErrors: authConfigErrors}
 }
 
 func TestGetAllCredentialsFileStoreOnly(t *testing.T) {
 	configFile := New("filename")
-	exampleAuth := types.AuthConfig{
+	exampleAuth := registry.AuthConfig{
 		Username: "user",
 		Password: "pass",
 	}
@@ -208,7 +208,7 @@ func TestGetAllCredentialsFileStoreOnly(t *testing.T) {
 	authConfigs, err := configFile.GetAllCredentials()
 	assert.NilError(t, err)
 
-	expected := make(map[string]types.AuthConfig)
+	expected := make(map[string]registry.AuthConfig)
 	expected["example.com/foo"] = exampleAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
 }
@@ -217,12 +217,12 @@ func TestGetAllCredentialsCredsStore(t *testing.T) {
 	configFile := New("filename")
 	configFile.CredentialsStore = "test_creds_store"
 	testRegistryHostname := "example.com"
-	expectedAuth := types.AuthConfig{
+	expectedAuth := registry.AuthConfig{
 		Username: "user",
 		Password: "pass",
 	}
 
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: expectedAuth}, nil)
+	testCredsStore := NewMockNativeStore(map[string]registry.AuthConfig{testRegistryHostname: expectedAuth}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
@@ -233,7 +233,7 @@ func TestGetAllCredentialsCredsStore(t *testing.T) {
 	authConfigs, err := configFile.GetAllCredentials()
 	assert.NilError(t, err)
 
-	expected := make(map[string]types.AuthConfig)
+	expected := make(map[string]registry.AuthConfig)
 	expected[testRegistryHostname] = expectedAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
 	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
@@ -249,7 +249,7 @@ func TestGetAllCredentialsCredStoreErrorHandling(t *testing.T) {
 		workingHelperRegistryHostname: "cred_helper",
 		brokenHelperRegistryHostname:  "broken_cred_helper",
 	}
-	expectedAuth := types.AuthConfig{
+	expectedAuth := registry.AuthConfig{
 		Username: "username",
 		Password: "pass",
 	}
@@ -259,7 +259,7 @@ func TestGetAllCredentialsCredStoreErrorHandling(t *testing.T) {
 		brokenHelperRegistryHostname: errors.New("an error"),
 	}
 
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{
+	testCredsStore := NewMockNativeStore(map[string]registry.AuthConfig{
 		workingHelperRegistryHostname: expectedAuth,
 		// configure an auth entry for the "broken" credential
 		// helper that will throw an error
@@ -288,11 +288,11 @@ func TestGetAllCredentialsCredHelper(t *testing.T) {
 		testExtraCredHelperRegistryHostname = "somethingweird.com"
 	)
 
-	unexpectedCredHelperAuth := types.AuthConfig{
+	unexpectedCredHelperAuth := registry.AuthConfig{
 		Username: "file_store_user",
 		Password: "file_store_pass",
 	}
-	expectedCredHelperAuth := types.AuthConfig{
+	expectedCredHelperAuth := registry.AuthConfig{
 		Username: "cred_helper_user",
 		Password: "cred_helper_pass",
 	}
@@ -300,7 +300,7 @@ func TestGetAllCredentialsCredHelper(t *testing.T) {
 	configFile := New("filename")
 	configFile.CredentialHelpers = map[string]string{testCredHelperRegistryHostname: testCredHelperSuffix}
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{
+	testCredHelper := NewMockNativeStore(map[string]registry.AuthConfig{
 		testCredHelperRegistryHostname: expectedCredHelperAuth,
 		// Add in an extra auth entry which doesn't appear in CredentialHelpers section of the configFile.
 		// This verifies that only explicitly configured registries are being requested from the cred helpers.
@@ -316,7 +316,7 @@ func TestGetAllCredentialsCredHelper(t *testing.T) {
 	authConfigs, err := configFile.GetAllCredentials()
 	assert.NilError(t, err)
 
-	expected := make(map[string]types.AuthConfig)
+	expected := make(map[string]registry.AuthConfig)
 	expected[testCredHelperRegistryHostname] = expectedCredHelperAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
 	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
@@ -329,11 +329,11 @@ func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
 		testCredHelperRegistryHostname = "credhelper.com"
 	)
 
-	expectedFileStoreAuth := types.AuthConfig{
+	expectedFileStoreAuth := registry.AuthConfig{
 		Username: "file_store_user",
 		Password: "file_store_pass",
 	}
-	expectedCredHelperAuth := types.AuthConfig{
+	expectedCredHelperAuth := registry.AuthConfig{
 		Username: "cred_helper_user",
 		Password: "cred_helper_pass",
 	}
@@ -342,7 +342,7 @@ func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
 	configFile.CredentialHelpers = map[string]string{testCredHelperRegistryHostname: testCredHelperSuffix}
 	configFile.AuthConfigs[testFileStoreRegistryHostname] = expectedFileStoreAuth
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth}, nil)
+	testCredHelper := NewMockNativeStore(map[string]registry.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth}, nil)
 
 	newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentials.Store {
 		return testCredHelper
@@ -353,7 +353,7 @@ func TestGetAllCredentialsFileStoreAndCredHelper(t *testing.T) {
 	authConfigs, err := configFile.GetAllCredentials()
 	assert.NilError(t, err)
 
-	expected := make(map[string]types.AuthConfig)
+	expected := make(map[string]registry.AuthConfig)
 	expected[testFileStoreRegistryHostname] = expectedFileStoreAuth
 	expected[testCredHelperRegistryHostname] = expectedCredHelperAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
@@ -372,17 +372,17 @@ func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
 	configFile.CredentialsStore = testCredStoreSuffix
 	configFile.CredentialHelpers = map[string]string{testCredHelperRegistryHostname: testCredHelperSuffix}
 
-	expectedCredStoreAuth := types.AuthConfig{
+	expectedCredStoreAuth := registry.AuthConfig{
 		Username: "cred_store_user",
 		Password: "cred_store_pass",
 	}
-	expectedCredHelperAuth := types.AuthConfig{
+	expectedCredHelperAuth := registry.AuthConfig{
 		Username: "cred_helper_user",
 		Password: "cred_helper_pass",
 	}
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth}, nil)
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testCredStoreRegistryHostname: expectedCredStoreAuth}, nil)
+	testCredHelper := NewMockNativeStore(map[string]registry.AuthConfig{testCredHelperRegistryHostname: expectedCredHelperAuth}, nil)
+	testCredsStore := NewMockNativeStore(map[string]registry.AuthConfig{testCredStoreRegistryHostname: expectedCredStoreAuth}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
@@ -396,7 +396,7 @@ func TestGetAllCredentialsCredStoreAndCredHelper(t *testing.T) {
 	authConfigs, err := configFile.GetAllCredentials()
 	assert.NilError(t, err)
 
-	expected := make(map[string]types.AuthConfig)
+	expected := make(map[string]registry.AuthConfig)
 	expected[testCredStoreRegistryHostname] = expectedCredStoreAuth
 	expected[testCredHelperRegistryHostname] = expectedCredHelperAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
@@ -415,17 +415,17 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	configFile.CredentialsStore = testCredStoreSuffix
 	configFile.CredentialHelpers = map[string]string{testRegistryHostname: testCredHelperSuffix}
 
-	unexpectedCredStoreAuth := types.AuthConfig{
+	unexpectedCredStoreAuth := registry.AuthConfig{
 		Username: "cred_store_user",
 		Password: "cred_store_pass",
 	}
-	expectedCredHelperAuth := types.AuthConfig{
+	expectedCredHelperAuth := registry.AuthConfig{
 		Username: "cred_helper_user",
 		Password: "cred_helper_pass",
 	}
 
-	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: expectedCredHelperAuth}, nil)
-	testCredsStore := NewMockNativeStore(map[string]types.AuthConfig{testRegistryHostname: unexpectedCredStoreAuth}, nil)
+	testCredHelper := NewMockNativeStore(map[string]registry.AuthConfig{testRegistryHostname: expectedCredHelperAuth}, nil)
+	testCredsStore := NewMockNativeStore(map[string]registry.AuthConfig{testRegistryHostname: unexpectedCredStoreAuth}, nil)
 
 	tmpNewNativeStore := newNativeStore
 	defer func() { newNativeStore = tmpNewNativeStore }()
@@ -439,7 +439,7 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	authConfigs, err := configFile.GetAllCredentials()
 	assert.NilError(t, err)
 
-	expected := make(map[string]types.AuthConfig)
+	expected := make(map[string]registry.AuthConfig)
 	expected[testRegistryHostname] = expectedCredHelperAuth
 	assert.Check(t, is.DeepEqual(expected, authConfigs))
 	assert.Check(t, is.Equal(1, testCredsStore.(*mockNativeStore).GetAllCallCount))
@@ -450,19 +450,19 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	configFile := New("test-load")
 	defer os.Remove("test-load")
 
-	want := types.AuthConfig{
+	want := registry.AuthConfig{
 		Username: "user",
 		Password: "pass",
 	}
 
-	for _, tc := range []types.AuthConfig{
+	for _, tc := range []registry.AuthConfig{
 		want,
 		{
 			Auth: encodeAuth(&want),
 		},
 	} {
 		cf := ConfigFile{
-			AuthConfigs: map[string]types.AuthConfig{
+			AuthConfigs: map[string]registry.AuthConfig{
 				"example.com/foo": tc,
 			},
 		}
@@ -508,7 +508,7 @@ func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 		authConfigs, err := config.GetAllCredentials()
 		assert.NilError(t, err)
 
-		expected := map[string]types.AuthConfig{
+		expected := map[string]registry.AuthConfig{
 			"env.example.test": {
 				Username:      "env_user",
 				Password:      "env_pass",
@@ -519,7 +519,7 @@ func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 	})
 
 	t.Run("malformed DOCKER_AUTH_CONFIG should fallback to underlying store", func(t *testing.T) {
-		fallbackStore := map[string]types.AuthConfig{
+		fallbackStore := map[string]registry.AuthConfig{
 			"fallback.example.test": {
 				Username:      "fallback_user",
 				Password:      "fallback_pass",
@@ -541,7 +541,7 @@ func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 
 	t.Run("can fetch credentials from DOCKER_AUTH_CONFIG and underlying store", func(t *testing.T) {
 		configFile := New("filename")
-		exampleAuth := types.AuthConfig{
+		exampleAuth := registry.AuthConfig{
 			Username: "user",
 			Password: "pass",
 		}
@@ -552,7 +552,7 @@ func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 		authConfigs, err := configFile.GetAllCredentials()
 		assert.NilError(t, err)
 
-		expected := map[string]types.AuthConfig{
+		expected := map[string]registry.AuthConfig{
 			"foo.example.test": exampleAuth,
 			"env.example.test": {
 				Username:      "env_user",
@@ -592,7 +592,7 @@ func TestParseEnvConfig(t *testing.T) {
 	t.Run("should be able to load env credentials", func(t *testing.T) {
 		got, err := parseEnvConfig(envTestAuthConfig)
 		assert.NilError(t, err)
-		expected := map[string]types.AuthConfig{
+		expected := map[string]registry.AuthConfig{
 			"env.example.test": {
 				Username:      "env_user",
 				Password:      "env_pass",

@@ -11,13 +11,12 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/hints"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/tui"
 	"github.com/moby/moby/api/pkg/authconfig"
-	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/api/types/registry"
 	"github.com/morikuni/aec"
 )
 
@@ -40,14 +39,14 @@ const authConfigKey = "https://index.docker.io/v1/"
 // found.
 //
 // Deprecated: this function is no longer used, and will be removed in the next release.
-func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInfo) registrytypes.AuthConfig {
+func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registry.IndexInfo) registry.AuthConfig {
 	configKey := index.Name
 	if index.Official {
 		configKey = authConfigKey
 	}
 
 	a, _ := cfg.GetAuthConfig(configKey)
-	return registrytypes.AuthConfig{
+	return registry.AuthConfig{
 		Username:      a.Username,
 		Password:      a.Password,
 		ServerAddress: a.ServerAddress,
@@ -61,22 +60,22 @@ func ResolveAuthConfig(cfg *configfile.ConfigFile, index *registrytypes.IndexInf
 
 // GetDefaultAuthConfig gets the default auth config given a serverAddress
 // If credentials for given serverAddress exists in the credential store, the configuration will be populated with values in it
-func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registrytypes.AuthConfig, error) {
+func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serverAddress string, isDefaultRegistry bool) (registry.AuthConfig, error) {
 	if !isDefaultRegistry {
 		serverAddress = credentials.ConvertToHostname(serverAddress)
 	}
-	authCfg := configtypes.AuthConfig{}
+	authCfg := registry.AuthConfig{}
 	var err error
 	if checkCredStore {
 		authCfg, err = cfg.GetAuthConfig(serverAddress)
 		if err != nil {
-			return registrytypes.AuthConfig{
+			return registry.AuthConfig{
 				ServerAddress: serverAddress,
 			}, err
 		}
 	}
 
-	return registrytypes.AuthConfig{
+	return registry.AuthConfig{
 		Username:      authCfg.Username,
 		Password:      authCfg.Password,
 		ServerAddress: serverAddress,
@@ -97,7 +96,7 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 // If defaultUsername is not empty, the username prompt includes that username
 // and the user can hit enter without inputting a username  to use that default
 // username.
-func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
+func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registry.AuthConfig, error) {
 	// On Windows, force the use of the regular OS stdin stream.
 	//
 	// See:
@@ -134,13 +133,13 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		var err error
 		argUser, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), msg)
 		if err != nil {
-			return registrytypes.AuthConfig{}, err
+			return registry.AuthConfig{}, err
 		}
 		if argUser == "" {
 			argUser = defaultUsername
 		}
 		if argUser == "" {
-			return registrytypes.AuthConfig{}, errors.New("error: username is required")
+			return registry.AuthConfig{}, errors.New("error: username is required")
 		}
 	}
 
@@ -148,7 +147,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 	if argPassword == "" {
 		restoreInput, err := prompt.DisableInputEcho(cli.In())
 		if err != nil {
-			return registrytypes.AuthConfig{}, err
+			return registry.AuthConfig{}, err
 		}
 		defer func() {
 			if err := restoreInput(); err != nil {
@@ -168,15 +167,15 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 
 		argPassword, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), "Password: ")
 		if err != nil {
-			return registrytypes.AuthConfig{}, err
+			return registry.AuthConfig{}, err
 		}
 		_, _ = fmt.Fprintln(cli.Out())
 		if argPassword == "" {
-			return registrytypes.AuthConfig{}, errors.New("error: password is required")
+			return registry.AuthConfig{}, errors.New("error: password is required")
 		}
 	}
 
-	return registrytypes.AuthConfig{
+	return registry.AuthConfig{
 		Username:      argUser,
 		Password:      argPassword,
 		ServerAddress: serverAddress,
@@ -200,7 +199,7 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 		return "", err
 	}
 
-	encodedAuth, err := authconfig.Encode(registrytypes.AuthConfig{
+	encodedAuth, err := authconfig.Encode(registry.AuthConfig{
 		Username:      authConfig.Username,
 		Password:      authConfig.Password,
 		ServerAddress: authConfig.ServerAddress,

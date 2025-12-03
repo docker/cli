@@ -8,12 +8,12 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 )
 
 type store interface {
 	Save() error
-	GetAuthConfigs() map[string]types.AuthConfig
+	GetAuthConfigs() map[string]registry.AuthConfig
 	GetFilename() string
 }
 
@@ -40,7 +40,7 @@ func (c *fileStore) Erase(serverAddress string) error {
 }
 
 // Get retrieves credentials for a specific server from the file store.
-func (c *fileStore) Get(serverAddress string) (types.AuthConfig, error) {
+func (c *fileStore) Get(serverAddress string) (registry.AuthConfig, error) {
 	authConfig, ok := c.file.GetAuthConfigs()[serverAddress]
 	if !ok {
 		// Maybe they have a legacy config file, we will iterate the keys converting
@@ -51,12 +51,12 @@ func (c *fileStore) Get(serverAddress string) (types.AuthConfig, error) {
 			}
 		}
 
-		authConfig = types.AuthConfig{}
+		authConfig = registry.AuthConfig{}
 	}
 	return authConfig, nil
 }
 
-func (c *fileStore) GetAll() (map[string]types.AuthConfig, error) {
+func (c *fileStore) GetAll() (map[string]registry.AuthConfig, error) {
 	return c.file.GetAuthConfigs(), nil
 }
 
@@ -77,7 +77,7 @@ var alreadyPrinted atomic.Bool
 
 // Store saves the given credentials in the file store. This function is
 // idempotent and does not update the file if credentials did not change.
-func (c *fileStore) Store(authConfig types.AuthConfig) error {
+func (c *fileStore) Store(authConfig registry.AuthConfig) error {
 	authConfigs := c.file.GetAuthConfigs()
 	if oldAuthConfig, ok := authConfigs[authConfig.ServerAddress]; ok && oldAuthConfig == authConfig {
 		// Credentials didn't change, so skip updating the configuration file.

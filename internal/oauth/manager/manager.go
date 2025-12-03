@@ -10,12 +10,12 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/oauth"
 	"github.com/docker/cli/internal/oauth/api"
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
+	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/morikuni/aec"
 	"github.com/sirupsen/logrus"
 
@@ -82,7 +82,7 @@ var ErrDeviceLoginStartFail = errors.New("failed to start device code flow login
 // tokens to create a Hub PAT which is returned to the caller.
 // The retrieved tokens are stored in the credentials store (under a separate
 // key), and the refresh token is concatenated with the client ID.
-func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.AuthConfig, error) {
+func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*registrytypes.AuthConfig, error) {
 	state, err := m.api.GetDeviceCode(ctx, m.audience)
 	if err != nil {
 		logrus.Debugf("failed to start device code login: %v", err)
@@ -149,7 +149,7 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 		return nil, err
 	}
 
-	return &types.AuthConfig{
+	return &registrytypes.AuthConfig{
 		Username:      claims.Domain.Username,
 		Password:      pat,
 		ServerAddress: registry.IndexServer,
@@ -193,12 +193,12 @@ const (
 
 func (m *OAuthManager) storeTokensInStore(tokens api.TokenResponse, username string) error {
 	return errors.Join(
-		m.store.Store(types.AuthConfig{
+		m.store.Store(registrytypes.AuthConfig{
 			Username:      username,
 			Password:      tokens.AccessToken,
 			ServerAddress: accessTokenKey,
 		}),
-		m.store.Store(types.AuthConfig{
+		m.store.Store(registrytypes.AuthConfig{
 			Username:      username,
 			Password:      tokens.RefreshToken + ".." + m.clientID,
 			ServerAddress: refreshTokenKey,
