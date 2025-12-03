@@ -51,7 +51,12 @@ func newDeployCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringSliceVarP(&opts.composefiles, "compose-file", "c", []string{}, `Path to a Compose file, or "-" to read from stdin`)
-	flags.SetAnnotation("compose-file", "version", []string{"1.25"})
+	_ = flags.SetAnnotation("compose-file", "version", []string{"1.25"})
+	// Provide tab-completion for filenames. On Bash, this is constrained to the
+	// ".yaml" and ".yml" file-extensions, but this doesn't appear to be supported
+	// by other shells.
+	_ = cmd.MarkFlagFilename("compose-file", "yaml", "yml")
+
 	flags.BoolVar(&opts.sendRegistryAuth, "with-registry-auth", false, "Send registry authentication details to Swarm agents")
 	flags.BoolVar(&opts.prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
