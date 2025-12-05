@@ -426,6 +426,9 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		return nil, err
 	}
 
+	// short syntax ([ip:]public:private[/proto])
+	//
+	// TODO(thaJeztah): we need an equivalent that handles the "ip-address" part without depending on the nat package.
 	ports, natPortBindings, err := nat.ParsePortSpecs(convertedOpts)
 	if err != nil {
 		return nil, err

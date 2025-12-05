@@ -100,7 +100,9 @@ func (p *PortOpt) Set(value string) error {
 
 		p.ports = append(p.ports, pConfig)
 	} else {
-		// short syntax
+		// short syntax ([ip:]public:private[/proto])
+		//
+		// TODO(thaJeztah): we need an equivalent that handles the "ip-address" part without depending on the nat package.
 		ports, portBindingMap, err := nat.ParsePortSpecs([]string{value})
 		if err != nil {
 			return err
@@ -162,18 +164,17 @@ func ConvertPortToPortConfig(
 			logrus.Warnf("ignoring IP-address (%s:%s) service will listen on '0.0.0.0'", net.JoinHostPort(binding.HostIP, binding.HostPort), portProto.String())
 		}
 
-		startHostPort, endHostPort, err := nat.ParsePortRange(binding.HostPort)
-
+		pr, err := network.ParsePortRange(binding.HostPort)
 		if err != nil && binding.HostPort != "" {
 			return nil, fmt.Errorf("invalid hostport binding (%s) for port (%d)", binding.HostPort, portProto.Num())
 		}
 
-		for i := startHostPort; i <= endHostPort; i++ {
+		for p := range pr.All() {
 			ports = append(ports, swarm.PortConfig{
 				// TODO Name: ?
 				Protocol:      portProto.Proto(),
 				TargetPort:    uint32(portProto.Num()),
-				PublishedPort: uint32(i),
+				PublishedPort: uint32(p.Num()),
 				PublishMode:   swarm.PortConfigPublishModeIngress,
 			})
 		}
