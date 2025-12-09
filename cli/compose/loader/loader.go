@@ -28,7 +28,7 @@ import (
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/client/pkg/versions"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 // Options supported by Load

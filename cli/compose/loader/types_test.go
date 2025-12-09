@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )

@@ -94,6 +94,8 @@ linters:
               desc: Use github.com/google/uuid instead.
             - pkg: "io/ioutil"
               desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
+            - pkg: "gopkg.in/yaml.v3"
+              desc: Use go.yaml.in/yaml/v3 instead.
 
     forbidigo:
       forbid:
