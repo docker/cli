@@ -101,7 +101,12 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	containerCfg, err := parse(flags, copts, dockerCli.ServerInfo().OSType)
+	serverInfo, err := dockerCli.Client().Ping(ctx, client.PingOptions{})
+	if err != nil {
+		return err
+	}
+
+	containerCfg, err := parse(flags, copts, serverInfo.OSType)
 	// just in case the parse does not exit
 	if err != nil {
 		return cli.StatusError{
