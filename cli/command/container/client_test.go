@@ -232,3 +232,7 @@ func (f *fakeClient) ContainerPause(ctx context.Context, containerID string, opt
 
 	return client.ContainerPauseResult{}, nil
 }
+
+func (*fakeClient) Ping(_ context.Context, _ client.PingOptions) (client.PingResult, error) {
+	return client.PingResult{}, nil
+}
