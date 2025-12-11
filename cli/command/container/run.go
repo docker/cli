@@ -84,14 +84,14 @@ func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
+func runRun(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
 		return cli.StatusError{
 			Status:     withHelp(err, "run").Error(),
 			StatusCode: 125,
 		}
 	}
-	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
+	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(dockerCLI.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
 	newEnv := []string{}
 	for k, v := range proxyConfig {
 		if v == nil {
@@ -101,7 +101,7 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	serverInfo, err := dockerCli.Client().Ping(ctx, client.PingOptions{})
+	serverInfo, err := dockerCLI.Client().Ping(ctx, client.PingOptions{})
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func runRun(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, ro
 			StatusCode: 125,
 		}
 	}
-	return runContainer(ctx, dockerCli, ropts, copts, containerCfg)
+	return runContainer(ctx, dockerCLI, ropts, copts, containerCfg)
 }
 
 //nolint:gocyclo
