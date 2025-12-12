@@ -997,9 +997,11 @@ func parseDevice(device, serverOS string) (container.DeviceMapping, error) {
 	case "linux":
 		return parseLinuxDevice(device)
 	case "windows":
-		return parseWindowsDevice(device)
+		// Windows doesn't support mapping, so passing the given value as-is.
+		return container.DeviceMapping{PathOnHost: device}, nil
+	default:
+		return container.DeviceMapping{}, fmt.Errorf("unknown server OS: %s", serverOS)
 	}
-	return container.DeviceMapping{}, fmt.Errorf("unknown server OS: %s", serverOS)
 }
 
 // parseLinuxDevice parses a device mapping string to a container.DeviceMapping struct
@@ -1030,18 +1032,11 @@ func parseLinuxDevice(device string) (container.DeviceMapping, error) {
 		dst = src
 	}
 
-	deviceMapping := container.DeviceMapping{
+	return container.DeviceMapping{
 		PathOnHost:        src,
 		PathInContainer:   dst,
 		CgroupPermissions: permissions,
-	}
-	return deviceMapping, nil
-}
-
-// parseWindowsDevice parses a device mapping string to a container.DeviceMapping struct
-// knowing that the target is a Windows daemon
-func parseWindowsDevice(device string) (container.DeviceMapping, error) {
-	return container.DeviceMapping{PathOnHost: device}, nil
+	}, nil
 }
 
 // validateDeviceCgroupRule validates a device cgroup rule string format

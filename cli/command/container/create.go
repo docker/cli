@@ -95,14 +95,14 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
+func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
 		return cli.StatusError{
 			Status:     withHelp(err, "create").Error(),
 			StatusCode: 125,
 		}
 	}
-	proxyConfig := dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
+	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(dockerCLI.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
 	newEnv := make([]string, 0, len(proxyConfig))
 	for k, v := range proxyConfig {
 		if v == nil {
@@ -112,7 +112,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 		}
 	}
 	copts.env = *opts.NewListOptsRef(&newEnv, nil)
-	serverInfo, err := dockerCli.Client().Ping(ctx, client.PingOptions{})
+	serverInfo, err := dockerCLI.Client().Ping(ctx, client.PingOptions{})
 	if err != nil {
 		return err
 	}
@@ -124,17 +124,17 @@ func runCreate(ctx context.Context, dockerCli command.Cli, flags *pflag.FlagSet,
 			StatusCode: 125,
 		}
 	}
-	id, err := createContainer(ctx, dockerCli, containerCfg, options)
+	id, err := createContainer(ctx, dockerCLI, containerCfg, options)
 	if err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintln(dockerCli.Out(), id)
+	_, _ = fmt.Fprintln(dockerCLI.Out(), id)
 	return nil
 }
 
 // FIXME(thaJeztah): this is the only code-path that uses APIClient.ImageCreate. Rewrite this to use the regular "pull" code (or vice-versa).
-func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *createOptions) error {
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), img)
+func pullImage(ctx context.Context, dockerCLI command.Cli, img string, options *createOptions) error {
+	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), img)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		// Already validated.
 		ociPlatforms = append(ociPlatforms, platforms.MustParse(options.platform))
 	}
-	resp, err := dockerCli.Client().ImagePull(ctx, img, client.ImagePullOptions{
+	resp, err := dockerCLI.Client().ImagePull(ctx, img, client.ImagePullOptions{
 		RegistryAuth: encodedAuth,
 		Platforms:    ociPlatforms,
 	})
@@ -155,7 +155,7 @@ func pullImage(ctx context.Context, dockerCli command.Cli, img string, options *
 		_ = resp.Close()
 	}()
 
-	out := dockerCli.Err()
+	out := dockerCLI.Err()
 	if options.quiet {
 		out = streams.NewOut(io.Discard)
 	}
