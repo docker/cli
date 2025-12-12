@@ -22,6 +22,8 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
+const untaggedName = "<untagged>"
+
 type treeOptions struct {
 	images   []imagetypes.Summary
 	all      bool
@@ -111,7 +113,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) (int,
 			continue
 		}
 
-		if opts.all && len(sortedTags) == 0 {
+		if len(sortedTags) == 0 {
 			view.images = append(view.images, topImage{
 				Details:  topDetails,
 				Children: children,
@@ -433,7 +435,7 @@ func printChildren(out tui.Output, headers []imgColumn, img topImage, normalColo
 
 func printNames(out tui.Output, headers []imgColumn, img topImage, color, untaggedColor aec.ANSI) {
 	if len(img.Names) == 0 {
-		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, "<untagged>"))
+		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, untaggedName))
 	}
 
 	for nameIdx, name := range img.Names {
@@ -545,7 +547,11 @@ func (h imgColumn) PrintR(clr aec.ANSI, s string) string {
 func widestFirstColumnValue(headers []imgColumn, images []topImage) int {
 	width := len(headers[0].Title)
 	for _, img := range images {
-		for _, name := range img.Names {
+		names := img.Names
+		if len(names) == 0 {
+			names = []string{untaggedName}
+		}
+		for _, name := range names {
 			if len(name) > width {
 				width = len(name)
 			}

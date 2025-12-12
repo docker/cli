@@ -1,0 +1,5 @@
+IMAGE                  ID             DISK USAGE   CONTENT SIZE   EXTRA
+multiplatform:latest   aaaaaaaaaaaa      25.5 MB        20.2 MB   U    
+├─ linux/amd64         bbbbbbbbbbbb      12.1 MB        10.0 MB        
+└─ linux/arm64         cccccccccccc      13.4 MB        10.2 MB   U    
+

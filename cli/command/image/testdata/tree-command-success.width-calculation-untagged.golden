@@ -1,0 +1,4 @@
+IMAGE        ID             DISK USAGE   CONTENT SIZE   EXTRA
+a:1          111111111111       5.5 MB         2.5 MB        
+<untagged>   222222222222       3.2 MB         1.6 MB        
+short:v1     333333333333       7.1 MB         3.5 MB   U    
