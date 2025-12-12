@@ -1,0 +1,5 @@
+IMAGE                ID             DISK USAGE   CONTENT SIZE   EXTRA
+<untagged>           dddddddddddd      18.5 MB        15.2 MB        
+├─ linux/amd64       eeeeeeeeeeee       9.2 MB         7.6 MB        
+└─ linux/arm64       ffffffffffff       9.3 MB         7.6 MB        
+
