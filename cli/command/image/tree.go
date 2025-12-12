@@ -22,6 +22,8 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
+const untaggedName = "<untagged>"
+
 type treeOptions struct {
 	images   []imagetypes.Summary
 	all      bool
@@ -433,7 +435,7 @@ func printChildren(out tui.Output, headers []imgColumn, img topImage, normalColo
 
 func printNames(out tui.Output, headers []imgColumn, img topImage, color, untaggedColor aec.ANSI) {
 	if len(img.Names) == 0 {
-		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, "<untagged>"))
+		_, _ = fmt.Fprint(out, headers[0].Print(untaggedColor, untaggedName))
 	}
 
 	for nameIdx, name := range img.Names {
