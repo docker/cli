@@ -177,7 +177,7 @@ func shouldUseTree(options imagesOptions) (bool, error) {
 
 // isDangling is a copy of [formatter.isDangling].
 func isDangling(img image.Summary) bool {
-	if len(img.RepoTags) == 0 && len(img.RepoDigests) == 0 {
+	if len(img.RepoTags) == 0 {
 		return true
 	}
 	return len(img.RepoTags) == 1 && img.RepoTags[0] == "<none>:<none>" && len(img.RepoDigests) == 1 && img.RepoDigests[0] == "<none>@<none>"
