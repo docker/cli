@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
-	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
@@ -60,7 +59,7 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 	}
 	cfg := configfile.New("filename")
 	for _, authConfig := range testAuthConfigs {
-		assert.Check(t, cfg.GetCredentialsStore(authConfig.ServerAddress).Store(configtypes.AuthConfig{
+		assert.Check(t, cfg.GetCredentialsStore(authConfig.ServerAddress).Store(registry.AuthConfig{
 			Username:      authConfig.Username,
 			Password:      authConfig.Password,
 			ServerAddress: authConfig.ServerAddress,
