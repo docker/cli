@@ -113,7 +113,7 @@ func runTree(ctx context.Context, dockerCLI command.Cli, opts treeOptions) (int,
 			continue
 		}
 
-		if opts.all && len(sortedTags) == 0 {
+		if len(sortedTags) == 0 {
 			view.images = append(view.images, topImage{
 				Details:  topDetails,
 				Children: children,
