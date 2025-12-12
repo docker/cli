@@ -26,7 +26,6 @@ const untaggedName = "<untagged>"
 
 type treeOptions struct {
 	images   []imagetypes.Summary
-	all      bool
 	filters  client.Filters
 	expanded bool
 }

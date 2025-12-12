@@ -127,7 +127,6 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 	if useTree {
 		return runTree(ctx, dockerCLI, treeOptions{
 			images:   images,
-			all:      options.all,
 			filters:  filters,
 			expanded: options.tree,
 		})
