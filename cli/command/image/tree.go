@@ -547,7 +547,11 @@ func (h imgColumn) PrintR(clr aec.ANSI, s string) string {
 func widestFirstColumnValue(headers []imgColumn, images []topImage) int {
 	width := len(headers[0].Title)
 	for _, img := range images {
-		for _, name := range img.Names {
+		names := img.Names
+		if len(names) == 0 {
+			names = []string{untaggedName}
+		}
+		for _, name := range names {
 			if len(name) > width {
 				width = len(name)
 			}
