@@ -109,7 +109,7 @@ func runImages(ctx context.Context, dockerCLI command.Cli, options imagesOptions
 
 	images := res.Items
 	if !options.all {
-		if _, ok := filters["dangling"]; !ok {
+		if dangling, ok := filters["dangling"]; !ok || dangling["false"] {
 			images = slices.DeleteFunc(images, isDangling)
 		}
 	}
