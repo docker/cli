@@ -126,6 +126,12 @@ var sampleInfoNoSwarm = system.Info{
 			{"ReloadedAt", "2025-07-16T16:59:14Z"},
 		},
 	},
+	NRI: &system.NRIInfo{
+		Info: [][2]string{
+			{"plugin-path", "/usr/libexec/docker/nri-plugins"},
+			{"plugin-config-path", "/etc/docker/nri/conf.d"},
+		},
+	},
 	CDISpecDirs: []string{"/etc/cdi", "/var/run/cdi"},
 }
 

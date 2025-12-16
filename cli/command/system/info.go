@@ -397,6 +397,13 @@ func prettyPrintServerInfo(streams command.Streams, info *dockerInfo) {
 		}
 	}
 
+	if info.NRI != nil {
+		fprintln(output, " NRI:")
+		for _, v := range info.NRI.Info {
+			fprintf(output, "  %s: %s\n", v[0], v[1])
+		}
+	}
+
 	fprintln(output)
 	for _, w := range info.Warnings {
 		fprintln(streams.Err(), w)

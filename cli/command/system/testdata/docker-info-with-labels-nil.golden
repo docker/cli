@@ -56,4 +56,7 @@ Server:
    Base: 10.123.0.0/16, Size: 24
  Firewall Backend: nftables+firewalld
   ReloadedAt: 2025-07-16T16:59:14Z
+ NRI:
+  plugin-path: /usr/libexec/docker/nri-plugins
+  plugin-config-path: /etc/docker/nri/conf.d
 
