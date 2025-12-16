@@ -315,7 +315,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from history' -a '(__fish_pr
 
 # images
 complete -c docker -f -n '__fish_docker_no_subcommand' -a images -d 'List images'
-complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (default hides intermediate images)'
+complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s a -l all -d 'Show all images (default hides intermediate and dangling images)'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l digests -d 'Show digests'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -s f -l filter -d 'Filter output based on conditions provided'
 complete -c docker -A -f -n '__fish_seen_subcommand_from images' -l format -d 'Format the output using the given Go template'
