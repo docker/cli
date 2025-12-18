@@ -109,7 +109,7 @@ mddocs: build_docker_image ## generate markdown files from go source
 
 .PHONY: yamldocs
 yamldocs: build_docker_image ## generate documentation YAML files consumed by docs repo
-	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make yamldocs
+	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make yamldocs
 
 .PHONY: test ## run unit and e2e tests
 test: test-unit test-e2e
