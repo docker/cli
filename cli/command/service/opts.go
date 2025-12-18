@@ -905,9 +905,9 @@ func addServiceFlags(flags *pflag.FlagSet, options *serviceOptions, defaultFlagV
 	flags.Int64Var(&options.resources.limitPids, flagLimitPids, 0, "Limit maximum number of processes (default 0 = unlimited)")
 	flags.SetAnnotation(flagLimitPids, "version", []string{"1.41"})
 	flags.Var(&options.resources.swapBytes, flagSwapBytes, "Swap Bytes (-1 for unlimited)")
-	flags.SetAnnotation(flagLimitPids, "version", []string{"1.52"})
+	flags.SetAnnotation(flagSwapBytes, "version", []string{"1.52"})
 	flags.Int64Var(&options.resources.memSwappiness, flagMemSwappiness, -1, "Tune memory swappiness (0-100), -1 to reset to default")
-	flags.SetAnnotation(flagLimitPids, "version", []string{"1.52"})
+	flags.SetAnnotation(flagMemSwappiness, "version", []string{"1.52"})
 
 	flags.Var(&options.stopGrace, flagStopGracePeriod, flagDesc(flagStopGracePeriod, "Time to wait before force killing a container (ns|us|ms|s|m|h)"))
 	flags.Var(&options.replicas, flagReplicas, "Number of tasks")
