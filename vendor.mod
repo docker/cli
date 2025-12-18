@@ -61,7 +61,7 @@ require (
 	golang.org/x/term v0.37.0
 	golang.org/x/text v0.31.0
 	gotest.tools/v3 v3.5.2
-	tags.cncf.io/container-device-interface v1.0.1
+	tags.cncf.io/container-device-interface v1.1.0
 )
 
 require (
