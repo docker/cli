@@ -30,13 +30,14 @@ store](#credential-stores). If you use Docker Desktop, credentials are
 automatically saved to the native keychain of your operating system. If you're
 not using Docker Desktop, you can configure the credential store in the Docker
 configuration file, which is located at `$HOME/.docker/config.json` on Linux or
-`%USERPROFILE%/.docker/config.json` on Windows. If you don't configure a
-credential store, Docker stores credentials in the `config.json` file in a
-base64-encoded format. This method is less secure than configuring and using a
-credential store.
+`%USERPROFILE%/.docker/config.json` on Windows.
 
-`docker login` also supports [credential helpers](#credential-helpers) to help
+`docker login` supports [credential helpers](#credential-helpers) to help
 you handle credentials for specific registries.
+
+If you don't configure a credential store and no credential helper is available,
+Docker stores credentials in the `config.json` file in a base64-encoded format.
+This method is less secure than configuring and using a credential store.
 
 ### Authentication methods
 
