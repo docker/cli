@@ -83,6 +83,9 @@ For example, to use `docker-credential-osxkeychain`:
 }
 ```
 
+The reserved value `filestore` can be used to store the base64-encoded
+credentials directly in the `config.json` configuration file.
+
 If you are currently logged in, run `docker logout` to remove
 the credentials from the file and run `docker login` again.
 
@@ -92,7 +95,7 @@ By default, Docker looks for the native binary on each of the platforms, i.e.
 `osxkeychain` on macOS, `wincred` on Windows, and `pass` on Linux. A special
 case is that on Linux, Docker will fall back to the `secretservice` binary if
 it cannot find the `pass` binary. If none of these binaries are present, it
-stores the base64-encoded credentials in the `config.json` configuration file.
+follows the `filestore` behavior described above.
 
 #### Credential helper protocol
 
