@@ -480,7 +480,7 @@ func Compress(buildCtx io.ReadCloser) (io.ReadCloser, error) {
 	pipeReader, pipeWriter := io.Pipe()
 
 	go func() {
-		compressWriter, err := compression.CompressStream(pipeWriter, archive.Gzip)
+		compressWriter, err := compression.CompressStream(pipeWriter, compression.Gzip)
 		if err != nil {
 			_ = pipeWriter.CloseWithError(err)
 		}
