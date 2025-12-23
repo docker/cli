@@ -4,8 +4,10 @@
 package formatter
 
 import (
-	"reflect"
 	"testing"
+
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 type dummy struct{}
@@ -45,24 +47,18 @@ var dummyExpected = map[string]any{
 func TestMarshalMap(t *testing.T) {
 	d := dummy{}
 	m, err := marshalMap(&d)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(dummyExpected, m) {
-		t.Fatalf("expected %+v, got %+v",
-			dummyExpected, m)
-	}
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(m, dummyExpected))
 }
 
 func TestMarshalMapBad(t *testing.T) {
-	if _, err := marshalMap(nil); err == nil {
-		t.Fatal("expected an error (argument is nil)")
-	}
-	if _, err := marshalMap(dummy{}); err == nil {
-		t.Fatal("expected an error (argument is non-pointer)")
-	}
+	_, err := marshalMap(nil)
+	assert.Check(t, is.Error(err, "expected a pointer to a struct, got invalid"), "expected an error (argument is nil)")
+
+	_, err = marshalMap(dummy{})
+	assert.Check(t, is.Error(err, "expected a pointer to a struct, got struct"), "expected an error (argument is non-pointer)")
+
 	x := 42
-	if _, err := marshalMap(&x); err == nil {
-		t.Fatal("expected an error (argument is a pointer to non-struct)")
-	}
+	_, err = marshalMap(&x)
+	assert.Check(t, is.Error(err, "expected a pointer to a struct, got a pointer to int"), "expected an error (argument is a pointer to non-struct)")
 }

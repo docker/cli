@@ -1,7 +1,6 @@
 package connhelper
 
 import (
-	"reflect"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -27,7 +26,8 @@ func TestSSHFlags(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		assert.DeepEqual(t, addSSHTimeout(tc.in), tc.out)
+		result := addSSHTimeout(tc.in)
+		assert.DeepEqual(t, result, tc.out)
 	}
 }
 
@@ -57,9 +57,7 @@ func TestDisablePseudoTerminalAllocation(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result := disablePseudoTerminalAllocation(tc.sshFlags)
-			if !reflect.DeepEqual(result, tc.expected) {
-				t.Errorf("expected %v, got %v", tc.expected, result)
-			}
+			assert.DeepEqual(t, result, tc.expected)
 		})
 	}
 }

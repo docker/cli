@@ -1,9 +1,9 @@
 package node
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
@@ -170,13 +170,21 @@ func (c *nodeContext) ManagerStatus() string {
 }
 
 func (c *nodeContext) TLSStatus() string {
-	if c.info.Cluster == nil || reflect.DeepEqual(c.info.Cluster.TLSInfo, swarm.TLSInfo{}) || reflect.DeepEqual(c.n.Description.TLSInfo, swarm.TLSInfo{}) {
+	if c.info.Cluster == nil || isEmptyTLSInfo(c.info.Cluster.TLSInfo) || isEmptyTLSInfo(c.n.Description.TLSInfo) {
 		return "Unknown"
 	}
-	if reflect.DeepEqual(c.n.Description.TLSInfo, c.info.Cluster.TLSInfo) {
+	if equalTLSInfo(c.n.Description.TLSInfo, c.info.Cluster.TLSInfo) {
 		return "Ready"
 	}
 	return "Needs Rotation"
+}
+
+func isEmptyTLSInfo(t swarm.TLSInfo) bool {
+	return t.TrustRoot == "" && len(t.CertIssuerSubject) == 0 && len(t.CertIssuerPublicKey) == 0
+}
+
+func equalTLSInfo(t, o swarm.TLSInfo) bool {
+	return t.TrustRoot == o.TrustRoot && bytes.Equal(t.CertIssuerSubject, o.CertIssuerSubject) && bytes.Equal(t.CertIssuerPublicKey, o.CertIssuerPublicKey)
 }
 
 func (c *nodeContext) EngineVersion() string {
@@ -320,8 +328,7 @@ func (ctx *nodeInspectContext) EngineVersion() string {
 }
 
 func (ctx *nodeInspectContext) HasTLSInfo() bool {
-	tlsInfo := ctx.Node.Description.TLSInfo
-	return !reflect.DeepEqual(tlsInfo, swarm.TLSInfo{})
+	return !isEmptyTLSInfo(ctx.Node.Description.TLSInfo)
 }
 
 func (ctx *nodeInspectContext) TLSInfoTrustRoot() string {

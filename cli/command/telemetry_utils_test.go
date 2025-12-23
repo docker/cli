@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/streams"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel/attribute"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func setupCobraCommands() (*cobra.Command, *cobra.Command, *cobra.Command) {
@@ -139,7 +140,7 @@ func TestStdioAttributes(t *testing.T) {
 			cli.Out().SetIsTerminal(tc.stdoutTty)
 			actual := stdioAttributes(cli)
 
-			assert.Check(t, reflect.DeepEqual(actual, tc.expected))
+			assert.Check(t, is.DeepEqual(actual, tc.expected, cmpopts.EquateComparable(attribute.Value{})))
 		})
 	}
 }
@@ -179,7 +180,7 @@ func TestAttributesFromError(t *testing.T) {
 		t.Run(tc.testName, func(t *testing.T) {
 			t.Parallel()
 			actual := attributesFromError(tc.err)
-			assert.Check(t, reflect.DeepEqual(actual, tc.expected))
+			assert.Check(t, is.DeepEqual(actual, tc.expected, cmpopts.EquateComparable(attribute.Value{})))
 		})
 	}
 }

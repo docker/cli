@@ -795,7 +795,7 @@ func parseNetworkOpts(copts *containerOptions) (map[string]*network.EndpointSett
 		// and only a single network is specified, omit the endpoint-configuration
 		// on the client (the daemon will still create it when creating the container)
 		if i == 0 && len(copts.netMode.Value()) == 1 {
-			if ep == nil || reflect.DeepEqual(*ep, network.EndpointSettings{}) {
+			if ep == nil || reflect.ValueOf(*ep).IsZero() {
 				continue
 			}
 		}

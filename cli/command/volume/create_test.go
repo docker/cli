@@ -1,10 +1,13 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package volume
 
 import (
 	"errors"
 	"fmt"
 	"io"
-	"reflect"
+	"maps"
 	"sort"
 	"strings"
 	"testing"
@@ -124,10 +127,10 @@ func TestVolumeCreateWithFlags(t *testing.T) {
 			if options.Driver != expectedDriver {
 				return client.VolumeCreateResult{}, fmt.Errorf("expected driver %q, got %q", expectedDriver, options.Driver)
 			}
-			if !reflect.DeepEqual(options.DriverOpts, expectedOpts) {
+			if !maps.Equal(options.DriverOpts, expectedOpts) {
 				return client.VolumeCreateResult{}, fmt.Errorf("expected drivers opts %v, got %v", expectedOpts, options.DriverOpts)
 			}
-			if !reflect.DeepEqual(options.Labels, expectedLabels) {
+			if !maps.Equal(options.Labels, expectedLabels) {
 				return client.VolumeCreateResult{}, fmt.Errorf("expected labels %v, got %v", expectedLabels, options.Labels)
 			}
 			return client.VolumeCreateResult{
