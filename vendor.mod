@@ -56,7 +56,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
 	go.yaml.in/yaml/v3 v3.0.4
-	golang.org/x/sync v0.18.0
+	golang.org/x/sync v0.19.0
 	golang.org/x/sys v0.39.0
 	golang.org/x/term v0.37.0
 	golang.org/x/text v0.31.0
