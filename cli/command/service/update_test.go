@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
-	"reflect"
 	"sort"
+	"strconv"
 	"testing"
 	"time"
 
@@ -368,23 +368,23 @@ func TestUpdateHealthcheckTable(t *testing.T) {
 			err:   "--no-healthcheck conflicts with --health-* options",
 		},
 	}
-	for i, c := range testCases {
-		flags := newUpdateCommand(nil).Flags()
-		for _, flag := range c.flags {
-			flags.Set(flag[0], flag[1])
-		}
-		cspec := &swarm.ContainerSpec{
-			Healthcheck: c.initial,
-		}
-		err := updateHealthcheck(flags, cspec)
-		if c.err != "" {
-			assert.Error(t, err, c.err)
-		} else {
-			assert.NilError(t, err)
-			if !reflect.DeepEqual(cspec.Healthcheck, c.expected) {
-				t.Errorf("incorrect result for test %d, expected health config:\n\t%#v\ngot:\n\t%#v", i, c.expected, cspec.Healthcheck)
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			for _, flag := range tc.flags {
+				assert.Check(t, flags.Set(flag[0], flag[1]))
 			}
-		}
+			cspec := &swarm.ContainerSpec{
+				Healthcheck: tc.initial,
+			}
+			err := updateHealthcheck(flags, cspec)
+			if tc.err != "" {
+				assert.Error(t, err, tc.err)
+			} else {
+				assert.NilError(t, err)
+				assert.Check(t, is.DeepEqual(cspec.Healthcheck, tc.expected))
+			}
+		})
 	}
 }
 
