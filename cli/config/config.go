@@ -12,7 +12,7 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 )
 
 const (
@@ -109,7 +109,7 @@ func Path(p ...string) (string, error) {
 // a reader. It returns an error if configData is malformed.
 func LoadFromReader(configData io.Reader) (*configfile.ConfigFile, error) {
 	configFile := configfile.ConfigFile{
-		AuthConfigs: make(map[string]types.AuthConfig),
+		AuthConfigs: make(map[string]registry.AuthConfig),
 	}
 	err := configFile.LoadFromReader(configData)
 	return &configFile, err

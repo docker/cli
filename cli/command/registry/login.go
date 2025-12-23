@@ -11,7 +11,6 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
-	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/commands"
 	"github.com/docker/cli/internal/oauth/manager"
 	"github.com/docker/cli/internal/registry"
@@ -283,7 +282,7 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 
 func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
 	creds := cfg.GetCredentialsStore(authConfig.ServerAddress)
-	if err := creds.Store(configtypes.AuthConfig{
+	if err := creds.Store(registrytypes.AuthConfig{
 		Username:      authConfig.Username,
 		Password:      authConfig.Password,
 		ServerAddress: authConfig.ServerAddress,

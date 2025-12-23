@@ -12,37 +12,37 @@ import (
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/memorystore"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 	"github.com/sirupsen/logrus"
 )
 
 // ConfigFile ~/.docker/config.json file info
 type ConfigFile struct {
-	AuthConfigs          map[string]types.AuthConfig  `json:"auths"`
-	HTTPHeaders          map[string]string            `json:"HttpHeaders,omitempty"`
-	PsFormat             string                       `json:"psFormat,omitempty"`
-	ImagesFormat         string                       `json:"imagesFormat,omitempty"`
-	NetworksFormat       string                       `json:"networksFormat,omitempty"`
-	PluginsFormat        string                       `json:"pluginsFormat,omitempty"`
-	VolumesFormat        string                       `json:"volumesFormat,omitempty"`
-	StatsFormat          string                       `json:"statsFormat,omitempty"`
-	DetachKeys           string                       `json:"detachKeys,omitempty"`
-	CredentialsStore     string                       `json:"credsStore,omitempty"`
-	CredentialHelpers    map[string]string            `json:"credHelpers,omitempty"`
-	Filename             string                       `json:"-"` // Note: for internal use only
-	ServiceInspectFormat string                       `json:"serviceInspectFormat,omitempty"`
-	ServicesFormat       string                       `json:"servicesFormat,omitempty"`
-	TasksFormat          string                       `json:"tasksFormat,omitempty"`
-	SecretFormat         string                       `json:"secretFormat,omitempty"`
-	ConfigFormat         string                       `json:"configFormat,omitempty"`
-	NodesFormat          string                       `json:"nodesFormat,omitempty"`
-	PruneFilters         []string                     `json:"pruneFilters,omitempty"`
-	Proxies              map[string]ProxyConfig       `json:"proxies,omitempty"`
-	CurrentContext       string                       `json:"currentContext,omitempty"`
-	CLIPluginsExtraDirs  []string                     `json:"cliPluginsExtraDirs,omitempty"`
-	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
-	Aliases              map[string]string            `json:"aliases,omitempty"`
-	Features             map[string]string            `json:"features,omitempty"`
+	AuthConfigs          map[string]registry.AuthConfig `json:"auths"`
+	HTTPHeaders          map[string]string              `json:"HttpHeaders,omitempty"`
+	PsFormat             string                         `json:"psFormat,omitempty"`
+	ImagesFormat         string                         `json:"imagesFormat,omitempty"`
+	NetworksFormat       string                         `json:"networksFormat,omitempty"`
+	PluginsFormat        string                         `json:"pluginsFormat,omitempty"`
+	VolumesFormat        string                         `json:"volumesFormat,omitempty"`
+	StatsFormat          string                         `json:"statsFormat,omitempty"`
+	DetachKeys           string                         `json:"detachKeys,omitempty"`
+	CredentialsStore     string                         `json:"credsStore,omitempty"`
+	CredentialHelpers    map[string]string              `json:"credHelpers,omitempty"`
+	Filename             string                         `json:"-"` // Note: for internal use only
+	ServiceInspectFormat string                         `json:"serviceInspectFormat,omitempty"`
+	ServicesFormat       string                         `json:"servicesFormat,omitempty"`
+	TasksFormat          string                         `json:"tasksFormat,omitempty"`
+	SecretFormat         string                         `json:"secretFormat,omitempty"`
+	ConfigFormat         string                         `json:"configFormat,omitempty"`
+	NodesFormat          string                         `json:"nodesFormat,omitempty"`
+	PruneFilters         []string                       `json:"pruneFilters,omitempty"`
+	Proxies              map[string]ProxyConfig         `json:"proxies,omitempty"`
+	CurrentContext       string                         `json:"currentContext,omitempty"`
+	CLIPluginsExtraDirs  []string                       `json:"cliPluginsExtraDirs,omitempty"`
+	Plugins              map[string]map[string]string   `json:"plugins,omitempty"`
+	Aliases              map[string]string              `json:"aliases,omitempty"`
+	Features             map[string]string              `json:"features,omitempty"`
 }
 
 type configEnvAuth struct {
@@ -82,7 +82,7 @@ type ProxyConfig struct {
 // New initializes an empty configuration file for the given filename 'fn'
 func New(fn string) *ConfigFile {
 	return &ConfigFile{
-		AuthConfigs: make(map[string]types.AuthConfig),
+		AuthConfigs: make(map[string]registry.AuthConfig),
 		HTTPHeaders: make(map[string]string),
 		Filename:    fn,
 		Plugins:     make(map[string]map[string]string),
@@ -120,9 +120,9 @@ func (configFile *ConfigFile) ContainsAuth() bool {
 }
 
 // GetAuthConfigs returns the mapping of repo to auth configuration
-func (configFile *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
+func (configFile *ConfigFile) GetAuthConfigs() map[string]registry.AuthConfig {
 	if configFile.AuthConfigs == nil {
-		configFile.AuthConfigs = make(map[string]types.AuthConfig)
+		configFile.AuthConfigs = make(map[string]registry.AuthConfig)
 	}
 	return configFile.AuthConfigs
 }
@@ -131,7 +131,7 @@ func (configFile *ConfigFile) GetAuthConfigs() map[string]types.AuthConfig {
 // the given writer
 func (configFile *ConfigFile) SaveToWriter(writer io.Writer) error {
 	// Encode sensitive data into a new/temp struct
-	tmpAuthConfigs := make(map[string]types.AuthConfig, len(configFile.AuthConfigs))
+	tmpAuthConfigs := make(map[string]registry.AuthConfig, len(configFile.AuthConfigs))
 	for k, authConfig := range configFile.AuthConfigs {
 		authCopy := authConfig
 		// encode and save the authstring, while blanking out the original fields
@@ -249,7 +249,7 @@ func (configFile *ConfigFile) ParseProxyConfig(host string, runOpts map[string]*
 }
 
 // encodeAuth creates a base64 encoded string to containing authorization information
-func encodeAuth(authConfig *types.AuthConfig) string {
+func encodeAuth(authConfig *registry.AuthConfig) string {
 	if authConfig.Username == "" && authConfig.Password == "" {
 		return ""
 	}
@@ -318,7 +318,7 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 	return envStore
 }
 
-func parseEnvConfig(v string) (map[string]types.AuthConfig, error) {
+func parseEnvConfig(v string) (map[string]registry.AuthConfig, error) {
 	envConfig := &configEnv{}
 	decoder := json.NewDecoder(strings.NewReader(v))
 	decoder.DisallowUnknownFields()
@@ -329,7 +329,7 @@ func parseEnvConfig(v string) (map[string]types.AuthConfig, error) {
 		return nil, errors.New("DOCKER_AUTH_CONFIG does not support more than one JSON object")
 	}
 
-	authConfigs := make(map[string]types.AuthConfig)
+	authConfigs := make(map[string]registry.AuthConfig)
 	for addr, envAuth := range envConfig.AuthConfigs {
 		if envAuth.Auth == "" {
 			return nil, fmt.Errorf("DOCKER_AUTH_CONFIG environment variable is missing key `auth` for %s", addr)
@@ -338,7 +338,7 @@ func parseEnvConfig(v string) (map[string]types.AuthConfig, error) {
 		if err != nil {
 			return nil, err
 		}
-		authConfigs[addr] = types.AuthConfig{
+		authConfigs[addr] = registry.AuthConfig{
 			Username:      username,
 			Password:      password,
 			ServerAddress: addr,
@@ -353,7 +353,7 @@ var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentia
 }
 
 // GetAuthConfig for a repository from the credential store
-func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
+func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (registry.AuthConfig, error) {
 	return configFile.GetCredentialsStore(registryHostname).Get(registryHostname)
 }
 
@@ -371,9 +371,9 @@ func getConfiguredCredentialStore(c *ConfigFile, registryHostname string) string
 
 // GetAllCredentials returns all of the credentials stored in all of the
 // configured credential stores.
-func (configFile *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, error) {
-	auths := make(map[string]types.AuthConfig)
-	addAll := func(from map[string]types.AuthConfig) {
+func (configFile *ConfigFile) GetAllCredentials() (map[string]registry.AuthConfig, error) {
+	auths := make(map[string]registry.AuthConfig)
+	addAll := func(from map[string]registry.AuthConfig) {
 		for reg, ac := range from {
 			auths[reg] = ac
 		}
