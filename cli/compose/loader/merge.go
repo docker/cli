@@ -56,15 +56,15 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 	overrideServices := mapByName(override)
 	specials := &specials{
 		m: map[reflect.Type]func(dst, src reflect.Value) error{
-			reflect.TypeOf(&types.LoggingConfig{}):           safelyMerge(mergeLoggingConfig),
-			reflect.TypeOf([]types.ServicePortConfig{}):      mergeSlice(toServicePortConfigsMap, toServicePortConfigsSlice),
-			reflect.TypeOf([]types.ServiceSecretConfig{}):    mergeSlice(toServiceSecretConfigsMap, toServiceSecretConfigsSlice),
-			reflect.TypeOf([]types.ServiceConfigObjConfig{}): mergeSlice(toServiceConfigObjConfigsMap, toSServiceConfigObjConfigsSlice),
-			reflect.TypeOf(&types.UlimitsConfig{}):           mergeUlimitsConfig,
-			reflect.TypeOf([]types.ServiceVolumeConfig{}):    mergeSlice(toServiceVolumeConfigsMap, toServiceVolumeConfigsSlice),
-			reflect.TypeOf(types.ShellCommand{}):             mergeShellCommand,
-			reflect.TypeOf(&types.ServiceNetworkConfig{}):    mergeServiceNetworkConfig,
-			reflect.PointerTo(reflect.TypeOf(uint64(1))):     mergeUint64,
+			reflect.PointerTo(reflect.TypeFor[types.LoggingConfig]()):        safelyMerge(mergeLoggingConfig),
+			reflect.TypeFor[[]types.ServicePortConfig]():                     mergeSlice(toServicePortConfigsMap, toServicePortConfigsSlice),
+			reflect.TypeFor[[]types.ServiceSecretConfig]():                   mergeSlice(toServiceSecretConfigsMap, toServiceSecretConfigsSlice),
+			reflect.TypeFor[[]types.ServiceConfigObjConfig]():                mergeSlice(toServiceConfigObjConfigsMap, toSServiceConfigObjConfigsSlice),
+			reflect.PointerTo(reflect.TypeFor[types.UlimitsConfig]()):        mergeUlimitsConfig,
+			reflect.TypeFor[[]types.ServiceVolumeConfig]():                   mergeSlice(toServiceVolumeConfigsMap, toServiceVolumeConfigsSlice),
+			reflect.TypeFor[types.ShellCommand]():                            mergeShellCommand,
+			reflect.PointerTo(reflect.TypeFor[types.ServiceNetworkConfig]()): mergeServiceNetworkConfig,
+			reflect.PointerTo(reflect.TypeFor[uint64]()):                     mergeUint64,
 		},
 	}
 	for name, overrideService := range overrideServices {
@@ -77,7 +77,7 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 		}
 		baseServices[name] = overrideService
 	}
-	services := []types.ServiceConfig{}
+	services := make([]types.ServiceConfig, 0, len(baseServices))
 	for _, baseService := range baseServices {
 		services = append(services, baseService)
 	}
