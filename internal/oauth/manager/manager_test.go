@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/oauth/api"
+	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 )
 
@@ -69,7 +69,7 @@ func TestLoginDevice(t *testing.T) {
 			waitForDeviceToken: waitForDeviceToken,
 			getAutoPAT:         getAutoPat,
 		}
-		store := newStore(map[string]types.AuthConfig{})
+		store := newStore(map[string]registry.AuthConfig{})
 		manager := OAuthManager{
 			store:    credentials.NewFileStore(store),
 			audience: "https://hub.docker.com",
@@ -84,7 +84,7 @@ func TestLoginDevice(t *testing.T) {
 
 		assert.Equal(t, receivedAudience, "https://hub.docker.com")
 		assert.Equal(t, receivedState, expectedState)
-		assert.DeepEqual(t, authConfig, &types.AuthConfig{
+		assert.DeepEqual(t, authConfig, &registry.AuthConfig{
 			Username:      "bork!",
 			Password:      "a-pat",
 			ServerAddress: "https://index.docker.io/v1/",
@@ -114,7 +114,7 @@ func TestLoginDevice(t *testing.T) {
 			waitForDeviceToken: waitForDeviceToken,
 			getAutoPAT:         getAutoPAT,
 		}
-		store := newStore(map[string]types.AuthConfig{})
+		store := newStore(map[string]registry.AuthConfig{})
 		manager := OAuthManager{
 			clientID: "client-id",
 			store:    credentials.NewFileStore(store),
@@ -204,7 +204,7 @@ func TestLogout(t *testing.T) {
 				return nil
 			},
 		}
-		store := newStore(map[string]types.AuthConfig{
+		store := newStore(map[string]registry.AuthConfig{
 			"https://index.docker.io/v1/access-token": {
 				Password: validToken,
 			},
@@ -230,7 +230,7 @@ func TestLogout(t *testing.T) {
 				return errors.New("couldn't reach tenant")
 			},
 		}
-		store := newStore(map[string]types.AuthConfig{
+		store := newStore(map[string]registry.AuthConfig{
 			"https://index.docker.io/v1/access-token": {
 				Password: validToken,
 			},
@@ -257,7 +257,7 @@ func TestLogout(t *testing.T) {
 				return nil
 			},
 		}
-		store := newStore(map[string]types.AuthConfig{
+		store := newStore(map[string]registry.AuthConfig{
 			"https://index.docker.io/v1/access-token": {
 				Password: validToken,
 			},
@@ -284,7 +284,7 @@ func TestLogout(t *testing.T) {
 			return nil
 		}
 		a.revokeToken = revokeToken
-		store := newStore(map[string]types.AuthConfig{})
+		store := newStore(map[string]registry.AuthConfig{})
 		manager := OAuthManager{
 			store: credentials.NewFileStore(store),
 			api:   a,
@@ -343,14 +343,14 @@ func (t *testAPI) GetAutoPAT(_ context.Context, audience string, res api.TokenRe
 }
 
 type fakeStore struct {
-	configs map[string]types.AuthConfig
+	configs map[string]registry.AuthConfig
 }
 
 func (*fakeStore) Save() error {
 	return nil
 }
 
-func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
+func (f *fakeStore) GetAuthConfigs() map[string]registry.AuthConfig {
 	return f.configs
 }
 
@@ -358,6 +358,6 @@ func (*fakeStore) GetFilename() string {
 	return "/tmp/docker-fakestore"
 }
 
-func newStore(auths map[string]types.AuthConfig) *fakeStore {
+func newStore(auths map[string]registry.AuthConfig) *fakeStore {
 	return &fakeStore{configs: auths}
 }
