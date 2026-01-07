@@ -2,11 +2,7 @@ package network
 
 import (
 	"context"
-	"fmt"
-
 	"errors"
-
-
 	"net"
 	"net/netip"
 	"strings"
@@ -25,7 +21,7 @@ type connectOptions struct {
 	container    string
 	ipaddress    net.IP // TODO(thaJeztah): we need a flag-type to handle netip.Addr directly
 	ipv6address  net.IP // TODO(thaJeztah): we need a flag-type to handle netip.Addr directly
-	macAddress   net.HardwareAddr
+	macAddress   string // TODO(thaJeztah): we need a flag-type to handle net.HardwareAddr directly
 	links        opts.ListOpts
 	aliases      []string
 	linklocalips []net.IP // TODO(thaJeztah): we need a flag-type to handle []netip.Addr directly
@@ -37,7 +33,6 @@ func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 	options := connectOptions{
 		links: opts.NewListOpts(opts.ValidateLink),
 	}
-	var macStr string
 
 	cmd := &cobra.Command{
 		Use:   "connect [OPTIONS] NETWORK CONTAINER",
@@ -46,15 +41,6 @@ func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.network = args[0]
 			options.container = args[1]
-			// Validate MAC address if provided
-
-			if macStr != "" {
-				mac, err := net.ParseMAC(macStr)
-				if err != nil {
-					return fmt.Errorf("invalid MAC address: %q", macStr)
-				}
-				options.macAddress = mac
-			}
 			return runConnect(cmd.Context(), dockerCLI.Client(), options)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -75,19 +61,22 @@ func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.IPSliceVar(&options.linklocalips, "link-local-ip", nil, "Add a link-local address for the container")
 	flags.StringSliceVar(&options.driverOpts, "driver-opt", []string{}, "driver options for the network")
 	flags.IntVar(&options.gwPriority, "gw-priority", 0, "Highest gw-priority provides the default gateway. Accepts positive and negative values.")
-	flags.StringVar(&macStr, "mac-address", "", "MAC address for the container on this network")
+	flags.StringVar(&options.macAddress, "mac-address", "", "MAC address for the container on this network (e.g., 92:d0:c6:0a:29:33)")
 	return cmd
 }
 
 func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options connectOptions) error {
 	driverOpts, err := convertDriverOpt(options.driverOpts)
-
 	if err != nil {
 		return err
 	}
 
-
-
+	var macAddr network.HardwareAddr
+	if options.macAddress != "" {
+		if err := macAddr.UnmarshalText([]byte(options.macAddress)); err != nil {
+			return err
+		}
+	}
 
 	_, err = apiClient.NetworkConnect(ctx, options.network, client.NetworkConnectOptions{
 		Container: options.container,
@@ -96,13 +85,12 @@ func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options 
 				IPv4Address:  toNetipAddr(options.ipaddress),
 				IPv6Address:  toNetipAddr(options.ipv6address),
 				LinkLocalIPs: toNetipAddrSlice(options.linklocalips),
-
 			},
 			Links:      options.links.GetSlice(),
 			Aliases:    options.aliases,
 			DriverOpts: driverOpts,
 			GwPriority: options.gwPriority,
-			MacAddress : network.HardwareAddr(options.macAddress),
+			MacAddress: macAddr,
 		},
 	})
 	return err
