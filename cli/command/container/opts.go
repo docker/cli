@@ -864,8 +864,9 @@ func parseNetworkAttachmentOpt(ep opts.NetworkAttachmentOpts) (*network.Endpoint
 		if len(ep.Aliases) > 0 {
 			return nil, errors.New("network-scoped aliases are only supported for user-defined networks")
 		}
-		if len(ep.Links) > 0 {
-			return nil, errors.New("links are only supported for user-defined networks")
+		if len(ep.Links) > 0 &&
+			!container.NetworkMode(ep.Target).IsBridge() {
+			return nil, errors.New("links are only supported for user-defined networks and bridge network")
 		}
 	}
 
