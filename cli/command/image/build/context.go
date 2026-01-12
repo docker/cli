@@ -272,17 +272,6 @@ func GetContextFromLocalDir(localDir, dockerfileName string) (string, string, er
 	return localDir, relDockerfile, err
 }
 
-// ResolveAndValidateContextPath uses the given context directory for a `docker build`
-// and returns the absolute path to the context directory.
-//
-// Deprecated: this utility was used internally and will be removed in the next
-// release. Use [DetectContextType] to detect the context-type, and use
-// [GetContextFromLocalDir], [GetContextFromLocalDir], [GetContextFromGitURL],
-// or [GetContextFromURL] instead.
-func ResolveAndValidateContextPath(givenContextDir string) (string, error) {
-	return resolveAndValidateContextPath(givenContextDir)
-}
-
 // resolveAndValidateContextPath uses the given context directory for a `docker build`
 // and returns the absolute path to the context directory.
 func resolveAndValidateContextPath(givenContextDir string) (string, error) {
