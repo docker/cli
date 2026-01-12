@@ -201,14 +201,6 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 	}), defaultDockerfileName, nil
 }
 
-// IsArchive checks for the magic bytes of a tar or any supported compression
-// algorithm.
-//
-// Deprecated: this utility was used internally and will be removed in the next release.
-func IsArchive(header []byte) bool {
-	return isArchive(header)
-}
-
 // isArchive checks for the magic bytes of a tar or any supported compression
 // algorithm.
 func isArchive(header []byte) bool {
