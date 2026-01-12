@@ -25,11 +25,6 @@ import (
 	"github.com/moby/patternmatcher"
 )
 
-// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
-//
-// Deprecated: this const is no longer used and will be removed in the next release.
-const DefaultDockerfileName string = "Dockerfile"
-
 const (
 	// defaultDockerfileName is the Default filename with Docker commands, read by docker build
 	defaultDockerfileName string = "Dockerfile"
