@@ -111,15 +111,6 @@ func detectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err er
 	return newReadCloserWrapper(buf, func() error { return input.Close() }), isArchive(magic), nil
 }
 
-// WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
-// name specified by defaultDockerfileName and returns the path to the
-// temporary directory containing the Dockerfile.
-//
-// Deprecated: this utility was only used internally, and will be removed in the next release.
-func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
-	return writeTempDockerfile(rc)
-}
-
 // writeTempDockerfile writes a Dockerfile stream to a temporary file with a
 // name specified by defaultDockerfileName and returns the path to the
 // temporary directory containing the Dockerfile.
