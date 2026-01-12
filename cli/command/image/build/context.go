@@ -95,17 +95,6 @@ func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool,
 	return matcher.MatchesOrParentMatches(file)
 }
 
-// DetectArchiveReader detects whether the input stream is an archive or a
-// Dockerfile and returns a buffered version of input, safe to consume in lieu
-// of input. If an archive is detected, ok is set to true, and to false
-// otherwise, in which case it is safe to assume input represents the contents
-// of a Dockerfile.
-//
-// Deprecated: this utility was only used internally, and will be removed in the next release.
-func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
-	return detectArchiveReader(input)
-}
-
 // detectArchiveReader detects whether the input stream is an archive or a
 // Dockerfile and returns a buffered version of input, safe to consume in lieu
 // of input. If an archive is detected, ok is set to true, and to false
