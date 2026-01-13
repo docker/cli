@@ -358,6 +358,7 @@ func TestSetGoDebug(t *testing.T) {
 		assert.Equal(t, "val1,val2", os.Getenv("GODEBUG"))
 	})
 	t.Run("GODEBUG in context metadata can set env", func(t *testing.T) {
+		t.Setenv("GODEBUG", "")
 		meta := store.Metadata{
 			Metadata: DockerContext{
 				AdditionalFields: map[string]any{
