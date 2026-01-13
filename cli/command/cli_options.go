@@ -221,7 +221,7 @@ func WithUserAgent(userAgent string) CLIOption {
 		if userAgent == "" {
 			return errors.New("user agent cannot be blank")
 		}
-		cli.userAgent = userAgent
+		cli.clientOpts = append(cli.clientOpts, client.WithUserAgent(userAgent))
 		return nil
 	}
 }
