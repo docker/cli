@@ -197,7 +197,7 @@ func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, de
 	// will hit this if you attempt docker login from mintty where stdin
 	// is a pipe, not a character based console.
 	if (opts.user == "" || opts.password == "") && !dockerCLI.In().IsTerminal() {
-		return "", errors.New("error: cannot perform an interactive login from a non TTY device")
+		return "", errors.New("error: cannot perform an interactive login from a non-TTY device")
 	}
 
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
