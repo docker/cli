@@ -60,6 +60,7 @@ type Cli interface {
 type DockerCli struct {
 	configFile         *configfile.ConfigFile
 	options            *cliflags.ClientOptions
+	clientOpts         []client.Opt
 	in                 *streams.In
 	out                *streams.Out
 	err                *streams.Out
@@ -72,7 +73,6 @@ type DockerCli struct {
 	dockerEndpoint     docker.Endpoint
 	contextStoreConfig *store.Config
 	initTimeout        time.Duration
-	userAgent          string
 	res                telemetryResource
 
 	// baseCtx is the base context used for internal operations. In the future
@@ -533,8 +533,7 @@ func (cli *DockerCli) initialize() error {
 			return
 		}
 		if cli.client == nil {
-			ops := []client.Opt{client.WithUserAgent(cli.userAgent)}
-			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile, ops...); cli.initErr != nil {
+			if cli.client, cli.initErr = newAPIClientFromEndpoint(cli.dockerEndpoint, cli.configFile, cli.clientOpts...); cli.initErr != nil {
 				return
 			}
 		}
