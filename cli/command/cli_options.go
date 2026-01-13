@@ -104,6 +104,16 @@ func WithInitializeClient(makeClient func(*DockerCli) (client.APIClient, error))
 	}
 }
 
+// WithAPIClientOptions configures additional [client.Opt] to use when
+// initializing the API client. These options have no effect if a custom
+// client is set (through [WithAPIClient] or [WithInitializeClient]).
+func WithAPIClientOptions(c ...client.Opt) CLIOption {
+	return func(cli *DockerCli) error {
+		cli.clientOpts = append(cli.clientOpts, c...)
+		return nil
+	}
+}
+
 // envOverrideHTTPHeaders is the name of the environment-variable that can be
 // used to set custom HTTP headers to be sent by the client. This environment
 // variable is the equivalent to the HttpHeaders field in the configuration
