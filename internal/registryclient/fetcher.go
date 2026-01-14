@@ -216,7 +216,7 @@ func continueOnError(err error) bool {
 }
 
 func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named, each func(context.Context, distribution.Repository, reference.Named) (bool, error)) error {
-	endpoints, err := allEndpoints(namedRef, c.insecureRegistry)
+	endpoints, err := allEndpoints(ctx, namedRef, c.insecureRegistry)
 	if err != nil {
 		return err
 	}
@@ -275,7 +275,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 }
 
 // allEndpoints returns a list of endpoints ordered by priority (v2, http).
-func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoint, error) {
+func allEndpoints(ctx context.Context, namedRef reference.Named, insecure bool) ([]registry.APIEndpoint, error) {
 	var serviceOpts registry.ServiceOptions
 	if insecure {
 		logrus.Debugf("allowing insecure registry for: %s", reference.Domain(namedRef))
@@ -285,7 +285,7 @@ func allEndpoints(namedRef reference.Named, insecure bool) ([]registry.APIEndpoi
 	if err != nil {
 		return nil, err
 	}
-	endpoints, err := registryService.Endpoints(context.TODO(), reference.Domain(namedRef))
+	endpoints, err := registryService.Endpoints(ctx, reference.Domain(namedRef))
 	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
 	return endpoints, err
 }
