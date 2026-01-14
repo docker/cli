@@ -271,7 +271,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 			return nil
 		}
 	}
-	return newNotFoundError(namedRef.String())
+	return notFoundError{errors.New("no such manifest: " + namedRef.String())}
 }
 
 // allEndpoints returns a list of endpoints ordered by priority (v2, http).
@@ -290,17 +290,6 @@ func allEndpoints(ctx context.Context, namedRef reference.Named, insecure bool) 
 	return endpoints, err
 }
 
-func newNotFoundError(ref string) *notFoundError {
-	return &notFoundError{err: errors.New("no such manifest: " + ref)}
-}
+type notFoundError struct{ error }
 
-type notFoundError struct {
-	err error
-}
-
-func (n *notFoundError) Error() string {
-	return n.err.Error()
-}
-
-// NotFound satisfies interface github.com/docker/docker/errdefs.ErrNotFound
 func (notFoundError) NotFound() {}
