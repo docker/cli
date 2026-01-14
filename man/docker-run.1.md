@@ -113,12 +113,11 @@ pull** IMAGE, before it starts the container from that image.
 **-a**, **--attach**=[]
    Attach to STDIN, STDOUT or STDERR.
 
-   In foreground mode (the default when **-d**
-is not specified), **docker run** can start the process in the container
-and attach the console to the process's standard input, output, and standard
-error. It can even pretend to be a TTY (this is what most commandline
-executables expect) and pass along signals. The **-a** option can be set for
-each of stdin, stdout, and stderr.
+   In foreground mode (the default when **-d** is not specified), **docker run**
+   can start the process in the container and attach the console to the process's
+   standard input, output, and standard error. It can even pretend to be a TTY
+   (this is what most commandline executables expect) and pass along signals.
+   The **-a** option can be set for each of stdin, stdout, and stderr.
 
 **--add-host**=[]
    Add a custom host-to-IP mapping (host=ip, or host:ip)
@@ -141,32 +140,32 @@ each of stdin, stdout, and stderr.
    CPU shares (relative weight)
 
    By default, all containers get the same proportion of CPU cycles. This proportion
-can be modified by changing the container's CPU share weighting relative
-to the weighting of all other running containers.
+   can be modified by changing the container's CPU share weighting relative
+   to the weighting of all other running containers.
 
-To modify the proportion from the default of 1024, use the **-c** or **--cpu-shares**
-flag to set the weighting to 2 or higher.
+   To modify the proportion from the default of 1024, use the **-c** or **--cpu-shares**
+   flag to set the weighting to 2 or higher.
 
-The proportion will only apply when CPU-intensive processes are running.
-When tasks in one container are idle, other containers can use the
-left-over CPU time. The actual amount of CPU time will vary depending on
-the number of containers running on the system.
+   The proportion will only apply when CPU-intensive processes are running.
+   When tasks in one container are idle, other containers can use the
+   left-over CPU time. The actual amount of CPU time will vary depending on
+   the number of containers running on the system.
 
-For example, consider three containers, one has a cpu-share of 1024 and
-two others have a cpu-share setting of 512. When processes in all three
-containers attempt to use 100% of CPU, the first container would receive
-50% of the total CPU time. If you add a fourth container with a cpu-share
-of 1024, the first container only gets 33% of the CPU. The remaining containers
-receive 16.5%, 16.5% and 33% of the CPU.
+   For example, consider three containers, one has a cpu-share of 1024 and
+   two others have a cpu-share setting of 512. When processes in all three
+   containers attempt to use 100% of CPU, the first container would receive
+   50% of the total CPU time. If you add a fourth container with a cpu-share
+   of 1024, the first container only gets 33% of the CPU. The remaining containers
+   receive 16.5%, 16.5% and 33% of the CPU.
 
-On a multi-core system, the shares of CPU time are distributed over all CPU
-cores. Even if a container is limited to less than 100% of CPU time, it can
-use 100% of each individual CPU core.
+   On a multi-core system, the shares of CPU time are distributed over all CPU
+   cores. Even if a container is limited to less than 100% of CPU time, it can
+   use 100% of each individual CPU core.
 
-For example, consider a system with more than three cores. If you start one
-container **{C0}** with **-c=512** running one process, and another container
-**{C1}** with **-c=1024** running two processes, this can result in the following
-division of CPU shares:
+   For example, consider a system with more than three cores. If you start one
+   container **{C0}** with **-c=512** running one process, and another container
+   **{C1}** with **-c=1024** running two processes, this can result in the following
+   division of CPU shares:
 
     PID    container	CPU	CPU share
     100    {C0}		0	100% of CPU0
@@ -186,33 +185,42 @@ division of CPU shares:
      **""**:      (unset) use the daemon's default configuration (**host** on cgroup v1, **private** on cgroup v2)
 
 **--cgroup-parent**=""
-   Path to cgroups under which the cgroup for the container will be created. If the path is not absolute, the path is considered to be relative to the cgroups path of the init process. Cgroups will be created if they do not already exist.
+   Path to cgroups under which the cgroup for the container will be created.
+   If the path is not absolute, the path is considered to be relative to the
+   cgroups path of the init process. Cgroups will be created if they do not
+   already exist.
 
 **--cidfile**=""
    Write the container ID to the file
 
 **--cpu-count**=*0*
-    Limit the number of CPUs available for execution by the container.
-    
-    On Windows Server containers, this is approximated as a percentage of total CPU usage.
+   Limit the number of CPUs available for execution by the container.
 
-    On Windows Server containers, the processor resource controls are mutually exclusive, the order of precedence is CPUCount first, then CPUShares, and CPUPercent last.
+   On Windows Server containers, this is approximated as a percentage of total
+   CPU usage. On Windows Server containers, the processor resource controls
+   are mutually exclusive, the order of precedence is CPUCount first, then
+   CPUShares, and CPUPercent last.
 
 **--cpu-percent**=*0*
-    Limit the percentage of CPU available for execution by a container running on a Windows daemon.
+   Limit the percentage of CPU available for execution by a container running
+   on a Windows daemon.
 
-    On Windows Server containers, the processor resource controls are mutually exclusive, the order of precedence is CPUCount first, then CPUShares, and CPUPercent last.
+   On Windows Server containers, the processor resource controls are mutually
+   exclusive, the order of precedence is CPUCount first, then CPUShares, and
+   CPUPercent last.
 
 **--cpu-period**=*0*
    Limit the CPU CFS (Completely Fair Scheduler) period
 
-   Limit the container's CPU usage. This flag tell the kernel to restrict the container's CPU usage to the period you specify.
+   Limit the container's CPU usage. This flag tell the kernel to restrict the
+   container's CPU usage to the period you specify.
 
 **--cpuset-cpus**=""
    CPUs in which to allow execution (0-3, 0,1)
 
 **--cpuset-mems**=""
-   Memory nodes (MEMs) in which to allow execution (0-3, 0,1). Only effective on NUMA systems.
+   Memory nodes (MEMs) in which to allow execution (0-3, 0,1). Only effective
+   on NUMA systems.
 
    If you have four memory nodes on your system (0-3), use `--cpuset-mems=0,1`
 then processes in your Docker container will only use memory from the first
@@ -222,55 +230,70 @@ two memory nodes.
    Limit the CPU CFS (Completely Fair Scheduler) quota
 
    Limit the container's CPU usage. By default, containers run with the full
-CPU resource. This flag tell the kernel to restrict the container's CPU usage
-to the quota you specify.
+   CPU resource. This flag tell the kernel to restrict the container's CPU
+   usage to the quota you specify.
 
 **--cpu-rt-period**=0
    Limit the CPU real-time period in microseconds
 
-   Limit the container's Real Time CPU usage. This flag tell the kernel to restrict the container's Real Time CPU usage to the period you specify.
+   Limit the container's Real Time CPU usage. This flag tell the kernel to
+   restrict the container's Real Time CPU usage to the period you specify.
 
 **--cpu-rt-runtime**=0
    Limit the CPU real-time runtime in microseconds
 
-   Limit the containers Real Time CPU usage. This flag tells the kernel to limit the amount of time in a given CPU period Real Time tasks may consume. Ex:
-   Period of 1,000,000us and Runtime of 950,000us means that this container could consume 95% of available CPU and leave the remaining 5% to normal priority tasks.
+   Limit the containers Real Time CPU usage. This flag tells the kernel to
+   limit the amount of time in a given CPU period Real Time tasks may consume.
+   For example, a period of 1,000,000us and Runtime of 950,000us means that
+   this container could consume 95% of available CPU and leave the remaining
+   5% to normal priority tasks.
 
-   The sum of all runtimes across containers cannot exceed the amount allotted to the parent cgroup.
+   The sum of all runtimes across containers cannot exceed the amount allotted
+   to the parent cgroup.
 
 **--cpus**=0.0
    Number of CPUs. The default is *0.0* which means no limit.
 
 **-d**, **--detach**=*true*|*false*
-   Detached mode: run the container in the background and print the new container ID. The default is *false*.
+   Detached mode: run the container in the background and print the new
+   container ID. The default is *false*.
 
-   At any time you can run **docker ps** in
-the other shell to view a list of the running containers. You can reattach to a
-detached container with **docker attach**.
+   At any time you can run **docker ps** in the other shell to view a list
+   of the running containers. You can reattach to a detached container with
+   **docker attach**.
 
-   When attached in the tty mode, you can detach from the container (and leave it
-running) using a configurable key sequence. The default sequence is `CTRL-p CTRL-q`.
-You configure the key sequence using the **--detach-keys** option or a configuration file.
-See **config-json(5)** for documentation on using a configuration file.
+   When attached in the tty mode, you can detach from the container (and leave
+   it running) using a configurable key sequence. The default sequence is
+   `CTRL-p CTRL-q`.
+   You configure the key sequence using the **--detach-keys** option or a
+   configuration file. See **config-json(5)** for documentation on using a
+   configuration file.
 
 **--detach-keys**=*key*
-   Override the key sequence for detaching a container; *key* is a single character from the [a-Z] range, or **ctrl**-*value*, where *value* is one of: **a-z**, **@**, **^**, **[**, **,**, or **_**.
+   Override the key sequence for detaching a container; *key* is a single
+   character from the [a-Z] range, or **ctrl**-*value*, where *value* is
+   one of: **a-z**, **@**, **^**, **[**, **,**, or **_**.
 
 **--device**=*onhost*:*incontainer*[:*mode*]
    Add a host device *onhost* to the container under the *incontainer* name.
-Optional *mode* parameter can be used to specify device permissions, it is
-a combination of **r** (for read), **w** (for write), and **m** (for **mknod**(2)).
+   Optional *mode* parameter can be used to specify device permissions, it is
+   a combination of **r** (for read), **w** (for write), and **m** (for
+   **mknod**(2)).
 
-For example, **--device=/dev/sdc:/dev/xvdc:rwm** will give a container all
-permissions for the host device **/dev/sdc**, seen as **/dev/xvdc** inside the container.
+   For example, **--device=/dev/sdc:/dev/xvdc:rwm** will give a container all
+   permissions for the host device **/dev/sdc**, seen as **/dev/xvdc** inside
+   the container.
 
 **--device-cgroup-rule**="*type* *major*:*minor* *mode*"
-   Add a rule to the cgroup allowed devices list. The rule is expected to be in the format specified in the Linux kernel documentation (Documentation/cgroup-v1/devices.txt):
+   Add a rule to the cgroup allowed devices list. The rule is expected to be
+   in the format specified in the Linux kernel documentation
+   (Documentation/cgroup-v1/devices.txt):
      - *type*: **a** (all), **c** (char), or **b** (block);
      - *major* and *minor*: either a number, or __*__ for all;
      - *mode*: a composition of **r** (read), **w** (write), and **m** (**mknod**(2)).
 
-   Example: **--device-cgroup-rule "c 1:3 mr"**: allow for a character device idendified by **1:3**  to be created and read.
+   Example: **--device-cgroup-rule "c 1:3 mr"**: allow for a character device
+   identified by **1:3**  to be created and read.
 
 **--device-read-bps**=[]
    Limit read rate from a device (e.g. --device-read-bps=/dev/sda:1mb)
@@ -285,7 +308,8 @@ permissions for the host device **/dev/sdc**, seen as **/dev/xvdc** inside the c
    Limit write rate to a device (e.g. --device-write-iops=/dev/sda:1000)
 
 **--dns-search**=[]
-   Set custom DNS search domains (Use --dns-search=. if you don't wish to set the search domain)
+   Set custom DNS search domains (Use --dns-search=. if you don't wish to set
+   the search domain)
 
 **--dns-option**=[]
    Set custom DNS options
@@ -293,10 +317,10 @@ permissions for the host device **/dev/sdc**, seen as **/dev/xvdc** inside the c
 **--dns**=[]
    Set custom DNS servers
 
-   This option can be used to override the DNS
-configuration passed to the container. Typically this is necessary when the
-host DNS configuration is invalid for the container (e.g., 127.0.0.1). When this
-is the case the **--dns** flags is necessary for every run.
+   This option can be used to override the DNS configuration passed to the
+   container. Typically this is necessary when the host DNS configuration
+   is invalid for the container (e.g., 127.0.0.1). When this is the case
+   the **--dns** flags is necessary for every run.
 
 **--domainname**=""
    Container NIS domain name
@@ -315,24 +339,24 @@ inside of the container.
    Overwrite the default ENTRYPOINT of the image
 
    This option allows you to overwrite the default entrypoint of the image that
-is set in the Dockerfile. The ENTRYPOINT of an image is similar to a COMMAND
-because it specifies what executable to run when the container starts, but it is
-(purposely) more difficult to override. The ENTRYPOINT gives a container its
-default nature or behavior, so that when you set an ENTRYPOINT you can run the
-container as if it were that binary, complete with default options, and you can
-pass in more options via the COMMAND. But, sometimes an operator may want to run
-something else inside the container, so you can override the default ENTRYPOINT
-at runtime by using a **--entrypoint** and a string to specify the new
-ENTRYPOINT.
+   is set in the Dockerfile. The ENTRYPOINT of an image is similar to a COMMAND
+   because it specifies what executable to run when the container starts, but it is
+   (purposely) more difficult to override. The ENTRYPOINT gives a container its
+   default nature or behavior, so that when you set an ENTRYPOINT you can run the
+   container as if it were that binary, complete with default options, and you can
+   pass in more options via the COMMAND. But, sometimes an operator may want to run
+   something else inside the container, so you can override the default ENTRYPOINT
+   at runtime by using a **--entrypoint** and a string to specify the new
+   ENTRYPOINT.
 
 **--env-file**=[]
    Read in a line delimited file of environment variables
 
 **--expose**=[]
-   Expose a port, or a range of ports (e.g. --expose=3300-3310) informs Docker
-that the container listens on the specified network ports at runtime. Docker
-uses this information to interconnect containers using links and to set up port
-redirection on the host system.
+   Expose a port, or a range of ports (e.g. --expose=3300-3310) informs the
+   docker daemon that the container listens on the specified network ports at
+   runtime. The docker daemon uses this information to interconnect containers
+   using links and to set up port redirection on the host system.
 
 **--group-add**=[]
    Add additional groups to run as
@@ -390,10 +414,10 @@ is `hyperv`. Linux only supports `default`.
    Kernel memory limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
    Constrains the kernel memory available to a container. If a limit of 0
-is specified (not using **--kernel-memory**), the container's kernel memory
-is not limited. If you specify a limit, it may be rounded up to a multiple
-of the operating system's page size and the value can be very large,
-millions of trillions.
+   is specified (not using **--kernel-memory**), the container's kernel memory
+   is not limited. If you specify a limit, it may be rounded up to a multiple
+   of the operating system's page size and the value can be very large,
+   millions of trillions.
 
 **--label-file**=[]
    Read in a line delimited file of labels
@@ -422,24 +446,27 @@ which interface and port to use.
    Memory limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
    Allows you to constrain the memory available to a container. If the host
-supports swap memory, then the **-m** memory setting can be larger than physical
-RAM. If a limit of 0 is specified (not using **-m**), the container's memory is
-not limited. The actual limit may be rounded up to a multiple of the operating
-system's page size (the value would be very large, that's millions of trillions).
+   supports swap memory, then the **-m** memory setting can be larger than physical
+   RAM. If a limit of 0 is specified (not using **-m**), the container's memory is
+   not limited. The actual limit may be rounded up to a multiple of the operating
+   system's page size (the value would be very large, that's millions of trillions).
 
 **--memory-reservation**=*number*[*S]
    Memory soft limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
 
    After setting memory reservation, when the system detects memory contention
-or low memory, containers are forced to restrict their consumption to their
-reservation. So you should always set the value below **--memory**, otherwise the
-hard limit will take precedence. By default, memory reservation will be the same
-as memory limit.
+   or low memory, containers are forced to restrict their consumption to their
+   reservation. So you should always set the value below **--memory**, otherwise the
+   hard limit will take precedence. By default, memory reservation will be the same
+   as memory limit.
 
 **--memory-swap**=*number*[*S*]
-   Combined memory plus swap limit; *S* is an optional suffix which can be one of **b**, **k**, **m**, or **g**.
+   Combined memory plus swap limit; *S* is an optional suffix which can be
+   one of **b**, **k**, **m**, or **g**.
 
-   This option can only be used together with **--memory**. The argument should always be larger than that of **--memory**. Default is double the value of **--memory**. Set to **-1** to enable unlimited swap.
+   This option can only be used together with **--memory**. The argument
+   should always be larger than that of **--memory**. Default is double the
+   value of **--memory**. Set to **-1** to enable unlimited swap.
 
 **--mac-address**=""
    Container MAC address (e.g., **92:d0:c6:0a:29:33**)
@@ -453,11 +480,11 @@ according to RFC4862.
 
    Current supported mount `TYPES` are `bind`, `volume`, and `tmpfs`.
 
-   e.g.
+   For example;
 
    `type=bind,source=/path/on/host,destination=/path/in/container`
 
-   `type=volume,source=my-volume,destination=/path/in/container,volume-label="color=red",volume-label="shape=round"`
+   `type=volume,source=my-volume,destination=/path/in/container,volume-label="color=red"`
 
    `type=tmpfs,tmpfs-size=512M,destination=/path/in/container`
 
@@ -484,7 +511,9 @@ according to RFC4862.
 
    * `volume-driver`: Name of the volume-driver plugin.
    * `volume-label`: Custom metadata.
-   * `volume-nocopy`: `true`(default) or `false`. If set to `false`, the Engine copies existing files and directories under the mount-path into the volume, allowing the host to access them.
+   * `volume-nocopy`: `true`(default) or `false`. If set to `false`, the Engine
+     copies existing files and directories under the mount-path into the volume,
+     allowing the host to access them.
    * `volume-opt`: specific to a given volume driver.
 
    Options specific to `tmpfs`:
@@ -497,17 +526,15 @@ according to RFC4862.
 
    The operator can identify a container in three ways:
 
-| Identifier type       | Example value                                                      |
-|:----------------------|:-------------------------------------------------------------------|
-| UUID long identifier  | "f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778" |
-| UUID short identifier | "f78375b1c487"                                                     |
-| Name                  | "evil_ptolemy"                                                     |
+   - **long ID**: `f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778`
+   - **short ID**: `f78375b1c487`
+   - **Name**: `evil_ptolemy`
 
-   The UUID identifiers come from the Docker daemon, and if a name is not assigned
-to the container with **--name** then the daemon will also generate a random
-string name. The name is useful when defining links (see **--link**) (or any
-other place you need to identify a container). This works for both background
-and foreground Docker containers.
+   The ID identifiers come from the Docker daemon, and if a name is not assigned
+   to the container with **--name** then the daemon will also generate a random
+   string name. The name is useful when defining links (see **--link**) (or any
+   other place you need to identify a container). This works for both background
+   and foreground Docker containers.
 
 **--network**=*type*
    Set the Network mode for the container. Supported values are:
@@ -555,8 +582,9 @@ Use `docker port`(1) to see the actual mapping, e.g. `docker port CONTAINER $CON
 **--pid**=""
    Set the PID mode for the container
    Default is to create a private PID namespace for the container
-                               'container:<name|id>': join another container's PID namespace
-                               'host': use the host's PID namespace for the container. Note: the host mode gives the container full access to local PID and is therefore considered insecure.
+   'container:<name|id>': join another container's PID namespace
+   'host': use the host's PID namespace for the container. Note: the host mode
+   gives the container full access to local PID and is therefore considered insecure.
 
 **--userns**=""
    Set the usernamespace mode for the container when `userns-remap` option is enabled.
@@ -566,9 +594,11 @@ Use `docker port`(1) to see the actual mapping, e.g. `docker port CONTAINER $CON
    Tune the container's pids (process IDs) limit. Set to `-1` to have unlimited pids for the container.
 
 **--uts**=*type*
-   Set the UTS mode for the container. The only possible *type* is **host**, meaning to
-use the host's UTS namespace inside the container.
-     Note: the host mode gives the container access to changing the host's hostname and is therefore considered insecure.
+   Set the UTS mode for the container. The only possible *type* is **host**,
+   meaning to use the host's UTS namespace inside the container.
+
+   Note: the host mode gives the container access to changing the host's hostname
+   and is therefore considered insecure.
 
 **--privileged** [**true**|**false**]
    Give extended privileges to this container. A "privileged" container is given access to all devices.
@@ -588,46 +618,50 @@ its root filesystem mounted as read only prohibiting any writes.
 **--restart** *policy*
    Restart policy to apply when a container exits. Supported values are:
 
-| Policy                         | Result                |
-|:-------------------------------|:----------------------|
-| **no**                         | Do not automatically restart the container when it exits. |
-| **on-failure**[:_max-retries_] | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts. |
-| **always**                     | Always restart the container regardless of the exit status. When you specify always, the Docker daemon will try to restart the container indefinitely. The container will also always start on daemon startup, regardless of the current state of the container. |
-| **unless-stopped**             | Always restart the container regardless of the exit status, but do not start it on daemon startup if the container has been put to a stopped state before. |
+| Policy                         | Result                                                                                                                                                                                                                                                       |
+|:-------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **no**                         | Do not automatically restart the container when it exits.                                                                                                                                                                                                    |
+| **on-failure**[:_max-retries_] | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts.                                                                                                                 |
+| **always**                     | Always restart the container regardless of the exit status. When you specify always, the Docker daemon tries to restart the container indefinitely. The container always start on daemon startup, regardless of the current state of the container.          |
+| **unless-stopped**             | Always restart the container regardless of the exit status, but do not start it on daemon startup if the container has been put to a stopped state before.                                                                                                   |
 
 Default is **no**.
 
 **--rm** **true**|**false**
    Automatically remove the container when it exits. The default is **false**.
-   `--rm` flag can work together with `-d`, and auto-removal will be done on daemon side. Note that it's
-incompatible with any restart policy other than `none`.
+   `--rm` flag can work together with `-d`, and auto-removal will be done on
+   daemon side. Note that it's incompatible with any restart policy other than
+  `none`.
 
 **--security-opt** *value*[,...]
    Security Options for the container. The following options can be given:
 
-    "label=user:USER"   : Set the label user for the container
-    "label=role:ROLE"   : Set the label role for the container
-    "label=type:TYPE"   : Set the label type for the container
-    "label=level:LEVEL" : Set the label level for the container
-    "label=disable"     : Turn off label confinement for the container
-    "no-new-privileges" : Disable container processes from gaining additional privileges
-
-    "seccomp=unconfined" : Turn off seccomp confinement for the container
-    "seccomp=profile.json :  White listed syscalls seccomp Json file to be used as a seccomp filter
-
-    "apparmor=unconfined" : Turn off apparmor confinement for the container
-    "apparmor=your-profile" : Set the apparmor confinement profile for the container
+| Option                   | Description                                                            |
+|:-------------------------|:-----------------------------------------------------------------------|
+| "label=user:USER"        | Set the label user for the container                                   |
+| "label=role:ROLE"        | Set the label role for the container                                   |
+| "label=type:TYPE"        | Set the label type for the container                                   |
+| "label=level:LEVEL"      | Set the label level for the container                                  |
+| "label=disable"          | Turn off label confinement for the container                           |
+| "no-new-privileges"      | Disable container processes from gaining additional privileges         |
+| "seccomp=unconfined"     | Turn off seccomp confinement for the container                         |
+| "seccomp=profile.json"   | White listed syscalls seccomp Json file to be used as a seccomp filter |
+| "apparmor=unconfined"    | Turn off apparmor confinement for the container                        |
+| "apparmor=your-profile"  | Set the apparmor confinement profile for the container                 |
 
 **--storage-opt**
    Storage driver options per container
 
    $ docker run -it --storage-opt size=120G fedora /bin/bash
 
-   This (size) will allow to set the container rootfs size to 120G at creation time.
-   This option is only available for the `btrfs`, `overlay2`  and `zfs` graph drivers.
-   For the `btrfs` and `zfs` storage drivers, user cannot pass a size less than the Default BaseFS Size.
-   For the `overlay2` storage driver, the size option is only available if the backing fs is `xfs` and mounted with the `pquota` mount option.
-   Under these conditions, user can pass any size less than the backing fs size.
+   This (size) will allow to set the container rootfs size to 120G at creation
+   time. This option is only available for the `btrfs`, `overlay2`  and `zfs`
+   graph drivers.
+   For the `btrfs` and `zfs` storage drivers, user cannot pass a size less than
+   the Default BaseFS Size. For the `overlay2` storage driver, the size option
+   is only available if the backing fs is `xfs` and mounted with the `pquota`
+   mount option. Under these conditions, user can pass any size less than the
+   backing fs size.
 
 **--stop-signal**=""
    Signal to stop the container.
@@ -656,16 +690,18 @@ incompatible with any restart policy other than `none`.
 
 **--shm-size**=""
    Size of `/dev/shm`. The format is `<number><unit>`.
-   `number` must be greater than `0`.  Unit is optional and can be `b` (bytes), `k` (kilobytes), `m`(megabytes), or `g` (gigabytes).
-   If you omit the unit, the system uses bytes. If you omit the size entirely, the system uses `64m`.
+   `number` must be greater than `0`.  Unit is optional and can be `b` (bytes),
+   `k` (kilobytes), `m`(megabytes), or `g` (gigabytes). If you omit the unit,
+   the system uses bytes. If you omit the size entirely, the system uses `64m`.
 
 **--sysctl**=SYSCTL
   Configure namespaced kernel parameters at runtime
 
   IPC Namespace - current sysctls allowed:
 
-  kernel.msgmax, kernel.msgmnb, kernel.msgmni, kernel.sem, kernel.shmall, kernel.shmmax, kernel.shmmni, kernel.shm_rmid_forced
-  Sysctls beginning with fs.mqueue.*
+  kernel.msgmax, kernel.msgmnb, kernel.msgmni, kernel.sem, kernel.shmall,
+  kernel.shmmax, kernel.shmmni, kernel.shm_rmid_forced, and sysctls beginning
+  with fs.mqueue.*
 
   If you use the `--ipc=host` option these sysctls will not be allowed.
 
@@ -675,7 +711,8 @@ incompatible with any restart policy other than `none`.
   If you use the `--network=host` option these sysctls will not be allowed.
 
 **--sig-proxy**=*true*|*false*
-   Proxy received signals to the process (non-TTY mode only). SIGCHLD, SIGSTOP, and SIGKILL are not proxied. The default is *true*.
+   Proxy received signals to the process (non-TTY mode only). SIGCHLD, SIGSTOP,
+   and SIGKILL are not proxied. The default is *true*.
 
 **--memory-swappiness**=""
    Tune a container's memory swappiness behavior. Accepts an integer between 0 and 100.
@@ -928,7 +965,8 @@ Host shows a shared memory segment with 7 pids attached, happens to be from http
  0x01128e25 0          root       600        1000       7                       
 ```
 
-Now run a regular container, and it correctly does NOT see the shared memory segment from the host:
+Now run a regular container, and it correctly does NOT see the shared memory
+segment from the host:
 
 ```
  $ docker run -it shm ipcs -m
@@ -937,7 +975,8 @@ Now run a regular container, and it correctly does NOT see the shared memory seg
  key        shmid      owner      perms      bytes      nattch     status      
 ```
 
-Run a container with the new `--ipc=host` option, and it now sees the shared memory segment from the host httpd:
+Run a container with the new `--ipc=host` option, and it now sees the shared
+memory segment from the host httpd:
 
  ```
  $ docker run -it --ipc=host shm ipcs -m
@@ -958,7 +997,8 @@ Start a container with a program to create a shared memory segment:
  key        shmid      owner      perms      bytes      nattch     status      
  0x0000162e 0          root       666        27         1                       
 ```
-Create a 2nd container correctly shows no shared memory segment from 1st container:
+Create a second container correctly shows no shared memory segment from first
+container:
 ```
  $ docker run shm ipcs -m
 
@@ -966,7 +1006,8 @@ Create a 2nd container correctly shows no shared memory segment from 1st contain
  key        shmid      owner      perms      bytes      nattch     status      
 ```
 
-Create a 3rd container using the new --ipc=container:CONTAINERID option, now it shows the shared memory segment from the first:
+Create a 3rd container using the new --ipc=container:CONTAINERID option,
+now it shows the shared memory segment from the first:
 
 ```
  $ docker run -it --ipc=container:ed735b2264ac shm ipcs -m
@@ -1129,18 +1170,22 @@ $ docker run -d --isolation default busybox top
 
 On Microsoft Windows, can take any of these values:
 
-* `default`: Use the value specified by the Docker daemon's `--exec-opt` . If the `daemon` does not specify an isolation technology, Microsoft Windows uses `process` as its default value.
+* `default`: Use the value specified by the Docker daemon's `--exec-opt` . If the
+  `daemon` does not specify an isolation technology, Microsoft Windows uses
+  `process` as its default value.
 * `process`: Namespace isolation only.
 * `hyperv`: Hyper-V hypervisor partition-based isolation.
 
-In practice, when running on Microsoft Windows without a `daemon` option set,  these two commands are equivalent:
+In practice, when running on Microsoft Windows without a `daemon` option set, 
+these two commands are equivalent:
 
 ```
 $ docker run -d --isolation default busybox top
 $ docker run -d --isolation process busybox top
 ```
 
-If you have set the `--exec-opt isolation=hyperv` option on the Docker `daemon`, any of these commands also result in `hyperv` isolation:
+If you have set the `--exec-opt isolation=hyperv` option on the Docker `daemon`,
+any of these commands also result in `hyperv` isolation:
 
 ```
 $ docker run -d --isolation default busybox top
