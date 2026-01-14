@@ -34,6 +34,11 @@ func TestRunValidateFlags(t *testing.T) {
 			args:        []string{"--attach", "stdin", "--detach", "myimage"},
 			expectedErr: "conflicting options: cannot specify both --attach and --detach",
 		},
+		{
+			name:        "with invalid --detach-keys",
+			args:        []string{"--detach-keys", "shift-a", "myimage"},
+			expectedErr: "invalid detach keys (shift-a):",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newRunCommand(test.NewFakeCli(&fakeClient{}))

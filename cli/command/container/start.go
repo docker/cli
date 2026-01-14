@@ -70,6 +70,14 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 	ctx, cancelFun := context.WithCancel(ctx)
 	defer cancelFun()
 
+	detachKeys := opts.DetachKeys
+	if detachKeys == "" {
+		detachKeys = dockerCli.ConfigFile().DetachKeys
+	}
+	if err := validateDetachKeys(detachKeys); err != nil {
+		return err
+	}
+
 	switch {
 	case opts.Attach || opts.OpenStdin:
 		// We're going to attach to a container.
@@ -91,11 +99,6 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			bgCtx := context.WithoutCancel(ctx)
 			go ForwardAllSignals(bgCtx, dockerCli.Client(), c.Container.ID, sigc)
 			defer signal.StopCatch(sigc)
-		}
-
-		detachKeys := dockerCli.ConfigFile().DetachKeys
-		if opts.DetachKeys != "" {
-			detachKeys = opts.DetachKeys
 		}
 
 		options := client.ContainerAttachOptions{

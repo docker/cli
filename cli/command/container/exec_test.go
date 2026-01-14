@@ -92,21 +92,21 @@ TWO=2
 		},
 		{
 			options:    withDefaultOpts(ExecOptions{Detach: true}),
-			configFile: configfile.ConfigFile{DetachKeys: "de"},
+			configFile: configfile.ConfigFile{DetachKeys: "ctrl-d,e"},
 			expected: client.ExecCreateOptions{
 				Cmd:        []string{"command"},
-				DetachKeys: "de",
+				DetachKeys: "ctrl-d,e",
 			},
 		},
 		{
 			options: withDefaultOpts(ExecOptions{
 				Detach:     true,
-				DetachKeys: "ab",
+				DetachKeys: "ctrl-a,b",
 			}),
-			configFile: configfile.ConfigFile{DetachKeys: "de"},
+			configFile: configfile.ConfigFile{DetachKeys: "ctrl-d,e"},
 			expected: client.ExecCreateOptions{
 				Cmd:        []string{"command"},
-				DetachKeys: "ab",
+				DetachKeys: "ctrl-a,b",
 			},
 		},
 		{
@@ -147,13 +147,23 @@ TWO=2
 	}
 }
 
-func TestParseExecNoSuchFile(t *testing.T) {
-	execOpts := withDefaultOpts(ExecOptions{})
-	assert.Check(t, execOpts.EnvFile.Set("no-such-env-file"))
-	execConfig, err := parseExec(execOpts, &configfile.ConfigFile{})
-	assert.ErrorContains(t, err, "no-such-env-file")
-	assert.Check(t, os.IsNotExist(err))
-	assert.Check(t, execConfig == nil)
+func TestParseExecErrors(t *testing.T) {
+	t.Run("missing env-file", func(t *testing.T) {
+		execOpts := withDefaultOpts(ExecOptions{})
+		assert.Check(t, execOpts.EnvFile.Set("no-such-env-file"))
+		execConfig, err := parseExec(execOpts, &configfile.ConfigFile{})
+		assert.ErrorContains(t, err, "no-such-env-file")
+		assert.Check(t, os.IsNotExist(err))
+		assert.Check(t, execConfig == nil)
+	})
+	t.Run("invalid detach keys", func(t *testing.T) {
+		execOpts := withDefaultOpts(ExecOptions{
+			DetachKeys: "shift-a",
+		})
+		execConfig, err := parseExec(execOpts, &configfile.ConfigFile{})
+		assert.Check(t, is.ErrorContains(err, "invalid detach keys (shift-a):"))
+		assert.Check(t, is.Nil(execConfig))
+	})
 }
 
 func TestRunExec(t *testing.T) {
