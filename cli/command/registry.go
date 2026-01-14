@@ -200,7 +200,7 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 		return "", err
 	}
 
-	encodedAuth, err := authconfig.Encode(registrytypes.AuthConfig{
+	return authconfig.Encode(registrytypes.AuthConfig{
 		Username:      authConfig.Username,
 		Password:      authConfig.Password,
 		ServerAddress: authConfig.ServerAddress,
@@ -210,10 +210,6 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 		IdentityToken: authConfig.IdentityToken,
 		RegistryToken: authConfig.RegistryToken,
 	})
-	if err != nil {
-		return "", err
-	}
-	return encodedAuth, nil
 }
 
 // getAuthConfigKey special-cases using the full index address of the official
