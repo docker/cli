@@ -70,6 +70,14 @@ func newAttachCommand(dockerCLI command.Cli) *cobra.Command {
 
 // RunAttach executes an `attach` command
 func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, opts *AttachOptions) error {
+	detachKeys := opts.DetachKeys
+	if detachKeys == "" {
+		detachKeys = dockerCLI.ConfigFile().DetachKeys
+	}
+	if err := validateDetachKeys(detachKeys); err != nil {
+		return err
+	}
+
 	apiClient := dockerCLI.Client()
 
 	// request channel to wait for client
@@ -83,11 +91,6 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 
 	if err := dockerCLI.In().CheckTty(!opts.NoStdin, c.Config.Tty); err != nil {
 		return err
-	}
-
-	detachKeys := dockerCLI.ConfigFile().DetachKeys
-	if opts.DetachKeys != "" {
-		detachKeys = opts.DetachKeys
 	}
 
 	options := client.ContainerAttachOptions{

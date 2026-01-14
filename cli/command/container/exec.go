@@ -248,5 +248,8 @@ func parseExec(execOpts ExecOptions, configFile *configfile.ConfigFile) (*client
 	} else {
 		execOptions.DetachKeys = configFile.DetachKeys
 	}
+	if err := validateDetachKeys(execOpts.DetachKeys); err != nil {
+		return nil, err
+	}
 	return execOptions, nil
 }

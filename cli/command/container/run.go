@@ -140,6 +140,14 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		config.StdinOnce = false
 	}
 
+	detachKeys := runOpts.detachKeys
+	if detachKeys == "" {
+		detachKeys = dockerCli.ConfigFile().DetachKeys
+	}
+	if err := validateDetachKeys(runOpts.detachKeys); err != nil {
+		return err
+	}
+
 	containerID, err := createContainer(ctx, dockerCli, containerCfg, &runOpts.createOptions)
 	if err != nil {
 		return toStatusError(err)
@@ -172,11 +180,6 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		}()
 	}
 	if attach {
-		detachKeys := dockerCli.ConfigFile().DetachKeys
-		if runOpts.detachKeys != "" {
-			detachKeys = runOpts.detachKeys
-		}
-
 		// ctx should not be cancellable here, as this would kill the stream to the container
 		// and we want to keep the stream open until the process in the container exits or until
 		// the user forcefully terminates the CLI.

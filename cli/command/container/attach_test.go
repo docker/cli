@@ -28,6 +28,14 @@ func TestNewAttachCommandErrors(t *testing.T) {
 			},
 		},
 		{
+			name:          "invalid-detach-keys",
+			args:          []string{"--detach-keys", "shift-b", "5cb5bb5e4a3b"},
+			expectedError: "invalid detach keys (shift-b):",
+			containerInspectFunc: func(containerID string) (client.ContainerInspectResult, error) {
+				return client.ContainerInspectResult{}, errors.New("something went wrong")
+			},
+		},
+		{
 			name:          "client-stopped",
 			args:          []string{"5cb5bb5e4a3b"},
 			expectedError: "cannot attach to a stopped container",

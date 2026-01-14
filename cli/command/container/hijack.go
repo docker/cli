@@ -30,6 +30,16 @@ func (r *readCloserWrapper) Close() error {
 	return r.closer()
 }
 
+func validateDetachKeys(keys string) error {
+	if keys == "" {
+		return nil
+	}
+	if _, err := term.ToBytes(keys); err != nil {
+		return invalidParameter(fmt.Errorf("invalid detach keys (%s): %w", keys, err))
+	}
+	return nil
+}
+
 // A hijackedIOStreamer handles copying input to and output from streams to the
 // connection.
 type hijackedIOStreamer struct {
@@ -82,13 +92,15 @@ func (h *hijackedIOStreamer) stream(ctx context.Context) error {
 	}
 }
 
-func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
+func (h *hijackedIOStreamer) setupInput() (restore func(), _ error) {
 	if h.inputStream == nil || !h.tty {
 		// No need to setup input TTY.
 		// The restore func is a nop.
 		return func() {}, nil
 	}
-
+	if err := validateDetachKeys(h.detachKeys); err != nil {
+		return nil, err
+	}
 	if err := setRawTerminal(h.streams); err != nil {
 		return nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
 	}
@@ -103,11 +115,11 @@ func (h *hijackedIOStreamer) setupInput() (restore func(), err error) {
 	// Use default escape keys if an invalid sequence is given.
 	escapeKeys := defaultEscapeKeys
 	if h.detachKeys != "" {
-		customEscapeKeys, err := term.ToBytes(h.detachKeys)
+		var err error
+		escapeKeys, err = term.ToBytes(h.detachKeys)
 		if err != nil {
-			logrus.Warnf("invalid detach escape keys, using default: %s", err)
-		} else {
-			escapeKeys = customEscapeKeys
+			restore()
+			return nil, err
 		}
 	}
 
