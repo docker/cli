@@ -18,11 +18,11 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -244,7 +244,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	const dockerConfigPathInContainer = "/run/secrets/docker/config.json"
-	var apiSocketCreds map[string]types.AuthConfig
+	var apiSocketCreds map[string]registry.AuthConfig
 
 	if options.useAPISocket {
 		// We'll create two new mounts to handle this flag:

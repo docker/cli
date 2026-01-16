@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
 	"github.com/docker/cli/internal/registry"
@@ -90,14 +89,14 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 func TestRunLogin(t *testing.T) {
 	testCases := []struct {
 		doc                 string
-		priorCredentials    map[string]configtypes.AuthConfig
+		priorCredentials    map[string]registrytypes.AuthConfig
 		input               loginOptions
-		expectedCredentials map[string]configtypes.AuthConfig
+		expectedCredentials map[string]registrytypes.AuthConfig
 		expectedErr         string
 	}{
 		{
 			doc: "valid auth from store",
-			priorCredentials: map[string]configtypes.AuthConfig{
+			priorCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					Password:      "a-password",
@@ -107,7 +106,7 @@ func TestRunLogin(t *testing.T) {
 			input: loginOptions{
 				serverAddress: "reg1",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					Password:      "a-password",
@@ -117,7 +116,7 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc: "expired auth from store",
-			priorCredentials: map[string]configtypes.AuthConfig{
+			priorCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					Password:      expiredPassword,
@@ -131,13 +130,13 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc:              "store valid username and password",
-			priorCredentials: map[string]configtypes.AuthConfig{},
+			priorCredentials: map[string]registrytypes.AuthConfig{},
 			input: loginOptions{
 				serverAddress: "reg1",
 				user:          "my-username",
 				password:      "p2",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					Password:      "p2",
@@ -147,7 +146,7 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc: "unknown user w/ prior credentials",
-			priorCredentials: map[string]configtypes.AuthConfig{
+			priorCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					Password:      "a-password",
@@ -160,7 +159,7 @@ func TestRunLogin(t *testing.T) {
 				password:      "a-password",
 			},
 			expectedErr: errUnknownUser,
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "a-password",
 					Password:      "a-password",
@@ -170,24 +169,24 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc:              "unknown user w/o prior credentials",
-			priorCredentials: map[string]configtypes.AuthConfig{},
+			priorCredentials: map[string]registrytypes.AuthConfig{},
 			input: loginOptions{
 				serverAddress: "reg1",
 				user:          unknownUser,
 				password:      "a-password",
 			},
 			expectedErr:         errUnknownUser,
-			expectedCredentials: map[string]configtypes.AuthConfig{},
+			expectedCredentials: map[string]registrytypes.AuthConfig{},
 		},
 		{
 			doc:              "store valid token",
-			priorCredentials: map[string]configtypes.AuthConfig{},
+			priorCredentials: map[string]registrytypes.AuthConfig{},
 			input: loginOptions{
 				serverAddress: "reg1",
 				user:          "my-username",
 				password:      useToken,
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					IdentityToken: useToken,
@@ -197,7 +196,7 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc: "valid token from store",
-			priorCredentials: map[string]configtypes.AuthConfig{
+			priorCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					Password:      useToken,
@@ -207,7 +206,7 @@ func TestRunLogin(t *testing.T) {
 			input: loginOptions{
 				serverAddress: "reg1",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"reg1": {
 					Username:      "my-username",
 					IdentityToken: useToken,
@@ -217,12 +216,12 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc:              "no registry specified defaults to index server",
-			priorCredentials: map[string]configtypes.AuthConfig{},
+			priorCredentials: map[string]registrytypes.AuthConfig{},
 			input: loginOptions{
 				user:     "my-username",
 				password: "my-password",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				registry.IndexServer: {
 					Username:      "my-username",
 					Password:      "my-password",
@@ -232,13 +231,13 @@ func TestRunLogin(t *testing.T) {
 		},
 		{
 			doc:              "registry-1.docker.io",
-			priorCredentials: map[string]configtypes.AuthConfig{},
+			priorCredentials: map[string]registrytypes.AuthConfig{},
 			input: loginOptions{
 				serverAddress: "registry-1.docker.io",
 				user:          "my-username",
 				password:      "my-password",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"registry-1.docker.io": {
 					Username:      "my-username",
 					Password:      "my-password",
@@ -249,13 +248,13 @@ func TestRunLogin(t *testing.T) {
 		// Regression test for https://github.com/docker/cli/issues/5382
 		{
 			doc:              "sanitizes server address to remove repo",
-			priorCredentials: map[string]configtypes.AuthConfig{},
+			priorCredentials: map[string]registrytypes.AuthConfig{},
 			input: loginOptions{
 				serverAddress: "registry-1.docker.io/bork/test",
 				user:          "my-username",
 				password:      "a-password",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"registry-1.docker.io": {
 					Username:      "my-username",
 					Password:      "a-password",
@@ -266,7 +265,7 @@ func TestRunLogin(t *testing.T) {
 		// Regression test for https://github.com/docker/cli/issues/5382
 		{
 			doc: "updates credential if server address includes repo",
-			priorCredentials: map[string]configtypes.AuthConfig{
+			priorCredentials: map[string]registrytypes.AuthConfig{
 				"registry-1.docker.io": {
 					Username:      "my-username",
 					Password:      "a-password",
@@ -278,7 +277,7 @@ func TestRunLogin(t *testing.T) {
 				user:          "my-username",
 				password:      "new-password",
 			},
-			expectedCredentials: map[string]configtypes.AuthConfig{
+			expectedCredentials: map[string]registrytypes.AuthConfig{
 				"registry-1.docker.io": {
 					Username:      "my-username",
 					Password:      "new-password",
@@ -428,7 +427,7 @@ func TestLoginNonInteractive(t *testing.T) {
 					if serverAddress == "" {
 						serverAddress = "https://index.docker.io/v1/"
 					}
-					assert.NilError(t, cfg.GetCredentialsStore(serverAddress).Store(configtypes.AuthConfig{
+					assert.NilError(t, cfg.GetCredentialsStore(serverAddress).Store(registrytypes.AuthConfig{
 						Username:      "my-username",
 						Password:      "my-password",
 						ServerAddress: serverAddress,

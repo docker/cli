@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 )
 
 // notFoundErr is the error returned when a plugin could not be found.
@@ -26,7 +26,7 @@ var errValueNotFound notFoundErr = "value not found"
 
 type Config struct {
 	lock              sync.RWMutex
-	memoryCredentials map[string]types.AuthConfig
+	memoryCredentials map[string]registry.AuthConfig
 	fallbackStore     credentials.Store
 }
 
@@ -45,7 +45,7 @@ func (e *Config) Erase(serverAddress string) error {
 	return nil
 }
 
-func (e *Config) Get(serverAddress string) (types.AuthConfig, error) {
+func (e *Config) Get(serverAddress string) (registry.AuthConfig, error) {
 	e.lock.RLock()
 	defer e.lock.RUnlock()
 	authConfig, ok := e.memoryCredentials[serverAddress]
@@ -53,15 +53,15 @@ func (e *Config) Get(serverAddress string) (types.AuthConfig, error) {
 		if e.fallbackStore != nil {
 			return e.fallbackStore.Get(serverAddress)
 		}
-		return types.AuthConfig{}, errValueNotFound
+		return registry.AuthConfig{}, errValueNotFound
 	}
 	return authConfig, nil
 }
 
-func (e *Config) GetAll() (map[string]types.AuthConfig, error) {
+func (e *Config) GetAll() (map[string]registry.AuthConfig, error) {
 	e.lock.RLock()
 	defer e.lock.RUnlock()
-	creds := make(map[string]types.AuthConfig)
+	creds := make(map[string]registry.AuthConfig)
 
 	if e.fallbackStore != nil {
 		fileCredentials, err := e.fallbackStore.GetAll()
@@ -76,7 +76,7 @@ func (e *Config) GetAll() (map[string]types.AuthConfig, error) {
 	return creds, nil
 }
 
-func (e *Config) Store(authConfig types.AuthConfig) error {
+func (e *Config) Store(authConfig registry.AuthConfig) error {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 	e.memoryCredentials[authConfig.ServerAddress] = authConfig
@@ -108,7 +108,7 @@ func WithFallbackStore(store credentials.Store) Options {
 }
 
 // WithAuthConfig allows to set the initial credentials in the memory store.
-func WithAuthConfig(config map[string]types.AuthConfig) Options {
+func WithAuthConfig(config map[string]registry.AuthConfig) Options {
 	return func(s *Config) error {
 		s.memoryCredentials = config
 		return nil
@@ -120,7 +120,7 @@ type Options func(*Config) error
 // New creates a new in memory credential store
 func New(opts ...Options) (credentials.Store, error) {
 	m := &Config{
-		memoryCredentials: make(map[string]types.AuthConfig),
+		memoryCredentials: make(map[string]registry.AuthConfig),
 	}
 	for _, opt := range opts {
 		if err := opt(m); err != nil {

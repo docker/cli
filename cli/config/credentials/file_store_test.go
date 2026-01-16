@@ -3,13 +3,13 @@ package credentials
 import (
 	"testing"
 
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
 type fakeStore struct {
-	configs map[string]types.AuthConfig
+	configs map[string]registry.AuthConfig
 	saveFn  func(*fakeStore) error
 }
 
@@ -22,7 +22,7 @@ func (f *fakeStore) Save() error {
 	return nil
 }
 
-func (f *fakeStore) GetAuthConfigs() map[string]types.AuthConfig {
+func (f *fakeStore) GetAuthConfigs() map[string]registry.AuthConfig {
 	return f.configs
 }
 
@@ -36,18 +36,18 @@ func TestFileStoreIdempotent(t *testing.T) {
 	var saveCount, expectedSaveCount int
 
 	s := NewFileStore(&fakeStore{
-		configs: map[string]types.AuthConfig{},
+		configs: map[string]registry.AuthConfig{},
 		saveFn: func(*fakeStore) error {
 			saveCount++
 			return nil
 		},
 	})
-	authOne := types.AuthConfig{
+	authOne := registry.AuthConfig{
 		Username:      "foo@example.com",
 		Auth:          "super_secret_token",
 		ServerAddress: "https://example.com",
 	}
-	authTwo := types.AuthConfig{
+	authTwo := registry.AuthConfig{
 		Username:      "bar@example.com",
 		Auth:          "also_super_secret_token",
 		ServerAddress: "https://other.example.com",
@@ -81,14 +81,14 @@ func TestFileStoreIdempotent(t *testing.T) {
 		assert.NilError(t, s.Erase(authOne.ServerAddress))
 		retrievedAuth, err := s.Get(authOne.ServerAddress)
 		assert.NilError(t, err)
-		assert.Check(t, is.Equal(retrievedAuth, types.AuthConfig{}))
+		assert.Check(t, is.Equal(retrievedAuth, registry.AuthConfig{}))
 		assert.Check(t, is.Equal(saveCount, expectedSaveCount))
 	})
 	t.Run("erase non-existing credentials is a no-op", func(t *testing.T) {
 		assert.NilError(t, s.Erase(authOne.ServerAddress))
 		retrievedAuth, err := s.Get(authOne.ServerAddress)
 		assert.NilError(t, err)
-		assert.Check(t, is.Equal(retrievedAuth, types.AuthConfig{}))
+		assert.Check(t, is.Equal(retrievedAuth, registry.AuthConfig{}))
 		assert.Check(t, is.Equal(saveCount, expectedSaveCount), "should not have saved if nothing changed")
 	})
 	t.Run("erase other credentials", func(t *testing.T) {
@@ -96,16 +96,16 @@ func TestFileStoreIdempotent(t *testing.T) {
 		assert.NilError(t, s.Erase(authTwo.ServerAddress))
 		retrievedAuth, err := s.Get(authTwo.ServerAddress)
 		assert.NilError(t, err)
-		assert.Check(t, is.Equal(retrievedAuth, types.AuthConfig{}))
+		assert.Check(t, is.Equal(retrievedAuth, registry.AuthConfig{}))
 		assert.Check(t, is.Equal(saveCount, expectedSaveCount))
 	})
 }
 
 func TestFileStoreAddCredentials(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{}}
+	f := &fakeStore{configs: map[string]registry.AuthConfig{}}
 
 	s := NewFileStore(f)
-	auth := types.AuthConfig{
+	auth := registry.AuthConfig{
 		Username:      "foo@example.com",
 		Auth:          "super_secret_token",
 		ServerAddress: "https://example.com",
@@ -120,7 +120,7 @@ func TestFileStoreAddCredentials(t *testing.T) {
 }
 
 func TestFileStoreGet(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		"https://example.com": {
 			Username:      "foo@example.com",
 			Auth:          "super_secret_token",
@@ -144,7 +144,7 @@ func TestFileStoreGet(t *testing.T) {
 func TestFileStoreGetAll(t *testing.T) {
 	s1 := "https://example.com"
 	s2 := "https://example2.example.com"
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		s1: {
 			Username:      "foo@example.com",
 			Auth:          "super_secret_token",
@@ -180,7 +180,7 @@ func TestFileStoreGetAll(t *testing.T) {
 }
 
 func TestFileStoreErase(t *testing.T) {
-	f := &fakeStore{configs: map[string]types.AuthConfig{
+	f := &fakeStore{configs: map[string]registry.AuthConfig{
 		"https://example.com": {
 			Username:      "foo@example.com",
 			Auth:          "super_secret_token",

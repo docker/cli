@@ -7,7 +7,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/moby/moby/api/types/registry"
 )
 
 // readCredentials resolves auth-config from the current environment to be
@@ -22,7 +22,7 @@ import (
 // formatted, or when failing to read from the credentials store.
 //
 // A nil value is returned if neither option contained any credentials.
-func readCredentials(dockerCLI config.Provider) (creds map[string]types.AuthConfig, _ error) {
+func readCredentials(dockerCLI config.Provider) (creds map[string]registry.AuthConfig, _ error) {
 	if v, ok := os.LookupEnv("DOCKER_AUTH_CONFIG"); ok && v != "" {
 		// The results are expected to have been unmarshaled the same as
 		// when reading from a config-file, which includes decoding the
