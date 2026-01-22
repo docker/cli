@@ -947,11 +947,11 @@ func parseSecurityOpts(securityOpts []string) ([]string, error) {
 				if err != nil {
 					return securityOpts, fmt.Errorf("opening seccomp profile (%s) failed: %w", v, err)
 				}
-				b := bytes.NewBuffer(nil)
-				if err := json.Compact(b, f); err != nil {
+				var b bytes.Buffer
+				if err := json.Compact(&b, f); err != nil {
 					return securityOpts, fmt.Errorf("compacting json for seccomp profile (%s) failed: %w", v, err)
 				}
-				securityOpts[key] = fmt.Sprintf("seccomp=%s", b.Bytes())
+				securityOpts[key] = "seccomp=" + b.String()
 			}
 		}
 	}
