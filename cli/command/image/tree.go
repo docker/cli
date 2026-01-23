@@ -6,14 +6,12 @@ package image
 import (
 	"context"
 	"fmt"
-	"os"
 	"slices"
 	"strings"
 
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/tui"
 	"github.com/docker/go-units"
 	imagetypes "github.com/moby/moby/api/types/image"
@@ -233,10 +231,6 @@ func getPossibleChips(view treeView) (chips []imageChip) {
 }
 
 func printImageTree(outs command.Streams, view treeView) {
-	if streamRedirected(outs.Out()) {
-		_, _ = fmt.Fprintln(outs.Err(), "WARNING: This output is designed for human readability. For machine-readable output, please use --format.")
-	}
-
 	out := tui.NewOutput(outs.Out())
 	isTerm := out.IsTerminal()
 
@@ -563,18 +557,4 @@ func widestFirstColumnValue(headers []imgColumn, images []topImage) int {
 		}
 	}
 	return width
-}
-
-func streamRedirected(s *streams.Out) bool {
-	fd := s.FD()
-	if os.Stdout.Fd() != fd {
-		return true
-	}
-
-	fi, err := os.Stdout.Stat()
-	if err != nil {
-		return true
-	}
-
-	return fi.Mode()&os.ModeCharDevice == 0
 }
