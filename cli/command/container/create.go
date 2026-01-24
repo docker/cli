@@ -211,7 +211,7 @@ func newCIDFile(cidPath string) (*cidFile, error) {
 }
 
 //nolint:gocyclo
-func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, err error) {
+func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, _ error) {
 	config := containerCfg.Config
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
@@ -220,8 +220,7 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 
 	// TODO(thaJeztah): add a platform option-type / flag-type.
 	if options.platform != "" {
-		_, err = platforms.Parse(options.platform)
-		if err != nil {
+		if _, err := platforms.Parse(options.platform); err != nil {
 			return "", err
 		}
 	}
@@ -247,8 +246,9 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 
 	if options.useAPISocket {
 		// We'll create two new mounts to handle this flag:
+		//
 		// 1. Mount the actual docker socket.
-		// 2. A synthezised ~/.docker/config.json with resolved tokens.
+		// 2. A synthesized ~/.docker/config.json with resolved tokens.
 
 		if dockerCLI.ServerInfo().OSType == "windows" {
 			return "", errors.New("flag --use-api-socket can't be used with a Windows Docker Engine")
@@ -363,11 +363,10 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 		}
 	}
 
-	containerID = response.ID
 	for _, w := range response.Warnings {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING:", w)
 	}
-	err = containerIDFile.Write(containerID)
+	err = containerIDFile.Write(response.ID)
 
 	if options.useAPISocket && len(apiSocketCreds) > 0 {
 		// Create a new config file with just the auth.
@@ -375,12 +374,12 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 			AuthConfigs: apiSocketCreds,
 		}
 
-		if err := copyDockerConfigIntoContainer(ctx, dockerCLI.Client(), containerID, dockerConfigPathInContainer, newConfig); err != nil {
+		if err := copyDockerConfigIntoContainer(ctx, dockerCLI.Client(), response.ID, dockerConfigPathInContainer, newConfig); err != nil {
 			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
 		}
 	}
 
-	return containerID, err
+	return response.ID, err
 }
 
 func validatePullOpt(val string) error {
