@@ -318,15 +318,8 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 		platform = &p
 	}
 
-	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCLI, config.Image, options); err != nil {
-			return err
-		}
-		return nil
-	}
-
 	if options.pull == PullImageAlways {
-		if err := pullAndTagImage(); err != nil {
+		if err := pullImage(ctx, dockerCLI, config.Image, options); err != nil {
 			return "", err
 		}
 	}
@@ -349,7 +342,7 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 				_, _ = fmt.Fprintf(dockerCLI.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
-			if err := pullAndTagImage(); err != nil {
+			if err := pullImage(ctx, dockerCLI, config.Image, options); err != nil {
 				return "", err
 			}
 
