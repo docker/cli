@@ -428,6 +428,7 @@ func copyDockerConfigIntoContainer(ctx context.Context, apiClient client.APIClie
 	})
 
 	if _, err := io.Copy(tarWriter, &configBuf); err != nil {
+		_ = tarWriter.Close()
 		return fmt.Errorf("writing config to tar file for config copy: %w", err)
 	}
 
