@@ -212,7 +212,7 @@ func newCIDFile(cidPath string) (*cidFile, error) {
 }
 
 //nolint:gocyclo
-func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, err error) {
+func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, err error) {
 	config := containerCfg.Config
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
@@ -251,7 +251,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		// 1. Mount the actual docker socket.
 		// 2. A synthezised ~/.docker/config.json with resolved tokens.
 
-		if dockerCli.ServerInfo().OSType == "windows" {
+		if dockerCLI.ServerInfo().OSType == "windows" {
 			return "", errors.New("flag --use-api-socket can't be used with a Windows Docker Engine")
 		}
 
@@ -286,18 +286,18 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		   })
 		*/
 
-		var envvarPresent bool
-		for _, envvar := range containerCfg.Config.Env {
-			if strings.HasPrefix(envvar, "DOCKER_CONFIG=") {
-				envvarPresent = true
+		var envVarPresent bool
+		for _, envVar := range containerCfg.Config.Env {
+			if strings.HasPrefix(envVar, "DOCKER_CONFIG=") {
+				envVarPresent = true
 			}
 		}
 
 		// If the DOCKER_CONFIG env var is already present, we assume the client knows
 		// what they're doing and don't inject the creds.
-		if !envvarPresent {
+		if !envVarPresent {
 			// Resolve this here for later, ensuring we error our before we create the container.
-			creds, err := readCredentials(dockerCli)
+			creds, err := readCredentials(dockerCLI)
 			if err != nil {
 				return "", fmt.Errorf("resolving credentials failed: %w", err)
 			}
@@ -320,7 +320,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 	}
 
 	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
+		if err := pullImage(ctx, dockerCLI, config.Image, options); err != nil {
 			return err
 		}
 		return nil
@@ -332,9 +332,9 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
-	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
+	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCLI.Out().GetTtySize()
 
-	response, err := dockerCli.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
+	response, err := dockerCLI.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
 		Name: options.name,
 		// Image:            config.Image, // TODO(thaJeztah): pass image-ref separate
 		Platform:         platform,
@@ -347,7 +347,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
 			if !options.quiet {
 				// we don't want to write to stdout anything apart from container.ID
-				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+				_, _ = fmt.Fprintf(dockerCLI.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
 			if err := pullAndTagImage(); err != nil {
@@ -355,7 +355,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			}
 
 			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
+			response, retryErr = dockerCLI.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
 				Name: options.name,
 				// Image:            config.Image, // TODO(thaJeztah): pass image-ref separate
 				Platform:         platform,
@@ -373,7 +373,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 	containerID = response.ID
 	for _, w := range response.Warnings {
-		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING:", w)
 	}
 	err = containerIDFile.Write(containerID)
 
@@ -383,7 +383,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			AuthConfigs: apiSocketCreds,
 		}
 
-		if err := copyDockerConfigIntoContainer(ctx, dockerCli.Client(), containerID, dockerConfigPathInContainer, newConfig); err != nil {
+		if err := copyDockerConfigIntoContainer(ctx, dockerCLI.Client(), containerID, dockerConfigPathInContainer, newConfig); err != nil {
 			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
 		}
 	}
