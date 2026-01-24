@@ -188,8 +188,8 @@ func (cid *cidFile) Write(id string) error {
 	if cid.file == nil {
 		return nil
 	}
-	if _, err := cid.file.Write([]byte(id)); err != nil {
-		return fmt.Errorf("failed to write the container ID to the file: %w", err)
+	if _, err := cid.file.WriteString(id); err != nil {
+		return fmt.Errorf("failed to write the container ID (%s) to file: %w", id, err)
 	}
 	cid.written = true
 	return nil
