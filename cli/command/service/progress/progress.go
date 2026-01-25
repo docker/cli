@@ -138,6 +138,10 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			if message != nil {
 				_ = progressOut.WriteProgress(*message)
 			}
+			if rollback {
+				// Exit with error when update was rolled back
+				return fmt.Errorf("service update rolled back: %s", res.Service.UpdateStatus.Message)
+			}
 			return nil
 		}
 
