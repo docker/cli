@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -42,17 +43,31 @@ func TestNewCIDFileWhenFileAlreadyExists(t *testing.T) {
 }
 
 func TestCIDFileCloseWithNoWrite(t *testing.T) {
-	tempdir := fs.NewDir(t, "test-cid-file")
-	defer tempdir.Remove()
+	// Closing should remove the file if it was not written to.
+	t.Run("closing should remove file", func(t *testing.T) {
+		filename := filepath.Join(t.TempDir(), "cidfile-1")
+		file, err := newCIDFile(filename)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(file.path, filename))
 
-	path := tempdir.Join("cidfile")
-	file, err := newCIDFile(path)
-	assert.NilError(t, err)
-	assert.Check(t, is.Equal(file.path, path))
+		assert.NilError(t, file.Close())
+		_, err = os.Stat(filename)
+		assert.Check(t, os.IsNotExist(err))
+	})
 
-	assert.NilError(t, file.Close())
-	_, err = os.Stat(path)
-	assert.Check(t, os.IsNotExist(err))
+	// Closing (and removing) the file should not produce an error if the file no longer exists.
+	t.Run("close should remove file", func(t *testing.T) {
+		filename := filepath.Join(t.TempDir(), "cidfile-2")
+		file, err := newCIDFile(filename)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(file.path, filename))
+
+		assert.NilError(t, os.Remove(filename))
+		_, err = os.Stat(filename)
+		assert.Check(t, os.IsNotExist(err))
+
+		assert.NilError(t, file.Close())
+	})
 }
 
 func TestCIDFileCloseWithWrite(t *testing.T) {
