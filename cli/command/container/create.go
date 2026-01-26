@@ -363,22 +363,19 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 		}
 	}
 
+	if options.useAPISocket && len(apiSocketCreds) > 0 {
+		// Create a new config file with just the auth.
+		if err := copyDockerConfigIntoContainer(ctx, dockerCLI.Client(), response.ID, dockerConfigPathInContainer, &configfile.ConfigFile{
+			AuthConfigs: apiSocketCreds,
+		}); err != nil {
+			response.Warnings = append(response.Warnings, fmt.Sprintf("injecting docker config.json into container failed: %v", err))
+		}
+	}
 	for _, w := range response.Warnings {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING:", w)
 	}
+
 	err = containerIDFile.Write(response.ID)
-
-	if options.useAPISocket && len(apiSocketCreds) > 0 {
-		// Create a new config file with just the auth.
-		newConfig := &configfile.ConfigFile{
-			AuthConfigs: apiSocketCreds,
-		}
-
-		if err := copyDockerConfigIntoContainer(ctx, dockerCLI.Client(), response.ID, dockerConfigPathInContainer, newConfig); err != nil {
-			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
-		}
-	}
-
 	return response.ID, err
 }
 
