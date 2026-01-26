@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli-plugins/hooks"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -106,7 +106,7 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 		var appended bool
 		nextSteps, appended = appendNextSteps(nextSteps, processedHook)
 		if !appended {
-			logrus.Debugf("Plugin %s responded with an empty hook message %q. Ignoring.", pluginName, string(hookReturn))
+			log.G(ctx).Debugf("Plugin %s responded with an empty hook message %q. Ignoring.", pluginName, string(hookReturn))
 		}
 	}
 	return nextSteps
