@@ -290,6 +290,9 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 	store := credentials.NewFileStore(configFile)
 
 	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
+		if helper == "filestore" {
+			return store
+		}
 		store = newNativeStore(configFile, helper)
 	}
 
