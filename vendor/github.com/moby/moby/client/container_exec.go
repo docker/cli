@@ -82,8 +82,7 @@ type ExecStartOptions struct {
 }
 
 // ExecStartResult holds the result of starting a container exec.
-type ExecStartResult struct {
-}
+type ExecStartResult struct{}
 
 // ExecStart starts an exec process already created in the docker host.
 func (cli *Client) ExecStart(ctx context.Context, execID string, options ExecStartOptions) (ExecStartResult, error) {
@@ -118,7 +117,7 @@ type ExecAttachResult struct {
 // ExecAttach attaches a connection to an exec process in the server.
 //
 // It returns a [HijackedResponse] with the hijacked connection
-// and a reader to get output. It's up to the called to close
+// and a reader to get output. It's up to the caller to close
 // the hijacked connection by calling [HijackedResponse.Close].
 //
 // The stream format on the response uses one of two formats:
@@ -160,8 +159,7 @@ func getConsoleSize(hasTTY bool, consoleSize ConsoleSize) (*[2]uint, error) {
 }
 
 // ExecInspectOptions holds options for inspecting a container exec.
-type ExecInspectOptions struct {
-}
+type ExecInspectOptions struct{}
 
 // ExecInspectResult holds the result of inspecting a container exec.
 //
