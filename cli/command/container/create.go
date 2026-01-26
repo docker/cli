@@ -132,7 +132,6 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	return nil
 }
 
-// FIXME(thaJeztah): this is the only code-path that uses APIClient.ImageCreate. Rewrite this to use the regular "pull" code (or vice-versa).
 func pullImage(ctx context.Context, dockerCLI command.Cli, img string, options *createOptions) error {
 	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), img)
 	if err != nil {
@@ -212,7 +211,7 @@ func newCIDFile(cidPath string) (*cidFile, error) {
 }
 
 //nolint:gocyclo
-func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, err error) {
+func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *containerConfig, options *createOptions) (containerID string, _ error) {
 	config := containerCfg.Config
 	hostConfig := containerCfg.HostConfig
 	networkingConfig := containerCfg.NetworkingConfig
@@ -221,8 +220,7 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 	// TODO(thaJeztah): add a platform option-type / flag-type.
 	if options.platform != "" {
-		_, err = platforms.Parse(options.platform)
-		if err != nil {
+		if _, err := platforms.Parse(options.platform); err != nil {
 			return "", err
 		}
 	}
@@ -248,10 +246,11 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 
 	if options.useAPISocket {
 		// We'll create two new mounts to handle this flag:
+		//
 		// 1. Mount the actual docker socket.
-		// 2. A synthezised ~/.docker/config.json with resolved tokens.
+		// 2. A synthesized ~/.docker/config.json with resolved tokens.
 
-		if dockerCli.ServerInfo().OSType == "windows" {
+		if dockerCLI.ServerInfo().OSType == "windows" {
 			return "", errors.New("flag --use-api-socket can't be used with a Windows Docker Engine")
 		}
 
@@ -286,18 +285,18 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		   })
 		*/
 
-		var envvarPresent bool
-		for _, envvar := range containerCfg.Config.Env {
-			if strings.HasPrefix(envvar, "DOCKER_CONFIG=") {
-				envvarPresent = true
+		var envVarPresent bool
+		for _, envVar := range containerCfg.Config.Env {
+			if strings.HasPrefix(envVar, "DOCKER_CONFIG=") {
+				envVarPresent = true
 			}
 		}
 
 		// If the DOCKER_CONFIG env var is already present, we assume the client knows
 		// what they're doing and don't inject the creds.
-		if !envvarPresent {
+		if !envVarPresent {
 			// Resolve this here for later, ensuring we error our before we create the container.
-			creds, err := readCredentials(dockerCli)
+			creds, err := readCredentials(dockerCLI)
 			if err != nil {
 				return "", fmt.Errorf("resolving credentials failed: %w", err)
 			}
@@ -319,22 +318,15 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		platform = &p
 	}
 
-	pullAndTagImage := func() error {
-		if err := pullImage(ctx, dockerCli, config.Image, options); err != nil {
-			return err
-		}
-		return nil
-	}
-
 	if options.pull == PullImageAlways {
-		if err := pullAndTagImage(); err != nil {
+		if err := pullImage(ctx, dockerCLI, config.Image, options); err != nil {
 			return "", err
 		}
 	}
 
-	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCli.Out().GetTtySize()
+	hostConfig.ConsoleSize[0], hostConfig.ConsoleSize[1] = dockerCLI.Out().GetTtySize()
 
-	response, err := dockerCli.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
+	response, err := dockerCLI.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
 		Name: options.name,
 		// Image:            config.Image, // TODO(thaJeztah): pass image-ref separate
 		Platform:         platform,
@@ -347,15 +339,15 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		if errdefs.IsNotFound(err) && namedRef != nil && options.pull == PullImageMissing {
 			if !options.quiet {
 				// we don't want to write to stdout anything apart from container.ID
-				_, _ = fmt.Fprintf(dockerCli.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
+				_, _ = fmt.Fprintf(dockerCLI.Err(), "Unable to find image '%s' locally\n", reference.FamiliarString(namedRef))
 			}
 
-			if err := pullAndTagImage(); err != nil {
+			if err := pullImage(ctx, dockerCLI, config.Image, options); err != nil {
 				return "", err
 			}
 
 			var retryErr error
-			response, retryErr = dockerCli.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
+			response, retryErr = dockerCLI.Client().ContainerCreate(ctx, client.ContainerCreateOptions{
 				Name: options.name,
 				// Image:            config.Image, // TODO(thaJeztah): pass image-ref separate
 				Platform:         platform,
@@ -371,11 +363,10 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 		}
 	}
 
-	containerID = response.ID
 	for _, w := range response.Warnings {
-		_, _ = fmt.Fprintln(dockerCli.Err(), "WARNING:", w)
+		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING:", w)
 	}
-	err = containerIDFile.Write(containerID)
+	err = containerIDFile.Write(response.ID)
 
 	if options.useAPISocket && len(apiSocketCreds) > 0 {
 		// Create a new config file with just the auth.
@@ -383,12 +374,12 @@ func createContainer(ctx context.Context, dockerCli command.Cli, containerCfg *c
 			AuthConfigs: apiSocketCreds,
 		}
 
-		if err := copyDockerConfigIntoContainer(ctx, dockerCli.Client(), containerID, dockerConfigPathInContainer, newConfig); err != nil {
+		if err := copyDockerConfigIntoContainer(ctx, dockerCLI.Client(), response.ID, dockerConfigPathInContainer, newConfig); err != nil {
 			return "", fmt.Errorf("injecting docker config.json into container failed: %w", err)
 		}
 	}
 
-	return containerID, err
+	return response.ID, err
 }
 
 func validatePullOpt(val string) error {
@@ -428,6 +419,7 @@ func copyDockerConfigIntoContainer(ctx context.Context, apiClient client.APIClie
 	})
 
 	if _, err := io.Copy(tarWriter, &configBuf); err != nil {
+		_ = tarWriter.Close()
 		return fmt.Errorf("writing config to tar file for config copy: %w", err)
 	}
 
