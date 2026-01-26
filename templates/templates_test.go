@@ -3,6 +3,7 @@ package templates
 import (
 	"bytes"
 	"testing"
+	"text/template"
 
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -136,6 +137,95 @@ func TestHeaderFunctions(t *testing.T) {
 			// All header-functions are currently stubs, and don't modify the input.
 			expected := source
 			assert.Equal(t, expected, b.String())
+		})
+	}
+}
+
+type stringerString string
+
+func (s stringerString) String() string {
+	return "stringer" + string(s)
+}
+
+type stringerAndError string
+
+func (s stringerAndError) String() string {
+	return "stringer" + string(s)
+}
+
+func (s stringerAndError) Error() string {
+	return "error" + string(s)
+}
+
+func TestJoinElements(t *testing.T) {
+	tests := []struct {
+		doc    string
+		data   any
+		expOut string
+		expErr string
+	}{
+		{
+			doc:    "nil",
+			data:   nil,
+			expOut: `output: ""`,
+		},
+		{
+			doc:    "non-slice",
+			data:   "hello",
+			expOut: `output: "`,
+			expErr: `error calling join: expected slice, got string`,
+		},
+		{
+			doc:    "structs",
+			data:   []struct{ A, B string }{{"1", "2"}, {"3", "4"}},
+			expOut: `output: "{1 2}, {3 4}"`,
+		},
+		{
+			doc:    "map with strings",
+			data:   map[string]string{"A": "1", "B": "2", "C": "3"},
+			expOut: `output: "1, 2, 3"`,
+		},
+		{
+			doc:    "map with stringers",
+			data:   map[string]stringerString{"A": "1", "B": "2", "C": "3"},
+			expOut: `output: "stringer1, stringer2, stringer3"`,
+		},
+		{
+			doc:    "map with errors",
+			data:   []stringerAndError{"1", "2", "3"},
+			expOut: `output: "error1, error2, error3"`,
+		},
+		{
+			doc:    "stringers",
+			data:   []stringerString{"1", "2", "3"},
+			expOut: `output: "stringer1, stringer2, stringer3"`,
+		},
+		{
+			doc:    "stringer with errors",
+			data:   []stringerAndError{"1", "2", "3"},
+			expOut: `output: "error1, error2, error3"`,
+		},
+		{
+			doc:    "slice of bools",
+			data:   []bool{true, false, true},
+			expOut: `output: "true, false, true"`,
+		},
+	}
+
+	const formatStr = `output: "{{- join . ", " -}}"`
+	tmpl, err := New("my-template").Funcs(template.FuncMap{"join": joinElements}).Parse(formatStr)
+	assert.NilError(t, err)
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			var b bytes.Buffer
+			err := tmpl.Execute(&b, tc.data)
+			if tc.expErr != "" {
+				assert.ErrorContains(t, err, tc.expErr)
+			} else {
+				assert.NilError(t, err)
+			}
+			assert.Equal(t, b.String(), tc.expOut)
 		})
 	}
 }
