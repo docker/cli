@@ -177,8 +177,8 @@ func (cid *cidFile) Close() error {
 	if cid.written {
 		return nil
 	}
-	if err := os.Remove(cid.path); err != nil {
-		return fmt.Errorf("failed to remove the CID file '%s': %w", cid.path, err)
+	if err := os.Remove(cid.path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("failed to remove the CID file: %w", err)
 	}
 
 	return nil
