@@ -175,10 +175,6 @@ func (m *MountOpt) Set(value string) error {
 		return errors.New("type is required")
 	}
 
-	if mount.Target == "" {
-		return errors.New("target is required")
-	}
-
 	if mount.VolumeOptions != nil && mount.Type != mounttypes.TypeVolume {
 		return fmt.Errorf("cannot mix 'volume-*' options with mount type '%s'", mount.Type)
 	}

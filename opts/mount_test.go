@@ -114,21 +114,6 @@ func TestMountOptErrors(t *testing.T) {
 			expErr: "value is empty",
 		},
 		{
-			doc:    "missing tmpfs target",
-			value:  "type=tmpfs",
-			expErr: "target is required",
-		},
-		{
-			doc:    "missing bind target",
-			value:  "type=bind",
-			expErr: "target is required",
-		},
-		{
-			doc:    "missing volume target",
-			value:  "type=volume,source=/foo",
-			expErr: "target is required",
-		},
-		{
 			doc:    "invalid key=value",
 			value:  "type=volume,target=/foo,bogus=foo",
 			expErr: "unexpected key 'bogus' in 'bogus=foo'",
