@@ -131,25 +131,83 @@ func TestMountOptDefaultType(t *testing.T) {
 	assert.Check(t, is.Equal(mount.TypeVolume, m.values[0].Type))
 }
 
-func TestMountOptSetErrorNoTarget(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,source=/foo"), "target is required")
-}
+func TestMountOptErrors(t *testing.T) {
+	tests := []struct {
+		doc, value, expErr string
+	}{
+		{
+			doc:    "missing tmpfs target",
+			value:  "type=tmpfs",
+			expErr: "target is required",
+		},
+		{
+			doc:    "missing bind target",
+			value:  "type=bind",
+			expErr: "target is required",
+		},
+		{
+			doc:    "missing volume target",
+			value:  "type=volume,source=/foo",
+			expErr: "target is required",
+		},
+		{
+			doc:    "invalid key=value",
+			value:  "type=volume,target=/foo,bogus=foo",
+			expErr: "unexpected key 'bogus' in 'bogus=foo'",
+		},
+		{
+			doc:    "invalid key with leading whitespace",
+			value:  "type=volume, src=/foo,target=/foo",
+			expErr: "unexpected key ' src' in ' src=/foo'",
+		},
+		{
+			doc:    "invalid key with trailing whitespace",
+			value:  "type=volume,src =/foo,target=/foo",
+			expErr: "unexpected key 'src ' in 'src =/foo'",
+		},
+		{
+			doc:    "missing value",
+			value:  "type=volume,target=/foo,bogus",
+			expErr: "invalid field 'bogus' must be a key=value pair",
+		},
+		{
+			doc:    "invalid readonly boolean",
+			value:  "type=volume,target=/foo,readonly=no",
+			expErr: "invalid value for readonly: no",
+		},
+		{
+			doc:    "invalid readonly empty value",
+			value:  "type=volume,target=/foo,readonly=",
+			expErr: "invalid value for readonly: ",
+		},
+		{
+			doc:    "invalid tmpfs-size",
+			value:  "type=tmpfs,target=/foo,tmpfs-size=foo",
+			expErr: "invalid value for tmpfs-size: foo",
+		},
+		{
+			doc:    "invalid tmpfs-mode",
+			value:  "type=tmpfs,target=/foo,tmpfs-mode=foo",
+			expErr: "invalid value for tmpfs-mode: foo",
+		},
+		{
+			doc:    "mixed bind and volume",
+			value:  "type=volume,target=/foo,source=/foo,bind-propagation=rprivate",
+			expErr: "cannot mix 'bind-*' options with mount type 'volume'",
+		},
+		{
+			doc:    "mixed volume and bind",
+			value:  "type=bind,target=/foo,source=/foo,volume-nocopy=true",
+			expErr: "cannot mix 'volume-*' options with mount type 'bind'",
+		},
+	}
 
-func TestMountOptSetErrorInvalidKey(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,bogus=foo"), "unexpected key 'bogus' in 'bogus=foo'")
-}
-
-func TestMountOptSetErrorInvalidField(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,bogus"), "invalid field 'bogus' must be a key=value pair")
-}
-
-func TestMountOptSetErrorInvalidReadOnly(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,readonly=no"), "invalid value for readonly: no")
-	assert.Error(t, m.Set("type=volume,readonly=invalid"), "invalid value for readonly: invalid")
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			err := (&MountOpt{}).Set(tc.value)
+			assert.Error(t, err, tc.expErr)
+		})
+	}
 }
 
 func TestMountOptDefaultEnableReadOnly(t *testing.T) {
@@ -199,12 +257,6 @@ func TestMountOptVolumeNoCopy(t *testing.T) {
 	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
 }
 
-func TestMountOptTypeConflict(t *testing.T) {
-	var m MountOpt
-	assert.ErrorContains(t, m.Set("type=bind,target=/foo,source=/foo,volume-nocopy=true"), "cannot mix")
-	assert.ErrorContains(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
-}
-
 func TestMountOptSetImageNoError(t *testing.T) {
 	for _, tc := range []string{
 		"type=image,source=foo,target=/target,image-subpath=/bar",
@@ -250,13 +302,6 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 			}, mounts[0]))
 		})
 	}
-}
-
-func TestMountOptSetTmpfsError(t *testing.T) {
-	var m MountOpt
-	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-size=foo"), "invalid value for tmpfs-size")
-	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
-	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
 }
 
 func TestMountOptSetBindRecursive(t *testing.T) {
