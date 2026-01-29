@@ -245,28 +245,47 @@ func TestMountOptReadOnly(t *testing.T) {
 }
 
 func TestMountOptVolumeNoCopy(t *testing.T) {
-	var m MountOpt
-	assert.NilError(t, m.Set("type=volume,target=/foo,volume-nocopy"))
-	assert.Check(t, is.Equal("", m.values[0].Source))
+	tests := []struct {
+		value  string
+		exp    bool
+		expErr string
+	}{
+		{value: "", exp: false},
+		{value: "volume-nocopy", exp: true},
+		{value: "volume-nocopy=", expErr: `invalid value for volume-nocopy: `},
+		{value: "volume-nocopy= true", expErr: `invalid value for volume-nocopy:  true`},
+		{value: "volume-nocopy=no", expErr: `invalid value for volume-nocopy: no`},
+		{value: "volume-nocopy=1", exp: true},
+		{value: "volume-nocopy=true", exp: true},
+		{value: "volume-nocopy=0", exp: false},
+		{value: "volume-nocopy=false", exp: false},
+	}
 
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo"))
-	assert.Check(t, m.values[0].VolumeOptions == nil)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=true"))
-	assert.Check(t, m.values[0].VolumeOptions != nil)
-	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy"))
-	assert.Check(t, m.values[0].VolumeOptions != nil)
-	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=1"))
-	assert.Check(t, m.values[0].VolumeOptions != nil)
-	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
+	for _, tc := range tests {
+		name := tc.value
+		if name == "" {
+			name = "not set"
+		}
+		t.Run(name, func(t *testing.T) {
+			val := "type=volume,target=/foo,source=foo"
+			if tc.value != "" {
+				val += "," + tc.value
+			}
+			var m MountOpt
+			err := m.Set(val)
+			if tc.expErr != "" {
+				assert.Error(t, err, tc.expErr)
+				return
+			}
+			assert.NilError(t, err)
+			if tc.value == "" {
+				assert.Check(t, is.Nil(m.values[0].VolumeOptions))
+			} else {
+				assert.Check(t, m.values[0].VolumeOptions != nil)
+				assert.Check(t, is.Equal(m.values[0].VolumeOptions.NoCopy, tc.exp))
+			}
+		})
+	}
 }
 
 func TestMountOptSetImageNoError(t *testing.T) {
