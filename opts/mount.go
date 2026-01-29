@@ -76,7 +76,7 @@ func (m *MountOpt) Set(value string) error {
 	}
 
 	mount.Type = mounttypes.TypeVolume // default to volume mounts
-	// Set writable as the default
+
 	for _, field := range fields {
 		key, val, ok := strings.Cut(field, "=")
 
