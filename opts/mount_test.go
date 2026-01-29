@@ -171,16 +171,6 @@ func TestMountOptErrors(t *testing.T) {
 			expErr: "invalid field 'bogus' must be a key=value pair",
 		},
 		{
-			doc:    "invalid readonly boolean",
-			value:  "type=volume,target=/foo,readonly=no",
-			expErr: "invalid value for readonly: no",
-		},
-		{
-			doc:    "invalid readonly empty value",
-			value:  "type=volume,target=/foo,readonly=",
-			expErr: "invalid value for readonly: ",
-		},
-		{
 			doc:    "invalid tmpfs-size",
 			value:  "type=tmpfs,target=/foo,tmpfs-size=foo",
 			expErr: "invalid value for tmpfs-size: foo",
@@ -210,26 +200,48 @@ func TestMountOptErrors(t *testing.T) {
 	}
 }
 
-func TestMountOptDefaultEnableReadOnly(t *testing.T) {
-	var m MountOpt
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo"))
-	assert.Check(t, !m.values[0].ReadOnly)
+func TestMountOptReadOnly(t *testing.T) {
+	tests := []struct {
+		value  string
+		exp    bool
+		expErr string
+	}{
+		{value: "", exp: false},
+		{value: "readonly", exp: true},
+		{value: "readonly=", expErr: `invalid value for readonly: `},
+		{value: "readonly= true", expErr: `invalid value for readonly:  true`},
+		{value: "readonly=no", expErr: `invalid value for readonly: no`},
+		{value: "readonly=1", exp: true},
+		{value: "readonly=true", exp: true},
+		{value: "readonly=0", exp: false},
+		{value: "readonly=false", exp: false},
+		{value: "ro", exp: true},
+		{value: "ro=1", exp: true},
+		{value: "ro=true", exp: true},
+		{value: "ro=0", exp: false},
+		{value: "ro=false", exp: false},
+	}
 
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly"))
-	assert.Check(t, m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=1"))
-	assert.Check(t, m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=true"))
-	assert.Check(t, m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=0"))
-	assert.Check(t, !m.values[0].ReadOnly)
+	for _, tc := range tests {
+		name := tc.value
+		if name == "" {
+			name = "not set"
+		}
+		t.Run(name, func(t *testing.T) {
+			val := "type=bind,target=/foo,source=/foo"
+			if tc.value != "" {
+				val += "," + tc.value
+			}
+			var m MountOpt
+			err := m.Set(val)
+			if tc.expErr != "" {
+				assert.Error(t, err, tc.expErr)
+				return
+			}
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(m.values[0].ReadOnly, tc.exp))
+		})
+	}
 }
 
 func TestMountOptVolumeNoCopy(t *testing.T) {
