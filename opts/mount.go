@@ -97,14 +97,8 @@ func (m *MountOpt) Set(value string) error {
 
 		if !hasValue {
 			switch key {
-			case "readonly", "ro":
-				mount.ReadOnly = true
-				continue
-			case "volume-nocopy":
-				volumeOptions().NoCopy = true
-				continue
-			case "bind-nonrecursive":
-				return errors.New("bind-nonrecursive is deprecated, use bind-recursive=disabled instead")
+			case "readonly", "ro", "volume-nocopy", "bind-nonrecursive":
+				// boolean values
 			default:
 				return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
 			}
@@ -123,9 +117,9 @@ func (m *MountOpt) Set(value string) error {
 		case "target", "dst", "destination":
 			mount.Target = val
 		case "readonly", "ro":
-			mount.ReadOnly, err = strconv.ParseBool(val)
+			mount.ReadOnly, err = parseBoolValue(key, val, hasValue)
 			if err != nil {
-				return fmt.Errorf("invalid value for %s: %s", key, val)
+				return err
 			}
 		case "consistency":
 			mount.Consistency = mounttypes.Consistency(strings.ToLower(val))
@@ -151,9 +145,9 @@ func (m *MountOpt) Set(value string) error {
 		case "volume-subpath":
 			volumeOptions().Subpath = val
 		case "volume-nocopy":
-			volumeOptions().NoCopy, err = strconv.ParseBool(val)
+			volumeOptions().NoCopy, err = parseBoolValue(key, val, hasValue)
 			if err != nil {
-				return fmt.Errorf("invalid value for volume-nocopy: %s", val)
+				return err
 			}
 		case "volume-label":
 			setValueOnMap(volumeOptions().Labels, val)
