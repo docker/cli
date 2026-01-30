@@ -282,7 +282,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 					Labels: map[string]string{
 						"foo": "foo-value",
 					},
-					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
@@ -297,7 +296,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 						"foo": "foo-value",
 						"bar": "bar-value",
 					},
-					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
@@ -312,7 +310,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 						"foo": "",
 						"bar": "",
 					},
-					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
@@ -321,12 +318,9 @@ func TestMountOptVolumeOptions(t *testing.T) {
 			doc:   "volume-label empty key",
 			value: `type=volume,target=/foo,volume-label==foo-value`,
 			exp: mount.Mount{
-				Type:   mount.TypeVolume,
-				Target: "/foo",
-				VolumeOptions: &mount.VolumeOptions{
-					Labels:       map[string]string{},
-					DriverConfig: &mount.Driver{},
-				},
+				Type:          mount.TypeVolume,
+				Target:        "/foo",
+				VolumeOptions: &mount.VolumeOptions{},
 			},
 		},
 		{
@@ -336,7 +330,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Name: "my-driver",
 					},
@@ -350,7 +343,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Options: map[string]string{
 							"foo": "foo-value",
@@ -366,7 +358,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Options: map[string]string{
 							"foo": "foo-value",
@@ -383,7 +374,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Options: map[string]string{
 							"foo": "",
@@ -401,10 +391,7 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
-					DriverConfig: &mount.Driver{
-						Options: map[string]string{},
-					},
+					DriverConfig: &mount.Driver{},
 				},
 			},
 		},

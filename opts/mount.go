@@ -33,49 +33,9 @@ func (m *MountOpt) Set(value string) error {
 		return err
 	}
 
-	mount := mounttypes.Mount{}
-
-	volumeOptions := func() *mounttypes.VolumeOptions {
-		if mount.VolumeOptions == nil {
-			mount.VolumeOptions = &mounttypes.VolumeOptions{
-				Labels: make(map[string]string),
-			}
-		}
-		if mount.VolumeOptions.DriverConfig == nil {
-			mount.VolumeOptions.DriverConfig = &mounttypes.Driver{}
-		}
-		return mount.VolumeOptions
+	mount := mounttypes.Mount{
+		Type: mounttypes.TypeVolume, // default to volume mounts
 	}
-
-	imageOptions := func() *mounttypes.ImageOptions {
-		if mount.ImageOptions == nil {
-			mount.ImageOptions = new(mounttypes.ImageOptions)
-		}
-		return mount.ImageOptions
-	}
-
-	bindOptions := func() *mounttypes.BindOptions {
-		if mount.BindOptions == nil {
-			mount.BindOptions = new(mounttypes.BindOptions)
-		}
-		return mount.BindOptions
-	}
-
-	tmpfsOptions := func() *mounttypes.TmpfsOptions {
-		if mount.TmpfsOptions == nil {
-			mount.TmpfsOptions = new(mounttypes.TmpfsOptions)
-		}
-		return mount.TmpfsOptions
-	}
-
-	setValueOnMap := func(target map[string]string, value string) {
-		k, v, _ := strings.Cut(value, "=")
-		if k != "" {
-			target[k] = v
-		}
-	}
-
-	mount.Type = mounttypes.TypeVolume // default to volume mounts
 
 	for _, field := range fields {
 		key, val, hasValue := strings.Cut(field, "=")
@@ -124,7 +84,7 @@ func (m *MountOpt) Set(value string) error {
 		case "consistency":
 			mount.Consistency = mounttypes.Consistency(strings.ToLower(val))
 		case "bind-propagation":
-			bindOptions().Propagation = mounttypes.Propagation(strings.ToLower(val))
+			ensureBindOptions(&mount).Propagation = mounttypes.Propagation(strings.ToLower(val))
 		case "bind-nonrecursive":
 			return errors.New("bind-nonrecursive is deprecated, use bind-recursive=disabled instead")
 		case "bind-recursive":
@@ -132,46 +92,45 @@ func (m *MountOpt) Set(value string) error {
 			case "enabled": // read-only mounts are recursively read-only if Engine >= v25 && kernel >= v5.12, otherwise writable
 				// NOP
 			case "disabled": // previously "bind-nonrecursive=true"
-				bindOptions().NonRecursive = true
+				ensureBindOptions(&mount).NonRecursive = true
 			case "writable": // conforms to the default read-only bind-mount of Docker v24; read-only mounts are recursively mounted but not recursively read-only
-				bindOptions().ReadOnlyNonRecursive = true
+				ensureBindOptions(&mount).ReadOnlyNonRecursive = true
 			case "readonly": // force recursively read-only, or raise an error
-				bindOptions().ReadOnlyForceRecursive = true
+				ensureBindOptions(&mount).ReadOnlyForceRecursive = true
 				// TODO: implicitly set propagation and error if the user specifies a propagation in a future refactor/UX polish pass
 				// https://github.com/docker/cli/pull/4316#discussion_r1341974730
 			default:
 				return fmt.Errorf(`invalid value for %s: %s (must be "enabled", "disabled", "writable", or "readonly")`, key, val)
 			}
 		case "volume-subpath":
-			volumeOptions().Subpath = val
+			ensureVolumeOptions(&mount).Subpath = val
 		case "volume-nocopy":
-			volumeOptions().NoCopy, err = parseBoolValue(key, val, hasValue)
+			ensureVolumeOptions(&mount).NoCopy, err = parseBoolValue(key, val, hasValue)
 			if err != nil {
 				return err
 			}
 		case "volume-label":
-			setValueOnMap(volumeOptions().Labels, val)
+			volumeOpts := ensureVolumeOptions(&mount)
+			volumeOpts.Labels = setValueOnMap(volumeOpts.Labels, val)
 		case "volume-driver":
-			volumeOptions().DriverConfig.Name = val
+			ensureVolumeDriver(&mount).Name = val
 		case "volume-opt":
-			if volumeOptions().DriverConfig.Options == nil {
-				volumeOptions().DriverConfig.Options = make(map[string]string)
-			}
-			setValueOnMap(volumeOptions().DriverConfig.Options, val)
+			volumeDriver := ensureVolumeDriver(&mount)
+			volumeDriver.Options = setValueOnMap(volumeDriver.Options, val)
 		case "image-subpath":
-			imageOptions().Subpath = val
+			ensureImageOptions(&mount).Subpath = val
 		case "tmpfs-size":
 			sizeBytes, err := units.RAMInBytes(val)
 			if err != nil {
 				return fmt.Errorf("invalid value for %s: %s", key, val)
 			}
-			tmpfsOptions().SizeBytes = sizeBytes
+			ensureTmpfsOptions(&mount).SizeBytes = sizeBytes
 		case "tmpfs-mode":
 			ui64, err := strconv.ParseUint(val, 8, 32)
 			if err != nil {
 				return fmt.Errorf("invalid value for %s: %s", key, val)
 			}
-			tmpfsOptions().Mode = os.FileMode(ui64)
+			ensureTmpfsOptions(&mount).Mode = os.FileMode(ui64)
 		default:
 			return fmt.Errorf("unknown option '%s' in '%s'", key, field)
 		}

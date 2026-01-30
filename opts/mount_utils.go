@@ -3,6 +3,7 @@ package opts
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/moby/moby/api/types/mount"
 )
@@ -83,4 +84,52 @@ func parseBoolValue(key string, val string, hasValue bool) (bool, error) {
 	default:
 		return false, fmt.Errorf(`invalid value for '%s': invalid boolean value (%q): must be one of "true", "1", "false", or "0" (default "true")`, key, val)
 	}
+}
+
+func ensureVolumeOptions(m *mount.Mount) *mount.VolumeOptions {
+	if m.VolumeOptions == nil {
+		m.VolumeOptions = &mount.VolumeOptions{}
+	}
+	return m.VolumeOptions
+}
+
+func ensureVolumeDriver(m *mount.Mount) *mount.Driver {
+	ensureVolumeOptions(m)
+	if m.VolumeOptions.DriverConfig == nil {
+		m.VolumeOptions.DriverConfig = &mount.Driver{}
+	}
+	return m.VolumeOptions.DriverConfig
+}
+
+func ensureImageOptions(m *mount.Mount) *mount.ImageOptions {
+	if m.ImageOptions == nil {
+		m.ImageOptions = &mount.ImageOptions{}
+	}
+	return m.ImageOptions
+}
+
+func ensureBindOptions(m *mount.Mount) *mount.BindOptions {
+	if m.BindOptions == nil {
+		m.BindOptions = &mount.BindOptions{}
+	}
+	return m.BindOptions
+}
+
+func ensureTmpfsOptions(m *mount.Mount) *mount.TmpfsOptions {
+	if m.TmpfsOptions == nil {
+		m.TmpfsOptions = &mount.TmpfsOptions{}
+	}
+	return m.TmpfsOptions
+}
+
+func setValueOnMap(target map[string]string, keyValue string) map[string]string {
+	k, v, _ := strings.Cut(keyValue, "=")
+	if k == "" {
+		return target
+	}
+	if target == nil {
+		target = map[string]string{}
+	}
+	target[k] = v
+	return target
 }
