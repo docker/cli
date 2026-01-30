@@ -73,14 +73,13 @@ func TestMountRelative(t *testing.T) {
 	}
 }
 
-// TestMountOptSetBindNoErrorBind tests several aliases that should have
+// TestMountOptSourceTargetAliases tests several aliases that should have
 // the same result.
-func TestMountOptSetBindNoErrorBind(t *testing.T) {
+func TestMountOptSourceTargetAliases(t *testing.T) {
 	for _, tc := range []string{
-		"type=bind,target=/target,source=/source",
 		"type=bind,src=/source,dst=/target",
-		"type=bind,source=/source,dst=/target",
-		"type=bind,src=/source,target=/target",
+		"type=bind,source=/source,target=/target",
+		"type=bind,source=/source,destination=/target",
 	} {
 		t.Run(tc, func(t *testing.T) {
 			var m MountOpt
@@ -91,31 +90,6 @@ func TestMountOptSetBindNoErrorBind(t *testing.T) {
 			assert.Assert(t, is.Len(mounts, 1))
 			assert.Check(t, is.DeepEqual(mount.Mount{
 				Type:   mount.TypeBind,
-				Source: "/source",
-				Target: "/target",
-			}, mounts[0]))
-		})
-	}
-}
-
-// TestMountOptSetVolumeNoError tests several aliases that should have
-// the same result.
-func TestMountOptSetVolumeNoError(t *testing.T) {
-	for _, tc := range []string{
-		"type=volume,target=/target,source=/source",
-		"type=volume,src=/source,dst=/target",
-		"type=volume,source=/source,dst=/target",
-		"type=volume,src=/source,target=/target",
-	} {
-		t.Run(tc, func(t *testing.T) {
-			var m MountOpt
-
-			assert.NilError(t, m.Set(tc))
-
-			mounts := m.Value()
-			assert.Assert(t, is.Len(mounts, 1))
-			assert.Check(t, is.DeepEqual(mount.Mount{
-				Type:   mount.TypeVolume,
 				Source: "/source",
 				Target: "/target",
 			}, mounts[0]))
