@@ -79,6 +79,9 @@ func (m *MountOpt) Set(value string) error {
 
 	for _, field := range fields {
 		key, val, ok := strings.Cut(field, "=")
+		if k := strings.TrimSpace(key); k != key {
+			return fmt.Errorf("invalid option '%s' in '%s': option should not have whitespace", k, field)
+		}
 
 		// TODO(thaJeztah): these options should not be case-insensitive.
 		key = strings.ToLower(key)
@@ -167,7 +170,7 @@ func (m *MountOpt) Set(value string) error {
 			}
 			tmpfsOptions().Mode = os.FileMode(ui64)
 		default:
-			return fmt.Errorf("unexpected key '%s' in '%s'", key, field)
+			return fmt.Errorf("unknown option '%s' in '%s'", key, field)
 		}
 	}
 

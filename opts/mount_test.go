@@ -116,17 +116,17 @@ func TestMountOptErrors(t *testing.T) {
 		{
 			doc:    "invalid key=value",
 			value:  "type=volume,target=/foo,bogus=foo",
-			expErr: "unexpected key 'bogus' in 'bogus=foo'",
+			expErr: "unknown option 'bogus' in 'bogus=foo'",
 		},
 		{
 			doc:    "invalid key with leading whitespace",
 			value:  "type=volume, src=/foo,target=/foo",
-			expErr: "unexpected key ' src' in ' src=/foo'",
+			expErr: "invalid option 'src' in ' src=/foo': option should not have whitespace",
 		},
 		{
 			doc:    "invalid key with trailing whitespace",
 			value:  "type=volume,src =/foo,target=/foo",
-			expErr: "unexpected key 'src ' in 'src =/foo'",
+			expErr: "invalid option 'src' in 'src =/foo': option should not have whitespace",
 		},
 		{
 			doc:    "missing value",
