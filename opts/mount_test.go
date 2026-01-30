@@ -129,6 +129,21 @@ func TestMountOptErrors(t *testing.T) {
 			expErr: "invalid option 'src' in 'src =/foo': option should not have whitespace",
 		},
 		{
+			doc:    "invalid value is empty",
+			value:  "type=volume,src=,target=/foo",
+			expErr: "invalid value for 'src': value is empty",
+		},
+		{
+			doc:    "invalid value with leading whitespace",
+			value:  "type=volume,src= /foo,target=/foo",
+			expErr: "invalid value for 'src' in 'src= /foo': value should not have whitespace",
+		},
+		{
+			doc:    "invalid value with trailing whitespace",
+			value:  "type=volume,src=/foo ,target=/foo",
+			expErr: "invalid value for 'src' in 'src=/foo ': value should not have whitespace",
+		},
+		{
 			doc:    "missing value",
 			value:  "type=volume,target=/foo,bogus",
 			expErr: "invalid field 'bogus' must be a key=value pair",
@@ -171,8 +186,8 @@ func TestMountOptReadOnly(t *testing.T) {
 	}{
 		{value: "", exp: false},
 		{value: "readonly", exp: true},
-		{value: "readonly=", expErr: `invalid value for readonly: `},
-		{value: "readonly= true", expErr: `invalid value for readonly:  true`},
+		{value: "readonly=", expErr: `invalid value for 'readonly': value is empty`},
+		{value: "readonly= true", expErr: `invalid value for 'readonly' in 'readonly= true': value should not have whitespace`},
 		{value: "readonly=no", expErr: `invalid value for readonly: no`},
 		{value: "readonly=1", exp: true},
 		{value: "readonly=true", exp: true},
@@ -215,8 +230,8 @@ func TestMountOptVolumeNoCopy(t *testing.T) {
 	}{
 		{value: "", exp: false},
 		{value: "volume-nocopy", exp: true},
-		{value: "volume-nocopy=", expErr: `invalid value for volume-nocopy: `},
-		{value: "volume-nocopy= true", expErr: `invalid value for volume-nocopy:  true`},
+		{value: "volume-nocopy=", expErr: `invalid value for 'volume-nocopy': value is empty`},
+		{value: "volume-nocopy= true", expErr: `invalid value for 'volume-nocopy' in 'volume-nocopy= true': value should not have whitespace`},
 		{value: "volume-nocopy=no", expErr: `invalid value for volume-nocopy: no`},
 		{value: "volume-nocopy=1", exp: true},
 		{value: "volume-nocopy=true", exp: true},

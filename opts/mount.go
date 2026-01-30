@@ -78,15 +78,24 @@ func (m *MountOpt) Set(value string) error {
 	mount.Type = mounttypes.TypeVolume // default to volume mounts
 
 	for _, field := range fields {
-		key, val, ok := strings.Cut(field, "=")
+		key, val, hasValue := strings.Cut(field, "=")
 		if k := strings.TrimSpace(key); k != key {
 			return fmt.Errorf("invalid option '%s' in '%s': option should not have whitespace", k, field)
+		}
+		if hasValue {
+			v := strings.TrimSpace(val)
+			if v == "" {
+				return fmt.Errorf("invalid value for '%s': value is empty", key)
+			}
+			if v != val {
+				return fmt.Errorf("invalid value for '%s' in '%s': value should not have whitespace", key, field)
+			}
 		}
 
 		// TODO(thaJeztah): these options should not be case-insensitive.
 		key = strings.ToLower(key)
 
-		if !ok {
+		if !hasValue {
 			switch key {
 			case "readonly", "ro":
 				mount.ReadOnly = true
