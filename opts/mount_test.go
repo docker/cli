@@ -262,6 +262,181 @@ func TestMountOptVolumeNoCopy(t *testing.T) {
 	}
 }
 
+func TestMountOptVolumeOptions(t *testing.T) {
+	tests := []struct {
+		doc   string
+		value string
+		exp   mount.Mount
+	}{
+		{
+			doc:   "volume-label single",
+			value: `type=volume,target=/foo,volume-label=foo=foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo": "foo-value",
+					},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			doc:   "volume-label multiple",
+			value: `type=volume,target=/foo,volume-label=foo=foo-value,volume-label=bar=bar-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo": "foo-value",
+						"bar": "bar-value",
+					},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			doc:   "volume-label empty values",
+			value: `type=volume,target=/foo,volume-label=foo=,volume-label=bar`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo": "",
+						"bar": "",
+					},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			// TODO(thaJeztah): this should probably be an error instead
+			doc:   "volume-label empty key",
+			value: `type=volume,target=/foo,volume-label==foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels:       map[string]string{},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			doc:   "volume-driver",
+			value: `type=volume,target=/foo,volume-driver=my-driver`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Name: "my-driver",
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-opt single",
+			value: `type=volume,target=/foo,volume-opt=foo=foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{
+							"foo": "foo-value",
+						},
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-opt multiple",
+			value: `type=volume,target=/foo,volume-opt=foo=foo-value,volume-opt=bar=bar-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{
+							"foo": "foo-value",
+							"bar": "bar-value",
+						},
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-opt empty values",
+			value: `type=volume,target=/foo,volume-opt=foo=,volume-opt=bar`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{
+							"foo": "",
+							"bar": "",
+						},
+					},
+				},
+			},
+		},
+		{
+			// TODO(thaJeztah): this should probably be an error instead
+			doc:   "volume-opt empty key",
+			value: `type=volume,target=/foo,volume-opt==foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{},
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-label and volume-opt",
+			value: `type=volume,volume-driver=my-driver,target=/foo,volume-label=foo=foo-value,volume-label=empty=,volume-opt=foo=foo-value,volume-opt=empty=`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo":   "foo-value",
+						"empty": "",
+					},
+					DriverConfig: &mount.Driver{
+						Name: "my-driver",
+						Options: map[string]string{
+							"foo":   "foo-value",
+							"empty": "",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			var m MountOpt
+
+			assert.NilError(t, m.Set(tc.value))
+			assert.Check(t, is.DeepEqual(m.values[0], tc.exp))
+		})
+	}
+}
+
 func TestMountOptSetImageNoError(t *testing.T) {
 	for _, tc := range []string{
 		"type=image,source=foo,target=/target,image-subpath=/bar",
