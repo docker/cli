@@ -1,8 +1,70 @@
 package opts
 
 import (
+	"errors"
 	"fmt"
+
+	"github.com/moby/moby/api/types/mount"
 )
+
+// validateMountOptions performs client-side validation of mount options. Similar
+// validation happens on the daemon side, but this validation allows us to
+// produce user-friendly errors matching command-line options.
+func validateMountOptions(m *mount.Mount) error {
+	if err := validateExclusiveOptions(m); err != nil {
+		return err
+	}
+
+	if m.BindOptions != nil {
+		if m.BindOptions.ReadOnlyNonRecursive && !m.ReadOnly {
+			return errors.New("option 'bind-recursive=writable' requires 'readonly' to be specified in conjunction")
+		}
+		if m.BindOptions.ReadOnlyForceRecursive {
+			if !m.ReadOnly {
+				return errors.New("option 'bind-recursive=readonly' requires 'readonly' to be specified in conjunction")
+			}
+			if m.BindOptions.Propagation != mount.PropagationRPrivate {
+				// FIXME(thaJeztah): this is missing daemon-side validation
+				//
+				//	docker run --rm --mount type=bind,src=/var/run,target=/foo,bind-recursive=readonly,readonly alpine
+				//	# no error
+				return errors.New("option 'bind-recursive=readonly' requires 'bind-propagation=rprivate' to be specified in conjunction")
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateExclusiveOptions checks if the given mount config only contains
+// options for the given mount-type.
+//
+// This is the client-side equivalent of [mounts.validateExclusiveOptions] in
+// the daemon, but with error-messages matching client-side flags / options.
+//
+// [mounts.validateExclusiveOptions]: https://github.com/moby/moby/blob/v2.0.0-beta.6/daemon/volume/mounts/validate.go#L31-L50
+func validateExclusiveOptions(m *mount.Mount) error {
+	if m.Type == "" {
+		return errors.New("type is required")
+	}
+
+	if m.Type != mount.TypeBind && m.BindOptions != nil {
+		return fmt.Errorf("cannot mix 'bind-*' options with mount type '%s'", m.Type)
+	}
+	if m.Type != mount.TypeVolume && m.VolumeOptions != nil {
+		return fmt.Errorf("cannot mix 'volume-*' options with mount type '%s'", m.Type)
+	}
+	if m.Type != mount.TypeImage && m.ImageOptions != nil {
+		return fmt.Errorf("cannot mix 'image-*' options with mount type '%s'", m.Type)
+	}
+	if m.Type != mount.TypeTmpfs && m.TmpfsOptions != nil {
+		return fmt.Errorf("cannot mix 'tmpfs-*' options with mount type '%s'", m.Type)
+	}
+	if m.Type != mount.TypeCluster && m.ClusterOptions != nil {
+		return fmt.Errorf("cannot mix 'cluster-*' options with mount type '%s'", m.Type)
+	}
+	return nil
+}
 
 // parseBoolValue returns the boolean value represented by the string. It returns
 // true if no value is set.

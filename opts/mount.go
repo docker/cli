@@ -177,37 +177,8 @@ func (m *MountOpt) Set(value string) error {
 		}
 	}
 
-	if mount.Type == "" {
-		return errors.New("type is required")
-	}
-
-	if mount.VolumeOptions != nil && mount.Type != mounttypes.TypeVolume {
-		return fmt.Errorf("cannot mix 'volume-*' options with mount type '%s'", mount.Type)
-	}
-	if mount.ImageOptions != nil && mount.Type != mounttypes.TypeImage {
-		return fmt.Errorf("cannot mix 'image-*' options with mount type '%s'", mount.Type)
-	}
-	if mount.BindOptions != nil && mount.Type != mounttypes.TypeBind {
-		return fmt.Errorf("cannot mix 'bind-*' options with mount type '%s'", mount.Type)
-	}
-	if mount.TmpfsOptions != nil && mount.Type != mounttypes.TypeTmpfs {
-		return fmt.Errorf("cannot mix 'tmpfs-*' options with mount type '%s'", mount.Type)
-	}
-
-	if mount.BindOptions != nil {
-		if mount.BindOptions.ReadOnlyNonRecursive {
-			if !mount.ReadOnly {
-				return errors.New("option 'bind-recursive=writable' requires 'readonly' to be specified in conjunction")
-			}
-		}
-		if mount.BindOptions.ReadOnlyForceRecursive {
-			if !mount.ReadOnly {
-				return errors.New("option 'bind-recursive=readonly' requires 'readonly' to be specified in conjunction")
-			}
-			if mount.BindOptions.Propagation != mounttypes.PropagationRPrivate {
-				return errors.New("option 'bind-recursive=readonly' requires 'bind-propagation=rprivate' to be specified in conjunction")
-			}
-		}
+	if err := validateMountOptions(&mount); err != nil {
+		return err
 	}
 
 	m.values = append(m.values, mount)
