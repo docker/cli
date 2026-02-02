@@ -110,6 +110,10 @@ func TestMountOptErrors(t *testing.T) {
 		doc, value, expErr string
 	}{
 		{
+			doc:    "empty value",
+			expErr: "value is empty",
+		},
+		{
 			doc:    "missing tmpfs target",
 			value:  "type=tmpfs",
 			expErr: "target is required",

@@ -22,6 +22,11 @@ type MountOpt struct {
 //
 //nolint:gocyclo
 func (m *MountOpt) Set(value string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return errors.New("value is empty")
+	}
+
 	csvReader := csv.NewReader(strings.NewReader(value))
 	fields, err := csvReader.Read()
 	if err != nil {
