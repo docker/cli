@@ -3,6 +3,7 @@ package command_test
 import (
 	"bytes"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/cli/command"
@@ -58,7 +59,9 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 			expectedAuthConfig: testAuthConfigs[1],
 		},
 	}
-	cfg := configfile.New("filename")
+
+	tmpDir := t.TempDir()
+	cfg := configfile.New(filepath.Join(tmpDir, "cli-config.json"))
 	for _, authConfig := range testAuthConfigs {
 		assert.Check(t, cfg.GetCredentialsStore(authConfig.ServerAddress).Store(configtypes.AuthConfig{
 			Username:      authConfig.Username,
