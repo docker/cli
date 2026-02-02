@@ -116,17 +116,32 @@ func TestMountOptErrors(t *testing.T) {
 		{
 			doc:    "invalid key=value",
 			value:  "type=volume,target=/foo,bogus=foo",
-			expErr: "unexpected key 'bogus' in 'bogus=foo'",
+			expErr: "unknown option 'bogus' in 'bogus=foo'",
 		},
 		{
 			doc:    "invalid key with leading whitespace",
 			value:  "type=volume, src=/foo,target=/foo",
-			expErr: "unexpected key ' src' in ' src=/foo'",
+			expErr: "invalid option 'src' in ' src=/foo': option should not have whitespace",
 		},
 		{
 			doc:    "invalid key with trailing whitespace",
 			value:  "type=volume,src =/foo,target=/foo",
-			expErr: "unexpected key 'src ' in 'src =/foo'",
+			expErr: "invalid option 'src' in 'src =/foo': option should not have whitespace",
+		},
+		{
+			doc:    "invalid value is empty",
+			value:  "type=volume,src=,target=/foo",
+			expErr: "invalid value for 'src': value is empty",
+		},
+		{
+			doc:    "invalid value with leading whitespace",
+			value:  "type=volume,src= /foo,target=/foo",
+			expErr: "invalid value for 'src' in 'src= /foo': value should not have whitespace",
+		},
+		{
+			doc:    "invalid value with trailing whitespace",
+			value:  "type=volume,src=/foo ,target=/foo",
+			expErr: "invalid value for 'src' in 'src=/foo ': value should not have whitespace",
 		},
 		{
 			doc:    "missing value",
@@ -171,9 +186,9 @@ func TestMountOptReadOnly(t *testing.T) {
 	}{
 		{value: "", exp: false},
 		{value: "readonly", exp: true},
-		{value: "readonly=", expErr: `invalid value for readonly: `},
-		{value: "readonly= true", expErr: `invalid value for readonly:  true`},
-		{value: "readonly=no", expErr: `invalid value for readonly: no`},
+		{value: "readonly=", expErr: `invalid value for 'readonly': value is empty`},
+		{value: "readonly= true", expErr: `invalid value for 'readonly' in 'readonly= true': value should not have whitespace`},
+		{value: "readonly=no", expErr: `invalid value for 'readonly': invalid boolean value ("no"): must be one of "true", "1", "false", or "0" (default "true")`},
 		{value: "readonly=1", exp: true},
 		{value: "readonly=true", exp: true},
 		{value: "readonly=0", exp: false},
@@ -215,9 +230,9 @@ func TestMountOptVolumeNoCopy(t *testing.T) {
 	}{
 		{value: "", exp: false},
 		{value: "volume-nocopy", exp: true},
-		{value: "volume-nocopy=", expErr: `invalid value for volume-nocopy: `},
-		{value: "volume-nocopy= true", expErr: `invalid value for volume-nocopy:  true`},
-		{value: "volume-nocopy=no", expErr: `invalid value for volume-nocopy: no`},
+		{value: "volume-nocopy=", expErr: `invalid value for 'volume-nocopy': value is empty`},
+		{value: "volume-nocopy= true", expErr: `invalid value for 'volume-nocopy' in 'volume-nocopy= true': value should not have whitespace`},
+		{value: "volume-nocopy=no", expErr: `invalid value for 'volume-nocopy': invalid boolean value ("no"): must be one of "true", "1", "false", or "0" (default "true")`},
 		{value: "volume-nocopy=1", exp: true},
 		{value: "volume-nocopy=true", exp: true},
 		{value: "volume-nocopy=0", exp: false},
@@ -267,7 +282,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 					Labels: map[string]string{
 						"foo": "foo-value",
 					},
-					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
@@ -282,7 +296,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 						"foo": "foo-value",
 						"bar": "bar-value",
 					},
-					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
@@ -297,7 +310,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 						"foo": "",
 						"bar": "",
 					},
-					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
@@ -306,12 +318,9 @@ func TestMountOptVolumeOptions(t *testing.T) {
 			doc:   "volume-label empty key",
 			value: `type=volume,target=/foo,volume-label==foo-value`,
 			exp: mount.Mount{
-				Type:   mount.TypeVolume,
-				Target: "/foo",
-				VolumeOptions: &mount.VolumeOptions{
-					Labels:       map[string]string{},
-					DriverConfig: &mount.Driver{},
-				},
+				Type:          mount.TypeVolume,
+				Target:        "/foo",
+				VolumeOptions: &mount.VolumeOptions{},
 			},
 		},
 		{
@@ -321,7 +330,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Name: "my-driver",
 					},
@@ -335,7 +343,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Options: map[string]string{
 							"foo": "foo-value",
@@ -351,7 +358,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Options: map[string]string{
 							"foo": "foo-value",
@@ -368,7 +374,6 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
 					DriverConfig: &mount.Driver{
 						Options: map[string]string{
 							"foo": "",
@@ -386,10 +391,7 @@ func TestMountOptVolumeOptions(t *testing.T) {
 				Type:   mount.TypeVolume,
 				Target: "/foo",
 				VolumeOptions: &mount.VolumeOptions{
-					Labels: map[string]string{},
-					DriverConfig: &mount.Driver{
-						Options: map[string]string{},
-					},
+					DriverConfig: &mount.Driver{},
 				},
 			},
 		},
