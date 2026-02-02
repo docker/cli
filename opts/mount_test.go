@@ -73,14 +73,13 @@ func TestMountRelative(t *testing.T) {
 	}
 }
 
-// TestMountOptSetBindNoErrorBind tests several aliases that should have
+// TestMountOptSourceTargetAliases tests several aliases that should have
 // the same result.
-func TestMountOptSetBindNoErrorBind(t *testing.T) {
+func TestMountOptSourceTargetAliases(t *testing.T) {
 	for _, tc := range []string{
-		"type=bind,target=/target,source=/source",
 		"type=bind,src=/source,dst=/target",
-		"type=bind,source=/source,dst=/target",
-		"type=bind,src=/source,target=/target",
+		"type=bind,source=/source,target=/target",
+		"type=bind,source=/source,destination=/target",
 	} {
 		t.Run(tc, func(t *testing.T) {
 			var m MountOpt
@@ -98,31 +97,6 @@ func TestMountOptSetBindNoErrorBind(t *testing.T) {
 	}
 }
 
-// TestMountOptSetVolumeNoError tests several aliases that should have
-// the same result.
-func TestMountOptSetVolumeNoError(t *testing.T) {
-	for _, tc := range []string{
-		"type=volume,target=/target,source=/source",
-		"type=volume,src=/source,dst=/target",
-		"type=volume,source=/source,dst=/target",
-		"type=volume,src=/source,target=/target",
-	} {
-		t.Run(tc, func(t *testing.T) {
-			var m MountOpt
-
-			assert.NilError(t, m.Set(tc))
-
-			mounts := m.Value()
-			assert.Assert(t, is.Len(mounts, 1))
-			assert.Check(t, is.DeepEqual(mount.Mount{
-				Type:   mount.TypeVolume,
-				Source: "/source",
-				Target: "/target",
-			}, mounts[0]))
-		})
-	}
-}
-
 // TestMountOptDefaultType ensures that a mount without the type defaults to a
 // volume mount.
 func TestMountOptDefaultType(t *testing.T) {
@@ -131,78 +105,336 @@ func TestMountOptDefaultType(t *testing.T) {
 	assert.Check(t, is.Equal(mount.TypeVolume, m.values[0].Type))
 }
 
-func TestMountOptSetErrorNoTarget(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,source=/foo"), "target is required")
+func TestMountOptErrors(t *testing.T) {
+	tests := []struct {
+		doc, value, expErr string
+	}{
+		{
+			doc:    "missing tmpfs target",
+			value:  "type=tmpfs",
+			expErr: "target is required",
+		},
+		{
+			doc:    "missing bind target",
+			value:  "type=bind",
+			expErr: "target is required",
+		},
+		{
+			doc:    "missing volume target",
+			value:  "type=volume,source=/foo",
+			expErr: "target is required",
+		},
+		{
+			doc:    "invalid key=value",
+			value:  "type=volume,target=/foo,bogus=foo",
+			expErr: "unexpected key 'bogus' in 'bogus=foo'",
+		},
+		{
+			doc:    "invalid key with leading whitespace",
+			value:  "type=volume, src=/foo,target=/foo",
+			expErr: "unexpected key ' src' in ' src=/foo'",
+		},
+		{
+			doc:    "invalid key with trailing whitespace",
+			value:  "type=volume,src =/foo,target=/foo",
+			expErr: "unexpected key 'src ' in 'src =/foo'",
+		},
+		{
+			doc:    "missing value",
+			value:  "type=volume,target=/foo,bogus",
+			expErr: "invalid field 'bogus' must be a key=value pair",
+		},
+		{
+			doc:    "invalid tmpfs-size",
+			value:  "type=tmpfs,target=/foo,tmpfs-size=foo",
+			expErr: "invalid value for tmpfs-size: foo",
+		},
+		{
+			doc:    "invalid tmpfs-mode",
+			value:  "type=tmpfs,target=/foo,tmpfs-mode=foo",
+			expErr: "invalid value for tmpfs-mode: foo",
+		},
+		{
+			doc:    "mixed bind and volume",
+			value:  "type=volume,target=/foo,source=/foo,bind-propagation=rprivate",
+			expErr: "cannot mix 'bind-*' options with mount type 'volume'",
+		},
+		{
+			doc:    "mixed volume and bind",
+			value:  "type=bind,target=/foo,source=/foo,volume-nocopy=true",
+			expErr: "cannot mix 'volume-*' options with mount type 'bind'",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			err := (&MountOpt{}).Set(tc.value)
+			assert.Error(t, err, tc.expErr)
+		})
+	}
 }
 
-func TestMountOptSetErrorInvalidKey(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,bogus=foo"), "unexpected key 'bogus' in 'bogus=foo'")
-}
+func TestMountOptReadOnly(t *testing.T) {
+	tests := []struct {
+		value  string
+		exp    bool
+		expErr string
+	}{
+		{value: "", exp: false},
+		{value: "readonly", exp: true},
+		{value: "readonly=", expErr: `invalid value for readonly: `},
+		{value: "readonly= true", expErr: `invalid value for readonly:  true`},
+		{value: "readonly=no", expErr: `invalid value for readonly: no`},
+		{value: "readonly=1", exp: true},
+		{value: "readonly=true", exp: true},
+		{value: "readonly=0", exp: false},
+		{value: "readonly=false", exp: false},
+		{value: "ro", exp: true},
+		{value: "ro=1", exp: true},
+		{value: "ro=true", exp: true},
+		{value: "ro=0", exp: false},
+		{value: "ro=false", exp: false},
+	}
 
-func TestMountOptSetErrorInvalidField(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,bogus"), "invalid field 'bogus' must be a key=value pair")
-}
-
-func TestMountOptSetErrorInvalidReadOnly(t *testing.T) {
-	var m MountOpt
-	assert.Error(t, m.Set("type=volume,readonly=no"), "invalid value for readonly: no")
-	assert.Error(t, m.Set("type=volume,readonly=invalid"), "invalid value for readonly: invalid")
-}
-
-func TestMountOptDefaultEnableReadOnly(t *testing.T) {
-	var m MountOpt
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo"))
-	assert.Check(t, !m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly"))
-	assert.Check(t, m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=1"))
-	assert.Check(t, m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=true"))
-	assert.Check(t, m.values[0].ReadOnly)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=bind,target=/foo,source=/foo,readonly=0"))
-	assert.Check(t, !m.values[0].ReadOnly)
+	for _, tc := range tests {
+		name := tc.value
+		if name == "" {
+			name = "not set"
+		}
+		t.Run(name, func(t *testing.T) {
+			val := "type=bind,target=/foo,source=/foo"
+			if tc.value != "" {
+				val += "," + tc.value
+			}
+			var m MountOpt
+			err := m.Set(val)
+			if tc.expErr != "" {
+				assert.Error(t, err, tc.expErr)
+				return
+			}
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(m.values[0].ReadOnly, tc.exp))
+		})
+	}
 }
 
 func TestMountOptVolumeNoCopy(t *testing.T) {
-	var m MountOpt
-	assert.NilError(t, m.Set("type=volume,target=/foo,volume-nocopy"))
-	assert.Check(t, is.Equal("", m.values[0].Source))
+	tests := []struct {
+		value  string
+		exp    bool
+		expErr string
+	}{
+		{value: "", exp: false},
+		{value: "volume-nocopy", exp: true},
+		{value: "volume-nocopy=", expErr: `invalid value for volume-nocopy: `},
+		{value: "volume-nocopy= true", expErr: `invalid value for volume-nocopy:  true`},
+		{value: "volume-nocopy=no", expErr: `invalid value for volume-nocopy: no`},
+		{value: "volume-nocopy=1", exp: true},
+		{value: "volume-nocopy=true", exp: true},
+		{value: "volume-nocopy=0", exp: false},
+		{value: "volume-nocopy=false", exp: false},
+	}
 
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo"))
-	assert.Check(t, m.values[0].VolumeOptions == nil)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=true"))
-	assert.Check(t, m.values[0].VolumeOptions != nil)
-	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy"))
-	assert.Check(t, m.values[0].VolumeOptions != nil)
-	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
-
-	m = MountOpt{}
-	assert.NilError(t, m.Set("type=volume,target=/foo,source=foo,volume-nocopy=1"))
-	assert.Check(t, m.values[0].VolumeOptions != nil)
-	assert.Check(t, m.values[0].VolumeOptions.NoCopy)
+	for _, tc := range tests {
+		name := tc.value
+		if name == "" {
+			name = "not set"
+		}
+		t.Run(name, func(t *testing.T) {
+			val := "type=volume,target=/foo,source=foo"
+			if tc.value != "" {
+				val += "," + tc.value
+			}
+			var m MountOpt
+			err := m.Set(val)
+			if tc.expErr != "" {
+				assert.Error(t, err, tc.expErr)
+				return
+			}
+			assert.NilError(t, err)
+			if tc.value == "" {
+				assert.Check(t, is.Nil(m.values[0].VolumeOptions))
+			} else {
+				assert.Check(t, m.values[0].VolumeOptions != nil)
+				assert.Check(t, is.Equal(m.values[0].VolumeOptions.NoCopy, tc.exp))
+			}
+		})
+	}
 }
 
-func TestMountOptTypeConflict(t *testing.T) {
-	var m MountOpt
-	assert.ErrorContains(t, m.Set("type=bind,target=/foo,source=/foo,volume-nocopy=true"), "cannot mix")
-	assert.ErrorContains(t, m.Set("type=volume,target=/foo,source=/foo,bind-propagation=rprivate"), "cannot mix")
+func TestMountOptVolumeOptions(t *testing.T) {
+	tests := []struct {
+		doc   string
+		value string
+		exp   mount.Mount
+	}{
+		{
+			doc:   "volume-label single",
+			value: `type=volume,target=/foo,volume-label=foo=foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo": "foo-value",
+					},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			doc:   "volume-label multiple",
+			value: `type=volume,target=/foo,volume-label=foo=foo-value,volume-label=bar=bar-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo": "foo-value",
+						"bar": "bar-value",
+					},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			doc:   "volume-label empty values",
+			value: `type=volume,target=/foo,volume-label=foo=,volume-label=bar`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo": "",
+						"bar": "",
+					},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			// TODO(thaJeztah): this should probably be an error instead
+			doc:   "volume-label empty key",
+			value: `type=volume,target=/foo,volume-label==foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels:       map[string]string{},
+					DriverConfig: &mount.Driver{},
+				},
+			},
+		},
+		{
+			doc:   "volume-driver",
+			value: `type=volume,target=/foo,volume-driver=my-driver`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Name: "my-driver",
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-opt single",
+			value: `type=volume,target=/foo,volume-opt=foo=foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{
+							"foo": "foo-value",
+						},
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-opt multiple",
+			value: `type=volume,target=/foo,volume-opt=foo=foo-value,volume-opt=bar=bar-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{
+							"foo": "foo-value",
+							"bar": "bar-value",
+						},
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-opt empty values",
+			value: `type=volume,target=/foo,volume-opt=foo=,volume-opt=bar`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{
+							"foo": "",
+							"bar": "",
+						},
+					},
+				},
+			},
+		},
+		{
+			// TODO(thaJeztah): this should probably be an error instead
+			doc:   "volume-opt empty key",
+			value: `type=volume,target=/foo,volume-opt==foo-value`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{},
+					DriverConfig: &mount.Driver{
+						Options: map[string]string{},
+					},
+				},
+			},
+		},
+		{
+			doc:   "volume-label and volume-opt",
+			value: `type=volume,volume-driver=my-driver,target=/foo,volume-label=foo=foo-value,volume-label=empty=,volume-opt=foo=foo-value,volume-opt=empty=`,
+			exp: mount.Mount{
+				Type:   mount.TypeVolume,
+				Target: "/foo",
+				VolumeOptions: &mount.VolumeOptions{
+					Labels: map[string]string{
+						"foo":   "foo-value",
+						"empty": "",
+					},
+					DriverConfig: &mount.Driver{
+						Name: "my-driver",
+						Options: map[string]string{
+							"foo":   "foo-value",
+							"empty": "",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			var m MountOpt
+
+			assert.NilError(t, m.Set(tc.value))
+			assert.Check(t, is.DeepEqual(m.values[0], tc.exp))
+		})
+	}
 }
 
 func TestMountOptSetImageNoError(t *testing.T) {
@@ -250,13 +482,6 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 			}, mounts[0]))
 		})
 	}
-}
-
-func TestMountOptSetTmpfsError(t *testing.T) {
-	var m MountOpt
-	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-size=foo"), "invalid value for tmpfs-size")
-	assert.ErrorContains(t, m.Set("type=tmpfs,target=/foo,tmpfs-mode=foo"), "invalid value for tmpfs-mode")
-	assert.ErrorContains(t, m.Set("type=tmpfs"), "target is required")
 }
 
 func TestMountOptSetBindRecursive(t *testing.T) {
