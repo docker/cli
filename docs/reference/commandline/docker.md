@@ -64,6 +64,7 @@ The base command for the Docker CLI.
 | [`version`](version.md)       | Show the Docker version information                                           |
 | [`volume`](volume.md)         | Manage volumes                                                                |
 | [`wait`](wait.md)             | Block until one or more containers stop, then print their exit codes          |
+| [`whoami`](whoami.md)         | Display the username of the currently logged in user                          |
 
 
 ### Options
