@@ -74,7 +74,7 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
 	cli.ConfigFile().Filename = filepath.Join(t.TempDir(), "config.json")
 	for _, tc := range testCases {
-		_, err := loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
+		err := loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
 		if tc.expectedErrMsg != "" {
 			assert.Check(t, is.Error(err, tc.expectedErr))
 		} else {
