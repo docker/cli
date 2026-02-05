@@ -80,8 +80,7 @@ func Service(
 		return swarm.ServiceSpec{}, err
 	}
 
-	restartPolicy, err := convertRestartPolicy(
-		service.Restart, service.Deploy.RestartPolicy)
+	restartPolicy, err := convertRestartPolicy(service.Restart, service.Deploy.RestartPolicy)
 	if err != nil {
 		return swarm.ServiceSpec{}, err
 	}
@@ -484,7 +483,7 @@ func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*
 				MaxAttempts: &attempts,
 			}, nil
 		default:
-			return nil, fmt.Errorf("unknown restart policy: %s", restart)
+			return nil, fmt.Errorf("invalid restart policy: unknown policy '%s'", restart)
 		}
 	}
 
