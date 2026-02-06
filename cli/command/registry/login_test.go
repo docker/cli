@@ -8,6 +8,7 @@ import (
 	"io"
 	"path/filepath"
 	"testing"
+	"testing/iotest"
 	"time"
 
 	"github.com/creack/pty"
@@ -290,6 +291,38 @@ func TestRunLogin(t *testing.T) {
 			},
 		},
 		{
+			doc:              "password stdin empty",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				passwordStdin: true,
+			},
+			expectedErr: `password is empty`,
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "password stdin read error",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				passwordStdin: true,
+			},
+			expectedErr: `TEST_READ_ERR`,
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
 			doc:              "password stdin with line-endings",
 			priorCredentials: map[string]configtypes.AuthConfig{},
 			stdIn:            "my password\r\n",
@@ -315,7 +348,11 @@ func TestRunLogin(t *testing.T) {
 			cli := test.NewFakeCli(&fakeClient{})
 			cli.SetConfigFile(cfg)
 			if tc.input.passwordStdin {
-				cli.SetIn(streams.NewIn(io.NopCloser(bytes.NewBufferString(tc.stdIn))))
+				if tc.expectedErr == "TEST_READ_ERR" {
+					cli.SetIn(streams.NewIn(io.NopCloser(iotest.ErrReader(errors.New(tc.expectedErr)))))
+				} else {
+					cli.SetIn(streams.NewIn(io.NopCloser(bytes.NewBufferString(tc.stdIn))))
+				}
 			}
 
 			for _, priorCred := range tc.priorCredentials {
