@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -92,6 +93,7 @@ func TestRunLogin(t *testing.T) {
 	testCases := []struct {
 		doc                 string
 		priorCredentials    map[string]configtypes.AuthConfig
+		stdIn               string
 		input               loginOptions
 		expectedCredentials map[string]configtypes.AuthConfig
 		expectedErr         string
@@ -287,6 +289,56 @@ func TestRunLogin(t *testing.T) {
 				},
 			},
 		},
+		{
+			doc:              "password with leading and trailing spaces",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				password:      "  my password with spaces  ",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "  my password with spaces  ",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "password stdin with line-endings",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			stdIn:            "  my password with spaces  \r\n",
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				passwordStdin: true,
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "  my password with spaces  ",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "password stdin with multiple line-endings",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			stdIn:            "  my password\nwith spaces  \r\n\r\n",
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				passwordStdin: true,
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "  my password\nwith spaces  \r\n",
+					ServerAddress: "reg1",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -295,6 +347,9 @@ func TestRunLogin(t *testing.T) {
 			cfg := configfile.New(filepath.Join(tmpDir, "config.json"))
 			cli := test.NewFakeCli(&fakeClient{})
 			cli.SetConfigFile(cfg)
+			if tc.input.passwordStdin {
+				cli.SetIn(streams.NewIn(io.NopCloser(bytes.NewBufferString(tc.stdIn))))
+			}
 
 			for _, priorCred := range tc.priorCredentials {
 				assert.NilError(t, cfg.GetCredentialsStore(priorCred.ServerAddress).Store(priorCred))
