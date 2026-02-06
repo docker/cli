@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/creack/pty"
+	"github.com/docker/cli/cli/config/configfile"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
@@ -19,7 +20,6 @@ import (
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
-	"gotest.tools/v3/fs"
 )
 
 const (
@@ -71,8 +71,9 @@ func TestLoginWithCredStoreCreds(t *testing.T) {
 		},
 	}
 	ctx := context.Background()
+	tmpDir := t.TempDir()
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.ConfigFile().Filename = filepath.Join(t.TempDir(), "config.json")
+	cli.SetConfigFile(configfile.New(filepath.Join(tmpDir, "config.json")))
 	for _, tc := range testCases {
 		_, err := loginWithStoredCredentials(ctx, cli, tc.inputAuthConfig)
 		if tc.expectedErrMsg != "" {
@@ -290,16 +291,15 @@ func TestRunLogin(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.doc, func(t *testing.T) {
-			tmpFile := fs.NewFile(t, "test-run-login")
-			defer tmpFile.Remove()
+			tmpDir := t.TempDir()
+			cfg := configfile.New(filepath.Join(tmpDir, "config.json"))
 			cli := test.NewFakeCli(&fakeClient{})
-			configfile := cli.ConfigFile()
-			configfile.Filename = tmpFile.Path()
+			cli.SetConfigFile(cfg)
 
 			for _, priorCred := range tc.priorCredentials {
-				assert.NilError(t, configfile.GetCredentialsStore(priorCred.ServerAddress).Store(priorCred))
+				assert.NilError(t, cfg.GetCredentialsStore(priorCred.ServerAddress).Store(priorCred))
 			}
-			storedCreds, err := configfile.GetAllCredentials()
+			storedCreds, err := cfg.GetAllCredentials()
 			assert.NilError(t, err)
 			assert.DeepEqual(t, storedCreds, tc.priorCredentials)
 
@@ -310,7 +310,7 @@ func TestRunLogin(t *testing.T) {
 			}
 			assert.NilError(t, loginErr)
 
-			outputCreds, err := configfile.GetAllCredentials()
+			outputCreds, err := cfg.GetAllCredentials()
 			assert.Check(t, err)
 			assert.DeepEqual(t, outputCreds, tc.expectedCredentials)
 		})
@@ -356,11 +356,10 @@ func TestLoginNonInteractive(t *testing.T) {
 		for _, registryAddr := range registries {
 			for _, tc := range testCases {
 				t.Run(tc.doc, func(t *testing.T) {
-					tmpFile := fs.NewFile(t, "test-run-login")
-					defer tmpFile.Remove()
+					tmpDir := t.TempDir()
+					cfg := configfile.New(filepath.Join(tmpDir, "config.json"))
 					cli := test.NewFakeCli(&fakeClient{})
-					cfg := cli.ConfigFile()
-					cfg.Filename = tmpFile.Path()
+					cli.SetConfigFile(cfg)
 					options := loginOptions{
 						serverAddress: registryAddr,
 					}
@@ -419,11 +418,10 @@ func TestLoginNonInteractive(t *testing.T) {
 		for _, registryAddr := range registries {
 			for _, tc := range testCases {
 				t.Run(tc.doc, func(t *testing.T) {
-					tmpFile := fs.NewFile(t, "test-run-login")
-					defer tmpFile.Remove()
+					tmpDir := t.TempDir()
+					cfg := configfile.New(filepath.Join(tmpDir, "config.json"))
 					cli := test.NewFakeCli(&fakeClient{})
-					cfg := cli.ConfigFile()
-					cfg.Filename = tmpFile.Path()
+					cli.SetConfigFile(cfg)
 					serverAddress := registryAddr
 					if serverAddress == "" {
 						serverAddress = "https://index.docker.io/v1/"
@@ -465,17 +463,15 @@ func TestLoginTermination(t *testing.T) {
 		_ = p.Close()
 	})
 
+	tmpDir := t.TempDir()
+	cfg := configfile.New(filepath.Join(tmpDir, "config.json"))
 	cli := test.NewFakeCli(&fakeClient{}, func(fc *test.FakeCli) {
 		fc.SetOut(streams.NewOut(tty))
 		fc.SetIn(streams.NewIn(tty))
 	})
-	tmpFile := fs.NewFile(t, "test-login-termination")
-	defer tmpFile.Remove()
+	cli.SetConfigFile(cfg)
 
-	configFile := cli.ConfigFile()
-	configFile.Filename = tmpFile.Path()
-
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 
 	runErr := make(chan error)
