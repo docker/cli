@@ -15,6 +15,13 @@ type Out struct {
 	out io.Writer
 }
 
+// NewOut returns a new [Out] from an [io.Writer].
+func NewOut(out io.Writer) *Out {
+	o := &Out{out: out}
+	o.fd, o.isTerminal = term.GetFdInfo(out)
+	return o
+}
+
 func (o *Out) Write(p []byte) (int, error) {
 	return o.out.Write(p)
 }
@@ -43,11 +50,4 @@ func (o *Out) GetTtySize() (height uint, width uint) {
 		}
 	}
 	return uint(ws.Height), uint(ws.Width)
-}
-
-// NewOut returns a new [Out] from an [io.Writer].
-func NewOut(out io.Writer) *Out {
-	o := &Out{out: out}
-	o.fd, o.isTerminal = term.GetFdInfo(out)
-	return o
 }

@@ -15,6 +15,13 @@ type In struct {
 	in io.ReadCloser
 }
 
+// NewIn returns a new [In] from an [io.ReadCloser].
+func NewIn(in io.ReadCloser) *In {
+	i := &In{in: in}
+	i.fd, i.isTerminal = term.GetFdInfo(in)
+	return i
+}
+
 // Read implements the [io.Reader] interface.
 func (i *In) Read(p []byte) (int, error) {
 	return i.in.Read(p)
@@ -46,11 +53,4 @@ func (i *In) CheckTty(attachStdin, ttyMode bool) error {
 		return errors.New(eText)
 	}
 	return nil
-}
-
-// NewIn returns a new [In] from an [io.ReadCloser].
-func NewIn(in io.ReadCloser) *In {
-	i := &In{in: in}
-	i.fd, i.isTerminal = term.GetFdInfo(in)
-	return i
 }
