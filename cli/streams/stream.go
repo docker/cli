@@ -11,14 +11,21 @@ import (
 )
 
 func newCommonStream(stream any) commonStream {
+	var f *os.File
+	if v, ok := stream.(*os.File); ok {
+		f = v
+	}
+
 	fd, tty := term.GetFdInfo(stream)
 	return commonStream{
+		f:   f,
 		fd:  fd,
 		tty: tty,
 	}
 }
 
 type commonStream struct {
+	f     *os.File
 	fd    uintptr
 	tty   bool
 	state *term.State
@@ -26,6 +33,9 @@ type commonStream struct {
 
 // FD returns the file descriptor number for this stream.
 func (s *commonStream) FD() uintptr { return s.fd }
+
+// file returns the underlying *os.File if the stream was constructed from one.
+func (s *commonStream) file() (*os.File, bool) { return s.f, s.f != nil }
 
 // isTerminal returns whether this stream is connected to a terminal.
 func (s *commonStream) isTerminal() bool { return s.tty }
