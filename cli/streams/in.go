@@ -3,7 +3,6 @@ package streams
 import (
 	"errors"
 	"io"
-	"os"
 	"runtime"
 
 	"github.com/moby/term"
@@ -29,12 +28,8 @@ func (i *In) Close() error {
 // SetRawTerminal sets raw mode on the input terminal. It is a no-op if In
 // is not a TTY, or if the "NORAW" environment variable is set to a non-empty
 // value.
-func (i *In) SetRawTerminal() (err error) {
-	if !i.isTerminal || os.Getenv("NORAW") != "" {
-		return nil
-	}
-	i.state, err = term.SetRawTerminal(i.fd)
-	return err
+func (i *In) SetRawTerminal() error {
+	return i.setRawTerminal(term.SetRawTerminal)
 }
 
 // CheckTty checks if we are trying to attach to a container TTY

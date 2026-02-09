@@ -2,7 +2,6 @@ package streams
 
 import (
 	"io"
-	"os"
 
 	"github.com/moby/term"
 	"github.com/sirupsen/logrus"
@@ -26,12 +25,8 @@ func (o *Out) Write(p []byte) (int, error) {
 // On UNIX, this does nothing. On Windows, it disables LF -> CRLF/ translation.
 // It is a no-op if Out is not a TTY, or if the "NORAW" environment variable is
 // set to a non-empty value.
-func (o *Out) SetRawTerminal() (err error) {
-	if !o.isTerminal || os.Getenv("NORAW") != "" {
-		return nil
-	}
-	o.state, err = term.SetRawTerminalOutput(o.fd)
-	return err
+func (o *Out) SetRawTerminal() error {
+	return o.setRawTerminal(term.SetRawTerminalOutput)
 }
 
 // GetTtySize returns the height and width in characters of the TTY, or

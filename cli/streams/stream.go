@@ -1,6 +1,8 @@
 package streams
 
 import (
+	"os"
+
 	"github.com/moby/term"
 )
 
@@ -20,11 +22,23 @@ func (s *commonStream) IsTerminal() bool {
 	return s.isTerminal
 }
 
-// RestoreTerminal restores normal mode to the terminal.
+// RestoreTerminal restores the terminal state if SetRawTerminal succeeded earlier.
 func (s *commonStream) RestoreTerminal() {
 	if s.state != nil {
 		_ = term.RestoreTerminal(s.fd, s.state)
 	}
+}
+
+func (s *commonStream) setRawTerminal(setter func(uintptr) (*term.State, error)) error {
+	if !s.isTerminal || os.Getenv("NORAW") != "" {
+		return nil
+	}
+	state, err := setter(s.fd)
+	if err != nil {
+		return err
+	}
+	s.state = state
+	return nil
 }
 
 // SetIsTerminal overrides whether a terminal is connected. It is used to
