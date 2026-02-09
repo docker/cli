@@ -132,8 +132,8 @@ multiple times, or by passing a comma-separated list of platforms to remove.
 The following uses of this option are equivalent;
 
 ```console
-$ docker image rm --plaform linux/amd64 --platform linux/ppc64le myimage
-$ docker image rm --plaform linux/amd64,linux/ppc64le myimage
+$ docker image rm --platform linux/amd64 --platform linux/ppc64le myimage
+$ docker image rm --platform linux/amd64,linux/ppc64le myimage
 ```
 
 The following example removes the `linux/amd64` and `linux/ppc64le` variants

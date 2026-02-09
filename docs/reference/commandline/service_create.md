@@ -454,7 +454,7 @@ The following options can only be used for bind mounts (`type=bind`):
         Read-only mounts are made recursively read-only if kernel is v5.12 or later.
         Otherwise the Engine raises an error.</li>
       </ul>
-      When the option is not specified, the default behavior correponds to setting <tt>enabled</tt>.
+      When the option is not specified, the default behavior corresponds to setting <tt>enabled</tt>.
     </td>
   </tr>
 </table>
