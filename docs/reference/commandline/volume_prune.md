@@ -28,7 +28,6 @@ WARNING! This will remove anonymous local volumes not used by at least one conta
 Are you sure you want to continue? [y/N] y
 Deleted Volumes:
 07c7bdf3e34ab76d921894c2b834f073721fccfbbcba792aa7648e3a7a664c2e
-my-named-vol
 
 Total reclaimed space: 36 B
 ```
