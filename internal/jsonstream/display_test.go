@@ -25,7 +25,7 @@ func TestDisplay(t *testing.T) {
 	go func() {
 		id := test.RandomID()[:12] // short-ID
 		progressOutput := streamformatter.NewJSONProgressOutput(server, true)
-		for i := 0; i < 100; i++ {
+		for i := range 100 {
 			select {
 			case <-ctx.Done():
 				assert.NilError(t, server.Close(), "failed to close jsonmessage server")

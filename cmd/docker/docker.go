@@ -410,7 +410,7 @@ func forceExitAfter3TerminationSignals(ctx context.Context, streams command.Stre
 	signal.Notify(sig, platformsignals.TerminationSignals...)
 
 	// once we have received a total of 3 signals we force exit the cli
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		<-sig
 	}
 	_, _ = fmt.Fprint(streams.Err(), "\ngot 3 SIGTERM/SIGINTs, forcefully exiting\n")

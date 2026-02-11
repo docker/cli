@@ -279,7 +279,7 @@ func generateNodes(t *testing.T, activeNodes uint64) client.NodeListResult {
 	t.Helper()
 	nodes := client.NodeListResult{}
 	var i uint64
-	for i = 0; i < activeNodes; i++ {
+	for i = range activeNodes {
 		nodes.Items = append(nodes.Items, swarm.Node{
 			ID:     fmt.Sprintf("node-ready-%d", i),
 			Status: swarm.NodeStatus{State: swarm.NodeStateReady},
