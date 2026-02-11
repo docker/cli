@@ -155,11 +155,11 @@ func (e statusError) Error() string {
 // Note: The root command's name is excluded. If cmd is the root cmd, return ""
 func getCommandName(cmd *cobra.Command) string {
 	fullCmdName := getFullCommandName(cmd)
-	i := strings.Index(fullCmdName, " ")
-	if i == -1 {
+	_, after, ok := strings.Cut(fullCmdName, " ")
+	if !ok {
 		return ""
 	}
-	return fullCmdName[i+1:]
+	return after
 }
 
 // getFullCommandName gets the full cobra command name in the format
