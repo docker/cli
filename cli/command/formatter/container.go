@@ -350,7 +350,7 @@ func DisplayablePorts(ports []container.PortSummary) string {
 		last  uint16
 	}
 	groupMap := make(map[string]*portGroup)
-	var result []string //nolint:prealloc
+	var result []string
 	var hostMappings []string
 	var groupMapKeys []string
 	sort.Slice(ports, func(i, j int) bool {
