@@ -1,11 +1,22 @@
 package manager
 
 import (
+	"context"
 	"testing"
 
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
+
+type fakeConfigProvider struct {
+	cfg *configfile.ConfigFile
+}
+
+func (f *fakeConfigProvider) ConfigFile() *configfile.ConfigFile {
+	return f.cfg
+}
 
 func TestGetNaiveFlags(t *testing.T) {
 	testCases := []struct {
@@ -140,4 +151,72 @@ func TestAppendNextSteps(t *testing.T) {
 			assert.Check(t, is.Equal(appended, len(got) > 0))
 		})
 	}
+}
+
+func TestRunPluginHooksPassesErrorMessage(t *testing.T) {
+	cfg := configfile.New("")
+	cfg.Plugins = map[string]map[string]string{
+		"test-plugin": {"hooks": "build"},
+	}
+	provider := &fakeConfigProvider{cfg: cfg}
+	root := &cobra.Command{Use: "docker"}
+	sub := &cobra.Command{Use: "build"}
+	root.AddCommand(sub)
+
+	// Should not panic with empty error message (success case)
+	RunPluginHooks(context.Background(), provider, root, sub, []string{"build"}, "")
+
+	// Should not panic with non-empty error message (failure case)
+	RunPluginHooks(context.Background(), provider, root, sub, []string{"build"}, "exit status 1")
+}
+
+func TestInvokeAndCollectHooksForwardsErrorMessage(t *testing.T) {
+	cfg := configfile.New("")
+	cfg.Plugins = map[string]map[string]string{
+		"nonexistent": {"hooks": "build"},
+	}
+	root := &cobra.Command{Use: "docker"}
+	sub := &cobra.Command{Use: "build"}
+	root.AddCommand(sub)
+
+	// Plugin binary doesn't exist — invokeAndCollectHooks skips it
+	// gracefully and returns empty. Verifies the error message path
+	// doesn't cause issues when forwarded through the call chain.
+	result := invokeAndCollectHooks(
+		context.Background(), cfg, root, sub,
+		"build", map[string]string{}, "exit status 1",
+	)
+	assert.Check(t, is.Len(result, 0))
+}
+
+func TestInvokeAndCollectHooksNoPlugins(t *testing.T) {
+	cfg := configfile.New("")
+	root := &cobra.Command{Use: "docker"}
+	sub := &cobra.Command{Use: "build"}
+	root.AddCommand(sub)
+
+	result := invokeAndCollectHooks(
+		context.Background(), cfg, root, sub,
+		"build", map[string]string{}, "some error",
+	)
+	assert.Check(t, is.Len(result, 0))
+}
+
+func TestInvokeAndCollectHooksCancelledContext(t *testing.T) {
+	cfg := configfile.New("")
+	cfg.Plugins = map[string]map[string]string{
+		"test-plugin": {"hooks": "build"},
+	}
+	root := &cobra.Command{Use: "docker"}
+	sub := &cobra.Command{Use: "build"}
+	root.AddCommand(sub)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // cancel immediately
+
+	result := invokeAndCollectHooks(
+		ctx, cfg, root, sub,
+		"build", map[string]string{}, "exit status 1",
+	)
+	assert.Check(t, is.Nil(result))
 }

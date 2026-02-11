@@ -480,10 +480,14 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		subCommand = ccmd
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
-			if err == nil {
-				if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-					pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args)
+			if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
+				var errMessage string
+				if err != nil {
+					errMessage = err.Error()
 				}
+				pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args, errMessage)
+			}
+			if err == nil {
 				return nil
 			}
 			if !errdefs.IsNotFound(err) {
