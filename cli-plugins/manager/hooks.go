@@ -42,11 +42,11 @@ func RunCLICommandHooks(ctx context.Context, dockerCLI config.Provider, rootCmd,
 
 // RunPluginHooks is the entrypoint for the hooks execution flow
 // after a plugin command was just executed by the CLI.
-func RunPluginHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, subCommand *cobra.Command, args []string) {
+func RunPluginHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, subCommand *cobra.Command, args []string, cmdErrorMessage string) {
 	commandName := strings.Join(args, " ")
 	flags := getNaiveFlags(args)
 
-	runHooks(ctx, dockerCLI.ConfigFile(), rootCmd, subCommand, commandName, flags, "")
+	runHooks(ctx, dockerCLI.ConfigFile(), rootCmd, subCommand, commandName, flags, cmdErrorMessage)
 }
 
 func runHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
