@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/netip"
 	"slices"
 	"sort"
@@ -551,12 +552,7 @@ func updateStringToSlice(flags *pflag.FlagSet, flag string, field *[]string) {
 }
 
 func anyChanged(flags *pflag.FlagSet, fields ...string) bool {
-	for _, flag := range fields {
-		if flags.Changed(flag) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(fields, flags.Changed)
 }
 
 func addGenericResources(flags *pflag.FlagSet, spec *swarm.TaskSpec) error {
@@ -685,9 +681,7 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagContainerLabelAdd).Value.(*opts.ListOpts).GetSlice()
-		for key, value := range opts.ConvertKVStringsToMap(values) {
-			(*field)[key] = value
-		}
+		maps.Copy((*field), opts.ConvertKVStringsToMap(values))
 	}
 }
 
@@ -704,9 +698,7 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetSlice()
-		for key, value := range opts.ConvertKVStringsToMap(values) {
-			(*field)[key] = value
-		}
+		maps.Copy((*field), opts.ConvertKVStringsToMap(values))
 	}
 }
 
@@ -723,9 +715,7 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagSysCtlAdd).Value.(*opts.ListOpts).GetSlice()
-		for key, value := range opts.ConvertKVStringsToMap(values) {
-			(*field)[key] = value
-		}
+		maps.Copy((*field), opts.ConvertKVStringsToMap(values))
 	}
 }
 

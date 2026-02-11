@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package volume
 
 import (
@@ -166,7 +169,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			// each topology takes the form segment=value,segment=value
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
-			for _, segment := range strings.Split(top, ",") {
+			for segment := range strings.SplitSeq(top, ",") {
 				// TODO(dperny): validate topology syntax
 				k, v, _ := strings.Cut(segment, "=")
 				segments[k] = v
@@ -181,7 +184,7 @@ func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions
 			// each topology takes the form segment=value,segment=value
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
-			for _, segment := range strings.Split(top, ",") {
+			for segment := range strings.SplitSeq(top, ",") {
 				// TODO(dperny): validate topology syntax
 				k, v, _ := strings.Cut(segment, "=")
 				segments[k] = v

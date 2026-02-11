@@ -6,6 +6,7 @@ package loader
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -249,9 +250,7 @@ func GetDeprecatedProperties(configDicts ...map[string]any) map[string]string {
 
 	for _, configDict := range configDicts {
 		deprecatedProperties := getProperties(getServices(configDict), types.DeprecatedProperties)
-		for key, value := range deprecatedProperties {
-			deprecated[key] = value
-		}
+		maps.Copy(deprecated, deprecatedProperties)
 	}
 
 	return deprecated

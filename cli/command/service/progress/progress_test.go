@@ -856,7 +856,7 @@ func TestGlobalJobProgressUpdaterLarge(t *testing.T) {
 	}
 
 	activeNodes := map[string]struct{}{}
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		activeNodes[fmt.Sprintf("node%v", i)] = struct{}{}
 	}
 

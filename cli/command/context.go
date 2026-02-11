@@ -6,6 +6,7 @@ package command
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 
 	"github.com/docker/cli/cli/context/store"
 )
@@ -23,9 +24,7 @@ func (dc DockerContext) MarshalJSON() ([]byte, error) {
 		s["Description"] = dc.Description
 	}
 	if dc.AdditionalFields != nil {
-		for k, v := range dc.AdditionalFields {
-			s[k] = v
-		}
+		maps.Copy(s, dc.AdditionalFields)
 	}
 	return json.Marshal(s)
 }

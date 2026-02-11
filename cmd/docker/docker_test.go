@@ -38,8 +38,7 @@ func TestDisableFlagsInUseLineIsSet(t *testing.T) {
 
 func TestClientDebugEnabled(t *testing.T) {
 	defer debug.Disable()
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 
 	cli, err := command.NewDockerCli(command.WithBaseContext(ctx))
 	assert.NilError(t, err)

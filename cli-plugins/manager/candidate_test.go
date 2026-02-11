@@ -151,7 +151,7 @@ func TestValidateCandidate(t *testing.T) {
 				assert.ErrorContains(t, err, tc.err)
 			case tc.invalid != "":
 				assert.NilError(t, err)
-				assert.Assert(t, is.ErrorType(p.Err, reflect.TypeOf(&pluginError{})))
+				assert.Assert(t, is.ErrorType(p.Err, reflect.TypeFor[*pluginError]()))
 				assert.ErrorContains(t, p.Err, tc.invalid)
 			default:
 				assert.NilError(t, err)

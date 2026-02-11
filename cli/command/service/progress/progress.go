@@ -662,10 +662,7 @@ func (u *replicatedJobProgressUpdater) writeOverallProgress(active, completed in
 	})
 
 	// actualDesired is the lesser of MaxConcurrent, or the remaining tasks
-	actualDesired := u.total - completed
-	if actualDesired > u.concurrent {
-		actualDesired = u.concurrent
-	}
+	actualDesired := min(u.total-completed, u.concurrent)
 
 	_ = u.progressOut.WriteProgress(progress.Progress{
 		ID: "active tasks",

@@ -1,8 +1,12 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package swarmopts
 
 import (
 	"bytes"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/docker/go-connections/nat"
@@ -371,13 +375,7 @@ func TestConvertPortToPortConfigWithIP(t *testing.T) {
 
 func assertContains(t *testing.T, portConfigs []swarm.PortConfig, expected swarm.PortConfig) {
 	t.Helper()
-	contains := false
-	for _, portConfig := range portConfigs {
-		if portConfig == expected {
-			contains = true
-			break
-		}
-	}
+	contains := slices.Contains(portConfigs, expected)
 	if !contains {
 		t.Errorf("expected %v to contain %v, did not", portConfigs, expected)
 	}

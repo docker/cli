@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package opts
 
 import (
@@ -7,6 +10,7 @@ import (
 	"math/big"
 	"net"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/internal/lazyregexp"
@@ -104,12 +108,7 @@ func (opts *ListOpts) GetAllOrEmpty() []string {
 
 // Get checks the existence of the specified key.
 func (opts *ListOpts) Get(key string) bool {
-	for _, k := range *opts.values {
-		if k == key {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(*opts.values, key)
 }
 
 // Len returns the amount of element in the slice.

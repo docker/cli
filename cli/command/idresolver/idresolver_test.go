@@ -60,7 +60,7 @@ func TestResolveWithCache(t *testing.T) {
 	idResolver := New(apiClient, false)
 
 	ctx := context.Background()
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		id, err := idResolver.Resolve(ctx, swarm.Node{}, "nodeID")
 		assert.NilError(t, err)
 		assert.Check(t, is.Equal("node-foo", id))

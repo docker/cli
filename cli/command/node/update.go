@@ -1,9 +1,13 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package node
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -99,9 +103,7 @@ func mergeNodeUpdate(flags *pflag.FlagSet) func(*swarm.Node) error {
 		}
 		if flags.Changed(flagLabelAdd) {
 			labels := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetSlice()
-			for k, v := range opts.ConvertKVStringsToMap(labels) {
-				spec.Annotations.Labels[k] = v
-			}
+			maps.Copy(spec.Annotations.Labels, opts.ConvertKVStringsToMap(labels))
 		}
 		if flags.Changed(flagLabelRemove) {
 			keys := flags.Lookup(flagLabelRemove).Value.(*opts.ListOpts).GetSlice()
