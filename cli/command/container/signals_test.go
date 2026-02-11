@@ -11,8 +11,7 @@ import (
 )
 
 func TestForwardSignals(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	called := make(chan struct{})
 	apiClient := &fakeClient{containerKillFunc: func(ctx context.Context, container string, options client.ContainerKillOptions) (client.ContainerKillResult, error) {

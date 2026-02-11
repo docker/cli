@@ -22,8 +22,7 @@ import (
 var pluginFilename = "docker-buildx"
 
 func TestBuildWithBuilder(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 
 	testcases := []struct {
 		name         string
@@ -131,8 +130,7 @@ func (*fakeClient) Ping(context.Context, client.PingOptions) (client.PingResult,
 }
 
 func TestBuildkitDisabled(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
@@ -172,8 +170,7 @@ func TestBuildkitDisabled(t *testing.T) {
 }
 
 func TestBuilderBroken(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
@@ -212,8 +209,7 @@ func TestBuilderBroken(t *testing.T) {
 
 func TestBuilderBrokenEnforced(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "1")
-	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	ctx := t.Context()
 
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
