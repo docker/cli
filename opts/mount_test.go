@@ -475,6 +475,50 @@ func TestMountOptSetTmpfsNoError(t *testing.T) {
 	}
 }
 
+func TestMountOptSetBindCreateMountpoint(t *testing.T) {
+	tests := []struct {
+		value  string
+		exp    bool
+		expErr string
+	}{
+		{value: "", exp: false},
+		{value: "bind-create-mountpoint", exp: true},
+		{value: "bind-create-mountpoint=", expErr: `invalid value for 'bind-create-mountpoint': value is empty`},
+		{value: "bind-create-mountpoint= true", expErr: `invalid value for 'bind-create-mountpoint' in 'bind-create-mountpoint= true': value should not have whitespace`},
+		{value: "bind-create-mountpoint=no", expErr: `invalid value for 'bind-create-mountpoint': invalid boolean value ("no"): must be one of "true", "1", "false", or "0" (default "true")`},
+		{value: "bind-create-mountpoint=1", exp: true},
+		{value: "bind-create-mountpoint=true", exp: true},
+		{value: "bind-create-mountpoint=0", exp: false},
+		{value: "bind-create-mountpoint=false", exp: false},
+	}
+
+	for _, tc := range tests {
+		name := tc.value
+		if name == "" {
+			name = "not set"
+		}
+		t.Run(name, func(t *testing.T) {
+			val := "type=bind,target=/foo,source=/foo"
+			if tc.value != "" {
+				val += "," + tc.value
+			}
+			var m MountOpt
+			err := m.Set(val)
+			if tc.expErr != "" {
+				assert.Error(t, err, tc.expErr)
+				return
+			}
+			assert.NilError(t, err)
+			if tc.value == "" {
+				assert.Check(t, is.Nil(m.values[0].BindOptions))
+			} else {
+				assert.Check(t, m.values[0].BindOptions != nil)
+				assert.Check(t, is.Equal(m.values[0].BindOptions.CreateMountpoint, tc.exp))
+			}
+		})
+	}
+}
+
 func TestMountOptSetBindRecursive(t *testing.T) {
 	t.Run("enabled", func(t *testing.T) {
 		var m MountOpt
