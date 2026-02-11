@@ -134,7 +134,7 @@ func toServiceVolumeConfigsMap(s any) (map[any]any, error) {
 }
 
 func toServiceSecretConfigsSlice(dst reflect.Value, m map[any]any) error {
-	s := []types.ServiceSecretConfig{}
+	s := make([]types.ServiceSecretConfig, 0, len(m))
 	for _, v := range m {
 		s = append(s, v.(types.ServiceSecretConfig))
 	}
@@ -144,7 +144,7 @@ func toServiceSecretConfigsSlice(dst reflect.Value, m map[any]any) error {
 }
 
 func toSServiceConfigObjConfigsSlice(dst reflect.Value, m map[any]any) error {
-	s := []types.ServiceConfigObjConfig{}
+	s := make([]types.ServiceConfigObjConfig, 0, len(m))
 	for _, v := range m {
 		s = append(s, v.(types.ServiceConfigObjConfig))
 	}
@@ -154,7 +154,7 @@ func toSServiceConfigObjConfigsSlice(dst reflect.Value, m map[any]any) error {
 }
 
 func toServicePortConfigsSlice(dst reflect.Value, m map[any]any) error {
-	s := []types.ServicePortConfig{}
+	s := make([]types.ServicePortConfig, 0, len(m))
 	for _, v := range m {
 		s = append(s, v.(types.ServicePortConfig))
 	}
@@ -164,7 +164,7 @@ func toServicePortConfigsSlice(dst reflect.Value, m map[any]any) error {
 }
 
 func toServiceVolumeConfigsSlice(dst reflect.Value, m map[any]any) error {
-	s := []types.ServiceVolumeConfig{}
+	s := make([]types.ServiceVolumeConfig, 0, len(m))
 	for _, v := range m {
 		s = append(s, v.(types.ServiceVolumeConfig))
 	}
