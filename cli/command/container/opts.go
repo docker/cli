@@ -902,7 +902,7 @@ func convertToStandardNotation(ports []string) ([]string, error) {
 	for _, publish := range ports {
 		if strings.Contains(publish, "=") {
 			params := map[string]string{"protocol": "tcp"}
-			for _, param := range strings.Split(publish, ",") {
+			for param := range strings.SplitSeq(publish, ",") {
 				k, v, ok := strings.Cut(param, "=")
 				if !ok || k == "" {
 					return optsList, fmt.Errorf("invalid publish opts format (should be name=value but got '%s')", param)

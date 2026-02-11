@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package test
 
 import (
@@ -15,12 +18,12 @@ func CompareMultipleValues(t *testing.T, value, expected string) {
 	// be guaranteed to have the same order as our expected value
 	// We'll create maps and use reflect.DeepEquals to check instead:
 	entriesMap := make(map[string]string)
-	for _, entry := range strings.Split(value, ",") {
+	for entry := range strings.SplitSeq(value, ",") {
 		k, v, _ := strings.Cut(entry, "=")
 		entriesMap[k] = v
 	}
 	expMap := make(map[string]string)
-	for _, exp := range strings.Split(expected, ",") {
+	for exp := range strings.SplitSeq(expected, ",") {
 		k, v, _ := strings.Cut(exp, "=")
 		expMap[k] = v
 	}

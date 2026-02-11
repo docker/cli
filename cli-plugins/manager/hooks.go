@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package manager
 
 import (
@@ -141,8 +144,7 @@ func pluginMatch(pluginCfg map[string]string, subCmd string) (string, bool) {
 		return "", false
 	}
 
-	commands := strings.Split(configuredPluginHooks, ",")
-	for _, hookCmd := range commands {
+	for hookCmd := range strings.SplitSeq(configuredPluginHooks, ",") {
 		if hookMatch(hookCmd, subCmd) {
 			return hookCmd, true
 		}
