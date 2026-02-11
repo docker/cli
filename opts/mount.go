@@ -151,7 +151,7 @@ func (*MountOpt) Type() string {
 
 // String returns a string repr of this option
 func (m *MountOpt) String() string {
-	mounts := []string{}
+	mounts := make([]string, 0, len(m.values))
 	for _, mount := range m.values {
 		repr := fmt.Sprintf("%s %s %s", mount.Type, mount.Source, mount.Target)
 		mounts = append(mounts, repr)
