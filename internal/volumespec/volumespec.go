@@ -25,7 +25,7 @@ func Parse(spec string) (VolumeConfig, error) {
 		return volume, nil
 	}
 
-	var buffer []rune
+	buffer := make([]rune, 0, len(spec))
 	for _, char := range spec + string(endOfSpec) {
 		switch {
 		case isWindowsDrive(buffer, char):
@@ -35,7 +35,7 @@ func Parse(spec string) (VolumeConfig, error) {
 				populateType(&volume)
 				return volume, fmt.Errorf("invalid spec: %s: %w", spec, err)
 			}
-			buffer = []rune{}
+			buffer = buffer[:0] // reset, but reuse capacity
 		default:
 			buffer = append(buffer, char)
 		}
