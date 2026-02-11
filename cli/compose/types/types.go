@@ -351,7 +351,7 @@ func (u UnitBytes) MarshalYAML() (any, error) {
 
 // MarshalJSON makes UnitBytes implement json.Marshaler
 func (u UnitBytes) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%d"`, u)), nil
+	return fmt.Appendf(nil, `"%d"`, u), nil
 }
 
 // RestartPolicy the service restart policy
@@ -561,7 +561,7 @@ func (e External) MarshalJSON() ([]byte, error) {
 	if e.Name == "" {
 		return []byte(strconv.FormatBool(e.External)), nil
 	}
-	return []byte(fmt.Sprintf(`{"name": %q}`, e.Name)), nil
+	return fmt.Appendf(nil, `{"name": %q}`, e.Name), nil
 }
 
 // CredentialSpecConfig for credential spec on Windows

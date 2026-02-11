@@ -73,10 +73,10 @@ func (m *mockCommand) Output() ([]byte, error) {
 			return []byte("program failed"), errCommandExited
 		}
 	case "list":
-		return []byte(fmt.Sprintf(`{"%s": "%s", "%s": "%s"}`, validServerAddress, "foo", validServerAddress2, "<token>")), nil
+		return fmt.Appendf(nil, `{"%s": "%s", "%s": "%s"}`, validServerAddress, "foo", validServerAddress2, "<token>"), nil
 	}
 
-	return []byte(fmt.Sprintf("unknown argument %q with %q", m.arg, inS)), errCommandExited
+	return fmt.Appendf(nil, "unknown argument %q with %q", m.arg, inS), errCommandExited
 }
 
 // Input sets the input to send to a remote credentials helper.
