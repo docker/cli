@@ -6,6 +6,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strconv"
 	"time"
 
@@ -129,9 +130,7 @@ func (c Config) MarshalJSON() ([]byte, error) {
 	if len(c.Configs) > 0 {
 		m["configs"] = c.Configs
 	}
-	for k, v := range c.Extras {
-		m[k] = v
-	}
+	maps.Copy(m, c.Extras)
 	return json.Marshal(m)
 }
 
