@@ -389,10 +389,7 @@ func generateLegend(out tui.Output, width uint) string {
 	}
 	legend += legendSb371.String()
 
-	r := int(width) - tui.Width(legend)
-	if r < 0 {
-		r = 0
-	}
+	r := max(int(width)-tui.Width(legend), 0)
 	legend = strings.Repeat(" ", r) + legend
 	return legend
 }

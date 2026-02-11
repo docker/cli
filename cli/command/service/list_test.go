@@ -191,10 +191,7 @@ func generateServices(t *testing.T, opts clusterOpts) client.ServiceListResult {
 	t.Helper()
 
 	// Can't have more global tasks than nodes
-	globalTasks := opts.runningTasks
-	if globalTasks > opts.activeNodes {
-		globalTasks = opts.activeNodes
-	}
+	globalTasks := min(opts.runningTasks, opts.activeNodes)
 	return client.ServiceListResult{
 		Items: []swarm.Service{
 			*builders.Service(
