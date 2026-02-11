@@ -552,12 +552,7 @@ func updateStringToSlice(flags *pflag.FlagSet, flag string, field *[]string) {
 }
 
 func anyChanged(flags *pflag.FlagSet, fields ...string) bool {
-	for _, flag := range fields {
-		if flags.Changed(flag) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(fields, flags.Changed)
 }
 
 func addGenericResources(flags *pflag.FlagSet, spec *swarm.TaskSpec) error {

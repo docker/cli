@@ -6,6 +6,7 @@ package volumespec
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -89,12 +90,7 @@ func populateFieldFromBuffer(char rune, buffer []rune, volume *VolumeConfig) err
 }
 
 func isBindOption(option string) bool {
-	for _, propagation := range mount.Propagations {
-		if mount.Propagation(option) == propagation {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(mount.Propagations, mount.Propagation(option))
 }
 
 func populateType(volume *VolumeConfig) {

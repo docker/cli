@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package main
 
 import (
@@ -7,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -617,10 +621,8 @@ func findCommand(cmd *cobra.Command, cmds []string) bool {
 	if cmd == nil {
 		return false
 	}
-	for _, c := range cmds {
-		if c == cmd.Name() {
-			return true
-		}
+	if slices.Contains(cmds, cmd.Name()) {
+		return true
 	}
 	return findCommand(cmd.Parent(), cmds)
 }
