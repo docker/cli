@@ -133,12 +133,12 @@ func prettyPrintEvent(out io.Writer, event events.Message) error {
 	_, _ = fmt.Fprintf(out, "%s %s %s", event.Type, event.Action, event.Actor.ID)
 
 	if len(event.Actor.Attributes) > 0 {
-		var attrs []string
-		var keys []string
+		keys := make([]string, 0, len(event.Actor.Attributes))
 		for k := range event.Actor.Attributes {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
+		attrs := make([]string, 0, len(keys))
 		for _, k := range keys {
 			v := event.Actor.Attributes[k]
 			attrs = append(attrs, k+"="+v)

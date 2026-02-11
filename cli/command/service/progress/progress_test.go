@@ -80,7 +80,7 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 		service:     service,
 	}
 
-	tasks := []swarm.Task{}
+	var tasks []swarm.Task //nolint:prealloc // no need to over-complicate things.
 
 	ut.testUpdater(tasks, false,
 		[]progress.Progress{
@@ -193,7 +193,7 @@ func TestReplicatedProgressUpdaterManyReplicas(t *testing.T) {
 		service:     service,
 	}
 
-	tasks := []swarm.Task{}
+	var tasks []swarm.Task
 
 	// No per-task progress bars because there are too many replicas
 	ut.testUpdater(tasks, false,
@@ -248,7 +248,7 @@ func TestGlobalProgressUpdaterOneNode(t *testing.T) {
 		service:     service,
 	}
 
-	tasks := []swarm.Task{}
+	var tasks []swarm.Task //nolint:prealloc // no need to over-complicate things.
 
 	ut.testUpdater(tasks, false,
 		[]progress.Progress{
@@ -362,7 +362,7 @@ func TestGlobalProgressUpdaterManyNodes(t *testing.T) {
 		ut.activeNodes[strconv.Itoa(i)] = struct{}{}
 	}
 
-	tasks := []swarm.Task{}
+	var tasks []swarm.Task
 
 	ut.testUpdater(tasks, false,
 		[]progress.Progress{
@@ -459,9 +459,8 @@ func TestReplicatedJobProgressUpdaterSmall(t *testing.T) {
 	})
 
 	// wipe the old tasks out of the list
-	tasks = []swarm.Task{}
-	tasks = append(tasks,
-		swarm.Task{
+	tasks = []swarm.Task{ //nolint:prealloc // no need to over-complicate things.
+		{
 			ID:           "task1",
 			Slot:         0,
 			NodeID:       "",
@@ -469,7 +468,7 @@ func TestReplicatedJobProgressUpdaterSmall(t *testing.T) {
 			Status:       swarm.TaskStatus{State: swarm.TaskStateNew},
 			JobIteration: &swarm.Version{Index: service.JobStatus.JobIteration.Index},
 		},
-		swarm.Task{
+		{
 			ID:           "task2",
 			Slot:         1,
 			NodeID:       "",
@@ -477,7 +476,7 @@ func TestReplicatedJobProgressUpdaterSmall(t *testing.T) {
 			Status:       swarm.TaskStatus{State: swarm.TaskStateNew},
 			JobIteration: &swarm.Version{Index: service.JobStatus.JobIteration.Index},
 		},
-	)
+	}
 	ut.testUpdater(tasks, false, []progress.Progress{
 		{ID: "1/5", Action: "new      ", Current: 1, Total: 10, HideCounts: true},
 		{ID: "2/5", Action: "new      ", Current: 1, Total: 10, HideCounts: true},
@@ -644,7 +643,7 @@ func TestReplicatedJobProgressUpdaterLarge(t *testing.T) {
 		service:     service,
 	}
 
-	tasks := []swarm.Task{}
+	var tasks []swarm.Task
 
 	// see the comments in TestReplicatedJobProgressUpdaterSmall for why
 	// we write this out twice.
@@ -741,7 +740,7 @@ func TestGlobalJobProgressUpdaterSmall(t *testing.T) {
 		service:     service,
 	}
 
-	tasks := []swarm.Task{
+	tasks := []swarm.Task{ //nolint:prealloc // no need to over-complicate things.
 		{
 			ID:           "oldtask1",
 			DesiredState: swarm.TaskStateComplete,
@@ -871,7 +870,7 @@ func TestGlobalJobProgressUpdaterLarge(t *testing.T) {
 		service:     service,
 	}
 
-	tasks := []swarm.Task{}
+	var tasks []swarm.Task //nolint:prealloc // no need to over-complicate things.
 	for nodeID := range activeNodes {
 		tasks = append(tasks, swarm.Task{
 			ID:           "task" + nodeID,
