@@ -457,6 +457,22 @@ The following options can only be used for bind mounts (`type=bind`):
       When the option is not specified, the default behavior corresponds to setting <tt>enabled</tt>.
     </td>
   </tr>
+  <tr>
+    <td><b>bind-create-src</b></td>
+    <td>
+      By default, bind mounts require the source path to exist on the daemon host. This is a significant difference
+      from the <tt>-v</tt> flag, which creates the source path if it doesn't exist.<br />
+      <br />
+      Set <tt>bind-create-src</tt> to create the source path on the daemon host if it doesn't exist.<br />
+      <br />
+      A value is optional:<br />
+      <br />
+      <ul>
+        <li><tt>true</tt> or <tt>1</tt>: Create path on the daemon host if it doesn't exist.</li>
+        <li><tt>false</tt> or <tt>0</tt>: Default behavior. Produces an error if the source path doesn't exist on the daemon host.</li>
+      </ul>
+    </td>
+  </tr>
 </table>
 
 ##### Bind propagation
@@ -591,7 +607,8 @@ or `--volume` flag for `docker run`, with some important exceptions:
 
 - When you use `--mount` with `type=bind`, the host-path must refer to an *existing*
   path on the host. The path will not be created for you and the service will fail
-  with an error if the path does not exist.
+  with an error if the path does not exist. You can use `bind-create-src` to
+  create the host path if it doesn't exist.
 
 - The `--mount` flag does not allow you to relabel a volume with `Z` or `z` flags,
   which are used for `selinux` labeling.
