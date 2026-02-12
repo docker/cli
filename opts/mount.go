@@ -57,7 +57,7 @@ func (m *MountOpt) Set(value string) error {
 
 		if !hasValue {
 			switch key {
-			case "readonly", "ro", "volume-nocopy", "bind-nonrecursive", "bind-create-mountpoint":
+			case "readonly", "ro", "volume-nocopy", "bind-nonrecursive", "bind-create-src":
 				// boolean values
 			default:
 				return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
@@ -102,7 +102,7 @@ func (m *MountOpt) Set(value string) error {
 			default:
 				return fmt.Errorf(`invalid value for %s: %s (must be "enabled", "disabled", "writable", or "readonly")`, key, val)
 			}
-		case "bind-create-mountpoint":
+		case "bind-create-src":
 			ensureBindOptions(&mount).CreateMountpoint, err = parseBoolValue(key, val, hasValue)
 			if err != nil {
 				return err

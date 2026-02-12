@@ -169,11 +169,11 @@ func TestMountBindCreateMountpoint(t *testing.T) {
 		value         string
 		expectSuccess bool
 	}{
-		{name: "flag only", value: "bind-create-mountpoint", expectSuccess: true},
-		{name: "true", value: "bind-create-mountpoint=true", expectSuccess: true},
-		{name: "1", value: "bind-create-mountpoint=1", expectSuccess: true},
-		{name: "false", value: "bind-create-mountpoint=false", expectSuccess: false},
-		{name: "0", value: "bind-create-mountpoint=0", expectSuccess: false},
+		{name: "flag only", value: "bind-create-src", expectSuccess: true},
+		{name: "true", value: "bind-create-src=true", expectSuccess: true},
+		{name: "1", value: "bind-create-src=1", expectSuccess: true},
+		{name: "false", value: "bind-create-src=false", expectSuccess: false},
+		{name: "0", value: "bind-create-src=0", expectSuccess: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			srcPath := filepath.Join("/tmp", t.Name(), "does", "not", "exist")
