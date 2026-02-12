@@ -27,7 +27,6 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 		return nil, err
 	}
 
-	dicts := getDictsFrom(configDetails.ConfigFiles)
 	config, err := loader.Load(configDetails)
 	if err != nil {
 		var fpe *loader.ForbiddenPropertiesError
@@ -39,6 +38,7 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 		return nil, err
 	}
 
+	dicts := getDictsFrom(configDetails.ConfigFiles)
 	unsupportedProperties := loader.GetUnsupportedProperties(dicts...)
 	if len(unsupportedProperties) > 0 {
 		_, _ = fmt.Fprintf(streams.Err(), "Ignoring unsupported options: %s\n\n",
@@ -65,8 +65,7 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 }
 
 func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]any {
-	dicts := []map[string]any{}
-
+	dicts := make([]map[string]any, 0, len(configFiles))
 	for _, configFile := range configFiles {
 		dicts = append(dicts, configFile.Config)
 	}

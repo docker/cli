@@ -110,7 +110,7 @@ func (*ExternalCAOption) Type() string {
 
 // String returns a string repr of this option.
 func (m *ExternalCAOption) String() string {
-	externalCAs := []string{}
+	externalCAs := make([]string, 0, len(m.values))
 	for _, externalCA := range m.values {
 		repr := fmt.Sprintf("%s: %s", externalCA.Protocol, externalCA.URL)
 		externalCAs = append(externalCAs, repr)

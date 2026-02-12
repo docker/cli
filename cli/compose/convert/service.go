@@ -174,7 +174,11 @@ func Service(
 }
 
 func getPlacementPreference(preferences []composetypes.PlacementPreferences) []swarm.PlacementPreference {
-	result := []swarm.PlacementPreference{}
+	if len(preferences) == 0 {
+		return nil
+	}
+
+	result := make([]swarm.PlacementPreference, 0, len(preferences))
 	for _, preference := range preferences {
 		spreadDescriptor := preference.Spread
 		result = append(result, swarm.PlacementPreference{
@@ -198,7 +202,7 @@ func convertServiceNetworks(
 		}
 	}
 
-	nets := []swarm.NetworkAttachmentConfig{}
+	nets := make([]swarm.NetworkAttachmentConfig, 0, len(networks))
 	for networkName, nw := range networks {
 		networkConfig, ok := networkConfigs[networkName]
 		if !ok && networkName != defaultNetwork {
@@ -241,8 +245,6 @@ func convertServiceSecrets(
 	secrets []composetypes.ServiceSecretConfig,
 	secretSpecs map[string]composetypes.SecretConfig,
 ) ([]*swarm.SecretReference, error) {
-	refs := []*swarm.SecretReference{}
-
 	lookup := func(key string) (composetypes.FileObjectConfig, error) {
 		secretSpec, exists := secretSpecs[key]
 		if !exists {
@@ -250,6 +252,8 @@ func convertServiceSecrets(
 		}
 		return composetypes.FileObjectConfig(secretSpec), nil
 	}
+
+	refs := make([]*swarm.SecretReference, 0, len(secrets))
 	for _, secret := range secrets {
 		obj, err := convertFileObject(namespace, composetypes.FileReferenceConfig(secret), lookup)
 		if err != nil {
@@ -564,7 +568,7 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 }
 
 func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) *swarm.EndpointSpec {
-	portConfigs := []swarm.PortConfig{}
+	portConfigs := make([]swarm.PortConfig, 0, len(source))
 	for _, port := range source {
 		portConfig := swarm.PortConfig{
 			Protocol:      network.IPProtocol(port.Protocol),

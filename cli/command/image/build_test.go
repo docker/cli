@@ -190,7 +190,7 @@ func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options cli
 
 func (f *fakeBuild) headers(t *testing.T) []*tar.Header {
 	t.Helper()
-	headers := []*tar.Header{}
+	var headers []*tar.Header
 	for {
 		hdr, err := f.context.Next()
 		switch err {
@@ -206,8 +206,9 @@ func (f *fakeBuild) headers(t *testing.T) []*tar.Header {
 
 func (f *fakeBuild) filenames(t *testing.T) []string {
 	t.Helper()
-	names := []string{}
-	for _, header := range f.headers(t) {
+	h := f.headers(t)
+	names := make([]string, 0, len(h))
+	for _, header := range h {
 		names = append(names, header.Name)
 	}
 	sort.Strings(names)

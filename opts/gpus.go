@@ -105,7 +105,7 @@ func (*GpuOpts) Type() string {
 
 // String returns a string repr of this option
 func (o *GpuOpts) String() string {
-	gpus := []string{}
+	gpus := make([]string, 0, len(o.values))
 	for _, gpu := range o.values {
 		gpus = append(gpus, fmt.Sprintf("%v", gpu))
 	}

@@ -1323,7 +1323,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	}
 
 	existingNetworks := make(map[string]struct{})
-	var newNetworks []swarm.NetworkAttachmentConfig //nolint:prealloc
+	var newNetworks []swarm.NetworkAttachmentConfig
 	for _, nw := range specNetworks {
 		if _, exists := idsToRemove[nw.Target]; exists {
 			continue

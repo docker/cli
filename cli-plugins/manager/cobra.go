@@ -57,7 +57,7 @@ func AddPluginCommandStubs(dockerCLI config.Provider, rootCmd *cobra.Command) (e
 				},
 				ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 					// Delegate completion to plugin
-					cargs := []string{p.Path, cobra.ShellCompRequestCmd, p.Name}
+					cargs := []string{p.Path, cobra.ShellCompRequestCmd, p.Name} //nolint:prealloc // no need to over-complicate things.
 					cargs = append(cargs, args...)
 					cargs = append(cargs, toComplete)
 					os.Args = cargs

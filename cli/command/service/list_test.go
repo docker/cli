@@ -108,7 +108,7 @@ func TestServiceListServiceStatus(t *testing.T) {
 		},
 	}
 
-	matrix := make([]testCase, 0)
+	matrix := make([]testCase, 0, len(tests))
 	for _, quiet := range []bool{false, true} {
 		for _, tc := range tests {
 			if quiet {
