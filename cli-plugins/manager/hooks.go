@@ -70,7 +70,7 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 	pluginDirs := getPluginDirs(cfg)
 	nextSteps := make([]string, 0, len(pluginsCfg))
 	for pluginName, pluginCfg := range pluginsCfg {
-		match, ok := pluginMatch(pluginCfg, subCmdStr)
+		match, ok := pluginMatch(pluginCfg, subCmdStr, cmdErrorMessage)
 		if !ok {
 			continue
 		}
@@ -138,13 +138,34 @@ func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
 // command being executed (such as 'image ls' – the root 'docker' is omitted)
 // and, if the configuration includes a hook for the invoked command, returns
 // the configured hook string.
-func pluginMatch(pluginCfg map[string]string, subCmd string) (string, bool) {
-	configuredPluginHooks, ok := pluginCfg["hooks"]
-	if !ok || configuredPluginHooks == "" {
+//
+// Plugins can declare two types of hooks in their configuration:
+//   - "hooks": fires on every command invocation (success or failure)
+//   - "error-hooks": fires only when a command fails (cmdErrorMessage is non-empty)
+func pluginMatch(pluginCfg map[string]string, subCmd string, cmdErrorMessage string) (string, bool) {
+	// Check "hooks" first — these always fire regardless of command outcome.
+	if match, ok := matchHookConfig(pluginCfg["hooks"], subCmd); ok {
+		return match, true
+	}
+
+	// Check "error-hooks" — these only fire when there was an error.
+	if cmdErrorMessage != "" {
+		if match, ok := matchHookConfig(pluginCfg["error-hooks"], subCmd); ok {
+			return match, true
+		}
+	}
+
+	return "", false
+}
+
+// matchHookConfig checks if a comma-separated hook configuration string
+// contains a prefix match for the given subcommand.
+func matchHookConfig(configuredHooks string, subCmd string) (string, bool) {
+	if configuredHooks == "" {
 		return "", false
 	}
 
-	for hookCmd := range strings.SplitSeq(configuredPluginHooks, ",") {
+	for hookCmd := range strings.SplitSeq(configuredHooks, ",") {
 		if hookMatch(hookCmd, subCmd) {
 			return hookCmd, true
 		}
