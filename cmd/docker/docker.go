@@ -119,6 +119,20 @@ func getExitCode(err error) int {
 	return 1
 }
 
+// cmdErrorMessage extracts an error message suitable for passing to plugin
+// hooks. If the error's message is empty (e.g. a StatusError with only an
+// exit code), it falls back to a generic message so that hooks can still
+// detect that the command failed.
+func cmdErrorMessage(err error) string {
+	if err == nil {
+		return ""
+	}
+	if msg := err.Error(); msg != "" {
+		return msg
+	}
+	return fmt.Sprintf("exited with code %d", getExitCode(err))
+}
+
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	var (
 		opts    *cliflags.ClientOptions
@@ -480,11 +494,8 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		subCommand = ccmd
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
-			if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-				var errMessage string
-				if err != nil {
-					errMessage = err.Error()
-				}
+			if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() && !errdefs.IsNotFound(err) {
+				errMessage := cmdErrorMessage(err)
 				pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args, errMessage)
 			}
 			if err == nil {
@@ -511,11 +522,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
 	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-		var errMessage string
-		if err != nil {
-			errMessage = err.Error()
-		}
-		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, errMessage)
+		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
 	}
 
 	return err

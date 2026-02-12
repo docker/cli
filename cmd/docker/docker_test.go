@@ -163,6 +163,31 @@ func TestGetExitCode(t *testing.T) {
 	})
 }
 
+func TestCmdErrorMessage(t *testing.T) {
+	t.Run("nil error returns empty string", func(t *testing.T) {
+		assert.Equal(t, cmdErrorMessage(nil), "")
+	})
+
+	t.Run("generic error returns error message", func(t *testing.T) {
+		assert.Equal(t, cmdErrorMessage(errors.New("something broke")), "something broke")
+	})
+
+	t.Run("StatusError with Status field", func(t *testing.T) {
+		err := dockercli.StatusError{Status: "build failed", StatusCode: 1}
+		assert.Equal(t, cmdErrorMessage(err), "build failed")
+	})
+
+	t.Run("StatusError with only exit code falls back to generic message", func(t *testing.T) {
+		err := dockercli.StatusError{StatusCode: 42}
+		assert.Equal(t, cmdErrorMessage(err), "exited with code 42")
+	})
+
+	t.Run("wrapped error preserves message", func(t *testing.T) {
+		err := fmt.Errorf("wrapper: %w", errors.New("inner failure"))
+		assert.Equal(t, cmdErrorMessage(err), "wrapper: inner failure")
+	})
+}
+
 func TestVisitAll(t *testing.T) {
 	root := &cobra.Command{Use: "root"}
 	sub1 := &cobra.Command{Use: "sub1"}
