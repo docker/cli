@@ -116,7 +116,11 @@ func toServicePortConfigsMap(s any) (map[any]any, error) {
 	}
 	m := map[any]any{}
 	for _, p := range ports {
-		m[p.Published] = p
+		protocol := "tcp"
+		if p.Protocol != "" {
+			protocol = p.Protocol
+		}
+		m[fmt.Sprintf("%d%s", p.Published, protocol)] = p
 	}
 	return m, nil
 }

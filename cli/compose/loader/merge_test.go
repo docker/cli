@@ -848,6 +848,8 @@ func TestLoadMultipleConfigs(t *testing.T) {
 				"ports": []any{
 					"8080:80",
 					"9090:90",
+					"53:53/tcp",
+					"53:53/udp",
 				},
 				"labels": []any{
 					"foo=bar",
@@ -925,6 +927,18 @@ func TestLoadMultipleConfigs(t *testing.T) {
 					},
 				},
 				Ports: []types.ServicePortConfig{
+					{
+						Mode:      "ingress",
+						Target:    53,
+						Published: 53,
+						Protocol:  "tcp",
+					},
+					{
+						Mode:      "ingress",
+						Target:    53,
+						Published: 53,
+						Protocol:  "udp",
+					},
 					{
 						Target:    81,
 						Published: 8080,
