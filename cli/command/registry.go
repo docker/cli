@@ -144,8 +144,8 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 	}
 
-	argPassword = strings.TrimSpace(argPassword)
-	if argPassword == "" {
+	isEmpty := strings.TrimSpace(argPassword) == ""
+	if isEmpty {
 		restoreInput, err := prompt.DisableInputEcho(cli.In())
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
