@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"syscall"
 	"testing"
 	"time"
 
+	dockercli "github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	"github.com/docker/cli/cli/debug"
@@ -124,6 +126,41 @@ func TestUserTerminatedError(t *testing.T) {
 	})
 
 	assert.Equal(t, getExitCode(context.Cause(notifyCtx)), 143)
+}
+
+func TestGetExitCode(t *testing.T) {
+	t.Run("nil error returns 0", func(t *testing.T) {
+		assert.Equal(t, getExitCode(nil), 0)
+	})
+
+	t.Run("generic error returns 1", func(t *testing.T) {
+		assert.Equal(t, getExitCode(errors.New("some failure")), 1)
+	})
+
+	t.Run("StatusError with code", func(t *testing.T) {
+		err := dockercli.StatusError{StatusCode: 42}
+		assert.Equal(t, getExitCode(err), 42)
+	})
+
+	t.Run("StatusError with zero code falls back to 1", func(t *testing.T) {
+		err := dockercli.StatusError{StatusCode: 0, Status: "something went wrong"}
+		assert.Equal(t, getExitCode(err), 1)
+	})
+
+	t.Run("wrapped StatusError", func(t *testing.T) {
+		err := fmt.Errorf("wrapper: %w", dockercli.StatusError{StatusCode: 99})
+		assert.Equal(t, getExitCode(err), 99)
+	})
+
+	t.Run("SIGINT returns 130", func(t *testing.T) {
+		err := errCtxSignalTerminated{signal: syscall.SIGINT}
+		assert.Equal(t, getExitCode(err), 130)
+	})
+
+	t.Run("SIGTERM returns 143", func(t *testing.T) {
+		err := errCtxSignalTerminated{signal: syscall.SIGTERM}
+		assert.Equal(t, getExitCode(err), 143)
+	})
 }
 
 func TestVisitAll(t *testing.T) {
