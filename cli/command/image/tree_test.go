@@ -157,6 +157,17 @@ func TestPrintImageTreeAnsiTty(t *testing.T) {
 	}
 }
 
+func TestPrintImageTreeNoWarningWhenRedirected(t *testing.T) {
+	cli := test.NewFakeCli(nil)
+	cli.Out().SetIsTerminal(false)
+	cli.Err().SetIsTerminal(false)
+
+	printImageTree(cli, treeView{images: []topImage{}})
+
+	errOut := cli.ErrBuffer().String()
+	assert.Check(t, !strings.Contains(errOut, "WARNING: This output is designed for human readability"), "stderr should not contain warning when output is redirected, got: %s", errOut)
+}
+
 func TestPrintImageTreeGolden(t *testing.T) {
 	testCases := []struct {
 		name     string
