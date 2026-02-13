@@ -36,6 +36,7 @@ type fakeClient struct {
 	infoFunc                func() (client.SystemInfoResult, error)
 	containerStatPathFunc   func(containerID, path string) (client.ContainerStatPathResult, error)
 	containerCopyFromFunc   func(containerID, srcPath string) (client.CopyFromContainerResult, error)
+	containerCopyToFunc     func(containerID string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error)
 	logFunc                 func(string, client.ContainerLogsOptions) (client.ContainerLogsResult, error)
 	waitFunc                func(string) client.ContainerWaitResult
 	containerListFunc       func(client.ContainerListOptions) (client.ContainerListResult, error)
@@ -126,6 +127,13 @@ func (f *fakeClient) CopyFromContainer(_ context.Context, containerID string, op
 		return f.containerCopyFromFunc(containerID, options.SourcePath)
 	}
 	return client.CopyFromContainerResult{}, nil
+}
+
+func (f *fakeClient) CopyToContainer(_ context.Context, containerID string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error) {
+	if f.containerCopyToFunc != nil {
+		return f.containerCopyToFunc(containerID, options)
+	}
+	return client.CopyToContainerResult{}, nil
 }
 
 func (f *fakeClient) ContainerLogs(_ context.Context, containerID string, options client.ContainerLogsOptions) (client.ContainerLogsResult, error) {
