@@ -168,6 +168,37 @@ func progressHumanSize(n int64) string {
 	return units.HumanSizeWithPrecision(float64(n), 3)
 }
 
+// localContentSize returns the total size of regular file content at path.
+// For a regular file it returns the file size. For a directory it walks
+// the tree and sums sizes of all regular files.
+func localContentSize(path string) (int64, error) {
+	fi, err := os.Lstat(path)
+	if err != nil {
+		return -1, err
+	}
+	if !fi.IsDir() {
+		if fi.Mode().IsRegular() {
+			return fi.Size(), nil
+		}
+		return 0, nil
+	}
+	var total int64
+	err = filepath.WalkDir(path, func(_ string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type().IsRegular() {
+			info, err := d.Info()
+			if err != nil {
+				return err
+			}
+			total += info.Size()
+		}
+		return nil
+	})
+	return total, err
+}
+
 func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error {
 	srcContainer, srcPath := splitCpArg(opts.source)
 	destContainer, destPath := splitCpArg(opts.destination)
@@ -295,7 +326,19 @@ func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cp
 	cancel()
 	<-done
 	restore()
-	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", dstPath)
+	reportedSize := copiedSize
+	if !cpRes.Stat.Mode.IsDir() {
+		reportedSize = cpRes.Stat.Size
+	}
+	if reportedSize != copiedSize {
+		_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully copied %s (transferred %s) to %s\n",
+			progressHumanSize(reportedSize), progressHumanSize(copiedSize), dstPath,
+		)
+	} else {
+		_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully copied %s to %s\n",
+			progressHumanSize(reportedSize), dstPath,
+		)
+	}
 
 	return res
 }
@@ -354,11 +397,14 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		content         io.ReadCloser
 		resolvedDstPath string
 		copiedSize      int64
+		contentSize     int64
+		sizeErr         error
 	)
 
 	if srcPath == "-" {
 		content = os.Stdin
 		resolvedDstPath = dstInfo.Path
+		sizeErr = errors.New("content size not available for stdin")
 		if !dstInfo.IsDir {
 			return fmt.Errorf(`destination "%s:%s" must be a directory`, copyConfig.container, dstPath)
 		}
@@ -368,6 +414,8 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		if err != nil {
 			return err
 		}
+
+		contentSize, sizeErr = localContentSize(srcInfo.Path)
 
 		srcArchive, err := archive.TarResource(srcInfo)
 		if err != nil {
@@ -421,7 +469,19 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	cancel()
 	<-done
 	restore()
-	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
+	reportedSize := copiedSize
+	if sizeErr == nil {
+		reportedSize = contentSize
+	}
+	if reportedSize != copiedSize {
+		_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully copied %s (transferred %s) to %s:%s\n",
+			progressHumanSize(reportedSize), progressHumanSize(copiedSize), copyConfig.container, dstInfo.Path,
+		)
+	} else {
+		_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully copied %s to %s:%s\n",
+			progressHumanSize(reportedSize), copyConfig.container, dstInfo.Path,
+		)
+	}
 
 	return err
 }
