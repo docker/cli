@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/rand"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
@@ -156,6 +157,36 @@ func TestMountSubvolume(t *testing.T) {
 				ExitCode: tc.expectedCode,
 				Out:      tc.expectedOut,
 			})
+		})
+	}
+}
+
+func TestMountBindCreateMountpoint(t *testing.T) {
+	environment.SkipIfDaemonNotLinux(t)
+
+	for _, tc := range []struct {
+		name          string
+		value         string
+		expectSuccess bool
+	}{
+		{name: "flag only", value: "bind-create-src", expectSuccess: true},
+		{name: "true", value: "bind-create-src=true", expectSuccess: true},
+		{name: "1", value: "bind-create-src=1", expectSuccess: true},
+		{name: "false", value: "bind-create-src=false", expectSuccess: false},
+		{name: "0", value: "bind-create-src=0", expectSuccess: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srcPath := filepath.Join("/tmp", t.Name(), "does", "not", "exist")
+			result := icmd.RunCommand("docker", "run", "--rm",
+				"--mount", "type=bind,src="+srcPath+",dst=/mnt,"+tc.value,
+				fixtures.AlpineImage, "cat", "/proc/mounts")
+			if tc.expectSuccess {
+				result.Assert(t, icmd.Success)
+				assert.Check(t, is.Contains(result.Stdout(), "/mnt"))
+			} else {
+				result.Assert(t, icmd.Expected{ExitCode: 125})
+				assert.Check(t, is.Contains(result.Stderr(), srcPath))
+			}
 		})
 	}
 }
