@@ -93,5 +93,8 @@ func ParseRestartPolicy(policy string) (container.RestartPolicy, error) {
 	}
 
 	p.Name = container.RestartPolicyMode(k)
+	if err := container.ValidateRestartPolicy(p); err != nil {
+		return container.RestartPolicy{}, err
+	}
 	return p, nil
 }
