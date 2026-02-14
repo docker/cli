@@ -1,6 +1,7 @@
 package container
 
 import (
+	"archive/tar"
 	"bytes"
 	"context"
 	"errors"
@@ -354,6 +355,7 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		content         io.ReadCloser
 		resolvedDstPath string
 		copiedSize      int64
+		contentSize     int64
 	)
 
 	if srcPath == "-" {
@@ -387,10 +389,11 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		// extracted. This function also infers from the source and destination
 		// info which directory to extract to, which may be the parent of the
 		// destination that the user specified.
-		dstDir, preparedArchive, err := archive.PrepareArchiveCopy(srcArchive, srcInfo, dstInfo)
+		dstDir, preparedArchive1, err := archive.PrepareArchiveCopy(srcArchive, srcInfo, dstInfo)
 		if err != nil {
 			return err
 		}
+		preparedArchive := calcTARContentSize(preparedArchive1, &contentSize)
 		defer preparedArchive.Close()
 
 		resolvedDstPath = dstDir
@@ -421,8 +424,9 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	cancel()
 	<-done
 	restore()
-	_, _ = fmt.Fprintln(dockerCLI.Err(), "Successfully copied", progressHumanSize(copiedSize), "to", copyConfig.container+":"+dstInfo.Path)
-
+	_, _ = fmt.Fprintf(dockerCLI.Err(), "Successfully copied %s (transferred %s) to %s:%s\n",
+		progressHumanSize(contentSize), progressHumanSize(copiedSize), copyConfig.container, dstInfo.Path,
+	)
 	return err
 }
 
@@ -468,4 +472,52 @@ func splitCpArg(arg string) (ctr, path string) {
 // perspective.
 func isAbs(path string) bool {
 	return filepath.IsAbs(path) || strings.HasPrefix(path, string(os.PathSeparator))
+}
+
+// calcTARContentSize calculates the total size of files transferred in
+// the TAR archive based on information in the TAR header. This allows
+// presenting the data copied, excluding the TAR header.
+func calcTARContentSize(srcContent io.ReadCloser, size *int64) io.ReadCloser {
+	if size == nil {
+		return srcContent
+	}
+
+	r, w := io.Pipe()
+
+	go func() {
+		var total int64
+		defer func() {
+			_ = srcContent.Close()
+			atomic.StoreInt64(size, total)
+		}()
+
+		tee := io.TeeReader(srcContent, w)
+		tr := tar.NewReader(tee)
+
+		for {
+			hdr, err := tr.Next()
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					_ = w.Close()
+					return
+				}
+				_ = w.CloseWithError(err)
+				return
+			}
+
+			switch hdr.Typeflag {
+			case tar.TypeReg:
+				total += hdr.Size
+			}
+
+			// Drain entry payload (tee forwards bytes to w).
+			//nolint:gosec // G110: see RebaseArchiveEntries rationale
+			if _, err := io.Copy(io.Discard, tr); err != nil {
+				_ = w.CloseWithError(err)
+				return
+			}
+		}
+	}()
+
+	return r
 }
