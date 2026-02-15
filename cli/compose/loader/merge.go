@@ -4,8 +4,10 @@
 package loader
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
+	"slices"
 	"sort"
 
 	"dario.cat/mergo"
@@ -52,10 +54,10 @@ func merge(configs []*types.Config) (*types.Config, error) {
 }
 
 func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig, error) {
-	baseServices := mapByName(base)
-	overrideServices := mapByName(override)
-	specials := &specials{
-		m: map[reflect.Type]func(dst, src reflect.Value) error{
+	mergeOpts := []func(*mergo.Config){
+		mergo.WithAppendSlice,
+		mergo.WithOverride,
+		mergo.WithTransformers(&specials{m: map[reflect.Type]func(dst, src reflect.Value) error{
 			reflect.PointerTo(reflect.TypeFor[types.LoggingConfig]()):        safelyMerge(mergeLoggingConfig),
 			reflect.TypeFor[[]types.ServicePortConfig]():                     mergeSlice(toServicePortConfigsMap, toServicePortConfigsSlice),
 			reflect.TypeFor[[]types.ServiceSecretConfig]():                   mergeSlice(toServiceSecretConfigsMap, toServiceSecretConfigsSlice),
@@ -65,11 +67,13 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 			reflect.TypeFor[types.ShellCommand]():                            mergeShellCommand,
 			reflect.PointerTo(reflect.TypeFor[types.ServiceNetworkConfig]()): mergeServiceNetworkConfig,
 			reflect.PointerTo(reflect.TypeFor[uint64]()):                     mergeUint64,
-		},
+		}}),
 	}
-	for name, overrideService := range overrideServices {
+
+	baseServices := mapByName(base)
+	for name, overrideService := range mapByName(override) {
 		if baseService, ok := baseServices[name]; ok {
-			if err := mergo.Merge(&baseService, &overrideService, mergo.WithAppendSlice, mergo.WithOverride, mergo.WithTransformers(specials)); err != nil {
+			if err := mergo.Merge(&baseService, &overrideService, mergeOpts...); err != nil {
 				return base, fmt.Errorf("cannot merge service %s: %w", name, err)
 			}
 			baseServices[name] = baseService
@@ -77,11 +81,16 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 		}
 		baseServices[name] = overrideService
 	}
+
 	services := make([]types.ServiceConfig, 0, len(baseServices))
 	for _, baseService := range baseServices {
 		services = append(services, baseService)
 	}
-	sort.Slice(services, func(i, j int) bool { return services[i].Name < services[j].Name })
+
+	slices.SortFunc(services, func(a, b types.ServiceConfig) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
+
 	return services, nil
 }
 
