@@ -4,8 +4,10 @@
 package loader
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
+	"slices"
 	"sort"
 
 	"dario.cat/mergo"
@@ -52,10 +54,10 @@ func merge(configs []*types.Config) (*types.Config, error) {
 }
 
 func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig, error) {
-	baseServices := mapByName(base)
-	overrideServices := mapByName(override)
-	specials := &specials{
-		m: map[reflect.Type]func(dst, src reflect.Value) error{
+	mergeOpts := []func(*mergo.Config){
+		mergo.WithAppendSlice,
+		mergo.WithOverride,
+		mergo.WithTransformers(&specials{m: map[reflect.Type]func(dst, src reflect.Value) error{
 			reflect.PointerTo(reflect.TypeFor[types.LoggingConfig]()):        safelyMerge(mergeLoggingConfig),
 			reflect.TypeFor[[]types.ServicePortConfig]():                     mergeSlice(toServicePortConfigsMap, toServicePortConfigsSlice),
 			reflect.TypeFor[[]types.ServiceSecretConfig]():                   mergeSlice(toServiceSecretConfigsMap, toServiceSecretConfigsSlice),
@@ -65,23 +67,34 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 			reflect.TypeFor[types.ShellCommand]():                            mergeShellCommand,
 			reflect.PointerTo(reflect.TypeFor[types.ServiceNetworkConfig]()): mergeServiceNetworkConfig,
 			reflect.PointerTo(reflect.TypeFor[uint64]()):                     mergeUint64,
-		},
+		}}),
 	}
-	for name, overrideService := range overrideServices {
-		if baseService, ok := baseServices[name]; ok {
-			if err := mergo.Merge(&baseService, &overrideService, mergo.WithAppendSlice, mergo.WithOverride, mergo.WithTransformers(specials)); err != nil {
-				return base, fmt.Errorf("cannot merge service %s: %w", name, err)
+
+	baseServices := make(map[string]types.ServiceConfig, len(base))
+	for _, s := range base {
+		baseServices[s.Name] = s
+	}
+
+	for _, overrideService := range override {
+		if baseService, ok := baseServices[overrideService.Name]; ok {
+			if err := mergo.Merge(&baseService, &overrideService, mergeOpts...); err != nil {
+				return base, fmt.Errorf("cannot merge service %s: %w", overrideService.Name, err)
 			}
-			baseServices[name] = baseService
+			baseServices[overrideService.Name] = baseService
 			continue
 		}
-		baseServices[name] = overrideService
+		baseServices[overrideService.Name] = overrideService
 	}
+
 	services := make([]types.ServiceConfig, 0, len(baseServices))
 	for _, baseService := range baseServices {
 		services = append(services, baseService)
 	}
-	sort.Slice(services, func(i, j int) bool { return services[i].Name < services[j].Name })
+
+	slices.SortFunc(services, func(a, b types.ServiceConfig) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
+
 	return services, nil
 }
 
@@ -217,11 +230,13 @@ func sliceToMap(tomap tomapFn, v reflect.Value) (map[any]any, error) {
 }
 
 func mergeLoggingConfig(dst, src reflect.Value) error {
+	dstDriver := dst.Elem().FieldByName("Driver").String()
+	srcDriver := src.Elem().FieldByName("Driver").String()
+
 	// Same driver, merging options
-	if getLoggingDriver(dst.Elem()) == getLoggingDriver(src.Elem()) ||
-		getLoggingDriver(dst.Elem()) == "" || getLoggingDriver(src.Elem()) == "" {
-		if getLoggingDriver(dst.Elem()) == "" {
-			dst.Elem().FieldByName("Driver").SetString(getLoggingDriver(src.Elem()))
+	if dstDriver == srcDriver || dstDriver == "" || srcDriver == "" {
+		if dstDriver == "" {
+			dst.Elem().FieldByName("Driver").SetString(srcDriver)
 		}
 		dstOptions := dst.Elem().FieldByName("Options").Interface().(map[string]string)
 		srcOptions := src.Elem().FieldByName("Options").Interface().(map[string]string)
@@ -268,18 +283,6 @@ func mergeUint64(dst, src reflect.Value) error {
 		dst.Elem().Set(src.Elem())
 	}
 	return nil
-}
-
-func getLoggingDriver(v reflect.Value) string {
-	return v.FieldByName("Driver").String()
-}
-
-func mapByName(services []types.ServiceConfig) map[string]types.ServiceConfig {
-	m := map[string]types.ServiceConfig{}
-	for _, service := range services {
-		m[service.Name] = service
-	}
-	return m
 }
 
 func mergeVolumes(base, override map[string]types.VolumeConfig) (map[string]types.VolumeConfig, error) {
