@@ -70,7 +70,11 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 		}}),
 	}
 
-	baseServices := mapByName(base)
+	baseServices := make(map[string]types.ServiceConfig, len(base))
+	for _, s := range base {
+		baseServices[s.Name] = s
+	}
+
 	for _, overrideService := range override {
 		if baseService, ok := baseServices[overrideService.Name]; ok {
 			if err := mergo.Merge(&baseService, &overrideService, mergeOpts...); err != nil {
@@ -281,14 +285,6 @@ func mergeUint64(dst, src reflect.Value) error {
 
 func getLoggingDriver(v reflect.Value) string {
 	return v.FieldByName("Driver").String()
-}
-
-func mapByName(services []types.ServiceConfig) map[string]types.ServiceConfig {
-	m := map[string]types.ServiceConfig{}
-	for _, service := range services {
-		m[service.Name] = service
-	}
-	return m
 }
 
 func mergeVolumes(base, override map[string]types.VolumeConfig) (map[string]types.VolumeConfig, error) {
