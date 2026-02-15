@@ -572,21 +572,42 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 	return resources, nil
 }
 
+// compareSwarmPortConfig returns the lexical ordering of a and b, and can be used
+// with [slices.SortFunc].
+//
+// The comparison is performed in the following priority order:
+//
+//  1. PublishedPort (host port)
+//  2. TargetPort (container port)
+//  3. Protocol
+//  4. PublishMode
+//
+// TODO(thaJeztah): define this on swarm.PortConfig itself to allow re-use.
+func compareSwarmPortConfig(a, b swarm.PortConfig) int {
+	if n := cmp.Compare(a.PublishedPort, b.PublishedPort); n != 0 {
+		return n
+	}
+	if n := cmp.Compare(a.TargetPort, b.TargetPort); n != 0 {
+		return n
+	}
+	if n := cmp.Compare(a.Protocol, b.Protocol); n != 0 {
+		return n
+	}
+	return cmp.Compare(a.PublishMode, b.PublishMode)
+}
+
 func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) *swarm.EndpointSpec {
 	portConfigs := make([]swarm.PortConfig, 0, len(source))
 	for _, port := range source {
-		portConfig := swarm.PortConfig{
+		portConfigs = append(portConfigs, swarm.PortConfig{
 			Protocol:      network.IPProtocol(port.Protocol),
 			TargetPort:    port.Target,
 			PublishedPort: port.Published,
 			PublishMode:   swarm.PortConfigPublishMode(port.Mode),
-		}
-		portConfigs = append(portConfigs, portConfig)
+		})
 	}
 
-	sort.Slice(portConfigs, func(i, j int) bool {
-		return portConfigs[i].PublishedPort < portConfigs[j].PublishedPort
-	})
+	slices.SortFunc(portConfigs, compareSwarmPortConfig)
 
 	return &swarm.EndpointSpec{
 		Mode:  swarm.ResolutionMode(strings.ToLower(endpointMode)),
