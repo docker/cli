@@ -230,11 +230,13 @@ func sliceToMap(tomap tomapFn, v reflect.Value) (map[any]any, error) {
 }
 
 func mergeLoggingConfig(dst, src reflect.Value) error {
+	dstDriver := dst.Elem().FieldByName("Driver").String()
+	srcDriver := src.Elem().FieldByName("Driver").String()
+
 	// Same driver, merging options
-	if getLoggingDriver(dst.Elem()) == getLoggingDriver(src.Elem()) ||
-		getLoggingDriver(dst.Elem()) == "" || getLoggingDriver(src.Elem()) == "" {
-		if getLoggingDriver(dst.Elem()) == "" {
-			dst.Elem().FieldByName("Driver").SetString(getLoggingDriver(src.Elem()))
+	if dstDriver == srcDriver || dstDriver == "" || srcDriver == "" {
+		if dstDriver == "" {
+			dst.Elem().FieldByName("Driver").SetString(srcDriver)
 		}
 		dstOptions := dst.Elem().FieldByName("Options").Interface().(map[string]string)
 		srcOptions := src.Elem().FieldByName("Options").Interface().(map[string]string)
@@ -281,10 +283,6 @@ func mergeUint64(dst, src reflect.Value) error {
 		dst.Elem().Set(src.Elem())
 	}
 	return nil
-}
-
-func getLoggingDriver(v reflect.Value) string {
-	return v.FieldByName("Driver").String()
 }
 
 func mergeVolumes(base, override map[string]types.VolumeConfig) (map[string]types.VolumeConfig, error) {
