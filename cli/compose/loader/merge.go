@@ -71,15 +71,15 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 	}
 
 	baseServices := mapByName(base)
-	for name, overrideService := range mapByName(override) {
-		if baseService, ok := baseServices[name]; ok {
+	for _, overrideService := range override {
+		if baseService, ok := baseServices[overrideService.Name]; ok {
 			if err := mergo.Merge(&baseService, &overrideService, mergeOpts...); err != nil {
-				return base, fmt.Errorf("cannot merge service %s: %w", name, err)
+				return base, fmt.Errorf("cannot merge service %s: %w", overrideService.Name, err)
 			}
-			baseServices[name] = baseService
+			baseServices[overrideService.Name] = baseService
 			continue
 		}
-		baseServices[name] = overrideService
+		baseServices[overrideService.Name] = overrideService
 	}
 
 	services := make([]types.ServiceConfig, 0, len(baseServices))
