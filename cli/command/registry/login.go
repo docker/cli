@@ -147,7 +147,9 @@ func runLogin(ctx context.Context, dockerCLI command.Cli, opts loginOptions) err
 		return err
 	}
 
-	maybePrintEnvAuthWarning(dockerCLI)
+	if dockerCLI.ConfigFile().PreferDockerAuthConfig() {
+		printEnvAuthWarning(dockerCLI)
+	}
 
 	var (
 		serverAddress string
