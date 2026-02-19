@@ -1,11 +1,16 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.24
+
 package convert
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"net/netip"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -567,21 +572,42 @@ func convertResources(source composetypes.Resources) (*swarm.ResourceRequirement
 	return resources, nil
 }
 
+// compareSwarmPortConfig returns the lexical ordering of a and b, and can be used
+// with [slices.SortFunc].
+//
+// The comparison is performed in the following priority order:
+//
+//  1. PublishedPort (host port)
+//  2. TargetPort (container port)
+//  3. Protocol
+//  4. PublishMode
+//
+// TODO(thaJeztah): define this on swarm.PortConfig itself to allow re-use.
+func compareSwarmPortConfig(a, b swarm.PortConfig) int {
+	if n := cmp.Compare(a.PublishedPort, b.PublishedPort); n != 0 {
+		return n
+	}
+	if n := cmp.Compare(a.TargetPort, b.TargetPort); n != 0 {
+		return n
+	}
+	if n := cmp.Compare(a.Protocol, b.Protocol); n != 0 {
+		return n
+	}
+	return cmp.Compare(a.PublishMode, b.PublishMode)
+}
+
 func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortConfig) *swarm.EndpointSpec {
 	portConfigs := make([]swarm.PortConfig, 0, len(source))
 	for _, port := range source {
-		portConfig := swarm.PortConfig{
+		portConfigs = append(portConfigs, swarm.PortConfig{
 			Protocol:      network.IPProtocol(port.Protocol),
 			TargetPort:    port.Target,
 			PublishedPort: port.Published,
 			PublishMode:   swarm.PortConfigPublishMode(port.Mode),
-		}
-		portConfigs = append(portConfigs, portConfig)
+		})
 	}
 
-	sort.Slice(portConfigs, func(i, j int) bool {
-		return portConfigs[i].PublishedPort < portConfigs[j].PublishedPort
-	})
+	slices.SortFunc(portConfigs, compareSwarmPortConfig)
 
 	return &swarm.EndpointSpec{
 		Mode:  swarm.ResolutionMode(strings.ToLower(endpointMode)),
@@ -702,28 +728,22 @@ func convertCredentialSpec(namespace Namespace, spec composetypes.CredentialSpec
 }
 
 func convertUlimits(origUlimits map[string]*composetypes.UlimitsConfig) []*container.Ulimit {
-	newUlimits := make(map[string]*container.Ulimit)
+	ulimits := make([]*container.Ulimit, 0, len(origUlimits))
 	for name, u := range origUlimits {
+		soft, hard := int64(u.Soft), int64(u.Hard)
 		if u.Single != 0 {
-			newUlimits[name] = &container.Ulimit{
-				Name: name,
-				Soft: int64(u.Single),
-				Hard: int64(u.Single),
-			}
-		} else {
-			newUlimits[name] = &container.Ulimit{
-				Name: name,
-				Soft: int64(u.Soft),
-				Hard: int64(u.Hard),
-			}
+			soft, hard = int64(u.Single), int64(u.Single)
 		}
+
+		ulimits = append(ulimits, &container.Ulimit{
+			Name: name,
+			Soft: soft,
+			Hard: hard,
+		})
 	}
-	ulimits := make([]*container.Ulimit, 0, len(newUlimits))
-	for _, ulimit := range newUlimits {
-		ulimits = append(ulimits, ulimit)
-	}
-	sort.SliceStable(ulimits, func(i, j int) bool {
-		return ulimits[i].Name < ulimits[j].Name
+
+	slices.SortFunc(ulimits, func(a, b *container.Ulimit) int {
+		return cmp.Compare(a.Name, b.Name)
 	})
 	return ulimits
 }
