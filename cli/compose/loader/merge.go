@@ -28,26 +28,22 @@ func (s *specials) Transformer(t reflect.Type) func(dst, src reflect.Value) erro
 func merge(configs []*types.Config) (*types.Config, error) {
 	base := configs[0]
 	for _, override := range configs[1:] {
-		var err error
-		base.Services, err = mergeServices(base.Services, override.Services)
-		if err != nil {
-			return base, fmt.Errorf("cannot merge services from %s: %w", override.Filename, err)
+		if services, err := mergeServices(base.Services, override.Services); err != nil {
+			return nil, fmt.Errorf("cannot merge services from %s: %w", override.Filename, err)
+		} else {
+			base.Services = services
 		}
-		base.Volumes, err = mergeVolumes(base.Volumes, override.Volumes)
-		if err != nil {
-			return base, fmt.Errorf("cannot merge volumes from %s: %w", override.Filename, err)
+		if err := mergo.Map(&base.Volumes, &override.Volumes, mergo.WithOverride); err != nil {
+			return nil, fmt.Errorf("cannot merge volumes from %s: %w", override.Filename, err)
 		}
-		base.Networks, err = mergeNetworks(base.Networks, override.Networks)
-		if err != nil {
-			return base, fmt.Errorf("cannot merge networks from %s: %w", override.Filename, err)
+		if err := mergo.Map(&base.Networks, &override.Networks, mergo.WithOverride); err != nil {
+			return nil, fmt.Errorf("cannot merge networks from %s: %w", override.Filename, err)
 		}
-		base.Secrets, err = mergeSecrets(base.Secrets, override.Secrets)
-		if err != nil {
-			return base, fmt.Errorf("cannot merge secrets from %s: %w", override.Filename, err)
+		if err := mergo.Map(&base.Secrets, &override.Secrets, mergo.WithOverride); err != nil {
+			return nil, fmt.Errorf("cannot merge secrets from %s: %w", override.Filename, err)
 		}
-		base.Configs, err = mergeConfigs(base.Configs, override.Configs)
-		if err != nil {
-			return base, fmt.Errorf("cannot merge configs from %s: %w", override.Filename, err)
+		if err := mergo.Map(&base.Configs, &override.Configs, mergo.WithOverride); err != nil {
+			return nil, fmt.Errorf("cannot merge configs from %s: %w", override.Filename, err)
 		}
 	}
 	return base, nil
@@ -78,7 +74,7 @@ func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig,
 	for _, overrideService := range override {
 		if baseService, ok := baseServices[overrideService.Name]; ok {
 			if err := mergo.Merge(&baseService, &overrideService, mergeOpts...); err != nil {
-				return base, fmt.Errorf("cannot merge service %s: %w", overrideService.Name, err)
+				return nil, fmt.Errorf("cannot merge service %s: %w", overrideService.Name, err)
 			}
 			baseServices[overrideService.Name] = baseService
 			continue
@@ -283,24 +279,4 @@ func mergeUint64(dst, src reflect.Value) error {
 		dst.Elem().Set(src.Elem())
 	}
 	return nil
-}
-
-func mergeVolumes(base, override map[string]types.VolumeConfig) (map[string]types.VolumeConfig, error) {
-	err := mergo.Map(&base, &override, mergo.WithOverride)
-	return base, err
-}
-
-func mergeNetworks(base, override map[string]types.NetworkConfig) (map[string]types.NetworkConfig, error) {
-	err := mergo.Map(&base, &override, mergo.WithOverride)
-	return base, err
-}
-
-func mergeSecrets(base, override map[string]types.SecretConfig) (map[string]types.SecretConfig, error) {
-	err := mergo.Map(&base, &override, mergo.WithOverride)
-	return base, err
-}
-
-func mergeConfigs(base, override map[string]types.ConfigObjConfig) (map[string]types.ConfigObjConfig, error) {
-	err := mergo.Map(&base, &override, mergo.WithOverride)
-	return base, err
 }
