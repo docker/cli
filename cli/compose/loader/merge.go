@@ -5,6 +5,7 @@ package loader
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"reflect"
 	"slices"
@@ -28,22 +29,26 @@ func (s *specials) Transformer(t reflect.Type) func(dst, src reflect.Value) erro
 func merge(configs []*types.Config) (*types.Config, error) {
 	base := configs[0]
 	for _, override := range configs[1:] {
+		var errs []error
 		if services, err := mergeServices(base.Services, override.Services); err != nil {
-			return nil, fmt.Errorf("cannot merge services from %s: %w", override.Filename, err)
+			errs = append(errs, fmt.Errorf("cannot merge services: %w", err))
 		} else {
 			base.Services = services
 		}
 		if err := mergo.Map(&base.Volumes, &override.Volumes, mergo.WithOverride); err != nil {
-			return nil, fmt.Errorf("cannot merge volumes from %s: %w", override.Filename, err)
+			errs = append(errs, fmt.Errorf("cannot merge volumes: %w", err))
 		}
 		if err := mergo.Map(&base.Networks, &override.Networks, mergo.WithOverride); err != nil {
-			return nil, fmt.Errorf("cannot merge networks from %s: %w", override.Filename, err)
+			errs = append(errs, fmt.Errorf("cannot merge networks: %w", err))
 		}
 		if err := mergo.Map(&base.Secrets, &override.Secrets, mergo.WithOverride); err != nil {
-			return nil, fmt.Errorf("cannot merge secrets from %s: %w", override.Filename, err)
+			errs = append(errs, fmt.Errorf("cannot merge secrets: %w", err))
 		}
 		if err := mergo.Map(&base.Configs, &override.Configs, mergo.WithOverride); err != nil {
-			return nil, fmt.Errorf("cannot merge configs from %s: %w", override.Filename, err)
+			errs = append(errs, fmt.Errorf("cannot merge configs: %w", err))
+		}
+		if err := errors.Join(errs...); err != nil {
+			return nil, errors.Join(fmt.Errorf("failed to merge file %s", override.Filename), err)
 		}
 	}
 	return base, nil
