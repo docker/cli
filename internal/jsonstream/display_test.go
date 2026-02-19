@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/test"
-	"github.com/moby/moby/client/pkg/progress"
-	"github.com/moby/moby/client/pkg/streamformatter"
 	"gotest.tools/v3/assert"
 )
 
@@ -23,23 +20,12 @@ func TestDisplay(t *testing.T) {
 	})
 
 	go func() {
-		id := test.RandomID()[:12] // short-ID
-		progressOutput := streamformatter.NewJSONProgressOutput(server, true)
-		for i := range 100 {
+		for range 100 {
 			select {
 			case <-ctx.Done():
 				assert.NilError(t, server.Close(), "failed to close jsonmessage server")
 				return
 			default:
-				err := progressOutput.WriteProgress(progress.Progress{
-					ID:      id,
-					Message: "Downloading",
-					Current: int64(i),
-					Total:   100,
-				})
-				if err != nil {
-					break
-				}
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
@@ -50,8 +36,7 @@ func TestDisplay(t *testing.T) {
 
 	done := make(chan error)
 	go func() {
-		out := streams.NewOut(io.Discard)
-		done <- Display(streamCtx, client, out)
+		done <- Display(streamCtx, client, streams.NewOut(io.Discard))
 	}()
 
 	cancelStream()

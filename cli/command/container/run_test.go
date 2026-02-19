@@ -16,8 +16,6 @@ import (
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
-	"github.com/moby/moby/client/pkg/progress"
-	"github.com/moby/moby/client/pkg/streamformatter"
 	"github.com/spf13/pflag"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -245,20 +243,12 @@ func TestRunPullTermination(t *testing.T) {
 				_ = server.Close()
 			})
 			go func() {
-				id := test.RandomID()[:12] // short-ID
-				progressOutput := streamformatter.NewJSONProgressOutput(server, true)
-				for i := range 100 {
+				for range 100 {
 					select {
 					case <-ctx.Done():
 						assert.NilError(t, server.Close(), "failed to close imageCreateFunc server")
 						return
 					default:
-						assert.NilError(t, progressOutput.WriteProgress(progress.Progress{
-							ID:      id,
-							Message: "Downloading",
-							Current: int64(i),
-							Total:   100,
-						}))
 						time.Sleep(100 * time.Millisecond)
 					}
 				}
