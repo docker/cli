@@ -252,6 +252,14 @@ two paths. The `source` path is the location on the host that you want to
 bind mount into the container. The `target` path is the mount destination
 inside the container.
 
+By default, bind mounts require the source path to exist on the daemon host. If the
+source path doesn't exist, an error is returned. To create the source path on
+the daemon host if it doesn't exist, use the `bind-create-src` option:
+
+```console
+$ docker run -it --mount type=bind,source=[PATH],target=[PATH],bind-create-src busybox
+```
+
 Bind mounts are read-write by default, meaning that you can both read and write
 files to and from the mounted location from the container. Changes that you
 make, such as adding or editing files, are reflected on the host filesystem:
