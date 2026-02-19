@@ -127,7 +127,7 @@ func TestRunAttach(t *testing.T) {
 	}
 
 	// end stream from "container" so that we'll detach
-	conn.Close()
+	assert.NilError(t, conn.Close())
 
 	select {
 	case cmdErr := <-cmdErrC:
@@ -207,7 +207,7 @@ func TestRunAttachTermination(t *testing.T) {
 	}
 
 	assert.NilError(t, syscall.Kill(syscall.Getpid(), syscall.SIGTERM))
-	conn.Close()
+	assert.NilError(t, conn.Close())
 
 	select {
 	case <-killCh:
