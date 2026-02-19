@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/containerd/log"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
-	"github.com/sirupsen/logrus"
 )
 
 func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containerID string, waitRemove bool) <-chan int {
@@ -32,7 +32,7 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 			return
 		case result := <-waitRes.Result:
 			if result.Error != nil {
-				logrus.Errorf("Error waiting for container: %v", result.Error.Message)
+				log.G(ctx).Errorf("Error waiting for container: %v", result.Error.Message)
 				statusC <- 125
 			} else {
 				statusC <- int(result.StatusCode)
@@ -41,7 +41,7 @@ func waitExitOrRemoved(ctx context.Context, apiClient client.APIClient, containe
 			if errors.Is(err, context.Canceled) {
 				return
 			}
-			logrus.Errorf("error waiting for container: %v", err)
+			log.G(ctx).Errorf("error waiting for container: %v", err)
 			statusC <- 125
 		}
 	}()
