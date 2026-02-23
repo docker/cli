@@ -52,7 +52,7 @@ Build an image from a Dockerfile
 > This configuration is only relevant if you're building Windows containers.
 >
 > For information about the default `docker build`, using Buildx,
-> see [`docker buildx build`](https://docs.docker.com/reference/cli/docker/build/).
+> see [`docker buildx build`](https://docs.docker.com/reference/cli/docker/buildx/build/).
 
 When building with legacy builder, images are created from a Dockerfile by
 running a sequence of [commits](./container_commit.md). This process is
