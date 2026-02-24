@@ -47,7 +47,7 @@ func TestPluginServer(t *testing.T) {
 		select {
 		case err := <-done:
 			if !errors.Is(err, io.EOF) {
-				t.Fatalf("exepcted EOF error, got: %v", err)
+				t.Fatalf("expected EOF error, got: %v", err)
 			}
 		case <-time.After(10 * time.Millisecond):
 		}
