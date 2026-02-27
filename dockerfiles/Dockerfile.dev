@@ -10,7 +10,7 @@ ARG ALPINE_VERSION=3.23
 # BUILDX_VERSION sets the version of buildx to install in the dev container.
 # It must be a valid tag in the docker.io/docker/buildx-bin image repository
 # on Docker Hub.
-ARG BUILDX_VERSION=0.29.1
+ARG BUILDX_VERSION=0.31.1
 FROM docker/buildx-bin:${BUILDX_VERSION} AS buildx
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS golang
@@ -18,7 +18,7 @@ ENV GOTOOLCHAIN=local
 ENV CGO_ENABLED=0
 
 FROM golang AS gofumpt
-ARG GOFUMPT_VERSION=v0.7.0
+ARG GOFUMPT_VERSION=v0.9.2
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
