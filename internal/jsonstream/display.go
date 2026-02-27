@@ -3,6 +3,7 @@ package jsonstream
 import (
 	"context"
 	"io"
+	"iter"
 
 	"github.com/docker/cli/cli/streams"
 	"github.com/moby/moby/api/types/jsonstream"
@@ -41,13 +42,41 @@ func WithAuxCallback(cb func(JSONMessage)) Options {
 	}
 }
 
+type ProgressResponse interface {
+	io.ReadCloser
+	JSONMessages(ctx context.Context) iter.Seq2[jsonstream.Message, error]
+}
+
 // Display prints the JSON messages from the given reader to the given stream.
+//
+// It wraps the [jsonmessage.DisplayJSONMessages] function to make it
+// "context aware" and appropriately returns why the function was canceled.
+//
+// It returns an error if the context is canceled, but not if the input reader / stream is closed.
+func Display(ctx context.Context, in ProgressResponse, stream *streams.Out, opts ...Options) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	// reader := &ctxReader{err: make(chan error, 1), r: in}
+	// stopFunc := context.AfterFunc(ctx, func() { reader.err <- ctx.Err() })
+	// defer stopFunc()
+	//
+	o := options{}
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	return jsonmessage.DisplayJSONMessages(in.JSONMessages(ctx), stream, stream.FD(), stream.IsTerminal(), o.AuxCallback)
+}
+
+// DisplayStream prints the JSON messages from the given reader to the given stream.
 //
 // It wraps the [jsonmessage.DisplayJSONMessagesStream] function to make it
 // "context aware" and appropriately returns why the function was canceled.
 //
 // It returns an error if the context is canceled, but not if the input reader / stream is closed.
-func Display(ctx context.Context, in io.Reader, stream *streams.Out, opts ...Options) error {
+func DisplayStream(ctx context.Context, in io.Reader, stream *streams.Out, opts ...Options) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
