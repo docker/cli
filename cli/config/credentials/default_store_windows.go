@@ -1,5 +1,6 @@
 package credentials
 
-func defaultCredentialsStore() string {
-	return "wincred"
-}
+const (
+	preferredHelper = ""
+	defaultHelper   = "wincred"
+)
