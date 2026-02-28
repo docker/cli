@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"syscall"
 	"testing"
 	"time"
 
+	dockercli "github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/commands"
 	"github.com/docker/cli/cli/debug"
@@ -124,6 +126,66 @@ func TestUserTerminatedError(t *testing.T) {
 	})
 
 	assert.Equal(t, getExitCode(context.Cause(notifyCtx)), 143)
+}
+
+func TestGetExitCode(t *testing.T) {
+	t.Run("nil error returns 0", func(t *testing.T) {
+		assert.Equal(t, getExitCode(nil), 0)
+	})
+
+	t.Run("generic error returns 1", func(t *testing.T) {
+		assert.Equal(t, getExitCode(errors.New("some failure")), 1)
+	})
+
+	t.Run("StatusError with code", func(t *testing.T) {
+		err := dockercli.StatusError{StatusCode: 42}
+		assert.Equal(t, getExitCode(err), 42)
+	})
+
+	t.Run("StatusError with zero code falls back to 1", func(t *testing.T) {
+		err := dockercli.StatusError{StatusCode: 0, Status: "something went wrong"}
+		assert.Equal(t, getExitCode(err), 1)
+	})
+
+	t.Run("wrapped StatusError", func(t *testing.T) {
+		err := fmt.Errorf("wrapper: %w", dockercli.StatusError{StatusCode: 99})
+		assert.Equal(t, getExitCode(err), 99)
+	})
+
+	t.Run("SIGINT returns 130", func(t *testing.T) {
+		err := errCtxSignalTerminated{signal: syscall.SIGINT}
+		assert.Equal(t, getExitCode(err), 130)
+	})
+
+	t.Run("SIGTERM returns 143", func(t *testing.T) {
+		err := errCtxSignalTerminated{signal: syscall.SIGTERM}
+		assert.Equal(t, getExitCode(err), 143)
+	})
+}
+
+func TestCmdErrorMessage(t *testing.T) {
+	t.Run("nil error returns empty string", func(t *testing.T) {
+		assert.Equal(t, cmdErrorMessage(nil), "")
+	})
+
+	t.Run("generic error returns error message", func(t *testing.T) {
+		assert.Equal(t, cmdErrorMessage(errors.New("something broke")), "something broke")
+	})
+
+	t.Run("StatusError with Status field", func(t *testing.T) {
+		err := dockercli.StatusError{Status: "build failed", StatusCode: 1}
+		assert.Equal(t, cmdErrorMessage(err), "build failed")
+	})
+
+	t.Run("StatusError with only exit code falls back to generic message", func(t *testing.T) {
+		err := dockercli.StatusError{StatusCode: 42}
+		assert.Equal(t, cmdErrorMessage(err), "exited with code 42")
+	})
+
+	t.Run("wrapped error preserves message", func(t *testing.T) {
+		err := fmt.Errorf("wrapper: %w", errors.New("inner failure"))
+		assert.Equal(t, cmdErrorMessage(err), "wrapper: inner failure")
+	})
 }
 
 func TestVisitAll(t *testing.T) {
