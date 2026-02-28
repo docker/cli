@@ -25,11 +25,6 @@ import (
 	"github.com/moby/patternmatcher"
 )
 
-// DefaultDockerfileName is the Default filename with Docker commands, read by docker build
-//
-// Deprecated: this const is no longer used and will be removed in the next release.
-const DefaultDockerfileName string = "Dockerfile"
-
 const (
 	// defaultDockerfileName is the Default filename with Docker commands, read by docker build
 	defaultDockerfileName string = "Dockerfile"
@@ -100,17 +95,6 @@ func filepathMatches(matcher *patternmatcher.PatternMatcher, file string) (bool,
 	return matcher.MatchesOrParentMatches(file)
 }
 
-// DetectArchiveReader detects whether the input stream is an archive or a
-// Dockerfile and returns a buffered version of input, safe to consume in lieu
-// of input. If an archive is detected, ok is set to true, and to false
-// otherwise, in which case it is safe to assume input represents the contents
-// of a Dockerfile.
-//
-// Deprecated: this utility was only used internally, and will be removed in the next release.
-func DetectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err error) {
-	return detectArchiveReader(input)
-}
-
 // detectArchiveReader detects whether the input stream is an archive or a
 // Dockerfile and returns a buffered version of input, safe to consume in lieu
 // of input. If an archive is detected, ok is set to true, and to false
@@ -125,15 +109,6 @@ func detectArchiveReader(input io.ReadCloser) (rc io.ReadCloser, ok bool, err er
 	}
 
 	return newReadCloserWrapper(buf, func() error { return input.Close() }), isArchive(magic), nil
-}
-
-// WriteTempDockerfile writes a Dockerfile stream to a temporary file with a
-// name specified by defaultDockerfileName and returns the path to the
-// temporary directory containing the Dockerfile.
-//
-// Deprecated: this utility was only used internally, and will be removed in the next release.
-func WriteTempDockerfile(rc io.ReadCloser) (dockerfileDir string, err error) {
-	return writeTempDockerfile(rc)
 }
 
 // writeTempDockerfile writes a Dockerfile stream to a temporary file with a
@@ -199,14 +174,6 @@ func GetContextFromReader(rc io.ReadCloser, dockerfileName string) (out io.ReadC
 		_ = os.RemoveAll(dockerfileDir)
 		return err
 	}), defaultDockerfileName, nil
-}
-
-// IsArchive checks for the magic bytes of a tar or any supported compression
-// algorithm.
-//
-// Deprecated: this utility was used internally and will be removed in the next release.
-func IsArchive(header []byte) bool {
-	return isArchive(header)
 }
 
 // isArchive checks for the magic bytes of a tar or any supported compression
@@ -303,17 +270,6 @@ func GetContextFromLocalDir(localDir, dockerfileName string) (string, string, er
 
 	relDockerfile, err := getDockerfileRelPath(localDir, dockerfileName)
 	return localDir, relDockerfile, err
-}
-
-// ResolveAndValidateContextPath uses the given context directory for a `docker build`
-// and returns the absolute path to the context directory.
-//
-// Deprecated: this utility was used internally and will be removed in the next
-// release. Use [DetectContextType] to detect the context-type, and use
-// [GetContextFromLocalDir], [GetContextFromLocalDir], [GetContextFromGitURL],
-// or [GetContextFromURL] instead.
-func ResolveAndValidateContextPath(givenContextDir string) (string, error) {
-	return resolveAndValidateContextPath(givenContextDir)
 }
 
 // resolveAndValidateContextPath uses the given context directory for a `docker build`
