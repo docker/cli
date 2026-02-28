@@ -5,15 +5,16 @@ package loader
 
 import (
 	"bytes"
+	"context"
 	"os"
 	"runtime"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/sirupsen/logrus"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/skip"
@@ -1379,9 +1380,9 @@ func TestLoadVolumesWarnOnDeprecatedExternalNameVersion34(t *testing.T) {
 
 func patchLogrus() (*bytes.Buffer, func()) {
 	buf := new(bytes.Buffer)
-	out := logrus.StandardLogger().Out
-	logrus.SetOutput(buf)
-	return buf, func() { logrus.SetOutput(out) }
+	out := log.G(context.TODO()).Logger.Out
+	log.G(context.TODO()).Logger.SetOutput(buf)
+	return buf, func() { log.G(context.TODO()).Logger.SetOutput(out) }
 }
 
 func TestLoadVolumesWarnOnDeprecatedExternalNameVersion33(t *testing.T) {

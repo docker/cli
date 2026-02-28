@@ -1,11 +1,12 @@
 package context
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/containerd/log"
 	"github.com/docker/cli/cli/context/store"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -62,7 +63,7 @@ func LoadTLSData(s store.Reader, contextName, endpointName string) (*TLSData, er
 			case keyKey:
 				tlsData.Key = data
 			default:
-				logrus.Warnf("unknown file in context %s TLS bundle: %s", contextName, f)
+				log.G(context.TODO()).Warnf("unknown file in context %s TLS bundle: %s", contextName, f)
 			}
 		}
 		return &tlsData, nil

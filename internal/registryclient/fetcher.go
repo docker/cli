@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/containerd/log"
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/cli/internal/registry"
@@ -18,7 +19,6 @@ import (
 	distclient "github.com/docker/distribution/registry/client"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/sirupsen/logrus"
 )
 
 // fetchManifest pulls a manifest from a registry and returns it. An error
@@ -228,7 +228,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 	for _, endpoint := range endpoints {
 		if endpoint.URL.Scheme != "https" {
 			if _, confirmedTLS := confirmedTLSRegistries[endpoint.URL.Host]; confirmedTLS {
-				logrus.Debugf("skipping non-TLS endpoint %s for host/port that appears to use TLS", endpoint.URL)
+				log.G(ctx).Debugf("skipping non-TLS endpoint %s for host/port that appears to use TLS", endpoint.URL)
 				continue
 			}
 		}
@@ -243,7 +243,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		}
 		repo, err := c.getRepositoryForReference(ctx, namedRef, repoEndpoint)
 		if err != nil {
-			logrus.Debugf("error %s with repo endpoint %+v", err, repoEndpoint)
+			log.G(ctx).Debugf("error %s with repo endpoint %+v", err, repoEndpoint)
 			var protoErr httpProtoError
 			if errors.As(err, &protoErr) {
 				continue
@@ -252,7 +252,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		}
 
 		if endpoint.URL.Scheme == "http" && !c.insecureRegistry {
-			logrus.Debugf("skipping non-tls registry endpoint: %s", endpoint.URL)
+			log.G(ctx).Debugf("skipping non-tls registry endpoint: %s", endpoint.URL)
 			continue
 		}
 		done, err := each(ctx, repo, namedRef)
@@ -261,10 +261,10 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 				if endpoint.URL.Scheme == "https" {
 					confirmedTLSRegistries[endpoint.URL.Host] = true
 				}
-				logrus.Debugf("continuing on error (%T) %s", err, err)
+				log.G(ctx).Debugf("continuing on error (%T) %s", err, err)
 				continue
 			}
-			logrus.Debugf("not continuing on error (%T) %s", err, err)
+			log.G(ctx).Debugf("not continuing on error (%T) %s", err, err)
 			return err
 		}
 		if done {
@@ -278,7 +278,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 func allEndpoints(ctx context.Context, namedRef reference.Named, insecure bool) ([]registry.APIEndpoint, error) {
 	var serviceOpts registry.ServiceOptions
 	if insecure {
-		logrus.Debugf("allowing insecure registry for: %s", reference.Domain(namedRef))
+		log.G(ctx).Debugf("allowing insecure registry for: %s", reference.Domain(namedRef))
 		serviceOpts.InsecureRegistries = []string{reference.Domain(namedRef)}
 	}
 	registryService, err := registry.NewService(serviceOpts)
@@ -286,7 +286,7 @@ func allEndpoints(ctx context.Context, namedRef reference.Named, insecure bool) 
 		return nil, err
 	}
 	endpoints, err := registryService.Endpoints(ctx, reference.Domain(namedRef))
-	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
+	log.G(ctx).Debugf("endpoints for %s: %v", namedRef, endpoints)
 	return endpoints, err
 }
 

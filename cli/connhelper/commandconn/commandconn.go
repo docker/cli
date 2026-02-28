@@ -28,7 +28,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/containerd/log"
 )
 
 // New returns net.Conn
@@ -48,7 +48,7 @@ func New(ctx context.Context, cmd string, args ...string) (net.Conn, error) {
 	ctx = context.WithoutCancel(ctx)
 	c := commandConn{cmd: exec.CommandContext(ctx, cmd, args...)}
 	// we assume that args never contains sensitive information
-	logrus.Debugf("commandconn: starting %s with %v", cmd, args)
+	log.G(ctx).Debugf("commandconn: starting %s with %v", cmd, args)
 	c.cmd.Env = os.Environ()
 	c.cmd.SysProcAttr = &syscall.SysProcAttr{}
 	setPdeathsig(c.cmd)
@@ -251,17 +251,17 @@ func (c *commandConn) RemoteAddr() net.Addr {
 }
 
 func (*commandConn) SetDeadline(t time.Time) error {
-	logrus.Debugf("unimplemented call: SetDeadline(%v)", t)
+	log.G(context.TODO()).Debugf("unimplemented call: SetDeadline(%v)", t)
 	return nil
 }
 
 func (*commandConn) SetReadDeadline(t time.Time) error {
-	logrus.Debugf("unimplemented call: SetReadDeadline(%v)", t)
+	log.G(context.TODO()).Debugf("unimplemented call: SetReadDeadline(%v)", t)
 	return nil
 }
 
 func (*commandConn) SetWriteDeadline(t time.Time) error {
-	logrus.Debugf("unimplemented call: SetWriteDeadline(%v)", t)
+	log.G(context.TODO()).Debugf("unimplemented call: SetWriteDeadline(%v)", t)
 	return nil
 }
 
@@ -285,7 +285,7 @@ type stderrWriter struct {
 }
 
 func (w *stderrWriter) Write(p []byte) (int, error) {
-	logrus.Debugf("%s%s", w.debugPrefix, string(p))
+	log.G(context.TODO()).Debug(w.debugPrefix + string(p))
 	w.stderrMu.Lock()
 	if w.stderr.Len() > 4096 {
 		w.stderr.Reset()
