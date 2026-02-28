@@ -2,8 +2,7 @@
 #
 # zsh completion for docker (http://docker.com)
 #
-# version:  0.3.0
-# github:   https://github.com/felixr/docker-zsh-completion
+# github:   https://github.com/docker/cli
 #
 # contributors:
 #   - Felix Riedel
