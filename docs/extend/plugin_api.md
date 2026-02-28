@@ -45,12 +45,13 @@ spec files can be located either under `/etc/docker/plugins` or `/usr/lib/docker
 
 The name of the file (excluding the extension) determines the plugin name.
 
-For example, the `flocker` plugin might create a Unix socket at
-`/run/docker/plugins/flocker.sock`.
+For example, a plugin named `VolumeDriver` might create a Unix socket at
+`/run/docker/plugins/VolumeDriver.sock`.
 
 You can define each plugin into a separated subdirectory if you want to isolate definitions from each other.
-For example, you can create the `flocker` socket under `/run/docker/plugins/flocker/flocker.sock` and only
-mount `/run/docker/plugins/flocker` inside the `flocker` container.
+For example, you can create the `VolumeDriver` socket under `/run/docker/plugins/VolumeDriver/VolumeDriver.sock` and only
+mount `/run/docker/plugins/VolumeDriver` inside the `VolumeDriver` container.
+
 
 Docker always searches for Unix sockets in `/run/docker/plugins` first. It checks for spec or json files under
 `/etc/docker/plugins` and `/usr/lib/docker/plugins` if the socket doesn't exist. The directory scan stops as
