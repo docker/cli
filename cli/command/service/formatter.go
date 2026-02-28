@@ -129,13 +129,15 @@ Mounts:
 {{- if .Configs}}
 Configs:
 {{- range $config := .Configs }}
+ ConfigID:	{{$config.ConfigID}}
  Target:	{{$config.File.Name}}
-  Source:	{{$config.ConfigName}}
+ Source:	{{$config.ConfigName}}
 {{- end }}{{ end }}
 {{- if .Secrets }}
 Secrets:
 {{- range $secret := .Secrets }}
- Target:	{{$secret.File.Name}}
+  ID:	{{$secret.SecretID}}
+  Target:	{{$secret.File.Name}}
   Source:	{{$secret.SecretName}}
 {{- end }}{{ end }}
 {{- if .HasLogDriver }}
