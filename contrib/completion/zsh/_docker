@@ -2617,6 +2617,163 @@ __docker_context_subcommand() {
 
 # EO context
 
+# BO cli-plugin completion
+
+# Returns the path of a CLI plugin binary given the plugin command name.
+# Looks up plugin paths from `docker info` output.
+# Results are cached using the same policy as __docker_commands (1 hour TTL).
+__docker_cli_plugin_path() {
+    local plugin_name=$1
+    local cache_policy
+
+    zstyle -s ":completion:${curcontext}:" cache-policy cache_policy
+    if [[ -z "$cache_policy" ]]; then
+        zstyle ":completion:${curcontext}:" cache-policy __docker_caching_policy
+    fi
+
+    if ( [[ ${+_docker_plugin_paths} -eq 0 ]] || _cache_invalid docker_plugin_paths ) \
+        && ! _retrieve_cache docker_plugin_paths;
+    then
+        local -a raw_paths
+        raw_paths=(${(f)"$(_call_program commands docker $docker_options info --format '{{range .ClientInfo.Plugins}}{{.Path}}{{"\n"}}{{end}}')"})
+        declare -gA _docker_plugin_paths
+        _docker_plugin_paths=()
+        local p base
+        for p in $raw_paths; do
+            base=${p:t}
+            base=${base#docker-}
+            base=${base%%.*}
+            _docker_plugin_paths[$base]=$p
+        done
+        (( ${#_docker_plugin_paths} > 0 )) && _store_cache docker_plugin_paths _docker_plugin_paths
+    fi
+
+    if [[ -n "${_docker_plugin_paths[$plugin_name]}" ]]; then
+        echo "${_docker_plugin_paths[$plugin_name]}"
+        return 0
+    fi
+    return 1
+}
+
+# Completes arguments for a CLI plugin by invoking the plugin binary
+# with the __completeNoDesc command (Cobra shell completion protocol).
+# Reference: vendor/github.com/spf13/cobra/zsh_completions.go
+__docker_complete_cli_plugin() {
+    local plugin_path=$1
+    shift
+    integer ret=1
+
+    # Truncate words to CURRENT to handle backward cursor movement,
+    # matching Cobra's own zsh template behavior.
+    local -a plugin_args
+    plugin_args=("${words[2,CURRENT]}")
+
+    # Cobra expects an empty trailing argument when the cursor is past
+    # the last typed word (user pressed space, starting a new argument).
+    local last_char=${words[CURRENT][-1]}
+    if [[ -z "$last_char" ]]; then
+        plugin_args+=('')
+    fi
+
+    # Detect --flag= prefix for completions (e.g., --output=<TAB>).
+    local flagPrefix=""
+    setopt local_options BASH_REMATCH
+    local lastParam=${plugin_args[-1]}
+    if [[ "$lastParam" =~ '-.*=' ]]; then
+        flagPrefix="-P ${BASH_REMATCH}"
+    fi
+
+    local raw_output
+    raw_output=$(_call_program commands "$plugin_path" __completeNoDesc "${plugin_args[@]}" 2>/dev/null)
+    [[ -z "$raw_output" ]] && return 1
+
+    local -a lines
+    lines=("${(@f)raw_output}")
+
+    # The last line is a Cobra shell completion directive (bitmask, e.g. :0, :2, :8).
+    # Validate it starts with ':' before parsing; default to 0 otherwise.
+    # Directive values: 1=Error, 2=NoSpace, 4=NoFileComp,
+    # 8=FilterFileExt, 16=FilterDirs, 32=KeepOrder
+    local directive=${lines[-1]}
+    local dir_num=0
+    if [[ "${directive[1]}" == ':' ]]; then
+        dir_num=${directive#:}
+        lines=("${lines[1,-2]}")
+    fi
+
+    # Bit 0 (value 1): ShellCompDirectiveError - abort completion
+    if (( dir_num & 1 )); then
+        return 1
+    fi
+
+    # Bit 3 (value 8): ShellCompDirectiveFilterFileExt
+    if (( dir_num & 8 )); then
+        local -a glob_args
+        local ext
+        for ext in $lines; do
+            if [[ ${ext[1]} != '*' ]]; then
+                ext="*.$ext"
+            fi
+            glob_args+=(-g "$ext")
+        done
+        _files "${glob_args[@]}" $flagPrefix && ret=0
+        return ret
+    fi
+
+    # Bit 4 (value 16): ShellCompDirectiveFilterDirs
+    if (( dir_num & 16 )); then
+        local subdir="${lines[1]}"
+        if [[ -n "$subdir" ]]; then
+            pushd "$subdir" >/dev/null 2>&1
+            _files -/ $flagPrefix && ret=0
+            popd >/dev/null 2>&1
+        else
+            _files -/ $flagPrefix && ret=0
+        fi
+        return ret
+    fi
+
+    # Filter ActiveHelp markers and build completions list.
+    # Escape literal colons since _describe uses colon as separator.
+    local -a completions
+    local line val desc activeHelpMarker="_activeHelp_ "
+    for line in $lines; do
+        if [[ "$line" == ${activeHelpMarker}* ]]; then
+            compadd -x "${line#$activeHelpMarker}"
+            continue
+        fi
+        if [[ $line == *$'\t'* ]]; then
+            val=${line%%$'\t'*}
+            desc=${line#*$'\t'}
+            val=${val//:/\\:}
+            desc=${desc//:/\\:}
+            completions+=("${val}:${desc}")
+        else
+            completions+=("${line//:/\\:}")
+        fi
+    done
+
+    if (( ${#completions} > 0 )); then
+        local -a suf order
+        # Bit 1 (value 2): ShellCompDirectiveNoSpace
+        if (( dir_num & 2 )); then
+            suf=(-S '')
+        fi
+        # Bit 5 (value 32): ShellCompDirectiveKeepOrder
+        if (( dir_num & 32 )); then
+            order=(-V)
+        fi
+        _describe $order -t "docker-${words[1]}-completions" "docker ${words[1]} command" completions $flagPrefix $suf && ret=0
+    elif ! (( dir_num & 4 )); then
+        # No completions and NoFileComp not set: fall back to file completion
+        _files $flagPrefix && ret=0
+    fi
+
+    return ret
+}
+
+# EO cli-plugin completion
+
 __docker_caching_policy() {
   oldp=( "$1"(Nmh+1) )     # 1 hour
   (( $#oldp ))
@@ -3049,6 +3206,16 @@ __docker_subcommand() {
             ;;
         (help)
             _arguments $(__docker_arguments) ":subcommand:__docker_commands" && ret=0
+            ;;
+        (*)
+            # CLI plugin completion: delegate to the plugin binary if found.
+            # Plugins such as "compose" and "buildx" support Cobra's
+            # __completeNoDesc protocol for shell completion.
+            local plugin_path
+            plugin_path=$(__docker_cli_plugin_path "$words[1]")
+            if [[ -n "$plugin_path" ]]; then
+                __docker_complete_cli_plugin "$plugin_path" "${words[2,-1]}" && ret=0
+            fi
             ;;
     esac
 
