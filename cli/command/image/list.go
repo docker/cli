@@ -211,6 +211,6 @@ func printAmbiguousHint(stdErr io.Writer, matchName string) {
 		"save",
 		"tag":
 
-		_, _ = fmt.Fprintf(stdErr, "\nNo images found matching %q: did you mean \"docker image %[1]s\"?\n", matchName)
+		_, _ = fmt.Fprintf(stdErr, "No images found matching %q: did you mean \"docker image %[1]s\"?\n", matchName)
 	}
 }
