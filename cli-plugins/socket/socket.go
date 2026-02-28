@@ -93,7 +93,7 @@ func (pl *PluginServer) Addr() net.Addr {
 // Close ensures that the server is no longer accepting new connections and
 // closes all existing connections. Existing connections will receive [io.EOF].
 //
-// The error value is that of the underlying [net.Listner.Close] call.
+// The error value is that of the underlying [net.Listener.Close] call.
 func (pl *PluginServer) Close() error {
 	if pl == nil {
 		return nil

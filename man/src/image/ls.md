@@ -86,7 +86,7 @@ Repository entries separated by a colon for all images:
 
     docker image ls --format "{{.ID}}: {{.Repository}}"
     77af4d6b9913: <none>
-    b6fa739cedf5: committ
+    b6fa739cedf5: commit
     78a85c484bad: ipbabble
     30557a29d5ab: docker
     5ed6274db6ce: <none>
@@ -100,7 +100,7 @@ To list all images with their repository and tag in a table format you can use:
     docker image ls --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}"
     IMAGE ID            REPOSITORY                TAG
     77af4d6b9913        <none>                    <none>
-    b6fa739cedf5        committ                   latest
+    b6fa739cedf5        commit                   latest
     78a85c484bad        ipbabble                  <none>
     30557a29d5ab        docker                    latest
     5ed6274db6ce        <none>                    <none>

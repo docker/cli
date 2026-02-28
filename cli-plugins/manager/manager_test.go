@@ -89,7 +89,7 @@ func TestListPluginCandidatesEmpty(t *testing.T) {
 // Regression test for https://github.com/docker/cli/issues/5643.
 // Check that inaccessible directories that come before accessible ones are ignored
 // and do not prevent the latter from being processed.
-func TestListPluginCandidatesInaccesibleDir(t *testing.T) {
+func TestListPluginCandidatesInaccessibleDir(t *testing.T) {
 	dir := fs.NewDir(t, t.Name(),
 		fs.WithDir("no-perm", fs.WithMode(0)),
 		fs.WithDir("plugins",

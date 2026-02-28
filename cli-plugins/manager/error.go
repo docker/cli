@@ -28,7 +28,7 @@ func (e *pluginError) Unwrap() error {
 	return e.cause
 }
 
-// MarshalText marshalls the pluginError into a textual form.
+// MarshalText marshals the pluginError into a textual form.
 func (e *pluginError) MarshalText() (text []byte, err error) {
 	return []byte(e.cause.Error()), nil
 }
