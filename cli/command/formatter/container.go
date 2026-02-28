@@ -4,8 +4,10 @@
 package formatter
 
 import (
+	"cmp"
 	"fmt"
 	"net"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,13 +23,14 @@ import (
 const (
 	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
-	namesHeader      = "NAMES"
-	commandHeader    = "COMMAND"
-	runningForHeader = "CREATED"
-	mountsHeader     = "MOUNTS"
-	localVolumes     = "LOCAL VOLUMES"
-	networksHeader   = "NETWORKS"
-	platformHeader   = "PLATFORM"
+	namesHeader       = "NAMES"
+	commandHeader     = "COMMAND"
+	runningForHeader  = "CREATED"
+	mountsHeader      = "MOUNTS"
+	localVolumes      = "LOCAL VOLUMES"
+	networksHeader    = "NETWORKS"
+	platformHeader    = "PLATFORM"
+	ipAddressesHeader = "IP ADDRESSES"
 )
 
 // Platform wraps a [ocispec.Platform] to implement the stringer interface.
@@ -37,6 +40,16 @@ type Platform struct {
 
 func (p Platform) String() string {
 	return platforms.FormatAll(p.Platform)
+}
+
+// NetworkIP describes an IP-address and the network it's associated with.
+type NetworkIP struct {
+	Network string `json:"Network,omitempty"`
+	IP      string `json:"IP"`
+}
+
+func (p NetworkIP) String() string {
+	return p.Network + "/" + p.IP
 }
 
 // NewContainerFormat returns a Format for rendering using a Context
@@ -121,6 +134,7 @@ func NewContainerContext() *ContainerContext {
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
 		"Platform":     platformHeader,
+		"IPAddresses":  ipAddressesHeader,
 	}
 	return &containerCtx
 }
@@ -339,6 +353,36 @@ func (c *ContainerContext) Networks() string {
 	}
 
 	return strings.Join(networks, ",")
+}
+
+// IPAddresses returns the list of IP-addresses assigned to the container
+// IP-addresses are prefixed with the name of the network, separated with a colon.
+// For example: "bridge:192.168.1.10"
+func (c *ContainerContext) IPAddresses() []NetworkIP {
+	if c.c.NetworkSettings == nil || len(c.c.NetworkSettings.Networks) == 0 {
+		return []NetworkIP{}
+	}
+	ipAddresses := make([]NetworkIP, 0, len(c.c.NetworkSettings.Networks))
+	for name, nw := range c.c.NetworkSettings.Networks {
+		if nw.IPAddress != "" {
+			ipAddresses = append(ipAddresses, NetworkIP{
+				Network: name,
+				IP:      nw.IPAddress,
+			})
+		}
+		if nw.GlobalIPv6Address != "" {
+			ipAddresses = append(ipAddresses, NetworkIP{
+				Network: name,
+				IP:      nw.GlobalIPv6Address,
+			})
+		}
+	}
+
+	slices.SortFunc(ipAddresses, func(a, b NetworkIP) int {
+		return cmp.Compare(a.String(), b.String())
+	})
+
+	return ipAddresses
 }
 
 // DisplayablePorts returns formatted string representing open ports of container
