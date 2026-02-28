@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"maps"
 	"os"
 	"testing"
 
@@ -581,6 +582,56 @@ func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 		authConfigs, err := configFile.GetAllCredentials()
 		assert.NilError(t, err)
 		assert.Check(t, is.Len(authConfigs, 0))
+	})
+}
+
+func TestGitlabCIWithDockerAuthConfig(t *testing.T) {
+	t.Setenv("GITLAB_CI", "true")
+
+	testAuthConfig := map[string]types.AuthConfig{
+		"env.example.test": {
+			Username: "user",
+			Password: "pass",
+		},
+	}
+	configFile := New("filename")
+	configFile.AuthConfigs = maps.Clone(testAuthConfig)
+
+	checkConfigFirst := func(t *testing.T) {
+		t.Helper()
+		authConfigs, err := configFile.GetAllCredentials()
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(authConfigs, testAuthConfig))
+	}
+
+	checkEnvFirst := func(t *testing.T) {
+		t.Helper()
+		authConfigs, err := configFile.GetAllCredentials()
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(authConfigs, map[string]types.AuthConfig{
+			"env.example.test": {
+				Username:      "env_user",
+				Password:      "env_pass",
+				ServerAddress: "env.example.test",
+			},
+		}))
+	}
+
+	t.Setenv("DOCKER_AUTH_CONFIG", envTestAuthConfig)
+	t.Run("config is used by default", func(t *testing.T) {
+		checkConfigFirst(t)
+	})
+	t.Run("config is used when configured explicitly", func(t *testing.T) {
+		configFile.Features = map[string]string{
+			"auth_config_order": "config,env",
+		}
+		checkConfigFirst(t)
+	})
+	t.Run("env is used if opt-in", func(t *testing.T) {
+		configFile.Features = map[string]string{
+			"auth_config_order": "env,config",
+		}
+		checkEnvFirst(t)
 	})
 }
 
