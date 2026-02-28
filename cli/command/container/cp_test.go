@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
+	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -210,4 +211,157 @@ func TestRunCopyFromContainerToFilesystemIrregularDestination(t *testing.T) {
 	assert.Assert(t, err != nil)
 	expected := `"/dev/random" must be a directory or a regular file`
 	assert.ErrorContains(t, err, expected)
+}
+
+func TestCopyFromContainerReportsFileSize(t *testing.T) {
+	// The file content is "hello" (5 bytes), but the TAR archive wrapping
+	// it is much larger due to headers and padding. The success message
+	// should report the actual file size (5B), not the TAR stream size.
+	srcDir := fs.NewDir(t, "cp-test-from",
+		fs.WithFile("file1", "hello"))
+
+	destDir := fs.NewDir(t, "cp-test-from-dest")
+
+	const fileSize int64 = 5
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerCopyFromFunc: func(ctr, srcPath string) (client.CopyFromContainerResult, error) {
+			readCloser, err := archive.Tar(srcDir.Path(), compression.None)
+			return client.CopyFromContainerResult{
+				Content: readCloser,
+				Stat: container.PathStat{
+					Name: "file1",
+					Size: fileSize,
+				},
+			}, err
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      "container:/file1",
+		destination: destDir.Path(),
+	})
+	assert.NilError(t, err)
+	errOut := fakeCli.ErrBuffer().String()
+	assert.Check(t, is.Contains(errOut, "Successfully copied 5B"))
+	assert.Check(t, is.Contains(errOut, "(transferred"))
+}
+
+func TestCopyToContainerReportsFileSize(t *testing.T) {
+	// Create a temp file with known content ("hello" = 5 bytes).
+	// The TAR archive sent to the container is larger, but the success
+	// message should report the actual content size.
+	srcFile := fs.NewFile(t, "cp-test-to", fs.WithContent("hello"))
+
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerStatPathFunc: func(containerID, path string) (client.ContainerStatPathResult, error) {
+			return client.ContainerStatPathResult{
+				Stat: container.PathStat{
+					Name: "tmp",
+					Mode: os.ModeDir | 0o755,
+				},
+			}, nil
+		},
+		containerCopyToFunc: func(containerID string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error) {
+			_, _ = io.Copy(io.Discard, options.Content)
+			return client.CopyToContainerResult{}, nil
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      srcFile.Path(),
+		destination: "container:/tmp",
+	})
+	assert.NilError(t, err)
+	errOut := fakeCli.ErrBuffer().String()
+	assert.Check(t, is.Contains(errOut, "Successfully copied 5B"))
+	assert.Check(t, is.Contains(errOut, "(transferred"))
+}
+
+func TestCopyToContainerReportsEmptyFileSize(t *testing.T) {
+	srcFile := fs.NewFile(t, "cp-test-empty", fs.WithContent(""))
+
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerStatPathFunc: func(containerID, path string) (client.ContainerStatPathResult, error) {
+			return client.ContainerStatPathResult{
+				Stat: container.PathStat{
+					Name: "tmp",
+					Mode: os.ModeDir | 0o755,
+				},
+			}, nil
+		},
+		containerCopyToFunc: func(containerID string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error) {
+			_, _ = io.Copy(io.Discard, options.Content)
+			return client.CopyToContainerResult{}, nil
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      srcFile.Path(),
+		destination: "container:/tmp",
+	})
+	assert.NilError(t, err)
+	errOut := fakeCli.ErrBuffer().String()
+	assert.Check(t, is.Contains(errOut, "Successfully copied 0B"))
+	assert.Check(t, is.Contains(errOut, "(transferred"))
+}
+
+func TestCopyToContainerReportsDirectorySize(t *testing.T) {
+	// Create a temp directory with files "aaa" (3 bytes) + "bbb" (3 bytes) = 6 bytes.
+	// The TAR archive is much larger, but the success message should report 6B.
+	srcDir := fs.NewDir(t, "cp-test-dir",
+		fs.WithFile("aaa", "aaa"),
+		fs.WithFile("bbb", "bbb"),
+	)
+
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerStatPathFunc: func(containerID, path string) (client.ContainerStatPathResult, error) {
+			return client.ContainerStatPathResult{
+				Stat: container.PathStat{
+					Name: "tmp",
+					Mode: os.ModeDir | 0o755,
+				},
+			}, nil
+		},
+		containerCopyToFunc: func(containerID string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error) {
+			_, _ = io.Copy(io.Discard, options.Content)
+			return client.CopyToContainerResult{}, nil
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      srcDir.Path() + string(os.PathSeparator),
+		destination: "container:/tmp",
+	})
+	assert.NilError(t, err)
+	errOut := fakeCli.ErrBuffer().String()
+	assert.Check(t, is.Contains(errOut, "Successfully copied 6B"))
+	assert.Check(t, is.Contains(errOut, "(transferred"))
+}
+
+func TestCopyFromContainerReportsDirectorySize(t *testing.T) {
+	// When copying a directory from a container, cpRes.Stat.Mode.IsDir() is true,
+	// so reportedSize falls back to copiedSize (the tar stream bytes).
+	srcDir := fs.NewDir(t, "cp-test-fromdir",
+		fs.WithFile("file1", "hello"))
+
+	destDir := fs.NewDir(t, "cp-test-fromdir-dest")
+
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerCopyFromFunc: func(ctr, srcPath string) (client.CopyFromContainerResult, error) {
+			readCloser, err := archive.Tar(srcDir.Path(), compression.None)
+			return client.CopyFromContainerResult{
+				Content: readCloser,
+				Stat: container.PathStat{
+					Name: "mydir",
+					Mode: os.ModeDir | 0o755,
+				},
+			}, err
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      "container:/mydir",
+		destination: destDir.Path(),
+	})
+	assert.NilError(t, err)
+	errOut := fakeCli.ErrBuffer().String()
+	assert.Check(t, is.Contains(errOut, "Successfully copied"))
+	// For directories from container, content size is unknown so
+	// reportedSize == copiedSize and "(transferred ...)" is omitted.
+	assert.Check(t, !strings.Contains(errOut, "(transferred"))
 }
