@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 
 	"github.com/containerd/errdefs"
@@ -85,6 +86,16 @@ func verifyLoginFlags(flags *pflag.FlagSet, opts loginOptions) error {
 	}
 	if flags.Changed("password") && opts.password == "" {
 		return errors.New("password is empty")
+	}
+
+	if opts.serverAddress != "" {
+		u, err := url.Parse(opts.serverAddress)
+		if err != nil {
+			return errors.Errorf("Invalid server address: %s", opts.serverAddress)
+		}
+		if u.Host == "" {
+			return errors.Errorf("Server address must include a hostname: %s", opts.serverAddress)
+		}
 	}
 	return nil
 }
