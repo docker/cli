@@ -45,8 +45,7 @@ func AddPluginCommandStubs(dockerCLI config.Provider, rootCmd *cobra.Command) (e
 				RunE: func(cmd *cobra.Command, args []string) error {
 					flags := rootCmd.PersistentFlags()
 					flags.SetOutput(nil)
-					perr := flags.Parse(args)
-					if perr != nil {
+					if err := flags.Parse(args); err != nil {
 						return err
 					}
 					if flags.Changed("help") {
@@ -60,7 +59,11 @@ func AddPluginCommandStubs(dockerCLI config.Provider, rootCmd *cobra.Command) (e
 					cargs := []string{p.Path, cobra.ShellCompRequestCmd, p.Name} //nolint:prealloc // no need to over-complicate things.
 					cargs = append(cargs, args...)
 					cargs = append(cargs, toComplete)
+					origArgs := os.Args
 					os.Args = cargs
+					defer func() {
+						os.Args = origArgs
+					}()
 					runCommand, runErr := PluginRunCommand(dockerCLI, p.Name, cmd)
 					if runErr != nil {
 						return nil, cobra.ShellCompDirectiveError
