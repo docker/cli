@@ -45,9 +45,9 @@ accepts a volume name and path on the host, and the `--volume-driver` flag
 accepts a driver type.
 
 ```console
-$ docker volume create --driver=`VolumeDriver` `VolumeName`
+$ docker volume create --driver=myplugin volumename
 
-$ docker container run -it --volume `VolumeName`:/data busybox sh
+$ docker container run -it --volume volumename:/data busybox sh
 ```
 
 ### `--volume`
@@ -61,7 +61,7 @@ separated by a colon (`:`) character.
 - The `Mountpoint` is the path on the host (v1) or in the plugin (v2) where the
   volume has been made available.
 
-### `VolumeDriver`
+### `--volume-driver`
 
 Specifying a `VolumeDriver` in conjunction with a `VolumeName` allows you to use plugins to manage volumes.
 
