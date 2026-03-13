@@ -26,7 +26,7 @@ func TestConvertRestartPolicyFromNone(t *testing.T) {
 
 func TestConvertRestartPolicyFromUnknown(t *testing.T) {
 	_, err := convertRestartPolicy("unknown", nil)
-	assert.Error(t, err, "unknown restart policy: unknown")
+	assert.Error(t, err, "invalid restart policy: unknown policy 'unknown'; use one of 'no', 'always', 'on-failure', or 'unless-stopped'")
 }
 
 func TestConvertRestartPolicyFromAlways(t *testing.T) {
