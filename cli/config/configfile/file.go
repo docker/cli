@@ -288,6 +288,39 @@ func decodeAuth(authStr string) (string, string, error) {
 	return userName, strings.Trim(password, "\x00"), nil
 }
 
+// PreferDockerAuthConfig returns true if the memory store containing auth
+// config read from DOCKER_AUTH_CONFIG should be preferred over the config file.
+func (configFile *ConfigFile) PreferDockerAuthConfig() bool {
+	order := configFile.Features["auth_config_order"]
+	if v := os.Getenv("DOCKER_AUTH_ORDER"); v != "" {
+		order = v
+	}
+
+	order = strings.TrimSpace(order)
+	if order == "" {
+		// Temporary fix for clashing with GitLab CI
+		// Don't enable by default even if DOCKER_AUTH_CONFIG is set
+		// https://github.com/docker/cli/issues/6156
+		if os.Getenv("GITLAB_CI") == "true" {
+			return false
+		}
+		return true
+	}
+
+	parts := strings.Split(order, ",")
+	if len(parts) == 2 {
+		if parts[0] == "env" && parts[1] == "config" {
+			return true
+		}
+		if parts[0] == "config" && parts[1] == "env" {
+			return false
+		}
+	}
+
+	_, _ = fmt.Fprintln(os.Stderr, "Malformed DOCKER_AUTH_ORDER")
+	return true
+}
+
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
 func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
@@ -308,12 +341,17 @@ func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) crede
 		return store
 	}
 
-	// use DOCKER_AUTH_CONFIG if set
-	// it uses the native or file store as a fallback to fetch and store credentials
-	envStore, err := memorystore.New(
+	opts := []memorystore.Options{
 		memorystore.WithAuthConfig(authConfig),
 		memorystore.WithFallbackStore(store),
-	)
+	}
+	if !configFile.PreferDockerAuthConfig() {
+		opts = append(opts, memorystore.WithPreferFallback())
+	}
+
+	// use DOCKER_AUTH_CONFIG if set
+	// it uses the native or file store as a fallback to fetch and store credentials
+	envStore, err := memorystore.New(opts...)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "Failed to create credential store from DOCKER_AUTH_CONFIG: ", err)
 		return store
