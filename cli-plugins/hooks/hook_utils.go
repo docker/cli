@@ -2,13 +2,12 @@ package hooks
 
 import (
 	"fmt"
-	"strconv"
 )
 
 const (
 	hookTemplateCommandName = `{{.Name}}`
-	hookTemplateFlagValue   = `{{flag . "%s"}}`
-	hookTemplateArg         = `{{arg . %s}}`
+	hookTemplateFlagValue   = `{{flag . %q}}`
+	hookTemplateArg         = `{{arg . %d}}`
 )
 
 // TemplateReplaceSubcommandName returns a hook template string
@@ -54,5 +53,5 @@ func TemplateReplaceFlagValue(flag string) string {
 // will result in the message:
 // "Run this image with `docker run alpine`"
 func TemplateReplaceArg(i int) string {
-	return fmt.Sprintf(hookTemplateArg, strconv.Itoa(i))
+	return fmt.Sprintf(hookTemplateArg, i)
 }
