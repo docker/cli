@@ -14,6 +14,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -390,7 +391,7 @@ size: 0B
 	}
 
 	containers := []container.Summary{
-		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
+		{ID: "containerID1", Names: []string{"/foobar_baz"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning, NetworkSettings: &container.NetworkSettingsSummary{}},
 		{ID: "containerID2", Names: []string{"/foobar_bar"}, Image: "ubuntu", Created: unixTime, State: container.StateRunning},
 	}
 
@@ -476,7 +477,18 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			Image:   "ubuntu",
 			Created: unix,
 			State:   container.StateRunning,
-
+			NetworkSettings: &container.NetworkSettingsSummary{
+				Networks: map[string]*network.EndpointSettings{
+					"bridge": {
+						IPAddress:         "172.17.0.1",
+						GlobalIPv6Address: "ff02::1",
+					},
+					"my-net": {
+						IPAddress:         "172.18.0.1",
+						GlobalIPv6Address: "ff02::2",
+					},
+				},
+			},
 			ImageManifestDescriptor: &ocispec.Descriptor{Platform: &ocispec.Platform{Architecture: "amd64", OS: "linux"}},
 		},
 		{
@@ -495,6 +507,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
 			"ID":           "containerID1",
+			"IPAddresses":  []any{},
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
@@ -509,15 +522,21 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Status":       "",
 		},
 		{
-			"Command":      `""`,
-			"CreatedAt":    expectedCreated,
-			"ID":           "containerID2",
+			"Command":   `""`,
+			"CreatedAt": expectedCreated,
+			"ID":        "containerID2",
+			"IPAddresses": []any{
+				map[string]any{"IP": "172.17.0.1", "Network": "bridge"},
+				map[string]any{"IP": "ff02::1", "Network": "bridge"},
+				map[string]any{"IP": "172.18.0.1", "Network": "my-net"},
+				map[string]any{"IP": "ff02::2", "Network": "my-net"},
+			},
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
 			"Mounts":       "",
 			"Names":        "foobar_bar",
-			"Networks":     "",
+			"Networks":     "bridge,my-net",
 			"Platform":     map[string]any{"architecture": "amd64", "os": "linux"},
 			"Ports":        "",
 			"RunningFor":   "About a minute ago",
@@ -529,6 +548,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
 			"ID":           "containerID3",
+			"IPAddresses":  []any{},
 			"Image":        "ubuntu",
 			"Labels":       "",
 			"LocalVolumes": "0",
@@ -574,6 +594,36 @@ func TestContainerContextWriteJSONField(t *testing.T) {
 		assert.NilError(t, err, msg)
 		assert.Check(t, is.Equal(containers[i].ID, s), msg)
 	}
+}
+
+func TestContainerContextIPAddresses(t *testing.T) {
+	containers := []container.Summary{
+		{
+			ID: "containerID1",
+			NetworkSettings: &container.NetworkSettingsSummary{
+				Networks: map[string]*network.EndpointSettings{
+					"one": {IPAddress: "192.168.1.2"},
+					"two": {IPAddress: "192.168.178.2"},
+				},
+			},
+		},
+		{
+			ID: "containerID2",
+			NetworkSettings: &container.NetworkSettingsSummary{
+				Networks: map[string]*network.EndpointSettings{
+					"one": {IPAddress: "192.168.1.3"},
+					"two": {IPAddress: "192.168.178.3"},
+				},
+			},
+		},
+	}
+
+	out := bytes.NewBufferString("")
+	err := ContainerWrite(Context{Format: "{{.IPAddresses}}", Output: out}, containers)
+	assert.NilError(t, err)
+	assert.Equal(t, out.String(), `[one/192.168.1.2 two/192.168.178.2]
+[one/192.168.1.3 two/192.168.178.3]
+`)
 }
 
 func TestContainerBackCompat(t *testing.T) {
