@@ -6,6 +6,8 @@ module github.com/docker/cli
 
 go 1.24.0
 
+require golang.org/x/mod v0.33.0 // for module compatibility check
+
 require (
 	dario.cat/mergo v1.0.2
 	github.com/containerd/errdefs v1.0.0
