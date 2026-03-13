@@ -20,6 +20,34 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// authConfigKey is the key used to store credentials for Docker Hub. It is
+// a copy of [registry.IndexServer].
+//
+// [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker@v28.5.1+incompatible/registry#IndexServer
+const authConfigKey = "https://index.docker.io/v1/"
+
+// getAuthConfigKey returns the canonical key used to look up stored
+// registry credentials for the given registry domain.
+//
+// For the official Docker Hub registry ("docker.io"), credentials are stored
+// under the historical full index address ("https://index.docker.io/v1/").
+//
+// For all other registries, the input is domainName to already be a normalized
+// hostname (optionally including ":port") and is returned unchanged.
+//
+// This function performs key normalization only; it does not validate or parse
+// the input.
+//
+// It is similar to [registry.GetAuthConfigKey] in the daemon.
+//
+// [registry.GetAuthConfigKey]: https://pkg.go.dev/github.com/docker/docker@v28.5.1+incompatible/registry#GetAuthConfigKey
+func getAuthConfigKey(domainName string) string {
+	if domainName == "docker.io" || domainName == "index.docker.io" {
+		return authConfigKey
+	}
+	return domainName
+}
+
 // ConfigFile ~/.docker/config.json file info
 type ConfigFile struct {
 	AuthConfigs          map[string]types.AuthConfig  `json:"auths"`
@@ -293,7 +321,7 @@ func decodeAuth(authStr string) (string, string, error) {
 func (configFile *ConfigFile) GetCredentialsStore(registryHostname string) credentials.Store {
 	store := credentials.NewFileStore(configFile)
 
-	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
+	if helper := getConfiguredCredentialStore(configFile, getAuthConfigKey(registryHostname)); helper != "" {
 		store = newNativeStore(configFile, helper)
 	}
 
@@ -358,7 +386,8 @@ var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentia
 
 // GetAuthConfig for a repository from the credential store
 func (configFile *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
-	return configFile.GetCredentialsStore(registryHostname).Get(registryHostname)
+	acKey := getAuthConfigKey(registryHostname)
+	return configFile.GetCredentialsStore(acKey).Get(acKey)
 }
 
 // getConfiguredCredentialStore returns the credential helper configured for the
