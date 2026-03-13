@@ -56,5 +56,5 @@ func runPush(ctx context.Context, dockerCli command.Cli, name string) error {
 	defer func() {
 		_ = responseBody.Close()
 	}()
-	return jsonstream.Display(ctx, responseBody, dockerCli.Out())
+	return jsonstream.DisplayStream(ctx, responseBody, dockerCli.Out())
 }
