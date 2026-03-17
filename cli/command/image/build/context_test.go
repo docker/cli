@@ -68,7 +68,7 @@ func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
 	contextDir := createTestTempDir(t)
 	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 
-	chdir(t, contextDir)
+	t.Chdir(contextDir)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
 	assert.NilError(t, err)
@@ -110,7 +110,7 @@ func TestGetContextFromLocalDirLocalFile(t *testing.T) {
 
 func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
 	contextDir := createTestTempDir(t)
-	chdir(t, contextDir)
+	t.Chdir(contextDir)
 
 	createTestTempFile(t, contextDir, defaultDockerfileName, dockerfileContents)
 
@@ -246,20 +246,6 @@ func createTestTempFile(t *testing.T, dir, filename, contents string) string {
 	err := os.WriteFile(filePath, []byte(contents), 0o777)
 	assert.NilError(t, err)
 	return filePath
-}
-
-// chdir changes current working directory to dir.
-// It returns a function which changes working directory back to the previous one.
-// This function is meant to be executed as a deferred call.
-// When an error occurs, it terminates the test.
-func chdir(t *testing.T, dir string) {
-	t.Helper()
-	workingDirectory, err := os.Getwd()
-	assert.NilError(t, err)
-	assert.NilError(t, os.Chdir(dir))
-	t.Cleanup(func() {
-		assert.NilError(t, os.Chdir(workingDirectory))
-	})
 }
 
 func TestIsArchive(t *testing.T) {

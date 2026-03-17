@@ -158,11 +158,6 @@ linters:
         - name: use-any           # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
         - name: use-errors-new    # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md#use-errors-new
 
-    usetesting:
-      os-chdir: false           # FIXME(thaJeztah): Disable `os.Chdir()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
-      context-background: false # FIXME(thaJeztah): Disable `context.Background()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
-      context-todo: false       # FIXME(thaJeztah): Disable `context.TODO()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
-
   exclusions:
     # We prefer to use an "linters.exclusions.rules" so that new "default" exclusions are not
     # automatically inherited. We can decide whether or not to follow upstream
@@ -225,13 +220,10 @@ linters:
         linters:
           - staticcheck
 
-      # Ignore deprecation linting for cli/command/stack/*.
-      #
-      # FIXME(thaJeztah): remove exception once these functions are un-exported or internal; see https://github.com/docker/cli/pull/6389
-      - text: '^(SA1019): '
-        path: "cli/command/stack"
+      # TODO(thaJeztah): remove once https://github.com/leighmcculloch/gocheckcompilerdirectives/issues/7 is fixed.
+      - text: "compiler directive unrecognized: //go:fix"
         linters:
-          - staticcheck
+          - gocheckcompilerdirectives
 
     # Log a warning if an exclusion rule is unused.
     # Default: false
