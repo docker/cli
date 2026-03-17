@@ -1,5 +1,12 @@
 package hooks
 
+// ResponseType is the type of response from the plugin.
+type ResponseType int
+
+const (
+	NextSteps ResponseType = 0
+)
+
 // Request is the type representing the information
 // that plugins declaring support for hooks get passed when
 // being invoked following a CLI command execution.
@@ -18,9 +25,16 @@ type Request struct {
 // representation of this type when their hook subcommand
 // is invoked.
 type Response struct {
-	Type     HookType
+	Type     ResponseType
 	Template string
 }
+
+// HookType is the type of response from the plugin.
+//
+// Deprecated: use [ResponseType] instead.
+//
+//go:fix inline
+type HookType = ResponseType
 
 // HookMessage represents a plugin hook response.
 //

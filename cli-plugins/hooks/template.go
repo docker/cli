@@ -11,12 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type HookType int
-
-const (
-	NextSteps = iota
-)
-
 // TemplateReplaceSubcommandName returns a hook template string
 // that will be replaced by the CLI subcommand being executed
 //
