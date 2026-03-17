@@ -22,15 +22,11 @@ import (
 // HookPluginData is the type representing the information
 // that plugins declaring support for hooks get passed when
 // being invoked following a CLI command execution.
-type HookPluginData struct {
-	// RootCmd is a string representing the matching hook configuration
-	// which is currently being invoked. If a hook for `docker context` is
-	// configured and the user executes `docker context ls`, the plugin will
-	// be invoked with `context`.
-	RootCmd      string
-	Flags        map[string]string
-	CommandError string
-}
+//
+// Deprecated: use [hooks.Request] instead.
+//
+//go:fix inline
+type HookPluginData = hooks.Request
 
 // RunCLICommandHooks is the entrypoint into the hooks execution flow after
 // a main CLI command was executed. It calls the hook subcommand for all
@@ -81,7 +77,7 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 			return nil, false, err
 		}
 
-		resp, err := p.RunHook(ctx, HookPluginData{
+		resp, err := p.RunHook(ctx, hooks.Request{
 			RootCmd:      match,
 			Flags:        flags,
 			CommandError: cmdErrorMessage,
