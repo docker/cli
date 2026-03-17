@@ -12,3 +12,19 @@ type Request struct {
 	Flags        map[string]string
 	CommandError string
 }
+
+// Response represents a plugin hook response. Plugins
+// declaring support for CLI hooks need to print a JSON
+// representation of this type when their hook subcommand
+// is invoked.
+type Response struct {
+	Type     HookType
+	Template string
+}
+
+// HookMessage represents a plugin hook response.
+//
+// Deprecated: use [Response] instead.
+//
+//go:fix inline
+type HookMessage = Response

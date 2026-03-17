@@ -17,15 +17,6 @@ const (
 	NextSteps = iota
 )
 
-// HookMessage represents a plugin hook response. Plugins
-// declaring support for CLI hooks need to print a json
-// representation of this type when their hook subcommand
-// is invoked.
-type HookMessage struct {
-	Type     HookType
-	Template string
-}
-
 // TemplateReplaceSubcommandName returns a hook template string
 // that will be replaced by the CLI subcommand being executed
 //

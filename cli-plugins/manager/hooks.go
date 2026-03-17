@@ -86,7 +86,7 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 			return nil, false, err
 		}
 
-		var message hooks.HookMessage
+		var message hooks.Response
 		if err := json.Unmarshal(resp, &message); err != nil {
 			return nil, false, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
 		}
