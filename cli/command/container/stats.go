@@ -144,36 +144,21 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		}
 
 		eh := newEventHandler()
+		addEvents := []events.Action{events.ActionStart}
 		if options.All {
-			eh.setHandler(events.ActionCreate, func(ctx context.Context, e events.Message) {
-				if s := NewStats(e.Actor.ID); cStats.add(s) {
-					waitFirst.Add(1)
-					log.G(ctx).WithFields(log.Fields{
-						"event":     e.Action,
-						"container": e.Actor.ID,
-					}).Debug("collecting stats for container")
-					go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
-				}
-			})
+			addEvents = append(addEvents, events.ActionCreate)
 		}
-
-		eh.setHandler(events.ActionStart, func(ctx context.Context, e events.Message) {
+		eh.setHandler(addEvents, func(ctx context.Context, e events.Message) {
 			if s := NewStats(e.Actor.ID); cStats.add(s) {
 				waitFirst.Add(1)
-				log.G(ctx).WithFields(log.Fields{
-					"event":     e.Action,
-					"container": e.Actor.ID,
-				}).Debug("collecting stats for container")
+				log.G(ctx).Debug("collecting stats for container")
 				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
 			}
 		})
 
 		if !options.All {
-			eh.setHandler(events.ActionDie, func(ctx context.Context, e events.Message) {
-				log.G(ctx).WithFields(log.Fields{
-					"event":     e.Action,
-					"container": e.Actor.ID,
-				}).Debug("stop collecting stats for container")
+			eh.setHandler([]events.Action{events.ActionDie}, func(ctx context.Context, e events.Message) {
+				log.G(ctx).Debug("stop collecting stats for container")
 				cStats.remove(e.Actor.ID)
 			})
 		}
@@ -377,8 +362,10 @@ type eventHandler struct {
 	handlers map[events.Action]func(context.Context, events.Message)
 }
 
-func (eh *eventHandler) setHandler(action events.Action, handler func(context.Context, events.Message)) {
-	eh.handlers[action] = handler
+func (eh *eventHandler) setHandler(actions []events.Action, handler func(context.Context, events.Message)) {
+	for _, action := range actions {
+		eh.handlers[action] = handler
+	}
 }
 
 // watch ranges over the passed in event chan and processes the events based on the
@@ -394,8 +381,11 @@ func (eh *eventHandler) watch(ctx context.Context, c <-chan events.Message) {
 			log.G(ctx).WithField("event", e).Errorf("event handler: received %s event with empty ID", e.Action)
 			continue
 		}
+		logger := log.G(ctx).WithFields(log.Fields{
+			"event":     e.Action,
+			"container": e.Actor.ID,
+		})
 
-		log.G(ctx).WithField("event", e).Debugf("event handler: received %s event for: %s", e.Action, e.Actor.ID)
-		go h(ctx, e)
+		go h(log.WithLogger(ctx, logger), e)
 	}
 }
