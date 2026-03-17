@@ -158,11 +158,6 @@ linters:
         - name: use-any           # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#use-any
         - name: use-errors-new    # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md#use-errors-new
 
-    usetesting:
-      os-chdir: false           # FIXME(thaJeztah): Disable `os.Chdir()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
-      context-background: false # FIXME(thaJeztah): Disable `context.Background()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
-      context-todo: false       # FIXME(thaJeztah): Disable `context.TODO()` detections; should be automatically disabled on Go < 1.24; see https://github.com/docker/cli/pull/5835#issuecomment-2665302478
-
   exclusions:
     # We prefer to use an "linters.exclusions.rules" so that new "default" exclusions are not
     # automatically inherited. We can decide whether or not to follow upstream
