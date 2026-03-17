@@ -185,7 +185,7 @@ func calculateCPUPercentUnix(previousCPU container.CPUStats, curCPUStats contain
 
 func calculateCPUPercentWindows(v *container.StatsResponse) float64 {
 	// Max number of 100ns intervals between the previous time read and now
-	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds()) // Start with number of ns intervals
+	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds()) //nolint:gosec // G115: time difference between CPU stat reads is always positive
 	possIntervals /= 100                                         // Convert to number of 100ns intervals
 	possIntervals *= uint64(v.NumProcs)                          // Multiply by the number of processors
 
