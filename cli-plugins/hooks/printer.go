@@ -1,10 +1,10 @@
 package hooks
 
-import (
-	"fmt"
-	"io"
+import "io"
 
-	"github.com/morikuni/aec"
+const (
+	whatsNext = "\n\033[1mWhat's next:\033[0m\n"
+	indent    = "    "
 )
 
 // PrintNextSteps renders list of [NextSteps] messages and writes them
@@ -13,8 +13,11 @@ func PrintNextSteps(out io.Writer, messages []string) {
 	if len(messages) == 0 {
 		return
 	}
-	_, _ = fmt.Fprintln(out, aec.Bold.Apply("\nWhat's next:"))
-	for _, n := range messages {
-		_, _ = fmt.Fprintln(out, "   ", n)
+
+	_, _ = io.WriteString(out, whatsNext)
+	for _, msg := range messages {
+		_, _ = io.WriteString(out, indent)
+		_, _ = io.WriteString(out, msg)
+		_, _ = io.WriteString(out, "\n")
 	}
 }

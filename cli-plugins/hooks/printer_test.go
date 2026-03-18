@@ -9,7 +9,7 @@ import (
 )
 
 func TestPrintHookMessages(t *testing.T) {
-	const header = "\x1b[1m\nWhat's next:\x1b[0m\n"
+	const header = "\n\x1b[1mWhat's next:\x1b[0m\n"
 
 	tests := []struct {
 		doc            string
