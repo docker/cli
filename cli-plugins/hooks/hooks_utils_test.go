@@ -22,21 +22,21 @@ func TestTemplateHelpers(t *testing.T) {
 			got: func() string {
 				return hooks.TemplateReplaceFlagValue("name")
 			},
-			want: `{{flag . "name"}}`,
+			want: `{{.FlagValue "name"}}`,
 		},
 		{
 			doc: "arg",
 			got: func() string {
 				return hooks.TemplateReplaceArg(0)
 			},
-			want: `{{arg . 0}}`,
+			want: `{{.Arg 0}}`,
 		},
 		{
 			doc: "arg",
 			got: func() string {
 				return hooks.TemplateReplaceArg(3)
 			},
-			want: `{{arg . 3}}`,
+			want: `{{.Arg 3}}`,
 		},
 	}
 
