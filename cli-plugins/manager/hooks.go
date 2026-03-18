@@ -6,6 +6,9 @@ package manager
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli-plugins/hooks"
@@ -66,47 +69,65 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 
 	pluginDirs := getPluginDirs(cfg)
 	nextSteps := make([]string, 0, len(pluginsCfg))
-	for pluginName, pluginCfg := range pluginsCfg {
-		match, ok := pluginMatch(pluginCfg, subCmdStr, cmdErrorMessage)
-		if !ok {
-			continue
+
+	tryInvokeHook := func(pluginName string, pluginCfg map[string]string) (messages []string, ok bool, err error) {
+		match, matched := pluginMatch(pluginCfg, subCmdStr, cmdErrorMessage)
+		if !matched {
+			return nil, false, nil
 		}
 
 		p, err := getPlugin(pluginName, pluginDirs, rootCmd)
 		if err != nil {
-			continue
+			return nil, false, err
 		}
 
-		hookReturn, err := p.RunHook(ctx, HookPluginData{
+		resp, err := p.RunHook(ctx, HookPluginData{
 			RootCmd:      match,
 			Flags:        flags,
 			CommandError: cmdErrorMessage,
 		})
 		if err != nil {
-			// skip misbehaving plugins, but don't halt execution
-			continue
+			return nil, false, err
 		}
 
-		var hookMessageData hooks.HookMessage
-		err = json.Unmarshal(hookReturn, &hookMessageData)
-		if err != nil {
-			continue
+		var message hooks.HookMessage
+		if err := json.Unmarshal(resp, &message); err != nil {
+			return nil, false, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
 		}
 
 		// currently the only hook type
-		if hookMessageData.Type != hooks.NextSteps {
-			continue
+		if message.Type != hooks.NextSteps {
+			return nil, false, errors.New("unexpected hook response type: " + strconv.Itoa(int(message.Type)))
 		}
 
-		processedHook, err := hooks.ParseTemplate(hookMessageData.Template, subCmd)
+		messages, err = hooks.ParseTemplate(message.Template, subCmd)
 		if err != nil {
+			return nil, false, err
+		}
+
+		return messages, true, nil
+	}
+
+	for pluginName, pluginCfg := range pluginsCfg {
+		messages, ok, err := tryInvokeHook(pluginName, pluginCfg)
+		if err != nil {
+			// skip misbehaving plugins, but don't halt execution
+			logrus.WithFields(logrus.Fields{
+				"error":  err,
+				"plugin": pluginName,
+			}).Debug("Plugin hook invocation failed")
+			continue
+		}
+		if !ok {
 			continue
 		}
 
 		var appended bool
-		nextSteps, appended = appendNextSteps(nextSteps, processedHook)
+		nextSteps, appended = appendNextSteps(nextSteps, messages)
 		if !appended {
-			logrus.Debugf("Plugin %s responded with an empty hook message %q. Ignoring.", pluginName, string(hookReturn))
+			logrus.WithFields(logrus.Fields{
+				"plugin": pluginName,
+			}).Debug("Plugin responded with an empty hook message; ignoring")
 		}
 	}
 	return nextSteps
