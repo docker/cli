@@ -80,7 +80,7 @@ func (p *PortOpt) Set(value string) error {
 					return fmt.Errorf("invalid target port (%s): value must be an integer: %w", val, err)
 				}
 
-				pConfig.TargetPort = uint32(tPort) //nolint:gosec // G115: port numbers are in range [0, 65535], within uint32 bounds
+				pConfig.TargetPort = uint32(tPort)
 			case portOptPublishedPort:
 				pPort, err := strconv.ParseUint(val, 10, 16)
 				if err != nil {
@@ -91,7 +91,7 @@ func (p *PortOpt) Set(value string) error {
 					return fmt.Errorf("invalid published port (%s): value must be an integer: %w", val, err)
 				}
 
-				pConfig.PublishedPort = uint32(pPort) //nolint:gosec // G115: port numbers are in range [0, 65535], within uint32 bounds
+				pConfig.PublishedPort = uint32(pPort)
 			default:
 				return fmt.Errorf("invalid field key: %s", key)
 			}
@@ -176,8 +176,8 @@ func ConvertPortToPortConfig(
 			ports = append(ports, swarm.PortConfig{
 				// TODO Name: ?
 				Protocol:      portProto.Proto(),
-				TargetPort:    uint32(portProto.Num()),    //nolint:gosec // G115: port numbers are in range [0, 65535], within uint32 bounds
-				PublishedPort: uint32(p.Num()), //nolint:gosec // G115: port numbers are in range [0, 65535], within uint32 bounds
+				TargetPort:    uint32(portProto.Num()),
+				PublishedPort: uint32(p.Num()),
 				PublishMode:   swarm.PortConfigPublishModeIngress,
 			})
 		}

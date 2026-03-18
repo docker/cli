@@ -389,7 +389,7 @@ func generateLegend(out tui.Output, width uint) string {
 	}
 	legend += legendSb371.String()
 
-	r := max(int(width)-tui.Width(legend), 0)
+	r := max(int(width)-tui.Width(legend), 0) //nolint:gosec // G115: terminal width fits within int range
 	legend = strings.Repeat(" ", r) + legend
 	return legend
 }
