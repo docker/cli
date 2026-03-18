@@ -10,17 +10,22 @@ import (
 )
 
 func ParseTemplate(hookTemplate string, cmd *cobra.Command) ([]string, error) {
-	tmpl := template.New("").Funcs(commandFunctions)
-	tmpl, err := tmpl.Parse(hookTemplate)
-	if err != nil {
-		return nil, err
+	out := hookTemplate
+	if strings.Contains(hookTemplate, "{{") {
+		// Message may be a template.
+		tmpl := template.New("").Funcs(commandFunctions)
+		tmpl, err := tmpl.Parse(hookTemplate)
+		if err != nil {
+			return nil, err
+		}
+		var b bytes.Buffer
+		err = tmpl.Execute(&b, cmd)
+		if err != nil {
+			return nil, err
+		}
+		out = b.String()
 	}
-	b := bytes.Buffer{}
-	err = tmpl.Execute(&b, cmd)
-	if err != nil {
-		return nil, err
-	}
-	return strings.Split(b.String(), "\n"), nil
+	return strings.Split(out, "\n"), nil
 }
 
 var ErrHookTemplateParse = errors.New("failed to parse hook template")
