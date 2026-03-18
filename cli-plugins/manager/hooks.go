@@ -55,11 +55,8 @@ func runHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subComma
 }
 
 func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
-	// check if the context was cancelled before invoking hooks
-	select {
-	case <-ctx.Done():
+	if ctx.Err() != nil {
 		return nil
-	default:
 	}
 
 	pluginsCfg := cfg.Plugins
