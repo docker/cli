@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	hookTemplateCommandName = `{{.Name}}`
-	hookTemplateFlagValue   = `{{.FlagValue %q}}`
-	hookTemplateArg         = `{{.Arg %d}}`
+	hookTemplateCommandName = `{{command}}`
+	hookTemplateFlagValue   = `{{flagValue %q}}`
+	hookTemplateArg         = `{{argValue %d}}`
 )
 
 // TemplateReplaceSubcommandName returns a hook template string

@@ -17,9 +17,13 @@ func ParseTemplate(hookTemplate string, cmd *cobra.Command) ([]string, error) {
 		msgContext := commandInfo{cmd: cmd}
 
 		tmpl, err := template.New("").Funcs(template.FuncMap{
+			"command":   msgContext.command,
+			"flagValue": msgContext.flagValue,
+			"argValue":  msgContext.argValue,
+
 			// kept for backward-compatibility with old templates.
-			"flag": func(_ any, flagName string) (string, error) { return msgContext.FlagValue(flagName) },
-			"arg":  func(_ any, i int) (string, error) { return msgContext.Arg(i) },
+			"flag": func(_ any, flagName string) (string, error) { return msgContext.flagValue(flagName) },
+			"arg":  func(_ any, i int) (string, error) { return msgContext.argValue(i) },
 		}).Parse(hookTemplate)
 		if err != nil {
 			return nil, err
@@ -46,14 +50,19 @@ type commandInfo struct {
 //
 // It's used for backward-compatibility with old templates.
 func (c commandInfo) Name() string {
+	return c.command()
+}
+
+// command returns the name of the (sub)command for which the hook was invoked.
+func (c commandInfo) command() string {
 	if c.cmd == nil {
 		return ""
 	}
 	return c.cmd.Name()
 }
 
-// FlagValue returns the value that was set for the given flag when the hook was invoked.
-func (c commandInfo) FlagValue(flagName string) (string, error) {
+// flagValue returns the value that was set for the given flag when the hook was invoked.
+func (c commandInfo) flagValue(flagName string) (string, error) {
 	if c.cmd == nil {
 		return "", fmt.Errorf("%w: flagValue: cmd is nil", ErrHookTemplateParse)
 	}
@@ -64,8 +73,8 @@ func (c commandInfo) FlagValue(flagName string) (string, error) {
 	return f.Value.String(), nil
 }
 
-// Arg returns the value of the nth argument.
-func (c commandInfo) Arg(n int) (string, error) {
+// argValue returns the value of the nth argument.
+func (c commandInfo) argValue(n int) (string, error) {
 	if c.cmd == nil {
 		return "", fmt.Errorf("%w: arg: cmd is nil", ErrHookTemplateParse)
 	}

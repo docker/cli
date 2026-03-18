@@ -15,28 +15,28 @@ func TestTemplateHelpers(t *testing.T) {
 		{
 			doc:  "subcommand name",
 			got:  hooks.TemplateReplaceSubcommandName,
-			want: `{{.Name}}`,
+			want: `{{command}}`,
 		},
 		{
 			doc: "flag value",
 			got: func() string {
 				return hooks.TemplateReplaceFlagValue("name")
 			},
-			want: `{{.FlagValue "name"}}`,
+			want: `{{flagValue "name"}}`,
 		},
 		{
 			doc: "arg",
 			got: func() string {
 				return hooks.TemplateReplaceArg(0)
 			},
-			want: `{{.Arg 0}}`,
+			want: `{{argValue 0}}`,
 		},
 		{
 			doc: "arg",
 			got: func() string {
 				return hooks.TemplateReplaceArg(3)
 			},
-			want: `{{.Arg 3}}`,
+			want: `{{argValue 3}}`,
 		},
 	}
 
