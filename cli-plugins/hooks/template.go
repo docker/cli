@@ -4,113 +4,84 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"text/template"
 
 	"github.com/spf13/cobra"
 )
 
-type HookType int
-
-const (
-	NextSteps = iota
-)
-
-// HookMessage represents a plugin hook response. Plugins
-// declaring support for CLI hooks need to print a json
-// representation of this type when their hook subcommand
-// is invoked.
-type HookMessage struct {
-	Type     HookType
-	Template string
-}
-
-// TemplateReplaceSubcommandName returns a hook template string
-// that will be replaced by the CLI subcommand being executed
-//
-// Example:
-//
-// "you ran the subcommand: " + TemplateReplaceSubcommandName()
-//
-// when being executed after the command:
-// `docker run --name "my-container" alpine`
-// will result in the message:
-// `you ran the subcommand: run`
-func TemplateReplaceSubcommandName() string {
-	return hookTemplateCommandName
-}
-
-// TemplateReplaceFlagValue returns a hook template string
-// that will be replaced by the flags value.
-//
-// Example:
-//
-// "you ran a container named: " + TemplateReplaceFlagValue("name")
-//
-// when being executed after the command:
-// `docker run --name "my-container" alpine`
-// will result in the message:
-// `you ran a container named: my-container`
-func TemplateReplaceFlagValue(flag string) string {
-	return fmt.Sprintf(hookTemplateFlagValue, flag)
-}
-
-// TemplateReplaceArg takes an index i and returns a hook
-// template string that the CLI will replace the template with
-// the ith argument, after processing the passed flags.
-//
-// Example:
-//
-// "run this image with `docker run " + TemplateReplaceArg(0) + "`"
-//
-// when being executed after the command:
-// `docker pull alpine`
-// will result in the message:
-// "Run this image with `docker run alpine`"
-func TemplateReplaceArg(i int) string {
-	return fmt.Sprintf(hookTemplateArg, strconv.Itoa(i))
-}
-
 func ParseTemplate(hookTemplate string, cmd *cobra.Command) ([]string, error) {
-	tmpl := template.New("").Funcs(commandFunctions)
-	tmpl, err := tmpl.Parse(hookTemplate)
-	if err != nil {
-		return nil, err
+	out := hookTemplate
+	if strings.Contains(hookTemplate, "{{") {
+		// Message may be a template.
+		msgContext := commandInfo{cmd: cmd}
+
+		tmpl, err := template.New("").Funcs(template.FuncMap{
+			"command":   msgContext.command,
+			"flagValue": msgContext.flagValue,
+			"argValue":  msgContext.argValue,
+
+			// kept for backward-compatibility with old templates.
+			"flag": func(_ any, flagName string) (string, error) { return msgContext.flagValue(flagName) },
+			"arg":  func(_ any, i int) (string, error) { return msgContext.argValue(i) },
+		}).Parse(hookTemplate)
+		if err != nil {
+			return nil, err
+		}
+		var b bytes.Buffer
+		err = tmpl.Execute(&b, msgContext)
+		if err != nil {
+			return nil, err
+		}
+		out = b.String()
 	}
-	b := bytes.Buffer{}
-	err = tmpl.Execute(&b, cmd)
-	if err != nil {
-		return nil, err
-	}
-	return strings.Split(b.String(), "\n"), nil
+	return strings.Split(out, "\n"), nil
 }
 
 var ErrHookTemplateParse = errors.New("failed to parse hook template")
 
-const (
-	hookTemplateCommandName = "{{.Name}}"
-	hookTemplateFlagValue   = `{{flag . "%s"}}`
-	hookTemplateArg         = "{{arg . %s}}"
-)
-
-var commandFunctions = template.FuncMap{
-	"flag": getFlagValue,
-	"arg":  getArgValue,
+// commandInfo provides info about the command for which the hook was invoked.
+// It is used for templated hook-messages.
+type commandInfo struct {
+	cmd *cobra.Command
 }
 
-func getFlagValue(cmd *cobra.Command, flag string) (string, error) {
-	cmdFlag := cmd.Flag(flag)
-	if cmdFlag == nil {
-		return "", ErrHookTemplateParse
-	}
-	return cmdFlag.Value.String(), nil
+// Name returns the name of the (sub)command for which the hook was invoked.
+//
+// It's used for backward-compatibility with old templates.
+func (c commandInfo) Name() string {
+	return c.command()
 }
 
-func getArgValue(cmd *cobra.Command, i int) (string, error) {
-	flags := cmd.Flags()
-	if flags == nil {
-		return "", ErrHookTemplateParse
+// command returns the name of the (sub)command for which the hook was invoked.
+func (c commandInfo) command() string {
+	if c.cmd == nil {
+		return ""
 	}
-	return flags.Arg(i), nil
+	return c.cmd.Name()
+}
+
+// flagValue returns the value that was set for the given flag when the hook was invoked.
+func (c commandInfo) flagValue(flagName string) (string, error) {
+	if c.cmd == nil {
+		return "", fmt.Errorf("%w: flagValue: cmd is nil", ErrHookTemplateParse)
+	}
+	f := c.cmd.Flag(flagName)
+	if f == nil {
+		return "", fmt.Errorf("%w: flagValue: no flags found", ErrHookTemplateParse)
+	}
+	return f.Value.String(), nil
+}
+
+// argValue returns the value of the nth argument.
+func (c commandInfo) argValue(n int) (string, error) {
+	if c.cmd == nil {
+		return "", fmt.Errorf("%w: arg: cmd is nil", ErrHookTemplateParse)
+	}
+	flags := c.cmd.Flags()
+	v := flags.Arg(n)
+	if v == "" && n >= flags.NArg() {
+		return "", fmt.Errorf("%w: arg: %dth argument not set", ErrHookTemplateParse, n)
+	}
+	return v, nil
 }

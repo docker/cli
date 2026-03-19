@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/docker/cli/cli-plugins/hooks"
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/spf13/cobra"
 )
@@ -154,7 +155,7 @@ func validateSchemaVersion(version string) error {
 
 // RunHook executes the plugin's hooks command
 // and returns its unprocessed output.
-func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, error) {
+func (p *Plugin) RunHook(ctx context.Context, hookData hooks.Request) ([]byte, error) {
 	hDataBytes, err := json.Marshal(hookData)
 	if err != nil {
 		return nil, wrapAsPluginError(err, "failed to marshall hook data")
@@ -163,12 +164,16 @@ func (p *Plugin) RunHook(ctx context.Context, hookData HookPluginData) ([]byte, 
 	pCmd := exec.CommandContext(ctx, p.Path, p.Name, metadata.HookSubcommandName, string(hDataBytes)) // #nosec G204 -- ignore "Subprocess launched with a potential tainted input or cmd arguments"
 	pCmd.Env = os.Environ()
 	pCmd.Env = append(pCmd.Env, metadata.ReexecEnvvar+"="+os.Args[0])
-	hookCmdOutput, err := pCmd.Output()
-	if err != nil {
-		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand")
-	}
 
-	return hookCmdOutput, nil
+	out, err := pCmd.Output()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return nil, wrapAsPluginError(err, "plugin hook subcommand exited unsuccessfully")
+		}
+		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand: "+pCmd.String())
+	}
+	return out, nil
 }
 
 // pluginNameFormat is used as part of errors for invalid plugin-names.
