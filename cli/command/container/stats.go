@@ -7,9 +7,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
-	"strings"
 	"sync"
 	"time"
 
@@ -312,7 +310,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 			return err
 		}
-		_, _ = fmt.Fprint(dockerCLI.Out(), renderBuf.String())
+		_, _ = dockerCLI.Out().Write(renderBuf.Bytes())
 		return nil
 	}
 
@@ -339,16 +337,20 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			}
 
 			// Start by moving the cursor to the top-left
-			_, _ = fmt.Fprint(&frameBuf, "\033[H")
+			_, _ = io.WriteString(&frameBuf, "\033[H")
 
-			for line := range strings.SplitSeq(renderBuf.String(), "\n") {
+			// TODO(thaJeztah): consider wrapping the writer to inject ANSI (line-clearing) during formatting.
+			// instead of post-processing the results.
+			for line := range bytes.SplitSeq(renderBuf.Bytes(), []byte{'\n'}) {
 				// In case the new text is shorter than the one we are writing over,
 				// we'll append the "erase line" escape sequence to clear the remaining text.
-				_, _ = fmt.Fprintln(&frameBuf, line, "\033[K")
+				_, _ = frameBuf.Write(line)
+				_, _ = io.WriteString(&frameBuf, "\033[K")
+				_ = frameBuf.WriteByte('\n')
 			}
 			// We might have fewer containers than before, so let's clear the remaining text
-			_, _ = fmt.Fprint(&frameBuf, "\033[J")
-			_, _ = fmt.Fprint(dockerCLI.Out(), frameBuf.String())
+			_, _ = io.WriteString(&frameBuf, "\033[J")
+			_, _ = dockerCLI.Out().Write(frameBuf.Bytes())
 		case err, ok := <-closeChan:
 			if !ok || err == nil || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 				// Suppress "unexpected EOF" errors in the CLI so that
