@@ -141,18 +141,28 @@ func (c *ContainerContext) ID() string {
 
 // Names returns a comma-separated string of the container's names, with their
 // slash (/) prefix stripped. Additional names for the container (related to the
-// legacy `--link` feature) are omitted.
+// legacy `--link` feature) are omitted when formatting "truncated".
 func (c *ContainerContext) Names() string {
-	names := StripNamePrefix(c.c.Names)
-	if c.trunc {
-		for _, name := range names {
-			if len(strings.Split(name, "/")) == 1 {
-				names = []string{name}
-				break
+	var b strings.Builder
+	for i, n := range c.c.Names {
+		name := strings.TrimPrefix(n, "/")
+		if c.trunc {
+			// When printing truncated, we only print a single name.
+			//
+			// Pick the first name that's not a legacy link (does not have
+			// slashes inside the name itself (e.g., "/other-container/link")).
+			// Normally this would be the first name found.
+			if strings.IndexByte(name, '/') == -1 {
+				return name
 			}
+			continue
 		}
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		b.WriteString(name)
 	}
-	return strings.Join(names, ",")
+	return b.String()
 }
 
 // StripNamePrefix removes any "/" prefix from container names returned
