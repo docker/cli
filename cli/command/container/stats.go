@@ -301,15 +301,13 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 	}
 
 	if options.NoStream {
-		cStats.mu.RLock()
-		ccStats := make([]StatsEntry, 0, len(cStats.cs))
-		for _, c := range cStats.cs {
-			ccStats = append(ccStats, c.GetStatistics())
-		}
-		cStats.mu.RUnlock()
-
-		if len(ccStats) == 0 {
+		statsList := cStats.snapshot()
+		if len(statsList) == 0 {
 			return nil
+		}
+		ccStats := make([]StatsEntry, 0, len(statsList))
+		for _, c := range statsList {
+			ccStats = append(ccStats, c.GetStatistics())
 		}
 		if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 			return err
@@ -325,12 +323,16 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		case <-ticker.C:
 			statsTextBuffer.Reset()
 			frameBuf.Reset()
-			cStats.mu.RLock()
-			ccStats := make([]StatsEntry, 0, len(cStats.cs))
-			for _, c := range cStats.cs {
+			statsList := cStats.snapshot()
+			if len(statsList) == 0 && !showAll {
+				// Clear screen
+				_, _ = io.WriteString(dockerCLI.Out(), "\033[H\033[J")
+				return nil
+			}
+			ccStats := make([]StatsEntry, 0, len(statsList))
+			for _, c := range statsList {
 				ccStats = append(ccStats, c.GetStatistics())
 			}
-			cStats.mu.RUnlock()
 
 			if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 				return err
@@ -347,10 +349,6 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			// We might have fewer containers than before, so let's clear the remaining text
 			_, _ = fmt.Fprint(&frameBuf, "\033[J")
 			_, _ = fmt.Fprint(dockerCLI.Out(), frameBuf.String())
-
-			if len(ccStats) == 0 && !showAll {
-				return nil
-			}
 		case err, ok := <-closeChan:
 			if !ok || err == nil || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 				// Suppress "unexpected EOF" errors in the CLI so that

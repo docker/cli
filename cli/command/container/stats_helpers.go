@@ -49,6 +49,22 @@ func (s *stats) isKnownContainer(cid string) (int, bool) {
 	return -1, false
 }
 
+// snapshot returns a point-in-time copy of the tracked container list
+// (the slice of *Stats pointers). The returned slice is safe for use
+// without holding the stats lock, but the underlying Stats values may
+// continue to change concurrently.
+func (s *stats) snapshot() []*Stats {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if len(s.cs) == 0 {
+		return nil
+	}
+	// https://github.com/golang/go/issues/53643
+	cp := make([]*Stats, len(s.cs))
+	copy(cp, s.cs)
+	return cp
+}
+
 func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, streamStats bool, waitFirst *sync.WaitGroup) { //nolint:gocyclo
 	var getFirst bool
 
