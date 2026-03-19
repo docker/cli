@@ -155,11 +155,12 @@ func (c *ContainerContext) Names() string {
 	return strings.Join(names, ",")
 }
 
-// StripNamePrefix removes prefix from string, typically container names as returned by `ContainersList` API
+// StripNamePrefix removes any "/" prefix from container names returned
+// by the "ContainersList" API.
 func StripNamePrefix(ss []string) []string {
 	sss := make([]string, len(ss))
 	for i, s := range ss {
-		sss[i] = s[1:]
+		sss[i] = strings.TrimPrefix(s, "/")
 	}
 	return sss
 }
