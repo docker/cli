@@ -156,12 +156,20 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			}
 		})
 
+		// Remove containers when they are removed ("destroyed"); containers
+		// do not emit [events.ActionRemove], only [events.ActionDestroy].
+		//
+		// When running with "--all" we don't remove containers when they die,
+		// because they may come back, but without "--all" we remove them
+		// on the first possible occasion (either "die" or "destroy").
+		rmEvents := []events.Action{events.ActionDestroy}
 		if !options.All {
-			eh.setHandler([]events.Action{events.ActionDie}, func(ctx context.Context, e events.Message) {
-				log.G(ctx).Debug("stop collecting stats for container")
-				cStats.remove(e.Actor.ID)
-			})
+			rmEvents = append(rmEvents, events.ActionDie)
 		}
+		eh.setHandler(rmEvents, func(ctx context.Context, e events.Message) {
+			log.G(ctx).Debug("stop collecting stats for container")
+			cStats.remove(e.Actor.ID)
+		})
 
 		// monitorContainerEvents watches for container creation and removal (only
 		// used when calling `docker stats` without arguments).
