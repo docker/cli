@@ -82,20 +82,21 @@ func (c *Context) parseFormat() (*template.Template, error) {
 }
 
 func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
-	if c.Output == nil {
-		c.Output = io.Discard
+	out := c.Output
+	if out == nil {
+		out = io.Discard
 	}
-	if c.Format.IsTable() {
-		t := tabwriter.NewWriter(c.Output, 10, 1, 3, ' ', 0)
-		buffer := bytes.NewBufferString("")
-		tmpl.Funcs(templates.HeaderFunctions).Execute(buffer, subContext.FullHeader())
-		buffer.WriteTo(t)
-		t.Write([]byte("\n"))
-		c.buffer.WriteTo(t)
-		t.Flush()
-	} else {
-		c.buffer.WriteTo(c.Output)
+	if !c.Format.IsTable() {
+		_, _ = c.buffer.WriteTo(out)
+		return
 	}
+
+	// Write column-headers and rows to the tab-writer buffer, then flush the output.
+	tw := tabwriter.NewWriter(out, 10, 1, 3, ' ', 0)
+	_ = tmpl.Funcs(templates.HeaderFunctions).Execute(tw, subContext.FullHeader())
+	_, _ = tw.Write([]byte{'\n'})
+	_, _ = c.buffer.WriteTo(tw)
+	_ = tw.Flush()
 }
 
 func (c *Context) contextFormat(tmpl *template.Template, subContext SubContext) error {
