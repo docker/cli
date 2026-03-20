@@ -46,7 +46,6 @@ func (ctx *DiskUsageContext) startSubsection(format Format) (*template.Template,
 	ctx.buffer = &bytes.Buffer{}
 	ctx.header = ""
 	ctx.Format = format
-	ctx.preFormat()
 
 	return ctx.parseFormat()
 }
@@ -88,7 +87,6 @@ func (ctx *DiskUsageContext) Write() (err error) {
 		return ctx.verboseWrite()
 	}
 	ctx.buffer = &bytes.Buffer{}
-	ctx.preFormat()
 
 	tmpl, err := ctx.parseFormat()
 	if err != nil {
@@ -213,7 +211,6 @@ func (ctx *DiskUsageContext) verboseWrite() error {
 		return ctx.verboseWriteTable(duc)
 	}
 
-	ctx.preFormat()
 	tmpl, err := ctx.parseFormat()
 	if err != nil {
 		return err
