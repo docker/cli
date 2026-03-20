@@ -351,3 +351,23 @@ func TestCompleteVolumeNames(t *testing.T) {
 		})
 	}
 }
+
+func TestUnique(t *testing.T) {
+	base := []string{"alpha", "beta", "gamma"}
+
+	comp := Unique(func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
+		return base, cobra.ShellCompDirectiveNoFileComp
+	})
+
+	values, directives := comp(&cobra.Command{}, []string{"beta"}, "")
+	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp))
+	assert.Check(t, is.DeepEqual(values, []string{"alpha", "gamma"}))
+
+	assert.Check(t, is.DeepEqual(base, []string{"alpha", "beta", "gamma"}))
+
+	values, directives = comp(&cobra.Command{}, []string{"gamma"}, "")
+	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp))
+	assert.Check(t, is.DeepEqual(values, []string{"alpha", "beta"}))
+
+	assert.Check(t, is.DeepEqual(base, []string{"alpha", "beta", "gamma"}))
+}
