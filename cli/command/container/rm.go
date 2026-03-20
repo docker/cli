@@ -27,6 +27,11 @@ type rmOptions struct {
 func newRmCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts rmOptions
 
+	completeLinkNames := completeLinks(dockerCLI)
+	completeNames := completion.ContainerNames(dockerCLI, true, func(ctr container.Summary) bool {
+		return opts.force || ctr.State == container.StateExited || ctr.State == container.StateCreated
+	})
+
 	cmd := &cobra.Command{
 		Use:   "rm [OPTIONS] CONTAINER [CONTAINER...]",
 		Short: "Remove one or more containers",
@@ -38,9 +43,13 @@ func newRmCommand(dockerCLI command.Cli) *cobra.Command {
 		Annotations: map[string]string{
 			"aliases": "docker container rm, docker container remove, docker rm",
 		},
-		ValidArgsFunction: completion.ContainerNames(dockerCLI, true, func(ctr container.Summary) bool {
-			return opts.force || ctr.State == container.StateExited || ctr.State == container.StateCreated
-		}),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			if opts.rmLink {
+				// "--link" (remove link) is set; provide link names instead of container (primary) names.
+				return completeLinkNames(cmd, args, toComplete)
+			}
+			return completeNames(cmd, args, toComplete)
+		},
 		DisableFlagsInUseLine: true,
 	}
 

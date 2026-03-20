@@ -135,3 +135,44 @@ func TestCompleteSignals(t *testing.T) {
 	assert.Check(t, len(values) > 1)
 	assert.Check(t, is.Len(values, len(signal.SignalMap)))
 }
+
+func TestCompleteLinks(t *testing.T) {
+	tests := []struct {
+		doc              string
+		showAll, showIDs bool
+		filters          []func(container.Summary) bool
+		containers       []container.Summary
+		expOut           []string
+		expDirective     cobra.ShellCompDirective
+	}{
+		{
+			doc:          "no results",
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+		{
+			doc:     "all containers",
+			showAll: true,
+			containers: []container.Summary{
+				{ID: "id-c", State: container.StateRunning, Names: []string{"/container-c", "/container-c/link-b", "/container-c/link-c"}},
+				{ID: "id-b", State: container.StateCreated, Names: []string{"/container-b", "/container-b/link-a"}},
+				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
+			},
+			expOut:       []string{"container-c/link-b", "container-c/link-c", "container-b/link-a"},
+			expDirective: cobra.ShellCompDirectiveNoFileComp,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			comp := completeLinks(test.NewFakeCli(&fakeClient{
+				containerListFunc: func(client.ContainerListOptions) (client.ContainerListResult, error) {
+					return client.ContainerListResult{Items: tc.containers}, nil
+				},
+			}))
+
+			containers, directives := comp(&cobra.Command{}, nil, "")
+			assert.Check(t, is.Equal(directives&tc.expDirective, tc.expDirective))
+			assert.Check(t, is.DeepEqual(containers, tc.expOut))
+		})
+	}
+}
