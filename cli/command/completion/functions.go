@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command/formatter"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
@@ -101,7 +100,13 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(conta
 			if showContainerIDs {
 				names = append(names, ctr.ID)
 			}
-			names = append(names, formatter.StripNamePrefix(ctr.Names)...)
+			for _, n := range ctr.Names {
+				// Skip legacy link names: "/linked-container/link-name"
+				if len(n) <= 1 || strings.IndexByte(n[1:], '/') != -1 {
+					continue
+				}
+				names = append(names, strings.TrimPrefix(n, "/"))
+			}
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
 	}

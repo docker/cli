@@ -84,7 +84,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				{ID: "id-b", State: container.StateCreated, Names: []string{"/container-b"}},
 				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
 			},
-			expOut:       []string{"container-c", "container-c/link-b", "container-b", "container-a"},
+			expOut:       []string{"container-c", "container-b", "container-a"},
 			expOpts:      client.ContainerListOptions{All: true},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
@@ -97,7 +97,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				{ID: "id-b", State: container.StateCreated, Names: []string{"/container-b"}},
 				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
 			},
-			expOut:       []string{"id-c", "container-c", "container-c/link-b", "id-b", "container-b", "id-a", "container-a"},
+			expOut:       []string{"id-c", "container-c", "id-b", "container-b", "id-a", "container-a"},
 			expOpts:      client.ContainerListOptions{All: true},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
@@ -107,7 +107,7 @@ func TestCompleteContainerNames(t *testing.T) {
 			containers: []container.Summary{
 				{ID: "id-c", State: container.StateRunning, Names: []string{"/container-c", "/container-c/link-b"}},
 			},
-			expOut:       []string{"container-c", "container-c/link-b"},
+			expOut:       []string{"container-c"},
 			expDirective: cobra.ShellCompDirectiveNoFileComp,
 		},
 		{
@@ -117,7 +117,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				func(ctr container.Summary) bool { return ctr.State == container.StateCreated },
 			},
 			containers: []container.Summary{
-				{ID: "id-c", State: container.StateRunning, Names: []string{"/container-c", "/container-c/link-b"}},
+				{ID: "id-c", State: container.StateRunning, Names: []string{"/container-c"}},
 				{ID: "id-b", State: container.StateCreated, Names: []string{"/container-b"}},
 				{ID: "id-a", State: container.StateExited, Names: []string{"/container-a"}},
 			},
@@ -133,7 +133,7 @@ func TestCompleteContainerNames(t *testing.T) {
 				func(ctr container.Summary) bool { return ctr.State == container.StateCreated },
 			},
 			containers: []container.Summary{
-				{ID: "id-c", State: container.StateRunning, Names: []string{"/container-c", "/container-c/link-b"}},
+				{ID: "id-c", State: container.StateRunning, Names: []string{"/container-c"}},
 				{ID: "id-b", State: container.StateCreated, Names: []string{"/container-b"}},
 				{ID: "id-a", State: container.StateCreated, Names: []string{"/container-a"}},
 			},
