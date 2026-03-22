@@ -1222,7 +1222,7 @@ starting a container, you can override the `USER` instruction by passing the
 -u="", --user="": Sets the username or UID used and optionally the groupname or GID for the specified command.
 ```
 
-The followings examples are all valid:
+The following examples are all valid:
 
 ```text
 --user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
