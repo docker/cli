@@ -170,7 +170,14 @@ func runLogin(ctx context.Context, dockerCLI command.Cli, opts loginOptions) err
 	// prompt the user for new credentials
 	if err != nil || authConfig.Username == "" || authConfig.Password == "" {
 		msg, err = loginUser(ctx, dockerCLI, opts, authConfig.Username, authConfig.ServerAddress)
+		msg, err = loginUser(ctx, dockerCLI, opts, authConfig.Username, authConfig.ServerAddress)
 		if err != nil {
+			// --- PATCH START: Expose HTTPS to HTTP fallback failures ---
+			if strings.HasPrefix(opts.serverAddress, "https://") && strings.Contains(err.Error(), "http://") {
+				return fmt.Errorf("login failed: you requested HTTPS, but the daemon fell back to HTTP (insecure registry) and was rejected.\nDaemon error: %w", err)
+			}
+			// --- PATCH END ---
+
 			return err
 		}
 	}
