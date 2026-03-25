@@ -58,7 +58,19 @@ Total reclaimed space: 16.43 MB
 ### <a name="filter"></a> Filtering (--filter)
 
 The filtering flag (`--filter`) format is of "key=value". If there is more
-than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`)
+than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`).
+
+When multiple filters are provided, they are combined as follows:
+
+- Multiple filters with **different keys** are combined using AND logic.
+  An image must satisfy all filter conditions to be pruned.
+- Multiple filters with the **same key** are combined using OR logic.
+  An image is pruned if it matches any of the values for that key.
+
+For example, `--filter "label=foo" --filter "until=24h"` prunes images
+that have the `foo` label **and** were created more than 24 hours ago.
+Conversely, `--filter "label=foo" --filter "label=bar"` prunes images
+that have **either** the `foo` **or** `bar` label.
 
 The currently supported filters are:
 
