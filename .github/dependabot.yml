@@ -7,3 +7,5 @@ updates:
     labels:
       - "area/testing"
       - "status/2-code-review"
+    cooldown:
+      default-days: 7
