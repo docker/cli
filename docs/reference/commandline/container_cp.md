@@ -16,7 +16,7 @@ container source to stdout.
 
 | Name                  | Type   | Default | Description                                                                                                  |
 |:----------------------|:-------|:--------|:-------------------------------------------------------------------------------------------------------------|
-| `-a`, `--archive`     | `bool` |         | Archive mode (copy all uid/gid information)                                                                  |
+| `-a`, `--archive`     | `bool` |         | Archive mode (set ownership to match the container user)                                                     |
 | `-L`, `--follow-link` | `bool` |         | Always follow symbol link in SRC_PATH                                                                        |
 | `-q`, `--quiet`       | `bool` |         | Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached |
 
@@ -41,12 +41,10 @@ relative paths as relative to the current working directory where `docker cp` is
 run.
 
 The `cp` command behaves like the Unix `cp -a` command in that directories are
-copied recursively with permissions preserved if possible. Ownership is set to
-the user and primary group at the destination. For example, files copied to a
-container are created with `UID:GID` of the root user. Files copied to the local
-machine are created with the `UID:GID` of the user which invoked the `docker cp`
-command. However, if you specify the `-a` option, `docker cp` sets the ownership
-to the user and primary group at the source.
+copied recursively with permissions preserved if possible. By default, ownership
+(uid/gid) of the copied files is preserved from the source. If you specify the
+`-a` option, `docker cp` sets the ownership to match the user and primary group
+of the container (as configured with `--user`).
 If you specify the `-L` option, `docker cp` follows any symbolic link
 in the `SRC_PATH`.  `docker cp` doesn't create parent directories for
 `DEST_PATH` if they don't exist.
