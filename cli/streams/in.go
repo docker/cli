@@ -3,7 +3,6 @@ package streams
 import (
 	"errors"
 	"io"
-	"runtime"
 
 	"github.com/moby/term"
 )
@@ -55,20 +54,15 @@ func (i *In) RestoreTerminal() {
 	i.cs.restoreTerminal()
 }
 
-// CheckTty checks if we are trying to attach to a container TTY
-// from a non-TTY client input stream, and if so, returns an error.
+// CheckTty reports an error when stdin is requested for a TTY-enabled
+// container, but the client stdin is not itself a terminal (for example,
+// when input is piped or redirected).
 func (i *In) CheckTty(attachStdin, ttyMode bool) error {
-	// In order to attach to a container tty, input stream for the client must
-	// be a tty itself: redirecting or piping the client standard input is
-	// incompatible with `docker run -t`, `docker exec -t` or `docker attach`.
-	if ttyMode && attachStdin && !i.cs.isTerminal() {
-		const eText = "the input device is not a TTY"
-		if runtime.GOOS == "windows" {
-			return errors.New(eText + ".  If you are using mintty, try prefixing the command with 'winpty'")
-		}
-		return errors.New(eText)
+	// TODO(thaJeztah): consider inlining this code and deprecating the method.
+	if !ttyMode || !attachStdin || i.cs.isTerminal() {
+		return nil
 	}
-	return nil
+	return errors.New("cannot attach stdin to a TTY-enabled container because stdin is not a terminal")
 }
 
 // SetIsTerminal overrides whether a terminal is connected. It is used to
