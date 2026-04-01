@@ -101,8 +101,8 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 		return err
 	}
 	if !options.Detach {
-		if err := dockerCLI.In().CheckTty(execOptions.AttachStdin, execOptions.TTY); err != nil {
-			return err
+		if execOptions.AttachStdin && execOptions.TTY && !dockerCLI.In().IsTerminal() {
+			return errors.New("cannot attach stdin to a TTY-enabled container because stdin is not a terminal")
 		}
 	}
 
