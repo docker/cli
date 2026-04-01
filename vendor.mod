@@ -4,7 +4,7 @@ module github.com/docker/cli
 // There is no 'go.mod' file, as that would imply opting in for all the rules
 // around SemVer, which this repo cannot abide by as it uses CalVer.
 
-go 1.24.0
+go 1.25.0
 
 tool golang.org/x/mod/modfile // for module compatibility check
 
