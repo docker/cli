@@ -80,3 +80,26 @@ jobs:
         shell: 'script --return --quiet --command "bash {0}"'
         run: |
           make -f docker.Makefile ${{ matrix.target }}
+
+  validate-gocompat:
+    runs-on: ubuntu-24.04
+    env:
+      GOPATH: ${{ github.workspace }}
+      GO111MODULE: off
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v6
+        with:
+          path: src/github.com/docker/cli
+      -
+        name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.8"
+      -
+        name: Run gocompat check
+        shell: 'script --return --quiet --command "bash {0}"'
+        working-directory: ${{ github.workspace }}/src/github.com/docker/cli
+        run: |
+          make -C ./internal/gocompat verify
