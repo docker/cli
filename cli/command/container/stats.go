@@ -291,6 +291,10 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 	// Once formatted, it will be printed in one write to avoid screen flickering.
 	var statsTextBuffer bytes.Buffer
 
+	// frameBuf holds the final terminal frame, including cursor movement and
+	// line-clearing escape sequences, written in a single pass to avoid flicker.
+	var frameBuf bytes.Buffer
+
 	statsCtx := formatter.Context{
 		Output: &statsTextBuffer,
 		Format: NewStatsFormat(format, daemonOSType),
@@ -319,6 +323,8 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 	for {
 		select {
 		case <-ticker.C:
+			statsTextBuffer.Reset()
+			frameBuf.Reset()
 			cStats.mu.RLock()
 			ccStats := make([]StatsEntry, 0, len(cStats.cs))
 			for _, c := range cStats.cs {
@@ -326,23 +332,21 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			}
 			cStats.mu.RUnlock()
 
-			// Start by moving the cursor to the top-left
-			_, _ = fmt.Fprint(&statsTextBuffer, "\033[H")
-
 			if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 				return err
 			}
 
+			// Start by moving the cursor to the top-left
+			_, _ = fmt.Fprint(&frameBuf, "\033[H")
+
 			for line := range strings.SplitSeq(statsTextBuffer.String(), "\n") {
 				// In case the new text is shorter than the one we are writing over,
 				// we'll append the "erase line" escape sequence to clear the remaining text.
-				_, _ = fmt.Fprintln(&statsTextBuffer, line, "\033[K")
+				_, _ = fmt.Fprintln(&frameBuf, line, "\033[K")
 			}
 			// We might have fewer containers than before, so let's clear the remaining text
-			_, _ = fmt.Fprint(&statsTextBuffer, "\033[J")
-
-			_, _ = fmt.Fprint(dockerCLI.Out(), statsTextBuffer.String())
-			statsTextBuffer.Reset()
+			_, _ = fmt.Fprint(&frameBuf, "\033[J")
+			_, _ = fmt.Fprint(dockerCLI.Out(), frameBuf.String())
 
 			if len(ccStats) == 0 && !showAll {
 				return nil
