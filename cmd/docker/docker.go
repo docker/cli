@@ -344,6 +344,12 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 	// notify the plugin via the PluginServer (or signal) as appropriate.
 	const exitLimit = 2
 
+	// forceExitCh is closed by the signal goroutine just before it SIGKILLs
+	// the plugin. The main goroutine checks this after plugincmd.Run() returns
+	// and owns the final os.Exit(1) call, keeping exit-code ownership in one
+	// place and avoiding a race between two concurrent os.Exit calls.
+	forceExitCh := make(chan struct{})
+
 	tryTerminatePlugin := func(force bool) {
 		// If stdin is a TTY, the kernel will forward
 		// signals to the subprocess because the shared
@@ -368,12 +374,12 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 
 		// force the process to terminate if it hasn't already
 		if force {
+			// Close forceExitCh before Kill so the channel is guaranteed
+			// to be closed by the time plugincmd.Run() returns: the plugin
+			// can only exit after Kill() delivers SIGKILL, and Run() only
+			// returns after the process is reaped.
+			close(forceExitCh)
 			_ = plugincmd.Process.Kill()
-			_, _ = fmt.Fprint(dockerCli.Err(), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
-
-			// Restore terminal in case it was in raw mode.
-			restoreTerminal(dockerCli)
-			os.Exit(1)
 		}
 	}
 
@@ -397,10 +403,28 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 				force = true
 			}
 			tryTerminatePlugin(force)
+			if force {
+				// Plugin has been killed; return to prevent further
+				// loop iterations from calling close(forceExitCh) again.
+				return
+			}
 		}
 	}()
 
 	if err := plugincmd.Run(); err != nil {
+		select {
+		case <-forceExitCh:
+			// We force-killed the plugin after 3 signals. Print the message
+			// and exit here so that exit-code ownership stays in the main
+			// goroutine and we avoid a race with any concurrent os.Exit call.
+			// Note: the deferred srv.Close() is already called by tryTerminatePlugin
+			// before forceExitCh is closed, so skipping it here is safe.
+			_, _ = fmt.Fprint(dockerCli.Err(), "got 3 SIGTERM/SIGINTs, forcefully exiting\n")
+			restoreTerminal(dockerCli)
+			os.Exit(1) //nolint:gocritic // exitAfterDefer: srv.Close() already called above
+		default:
+		}
+
 		statusCode := 1
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
