@@ -23,7 +23,7 @@ type APIClientProvider interface {
 
 // ImageNames offers completion for images present within the local store
 func ImageNames(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
-	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return Unique(func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if limit > 0 && len(args) >= limit {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
@@ -36,14 +36,14 @@ func ImageNames(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
 			names = append(names, img.RepoTags...)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
-	}
+	})
 }
 
 // ImageNamesWithBase offers completion for images present within the local store,
 // including both full image names with tags and base image names (repository names only)
 // when multiple tags exist for the same base name
 func ImageNamesWithBase(dockerCLI APIClientProvider, limit int) cobra.CompletionFunc {
-	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return Unique(func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if limit > 0 && len(args) >= limit {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
@@ -69,14 +69,14 @@ func ImageNamesWithBase(dockerCLI APIClientProvider, limit int) cobra.Completion
 			}
 		}
 		return names, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
-	}
+	})
 }
 
 // ContainerNames offers completion for container names and IDs
 // By default, only names are returned.
 // Set DOCKER_COMPLETION_SHOW_CONTAINER_IDS=yes to also complete IDs.
 func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(container.Summary) bool) cobra.CompletionFunc {
-	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return Unique(func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		res, err := dockerCLI.Client().ContainerList(cmd.Context(), client.ContainerListOptions{
 			All: all,
 		})
@@ -104,12 +104,12 @@ func ContainerNames(dockerCLI APIClientProvider, all bool, filters ...func(conta
 			names = append(names, formatter.StripNamePrefix(ctr.Names)...)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
-	}
+	})
 }
 
 // VolumeNames offers completion for volumes
 func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
-	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return Unique(func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		res, err := dockerCLI.Client().VolumeList(cmd.Context(), client.VolumeListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
@@ -119,12 +119,12 @@ func VolumeNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 			names = append(names, vol.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
-	}
+	})
 }
 
 // NetworkNames offers completion for networks
 func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
-	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return Unique(func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		res, err := dockerCLI.Client().NetworkList(cmd.Context(), client.NetworkListOptions{})
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
@@ -134,7 +134,7 @@ func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 			names = append(names, nw.Name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
-	}
+	})
 }
 
 // EnvVarNames offers completion for environment-variable names. This
@@ -151,7 +151,7 @@ func NetworkNames(dockerCLI APIClientProvider) cobra.CompletionFunc {
 //	docker run --rm --env MY_VAR alpine printenv MY_VAR
 //	hello
 func EnvVarNames() cobra.CompletionFunc {
-	return func(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
+	return Unique(func(_ *cobra.Command, _ []string, _ string) (names []string, _ cobra.ShellCompDirective) {
 		envs := os.Environ()
 		names = make([]string, 0, len(envs))
 		for _, env := range envs {
@@ -159,12 +159,12 @@ func EnvVarNames() cobra.CompletionFunc {
 			names = append(names, name)
 		}
 		return names, cobra.ShellCompDirectiveNoFileComp
-	}
+	})
 }
 
 // FromList offers completion for the given list of options.
 func FromList(options ...string) cobra.CompletionFunc {
-	return cobra.FixedCompletions(options, cobra.ShellCompDirectiveNoFileComp)
+	return Unique(cobra.FixedCompletions(options, cobra.ShellCompDirectiveNoFileComp))
 }
 
 // FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
@@ -216,5 +216,40 @@ var commonPlatforms = []string{
 func Platforms() cobra.CompletionFunc {
 	return func(_ *cobra.Command, _ []string, _ string) ([]string, cobra.ShellCompDirective) {
 		return commonPlatforms, cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+// Unique wraps a completion func and removes completion results that are
+// already consumed (i.e., appear in "args").
+//
+// For example:
+//
+//	# initial completion: args is empty, so all results are shown
+//	command <tab>
+//	one two three
+//
+//	# "one" is already used so omitted
+//	command one <tab>
+//	two three
+func Unique(fn cobra.CompletionFunc) cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		all, dir := fn(cmd, args, toComplete)
+		if len(all) == 0 || len(args) == 0 {
+			return all, dir
+		}
+
+		alreadyCompleted := make(map[string]struct{}, len(args))
+		for _, a := range args {
+			alreadyCompleted[a] = struct{}{}
+		}
+
+		out := make([]string, 0, len(all))
+		for _, c := range all {
+			if _, ok := alreadyCompleted[c]; !ok {
+				out = append(out, c)
+			}
+		}
+
+		return out, dir
 	}
 }
