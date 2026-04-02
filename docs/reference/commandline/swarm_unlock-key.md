@@ -36,7 +36,7 @@ $ docker swarm unlock-key
 To unlock a swarm manager after it restarts, run the `docker swarm unlock`
 command and provide the following key:
 
-    SWMKEY-1-fySn8TY4w5lKcWcJPIpKufejh9hxx5KYwx6XZigx3Q4
+    SWMKEY-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233...
 
 Remember to store this key in a password manager, since without it you
 will not be able to restart the manager.
@@ -53,7 +53,7 @@ Successfully rotated manager unlock key.
 To unlock a swarm manager after it restarts, run the `docker swarm unlock`
 command and provide the following key:
 
-    SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8
+    SWMKEY-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233...
 
 Remember to store this key in a password manager, since without it you
 will not be able to restart the manager.
@@ -64,7 +64,7 @@ The `-q` (or `--quiet`) flag only prints the key:
 ```console
 $ docker swarm unlock-key -q
 
-SWMKEY-1-7c37Cc8654o6p38HnroywCi19pllOnGtbdZEgtKxZu8
+SWMKEY-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233...
 ```
 
 ### <a name="rotate"></a> `--rotate`

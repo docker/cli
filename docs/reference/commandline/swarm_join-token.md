@@ -41,7 +41,7 @@ $ docker swarm join-token worker
 To add a worker to this swarm, run the following command:
 
     docker swarm join \
-    --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-1awxwuwd3z9j1z3puu7rcgdbx \
+    --token SWMTKN-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233... \
     172.17.0.2:2377
 
 $ docker swarm join-token manager
@@ -49,7 +49,7 @@ $ docker swarm join-token manager
 To add a manager to this swarm, run the following command:
 
     docker swarm join \
-    --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-7p73s1dx5in4tatdymyhg9hu2 \
+    --token SWMTKN-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233... \
     172.17.0.2:2377
 ```
 
@@ -63,7 +63,7 @@ Successfully rotated worker join token.
 To add a worker to this swarm, run the following command:
 
     docker swarm join \
-    --token SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-b30ljddcqhef9b9v4rs7mel7t \
+    --token SWMTKN-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233... \
     172.17.0.2:2377
 ```
 
@@ -74,7 +74,7 @@ The `-q` (or `--quiet`) flag only prints the token:
 ```console
 $ docker swarm join-token -q worker
 
-SWMTKN-1-3pu6hszjas19xyp7ghgosyx9k8atbfcr8p2is99znpy26u2lkl-b30ljddcqhef9b9v4rs7mel7t
+SWMTKN-1-aabbccdd00112233aabbccdd00112233aabbccdd00112233aa-aabbccdd00112233...
 ```
 
 ### <a name="rotate"></a> `--rotate`
