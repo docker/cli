@@ -3,6 +3,7 @@ package streams
 import (
 	"errors"
 	"io"
+	"os"
 
 	"github.com/moby/term"
 )
@@ -14,7 +15,8 @@ type In struct {
 	cs commonStream
 }
 
-// NewIn returns a new [In] from an [io.ReadCloser].
+// NewIn returns a new [In] from an [io.ReadCloser]. If in is an [*os.File],
+// a reference is kept to the file, and accessible through [In.File].
 func NewIn(in io.ReadCloser) *In {
 	return &In{
 		in: in,
@@ -25,6 +27,13 @@ func NewIn(in io.ReadCloser) *In {
 // FD returns the file descriptor number for this stream.
 func (i *In) FD() uintptr {
 	return i.cs.fd
+}
+
+// File returns the underlying *os.File if the stream was constructed from one.
+// If the stream was created from a non-file (e.g., a pipe, buffer, or wrapper),
+// the returned boolean will be false.
+func (i *In) File() (*os.File, bool) {
+	return i.cs.file()
 }
 
 // Read implements the [io.Reader] interface.

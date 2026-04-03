@@ -2,6 +2,7 @@ package streams
 
 import (
 	"io"
+	"os"
 
 	"github.com/moby/term"
 )
@@ -14,7 +15,8 @@ type Out struct {
 	cs  commonStream
 }
 
-// NewOut returns a new [Out] from an [io.Writer].
+// NewOut returns a new [Out] from an [io.Writer]. If out is an [*os.File],
+// a reference is kept to the file, and accessible through [Out.File].
 func NewOut(out io.Writer) *Out {
 	return &Out{
 		out: out,
@@ -25,6 +27,13 @@ func NewOut(out io.Writer) *Out {
 // FD returns the file descriptor number for this stream.
 func (o *Out) FD() uintptr {
 	return o.cs.FD()
+}
+
+// File returns the underlying *os.File if the stream was constructed from one.
+// If the stream was created from a non-file (e.g., a pipe, buffer, or wrapper),
+// the returned boolean will be false.
+func (o *Out) File() (*os.File, bool) {
+	return o.cs.file()
 }
 
 // Write writes to the output stream.
