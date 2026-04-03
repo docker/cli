@@ -38,7 +38,7 @@ jobs:
           targets: test-coverage
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5
         with:
           files: ./build/coverage/coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -81,7 +81,7 @@ jobs:
         shell: bash
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5
         with:
           files: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
