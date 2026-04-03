@@ -124,24 +124,15 @@ func NewStats(idOrName string) *Stats {
 
 // statsFormatWrite renders the context for a list of containers statistics
 func statsFormatWrite(ctx formatter.Context, stats []StatsEntry, osType string, trunc bool) error {
-	render := func(format func(subContext formatter.SubContext) error) error {
-		for _, cstats := range stats {
-			statsCtx := &statsContext{
-				s:     cstats,
-				os:    osType,
-				trunc: trunc,
-			}
-			if err := format(statsCtx); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+	// TODO(thaJeztah): this should be taken from the (first) StatsEntry instead.
+	// also, assuming all stats are for the same platform (and basing the
+	// column headers on that) won't allow aggregated results, which could
+	// be mixed platform.
 	memUsage := memUseHeader
 	if osType == winOSType {
 		memUsage = winMemUseHeader
 	}
-	statsCtx := statsContext{}
+	statsCtx := statsContext{os: osType}
 	statsCtx.Header = formatter.SubHeaderContext{
 		"Container": containerHeader,
 		"Name":      formatter.NameHeader,
@@ -153,8 +144,18 @@ func statsFormatWrite(ctx formatter.Context, stats []StatsEntry, osType string, 
 		"BlockIO":   blockIOHeader,
 		"PIDs":      pidsHeader,
 	}
-	statsCtx.os = osType
-	return ctx.Write(&statsCtx, render)
+	return ctx.Write(&statsCtx, func(format func(subContext formatter.SubContext) error) error {
+		for _, cstats := range stats {
+			if err := format(&statsContext{
+				s:     cstats,
+				os:    osType,
+				trunc: trunc,
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 type statsContext struct {
