@@ -301,7 +301,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 		u.slotMap = make(map[int]int)
 
 		// Draw progress bars in order
-		writeOverallProgress(u.progressOut, 0, int(replicas), rollback)
+		writeOverallProgress(u.progressOut, 0, int(replicas), rollback) //nolint:gosec // G115: replica count is far below math.MaxInt in practice
 
 		if replicas <= maxProgressBars {
 			for i := uint64(1); i <= replicas; i++ {
@@ -340,7 +340,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	}
 
 	if !u.done {
-		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback)
+		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback) //nolint:gosec // G115: running/replica counts are far below math.MaxInt in practice
 
 		if running == replicas {
 			u.done = true
@@ -383,7 +383,7 @@ func (*replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes ma
 }
 
 func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlot int, replicas uint64) {
-	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas {
+	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas { //nolint:gosec // G115: mappedSlot is a positive task slot number, safe to convert to uint64
 		return
 	}
 
@@ -572,8 +572,8 @@ type replicatedJobProgressUpdater struct {
 }
 
 func newReplicatedJobProgressUpdater(service swarm.Service, progressOut progress.Output) *replicatedJobProgressUpdater {
-	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent)
-	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)
+	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent)    //nolint:gosec // G115: job concurrency count is far below math.MaxInt in practice
+	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions) //nolint:gosec // G115: job total completions count is far below math.MaxInt in practice
 
 	return &replicatedJobProgressUpdater{
 		progressOut:    progressOut,
