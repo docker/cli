@@ -112,9 +112,14 @@ func NewStatsFormat(source, osType string) formatter.Format {
 	return formatter.Format(source)
 }
 
-// NewStats returns a new Stats entity and sets in it the given name
-func NewStats(container string) *Stats {
-	return &Stats{StatsEntry: StatsEntry{Container: container}}
+// NewStats returns a new Stats entity using the given ID, ID-prefix, or
+// name to resolve the container.
+func NewStats(idOrName string) *Stats {
+	// FIXME(thaJeztah): "idOrName" is used for fuzzy-matching the container, which can result in multiple stats for the same container.
+	// We should resolve the canonical ID once, then use that as reference
+	// to prevent duplicates. Various parts in the code compare Container
+	// against "ID" only (not considering "name" or "ID-prefix").
+	return &Stats{StatsEntry: StatsEntry{Container: idOrName}}
 }
 
 // statsFormatWrite renders the context for a list of containers statistics

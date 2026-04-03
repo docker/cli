@@ -8,20 +8,75 @@ import (
 	"testing"
 
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 func TestFormat(t *testing.T) {
-	f := Format("json")
-	assert.Assert(t, f.IsJSON())
-	assert.Assert(t, !f.IsTable())
+	tests := []struct {
+		doc      string
+		f        Format
+		isJSON   bool
+		isTable  bool
+		template string
+	}{
+		{
+			doc:      "json format",
+			f:        "json",
+			isJSON:   true,
+			isTable:  false,
+			template: JSONFormat,
+		},
+		{
+			doc:      "empty table format (no template)",
+			f:        "table",
+			isJSON:   false,
+			isTable:  true,
+			template: "",
+		},
+		{
+			doc:      "table with escaped tabs",
+			f:        "table {{.Field}}\\t{{.Field2}}",
+			isJSON:   false,
+			isTable:  true,
+			template: "{{.Field}}\t{{.Field2}}",
+		},
+		{
+			doc:      "table with raw string",
+			f:        `table {{.Field}}\t{{.Field2}}`,
+			isJSON:   false,
+			isTable:  true,
+			template: "{{.Field}}\t{{.Field2}}",
+		},
+		{
+			doc:      "other format",
+			f:        "other",
+			isJSON:   false,
+			isTable:  false,
+			template: "other",
+		},
+		{
+			doc:      "other with spaces",
+			f:        "   other   ",
+			isJSON:   false,
+			isTable:  false,
+			template: "other",
+		},
+		{
+			doc:      "other with newline preserved",
+			f:        "   other\n   ",
+			isJSON:   false,
+			isTable:  false,
+			template: "other\n",
+		},
+	}
 
-	f = Format("table")
-	assert.Assert(t, !f.IsJSON())
-	assert.Assert(t, f.IsTable())
-
-	f = Format("other")
-	assert.Assert(t, !f.IsJSON())
-	assert.Assert(t, !f.IsTable())
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			assert.Check(t, is.Equal(tc.f.IsJSON(), tc.isJSON))
+			assert.Check(t, is.Equal(tc.f.IsTable(), tc.isTable))
+			assert.Check(t, is.Equal(tc.f.templateString(), tc.template))
+		})
+	}
 }
 
 type fakeSubContext struct {
