@@ -28,6 +28,7 @@ const (
 	localVolumes     = "LOCAL VOLUMES"
 	networksHeader   = "NETWORKS"
 	platformHeader   = "PLATFORM"
+	healthCheckHeader = "HEALTHCHECK"
 )
 
 // Platform wraps a [ocispec.Platform] to implement the stringer interface.
@@ -121,6 +122,7 @@ func NewContainerContext() *ContainerContext {
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
 		"Platform":     platformHeader,
+		"HealthCheck": healthCheckHeader,
 	}
 	return &containerCtx
 }
@@ -350,6 +352,27 @@ func (c *ContainerContext) Networks() string {
 	}
 
 	return strings.Join(networks, ",")
+}
+
+// HealthCheck returns the container's health status (for example, "healthy","unhealthy", or "starting").
+// If no healthcheck is configured, an empty
+// string is returned.
+func (c *ContainerContext) HealthCheck() string {
+	if c.c.Health != nil && c.c.Health.Status != "" {
+		return string(c.c.Health.Status)
+	}
+
+	// Fallback for daemons/API versions that include health only in Status text.
+	switch {
+	case strings.HasSuffix(c.c.Status, "(healthy)"):
+		return string(container.Healthy)
+	case strings.HasSuffix(c.c.Status, "(unhealthy)"):
+		return string(container.Unhealthy)
+	case strings.HasSuffix(c.c.Status, "(health: starting)"):
+		return string(container.Starting)
+	}
+
+	return ""
 }
 
 // DisplayablePorts returns formatted string representing open ports of container
