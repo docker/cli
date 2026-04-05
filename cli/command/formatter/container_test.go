@@ -494,6 +494,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 		{
 			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
+			"HealthCheck":  "",
 			"ID":           "containerID1",
 			"Image":        "ubuntu",
 			"Labels":       "",
@@ -511,6 +512,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 		{
 			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
+			"HealthCheck":  "",
 			"ID":           "containerID2",
 			"Image":        "ubuntu",
 			"Labels":       "",
@@ -528,6 +530,7 @@ func TestContainerContextWriteJSON(t *testing.T) {
 		{
 			"Command":      `""`,
 			"CreatedAt":    expectedCreated,
+			"HealthCheck":  "",
 			"ID":           "containerID3",
 			"Image":        "ubuntu",
 			"Labels":       "",
@@ -615,6 +618,7 @@ func TestContainerBackCompat(t *testing.T) {
 		{field: "Image", expected: "docker.io/library/ubuntu"},
 		{field: "Command", expected: `"/bin/sh"`},
 		{field: "CreatedAt", expected: time.Unix(createdAtTime.Unix(), 0).String()},
+		{field: "HealthCheck", expected: ""},
 		{field: "RunningFor", expected: "12 months ago"},
 		{field: "Ports", expected: "8080/tcp"},
 		{field: "Status", expected: "running"},
