@@ -129,14 +129,26 @@ Mounts:
 {{- if .Configs}}
 Configs:
 {{- range $config := .Configs }}
- Target:	{{$config.File.Name}}
+ Target:	{{ if $config.File }}{{$config.File.Name}}{{ else }}[runtime]{{ end }}
   Source:	{{$config.ConfigName}}
+  ID:		{{$config.ConfigID}}
+{{- if $config.File }}
+  UID:		{{$config.File.UID}}
+  GID:		{{$config.File.GID}}
+  Mode:		{{$config.File.Mode}}
+{{- end }}
 {{- end }}{{ end }}
 {{- if .Secrets }}
 Secrets:
 {{- range $secret := .Secrets }}
- Target:	{{$secret.File.Name}}
+ Target:	{{ if $secret.File }}{{$secret.File.Name}}{{ else }}[runtime]{{ end }}
   Source:	{{$secret.SecretName}}
+  ID:		{{$secret.SecretID}}
+{{- if $secret.File }}
+  UID:		{{$secret.File.UID}}
+  GID:		{{$secret.File.GID}}
+  Mode:		{{$secret.File.Mode}}
+{{- end }}
 {{- end }}{{ end }}
 {{- if .HasLogDriver }}
 Log Driver:
