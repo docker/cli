@@ -159,7 +159,7 @@ container source to stdout.`,
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symbol link in SRC_PATH")
-	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (copy all uid/gid information)")
+	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (set ownership to match the container user)")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached")
 	return cmd
 }
