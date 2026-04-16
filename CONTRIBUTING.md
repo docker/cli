@@ -7,11 +7,20 @@ start participating.
 
 ## Topics
 
-* [Reporting Security Issues](#reporting-security-issues)
-* [Design and Cleanup Proposals](#design-and-cleanup-proposals)
-* [Reporting Issues](#reporting-other-issues)
-* [Quick Contribution Tips and Guidelines](#quick-contribution-tips-and-guidelines)
-* [Community Guidelines](#docker-community-guidelines)
+- [Contributing to Docker](#contributing-to-docker)
+  - [Topics](#topics)
+  - [Reporting security issues](#reporting-security-issues)
+  - [Reporting other issues](#reporting-other-issues)
+  - [Quick contribution tips and guidelines](#quick-contribution-tips-and-guidelines)
+    - [Pull requests are always welcome](#pull-requests-are-always-welcome)
+    - [Talking to other Docker users and contributors](#talking-to-other-docker-users-and-contributors)
+    - [Conventions](#conventions)
+    - [Merge approval](#merge-approval)
+    - [Sign your work](#sign-your-work)
+    - [How can I become a maintainer?](#how-can-i-become-a-maintainer)
+  - [Docker community guidelines](#docker-community-guidelines)
+    - [Guideline violations — 3 strikes method](#guideline-violations--3-strikes-method)
+  - [Coding Style](#coding-style)
 
 ## Reporting security issues
 
@@ -26,7 +35,6 @@ We also like to send gifts&mdash;if you're into Docker schwag, make sure to let
 us know. We currently do not offer a paid security bounty program, but are not
 ruling it out in the future.
 
-
 ## Reporting other issues
 
 A great way to contribute to the project is to send a detailed report when you
@@ -36,15 +44,15 @@ and will thank you for it!
 Check that [our issue database](https://github.com/docker/cli/issues)
 doesn't already include that problem or suggestion before submitting an issue.
 If you find a match, you can use the "subscribe" button to get notified on
-updates. Do *not* leave random "+1" or "I have this too" comments, as they
+updates. Do _not_ leave random "+1" or "I have this too" comments, as they
 only clutter the discussion, and don't help resolving it. However, if you
 have ways to reproduce the issue or have additional information that may help
 resolving the issue, leave a comment.
 
 When reporting issues, always include:
 
-* The output of `docker version`.
-* The output of `docker info`.
+- The output of `docker version`.
+- The output of `docker info`.
 
 Also include the steps required to reproduce the problem if possible and
 applicable. This information will help us review and fix your issue faster.
@@ -105,16 +113,15 @@ use for simple changes](https://github.com/docker/docker/blob/master/project/REV
   </tr>
 </table>
 
-
 ### Conventions
 
 Fork the repository and make changes on your fork in a feature branch:
 
 - If it's a bug fix branch, name it XXXX-something where XXXX is the number of
-    the issue. 
+  the issue.
 - If it's a feature branch, create an enhancement issue to announce
-    your intentions, and name it XXXX-something where XXXX is the number of the
-    issue.
+  your intentions, and name it XXXX-something where XXXX is the number of the
+  issue.
 
 Submit unit tests for your changes. Go has a great test framework built in; use
 it! Take a look at existing tests for inspiration. [Run the full test
@@ -124,8 +131,7 @@ submitting a pull request.
 Update the documentation when creating or modifying features. Test your
 documentation changes for clarity, concision, and correctness, as well as a
 clean documentation build. See our contributors guide for [our style
-guide](https://docs.docker.com/contribute/style/grammar/) and instructions on [building
-the documentation](https://docs.docker.com/contribute/).
+guide](https://github.com/docker/docs/blob/main/STYLE.md) and instructions on [contributing to the documentation](https://github.com/docker/docs/blob/main/CONTRIBUTING.md).
 
 Write clean code. Universally formatted code promotes ease of writing, reading,
 and maintenance. Always run `gofmt -s -w file.go` on each changed file before
@@ -139,12 +145,13 @@ by an optional, more detailed explanatory text usually expanding on
 why the work is necessary. The explanatory text should be separated by an
 empty line.
 
-The commit message *could* have a prefix scoping the change, however this is
+The commit message _could_ have a prefix scoping the change, however this is
 not enforced. Common prefixes are `docs: <message>`, `vendor: <message>`,
 `chore: <message>` or the package/area related to the change such as `pkg/foo: <message>`
 or `telemetry: <message>`.
 
 A standard commit.
+
 ```
 Fix the exploding flux capacitor
 
@@ -153,6 +160,7 @@ the sun and the moon align.
 ```
 
 Using a package as prefix.
+
 ```
 pkg/foo: prevent panic in flux capacitor
 
@@ -161,11 +169,13 @@ the sun and the moon align.
 ```
 
 Updating a specific vendored package.
+
 ```
 vendor: github.com/docker/docker 6ac445c42bad (master, v28.0-dev)
 ```
 
 Fixing a broken docs link.
+
 ```
 docs: fix style/lint issues in deprecated.md
 ```
@@ -271,7 +281,7 @@ commit automatically with `git commit -s`.
 
 ### How can I become a maintainer?
 
-The procedures for adding new maintainers are explained in the 
+The procedures for adding new maintainers are explained in the
 global [MAINTAINERS](https://github.com/docker/opensource/blob/master/MAINTAINERS)
 file in the [https://github.com/docker/opensource/](https://github.com/docker/opensource/)
 repository.
@@ -286,25 +296,25 @@ We want to keep the Docker community awesome, growing and collaborative. We need
 your help to keep it that way. To help with this we've come up with some general
 guidelines for the community as a whole:
 
-* Be nice: Be courteous, respectful and polite to fellow community members:
+- Be nice: Be courteous, respectful and polite to fellow community members:
   no regional, racial, gender, or other abuse will be tolerated. We like
   nice people way better than mean ones!
 
-* Encourage diversity and participation: Make everyone in our community feel
+- Encourage diversity and participation: Make everyone in our community feel
   welcome, regardless of their background and the extent of their
   contributions, and do everything possible to encourage participation in
   our community.
 
-* Keep it legal: Basically, don't get us in trouble. Share only content that
+- Keep it legal: Basically, don't get us in trouble. Share only content that
   you own, do not share private or sensitive information, and don't break
   the law.
 
-* Stay on topic: Make sure that you are posting to the correct channel and
+- Stay on topic: Make sure that you are posting to the correct channel and
   avoid off-topic discussions. Remember when you update an issue or respond
   to an email you are potentially sending to a large number of people. Consider
   this before you update. Also remember that nobody likes spam.
 
-* Don't send email to the maintainers: There's no need to send email to the
+- Don't send email to the maintainers: There's no need to send email to the
   maintainers to ask them to investigate an issue or to take a look at a
   pull request. Instead of sending an email, GitHub mentions should be
   used to ping maintainers to review a pull request, a proposal or an
@@ -326,24 +336,24 @@ do need a fair way to deal with people who are making our community suck.
 
 **Notes:**
 
-* Obvious spammers are banned on first occurrence. If we don't do this, we'll
+- Obvious spammers are banned on first occurrence. If we don't do this, we'll
   have spam all over the place.
 
-* Violations are forgiven after 6 months of good behavior, and we won't hold a
+- Violations are forgiven after 6 months of good behavior, and we won't hold a
   grudge.
 
-* People who commit minor infractions will get some education, rather than
+- People who commit minor infractions will get some education, rather than
   hammering them in the 3 strikes process.
 
-* The rules apply equally to everyone in the community, no matter how much
-    you've contributed.
+- The rules apply equally to everyone in the community, no matter how much
+  you've contributed.
 
-* Extreme violations of a threatening, abusive, destructive or illegal nature
-    will be addressed immediately and are not subject to 3 strikes or forgiveness.
+- Extreme violations of a threatening, abusive, destructive or illegal nature
+  will be addressed immediately and are not subject to 3 strikes or forgiveness.
 
-* Contact abuse@docker.com to report abuse or appeal violations. In the case of
-    appeals, we know that mistakes happen, and we'll work with you to come up with a
-    fair solution if there has been a misunderstanding.
+- Contact abuse@docker.com to report abuse or appeal violations. In the case of
+  appeals, we know that mistakes happen, and we'll work with you to come up with a
+  fair solution if there has been a misunderstanding.
 
 ## Coding Style
 
