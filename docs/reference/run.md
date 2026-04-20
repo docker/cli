@@ -334,7 +334,7 @@ container:
 | `-m`, `--memory=""`        | Memory limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`. Minimum is 6M.                                                                                                                                                        |
 | `--memory-swap=""`         | Total memory limit (memory + swap, format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`.                                                                                                                                                  |
 | `--memory-reservation=""`  | Memory soft limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`.                                                                                                                                                                  |
-| `--kernel-memory=""`       | Kernel memory limit (format: `<number>[<unit>]`). Number is a positive integer. Unit can be one of `b`, `k`, `m`, or `g`. Minimum is 4M.                                                                                                                                                 |
+| `--kernel-memory=""`       | **Deprecated**: Kernel memory limit. Deprecated in Docker v20.10, and removed in Docker v23.0. This option is ignored when set.                                                                                                                                                          |
 | `-c`, `--cpu-shares=0`     | CPU shares (relative weight)                                                                                                                                                                                                                                                             |
 | `--cpus=0.000`             | Number of CPUs. Number is a fractional number. 0.000 means no limit.                                                                                                                                                                                                                     |
 | `--cpu-period=0`           | Limit the CPU CFS (Completely Fair Scheduler) period                                                                                                                                                                                                                                     |
@@ -501,6 +501,15 @@ be killed when the system is out of memory, with negative scores making them
 less likely to be killed, and positive scores more likely.
 
 ### Kernel memory constraints
+
+> **Deprecated**
+>
+> The `--kernel-memory` option was deprecated in Docker v20.10 and removed in
+> Docker v23.0. The Linux kernel deprecated `kmem.limit_in_bytes` in kernel
+> v5.4, and OCI runtimes such as runc no longer support this option. Docker API
+> v1.42 and later ignores this option when set. Do not use `--kernel-memory` in
+> new configurations. For more details, see the
+> [Deprecated features](https://docs.docker.com/engine/deprecated/) page.
 
 Kernel memory is fundamentally different than user memory as kernel memory can't
 be swapped out. The inability to swap makes it possible for the container to
