@@ -460,7 +460,7 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		startInterval = time.Duration(*healthcheck.StartInterval)
 	}
 	if healthcheck.Retries != nil {
-		retries = int(*healthcheck.Retries)
+		retries = int(*healthcheck.Retries) //nolint:gosec // G115: healthcheck retry count is a small value, safe to convert
 	}
 	return &container.HealthConfig{
 		Test:          healthcheck.Test,
@@ -487,7 +487,7 @@ func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*
 				Condition: swarm.RestartPolicyConditionAny,
 			}, nil
 		case policy.IsOnFailure():
-			attempts := uint64(policy.MaximumRetryCount)
+			attempts := uint64(policy.MaximumRetryCount) //nolint:gosec // G115: MaximumRetryCount is a non-negative value, safe to convert
 			return &swarm.RestartPolicy{
 				Condition:   swarm.RestartPolicyConditionOnFailure,
 				MaxAttempts: &attempts,
