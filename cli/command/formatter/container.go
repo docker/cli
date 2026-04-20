@@ -364,6 +364,24 @@ func DisplayablePorts(ports []container.PortSummary) string {
 	var result []string
 	var hostMappings []string
 	var groupMapKeys []string
+
+	// Pre-pass: record which (hostPort, privatePort, proto) tuples have an
+	// IPv4 wildcard (0.0.0.0) binding. Used below to suppress the matching
+	// IPv6 wildcard (::) entry, avoiding duplicate output such as:
+	//   0.0.0.0:8080->80/tcp, :::8080->80/tcp
+	// See: https://github.com/docker/cli/issues/6869
+	type mappingKey struct {
+		hostPort    uint16
+		privatePort uint16
+		proto       string
+	}
+	ipv4Bindings := make(map[mappingKey]bool)
+	for _, port := range ports {
+		if port.IP.String() == "0.0.0.0" && port.PublicPort != 0 {
+			ipv4Bindings[mappingKey{port.PublicPort, port.PrivatePort, port.Type}] = true
+		}
+	}
+
 	sort.Slice(ports, func(i, j int) bool {
 		return comparePorts(ports[i], ports[j])
 	})
@@ -373,6 +391,18 @@ func DisplayablePorts(ports []container.PortSummary) string {
 		portKey := port.Type
 		if port.IP.IsValid() {
 			if port.PublicPort != current {
+				// Suppress the IPv6 wildcard entry when an IPv4 wildcard
+				// entry already covers the same (hostPort, privatePort, proto)
+				// tuple. This merges:
+				//   0.0.0.0:8080->80/tcp, :::8080->80/tcp
+				// into the cleaner:
+				//   0.0.0.0:8080->80/tcp
+				if port.IP.Is6() && !port.IP.Is4In6() && port.IP.IsUnspecified() {
+					key := mappingKey{port.PublicPort, port.PrivatePort, port.Type}
+					if ipv4Bindings[key] {
+						continue
+					}
+				}
 				hAddrPort := net.JoinHostPort(port.IP.String(), strconv.Itoa(int(port.PublicPort)))
 				hostMappings = append(hostMappings, fmt.Sprintf("%s->%d/%s", hAddrPort, port.PrivatePort, port.Type))
 				continue
