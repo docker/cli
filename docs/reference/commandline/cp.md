@@ -16,7 +16,7 @@ container source to stdout.
 
 | Name                  | Type   | Default | Description                                                                                                  |
 |:----------------------|:-------|:--------|:-------------------------------------------------------------------------------------------------------------|
-| `-a`, `--archive`     | `bool` |         | Archive mode (copy all uid/gid information)                                                                  |
+| `-a`, `--archive`     | `bool` |         | Archive mode (preserve uid/gid from source when copying to container)                                        |
 | `-L`, `--follow-link` | `bool` |         | Always follow symbol link in SRC_PATH                                                                        |
 | `-q`, `--quiet`       | `bool` |         | Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached |
 
