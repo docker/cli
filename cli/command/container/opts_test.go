@@ -767,7 +767,7 @@ func TestParseModes(t *testing.T) {
 	args := []string{"--pid=container:", "img", "cmd"}
 	assert.NilError(t, flags.Parse(args))
 	_, err := parse(flags, copts, runtime.GOOS)
-	assert.ErrorContains(t, err, "--pid: invalid PID mode")
+	assert.ErrorContains(t, err, "invalid --pid mode")
 
 	// pid ok
 	_, hostconfig, _, err := parseRun([]string{"--pid=host", "img", "cmd"})
@@ -778,7 +778,7 @@ func TestParseModes(t *testing.T) {
 
 	// uts ko
 	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"}) //nolint:dogsled
-	assert.ErrorContains(t, err, "--uts: invalid UTS mode")
+	assert.ErrorContains(t, err, "invalid --uts mode")
 
 	// uts ok
 	_, hostconfig, _, err = parseRun([]string{"--uts=host", "img", "cmd"})
@@ -923,8 +923,8 @@ func TestParseHealth(t *testing.T) {
 
 func TestParseLoggingOpts(t *testing.T) {
 	// logging opts ko
-	if _, _, _, err := parseRun([]string{"--log-driver=none", "--log-opt=anything", "img", "cmd"}); err == nil || err.Error() != "invalid logging opts for driver none" {
-		t.Fatalf("Expected an error with message 'invalid logging opts for driver none', got %v", err)
+	if _, _, _, err := parseRun([]string{"--log-driver=none", "--log-opt=anything", "img", "cmd"}); err == nil || !strings.HasPrefix(err.Error(), "log driver \"none\" accepts no --log-opt entries") {
+		t.Fatalf("Expected an error stating that 'none' accepts no --log-opt entries, got %v", err)
 	}
 	// logging opts ok
 	_, hostconfig, _, err := parseRun([]string{"--log-driver=syslog", "--log-opt=something", "img", "cmd"})
@@ -1034,22 +1034,24 @@ func TestValidateDevice(t *testing.T) {
 		"/hostPath:/containerPath:rw",
 		"/hostPath:/containerPath:mrw",
 	}
+	const emptyHostMsg = `: host path before ':' is empty, expected [host-path:]container-path[:mode]`
+	const tooManyMsg = `: too many ':' separators, expected [host-path:]container-path[:mode]`
 	invalid := map[string]string{
-		"":        "bad format for path: ",
+		"":        `invalid --device ""` + emptyHostMsg,
 		"./":      "./ is not an absolute path",
 		"../":     "../ is not an absolute path",
 		"/:../":   "../ is not an absolute path",
 		"/:path":  "path is not an absolute path",
-		":":       "bad format for path: :",
+		":":       `invalid --device ":"` + emptyHostMsg,
 		"/tmp:":   " is not an absolute path",
-		":test":   "bad format for path: :test",
-		":/test":  "bad format for path: :/test",
+		":test":   `invalid --device ":test"` + emptyHostMsg,
+		":/test":  `invalid --device ":/test"` + emptyHostMsg,
 		"tmp:":    " is not an absolute path",
-		":test:":  "bad format for path: :test:",
-		"::":      "bad format for path: ::",
-		":::":     "bad format for path: :::",
-		"/tmp:::": "bad format for path: /tmp:::",
-		":/tmp::": "bad format for path: :/tmp::",
+		":test:":  `invalid --device ":test:"` + emptyHostMsg,
+		"::":      `invalid --device "::"` + emptyHostMsg,
+		":::":     `invalid --device ":::"` + tooManyMsg,
+		"/tmp:::": `invalid --device "/tmp:::"` + tooManyMsg,
+		":/tmp::": `invalid --device ":/tmp::"` + tooManyMsg,
 		"path:ro": "ro is not an absolute path",
 		"path:rr": "rr is not an absolute path",
 		"a:/b:ro": "bad mode specified: ro",

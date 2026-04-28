@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/internal/hint"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,10 @@ func writeTo(dockerCli command.Cli, reader io.Reader, dest string) error {
 	var printDest bool
 	if dest == "-" {
 		if dockerCli.Out().IsTerminal() {
-			return errors.New("cowardly refusing to export to a terminal, specify a file path")
+			return hint.Wrap(
+				errors.New("exported context is a binary tar stream and would corrupt the terminal"),
+				"Pass a file path as the second argument, or redirect stdout (e.g. 'docker context export NAME > file.dockercontext').",
+			)
 		}
 		writer = dockerCli.Out()
 	} else {

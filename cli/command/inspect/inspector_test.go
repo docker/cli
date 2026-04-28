@@ -62,7 +62,7 @@ func TestTemplateInspectorTemplateError(t *testing.T) {
 		t.Fatal("Expected error got nil")
 	}
 
-	if !strings.HasPrefix(err.Error(), "template parsing error") {
+	if !strings.HasPrefix(err.Error(), "--format template failed during execution") {
 		t.Fatalf("Expected template error, got %v", err)
 	}
 }
@@ -98,7 +98,7 @@ func TestTemplateInspectorRawFallbackError(t *testing.T) {
 		t.Fatal("Expected error got nil")
 	}
 
-	if !strings.HasPrefix(err.Error(), "template parsing error") {
+	if !strings.HasPrefix(err.Error(), "--format template failed during execution") {
 		t.Fatalf("Expected template error, got %v", err)
 	}
 }

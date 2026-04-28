@@ -2,7 +2,7 @@ package network
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"net"
 	"net/netip"
 	"strings"
@@ -92,7 +92,7 @@ func convertDriverOpt(options []string) (map[string]string, error) {
 		// TODO(thaJeztah): we should probably not accept whitespace here (both for key and value).
 		k = strings.TrimSpace(k)
 		if !ok || k == "" {
-			return nil, errors.New("invalid key/value pair format in driver options")
+			return nil, fmt.Errorf("invalid --driver-opt value %q: expected key=value", opt)
 		}
 		driverOpt[k] = strings.TrimSpace(v)
 	}

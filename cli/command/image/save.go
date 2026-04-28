@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/hint"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/atomicwriter"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -70,13 +71,16 @@ func runSave(ctx context.Context, dockerCLI command.Cli, opts saveOptions) error
 	var output io.Writer
 	if opts.output == "" {
 		if dockerCLI.Out().IsTerminal() {
-			return errors.New("cowardly refusing to save to a terminal. Use the -o flag or redirect")
+			return hint.Wrap(
+				errors.New("refusing to write a binary tar archive to the terminal"),
+				"Use '-o FILE' to write to a file, or redirect stdout, e.g. 'docker image save IMAGE > image.tar'.",
+			)
 		}
 		output = dockerCLI.Out()
 	} else {
 		writer, err := atomicwriter.New(opts.output, 0o600)
 		if err != nil {
-			return fmt.Errorf("failed to save image: %w", err)
+			return fmt.Errorf("cannot open output file %q: %w", opts.output, err)
 		}
 		defer writer.Close()
 		output = writer
