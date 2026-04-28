@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/cli/cli/debug"
+	"github.com/docker/cli/internal/hint"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -104,11 +106,18 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata, ops .
 			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.
 				stErr.StatusCode = 1
 			}
-			_, _ = fmt.Fprintln(dockerCLI.Err(), stErr)
+			printError(dockerCLI.Err(), stErr)
 			os.Exit(stErr.StatusCode)
 		}
-		_, _ = fmt.Fprintln(dockerCLI.Err(), err)
+		printError(dockerCLI.Err(), err)
 		os.Exit(1)
+	}
+}
+
+func printError(out io.Writer, err error) {
+	_, _ = fmt.Fprintln(out, err)
+	if h := hint.Of(err); h != "" {
+		_, _ = fmt.Fprintln(out, "\n"+h)
 	}
 }
 
