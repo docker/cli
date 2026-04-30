@@ -504,6 +504,11 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	}
 
 	// collect all the environment variables for the container
+	for _, ef := range copts.envFile.GetSlice() {
+    if _, err := os.Stat(ef); os.IsNotExist(err) {
+        return nil, fmt.Errorf("env file not found: %s", ef)
+    }
+	}	
 	envVariables, err := opts.ReadKVEnvStrings(copts.envFile.GetSlice(), copts.env.GetSlice())
 	if err != nil {
 		return nil, err
