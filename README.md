@@ -1,3 +1,4 @@
+make -f docker.Makefile shell
 # Docker CLI
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/docker/cli)](https://pkg.go.dev/github.com/docker/cli)
