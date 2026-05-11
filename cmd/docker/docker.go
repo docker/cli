@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -470,6 +471,34 @@ func restoreTerminal(streams command.Streams) {
 	streams.Err().RestoreTerminal()
 }
 
+// printCommandError prints err to stderr before plugin hooks run, so that
+// hook output (such as the "What's next:" hint) is rendered after the
+// command's own error output instead of before it.
+//
+// Errors caused by context cancellation, user-initiated signal termination,
+// or errors with an empty message are not printed (matching the conditions
+// used in [main]).
+//
+// If err was printed, it is replaced with a status-only [cli.StatusError]
+// preserving the exit code, so that [main] does not print the same message
+// a second time.
+func printCommandError(stderr io.Writer, err error) error {
+	if err == nil {
+		return nil
+	}
+	if errdefs.IsCanceled(err) {
+		return err
+	}
+	if errors.As(err, &errCtxSignalTerminated{}) {
+		return err
+	}
+	if err.Error() == "" {
+		return err
+	}
+	_, _ = fmt.Fprintln(stderr, err)
+	return cli.StatusError{StatusCode: getExitCode(err)}
+}
+
 //nolint:gocyclo
 func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	tcmd := newDockerCommand(dockerCli)
@@ -519,6 +548,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
 			if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() && !errdefs.IsNotFound(err) {
 				errMessage := cmdErrorMessage(err)
+				err = printCommandError(dockerCli.Err(), err)
 				pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args, errMessage)
 			}
 			if err == nil {
@@ -543,9 +573,12 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	err = cmd.ExecuteContext(ctx)
 
 	// If the command is being executed in an interactive terminal
-	// and hook are enabled, run the plugin hooks.
+	// and hooks are enabled, run the plugin hooks. Print the command's
+	// error first so that hook output is rendered after the error.
 	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
+		errMessage := cmdErrorMessage(err)
+		err = printCommandError(dockerCli.Err(), err)
+		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, errMessage)
 	}
 
 	return err

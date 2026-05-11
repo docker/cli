@@ -163,6 +163,84 @@ func TestGetExitCode(t *testing.T) {
 	})
 }
 
+func TestPrintCommandError(t *testing.T) {
+	t.Run("nil error", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, nil)
+
+		assert.NilError(t, got)
+		assert.Equal(t, buf.String(), "")
+	})
+
+	t.Run("generic error", func(t *testing.T) {
+		var buf bytes.Buffer
+		orig := errors.New("docker: open ./no-such-file: no such file or directory")
+		got := printCommandError(&buf, orig)
+
+		assert.Equal(t, buf.String(), orig.Error()+"\n")
+
+		var st dockercli.StatusError
+		assert.Assert(t, errors.As(got, &st))
+		assert.Equal(t, st.Status, "")
+		assert.Equal(t, st.StatusCode, 1)
+	})
+
+	t.Run("StatusError with message", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, dockercli.StatusError{
+			Status:     "build failed",
+			StatusCode: 125,
+		})
+
+		assert.Equal(t, buf.String(), "build failed\n")
+
+		var st dockercli.StatusError
+		assert.Assert(t, errors.As(got, &st))
+		assert.Equal(t, st.Status, "")
+		assert.Equal(t, st.StatusCode, 125)
+	})
+
+	t.Run("StatusError without message", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, dockercli.StatusError{StatusCode: 42})
+
+		assert.Equal(t, buf.String(), "")
+
+		var st dockercli.StatusError
+		assert.Assert(t, errors.As(got, &st))
+		assert.Equal(t, st.Status, "")
+		assert.Equal(t, st.StatusCode, 42)
+	})
+
+	t.Run("canceled error", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, context.Canceled)
+
+		assert.Equal(t, buf.String(), "")
+		assert.ErrorIs(t, got, context.Canceled)
+	})
+
+	t.Run("wrapped canceled error", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, fmt.Errorf("wrapped: %w", context.Canceled))
+
+		assert.Equal(t, buf.String(), "")
+		assert.ErrorIs(t, got, context.Canceled)
+	})
+
+	t.Run("signal-terminated error", func(t *testing.T) {
+		var buf bytes.Buffer
+		orig := errCtxSignalTerminated{signal: syscall.SIGINT}
+		got := printCommandError(&buf, orig)
+
+		assert.Equal(t, buf.String(), "")
+
+		var sig errCtxSignalTerminated
+		assert.Assert(t, errors.As(got, &sig))
+		assert.Equal(t, sig, orig)
+	})
+}
+
 func TestCmdErrorMessage(t *testing.T) {
 	t.Run("nil error returns empty string", func(t *testing.T) {
 		assert.Equal(t, cmdErrorMessage(nil), "")
