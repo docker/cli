@@ -543,10 +543,24 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	cmd.SetArgs(args)
 	err = cmd.ExecuteContext(ctx)
 
+	// Capture the error message before we may consume the error below;
+	// plugin hooks still need to see the original message.
+	errMessage := cmdErrorMessage(err)
+
+	// Print the command's error before invoking plugin hooks so that the
+	// "What's next" hint (and any other hook output) is rendered after
+	// the command's error output, not before it.
+	if err != nil && !errdefs.IsCanceled(err) && !errors.As(err, &errCtxSignalTerminated{}) && err.Error() != "" {
+		_, _ = fmt.Fprintln(dockerCli.Err(), err)
+		// Replace the error with a status-only one so that main()
+		// does not print the same message a second time.
+		err = cli.StatusError{StatusCode: getExitCode(err)}
+	}
+
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
 	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
+		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, errMessage)
 	}
 
 	return err
