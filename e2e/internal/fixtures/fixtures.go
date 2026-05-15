@@ -23,6 +23,9 @@ func SetupConfigFile(t *testing.T) fs.Dir {
 	"auths": {
 		"registry:5000": {
 			"auth": "ZWlhaXM6cGFzc3dvcmQK"
+		},
+		"privateregistry:5001": {
+			"auth": "ZTJlOnBhc3N3b3Jk"
 		}
 	}}`), fs.WithDir("trust", fs.WithDir("private")))
 	return *dir

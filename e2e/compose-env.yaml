@@ -3,9 +3,23 @@ services:
   registry:
     image: 'registry:3'
 
+  private-registry:
+    image: 'registry:3'
+    networks:
+      default:
+        aliases:
+          - privateregistry
+    environment:
+      - REGISTRY_HTTP_ADDR=0.0.0.0:5001
+      - REGISTRY_AUTH=htpasswd
+      - REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm
+      - REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd
+    volumes:
+      - ./e2e/testdata/registry/auth:/auth:ro
+
   engine:
       image: 'docker:${ENGINE_VERSION:-29}-dind'
       privileged: true
-      command: ['--insecure-registry=registry:5000', '--experimental']
+      command: ['--insecure-registry=registry:5000', '--insecure-registry=privateregistry:5001', '--experimental']
       environment:
         - DOCKER_TLS_CERTDIR=
