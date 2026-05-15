@@ -474,17 +474,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			}
 			importedMetaFile = true
 		} else if strings.HasPrefix(zf.Name, "tls/") {
-			f, err := zf.Open()
-			if err != nil {
-				return err
-			}
-			data, err := io.ReadAll(f)
-			defer f.Close()
-			if err != nil {
-				return err
-			}
-			err = importEndpointTLS(&tlsData, zf.Name, data)
-			if err != nil {
+			if err := importTLSEntry(zf, &tlsData); err != nil {
 				return err
 			}
 		}
@@ -493,6 +483,26 @@ func importZip(name string, s Writer, reader io.Reader) error {
 		return invalidParameter(errors.New("invalid context: no metadata found"))
 	}
 	return s.ResetTLSMaterial(name, &tlsData)
+}
+
+func importTLSEntry(zf *zip.File, tlsData *ContextTLSData) error {
+	// Reject entries whose advertised uncompressed size exceeds
+	// the per-file cap without decompressing, to avoid allocating
+	// gigabytes for a zip bomb (see #6917).
+	if zf.UncompressedSize64 > uint64(maxAllowedFileSizeToImport) {
+		return invalidParameter(fmt.Errorf("%s: tls file exceeds maximum allowed size", zf.Name))
+	}
+	f, err := zf.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	// Defense in depth in case the zip header is spoofed.
+	data, err := io.ReadAll(&limitedReader{R: f, N: maxAllowedFileSizeToImport})
+	if err != nil {
+		return err
+	}
+	return importEndpointTLS(tlsData, zf.Name, data)
 }
 
 func parseMetadata(data []byte, name string) (Metadata, error) {

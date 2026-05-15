@@ -211,6 +211,41 @@ func TestImportZip(t *testing.T) {
 	assert.NilError(t, err)
 }
 
+// TestImportZipTLSTooLarge verifies that a TLS entry whose uncompressed
+// size exceeds the per-file limit is rejected instead of being read into
+// memory unbounded (zip-bomb protection, see issue #6917).
+func TestImportZipTLSTooLarge(t *testing.T) {
+	meta, err := json.Marshal(Metadata{
+		Endpoints: map[string]any{
+			"ep1": endpoint{Foo: "bar"},
+		},
+		Metadata: context{Bar: "baz"},
+		Name:     "source",
+	})
+	assert.NilError(t, err)
+
+	buf := new(bytes.Buffer)
+	w := zip.NewWriter(buf)
+
+	mf, err := w.Create("meta.json")
+	assert.NilError(t, err)
+	_, err = mf.Write(meta)
+	assert.NilError(t, err)
+
+	tf, err := w.Create(path.Join("tls", "docker", "ca.pem"))
+	assert.NilError(t, err)
+	// Write well over the per-file cap; zeros compress to a tiny archive
+	// so the outer archive-size cap is not hit first.
+	oversized := make([]byte, 2*maxAllowedFileSizeToImport)
+	_, err = tf.Write(oversized)
+	assert.NilError(t, err)
+	assert.NilError(t, w.Close())
+
+	s := New(t.TempDir(), testCfg)
+	err = Import("zipBomb", s, bytes.NewReader(buf.Bytes()))
+	assert.ErrorContains(t, err, "tls file exceeds maximum allowed size")
+}
+
 func TestImportZipInvalid(t *testing.T) {
 	testDir := t.TempDir()
 	zf := path.Join(testDir, "test.zip")
