@@ -13,7 +13,9 @@ import (
 // ReadKVStrings reads a file of line terminated key=value pairs, and overrides any keys
 // present in the file with additional pairs specified in the override parameter
 func ReadKVStrings(files []string, override []string) ([]string, error) {
-	return readKVStrings(files, override, nil)
+	return readKVStrings(files, override, func(string) (string, bool) {
+		return "", true
+	})
 }
 
 // ReadKVEnvStrings reads a file of line terminated key=value pairs, and overrides any keys
