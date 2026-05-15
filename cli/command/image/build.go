@@ -315,9 +315,10 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		buildCtx = dockerfileCtx
 	}
 
-	var body io.Reader
+	var body io.ReadCloser
 	if buildCtx != nil {
 		body = progress.NewProgressReader(buildCtx, progressOutput, 0, "", "Sending build context to Docker daemon")
+		defer func() { _ = body.Close() }()
 	}
 
 	configFile := dockerCli.ConfigFile()
