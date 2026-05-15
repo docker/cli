@@ -213,7 +213,7 @@ func runVersion(ctx context.Context, dockerCLI command.Cli, opts *versionOptions
 	var err error
 	tmpl, err := newVersionTemplate(opts.format)
 	if err != nil {
-		return cli.StatusError{StatusCode: 64, Status: err.Error()}
+		return cli.StatusError{Cause: err, StatusCode: 64, Status: err.Error()}
 	}
 
 	vd := versionInfo{

@@ -63,7 +63,7 @@ func TestManifestAnnotate(t *testing.T) {
 	cmd.Flags().Set("os-version", "1")
 	cmd.Flags().Set("os-features", "feature1")
 	cmd.Flags().Set("variant", "v7")
-	expectedError = "manifest entry for image has unsupported os/arch combination"
+	expectedError = "unsupported os/arch combination"
 	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
 	cmd.Flags().Set("arch", "arm")

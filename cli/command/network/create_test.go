@@ -71,7 +71,7 @@ func TestNetworkCreateErrors(t *testing.T) {
 				"gateway":  "255.0.255.0", // FIXME(thaJeztah): this used to accept a CIDR ("255.0.0.0/24")
 				"subnet":   "10.1.2.0/23,10.1.3.248/30",
 			},
-			expectedError: "multiple overlapping subnet configuration is not supported",
+			expectedError: "overlaps with --subnet",
 		},
 		{
 			args: []string{"toto"},

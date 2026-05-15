@@ -209,7 +209,7 @@ func prettyPrintInfo(streams command.Streams, info dockerInfo) error {
 	}
 
 	if len(info.ServerErrors) > 0 || len(info.ClientErrors) > 0 {
-		return errors.New("errors pretty printing info")
+		return errors.New("one or more errors occurred while collecting system info; see ERROR lines above")
 	}
 	return nil
 }
@@ -493,6 +493,7 @@ func formatInfo(output io.Writer, info dockerInfo, format string) error {
 	tmpl, err := templates.Parse(format)
 	if err != nil {
 		return cli.StatusError{
+			Cause:      err,
 			StatusCode: 64,
 			Status:     "template parsing error: " + err.Error(),
 		}

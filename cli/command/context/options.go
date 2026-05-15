@@ -100,7 +100,7 @@ func getDockerEndpoint(contextStore store.Reader, config map[string]string) (doc
 		if ep, ok := metadata.Endpoints[docker.DockerEndpoint].(docker.EndpointMeta); ok {
 			return docker.Endpoint{EndpointMeta: ep}, nil
 		}
-		return docker.Endpoint{}, fmt.Errorf("unable to get endpoint from context %q", contextName)
+		return docker.Endpoint{}, fmt.Errorf("context %q has no docker endpoint configured", contextName)
 	}
 	tlsData, err := context.TLSDataFromFiles(config[keyCA], config[keyCert], config[keyKey])
 	if err != nil {
