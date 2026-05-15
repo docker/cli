@@ -163,6 +163,90 @@ func TestGetExitCode(t *testing.T) {
 	})
 }
 
+func TestPrintCommandError(t *testing.T) {
+	t.Run("nil error returns nil and writes nothing", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, nil)
+		assert.NilError(t, got)
+		assert.Equal(t, buf.String(), "")
+	})
+
+	t.Run("generic error is printed and replaced with StatusError", func(t *testing.T) {
+		var buf bytes.Buffer
+		orig := errors.New("docker: open ./no-such-file: no such file or directory")
+		got := printCommandError(&buf, orig)
+
+		// The original message is written to stderr before hooks run
+		assert.Equal(t, buf.String(), orig.Error()+"\n")
+
+		// and the returned error is a status-only StatusError so
+		// main() does not print the same message a second time.
+		var st dockercli.StatusError
+		assert.Assert(t, errors.As(got, &st))
+		assert.Equal(t, st.Status, "")
+		assert.Equal(t, st.StatusCode, 1)
+	})
+
+	t.Run("StatusError with message preserves exit code and prints message", func(t *testing.T) {
+		var buf bytes.Buffer
+		orig := dockercli.StatusError{Status: "build failed", StatusCode: 125}
+		got := printCommandError(&buf, orig)
+
+		assert.Equal(t, buf.String(), "build failed\n")
+
+		var st dockercli.StatusError
+		assert.Assert(t, errors.As(got, &st))
+		assert.Equal(t, st.StatusCode, 125)
+		// The replacement is status-only; the message field is cleared
+		// because we already printed it ourselves.
+		assert.Equal(t, st.Status, "")
+	})
+
+	t.Run("StatusError with only exit code is not printed", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, dockercli.StatusError{StatusCode: 42})
+
+		// main() also skips printing exit-code-only StatusErrors, so we
+		// must not print it here either, and the exit code must propagate.
+		assert.Equal(t, buf.String(), "")
+
+		var st dockercli.StatusError
+		assert.Assert(t, errors.As(got, &st))
+		assert.Equal(t, st.StatusCode, 42)
+		assert.Equal(t, st.Status, "")
+	})
+
+	t.Run("canceled error is not printed and not replaced", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, context.Canceled)
+
+		assert.Equal(t, buf.String(), "")
+		// If it had been replaced with a StatusError, errors.Is would
+		// return false; this asserts the error is propagated as-is.
+		assert.ErrorIs(t, got, context.Canceled)
+	})
+
+	t.Run("wrapped canceled error is not printed and not replaced", func(t *testing.T) {
+		var buf bytes.Buffer
+		got := printCommandError(&buf, fmt.Errorf("wrapped: %w", context.Canceled))
+
+		assert.Equal(t, buf.String(), "")
+		assert.ErrorIs(t, got, context.Canceled)
+	})
+
+	t.Run("signal-terminated error is not printed and not replaced", func(t *testing.T) {
+		var buf bytes.Buffer
+		orig := errCtxSignalTerminated{signal: syscall.SIGINT}
+		got := printCommandError(&buf, orig)
+
+		assert.Equal(t, buf.String(), "")
+
+		var sig errCtxSignalTerminated
+		assert.Assert(t, errors.As(got, &sig))
+		assert.Equal(t, sig, orig)
+	})
+}
+
 func TestCmdErrorMessage(t *testing.T) {
 	t.Run("nil error returns empty string", func(t *testing.T) {
 		assert.Equal(t, cmdErrorMessage(nil), "")
