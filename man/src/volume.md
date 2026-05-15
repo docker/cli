@@ -1,5 +1,5 @@
 The `docker volume` command has subcommands for managing data volumes. A data
-volume is a specially-designated directory that by-passes storage driver
+volume is a specially-designated directory that bypasses storage driver
 management.
 
 Data volumes persist data independent of a container's life cycle. When you

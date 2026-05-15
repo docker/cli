@@ -82,7 +82,7 @@ The following filter matches only services with the `project` label with the
 `project-a` value.
 
 ```console
-$ docker service ls --filter label=project=test
+$ docker secret ls --filter label=project=project-a
 
 ID                          NAME                        CREATED             UPDATED
 mem02h8n73mybpgqjf0kfi1n0   test_secret                 About an hour ago   About an hour ago
@@ -95,7 +95,7 @@ The `name` filter matches on all or prefix of a secret's name.
 The following filter matches secret with a name containing a prefix of `test`.
 
 ```console
-$ docker secret ls --filter name=test_secret
+$ docker secret ls --filter name=test
 
 ID                          NAME                        CREATED             UPDATED
 mem02h8n73mybpgqjf0kfi1n0   test_secret                 About an hour ago   About an hour ago

@@ -66,7 +66,7 @@ anybody starts working on it.
 We are always thrilled to receive pull requests. We do our best to process them
 quickly. If your pull request is not accepted on the first try,
 don't get discouraged! Our contributor's guide explains [the review process we
-use for simple changes](https://github.com/docker/docker/blob/master/project/REVIEWING.md).
+use for simple changes](https://github.com/moby/moby/blob/master/project/REVIEWING.md).
 
 ### Talking to other Docker users and contributors
 
@@ -124,8 +124,7 @@ submitting a pull request.
 Update the documentation when creating or modifying features. Test your
 documentation changes for clarity, concision, and correctness, as well as a
 clean documentation build. See our contributors guide for [our style
-guide](https://docs.docker.com/contribute/style/grammar/) and instructions on [building
-the documentation](https://docs.docker.com/contribute/).
+guide](https://github.com/docker/docs/blob/main/STYLE.md).
 
 Write clean code. Universally formatted code promotes ease of writing, reading,
 and maintenance. Always run `gofmt -s -w file.go` on each changed file before
@@ -145,6 +144,7 @@ not enforced. Common prefixes are `docs: <message>`, `vendor: <message>`,
 or `telemetry: <message>`.
 
 A standard commit.
+
 ```
 Fix the exploding flux capacitor
 
@@ -153,6 +153,7 @@ the sun and the moon align.
 ```
 
 Using a package as prefix.
+
 ```
 pkg/foo: prevent panic in flux capacitor
 
@@ -160,12 +161,14 @@ Calling function A causes the flux capacitor to blow up every time
 the sun and the moon align.
 ```
 
-Updating a specific vendored package.
+Updating a specific vendored dependency.
+
 ```
-vendor: github.com/docker/docker 6ac445c42bad (master, v28.0-dev)
+vendor: github.com/moby/moby/client v0.4.0
 ```
 
 Fixing a broken docs link.
+
 ```
 docs: fix style/lint issues in deprecated.md
 ```

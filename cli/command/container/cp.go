@@ -158,7 +158,7 @@ container source to stdout.`,
 	}
 
 	flags := cmd.Flags()
-	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symbol link in SRC_PATH")
+	flags.BoolVarP(&opts.followLink, "follow-link", "L", false, "Always follow symlinks in SRC_PATH")
 	flags.BoolVarP(&opts.copyUIDGID, "archive", "a", false, "Archive mode (copy all uid/gid information)")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output during copy. Progress output is automatically suppressed if no terminal is attached")
 	return cmd
@@ -271,7 +271,7 @@ func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cp
 	}
 
 	apiClient := dockerCLI.Client()
-	// if client requests to follow symbol link, then must decide target file to be copied
+	// if client requests to follow symlinks, then must decide target file to be copied
 	var rebaseName string
 	if copyConfig.followLink {
 		src, err := apiClient.ContainerStatPath(ctx, copyConfig.container, client.ContainerStatPathOptions{

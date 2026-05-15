@@ -113,7 +113,7 @@ COPY failed: forbidden path outside the build context: ../../some-dir ()
 ```
 
 BuildKit on the other hand strips leading relative paths that traverse outside
-of the build context. Re-using the previous example, the path `COPY
+of the build context. Reusing the previous example, the path `COPY
 ../../some-dir .` evaluates to `COPY some-dir .` with BuildKit.
 
 ## Examples

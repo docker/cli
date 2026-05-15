@@ -75,8 +75,10 @@ Each request sent to the plugin includes the authenticated user, the HTTP
 headers, and the request/response body. Only the user name and the
 authentication method used are passed to the plugin. Most importantly, no user
 credentials or tokens are passed. Finally, not all request/response bodies
-are sent to the authorization plugin. Only those request/response bodies where
-the `Content-Type` is either `text/*` or `application/json` are sent.
+are sent to the authorization plugin. Only request/response bodies where
+the `Content-Type` is `application/json` are sent to the authorization plugin;
+bodies of any other `Content-Type` are not visible to the plugin and cannot
+be used for enforcement, even though the daemon may still act on this data.
 
 For commands that can potentially hijack the HTTP connection (`HTTP
 Upgrade`), such as `exec`, the authorization plugin is only called for the
@@ -85,6 +87,31 @@ not applied to the rest of the flow. Specifically, the streaming data is not
 passed to the authorization plugins. For commands that return chunked HTTP
 response, such as `logs` and `events`, only the HTTP request is sent to the
 authorization plugins.
+
+### Response body size and partial buffering
+
+The internal buffer that holds the response body between the daemon's HTTP
+handler and the plugin's response authorization callback (`responseModifier`,
+defined in [`pkg/authorization/response.go`](https://github.com/moby/moby/blob/master/pkg/authorization/response.go))
+has a fixed capacity of 64 KiB (`maxBufferSize`).
+
+For most non-streaming endpoints the full response is buffered for plugin
+inspection regardless of total size, because Go's `encoding/json` encoder
+serializes the complete payload into a single underlying write. The
+streaming-response exclusion noted above (for example, `logs` and `events`)
+is the practical effect of this 64 KiB threshold combined with the
+`io.WriteFlusher` write pattern used by streaming handlers, where each write
+is immediately drained to the client and is therefore no longer available
+for plugin inspection by the time the handler returns.
+
+> [!NOTE]
+> Plugins that depend on `ResponseBody` inspection for redaction or
+> content-filtering should restrict their policies to endpoints whose
+> response is produced as a single write (typical of REST-style API
+> responses). For commands whose responses are streamed or are likely to
+> exceed the buffer through multiple writes, do not rely on `ResponseBody`
+> for security-relevant decisions; perform the filtering in a separate
+> layer in front of the daemon.
 
 During request/response processing, some authorization flows might
 need to do additional queries to the Docker daemon. To complete such flows,

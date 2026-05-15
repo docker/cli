@@ -31,10 +31,6 @@ true
 
 ## Current experimental features
 
-Docker service logs command to view logs for a Docker service. This is needed in Swarm mode.
-Option to squash image layers to the base image after successful builds.
-Checkpoint and restore support for Containers.
-Metrics (Prometheus) output for basic container, image, and daemon operations.
-
  * [Checkpoint & Restore](../docs/reference/commandline/checkpoint.md)
  * [Docker build with --squash argument](../docs/reference/commandline/build.md#squash-an-images-layers---squash-experimental)
+ * [Support for plugins on Swarm](https://github.com/moby/moby/pull/33575)

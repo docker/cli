@@ -21,13 +21,14 @@ import (
 const (
 	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
 
-	namesHeader      = "NAMES"
-	commandHeader    = "COMMAND"
-	runningForHeader = "CREATED"
-	mountsHeader     = "MOUNTS"
-	localVolumes     = "LOCAL VOLUMES"
-	networksHeader   = "NETWORKS"
-	platformHeader   = "PLATFORM"
+	namesHeader        = "NAMES"
+	commandHeader      = "COMMAND"
+	runningForHeader   = "CREATED"
+	mountsHeader       = "MOUNTS"
+	localVolumes       = "LOCAL VOLUMES"
+	networksHeader     = "NETWORKS"
+	platformHeader     = "PLATFORM"
+	healthStatusHeader = "HEALTH STATUS"
 )
 
 // Platform wraps a [ocispec.Platform] to implement the stringer interface.
@@ -121,6 +122,7 @@ func NewContainerContext() *ContainerContext {
 		"LocalVolumes": localVolumes,
 		"Networks":     networksHeader,
 		"Platform":     platformHeader,
+		"HealthStatus": healthStatusHeader,
 	}
 	return &containerCtx
 }
@@ -350,6 +352,35 @@ func (c *ContainerContext) Networks() string {
 	}
 
 	return strings.Join(networks, ",")
+}
+
+// HealthStatus returns the container's health status (for example, "healthy","unhealthy", or "starting").
+// If no healthcheck is configured, an empty
+// string is returned.
+func (c *ContainerContext) HealthStatus() string {
+	if c.c.Health != nil && c.c.Health.Status != "" {
+		return string(c.c.Health.Status)
+	}
+
+	// Fallback for API versions before v1.52, which include health only in Status text;
+	// see https://github.com/moby/moby/pull/50281
+	// see https://github.com/moby/moby/blob/docker-v29.4.3/daemon/container/health.go#L18-L43
+	_, health, ok := strings.Cut(c.c.Status, "(")
+	if !ok || !strings.HasSuffix(health, ")") {
+		return ""
+	}
+
+	health = strings.TrimSuffix(health, ")")
+	health = strings.TrimPrefix(health, "health: ")
+
+	switch container.HealthStatus(health) {
+	case container.Healthy, container.Unhealthy, container.Starting:
+		return health
+	case container.NoHealthcheck:
+		return ""
+	default:
+		return ""
+	}
 }
 
 // DisplayablePorts returns formatted string representing open ports of container

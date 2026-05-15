@@ -618,7 +618,7 @@ its root filesystem mounted as read only prohibiting any writes.
 Default is **no**.
 
 **--rm** **true**|**false**
-   Automatically remove the container when it exits. The default is **false**.
+   Automatically remove the container and its associated anonymous volumes when it exits. The default is **false**.
    `--rm` flag can work together with `-d`, and auto-removal will be done on
    daemon side. Note that it's incompatible with any restart policy other than
   `none`.
@@ -734,7 +734,7 @@ any options, the systems uses the following options:
 **-u**, **--user**=""
    Sets the username or UID used and optionally the groupname or GID for the specified command.
 
-   The followings examples are all valid:
+   The following examples are all valid:
    --user [user | user:group | uid | uid:gid | user:gid | uid:group ]
 
    Without this argument the command will be run as root in the container.

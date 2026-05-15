@@ -51,6 +51,18 @@ Run test:
 docker buildx bake test
 ```
 
+Run the unit test:
+
+```
+$ make -f docker.Makefile test-unit
+```
+
+Run the full test suite:
+
+```
+$ make -f docker.Makefile test
+```
+
 List all the available targets:
 
 ```shell
@@ -62,7 +74,7 @@ make help
 Start an interactive development environment:
 
 ```shell
-make -f docker.Makefile shell
+make shell
 ```
 
 ## Legal
