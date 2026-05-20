@@ -2,6 +2,7 @@ name: validate-milestone
 
 permissions:
   contents: read
+  pull-requests: read
 
 on:
   pull_request:
@@ -12,24 +13,46 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          sparse-checkout: VERSION
-
       - name: Validate milestone matches VERSION
-        run: |
-          expected=$(cat VERSION)
-          milestone="${{ github.event.pull_request.milestone.title }}"
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          MILESTONE: ${{ github.event.pull_request.milestone.title }}
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            core.info(`Modified files: ${files.map(f => f.filename).join(', ')}`);
 
-          if [[ -z "$milestone" ]]; then
-            echo "::error::PR must have a milestone set (expected: $expected)"
-            exit 1
-          fi
+            const touchesVersion = files.some(f => f.filename === 'VERSION');
+            core.info(`Touches VERSION: ${touchesVersion}`);
 
-          if [[ "$milestone" != "$expected" ]]; then
-            echo "::error::Milestone '$milestone' does not match VERSION '$expected'"
-            exit 1
-          fi
+            // Use the PR's version when it bumps the file, base branch otherwise.
+            // It's fine to trust the author in this case, it's not meant to be
+            // a security gate, just a helpful check for maintainers.
+            const ref = touchesVersion
+              ? context.payload.pull_request.head.sha
+              : context.payload.pull_request.base.ref;
 
-          echo "Milestone: $milestone ✓"
+            core.info(`Base ref: ${ref}`);
+
+            const resp = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'VERSION',
+              ref,
+            });
+            const expected = Buffer.from(resp.data.content, resp.data.encoding).toString('utf8').trim();
+            const milestone = process.env.MILESTONE;
+
+            if (!milestone) {
+              core.setFailed(`PR must have a milestone set (expected: ${expected})`);
+              return;
+            }
+            if (milestone !== expected) {
+              core.setFailed(`Milestone '${milestone}' does not match VERSION '${expected}'`);
+              return;
+            }
+            core.info(`Milestone: ${milestone} ✓`);
