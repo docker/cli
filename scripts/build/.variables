@@ -98,6 +98,16 @@ fi
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
     GO_LDFLAGS="$GO_LDFLAGS -linkmode external -extldflags -static"
 fi
+
+# We only import google.golang.org/grpc as an indirect dependency, and
+# do not make gRPC connections.
+#
+# grpcnotrace avoids importing golang.org/x/net/trace, which in turn enables
+# dead code elimination, which can reduce binary size when tracing is not needed.
+#
+# see https://github.com/grpc/grpc-go/blob/v1.81.1/trace_notrace.go#L23-L25
+GO_BUILDTAGS="$GO_BUILDTAGS grpcnotrace"
+
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ]; then
     # compiling statically with CGO enabled requires osusergo and netgo to be set.
     GO_BUILDTAGS="$GO_BUILDTAGS osusergo netgo"
