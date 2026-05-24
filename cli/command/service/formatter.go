@@ -11,7 +11,7 @@ import (
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/go-units"
+	"github.com/docker/cli/internal/duration"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
@@ -323,7 +323,7 @@ func (ctx *serviceInspectContext) HasUpdateStatusStarted() bool {
 }
 
 func (ctx *serviceInspectContext) UpdateStatusStarted() string {
-	return units.HumanDuration(time.Since(*ctx.Service.UpdateStatus.StartedAt)) + " ago"
+	return duration.HumanDuration(time.Since(*ctx.Service.UpdateStatus.StartedAt)) + " ago"
 }
 
 func (ctx *serviceInspectContext) UpdateIsCompleted() bool {
@@ -331,7 +331,7 @@ func (ctx *serviceInspectContext) UpdateIsCompleted() bool {
 }
 
 func (ctx *serviceInspectContext) UpdateStatusCompleted() string {
-	return units.HumanDuration(time.Since(*ctx.Service.UpdateStatus.CompletedAt)) + " ago"
+	return duration.HumanDuration(time.Since(*ctx.Service.UpdateStatus.CompletedAt)) + " ago"
 }
 
 func (ctx *serviceInspectContext) UpdateStatusMessage() string {

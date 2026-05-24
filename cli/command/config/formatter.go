@@ -11,7 +11,7 @@ import (
 
 	"github.com/docker/cli/cli/command/formatter"
 	"github.com/docker/cli/cli/command/inspect"
-	"github.com/docker/go-units"
+	"github.com/docker/cli/internal/duration"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
@@ -90,11 +90,11 @@ func (c *configContext) Name() string {
 }
 
 func (c *configContext) CreatedAt() string {
-	return units.HumanDuration(time.Now().UTC().Sub(c.c.Meta.CreatedAt)) + " ago"
+	return duration.HumanDuration(time.Now().UTC().Sub(c.c.Meta.CreatedAt)) + " ago"
 }
 
 func (c *configContext) UpdatedAt() string {
-	return units.HumanDuration(time.Now().UTC().Sub(c.c.Meta.UpdatedAt)) + " ago"
+	return duration.HumanDuration(time.Now().UTC().Sub(c.c.Meta.UpdatedAt)) + " ago"
 }
 
 func (c *configContext) Labels() string {

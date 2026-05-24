@@ -7,7 +7,7 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/go-units"
+	"github.com/docker/cli/internal/duration"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
@@ -121,7 +121,7 @@ func (c *taskContext) DesiredState() string {
 func (c *taskContext) CurrentState() string {
 	return fmt.Sprintf("%s %s ago",
 		formatter.PrettyPrint(c.task.Status.State),
-		strings.ToLower(units.HumanDuration(time.Since(c.task.Status.Timestamp))),
+		strings.ToLower(duration.HumanDuration(time.Since(c.task.Status.Timestamp))),
 	)
 }
 

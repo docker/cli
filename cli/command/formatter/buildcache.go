@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/go-units"
+	"github.com/docker/cli/internal/duration"
 	"github.com/moby/moby/api/types/build"
 )
 
@@ -150,7 +150,7 @@ func (c *buildCacheContext) CreatedAt() string {
 }
 
 func (c *buildCacheContext) CreatedSince() string {
-	return units.HumanDuration(time.Now().UTC().Sub(c.v.CreatedAt)) + " ago"
+	return duration.HumanDuration(time.Now().UTC().Sub(c.v.CreatedAt)) + " ago"
 }
 
 func (c *buildCacheContext) LastUsedAt() string {
@@ -164,7 +164,7 @@ func (c *buildCacheContext) LastUsedSince() string {
 	if c.v.LastUsedAt == nil {
 		return ""
 	}
-	return units.HumanDuration(time.Now().UTC().Sub(*c.v.LastUsedAt)) + " ago"
+	return duration.HumanDuration(time.Now().UTC().Sub(*c.v.LastUsedAt)) + " ago"
 }
 
 func (c *buildCacheContext) UsageCount() string {

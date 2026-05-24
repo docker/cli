@@ -14,6 +14,7 @@ import (
 	"github.com/containerd/platforms"
 	"github.com/distribution/reference"
 	"github.com/docker/go-units"
+	duration "github.com/docker/cli/internal/duration"
 	"github.com/moby/moby/api/types/container"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -234,7 +235,7 @@ func (c *ContainerContext) CreatedAt() string {
 // by clock skew between the client and the daemon.
 func (c *ContainerContext) RunningFor() string {
 	createdAt := time.Unix(c.c.Created, 0)
-	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
+	return duration.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 
 // Platform returns a human-readable representation of the container's

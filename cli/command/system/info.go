@@ -21,6 +21,7 @@ import (
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/templates"
 	"github.com/docker/go-units"
+	duration "github.com/docker/cli/internal/duration"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -450,9 +451,9 @@ func printSwarmInfo(output io.Writer, info system.Info) {
 		fprintln(output, "   Heartbeat Tick:", info.Swarm.Cluster.Spec.Raft.HeartbeatTick)
 		fprintln(output, "   Election Tick:", info.Swarm.Cluster.Spec.Raft.ElectionTick)
 		fprintln(output, "  Dispatcher:")
-		fprintln(output, "   Heartbeat Period:", units.HumanDuration(info.Swarm.Cluster.Spec.Dispatcher.HeartbeatPeriod))
+		fprintln(output, "   Heartbeat Period:", duration.HumanDuration(info.Swarm.Cluster.Spec.Dispatcher.HeartbeatPeriod))
 		fprintln(output, "  CA Configuration:")
-		fprintln(output, "   Expiry Duration:", units.HumanDuration(info.Swarm.Cluster.Spec.CAConfig.NodeCertExpiry))
+		fprintln(output, "   Expiry Duration:", duration.HumanDuration(info.Swarm.Cluster.Spec.CAConfig.NodeCertExpiry))
 		fprintln(output, "   Force Rotate:", info.Swarm.Cluster.Spec.CAConfig.ForceRotate)
 		if caCert := strings.TrimSpace(info.Swarm.Cluster.Spec.CAConfig.SigningCACert); caCert != "" {
 			fprintf(output, "   Signing CA Certificate: \n%s\n\n", caCert)
