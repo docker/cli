@@ -164,16 +164,27 @@ func (cli *DockerCli) BuildKitEnabled() (bool, error) {
 	}
 
 	si := cli.ServerInfo()
+	return defaultBuildKitEnabled(si, runtime.GOOS), nil
+}
+
+func defaultBuildKitEnabled(si ServerInfo, clientOSType string) bool {
 	if si.BuildkitVersion == build.BuilderBuildKit {
 		// The daemon advertised BuildKit as the preferred builder; this may
 		// be either a Linux daemon or a Windows daemon with experimental
 		// BuildKit support enabled.
-		return true, nil
+		return true
 	}
-
-	// otherwise, assume BuildKit is enabled for Linux, but disabled for
+	if si.OSType == "windows" {
+		return false
+	}
+	if si.OSType == "" && clientOSType == "windows" {
+		// If the daemon cannot be reached, keep the Windows client on the
+		// Windows / WCOW default instead of assuming a Linux daemon.
+		return false
+	}
+	// Otherwise, assume BuildKit is enabled for Linux, but disabled for
 	// Windows / WCOW, which does not yet support BuildKit by default.
-	return si.OSType != "windows", nil
+	return true
 }
 
 // HooksEnabled returns whether plugin hooks are enabled.

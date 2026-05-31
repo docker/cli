@@ -129,6 +129,46 @@ func (*fakeClient) Ping(context.Context, client.PingOptions) (client.PingResult,
 	return client.PingResult{OSType: "linux"}, nil
 }
 
+func TestIsWindowsBuilderDefault(t *testing.T) {
+	tests := []struct {
+		name       string
+		serverInfo command.ServerInfo
+		clientOS   string
+		expected   bool
+	}{
+		{
+			name:       "windows daemon",
+			serverInfo: command.ServerInfo{OSType: "windows"},
+			clientOS:   "linux",
+			expected:   true,
+		},
+		{
+			name:       "linux daemon",
+			serverInfo: command.ServerInfo{OSType: "linux"},
+			clientOS:   "windows",
+			expected:   false,
+		},
+		{
+			name:       "unknown daemon on windows client",
+			serverInfo: command.ServerInfo{},
+			clientOS:   "windows",
+			expected:   true,
+		},
+		{
+			name:       "unknown daemon on linux client",
+			serverInfo: command.ServerInfo{},
+			clientOS:   "linux",
+			expected:   false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, isWindowsBuilderDefault(tc.serverInfo, tc.clientOS), tc.expected)
+		})
+	}
+}
+
 func TestBuildkitDisabled(t *testing.T) {
 	ctx := t.Context()
 
