@@ -21,4 +21,8 @@ func TestLimitReaderReadAll(t *testing.T) {
 	r = strings.NewReader("Test")
 	_, err = io.ReadAll(&limitedReader{R: r, N: 2})
 	assert.Error(t, err, "read exceeds the defined limit")
+
+	r = strings.NewReader("Tes")
+	_, err = io.ReadAll(&limitedReader{R: r, N: 2})
+	assert.Error(t, err, "read exceeds the defined limit")
 }
