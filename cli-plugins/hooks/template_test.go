@@ -123,3 +123,60 @@ func TestParseTemplate(t *testing.T) {
 		})
 	}
 }
+
+// TestParseTemplate_MaxMessages tests that the maximum message limit is correctly enforced.
+func TestParseTemplate_MaxMessages(t *testing.T) {
+	tests := []struct {
+		doc         string
+		template    string
+		shouldError bool
+		errorMsg    string
+	}{
+		{
+			doc:         "exactly 10 messages",
+			template:    "line\nline\nline\nline\nline\nline\nline\nline\nline\nline",
+			shouldError: false,
+		},
+		{
+			doc:         "exactly 10 lines with trailing newline",
+			template:    "line\nline\nline\nline\nline\nline\nline\nline\nline\nline\n",
+			shouldError: false,
+		},
+		{
+			doc:         "11 messages (10 newlines + text) - off-by-one case",
+			template:    "line\nline\nline\nline\nline\nline\nline\nline\nline\nline",
+			shouldError: false,
+		},
+		{
+			doc:         "11 lines (10 newlines + 11th line)",
+			template:    "line\nline\nline\nline\nline\nline\nline\nline\nline\nline\nextra",
+			shouldError: true,
+			errorMsg:    "too many messages",
+		},
+		{
+			doc:         "12 lines",
+			template:    "line\nline\nline\nline\nline\nline\nline\nline\nline\nline\nline\nline",
+			shouldError: true,
+			errorMsg:    "too many messages",
+		},
+		{
+			doc:         "single message",
+			template:    "single line",
+			shouldError: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			testCmd := &cobra.Command{Use: "test"}
+			out, err := hooks.ParseTemplate(tc.template, testCmd)
+
+			if tc.shouldError {
+				assert.ErrorContains(t, err, tc.errorMsg)
+			} else {
+				assert.NilError(t, err)
+				assert.Assert(t, len(out) <= 10, "result should have at most 10 messages")
+			}
+		})
+	}
+}
