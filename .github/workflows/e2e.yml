@@ -44,7 +44,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       -
         name: Update daemon.json
         run: |
@@ -63,7 +63,7 @@ jobs:
           docker info
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
       -
         name: Run ${{ matrix.target }}
         run: |
@@ -74,7 +74,7 @@ jobs:
           TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v5
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           files: ./build/coverage/coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
