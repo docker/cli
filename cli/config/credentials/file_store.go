@@ -104,7 +104,7 @@ func (c *fileStore) Store(authConfig types.AuthConfig) error {
 // stored as hostname or as hostname including scheme (in legacy configuration
 // files).
 //
-// It's the equivalent to [registry.ConvertToHostname] in the daemon.
+// It's based on [registry.ConvertToHostname] from Moby daemon.
 //
 // [registry.ConvertToHostname]: https://pkg.go.dev/github.com/moby/moby/v2@v2.0.0-beta.7/daemon/pkg/registry#ConvertToHostname
 func ConvertToHostname(maybeURL string) string {
