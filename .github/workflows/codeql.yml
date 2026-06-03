@@ -49,6 +49,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 2
+          persist-credentials: false
       # CodeQL 2.16.4's auto-build added support for multi-module repositories,
       # and is trying to be smart by searching for modules in every directory,
       # including vendor directories. If no module is found, it's creating one
