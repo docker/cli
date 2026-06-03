@@ -36,6 +36,8 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       -
         name: Create matrix
         id: platforms
@@ -78,14 +80,15 @@ jobs:
         working-directory: ./build
         run: |
           mkdir /tmp/out
-          platform=${{ matrix.platform }}
-          platformPair=${platform//\//-}
+          platformPair=${PLATFORM//\//-}
           tar -cvzf "/tmp/out/docker-${platformPair}.tar.gz" .
           if [ -z "${{ matrix.use_glibc }}" ]; then
             echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}" >> $GITHUB_ENV
           else
             echo "ARTIFACT_NAME=${{ matrix.target }}-${platformPair}-glibc" >> $GITHUB_ENV
           fi
+        env:
+          PLATFORM: ${{ matrix.platform }}
       -
         name: Upload artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -144,6 +147,8 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       -
         name: Create matrix
         id: platforms
