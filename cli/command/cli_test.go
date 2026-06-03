@@ -252,6 +252,18 @@ func TestDefaultBuildKitEnabled(t *testing.T) {
 	}
 }
 
+func TestBuildKitEnabledWithBuilderAlias(t *testing.T) {
+	cli := &DockerCli{
+		configFile: &configfile.ConfigFile{
+			Aliases: map[string]string{"builder": "buildx"},
+		},
+	}
+
+	enabled, err := cli.BuildKitEnabled()
+	assert.NilError(t, err)
+	assert.Check(t, enabled)
+}
+
 // Makes sure we don't hang forever on the initial connection.
 // https://github.com/docker/cli/issues/3652
 func TestInitializeFromClientHangs(t *testing.T) {
