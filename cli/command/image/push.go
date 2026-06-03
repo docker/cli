@@ -131,18 +131,18 @@ To push the complete multi-platform image, remove the --platform flag.
 	}()
 
 	if opts.quiet {
-		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux()))
+		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux(out)))
 		if err == nil {
 			_, _ = fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
-	return jsonstream.Display(ctx, responseBody, dockerCli.Out(), jsonstream.WithAuxCallback(handleAux()))
+	return jsonstream.Display(ctx, responseBody, dockerCli.Out(), jsonstream.WithAuxCallback(handleAux(out)))
 }
 
 var notes []string
 
-func handleAux() func(jm jsonstream.JSONMessage) {
+func handleAux(out tui.Output) func(jm jsonstream.JSONMessage) {
 	return func(jm jsonstream.JSONMessage) {
 		b := []byte(*jm.Aux)
 
@@ -150,8 +150,8 @@ func handleAux() func(jm jsonstream.JSONMessage) {
 		err := json.Unmarshal(b, &stripped)
 		if err == nil && stripped.ManifestPushedInsteadOfIndex {
 			note := fmt.Sprintf("Not all multiplatform-content is present and only the available single-platform image was pushed\n%s -> %s",
-				aec.RedF.Apply(stripped.OriginalIndex.Digest.String()),
-				aec.GreenF.Apply(stripped.SelectedManifest.Digest.String()),
+				out.Color(aec.RedF).Apply(stripped.OriginalIndex.Digest.String()),
+				out.Color(aec.GreenF).Apply(stripped.SelectedManifest.Digest.String()),
 			)
 			notes = append(notes, note)
 		}
