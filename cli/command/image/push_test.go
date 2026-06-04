@@ -2,7 +2,6 @@ package image
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -109,10 +108,8 @@ func TestRunPushRespectsNoColorForAuxNotes(t *testing.T) {
 		},
 	})
 	cli.Out().SetIsTerminal(true)
-	notes = nil
-	t.Cleanup(func() { notes = nil })
 
-	err := runPush(context.Background(), cli, pushOptions{remote: "image:tag"})
+	err := runPush(t.Context(), cli, pushOptions{remote: "image:tag"})
 	assert.NilError(t, err)
 
 	out := cli.OutBuffer().String()

@@ -123,6 +123,7 @@ To push the complete multi-platform image, remove the --platform flag.
 		return err
 	}
 
+	var notes []string
 	defer func() {
 		_ = responseBody.Close()
 		for _, note := range notes {
@@ -131,18 +132,16 @@ To push the complete multi-platform image, remove the --platform flag.
 	}()
 
 	if opts.quiet {
-		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux(out)))
+		err = jsonstream.Display(ctx, responseBody, streams.NewOut(io.Discard), jsonstream.WithAuxCallback(handleAux(&notes, out)))
 		if err == nil {
 			_, _ = fmt.Fprintln(dockerCli.Out(), ref.String())
 		}
 		return err
 	}
-	return jsonstream.Display(ctx, responseBody, dockerCli.Out(), jsonstream.WithAuxCallback(handleAux(out)))
+	return jsonstream.Display(ctx, responseBody, dockerCli.Out(), jsonstream.WithAuxCallback(handleAux(&notes, out)))
 }
 
-var notes []string
-
-func handleAux(out tui.Output) func(jm jsonstream.JSONMessage) {
+func handleAux(notes *[]string, out tui.Output) func(jm jsonstream.JSONMessage) {
 	return func(jm jsonstream.JSONMessage) {
 		b := []byte(*jm.Aux)
 
@@ -153,7 +152,7 @@ func handleAux(out tui.Output) func(jm jsonstream.JSONMessage) {
 				out.Color(aec.RedF).Apply(stripped.OriginalIndex.Digest.String()),
 				out.Color(aec.GreenF).Apply(stripped.SelectedManifest.Digest.String()),
 			)
-			notes = append(notes, note)
+			*notes = append(*notes, note)
 		}
 
 		var missing auxprogress.ContentMissing
@@ -166,7 +165,7 @@ func handleAux(out tui.Output) func(jm jsonstream.JSONMessage) {
 				Make sure you have all the referenced content and try again.
 
 				You can also push only a single platform specific manifest directly by specifying the platform you want to push with the --platform flag.`
-			notes = append(notes, note)
+			*notes = append(*notes, note)
 		}
 	}
 }
