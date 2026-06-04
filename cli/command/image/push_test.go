@@ -1,13 +1,19 @@
 package image
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/api/types/auxprogress"
 	"github.com/moby/moby/client"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"
 )
 
@@ -85,4 +91,31 @@ func TestNewPushCommandSuccess(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRunPushRespectsNoColorForAuxNotes(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	cli := test.NewFakeCli(&fakeClient{
+		imagePushFunc: func(ref string, options client.ImagePushOptions) (client.ImagePushResponse, error) {
+			aux, err := json.Marshal(auxprogress.ManifestPushedInsteadOfIndex{
+				ManifestPushedInsteadOfIndex: true,
+				OriginalIndex:                ocispec.Descriptor{Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111"},
+				SelectedManifest:             ocispec.Descriptor{Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222"},
+			})
+			assert.NilError(t, err)
+			line := append([]byte(`{"aux":`), aux...)
+			line = append(line, '}', '\n')
+			return fakeStreamResult{ReadCloser: io.NopCloser(bytes.NewReader(line))}, nil
+		},
+	})
+	cli.Out().SetIsTerminal(true)
+	notes = nil
+	t.Cleanup(func() { notes = nil })
+
+	err := runPush(context.Background(), cli, pushOptions{remote: "image:tag"})
+	assert.NilError(t, err)
+
+	out := cli.OutBuffer().String()
+	assert.Assert(t, strings.Contains(out, "sha256:1111111111111111111111111111111111111111111111111111111111111111 -> sha256:2222222222222222222222222222222222222222222222222222222222222222"))
+	assert.Assert(t, !strings.Contains(out, "\x1b["), "output should not contain ANSI escape codes, output: %s", out)
 }
