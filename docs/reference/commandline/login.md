@@ -6,11 +6,11 @@ Defaults to Docker Hub if no server is specified.
 
 ### Options
 
-| Name                                         | Type     | Default | Description                                                 |
-|:---------------------------------------------|:---------|:--------|:------------------------------------------------------------|
-| `-p`, `--password`                           | `string` |         | Password or Personal Access Token (PAT)                     |
-| [`--password-stdin`](#password-stdin)        | `bool`   |         | Take the Password or Personal Access Token (PAT) from stdin |
-| [`-u`](#username), [`--username`](#username) | `string` |         | Username                                                    |
+| Name                                         | Type     | Default | Description                                                        |
+|:---------------------------------------------|:---------|:--------|:-------------------------------------------------------------------|
+| `-p`, `--password`                           | `string` |         | Password or Personal Access Token (PAT), or `-` to read from stdin |
+| [`--password-stdin`](#password-stdin)        | `bool`   |         | Take the Password or Personal Access Token (PAT) from stdin        |
+| [`-u`](#username), [`--username`](#username) | `string` |         | Username                                                           |
 
 
 <!---MARKER_GEN_END-->
@@ -242,6 +242,13 @@ The following example reads a password from a file, and passes it to the
 
 ```console
 $ cat ~/my_password.txt | docker login --username foo --password-stdin
+```
+
+You can also pass `-` as the value for `--password` or `-p` to read the
+password from `STDIN`.
+
+```console
+$ cat ~/my_password.txt | docker login --username foo --password -
 ```
 
 ## Related commands

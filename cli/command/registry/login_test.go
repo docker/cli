@@ -340,6 +340,57 @@ func TestRunLogin(t *testing.T) {
 			},
 		},
 		{
+			doc:              "password dash reads password from stdin",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			stdIn:            "my password\r\n",
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				password:      "-",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "my password",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "password dash empty stdin",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				password:      "-",
+			},
+			expectedErr: `password is empty`,
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
+			doc:              "password dash and password stdin read password from stdin",
+			priorCredentials: map[string]configtypes.AuthConfig{},
+			stdIn:            "my password\r\n",
+			input: loginOptions{
+				serverAddress: "reg1",
+				user:          "my-username",
+				password:      "-",
+				passwordStdin: true,
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"reg1": {
+					Username:      "my-username",
+					Password:      "my password",
+					ServerAddress: "reg1",
+				},
+			},
+		},
+		{
 			doc:              "password with leading and trailing spaces",
 			priorCredentials: map[string]configtypes.AuthConfig{},
 			input: loginOptions{
@@ -397,7 +448,7 @@ func TestRunLogin(t *testing.T) {
 			cfg := configfile.New(filepath.Join(tmpDir, "config.json"))
 			cli := test.NewFakeCli(&fakeClient{})
 			cli.SetConfigFile(cfg)
-			if tc.input.passwordStdin {
+			if tc.input.passwordStdin || tc.input.password == "-" || tc.stdIn != "" {
 				if tc.expectedErr == "TEST_READ_ERR" {
 					cli.SetIn(streams.NewIn(io.NopCloser(iotest.ErrReader(errors.New(tc.expectedErr)))))
 				} else {
@@ -633,6 +684,21 @@ func TestLoginValidateFlags(t *testing.T) {
 			expectedErr: `conflicting options: cannot specify both --password and --password-stdin`,
 		},
 		{
+			name:        "password stdin and password dash without stdin",
+			args:        []string{"--password-stdin", "--username", "my-username", "--password", "-"},
+			expectedErr: `password is empty`,
+		},
+		{
+			name:        "password dash without username",
+			args:        []string{"--password", "-"},
+			expectedErr: `the --password-stdin option requires --username to be set`,
+		},
+		{
+			name:        "short password dash without username",
+			args:        []string{"-p", "-"},
+			expectedErr: `the --password-stdin option requires --username to be set`,
+		},
+		{
 			name:        "empty --password",
 			args:        []string{"--password", ""},
 			expectedErr: `password is empty`,
@@ -657,4 +723,11 @@ func TestLoginValidateFlags(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLoginHelpDocumentsPasswordDash(t *testing.T) {
+	cmd := newLoginCommand(test.NewFakeCli(&fakeClient{}))
+	flag := cmd.Flags().Lookup("password")
+	assert.Check(t, flag != nil)
+	assert.Check(t, is.Contains(flag.Usage, `"-"`))
 }
