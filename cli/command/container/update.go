@@ -17,6 +17,7 @@ import (
 
 type updateOptions struct {
 	blkioWeight        uint16
+	blkioWeightDevice  opts.WeightdeviceOpt
 	cpuPeriod          int64
 	cpuQuota           int64
 	cpuRealtimePeriod  int64
@@ -24,6 +25,10 @@ type updateOptions struct {
 	cpusetCpus         string
 	cpusetMems         string
 	cpuShares          int64
+	deviceReadBps      opts.ThrottledeviceOpt
+	deviceWriteBps     opts.ThrottledeviceOpt
+	deviceReadIOps     opts.ThrottledeviceOpt
+	deviceWriteIOps    opts.ThrottledeviceOpt
 	memory             opts.MemBytes
 	memoryReservation  opts.MemBytes
 	memorySwap         opts.MemSwapBytes
@@ -58,6 +63,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.Uint16Var(&options.blkioWeight, "blkio-weight", 0, `Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)`)
+	flags.Var(&options.blkioWeightDevice, "blkio-weight-device", "Block IO weight (relative device weight)")
 	flags.Int64Var(&options.cpuPeriod, "cpu-period", 0, "Limit CPU CFS (Completely Fair Scheduler) period")
 	flags.Int64Var(&options.cpuQuota, "cpu-quota", 0, "Limit CPU CFS (Completely Fair Scheduler) quota")
 	flags.Int64Var(&options.cpuRealtimePeriod, "cpu-rt-period", 0, "Limit the CPU real-time period in microseconds")
@@ -67,6 +73,10 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&options.cpusetCpus, "cpuset-cpus", "", "CPUs in which to allow execution (0-3, 0,1)")
 	flags.StringVar(&options.cpusetMems, "cpuset-mems", "", "MEMs in which to allow execution (0-3, 0,1)")
 	flags.Int64VarP(&options.cpuShares, "cpu-shares", "c", 0, "CPU shares (relative weight)")
+	flags.Var(&options.deviceReadBps, "device-read-bps", "Limit read rate (bytes per second) from a device")
+	flags.Var(&options.deviceReadIOps, "device-read-iops", "Limit read rate (IO per second) from a device")
+	flags.Var(&options.deviceWriteBps, "device-write-bps", "Limit write rate (bytes per second) to a device")
+	flags.Var(&options.deviceWriteIOps, "device-write-iops", "Limit write rate (IO per second) to a device")
 	flags.VarP(&options.memory, "memory", "m", "Memory limit")
 	flags.Var(&options.memoryReservation, "memory-reservation", "Memory soft limit")
 	flags.Var(&options.memorySwap, "memory-swap", `Swap limit equal to memory plus swap: -1 to enable unlimited swap`)
@@ -110,19 +120,24 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 
 	updateConfig := client.ContainerUpdateOptions{
 		Resources: &containertypes.Resources{
-			BlkioWeight:        options.blkioWeight,
-			CpusetCpus:         options.cpusetCpus,
-			CpusetMems:         options.cpusetMems,
-			CPUShares:          options.cpuShares,
-			Memory:             options.memory.Value(),
-			MemoryReservation:  options.memoryReservation.Value(),
-			MemorySwap:         options.memorySwap.Value(),
-			CPUPeriod:          options.cpuPeriod,
-			CPUQuota:           options.cpuQuota,
-			CPURealtimePeriod:  options.cpuRealtimePeriod,
-			CPURealtimeRuntime: options.cpuRealtimeRuntime,
-			NanoCPUs:           options.cpus.Value(),
-			PidsLimit:          pidsLimit,
+			BlkioWeight:          options.blkioWeight,
+			BlkioWeightDevice:    options.blkioWeightDevice.GetList(),
+			BlkioDeviceReadBps:   options.deviceReadBps.GetList(),
+			BlkioDeviceWriteBps:  options.deviceWriteBps.GetList(),
+			BlkioDeviceReadIOps:  options.deviceReadIOps.GetList(),
+			BlkioDeviceWriteIOps: options.deviceWriteIOps.GetList(),
+			CpusetCpus:           options.cpusetCpus,
+			CpusetMems:           options.cpusetMems,
+			CPUShares:            options.cpuShares,
+			Memory:               options.memory.Value(),
+			MemoryReservation:    options.memoryReservation.Value(),
+			MemorySwap:           options.memorySwap.Value(),
+			CPUPeriod:            options.cpuPeriod,
+			CPUQuota:             options.cpuQuota,
+			CPURealtimePeriod:    options.cpuRealtimePeriod,
+			CPURealtimeRuntime:   options.cpuRealtimeRuntime,
+			NanoCPUs:             options.cpus.Value(),
+			PidsLimit:            pidsLimit,
 		},
 		RestartPolicy: &restartPolicy,
 	}
