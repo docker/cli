@@ -6,14 +6,16 @@ module github.com/docker/cli
 
 go 1.25.0
 
-tool golang.org/x/mod/modfile // for module compatibility check
+tool (
+	github.com/cpuguy83/go-md2man/v2 // for scripts/docs/generate-man.sh
+	golang.org/x/mod/modfile // for module compatibility check
+)
 
 require (
 	dario.cat/mergo v1.0.2
 	github.com/containerd/errdefs v1.0.0
 	github.com/containerd/log v0.1.0
 	github.com/containerd/platforms v1.0.0-rc.4
-	github.com/cpuguy83/go-md2man/v2 v2.0.7
 	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
 	github.com/docker/cli-docs-tool v0.11.0
@@ -74,6 +76,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/docker/go-events v0.0.0-20250808211157-605354379745 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
