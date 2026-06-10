@@ -8,7 +8,7 @@ if ! command -v "$GO_MD2MAN" > /dev/null; then
   (
     set -x
     # note: this installs all tools defined in go.mod/vendor.mod
-    GOBIN="$(pwd)/build/tools" go install -mod=vendor -modfile=vendor.mod tool
+    GOBIN="$(pwd)/build/tools" go install -mod=vendor tool
   )
   GO_MD2MAN="$(pwd)/build/tools/go-md2man"
 fi
@@ -16,7 +16,7 @@ fi
 mkdir -p man/man1
 (
   set -x
-  go run -mod=vendor -modfile=vendor.mod -tags manpages ./man/generate.go --source "./man/src" --target "./man/man1"
+  go run -mod=vendor -tags manpages ./man/generate.go --source "./man/src" --target "./man/man1"
 )
 
 (
