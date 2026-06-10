@@ -25,7 +25,7 @@ else
 	tee "${ROOTDIR}/go.mod" >&2 <<- EOF
 		module github.com/docker/cli
 
-		go 1.24.0
+		go 1.25.0
 	EOF
 	trap 'rm -f "${ROOTDIR}/go.mod"' EXIT
 fi
