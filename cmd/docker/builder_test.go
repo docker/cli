@@ -129,6 +129,54 @@ func (*fakeClient) Ping(context.Context, client.PingOptions) (client.PingResult,
 	return client.PingResult{OSType: "linux"}, nil
 }
 
+type fakeWindowsClient struct {
+	client.Client
+}
+
+func (*fakeWindowsClient) Ping(context.Context, client.PingOptions) (client.PingResult, error) {
+	return client.PingResult{OSType: "windows"}, nil
+}
+
+func TestIsWindowsBuilderDefault(t *testing.T) {
+	tests := []struct {
+		name       string
+		serverInfo command.ServerInfo
+		clientOS   string
+		expected   bool
+	}{
+		{
+			name:       "windows daemon",
+			serverInfo: command.ServerInfo{OSType: "windows"},
+			clientOS:   "linux",
+			expected:   true,
+		},
+		{
+			name:       "linux daemon",
+			serverInfo: command.ServerInfo{OSType: "linux"},
+			clientOS:   "windows",
+			expected:   false,
+		},
+		{
+			name:       "unknown daemon on windows client",
+			serverInfo: command.ServerInfo{},
+			clientOS:   "windows",
+			expected:   true,
+		},
+		{
+			name:       "unknown daemon on linux client",
+			serverInfo: command.ServerInfo{},
+			clientOS:   "linux",
+			expected:   false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, isWindowsBuilderDefault(tc.serverInfo, tc.clientOS), tc.expected)
+		})
+	}
+}
+
 func TestBuildkitDisabled(t *testing.T) {
 	ctx := t.Context()
 
@@ -167,6 +215,42 @@ func TestBuildkitDisabled(t *testing.T) {
 		0: output.Suffix("DEPRECATED: The legacy builder is deprecated and will be removed in a future release."),
 		1: output.Suffix("BuildKit is currently disabled; enable it by removing the DOCKER_BUILDKIT=0"),
 	})
+}
+
+func TestBuildkitDisabledWithWindowsDaemonSkipsWarning(t *testing.T) {
+	ctx := t.Context()
+
+	t.Setenv("DOCKER_BUILDKIT", "0")
+
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithFile(pluginFilename, `#!/bin/sh exit 1`, fs.WithMode(0o777)),
+	)
+	defer dir.Remove()
+
+	b := bytes.NewBuffer(nil)
+
+	dockerCli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
+		command.WithAPIClient(&fakeWindowsClient{}),
+		command.WithInputStream(discard),
+		command.WithCombinedStreams(b),
+	)
+	assert.NilError(t, err)
+	assert.NilError(t, dockerCli.Initialize(flags.NewClientOptions()))
+	dockerCli.ConfigFile().CLIPluginsExtraDirs = []string{dir.Path()}
+
+	tcmd := newDockerCommand(dockerCli)
+	tcmd.SetArgs([]string{"build", "."})
+
+	cmd, args, err := tcmd.HandleGlobalFlags()
+	assert.NilError(t, err)
+
+	var envs []string
+	args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, []string{"build", "."}, args)
+	assert.Check(t, len(envs) == 0)
+	assert.Equal(t, b.String(), "")
 }
 
 func TestBuilderBroken(t *testing.T) {

@@ -20,6 +20,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
+	"github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
@@ -203,6 +204,64 @@ func TestInitializeFromClient(t *testing.T) {
 			assert.Equal(t, apiClient.negotiated, tc.negotiated)
 		})
 	}
+}
+
+func TestDefaultBuildKitEnabled(t *testing.T) {
+	tests := []struct {
+		name       string
+		serverInfo ServerInfo
+		clientOS   string
+		expected   bool
+	}{
+		{
+			name:       "linux daemon",
+			serverInfo: ServerInfo{OSType: "linux"},
+			clientOS:   "windows",
+			expected:   true,
+		},
+		{
+			name:       "windows daemon",
+			serverInfo: ServerInfo{OSType: "windows"},
+			clientOS:   "linux",
+			expected:   false,
+		},
+		{
+			name:       "windows daemon advertised buildkit",
+			serverInfo: ServerInfo{OSType: "windows", BuildkitVersion: build.BuilderBuildKit},
+			clientOS:   "windows",
+			expected:   true,
+		},
+		{
+			name:       "unknown daemon on linux client",
+			serverInfo: ServerInfo{},
+			clientOS:   "linux",
+			expected:   true,
+		},
+		{
+			name:       "unknown daemon on windows client",
+			serverInfo: ServerInfo{},
+			clientOS:   "windows",
+			expected:   false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, defaultBuildKitEnabled(tc.serverInfo, tc.clientOS), tc.expected)
+		})
+	}
+}
+
+func TestBuildKitEnabledWithBuilderAlias(t *testing.T) {
+	cli := &DockerCli{
+		configFile: &configfile.ConfigFile{
+			Aliases: map[string]string{"builder": "buildx"},
+		},
+	}
+
+	enabled, err := cli.BuildKitEnabled()
+	assert.NilError(t, err)
+	assert.Check(t, enabled)
 }
 
 // Makes sure we don't hang forever on the initial connection.

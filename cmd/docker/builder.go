@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/command"
-	"github.com/moby/moby/api/types/build"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -44,6 +44,10 @@ func newBuilderError(errorMsg string, pluginLoadErr error) error {
 		return fmt.Errorf("%w\n\n%s", pluginLoadErr, errorMsg)
 	}
 	return errors.New(errorMsg)
+}
+
+func isWindowsBuilderDefault(si command.ServerInfo, clientOSType string) bool {
+	return si.OSType == "windows" || (si.OSType == "" && clientOSType == "windows")
 }
 
 //nolint:gocyclo
@@ -85,11 +89,15 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		return args, osargs, nil, nil
 	}
 
-	if !useBuilder {
+	if !useBuilder && !buildKitDisabled {
 		// Builder is not explicitly configured as an alias for buildx.
 		// Detect whether we should use BuildKit, or fallback to the
 		// legacy builder.
-		if si := dockerCli.ServerInfo(); si.BuildkitVersion != build.BuilderBuildKit && si.OSType == "windows" {
+		buildKitEnabled, err := dockerCli.BuildKitEnabled()
+		if err != nil {
+			return args, osargs, nil, err
+		}
+		if !buildKitEnabled {
 			// The daemon didn't advertise BuildKit as the preferred builder,
 			// so use the legacy builder, which is still the default for
 			// Windows / WCOW.
@@ -102,7 +110,7 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 		// is deprecated. For Windows / WCOW, BuildKit is still experimental,
 		// so we don't print this warning, even if the daemon advertised that
 		// it supports BuildKit.
-		if dockerCli.ServerInfo().OSType != "windows" {
+		if !isWindowsBuilderDefault(dockerCli.ServerInfo(), runtime.GOOS) {
 			_, _ = fmt.Fprintf(dockerCli.Err(), "%s\n\n", buildkitDisabledWarning)
 		}
 		return args, osargs, nil, nil
