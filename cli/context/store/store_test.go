@@ -211,6 +211,46 @@ func TestImportZip(t *testing.T) {
 	assert.NilError(t, err)
 }
 
+func TestImportZipRejectsOversizedTLSFile(t *testing.T) {
+	testDir := t.TempDir()
+	zf := path.Join(testDir, "test.zip")
+
+	f, err := os.Create(zf)
+	assert.NilError(t, err)
+	defer f.Close()
+	w := zip.NewWriter(f)
+
+	meta, err := json.Marshal(Metadata{
+		Endpoints: map[string]any{
+			"ep1": endpoint{Foo: "bar"},
+		},
+		Metadata: context{Bar: "baz"},
+		Name:     "source",
+	})
+	assert.NilError(t, err)
+
+	mf, err := w.Create(metaFile)
+	assert.NilError(t, err)
+	_, err = mf.Write(meta)
+	assert.NilError(t, err)
+
+	tlsFile, err := w.Create(path.Join("tls", "docker", "ca.pem"))
+	assert.NilError(t, err)
+	_, err = tlsFile.Write(bytes.Repeat([]byte{0}, int(maxAllowedFileSizeToImport)+1))
+	assert.NilError(t, err)
+
+	err = w.Close()
+	assert.NilError(t, err)
+
+	source, err := os.Open(zf)
+	assert.NilError(t, err)
+	defer source.Close()
+	var r io.Reader = source
+	s := New(testDir, testCfg)
+	err = Import("zipOversizedTLS", s, r)
+	assert.ErrorContains(t, err, "read exceeds the defined limit")
+}
+
 func TestImportZipInvalid(t *testing.T) {
 	testDir := t.TempDir()
 	zf := path.Join(testDir, "test.zip")
