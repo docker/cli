@@ -99,6 +99,8 @@ func addMultiplexingArgs(sshFlags []string) []string {
 	sshFlags = append(sshFlags, "-o", "ControlMaster=auto", "-o", "ControlPath="+config.Dir()+"/%r@%h:%p")
 	if v := os.Getenv("DOCKER_SSH_MUX_PERSIST"); v != "" {
 		sshFlags = append(sshFlags, "-o", "ControlPersist="+v)
+	} else {
+		sshFlags = append(sshFlags, "-o", "ControlPersist=60")
 	}
 	return sshFlags
 }
