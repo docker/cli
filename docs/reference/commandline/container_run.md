@@ -1292,12 +1292,13 @@ example runs an HTTP server that serves a file from host to container over the
 
 ```console
 $ echo "hello from host!" > ./hello
-$ python3 -m http.server 8000
+$ python3 -m http.server 8000 &
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 $ docker run \
   --add-host host.docker.internal=host-gateway \
   curlimages/curl -s host.docker.internal:8000/hello
 hello from host!
+$ kill %1  # Stop the HTTP server
 ```
 
 The `--add-host` flag also accepts a `:` separator, for example:
