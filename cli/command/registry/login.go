@@ -62,7 +62,7 @@ func newLoginCommand(dockerCLI command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 
 	flags.StringVarP(&opts.user, "username", "u", "", "Username")
-	flags.StringVarP(&opts.password, "password", "p", "", "Password or Personal Access Token (PAT)")
+	flags.StringVarP(&opts.password, "password", "p", "", `Password or Personal Access Token (PAT), or "-" to read from stdin`)
 	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the Password or Personal Access Token (PAT) from stdin")
 
 	return cmd
@@ -72,8 +72,8 @@ func newLoginCommand(dockerCLI command.Cli) *cobra.Command {
 //
 // TODO(thaJeztah); combine with verifyLoginOptions, but this requires rewrites of many tests.
 func verifyLoginFlags(flags *pflag.FlagSet, opts loginOptions) error {
-	if flags.Changed("password-stdin") {
-		if flags.Changed("password") {
+	if flags.Changed("password-stdin") || opts.password == "-" {
+		if flags.Changed("password") && opts.password != "-" {
 			return errors.New("conflicting options: cannot specify both --password and --password-stdin")
 		}
 		if !flags.Changed("username") {
@@ -122,6 +122,11 @@ func readSecretFromStdin(r io.Reader) (string, error) {
 }
 
 func verifyLoginOptions(dockerCLI command.Streams, opts *loginOptions) error {
+	if opts.password == "-" {
+		opts.password = ""
+		opts.passwordStdin = true
+	}
+
 	if opts.password != "" {
 		_, _ = fmt.Fprintln(dockerCLI.Err(), "WARNING! Using --password via the CLI is insecure. Use --password-stdin.")
 	}
