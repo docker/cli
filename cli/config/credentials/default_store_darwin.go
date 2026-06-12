@@ -1,5 +1,6 @@
 package credentials
 
-func defaultCredentialsStore() string {
-	return "osxkeychain"
-}
+const (
+	preferredHelper = ""
+	defaultHelper   = "osxkeychain"
+)
