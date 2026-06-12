@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -609,15 +610,46 @@ func TestParseEnvConfig(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	configFile := New("test-save")
-	defer os.Remove("test-save")
-	err := configFile.Save()
+	err := New("").Save()
+	assert.ErrorContains(t, err, "empty filename")
+
+	configDir := t.TempDir()
+
+	// MkdirAll fails due to the parent directory being read-only.
+	err = os.Chmod(configDir, 0o500) // read-only
 	assert.NilError(t, err)
-	cfg, err := os.ReadFile("test-save")
+	t.Cleanup(func() {
+		_ = os.Chmod(configDir, 0o755)
+	})
+
+	configFile := New(filepath.Join(configDir, "foo", "test-save"))
+	err = configFile.Save()
+	assert.Check(t, os.IsPermission(err))
+
+	// Successfully write an empty config.
+	err = os.Chmod(configDir, 0o700) // writeable again
+	assert.NilError(t, err)
+	configFile = New(filepath.Join(configDir, "test-save"))
+	err = configFile.Save()
+	assert.NilError(t, err)
+	cfg, err := os.ReadFile(configFile.Filename)
 	assert.NilError(t, err)
 	assert.Equal(t, string(cfg), `{
 	"auths": {}
 }`)
+
+	// Create a permission denied error on the parent directory.
+	err = os.Chmod(configDir, 0o500) // read-only
+	assert.NilError(t, err)
+	err = configFile.Save()
+	assert.Check(t, os.IsPermission(err))
+
+	// Ensure we didn't leave anything temp file behind in our configDir and
+	// still only have "test-save" in there.
+	files, err := os.ReadDir(configDir)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(len(files), 1))
+	assert.Check(t, is.Equal(files[0].Name(), "test-save"))
 }
 
 func TestSaveCustomHTTPHeaders(t *testing.T) {
