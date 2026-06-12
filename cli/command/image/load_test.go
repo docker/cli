@@ -30,7 +30,7 @@ func TestNewLoadCommandErrors(t *testing.T) {
 			name:          "input-to-terminal",
 			args:          []string{},
 			isTerminalIn:  true,
-			expectedError: "requested load from stdin, but stdin is empty",
+			expectedError: "stdin is a terminal, not a tar archive",
 		},
 		{
 			name:          "pull-error",

@@ -195,7 +195,7 @@ func TestRunExec(t *testing.T) {
 		{
 			doc:           "missing exec ID",
 			options:       NewExecOptions(),
-			expectedError: "exec ID empty",
+			expectedError: "the Docker daemon returned an empty response when creating the exec session",
 			client:        &fakeClient{},
 		},
 	}

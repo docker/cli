@@ -13,6 +13,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/internal/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/moby/api/types/container"
@@ -198,6 +199,25 @@ func TestCreateContainerImagePullPolicyInvalid(t *testing.T) {
 			assert.Check(t, is.ErrorContains(err, tc.ExpectedErrMsg))
 		})
 	}
+}
+
+func TestCreateContainerPreservesHintedParseError(t *testing.T) {
+	flags, copts := setupRunFlags()
+	assert.NilError(t, flags.Parse([]string{"--pid=container:", "image"}))
+
+	dockerCli := test.NewFakeCli(&fakeClient{})
+	err := runCreate(
+		context.TODO(),
+		dockerCli,
+		flags,
+		&createOptions{},
+		copts,
+	)
+
+	statusErr := cli.StatusError{}
+	assert.Check(t, errors.As(err, &statusErr))
+	assert.Check(t, statusErr.Cause != nil)
+	assert.Equal(t, hint.Of(err), "Valid forms are 'host' or 'container:<name|id>'.")
 }
 
 func TestCreateContainerValidateFlags(t *testing.T) {
