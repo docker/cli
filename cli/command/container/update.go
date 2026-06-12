@@ -43,7 +43,13 @@ type updateOptions struct {
 
 // newUpdateCommand creates a new cobra.Command for "docker container update".
 func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
-	var options updateOptions
+	options := &updateOptions{
+		blkioWeightDevice: opts.NewWeightdeviceOpt(opts.ValidateWeightDevice),
+		deviceReadBps:     opts.NewThrottledeviceOpt(opts.ValidateThrottleBpsDevice),
+		deviceReadIOps:    opts.NewThrottledeviceOpt(opts.ValidateThrottleIOpsDevice),
+		deviceWriteBps:    opts.NewThrottledeviceOpt(opts.ValidateThrottleBpsDevice),
+		deviceWriteIOps:   opts.NewThrottledeviceOpt(opts.ValidateThrottleIOpsDevice),
+	}
 
 	cmd := &cobra.Command{
 		Use:   "update [OPTIONS] CONTAINER [CONTAINER...]",
@@ -52,7 +58,7 @@ func newUpdateCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.containers = args
 			options.nFlag = cmd.Flags().NFlag()
-			return runUpdate(cmd.Context(), dockerCLI, &options)
+			return runUpdate(cmd.Context(), dockerCLI, options)
 		},
 		Annotations: map[string]string{
 			"aliases": "docker container update, docker update",
