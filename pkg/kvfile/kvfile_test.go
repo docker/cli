@@ -24,9 +24,12 @@ VAR=VAR_VALUE
 EMPTY_VAR=
 UNDEFINED_VAR
 DEFINED_VAR
+QUOTED_VAR
+QUOTED_VALUE="this should be quoted"
 `
 	vars := map[string]string{
 		"DEFINED_VAR": "defined-value",
+		"QUOTED_VAR":  "\"quoted value\"",
 	}
 	lookupFn := func(name string) (string, bool) {
 		v, ok := vars[name]
@@ -40,7 +43,13 @@ DEFINED_VAR
 	variables, err := Parse(fileName, lookupFn)
 	assert.NilError(t, err)
 
-	expectedLines := []string{"VAR=VAR_VALUE", "EMPTY_VAR=", "DEFINED_VAR=defined-value"}
+	expectedLines := []string{
+		"VAR=VAR_VALUE",
+		"EMPTY_VAR=",
+		"DEFINED_VAR=defined-value",
+		"QUOTED_VAR=quoted value",
+		"QUOTED_VALUE=this should be quoted",
+	}
 	assert.Check(t, is.DeepEqual(variables, expectedLines))
 }
 
@@ -118,9 +127,11 @@ VAR=VAR_VALUE
 EMPTY_VAR=
 UNDEFINED_VAR
 DEFINED_VAR
+QUOTED_VAR
 `
 	vars := map[string]string{
 		"DEFINED_VAR": "defined-value",
+		"QUOTED_VAR":  "\"quoted value\"",
 	}
 	lookupFn := func(name string) (string, bool) {
 		v, ok := vars[name]
@@ -130,7 +141,12 @@ DEFINED_VAR
 	variables, err := ParseFromReader(strings.NewReader(content), lookupFn)
 	assert.NilError(t, err)
 
-	expectedLines := []string{"VAR=VAR_VALUE", "EMPTY_VAR=", "DEFINED_VAR=defined-value"}
+	expectedLines := []string{
+		"VAR=VAR_VALUE",
+		"EMPTY_VAR=",
+		"DEFINED_VAR=defined-value",
+		"QUOTED_VAR=quoted value",
+	}
 	assert.Check(t, is.DeepEqual(variables, expectedLines))
 }
 
@@ -142,4 +158,30 @@ func TestParseFromReaderWithNoName(t *testing.T) {
 	_, err := ParseFromReader(strings.NewReader(content), nil)
 	const expectedMessage = "no variable name on line '=blank variable names are an error case'"
 	assert.Check(t, is.ErrorContains(err, expectedMessage))
+}
+
+// Test ParseFromReader with quoted values
+func TestParseFromReaderWithQuotes(t *testing.T) {
+	content := `# Test with quotes
+DOUBLE_QUOTES="double quoted value"
+SINGLE_QUOTES='single quoted value'
+MIXED_QUOTES="'mixed' quotes"
+NESTED_QUOTES='"nested" quotes'
+UNBALANCED_QUOTES="unbalanced quotes
+UNBALANCED_QUOTES2=unbalanced quotes"
+QUOTES_IN_MIDDLE=value "with" quotes
+`
+	variables, err := ParseFromReader(strings.NewReader(content), nil)
+	assert.NilError(t, err)
+
+	expectedLines := []string{
+		"DOUBLE_QUOTES=double quoted value",
+		"SINGLE_QUOTES=single quoted value",
+		"MIXED_QUOTES='mixed' quotes",
+		"NESTED_QUOTES=\"nested\" quotes",
+		"UNBALANCED_QUOTES=\"unbalanced quotes",
+		"UNBALANCED_QUOTES2=unbalanced quotes\"",
+		"QUOTES_IN_MIDDLE=value \"with\" quotes",
+	}
+	assert.Check(t, is.DeepEqual(variables, expectedLines))
 }
