@@ -30,6 +30,8 @@ instruction in the container's Dockerfile, or the `--stop-signal` option to
 $ docker stop my_container
 ```
 
+Note: You can specify containers by either their name or ID (full or unique partial). Both forms are interchangeable in this command.
+
 ### <a name="signal"></a> Stop container with signal (-s, --signal)
 
 The `--signal` flag sends the system call signal to the container to exit.
