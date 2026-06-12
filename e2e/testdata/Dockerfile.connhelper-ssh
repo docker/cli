@@ -12,6 +12,9 @@ RUN apk --no-cache add openssl openssh-client openssh-server shadow && \
   useradd --create-home --shell /bin/sh --password $(head -c32 /dev/urandom | base64) penguin && \
   usermod -aG docker penguin && \
   ssh-keygen -A
+# Trust the tlsregistry CA so dockerd connects without --insecure-registry.
+COPY registry/certs/ca.crt /usr/local/share/ca-certificates/tlsregistry-ca.crt
+RUN update-ca-certificates
 # workaround: ssh session excludes /usr/local/bin from $PATH
 RUN  ln -s /usr/local/bin/docker /usr/bin/docker
 COPY ./connhelper-ssh/entrypoint.sh /
