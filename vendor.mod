@@ -33,7 +33,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.24
 	github.com/moby/go-archive v0.2.0
 	github.com/moby/moby/api v1.55.0
-	github.com/moby/moby/client v0.5.0-rc.1
+	github.com/moby/moby/client v0.5.0
 	github.com/moby/patternmatcher v0.6.1
 	github.com/moby/swarmkit/v2 v2.1.2
 	github.com/moby/sys/atomicwriter v0.1.0
