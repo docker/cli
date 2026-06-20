@@ -56,6 +56,19 @@ func RootCmd(dockerCli command.Cli) *cobra.Command {
 	})
 
 	cmd.AddCommand(&cobra.Command{
+		Use:   "test-no-socket-exit-on-signal",
+		Short: "test command that exits when it receives a termination signal",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			signalCh := make(chan os.Signal, 1)
+			signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+			sig := <-signalCh
+			_, _ = fmt.Fprintln(dockerCli.Out(), "received", sig)
+			os.Exit(2)
+			return nil
+		},
+	})
+
+	cmd.AddCommand(&cobra.Command{
 		Use:   "test-socket",
 		Short: "test command that runs until it receives a SIGINT",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
