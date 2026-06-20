@@ -58,7 +58,13 @@ func CustomSize(format string, size float64, base float64, _map []string) string
 // instead of 4 digit precision used in units.HumanSize.
 func HumanSizeWithPrecision(size float64, precision int) string {
 	size, unit := getSizeAndUnit(size, 1000.0, decimapAbbrs)
-	return fmt.Sprintf("%.*g%s", precision, size, unit)
+	// Use %g format, but avoid scientific notation edge case
+	// (e.g., 999.5MB displaying as "1e+03MB" instead of "1000MB")
+	result := fmt.Sprintf("%.*g%s", precision, size, unit)
+	if strings.ContainsAny(result, "eE") {
+		result = fmt.Sprintf("%.0f%s", size, unit)
+	}
+	return result
 }
 
 // HumanSize returns a human-readable approximation of a size
