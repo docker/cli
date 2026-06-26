@@ -1,0 +1,2 @@
+c1 busybox:latest some.label=value 10.7MB
+c2 busybox:latest foo=bar 3.2MB

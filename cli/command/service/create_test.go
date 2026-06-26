@@ -1,0 +1,269 @@
+package service
+
+import (
+	"context"
+	"testing"
+
+	"github.com/docker/cli/opts/swarmopts"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/client"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+)
+
+// fakeConfigAPIClientList is used to let us pass a closure as a
+// ConfigAPIClient, to use as ConfigList. for all the other methods in the
+// interface, it does nothing, not even return an error, so don't use them
+type fakeConfigAPIClientList func(context.Context, client.ConfigListOptions) (client.ConfigListResult, error)
+
+func (f fakeConfigAPIClientList) ConfigList(ctx context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
+	return f(ctx, opts)
+}
+
+func (fakeConfigAPIClientList) ConfigCreate(_ context.Context, _ client.ConfigCreateOptions) (client.ConfigCreateResult, error) {
+	return client.ConfigCreateResult{}, nil
+}
+
+func (fakeConfigAPIClientList) ConfigRemove(_ context.Context, _ string, _ client.ConfigRemoveOptions) (client.ConfigRemoveResult, error) {
+	return client.ConfigRemoveResult{}, nil
+}
+
+func (fakeConfigAPIClientList) ConfigInspect(_ context.Context, _ string, _ client.ConfigInspectOptions) (client.ConfigInspectResult, error) {
+	return client.ConfigInspectResult{}, nil
+}
+
+func (fakeConfigAPIClientList) ConfigUpdate(_ context.Context, _ string, _ client.ConfigUpdateOptions) (client.ConfigUpdateResult, error) {
+	return client.ConfigUpdateResult{}, nil
+}
+
+// TestSetConfigsWithCredSpecAndConfigs tests that the setConfigs function for
+// create correctly looks up the right configs, and correctly handles the
+// credentialSpec
+func TestSetConfigsWithCredSpecAndConfigs(t *testing.T) {
+	// we can't directly access the internal fields of the ConfigOpt struct, so
+	// we need to let it do the parsing
+	configOpt := &swarmopts.ConfigOpt{}
+	assert.Check(t, configOpt.Set("bar"))
+	opts := &serviceOptions{
+		credentialSpec: credentialSpecOpt{
+			value: &swarm.CredentialSpec{
+				Config: "foo",
+			},
+			source: "config://foo",
+		},
+		configs: *configOpt,
+	}
+
+	// create a service spec. we need to be sure to fill in the nullable
+	// fields, like the code expects
+	service := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{
+				Privileges: &swarm.Privileges{
+					CredentialSpec: opts.credentialSpec.value,
+				},
+			},
+		},
+	}
+
+	// set up a function to use as the list function
+	var fakeClient fakeConfigAPIClientList = func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
+		// we're expecting the filter to have names "foo" and "bar"
+		expected := make(client.Filters).Add("name", "foo", "bar")
+		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
+		return client.ConfigListResult{
+			Items: []swarm.Config{
+				{
+					ID: "fooID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "foo",
+						},
+					},
+				}, {
+					ID: "barID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "bar",
+						},
+					},
+				},
+			},
+		}, nil
+	}
+
+	ctx := context.Background()
+
+	// now call setConfigs
+	err := setConfigs(ctx, fakeClient, service, opts)
+	// verify no error is returned
+	assert.NilError(t, err)
+
+	credSpecConfigValue := service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.Config
+	assert.Equal(t, credSpecConfigValue, "fooID")
+
+	configRefs := service.TaskTemplate.ContainerSpec.Configs
+	assert.Assert(t, is.Contains(configRefs, &swarm.ConfigReference{
+		ConfigID:   "fooID",
+		ConfigName: "foo",
+		Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+	}), "expected configRefs to contain foo config")
+	assert.Assert(t, is.Contains(configRefs, &swarm.ConfigReference{
+		ConfigID:   "barID",
+		ConfigName: "bar",
+		File: &swarm.ConfigReferenceFileTarget{
+			Name: "bar",
+			// these are the default field values
+			UID:  "0",
+			GID:  "0",
+			Mode: 0o444,
+		},
+	}), "expected configRefs to contain bar config")
+}
+
+// TestSetConfigsOnlyCredSpec tests that even if a CredentialSpec is the only
+// config needed, setConfigs still works
+func TestSetConfigsOnlyCredSpec(t *testing.T) {
+	opts := &serviceOptions{
+		credentialSpec: credentialSpecOpt{
+			value: &swarm.CredentialSpec{
+				Config: "foo",
+			},
+			source: "config://foo",
+		},
+	}
+
+	service := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{
+				Privileges: &swarm.Privileges{
+					CredentialSpec: opts.credentialSpec.value,
+				},
+			},
+		},
+	}
+
+	// set up a function to use as the list function
+	fakeClient := fakeConfigAPIClientList(func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
+		expected := make(client.Filters).Add("name", "foo")
+		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
+
+		return client.ConfigListResult{
+			Items: []swarm.Config{
+				{
+					ID: "fooID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "foo",
+						},
+					},
+				},
+			},
+		}, nil
+	})
+
+	// now call setConfigs
+	ctx := context.Background()
+	err := setConfigs(ctx, fakeClient, service, opts)
+	// verify no error is returned
+	assert.NilError(t, err)
+
+	credSpecConfigValue := service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.Config
+	assert.Equal(t, credSpecConfigValue, "fooID")
+
+	configRefs := service.TaskTemplate.ContainerSpec.Configs
+	assert.Assert(t, is.Contains(configRefs, &swarm.ConfigReference{
+		ConfigID:   "fooID",
+		ConfigName: "foo",
+		Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+	}))
+}
+
+// TestSetConfigsOnlyConfigs verifies setConfigs when only configs (and not a
+// CredentialSpec) is needed.
+func TestSetConfigsOnlyConfigs(t *testing.T) {
+	configOpt := &swarmopts.ConfigOpt{}
+	assert.Check(t, configOpt.Set("bar"))
+	opts := &serviceOptions{
+		configs: *configOpt,
+	}
+
+	service := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{},
+		},
+	}
+
+	fakeConfigClient := fakeConfigAPIClientList(func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
+		expected := make(client.Filters).Add("name", "bar")
+		assert.Assert(t, is.DeepEqual(opts.Filters, expected))
+		return client.ConfigListResult{
+			Items: []swarm.Config{
+				{
+					ID: "barID",
+					Spec: swarm.ConfigSpec{
+						Annotations: swarm.Annotations{
+							Name: "bar",
+						},
+					},
+				},
+			},
+		}, nil
+	})
+
+	// now call setConfigs
+	ctx := context.Background()
+	err := setConfigs(ctx, fakeConfigClient, service, opts)
+	// verify no error is returned
+	assert.NilError(t, err)
+
+	configRefs := service.TaskTemplate.ContainerSpec.Configs
+	assert.Assert(t, is.Contains(configRefs, &swarm.ConfigReference{
+		ConfigID:   "barID",
+		ConfigName: "bar",
+		File: &swarm.ConfigReferenceFileTarget{
+			Name: "bar",
+			// these are the default field values
+			UID:  "0",
+			GID:  "0",
+			Mode: 0o444,
+		},
+	}))
+}
+
+// TestSetConfigsNoConfigs checks that setConfigs works when there are no
+// configs of any kind needed
+func TestSetConfigsNoConfigs(t *testing.T) {
+	// add a credentialSpec that isn't a config
+	opts := &serviceOptions{
+		credentialSpec: credentialSpecOpt{
+			value: &swarm.CredentialSpec{
+				File: "foo",
+			},
+			source: "file://foo",
+		},
+	}
+	service := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{
+				Privileges: &swarm.Privileges{
+					CredentialSpec: opts.credentialSpec.value,
+				},
+			},
+		},
+	}
+
+	fakeConfigClient := fakeConfigAPIClientList(func(_ context.Context, opts client.ConfigListOptions) (client.ConfigListResult, error) {
+		// assert false -- we should never call this function
+		assert.Assert(t, false, "we should not be listing configs")
+		return client.ConfigListResult{}, nil
+	})
+
+	ctx := context.Background()
+	err := setConfigs(ctx, fakeConfigClient, service, opts)
+	assert.NilError(t, err)
+
+	// ensure that the value of the credential-spec has not changed
+	assert.Equal(t, service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.File, "foo")
+	assert.Equal(t, service.TaskTemplate.ContainerSpec.Privileges.CredentialSpec.Config, "")
+}

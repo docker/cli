@@ -1,0 +1,138 @@
+package image
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/docker/cli/cli"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/system/pruner"
+	"github.com/docker/cli/internal/prompt"
+	"github.com/docker/cli/opts"
+	"github.com/docker/go-units"
+	"github.com/moby/moby/client"
+	"github.com/spf13/cobra"
+)
+
+func init() {
+	// Register the prune command to run as part of "docker system prune"
+	if err := pruner.Register(pruner.TypeImage, pruneFn); err != nil {
+		panic(err)
+	}
+}
+
+type pruneOptions struct {
+	force  bool
+	all    bool
+	filter opts.FilterOpt
+}
+
+// newPruneCommand returns a new cobra prune command for images
+func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
+	options := pruneOptions{filter: opts.NewFilterOpt()}
+
+	cmd := &cobra.Command{
+		Use:   "prune [OPTIONS]",
+		Short: "Remove unused images",
+		Args:  cli.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			spaceReclaimed, output, err := runPrune(cmd.Context(), dockerCLI, options)
+			if err != nil {
+				return err
+			}
+			if output != "" {
+				fmt.Fprintln(dockerCLI.Out(), output)
+			}
+			fmt.Fprintln(dockerCLI.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
+			return nil
+		},
+		Annotations:           map[string]string{"version": "1.25"},
+		ValidArgsFunction:     cobra.NoFileCompletions,
+		DisableFlagsInUseLine: true,
+	}
+
+	flags := cmd.Flags()
+	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
+	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused images, not just dangling ones")
+	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "until=<timestamp>")`)
+
+	return cmd
+}
+
+const (
+	allImageWarning = `WARNING! This will remove all images without at least one container associated to them.
+Are you sure you want to continue?`
+	danglingWarning = `WARNING! This will remove all dangling images.
+Are you sure you want to continue?`
+)
+
+func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) (spaceReclaimed uint64, output string, err error) {
+	pruneFilters := command.PruneFilters(dockerCli, options.filter.Value())
+	pruneFilters.Add("dangling", strconv.FormatBool(!options.all))
+
+	warning := danglingWarning
+	if options.all {
+		warning = allImageWarning
+	}
+	if !options.force {
+		r, err := prompt.Confirm(ctx, dockerCli.In(), dockerCli.Out(), warning)
+		if err != nil {
+			return 0, "", err
+		}
+		if !r {
+			return 0, "", cancelledErr{errors.New("image prune has been cancelled")}
+		}
+	}
+
+	res, err := dockerCli.Client().ImagePrune(ctx, client.ImagePruneOptions{
+		Filters: pruneFilters,
+	})
+	if err != nil {
+		return 0, "", err
+	}
+
+	var sb strings.Builder
+	if len(res.Report.ImagesDeleted) > 0 {
+		sb.WriteString("Deleted Images:\n")
+		for _, st := range res.Report.ImagesDeleted {
+			if st.Untagged != "" {
+				sb.WriteString("untagged: ")
+				sb.WriteString(st.Untagged)
+				sb.WriteByte('\n')
+			} else {
+				sb.WriteString("deleted: ")
+				sb.WriteString(st.Deleted)
+				sb.WriteByte('\n')
+			}
+		}
+	}
+
+	return res.Report.SpaceReclaimed, sb.String(), nil
+}
+
+type cancelledErr struct{ error }
+
+func (cancelledErr) Cancelled() {}
+
+// pruneFn calls the Image Prune API for use in "docker system prune",
+// and returns the amount of space reclaimed and a detailed output string.
+func pruneFn(ctx context.Context, dockerCLI command.Cli, options pruner.PruneOptions) (uint64, string, error) {
+	if !options.Confirmed {
+		// Dry-run: perform validation and produce confirmation before pruning.
+		var confirmMsg string
+		if options.All {
+			confirmMsg = "all images without at least one container associated to them"
+		} else {
+			confirmMsg = "all dangling images"
+		}
+		return 0, confirmMsg, cancelledErr{errors.New("image prune has been cancelled")}
+	}
+	return runPrune(ctx, dockerCLI, pruneOptions{
+		force:  true,
+		all:    options.All,
+		filter: options.Filter,
+	})
+}

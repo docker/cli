@@ -1,0 +1,148 @@
+# system prune
+
+<!---MARKER_GEN_START-->
+Remove unused data
+
+### Options
+
+| Name                  | Type     | Default | Description                                        |
+|:----------------------|:---------|:--------|:---------------------------------------------------|
+| `-a`, `--all`         | `bool`   |         | Remove all unused images not just dangling ones    |
+| [`--filter`](#filter) | `filter` |         | Provide filter values (e.g. `label=<key>=<value>`) |
+| `-f`, `--force`       | `bool`   |         | Do not prompt for confirmation                     |
+| `--volumes`           | `bool`   |         | Prune anonymous volumes                            |
+
+
+<!---MARKER_GEN_END-->
+
+## Description
+
+Remove all unused containers, networks, images (both dangling and unused),
+and optionally, volumes.
+
+## Examples
+
+```console
+$ docker system prune
+
+WARNING! This will remove:
+        - all stopped containers
+        - all networks not used by at least one container
+        - all dangling images
+        - unused build cache
+Are you sure you want to continue? [y/N] y
+
+Deleted Containers:
+f44f9b81948b3919590d5f79a680d8378f1139b41952e219830a33027c80c867
+792776e68ac9d75bce4092bc1b5cc17b779bc926ab04f4185aec9bf1c0d4641f
+
+Deleted Networks:
+network1
+network2
+
+Deleted Images:
+untagged: hello-world@sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f
+deleted: sha256:1815c82652c03bfd8644afda26fb184f2ed891d921b20a0703b46768f9755c57
+deleted: sha256:45761469c965421a92a69cc50e92c01e0cfa94fe026cdd1233445ea00e96289a
+
+Total reclaimed space: 1.84kB
+```
+
+By default, volumes aren't removed to prevent important data from being
+deleted if there is currently no container using the volume. Use the `--volumes`
+flag when running the command to prune anonymous volumes as well:
+
+```console
+$ docker system prune -a --volumes
+
+WARNING! This will remove:
+        - all stopped containers
+        - all networks not used by at least one container
+        - all anonymous volumes not used by at least one container
+        - all images without at least one container associated to them
+        - all build cache
+Are you sure you want to continue? [y/N] y
+
+Deleted Containers:
+0998aa37185a1a7036b0e12cf1ac1b6442dcfa30a5c9650a42ed5010046f195b
+73958bfb884fa81fa4cc6baf61055667e940ea2357b4036acbbe25a60f442a4d
+
+Deleted Networks:
+my-network-a
+my-network-b
+
+Deleted Volumes:
+1e31bcd425e913d9f65ec0c3841e9c4ebb543aead2a1cfe0d95a7c5e88bb5026
+6a6ab3d6b8d740a1c1d4dbe36a9c5f043dd4bac5f78abfa7d1f2ae5789fe60b0
+
+Deleted Images:
+untagged: my-curl:latest
+deleted: sha256:7d88582121f2a29031d92017754d62a0d1a215c97e8f0106c586546e7404447d
+deleted: sha256:dd14a93d83593d4024152f85d7c63f76aaa4e73e228377ba1d130ef5149f4d8b
+untagged: alpine:3.3
+deleted: sha256:695f3d04125db3266d4ab7bbb3c6b23aa4293923e762aa2562c54f49a28f009f
+untagged: alpine:latest
+deleted: sha256:ee4603260daafe1a8c2f3b78fd760922918ab2441cbb2853ed5c439e59c52f96
+deleted: sha256:9007f5987db353ec398a223bc5a135c5a9601798ba20a1abba537ea2f8ac765f
+deleted: sha256:71fa90c8f04769c9721459d5aa0936db640b92c8c91c9b589b54abd412d120ab
+deleted: sha256:bb1c3357b3c30ece26e6604aea7d2ec0ace4166ff34c3616701279c22444c0f3
+untagged: my-jq:latest
+deleted: sha256:6e66d724542af9bc4c4abf4a909791d7260b6d0110d8e220708b09e4ee1322e1
+deleted: sha256:07b3fa89d4b17009eb3988dfc592c7d30ab3ba52d2007832dffcf6d40e3eda7f
+deleted: sha256:3a88a5c81eb5c283e72db2dbc6d65cbfd8e80b6c89bb6e714cfaaa0eed99c548
+
+Total reclaimed space: 13.5 MB
+```
+
+### <a name="filter"></a> Filtering (--filter)
+
+The filtering flag (`--filter`) format is of "key=value". If there is more
+than one filter, then pass multiple flags (e.g., `--filter "foo=bar" --filter "bif=baz"`).
+
+When multiple filters are provided, they are combined as follows:
+
+- Multiple filters with **different keys** are combined using AND logic.
+  An item must satisfy all filter conditions to be pruned.
+- Multiple filters with the **same key** are combined using OR logic.
+  An item is pruned if it matches any of the values for that key.
+
+For example, `--filter "label=foo" --filter "until=24h"` prunes items
+that have the `foo` label **and** were created more than 24 hours ago.
+Conversely, `--filter "label=foo" --filter "label=bar"` prunes items
+that have **either** the `foo` **or** `bar` label.
+
+The currently supported filters are:
+
+* until (`<timestamp>`) - only remove containers, images, and networks created before given timestamp
+* label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove containers, images, networks, and volumes with (or without, in case `label!=...` is used) the specified labels.
+
+The `until` filter can be Unix timestamps, date formatted
+timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
+relative to the daemon machine’s time. Supported formats for date
+formatted time stamps include RFC3339Nano, RFC3339, `2006-01-02T15:04:05`,
+`2006-01-02T15:04:05.999999999`, `2006-01-02T07:00`, and `2006-01-02`. The local
+timezone on the daemon will be used if you do not provide either a `Z` or a
+`+-00:00` timezone offset at the end of the timestamp. When providing Unix
+timestamps enter seconds[.nanoseconds], where seconds is the number of seconds
+that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
+seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
+fraction of a second no more than nine digits long.
+
+The `label` filter accepts two formats. One is the `label=...` (`label=<key>` or `label=<key>=<value>`),
+which removes containers, images, networks, and volumes with the specified labels. The other
+format is the `label!=...` (`label!=<key>` or `label!=<key>=<value>`), which removes
+containers, images, networks, and volumes without the specified labels.
+
+## Related commands
+
+* [volume create](volume_create.md)
+* [volume ls](volume_ls.md)
+* [volume inspect](volume_inspect.md)
+* [volume rm](volume_rm.md)
+* [volume prune](volume_prune.md)
+* [Understand Data Volumes](https://docs.docker.com/storage/volumes/)
+* [system df](system_df.md)
+* [container prune](container_prune.md)
+* [image prune](image_prune.md)
+* [network prune](network_prune.md)
+* [system prune](system_prune.md)

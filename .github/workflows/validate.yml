@@ -1,0 +1,111 @@
+name: validate
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.x'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - lint
+          - shellcheck
+          - validate-vendor
+          - update-authors # ensure authors update target runs fine
+    steps:
+      -
+        name: Run
+        uses: docker/bake-action@6614cfa25eff9a0b2b2697efb0b6159e7680d584 # v7.2.0
+        with:
+          targets: ${{ matrix.target }}
+
+  # check that the generated Markdown and the checked-in files match
+  validate-md:
+    runs-on: ubuntu-24.04
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      -
+        name: Generate
+        shell: 'script --return --quiet --command "bash {0}"'
+        run: |
+          make -f docker.Makefile mddocs
+      -
+        name: Validate
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            echo 'fail: generated files do not match checked-in files'
+            git --no-pager diff
+            exit 1
+          fi
+
+  validate-make:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - yamldocs # ensure yamldocs target runs fine
+          - manpages # ensure manpages target runs fine
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      -
+        name: Run
+        shell: 'script --return --quiet --command "bash {0}"'
+        run: |
+          make -f docker.Makefile ${{ matrix.target }}
+
+  validate-gocompat:
+    runs-on: ubuntu-24.04
+    env:
+      GOPATH: ${{ github.workspace }}
+      GO111MODULE: off
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: src/github.com/docker/cli
+          persist-credentials: false
+      -
+        name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: "1.26.4"
+          cache: false
+      -
+        name: Run gocompat check
+        shell: 'script --return --quiet --command "bash {0}"'
+        working-directory: ${{ github.workspace }}/src/github.com/docker/cli
+        run: |
+          make -C ./internal/gocompat verify

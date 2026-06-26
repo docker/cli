@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -eu
+
+TYP=$1
+
+usage() {
+  echo "usage: ./scripts/vendor <init|update|validate|outdated>"
+  exit 1
+}
+
+if [ -z "$TYP" ]; then
+  usage
+fi
+
+update() {
+  (set -x ; go mod tidy; go mod vendor)
+}
+
+validate() {
+  diff=$(git status --porcelain -- vendor.mod vendor.sum vendor)
+  if [ -n "$diff" ]; then
+    echo >&2 'ERROR: Vendor result differs. Vendor your package with "make -f docker.Makefile vendor"'
+    echo "$diff"
+    exit 1
+  fi
+}
+
+outdated() {
+  if [ ! -x "$(command -v go-mod-outdated)" ]; then
+    echo "go-mod-outdated not found. Install with 'go install github.com/psampaz/go-mod-outdated@v0.8.0'"
+    exit 1
+  fi
+  (set -x ; go list -mod=readonly -u -m -json all | go-mod-outdated -update -direct)
+}
+
+case $TYP in
+  "update")
+    update
+    ;;
+  "validate")
+    update
+    validate
+    ;;
+  "outdated")
+    outdated
+    ;;
+  *)
+    echo >&2 "Unknown type $TYP"
+    exit 1
+    ;;
+esac

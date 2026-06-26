@@ -1,0 +1,38 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - depguard
+    - revive
+    - govet
+    - importas
+    - ineffassign
+    - misspell
+    - errname
+    - makezero
+    - whitespace
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: io/ioutil
+              desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
+    importas:
+      no-unaliased: true
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - revive
+        text: stutters
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

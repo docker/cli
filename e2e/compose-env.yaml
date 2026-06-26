@@ -1,0 +1,11 @@
+services:
+
+  registry:
+    image: 'registry:3'
+
+  engine:
+      image: 'docker:${ENGINE_VERSION:-29}-dind'
+      privileged: true
+      command: ['--insecure-registry=registry:5000', '--experimental']
+      environment:
+        - DOCKER_TLS_CERTDIR=

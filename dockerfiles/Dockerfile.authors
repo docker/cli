@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+
+# ALPINE_VERSION sets the version of the alpine base image to use.
+# It must be a supported tag in the docker.io/library/alpine image repository.
+ARG ALPINE_VERSION=3.23
+
+FROM alpine:${ALPINE_VERSION} AS gen
+RUN apk add --no-cache bash git
+WORKDIR /src
+RUN --mount=type=bind,target=. \
+  mkdir /out && ./scripts/docs/generate-authors.sh /out
+
+FROM scratch AS update
+COPY --from=gen /out /
+
+FROM gen AS validate
+RUN --mount=type=bind,target=.,rw <<EOT
+set -e
+git add -A
+cp -rf /out/* .
+diff=$(git status --porcelain -- AUTHORS)
+if [ -n "$diff" ]; then
+  echo >&2 'ERROR: Authors result differs. Update with "make -f docker.Makefile authors"'
+  echo "$diff"
+  exit 1
+fi
+EOT

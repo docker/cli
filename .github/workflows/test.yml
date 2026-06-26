@@ -1,0 +1,89 @@
+name: test
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.x'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  ctn:
+    runs-on: ubuntu-24.04
+    steps:
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      -
+        name: Test
+        uses: docker/bake-action@6614cfa25eff9a0b2b2697efb0b6159e7680d584 # v7.2.0
+        with:
+          targets: test-coverage
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        with:
+          files: ./build/coverage/coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  host:
+    runs-on: ${{ matrix.os }}
+    env:
+      GOPATH: ${{ github.workspace }}
+      GOBIN: ${{ github.workspace }}/bin
+      GO111MODULE: auto
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14        # macOS 14 on arm64 (Apple Silicon M1)
+          - macos-15-intel  # macOS 15 on Intel
+          - macos-15        # macOS 15 on arm64 (Apple Silicon M1)
+#          - windows-2022 # FIXME: some tests are failing on the Windows runner, as well as on Appveyor since June 24, 2018: https://ci.appveyor.com/project/docker/cli/history
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: ${{ env.GOPATH }}/src/github.com/docker/cli
+          persist-credentials: false
+      -
+        name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: "1.26.4"
+          cache: false
+      -
+        name: Test
+        run: |
+          # run in go modules mode to prevent traversing to nested modules
+          ln -s vendor.mod go.mod
+          ln -s vendor.sum go.sum
+          go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '^github.com/docker/cli/e2e/')
+          go tool cover -func=/tmp/coverage.txt
+        working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+        shell: bash
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        with:
+          files: /tmp/coverage.txt
+          working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
+          token: ${{ secrets.CODECOV_TOKEN }}

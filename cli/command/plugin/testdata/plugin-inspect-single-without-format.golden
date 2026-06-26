@@ -1,0 +1,53 @@
+[
+    {
+        "Config": {
+            "Args": {
+                "Description": "",
+                "Name": "",
+                "Settable": null,
+                "Value": null
+            },
+            "Description": "plugin foo description",
+            "Documentation": "plugin foo documentation",
+            "Entrypoint": [
+                "/foo"
+            ],
+            "Env": null,
+            "Interface": {
+                "Socket": "plugin-foo.sock",
+                "Types": null
+            },
+            "IpcHost": false,
+            "Linux": {
+                "AllowAllDevices": false,
+                "Capabilities": [
+                    "CAP_SYS_ADMIN"
+                ],
+                "Devices": null
+            },
+            "Mounts": null,
+            "Network": {
+                "Type": ""
+            },
+            "PidHost": false,
+            "PropagatedMount": "",
+            "User": {},
+            "WorkDir": "workdir-foo",
+            "rootfs": {
+                "diff_ids": [
+                    "sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+                ],
+                "type": "layers"
+            }
+        },
+        "Enabled": false,
+        "Id": "id-foo",
+        "Name": "name-foo",
+        "Settings": {
+            "Args": null,
+            "Devices": null,
+            "Env": null,
+            "Mounts": null
+        }
+    }
+]

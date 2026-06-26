@@ -1,0 +1,7 @@
+# syntax=docker/dockerfile:1
+
+FROM koalaman/shellcheck-alpine:v0.7.1 AS shellcheck
+WORKDIR /go/src/github.com/docker/cli
+RUN --mount=type=bind,target=. \
+  set -eo pipefail; \
+  find scripts/ contrib/completion/bash -type f | grep -v scripts/winresources | grep -v '.*.ps1' | xargs shellcheck

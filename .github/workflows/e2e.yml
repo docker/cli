@@ -1,0 +1,82 @@
+name: e2e
+
+# Default to 'contents: read', which grants actions to read commits.
+#
+# If any permission is set, any permission not included in the list is
+# implicitly set to "none".
+#
+# see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.x'
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - local
+          - connhelper-ssh
+        base:
+          - alpine
+          - debian
+        engine-version:
+          - rc  # latest rc
+          - 29  # latest
+          - 28  # latest - 1
+          - 25  # mirantis lts
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      -
+        name: Update daemon.json
+        run: |
+          if [ ! -f /etc/docker/daemon.json ]; then
+            # ubuntu 24.04 runners no longer have a default daemon.json present
+            sudo mkdir -p /etc/docker/
+            echo '{"experimental": true}' | sudo tee /etc/docker/daemon.json
+          else
+            # but if there is one; let's patch it to keep other options that may be set.
+            sudo jq '.experimental = true' < /etc/docker/daemon.json > /tmp/docker.json
+            sudo mv /tmp/docker.json /etc/docker/daemon.json
+          fi
+          sudo cat /etc/docker/daemon.json
+          sudo service docker restart
+          docker version
+          docker info
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      -
+        name: Run ${{ matrix.target }}
+        run: |
+          make -f docker.Makefile test-e2e-${{ matrix.target }}
+        env:
+          BASE_VARIANT: ${{ matrix.base }}
+          ENGINE_VERSION: ${{ matrix.engine-version }}
+          TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
+      -
+        name: Send to Codecov
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        with:
+          files: ./build/coverage/coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}

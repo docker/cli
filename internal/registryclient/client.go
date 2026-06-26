@@ -1,0 +1,196 @@
+package registryclient
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/distribution/reference"
+	manifesttypes "github.com/docker/cli/cli/manifest/types"
+	"github.com/docker/distribution"
+	distributionclient "github.com/docker/distribution/registry/client"
+	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/opencontainers/go-digest"
+	"github.com/sirupsen/logrus"
+)
+
+// RegistryClient is a client used to communicate with a Docker distribution
+// registry
+type RegistryClient interface {
+	GetManifest(ctx context.Context, ref reference.Named) (manifesttypes.ImageManifest, error)
+	GetManifestList(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error)
+	MountBlob(ctx context.Context, source reference.Canonical, target reference.Named) error
+	PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error)
+}
+
+// NewRegistryClient returns a new RegistryClient with a resolver
+func NewRegistryClient(resolver AuthConfigResolver, userAgent string, insecure bool) RegistryClient {
+	return &client{
+		authConfigResolver: resolver,
+		insecureRegistry:   insecure,
+		userAgent:          userAgent,
+	}
+}
+
+// AuthConfigResolver returns Auth Configuration for an index
+type AuthConfigResolver func(ctx context.Context, hostName string) registrytypes.AuthConfig
+
+type client struct {
+	authConfigResolver AuthConfigResolver
+	insecureRegistry   bool
+	userAgent          string
+}
+
+// ErrBlobCreated returned when a blob mount request was created
+type ErrBlobCreated struct {
+	From   reference.Named
+	Target reference.Named
+}
+
+func (err ErrBlobCreated) Error() string {
+	return fmt.Sprintf("blob mounted from: %v to: %v",
+		err.From, err.Target)
+}
+
+// httpProtoError returned if attempting to use TLS with a non-TLS registry
+type httpProtoError struct {
+	cause error
+}
+
+func (e httpProtoError) Error() string {
+	return e.cause.Error()
+}
+
+var _ RegistryClient = &client{}
+
+// MountBlob into the registry, so it can be referenced by a manifest
+func (c *client) MountBlob(ctx context.Context, sourceRef reference.Canonical, targetRef reference.Named) error {
+	repoEndpoint, err := newDefaultRepositoryEndpoint(targetRef, c.insecureRegistry)
+	if err != nil {
+		return err
+	}
+	repoEndpoint.actions = []string{"pull", "push"}
+	repo, err := c.getRepositoryForReference(ctx, targetRef, repoEndpoint)
+	if err != nil {
+		return err
+	}
+	lu, err := repo.Blobs(ctx).Create(ctx, distributionclient.WithMountFrom(sourceRef))
+	switch err.(type) {
+	case distribution.ErrBlobMounted:
+		logrus.Debugf("mount of blob %s succeeded", sourceRef)
+		return nil
+	case nil:
+	default:
+		return fmt.Errorf("failed to mount blob %s to %s: %w", sourceRef, targetRef, err)
+	}
+	_ = lu.Cancel(ctx)
+	logrus.Debugf("mount of blob %s created", sourceRef)
+	return ErrBlobCreated{From: sourceRef, Target: targetRef}
+}
+
+// PutManifest sends the manifest to a registry and returns the new digest
+func (c *client) PutManifest(ctx context.Context, ref reference.Named, manifest distribution.Manifest) (digest.Digest, error) {
+	repoEndpoint, err := newDefaultRepositoryEndpoint(ref, c.insecureRegistry)
+	if err != nil {
+		return "", err
+	}
+
+	repoEndpoint.actions = []string{"pull", "push"}
+	repo, err := c.getRepositoryForReference(ctx, ref, repoEndpoint)
+	if err != nil {
+		return "", err
+	}
+
+	manifestService, err := repo.Manifests(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	_, opts, err := getManifestOptionsFromReference(ref)
+	if err != nil {
+		return "", err
+	}
+
+	dgst, err := manifestService.Put(ctx, manifest, opts...)
+	if err != nil {
+		return dgst, fmt.Errorf("failed to put manifest %s: %w", ref, err)
+	}
+	return dgst, nil
+}
+
+func (c *client) getRepositoryForReference(ctx context.Context, ref reference.Named, repoEndpoint repositoryEndpoint) (distribution.Repository, error) {
+	repoName, err := reference.WithName(repoEndpoint.repoName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse repo name from %s: %w", ref, err)
+	}
+	httpTransport, err := c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
+	if err != nil {
+		if !strings.Contains(err.Error(), "server gave HTTP response to HTTPS client") {
+			return nil, err
+		}
+		if !repoEndpoint.endpoint.TLSConfig.InsecureSkipVerify {
+			return nil, httpProtoError{cause: err}
+		}
+		// --insecure was set; fall back to plain HTTP
+		if url := repoEndpoint.endpoint.URL; url != nil && url.Scheme == "https" {
+			url.Scheme = "http"
+			httpTransport, err = c.getHTTPTransportForRepoEndpoint(ctx, repoEndpoint)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return distributionclient.NewRepository(repoName, repoEndpoint.BaseURL(), httpTransport)
+}
+
+func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoint repositoryEndpoint) (http.RoundTripper, error) {
+	httpTransport, err := getHTTPTransport(
+		c.authConfigResolver(ctx, repoEndpoint.indexInfo.Name),
+		repoEndpoint.endpoint,
+		repoEndpoint.repoName,
+		c.userAgent,
+		repoEndpoint.actions,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure transport: %w", err)
+	}
+	return httpTransport, nil
+}
+
+// GetManifest returns an ImageManifest for the reference
+func (c *client) GetManifest(ctx context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
+	var result manifesttypes.ImageManifest
+	fetch := func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
+		var err error
+		result, err = fetchManifest(ctx, repo, ref)
+		return result.Ref != nil, err
+	}
+
+	err := c.iterateEndpoints(ctx, ref, fetch)
+	return result, err
+}
+
+// GetManifestList returns a list of ImageManifest for the reference
+func (c *client) GetManifestList(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
+	result := []manifesttypes.ImageManifest{}
+	fetch := func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
+		var err error
+		result, err = fetchList(ctx, repo, ref)
+		return len(result) > 0, err
+	}
+
+	err := c.iterateEndpoints(ctx, ref, fetch)
+	return result, err
+}
+
+func getManifestOptionsFromReference(ref reference.Named) (digest.Digest, []distribution.ManifestServiceOption, error) {
+	if tagged, isTagged := ref.(reference.NamedTagged); isTagged {
+		tag := tagged.Tag()
+		return "", []distribution.ManifestServiceOption{distribution.WithTag(tag)}, nil
+	}
+	if digested, isDigested := ref.(reference.Canonical); isDigested {
+		return digested.Digest(), []distribution.ManifestServiceOption{}, nil
+	}
+	return "", nil, fmt.Errorf("%s no tag or digest", ref)
+}

@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "area/ci"
+      - "status/2-code-review"
+    cooldown:
+      default-days: 7

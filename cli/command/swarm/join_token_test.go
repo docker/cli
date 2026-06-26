@@ -1,0 +1,237 @@
+package swarm
+
+import (
+	"errors"
+	"fmt"
+	"io"
+	"testing"
+
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/builders"
+	"github.com/moby/moby/api/types/swarm"
+	"github.com/moby/moby/api/types/system"
+	"github.com/moby/moby/client"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/golden"
+)
+
+func TestSwarmJoinTokenErrors(t *testing.T) {
+	testCases := []struct {
+		name             string
+		args             []string
+		flags            map[string]string
+		infoFunc         func() (system.Info, error)
+		swarmInspectFunc func() (client.SwarmInspectResult, error)
+		swarmUpdateFunc  func(client.SwarmUpdateOptions) (client.SwarmUpdateResult, error)
+		nodeInspectFunc  func() (client.NodeInspectResult, error)
+		expectedError    string
+	}{
+		{
+			name:          "not-enough-args",
+			args:          []string{},
+			expectedError: "requires 1 argument",
+		},
+		{
+			name:          "too-many-args",
+			args:          []string{"worker", "manager"},
+			expectedError: "requires 1 argument",
+		},
+		{
+			name:          "invalid-args",
+			args:          []string{"foo"},
+			expectedError: "unknown role foo",
+		},
+		{
+			name: "swarm-inspect-failed",
+			args: []string{"worker"},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{}, errors.New("error inspecting the swarm")
+			},
+			expectedError: "error inspecting the swarm",
+		},
+		{
+			name: "swarm-inspect-rotate-failed",
+			args: []string{"worker"},
+			flags: map[string]string{
+				flagRotate: "true",
+			},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{}, errors.New("error inspecting the swarm")
+			},
+			expectedError: "error inspecting the swarm",
+		},
+		{
+			name: "swarm-update-failed",
+			args: []string{"worker"},
+			flags: map[string]string{
+				flagRotate: "true",
+			},
+			swarmUpdateFunc: func(client.SwarmUpdateOptions) (client.SwarmUpdateResult, error) {
+				return client.SwarmUpdateResult{}, errors.New("error updating the swarm")
+			},
+			expectedError: "error updating the swarm",
+		},
+		{
+			name: "node-inspect-failed",
+			args: []string{"worker"},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{}, errors.New("error inspecting node")
+			},
+			expectedError: "error inspecting node",
+		},
+		{
+			name: "info-failed",
+			args: []string{"worker"},
+			infoFunc: func() (system.Info, error) {
+				return system.Info{}, errors.New("error asking for node info")
+			},
+			expectedError: "error asking for node info",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInspectFunc: tc.swarmInspectFunc,
+				swarmUpdateFunc:  tc.swarmUpdateFunc,
+				infoFunc:         tc.infoFunc,
+				nodeInspectFunc:  tc.nodeInspectFunc,
+			})
+			cmd := newJoinTokenCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		})
+	}
+}
+
+func TestSwarmJoinToken(t *testing.T) {
+	testCases := []struct {
+		name             string
+		args             []string
+		flags            map[string]string
+		infoFunc         func() (system.Info, error)
+		swarmInspectFunc func() (client.SwarmInspectResult, error)
+		nodeInspectFunc  func() (client.NodeInspectResult, error)
+	}{
+		{
+			name: "worker",
+			args: []string{"worker"},
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
+					Swarm: swarm.Info{
+						NodeID: "nodeID",
+					},
+				}, nil
+			},
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.Manager()),
+				}, nil
+			},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
+			},
+		},
+		{
+			name: "manager",
+			args: []string{"manager"},
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
+					Swarm: swarm.Info{
+						NodeID: "nodeID",
+					},
+				}, nil
+			},
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.Manager()),
+				}, nil
+			},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
+			},
+		},
+		{
+			name: "manager-rotate",
+			args: []string{"manager"},
+			flags: map[string]string{
+				flagRotate: "true",
+			},
+			infoFunc: func() (system.Info, error) {
+				return system.Info{
+					Swarm: swarm.Info{
+						NodeID: "nodeID",
+					},
+				}, nil
+			},
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.Manager()),
+				}, nil
+			},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
+			},
+		},
+		{
+			name: "worker-quiet",
+			args: []string{"worker"},
+			flags: map[string]string{
+				flagQuiet: "true",
+			},
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.Manager()),
+				}, nil
+			},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
+			},
+		},
+		{
+			name: "manager-quiet",
+			args: []string{"manager"},
+			flags: map[string]string{
+				flagQuiet: "true",
+			},
+			nodeInspectFunc: func() (client.NodeInspectResult, error) {
+				return client.NodeInspectResult{
+					Node: *builders.Node(builders.Manager()),
+				}, nil
+			},
+			swarmInspectFunc: func() (client.SwarmInspectResult, error) {
+				return client.SwarmInspectResult{
+					Swarm: *builders.Swarm(),
+				}, nil
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cli := test.NewFakeCli(&fakeClient{
+				swarmInspectFunc: tc.swarmInspectFunc,
+				infoFunc:         tc.infoFunc,
+				nodeInspectFunc:  tc.nodeInspectFunc,
+			})
+			cmd := newJoinTokenCommand(cli)
+			cmd.SetArgs(tc.args)
+			for key, value := range tc.flags {
+				assert.Check(t, cmd.Flags().Set(key, value))
+			}
+			assert.NilError(t, cmd.Execute())
+			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("jointoken-%s.golden", tc.name))
+		})
+	}
+}

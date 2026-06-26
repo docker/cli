@@ -1,0 +1,66 @@
+package checkpoint
+
+import (
+	"errors"
+	"io"
+	"testing"
+
+	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/client"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+)
+
+func TestCheckpointRemoveErrors(t *testing.T) {
+	testCases := []struct {
+		args                 []string
+		checkpointDeleteFunc func(container string, options client.CheckpointRemoveOptions) (client.CheckpointRemoveResult, error)
+		expectedError        string
+	}{
+		{
+			args:          []string{"too-few-arguments"},
+			expectedError: "requires 2 arguments",
+		},
+		{
+			args:          []string{"too", "many", "arguments"},
+			expectedError: "requires 2 arguments",
+		},
+		{
+			args: []string{"foo", "bar"},
+			checkpointDeleteFunc: func(container string, options client.CheckpointRemoveOptions) (client.CheckpointRemoveResult, error) {
+				return client.CheckpointRemoveResult{}, errors.New("error deleting checkpoint")
+			},
+			expectedError: "error deleting checkpoint",
+		},
+	}
+
+	for _, tc := range testCases {
+		cli := test.NewFakeCli(&fakeClient{
+			checkpointDeleteFunc: tc.checkpointDeleteFunc,
+		})
+		cmd := newRemoveCommand(cli)
+		cmd.SetArgs(tc.args)
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
+	}
+}
+
+func TestCheckpointRemoveWithOptions(t *testing.T) {
+	var containerID, checkpointID, checkpointDir string
+	cli := test.NewFakeCli(&fakeClient{
+		checkpointDeleteFunc: func(container string, options client.CheckpointRemoveOptions) (client.CheckpointRemoveResult, error) {
+			containerID = container
+			checkpointID = options.CheckpointID
+			checkpointDir = options.CheckpointDir
+			return client.CheckpointRemoveResult{}, nil
+		},
+	})
+	cmd := newRemoveCommand(cli)
+	cmd.SetArgs([]string{"container-foo", "checkpoint-bar"})
+	assert.Check(t, cmd.Flags().Set("checkpoint-dir", "/dir/foo"))
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("container-foo", containerID))
+	assert.Check(t, is.Equal("checkpoint-bar", checkpointID))
+	assert.Check(t, is.Equal("/dir/foo", checkpointDir))
+}

@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "current",
+        "Metadata": {
+            "Description": "description of current",
+            "MyCustomMetadata": "MyCustomMetadataValue"
+        },
+        "Endpoints": {
+            "docker": {
+                "Host": "https://someswarmserver.example.com",
+                "SkipTLSVerify": false
+            }
+        },
+        "TLSMaterial": {},
+        "Storage": {
+            "MetadataPath": "<METADATA_PATH>",
+            "TLSPath": "<TLS_PATH>"
+        }
+    }
+]

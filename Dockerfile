@@ -1,0 +1,151 @@
+# syntax=docker/dockerfile:1
+
+ARG BASE_VARIANT=alpine
+
+# ALPINE_VERSION sets the version of the alpine base image to use, including for the golang image.
+# It must be a supported tag in the docker.io/library/alpine image repository
+# that's also available as alpine image variant for the Golang version used.
+ARG ALPINE_VERSION=3.23
+ARG BASE_DEBIAN_DISTRO=bookworm
+
+ARG GO_VERSION=1.26.4
+
+# XX_VERSION specifies the version of the xx utility to use.
+# It must be a valid tag in the docker.io/tonistiigi/xx image repository.
+ARG XX_VERSION=1.9.0
+
+# GOVERSIONINFO_VERSION is the version of GoVersionInfo to install.
+# It must be a valid tag from https://github.com/josephspurrier/goversioninfo
+ARG GOVERSIONINFO_VERSION=v1.5.0
+
+# GOTESTSUM_VERSION sets the version of gotestsum to install in the dev container.
+# It must be a valid tag in the https://github.com/gotestyourself/gotestsum repository.
+ARG GOTESTSUM_VERSION=v1.13.0
+
+# BUILDX_VERSION sets the version of buildx to use for the e2e tests.
+# It must be a tag in the docker.io/docker/buildx-bin image repository
+# on Docker Hub.
+ARG BUILDX_VERSION=0.34.1
+
+# COMPOSE_VERSION is the version of compose to install in the dev container.
+# It must be a tag in the docker.io/docker/compose-bin image repository
+# on Docker Hub.
+ARG COMPOSE_VERSION=v5.1.3
+
+FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
+
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build-base-alpine
+ENV GOTOOLCHAIN=local
+COPY --link --from=xx / /
+RUN apk add --no-cache bash clang lld llvm file git git-daemon
+WORKDIR /go/src/github.com/docker/cli
+
+FROM build-base-alpine AS build-alpine
+ARG TARGETPLATFORM
+# gcc is installed for libgcc only
+RUN xx-apk add --no-cache musl-dev gcc
+
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_DEBIAN_DISTRO} AS build-base-debian
+ENV GOTOOLCHAIN=local
+COPY --link --from=xx / /
+RUN apt-get update && apt-get install --no-install-recommends -y bash clang lld llvm file
+WORKDIR /go/src/github.com/docker/cli
+
+FROM build-base-debian AS build-debian
+ARG TARGETPLATFORM
+RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-12-dev pkgconf
+
+FROM build-base-${BASE_VARIANT} AS goversioninfo
+ARG GOVERSIONINFO_VERSION
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/out GO111MODULE=on CGO_ENABLED=0 go install "github.com/josephspurrier/goversioninfo/cmd/goversioninfo@${GOVERSIONINFO_VERSION}"
+
+FROM build-base-${BASE_VARIANT} AS gotestsum
+ARG GOTESTSUM_VERSION
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    GOBIN=/out GO111MODULE=on CGO_ENABLED=0 go install "gotest.tools/gotestsum@${GOTESTSUM_VERSION}" \
+    && /out/gotestsum --version
+
+FROM build-${BASE_VARIANT} AS build
+# GO_LINKMODE defines if static or dynamic binary should be produced
+ARG GO_LINKMODE=static
+# GO_BUILDTAGS defines additional build tags
+ARG GO_BUILDTAGS
+# GO_STRIP strips debugging symbols if set
+ARG GO_STRIP
+# CGO_ENABLED manually sets if cgo is used
+ARG CGO_ENABLED
+# VERSION sets the version for the produced binary
+ARG VERSION
+# PACKAGER_NAME sets the company that produced the windows binary
+ARG PACKAGER_NAME
+COPY --link --from=goversioninfo /out/goversioninfo /usr/bin/goversioninfo
+RUN --mount=type=bind,target=.,ro \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=tmpfs,target=cmd/docker/winresources \
+    # override the default behavior of go with xx-go
+    xx-go --wrap && \
+    # export GOCACHE=$(go env GOCACHE)/$(xx-info)$([ -f /etc/alpine-release ] && echo "alpine") && \
+    TARGET=/out ./scripts/build/binary && \
+    xx-verify $([ "$GO_LINKMODE" = "static" ] && echo "--static") /out/docker
+
+FROM build-${BASE_VARIANT} AS test
+COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+ENV GO111MODULE=auto
+RUN --mount=type=bind,target=.,rw \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/go/pkg/mod \
+    gotestsum -- -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '/vendor/|/e2e/|/cmd/docker-trust')
+
+FROM scratch AS test-coverage
+COPY --from=test /tmp/coverage.txt /coverage.txt
+
+FROM build-${BASE_VARIANT} AS build-plugins
+ARG GO_LINKMODE=static
+ARG GO_BUILDTAGS
+ARG GO_STRIP
+ARG CGO_ENABLED
+ARG VERSION
+RUN --mount=ro --mount=type=cache,target=/root/.cache \
+    xx-go --wrap && \
+    TARGET=/out ./scripts/build/plugins e2e/cli-plugins/plugins/*
+
+FROM build-base-alpine AS e2e-base-alpine
+RUN apk add --no-cache build-base curl openssl openssh-client
+
+FROM build-base-debian AS e2e-base-debian
+RUN apt-get update && apt-get install -y build-essential curl openssl openssh-client
+
+FROM docker/buildx-bin:${BUILDX_VERSION}   AS buildx
+FROM docker/compose-bin:${COMPOSE_VERSION} AS compose
+
+FROM e2e-base-${BASE_VARIANT} AS e2e
+COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
+COPY --link --from=build /out ./build/
+COPY --link --from=build-plugins /out ./build/
+COPY --link --from=buildx  /buildx         /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --link --from=compose /docker-compose /usr/libexec/docker/cli-plugins/docker-compose
+COPY --link . .
+ENV DOCKER_BUILDKIT=1
+ENV PATH=/go/src/github.com/docker/cli/build:$PATH
+CMD ["./scripts/test/e2e/entry"]
+
+FROM build-base-${BASE_VARIANT} AS dev
+COPY --link . .
+
+FROM scratch AS plugins
+COPY --from=build-plugins /out .
+
+FROM scratch AS bin-image-linux
+COPY --from=build /out/docker /docker
+FROM scratch AS bin-image-darwin
+COPY --from=build /out/docker /docker
+FROM scratch AS bin-image-windows
+COPY --from=build /out/docker /docker.exe
+
+FROM bin-image-${TARGETOS} AS bin-image
+
+FROM scratch AS binary
+COPY --from=build /out .

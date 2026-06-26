@@ -1,0 +1,5 @@
+VOLUME NAME   GROUP     DRIVER    AVAILABILITY   STATUS
+volume1       group1    driver1   active         pending creation
+volume2       group1    driver1   pause          created
+volume3       group2    driver2   active         in use (1 node)
+volume4       group2    driver2   active         in use (2 nodes)

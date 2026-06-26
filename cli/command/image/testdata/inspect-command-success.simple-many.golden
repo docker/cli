@@ -1,0 +1,28 @@
+[
+    {
+        "Id": "",
+        "RepoTags": null,
+        "RepoDigests": null,
+        "Config": null,
+        "Architecture": "",
+        "Os": "",
+        "Size": 0,
+        "RootFS": {},
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    },
+    {
+        "Id": "",
+        "RepoTags": null,
+        "RepoDigests": null,
+        "Config": null,
+        "Architecture": "",
+        "Os": "",
+        "Size": 0,
+        "RootFS": {},
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]

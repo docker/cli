@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+#
+# Build the shell completion scripts
+#
+
+set -eu
+
+. ./scripts/build/.variables
+
+# generate the shell completion scripts and store them in build/completion.
+if [ "$(go env GOOS)" != "windows" ]; then
+		if [ ! -f ./build/docker ]; then
+				echo "Run 'make binary' or 'make dynbinary' first"
+				exit 1
+		fi
+
+		mkdir -p build/completion/bash build/completion/fish build/completion/zsh
+		./build/docker completion bash > build/completion/bash/docker
+		./build/docker completion fish > build/completion/fish/docker.fish
+		./build/docker completion zsh > build/completion/zsh/_docker
+fi

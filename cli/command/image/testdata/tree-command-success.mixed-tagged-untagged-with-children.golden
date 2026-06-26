@@ -1,0 +1,10 @@
+IMAGE                 ID             DISK USAGE   CONTENT SIZE   EXTRA
+app:v1             
+app:latest            101010101010      30.5 MB        25.2 MB   U    
+└─ linux/amd64        202020202020      15.2 MB        12.6 MB   U    
+
+<untagged>            303030303030      12.3 MB        10.1 MB        
+└─ linux/arm/v7       404040404040       6.1 MB         5.0 MB        
+
+base:alpine           505050505050       5.5 MB         5.5 MB        
+

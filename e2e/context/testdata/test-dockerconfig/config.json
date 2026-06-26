@@ -1,0 +1,7 @@
+{
+	"auths": {},
+	"HttpHeaders": {
+		"User-Agent": "Docker-Client/19.09.0-dev (linux)"
+	},
+	"credsStore": "secretservice"
+}

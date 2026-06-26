@@ -1,0 +1,237 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.25
+
+package manager
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/docker/cli/cli-plugins/hooks"
+	"github.com/docker/cli/cli/config"
+	"github.com/docker/cli/cli/config/configfile"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+)
+
+// HookPluginData is the type representing the information
+// that plugins declaring support for hooks get passed when
+// being invoked following a CLI command execution.
+//
+// Deprecated: use [hooks.Request] instead.
+//
+//go:fix inline
+type HookPluginData = hooks.Request
+
+// RunCLICommandHooks is the entrypoint into the hooks execution flow after
+// a main CLI command was executed. It calls the hook subcommand for all
+// present CLI plugins that declare support for hooks in their metadata and
+// parses/prints their responses.
+func RunCLICommandHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, subCommand *cobra.Command, cmdErrorMessage string) {
+	commandName := strings.TrimPrefix(subCommand.CommandPath(), rootCmd.Name()+" ")
+	flags := getCommandFlags(subCommand)
+
+	runHooks(ctx, dockerCLI.ConfigFile(), rootCmd, subCommand, commandName, flags, cmdErrorMessage)
+}
+
+// RunPluginHooks is the entrypoint for the hooks execution flow
+// after a plugin command was just executed by the CLI.
+func RunPluginHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, subCommand *cobra.Command, args []string, cmdErrorMessage string) {
+	commandName := strings.Join(args, " ")
+	flags := getNaiveFlags(args)
+
+	runHooks(ctx, dockerCLI.ConfigFile(), rootCmd, subCommand, commandName, flags, cmdErrorMessage)
+}
+
+func runHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
+	nextSteps := invokeAndCollectHooks(ctx, cfg, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
+	hooks.PrintNextSteps(subCommand.ErrOrStderr(), nextSteps)
+}
+
+func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
+	if ctx.Err() != nil {
+		return nil
+	}
+
+	pluginsCfg := cfg.Plugins
+	if pluginsCfg == nil {
+		return nil
+	}
+
+	pluginDirs := getPluginDirs(cfg)
+	nextSteps := make([]string, 0, len(pluginsCfg))
+
+	tryInvokeHook := func(pluginName string, pluginCfg map[string]string) (messages []string, ok bool, err error) {
+		match, matched := pluginMatch(pluginCfg, subCmdStr, cmdErrorMessage)
+		if !matched {
+			return nil, false, nil
+		}
+
+		p, err := getPlugin(pluginName, pluginDirs, rootCmd)
+		if err != nil {
+			return nil, false, err
+		}
+
+		resp, err := p.RunHook(ctx, hooks.Request{
+			RootCmd:      match,
+			Flags:        flags,
+			CommandError: cmdErrorMessage,
+		})
+		if err != nil {
+			return nil, false, err
+		}
+
+		var message hooks.Response
+		if err := json.Unmarshal(resp, &message); err != nil {
+			return nil, false, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
+		}
+
+		// currently the only hook type
+		if message.Type != hooks.NextSteps {
+			return nil, false, errors.New("unexpected hook response type: " + strconv.Itoa(int(message.Type)))
+		}
+
+		messages, err = hooks.ParseTemplate(message.Template, subCmd)
+		if err != nil {
+			return nil, false, err
+		}
+
+		return messages, true, nil
+	}
+
+	for pluginName, pluginCfg := range pluginsCfg {
+		messages, ok, err := tryInvokeHook(pluginName, pluginCfg)
+		if err != nil {
+			// skip misbehaving plugins, but don't halt execution
+			logrus.WithFields(logrus.Fields{
+				"error":  err,
+				"plugin": pluginName,
+			}).Debug("Plugin hook invocation failed")
+			continue
+		}
+		if !ok {
+			continue
+		}
+
+		var appended bool
+		nextSteps, appended = appendNextSteps(nextSteps, messages)
+		if !appended {
+			logrus.WithFields(logrus.Fields{
+				"plugin": pluginName,
+			}).Debug("Plugin responded with an empty hook message; ignoring")
+		}
+	}
+	return nextSteps
+}
+
+// appendNextSteps appends the processed hook output to the nextSteps slice.
+// If the processed hook output is empty, it is not appended.
+// Empty lines are not stripped if there's at least one non-empty line.
+func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
+	empty := true
+	for _, l := range processed {
+		if strings.TrimSpace(l) != "" {
+			empty = false
+			break
+		}
+	}
+
+	if empty {
+		return nextSteps, false
+	}
+
+	return append(nextSteps, processed...), true
+}
+
+// pluginMatch takes a plugin configuration and a string representing the
+// command being executed (such as 'image ls' – the root 'docker' is omitted)
+// and, if the configuration includes a hook for the invoked command, returns
+// the configured hook string.
+//
+// Plugins can declare two types of hooks in their configuration:
+//   - "hooks": fires on every command invocation (success or failure)
+//   - "error-hooks": fires only when a command fails (cmdErrorMessage is non-empty)
+func pluginMatch(pluginCfg map[string]string, subCmd string, cmdErrorMessage string) (string, bool) {
+	// Check "hooks" first — these always fire regardless of command outcome.
+	if match, ok := matchHookConfig(pluginCfg["hooks"], subCmd); ok {
+		return match, true
+	}
+
+	// Check "error-hooks" — these only fire when there was an error.
+	if cmdErrorMessage != "" {
+		if match, ok := matchHookConfig(pluginCfg["error-hooks"], subCmd); ok {
+			return match, true
+		}
+	}
+
+	return "", false
+}
+
+// matchHookConfig checks if a comma-separated hook configuration string
+// contains a prefix match for the given subcommand.
+func matchHookConfig(configuredHooks string, subCmd string) (string, bool) {
+	if configuredHooks == "" {
+		return "", false
+	}
+
+	for hookCmd := range strings.SplitSeq(configuredHooks, ",") {
+		if hookMatch(hookCmd, subCmd) {
+			return hookCmd, true
+		}
+	}
+
+	return "", false
+}
+
+func hookMatch(hookCmd, subCmd string) bool {
+	hookCmdTokens := strings.Split(hookCmd, " ")
+	subCmdTokens := strings.Split(subCmd, " ")
+
+	if len(hookCmdTokens) > len(subCmdTokens) {
+		return false
+	}
+
+	for i, v := range hookCmdTokens {
+		if v != subCmdTokens[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func getCommandFlags(cmd *cobra.Command) map[string]string {
+	flags := make(map[string]string)
+	cmd.Flags().Visit(func(f *pflag.Flag) {
+		var fValue string
+		if f.Value.Type() == "bool" {
+			fValue = f.Value.String()
+		}
+		flags[f.Name] = fValue
+	})
+	return flags
+}
+
+// getNaiveFlags string-matches argv and parses them into a map.
+// This is used when calling hooks after a plugin command, since
+// in this case we can't rely on the cobra command tree to parse
+// flags in this case. In this case, no values are ever passed,
+// since we don't have enough information to process them.
+func getNaiveFlags(args []string) map[string]string {
+	flags := make(map[string]string)
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "--") {
+			flags[arg[2:]] = ""
+			continue
+		}
+		if strings.HasPrefix(arg, "-") {
+			flags[arg[1:]] = ""
+		}
+	}
+	return flags
+}

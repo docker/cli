@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#
+# Build plugins examples for the host OS/ARCH
+#
+
+set -eu -o pipefail
+
+# Disable CGO - we don't need it for these plugins.
+#
+# Important: this must be done before sourcing "./scripts/build/.variables",
+# because some other variables are conditionally set whether CGO is enabled.
+export CGO_ENABLED=0
+
+source ./scripts/build/.variables
+
+for p in cli-plugins/examples/* "$@" ; do
+    [ -d "$p" ] || continue
+
+    n=$(basename "$p")
+    TARGET_PLUGIN="$(dirname "${TARGET}")/plugins-${GOOS}-${GOARCH}/docker-${n}"
+    mkdir -p "$(dirname "${TARGET_PLUGIN}")"
+
+    echo "Building $GO_LINKMODE $(basename "${TARGET_PLUGIN}")"
+    (set -x ; GO111MODULE=auto go build -o "${TARGET_PLUGIN}" -tags "${GO_BUILDTAGS}" -ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE} "github.com/docker/cli/${p}")
+done
