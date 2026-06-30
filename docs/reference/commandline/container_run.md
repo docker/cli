@@ -1290,15 +1290,33 @@ The following example shows how the special `host-gateway` value works. The
 example runs an HTTP server that serves a file from host to container over the
 `host.docker.internal` hostname, which resolves to the host's internal IP.
 
-```console
-$ echo "hello from host!" > ./hello
-$ python3 -m http.server 8000
-Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
-$ docker run \
-  --add-host host.docker.internal=host-gateway \
-  curlimages/curl -s host.docker.internal:8000/hello
-hello from host!
-```
+1.  Create a file named `hello`:
+
+    ```console
+    $ echo "hello from host!" > ./hello
+    ```
+
+2.  Run an HTTP server in the background:
+
+    ```console
+    $ python3 -m http.server 8000 &
+    [1] 12345
+    ```
+
+3.  Run a container that accesses the file on the host:
+
+    ```console
+    $ docker run \
+      --add-host host.docker.internal=host-gateway \
+      curlimages/curl -s host.docker.internal:8000/hello
+    hello from host!
+    ```
+
+4.  Stop the HTTP server:
+
+    ```console
+    $ kill $!
+    ```
 
 The `--add-host` flag also accepts a `:` separator, for example:
 
