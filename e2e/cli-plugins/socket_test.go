@@ -179,6 +179,31 @@ func TestPluginSocketCommunication(t *testing.T) {
 	})
 
 	t.Run("detached", func(t *testing.T) {
+		t.Run("the plugin receives SIGTERM sent directly to the CLI", func(t *testing.T) {
+			cmd := run("presocket", "test-no-socket-exit-on-signal")
+			command := exec.Command(cmd.Command[0], cmd.Command[1:]...)
+			t.Log(strings.Join(command.Args, " "))
+			command.SysProcAttr = &syscall.SysProcAttr{
+				Setpgid: true,
+			}
+
+			go func() {
+				<-time.After(time.Second)
+				// Signal the CLI process directly, not the process group. When a
+				// plugin is detached and cannot be canceled over the plugin socket,
+				// the CLI should forward the termination signal to the plugin.
+				err := syscall.Kill(command.Process.Pid, syscall.SIGTERM)
+				assert.NilError(t, err, "failed to signal CLI process")
+			}()
+			out, err := command.CombinedOutput()
+
+			var exitError *exec.ExitError
+			assert.Assert(t, errors.As(err, &exitError))
+			assert.Check(t, exitError.Exited())
+			assert.Check(t, is.Equal(exitError.ExitCode(), 2))
+			assert.Equal(t, string(out), "received terminated\n")
+		})
+
 		t.Run("the plugin does not get signalled", func(t *testing.T) {
 			cmd := run("presocket", "test-socket")
 			command := exec.Command(cmd.Command[0], cmd.Command[1:]...)
