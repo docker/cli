@@ -17,8 +17,7 @@ concurrency:
 
 jobs:
   save-context:
-    # Only run on fork PRs; skip GitHub App bot accounts (Dependabot, Renovate, etc.) early.
-    if: github.event.pull_request.head.repo.fork && github.event.sender.type != 'Bot'
+    if: github.event.pull_request.head.repo.fork
     runs-on: ubuntu-latest
     steps:
       - name: Save event context
