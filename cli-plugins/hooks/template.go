@@ -40,7 +40,7 @@ func ParseTemplate(hookTemplate string, cmd *cobra.Command) ([]string, error) {
 		}
 		out = b.String()
 	}
-	if n := strings.Count(out, "\n"); n > maxMessages {
+	if n := strings.Count(out, "\n") + 1; n > maxMessages {
 		return nil, fmt.Errorf("hook template contains too many messages (%d): maximum is %d", n, maxMessages)
 	}
 	return strings.SplitN(out, "\n", maxMessages), nil
