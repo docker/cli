@@ -362,7 +362,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		}
 	}
 
-	err = jsonstream.Display(ctx, response.Body, streams.NewOut(buildBuff), jsonstream.WithAuxCallback(aux))
+	err = jsonstream.DisplayStream(ctx, response.Body, streams.NewOut(buildBuff), jsonstream.WithAuxCallback(aux))
 	if err != nil {
 		var jerr *jsonstream.JSONError
 		if errors.As(err, &jerr) {
