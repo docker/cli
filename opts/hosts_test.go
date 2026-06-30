@@ -79,6 +79,8 @@ func TestParseDockerDaemonHost(t *testing.T) {
 		"unix://":                     "unix://" + defaultUnixSocket,
 		"fd://":                       "fd://",
 		"fd://something":              "fd://something",
+		"/var/run/docker.sock":        "unix:///var/run/docker.sock",
+		"./run/docker.sock":           "unix://run/docker.sock",
 		"localhost:":                  "tcp://localhost:2375",
 		"localhost:5555":              "tcp://localhost:5555",
 		"localhost:5555/path":         "tcp://localhost:5555/path",
