@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/sequential"
@@ -61,7 +62,10 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 		// To avoid getting stuck, verify that a tar file is given either in
 		// the input flag or through stdin and if not display an error message and exit.
 		if dockerCli.In().IsTerminal() {
-			return errors.New("requested load from stdin, but stdin is empty")
+			return hint.Wrap(
+				errors.New("no input given: stdin is a terminal, not a tar archive"),
+				"Pipe a tar archive into 'docker image load', or pass one with '-i FILE'.",
+			)
 		}
 	default:
 		// We use sequential.Open to use sequential file access on Windows, avoiding
