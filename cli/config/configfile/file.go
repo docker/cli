@@ -336,12 +336,17 @@ func (c *ConfigFile) GetCredentialsStore(registryHostname string) credentials.St
 		return store
 	}
 
-	// use DOCKER_AUTH_CONFIG if set
-	// it uses the native or file store as a fallback to fetch and store credentials
-	envStore, err := memorystore.New(
+	storeOptions := []memorystore.Options{
 		memorystore.WithAuthConfig(authConfig),
 		memorystore.WithFallbackStore(store),
-	)
+	}
+	if os.Getenv("GITLAB_CI") == "true" {
+		storeOptions = append(storeOptions, memorystore.WithPreferFallback())
+	}
+
+	// use DOCKER_AUTH_CONFIG if set
+	// it uses the native or file store as a fallback to fetch and store credentials
+	envStore, err := memorystore.New(storeOptions...)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "Failed to create credential store from DOCKER_AUTH_CONFIG: ", err)
 		return store
