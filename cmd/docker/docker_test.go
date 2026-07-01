@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -204,4 +206,40 @@ func TestVisitAll(t *testing.T) {
 	})
 	expected := []string{"sub1sub1", "sub1sub2", "sub1", "sub2", "root"}
 	assert.DeepEqual(t, expected, visited)
+}
+
+func TestSwarmInitHelpNotDelegatedToInitPlugin(t *testing.T) {
+	tmpDir := t.TempDir()
+	pluginScript := `#!/bin/sh
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+	echo "PLUGIN INIT HELP"
+	exit 0
+fi
+printf '%s' '{"SchemaVersion":"0.1.0","ShortDescription":"Docker Init"}'
+`
+	pluginPath := filepath.Join(tmpDir, "docker-init")
+	err := os.WriteFile(pluginPath, []byte(pluginScript), 0o755)
+	assert.NilError(t, err)
+
+	var b bytes.Buffer
+	ctx := context.Background()
+	cli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
+		command.WithCombinedStreams(&b),
+	)
+	assert.NilError(t, err)
+	cli.ConfigFile().CLIPluginsExtraDirs = []string{tmpDir}
+
+	tcmd := newDockerCommand(cli)
+	tcmd.SetArgs([]string{"swarm", "init", "--help"})
+	cmd, args, err := tcmd.HandleGlobalFlags()
+	assert.NilError(t, err)
+	assert.NilError(t, tcmd.Initialize())
+	cmd.SetArgs(args)
+	err = cmd.Execute()
+	assert.NilError(t, err)
+
+	out := b.String()
+	assert.Assert(t, is.Contains(out, "Initialize a swarm"))
+	assert.Assert(t, !strings.Contains(out, "PLUGIN INIT HELP"), "output: %s", out)
 }
