@@ -229,14 +229,11 @@ func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
 	}
 }
 
-func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string) error {
-	root := ccmd.Root()
-
-	cmd, _, err := root.Traverse(cargs)
-	if err != nil {
-		return err
+func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command) error {
+	if !pluginmanager.IsPluginCommand(ccmd) {
+		return errdefs.ErrNotFound
 	}
-	helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, cmd.Name(), root)
+	helpcmd, err := pluginmanager.PluginRunCommand(dockerCli, ccmd.Name(), ccmd.Root())
 	if err != nil {
 		return err
 	}
@@ -251,8 +248,8 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 			return
 		}
 
-		if len(args) >= 1 {
-			err := tryRunPluginHelp(dockerCli, ccmd, args)
+		if pluginmanager.IsPluginCommand(ccmd) {
+			err := tryRunPluginHelp(dockerCli, ccmd)
 			if err == nil {
 				return
 			}
