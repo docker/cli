@@ -478,7 +478,7 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			if err != nil {
 				return err
 			}
-			data, err := io.ReadAll(f)
+			data, err := io.ReadAll(&limitedReader{R: f, N: maxAllowedFileSizeToImport})
 			defer f.Close()
 			if err != nil {
 				return err

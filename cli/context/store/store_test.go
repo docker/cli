@@ -236,6 +236,46 @@ func TestImportZipInvalid(t *testing.T) {
 	assert.ErrorContains(t, err, "unexpected context file")
 }
 
+func TestImportZipTLSDataTooLarge(t *testing.T) {
+	testDir := t.TempDir()
+	zf := path.Join(testDir, "test.zip")
+
+	f, err := os.Create(zf)
+	assert.NilError(t, err)
+	defer f.Close()
+	w := zip.NewWriter(f)
+
+	meta, err := json.Marshal(Metadata{
+		Endpoints: map[string]any{
+			"ep1": endpoint{Foo: "bar"},
+		},
+		Metadata: context{Bar: "baz"},
+		Name:     "source",
+	})
+	assert.NilError(t, err)
+	mf, err := w.Create("meta.json")
+	assert.NilError(t, err)
+	_, err = mf.Write(meta)
+	assert.NilError(t, err)
+
+	// a highly compressible TLS entry that inflates beyond the allowed
+	// import size, even though the zip file itself stays well under it
+	tf, err := w.Create(path.Join("tls", "docker", "ca.pem"))
+	assert.NilError(t, err)
+	_, err = tf.Write(make([]byte, 2*maxAllowedFileSizeToImport))
+	assert.NilError(t, err)
+	err = w.Close()
+	assert.NilError(t, err)
+
+	source, err := os.Open(zf)
+	assert.NilError(t, err)
+	defer source.Close()
+	var r io.Reader = source
+	s := New(testDir, testCfg)
+	err = Import("zipTLSTooLarge", s, r)
+	assert.ErrorContains(t, err, "exceeds the defined limit")
+}
+
 func TestCorruptMetadata(t *testing.T) {
 	tempDir := t.TempDir()
 	s := New(tempDir, testCfg)
