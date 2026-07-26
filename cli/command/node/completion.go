@@ -2,10 +2,24 @@ package node
 
 import (
 	"os"
+	"strings"
 
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
+)
+
+var (
+	// nodePsFilters are the filters that can be used with "docker node ps --filter".
+	nodePsFilters = []string{"desired-state", "id", "label", "name"}
+
+	// taskDesiredStates are the valid values for the "desired-state" task filter.
+	taskDesiredStates = []string{
+		string(swarm.TaskStateRunning),
+		string(swarm.TaskStateShutdown),
+		string(swarm.TaskStateAccepted),
+	}
 )
 
 // completeNodeNames offers completion for swarm node (host)names and optional IDs.
@@ -33,5 +47,25 @@ func completeNodeNames(dockerCLI completion.APIClientProvider) cobra.CompletionF
 		// Nodes allow "self" as magic word for the current node.
 		names = append(names, "self")
 		return names, cobra.ShellCompDirectiveNoFileComp
+	}
+}
+
+// completeNodePsFilters provides completion for the filters that can be used
+// with "docker node ps --filter".
+func completeNodePsFilters(_ completion.APIClientProvider) cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		key, _, ok := strings.Cut(toComplete, "=")
+		if !ok {
+			return completion.WithSuffix("=", nodePsFilters), cobra.ShellCompDirectiveNoSpace
+		}
+		switch key {
+		case "desired-state":
+			return completion.WithPrefix("desired-state=", taskDesiredStates), cobra.ShellCompDirectiveNoFileComp
+		case "id", "name", "label":
+			// Task IDs, names, and labels are not easily discoverable; only offer the key.
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		default:
+			return completion.WithSuffix("=", nodePsFilters), cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveNoFileComp
+		}
 	}
 }

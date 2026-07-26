@@ -45,6 +45,8 @@ func newPsCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", "Pretty-print tasks using a Go template")
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
+	_ = cmd.RegisterFlagCompletionFunc("filter", completeServicePsFilters(dockerCLI))
+
 	return cmd
 }
 

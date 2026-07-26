@@ -172,6 +172,28 @@ func FromList(options ...string) cobra.CompletionFunc {
 	return Unique(cobra.FixedCompletions(options, cobra.ShellCompDirectiveNoFileComp))
 }
 
+// WithPrefix prefixes every element in the slice with the given prefix.
+// It is a helper for building "--filter" completions, where each candidate
+// value is offered as "key=value".
+func WithPrefix(prefix string, values []string) []string {
+	result := make([]string, len(values))
+	for i, v := range values {
+		result[i] = prefix + v
+	}
+	return result
+}
+
+// WithSuffix appends the given suffix to every element in the slice. It is a
+// helper for building "--filter" completions, where filter keys are offered
+// with a trailing "=" (combined with [cobra.ShellCompDirectiveNoSpace]).
+func WithSuffix(suffix string, values []string) []string {
+	result := make([]string, len(values))
+	for i, v := range values {
+		result[i] = v + suffix
+	}
+	return result
+}
+
 // FileNames is a convenience function to use [cobra.ShellCompDirectiveDefault],
 // which indicates to let the shell perform its default behavior after
 // completions have been provided.

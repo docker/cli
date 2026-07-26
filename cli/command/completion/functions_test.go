@@ -196,6 +196,18 @@ func TestCompleteFromList(t *testing.T) {
 	assert.Check(t, is.DeepEqual(values, expected))
 }
 
+func TestWithPrefix(t *testing.T) {
+	assert.Check(t, is.DeepEqual(WithPrefix("node=", []string{"n1", "n2"}), []string{"node=n1", "node=n2"}))
+	assert.Check(t, is.DeepEqual(WithPrefix("node=", []string{}), []string{}))
+	assert.Check(t, is.DeepEqual(WithPrefix("", []string{"n1"}), []string{"n1"}))
+}
+
+func TestWithSuffix(t *testing.T) {
+	assert.Check(t, is.DeepEqual(WithSuffix("=", []string{"id", "name"}), []string{"id=", "name="}))
+	assert.Check(t, is.DeepEqual(WithSuffix("=", []string{}), []string{}))
+	assert.Check(t, is.DeepEqual(WithSuffix("", []string{"id"}), []string{"id"}))
+}
+
 func TestCompleteImageNames(t *testing.T) {
 	tests := []struct {
 		doc          string
