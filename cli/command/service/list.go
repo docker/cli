@@ -38,6 +38,8 @@ func newListCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
 	flags.VarP(&options.filter, "filter", "f", "Filter output based on conditions provided")
 
+	_ = cmd.RegisterFlagCompletionFunc("filter", completeServiceListFilters(dockerCLI))
+
 	return cmd
 }
 
