@@ -100,14 +100,18 @@ jobs:
   bin-image:
     runs-on: ubuntu-24.04
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       -
-        name: Login to DockerHub
+        name: Login to Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
         with:
-          username: ${{ secrets.DOCKERHUB_CLIBIN_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_CLIBIN_TOKEN }}
+          username: dockereng
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
