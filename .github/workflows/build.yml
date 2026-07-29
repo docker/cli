@@ -98,50 +98,32 @@ jobs:
           if-no-files-found: error
 
   bin-image:
-    runs-on: ubuntu-24.04
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
+    uses: docker/github-builder/.github/workflows/bake.yml@27ade872c1e2296e62ef15ab3b10d37665e57cf7 # v1.15.0
     permissions:
-      contents: read
-      id-token: write
-    steps:
-      -
-        name: Login to Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@06fb636fac595d6fb4b28a5dfcb21a6f5091859c # v4.5.0
-        env:
-          DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
-        with:
+      contents: read # same as global permission
+      id-token: write # for signing attestation(s) and authenticating to Docker Hub with GitHub OIDC Token
+    with:
+      setup-qemu: true
+      target: bin-image-cross
+      cache: true
+      cache-scope: bin-image
+      output: image
+      push: true
+      vars: |
+        VERSION=${{ github.ref }}
+      meta-images: |
+        dockereng/cli-bin
+      meta-tags: |
+        type=semver,pattern={{version}}
+        type=ref,event=branch
+        type=ref,event=pr
+        type=semver,pattern={{major}}
+        type=semver,pattern={{major}}.{{minor}}
+      registry-identities: |
+        - type: dockerhub
           username: dockereng
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
-      -
-        name: Docker meta
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
-        with:
-          images: dockereng/cli-bin
-          tags: |
-            type=semver,pattern={{version}}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}
-      -
-        name: Build and push image
-        uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
-        with:
-          files: |
-            ./docker-bake.hcl
-            cwd://${{ steps.meta.outputs.bake-file }}
-          targets: bin-image-cross
-          push: ${{ github.event_name != 'pull_request' }}
-          set: |
-            *.cache-from=type=gha,scope=bin-image
-            *.cache-to=type=gha,scope=bin-image,mode=max
+          connection_id: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
 
   prepare-plugins:
     runs-on: ubuntu-24.04
