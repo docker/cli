@@ -31,7 +31,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.24
-	github.com/moby/go-archive v0.3.0
+	github.com/moby/go-archive v0.3.1
 	github.com/moby/moby/api v1.55.0
 	github.com/moby/moby/client v0.5.1
 	github.com/moby/patternmatcher v0.6.1
