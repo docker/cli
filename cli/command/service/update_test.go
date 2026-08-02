@@ -1727,3 +1727,18 @@ func TestUpdateUlimits(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateHostsRemoveRepeatedHost(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	flags.Set("host-rm", "host1")
+
+	//nolint:dupword // ignore "Duplicate words (host1) found"
+	hosts := []string{"127.0.0.1 host1 host1 host2", "127.0.0.2 host2 host1 host1"}
+
+	err := updateHosts(flags, &hosts)
+	assert.NilError(t, err)
+
+	// All occurrences of `host1` should be removed, also if the same host
+	// is listed multiple times in the same entry.
+	assert.Check(t, is.DeepEqual([]string{"127.0.0.1 host2", "127.0.0.2 host2"}, hosts))
+}
