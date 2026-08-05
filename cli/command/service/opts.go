@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/netip"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -687,15 +688,13 @@ func (options *serviceOptions) makeEnv() ([]string, error) {
 	}
 	currentEnv := make([]string, 0, len(envVariables))
 	for _, env := range envVariables { // need to process each var, in order
-		k, _, _ := strings.Cut(env, "=")
-		for i, current := range currentEnv { // remove duplicates
-			if current == env {
-				continue // no update required, may hide this behind flag to preserve order of envVariables
-			}
-			if strings.HasPrefix(current, k+"=") {
-				currentEnv = append(currentEnv[:i], currentEnv[i+1:]...)
-			}
+		if slices.Contains(currentEnv, env) {
+			continue // no update required, may hide this behind flag to preserve order of envVariables
 		}
+		k, _, _ := strings.Cut(env, "=")
+		currentEnv = slices.DeleteFunc(currentEnv, func(current string) bool { // remove duplicates
+			return strings.HasPrefix(current, k+"=")
+		})
 		currentEnv = append(currentEnv, env)
 	}
 
