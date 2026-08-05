@@ -458,7 +458,7 @@ func comparePorts(i, j container.PortSummary) bool {
 	}
 
 	if i.IP != j.IP {
-		return i.IP.String() < j.IP.String()
+		return i.IP.Less(j.IP)
 	}
 
 	if i.PublicPort != j.PublicPort {
