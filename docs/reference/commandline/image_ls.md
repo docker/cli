@@ -252,8 +252,21 @@ image2              latest              dea752e4e117        9 minutes ago       
 
 #### Filter images by reference
 
-The `reference` filter shows only images whose reference matches
-the specified pattern.
+The `reference` filter matches against each image's **reference string**:
+the repository name and tag joined as `REPOSITORY:TAG` (for example
+`busybox:latest`, or `registry.example.com:5000/team/app:1.2` when a
+registry host and port are part of the repository path). It is not a
+separate field from repository/tag — those two columns in the default
+table are what form the reference.
+
+The pattern uses path-style glob matching (`*`, `?`, and character
+classes). Matching is against the whole reference, so a pattern like
+`*acme*` must appear as a contiguous substring of `REPOSITORY:TAG`. A
+registry hostname such as `docker-registry.ec2-1.acme.com:5000/...`
+includes the host and port in the repository portion; use a pattern
+that covers that prefix (for example
+`*acme.com:5000/*` or `docker-registry.ec2-1.acme.com:5000/*`) rather
+than expecting `*acme*` alone to match only the `acme` path segment.
 
 ```console
 $ docker images
