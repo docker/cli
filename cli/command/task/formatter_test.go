@@ -111,3 +111,45 @@ func TestTaskContextWriteJSONField(t *testing.T) {
 		assert.Check(t, is.Equal(tasks.Items[i].ID, s))
 	}
 }
+
+func TestTaskContextErrorReplacesNewlines(t *testing.T) {
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			{
+				ID: "taskID1",
+				Status: swarm.TaskStatus{
+					Err: "failed to start shim:\n	/usr/local/go/src/runtime/proc.go:211: fatal error: newosproc",
+				},
+			},
+		},
+	}
+	names := map[string]string{"taskID1": "foobar_baz"}
+	out := bytes.NewBufferString("")
+
+	err := formatWrite(formatter.Context{Format: newTaskFormat("table {{.Error}}", false), Output: out}, tasks, names, map[string]string{})
+
+	assert.NilError(t, err)
+	assert.Check(t, is.Contains(out.String(), "/usr/local/go/src/runtime/proc.go:211: fatal error: newosproc"))
+	assert.Check(t, !strings.Contains(out.String(), "failed to start shim:\n	/usr/local/go/src/runtime/proc.go:211: fatal error: newosproc"))
+	assert.Check(t, is.Equal(`"failed to start shim:  /usr/local/go/src/runtime/proc.go:211: fatal error: newosproc"`, (&taskContext{table: true, task: tasks.Items[0]}).Error()))
+}
+
+func TestTaskContextErrorPreservesNewlinesForCustomFormat(t *testing.T) {
+	tasks := client.TaskListResult{
+		Items: []swarm.Task{
+			{
+				ID: "taskID1",
+				Status: swarm.TaskStatus{
+					Err: "failed to start shim:\nfatal error: newosproc",
+				},
+			},
+		},
+	}
+	names := map[string]string{"taskID1": "foobar_baz"}
+	out := bytes.NewBufferString("")
+
+	err := formatWrite(formatter.Context{Format: newTaskFormat("{{.Error}}", false), Output: out}, tasks, names, map[string]string{})
+
+	assert.NilError(t, err)
+	assert.Check(t, is.Contains(out.String(), "failed to start shim:\nfatal error: newosproc"))
+}
