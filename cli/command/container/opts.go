@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/internal/volumespec"
 	"github.com/docker/cli/opts"
@@ -517,22 +518,34 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 
 	pidMode := container.PidMode(copts.pidMode)
 	if !pidMode.Valid() {
-		return nil, errors.New("--pid: invalid PID mode")
+		return nil, hint.Wrap(
+			fmt.Errorf("invalid --pid mode %q", copts.pidMode),
+			"Valid forms are 'host' or 'container:<name|id>'.",
+		)
 	}
 
 	utsMode := container.UTSMode(copts.utsMode)
 	if !utsMode.Valid() {
-		return nil, errors.New("--uts: invalid UTS mode")
+		return nil, hint.Wrap(
+			fmt.Errorf("invalid --uts mode %q", copts.utsMode),
+			"The only valid form is 'host'.",
+		)
 	}
 
 	usernsMode := container.UsernsMode(copts.usernsMode)
 	if !usernsMode.Valid() {
-		return nil, errors.New("--userns: invalid USER mode")
+		return nil, hint.Wrap(
+			fmt.Errorf("invalid --userns mode %q", copts.usernsMode),
+			"The only valid form is 'host'.",
+		)
 	}
 
 	cgroupnsMode := container.CgroupnsMode(copts.cgroupnsMode)
 	if !cgroupnsMode.Valid() {
-		return nil, errors.New("--cgroupns: invalid CGROUP mode")
+		return nil, hint.Wrap(
+			fmt.Errorf("invalid --cgroupns mode %q", copts.cgroupnsMode),
+			"Valid forms are 'private' or 'host'.",
+		)
 	}
 
 	restartPolicy, err := opts.ParseRestartPolicy(copts.restartPolicy)
@@ -920,7 +933,10 @@ func convertToStandardNotation(ports []string) ([]string, error) {
 func parseLoggingOpts(loggingDriver string, loggingOpts []string) (map[string]string, error) {
 	loggingOptsMap := opts.ConvertKVStringsToMap(loggingOpts)
 	if loggingDriver == "none" && len(loggingOpts) > 0 {
-		return map[string]string{}, fmt.Errorf("invalid logging opts for driver %s", loggingDriver)
+		return map[string]string{}, hint.Wrap(
+			errors.New("log driver \"none\" accepts no --log-opt entries"),
+			"Remove the --log-opt flag(s) or choose a different --log-driver.",
+		)
 	}
 	return loggingOptsMap, nil
 }
@@ -984,7 +1000,7 @@ func parseStorageOpts(storageOpts []string) (map[string]string, error) {
 	for _, option := range storageOpts {
 		k, v, ok := strings.Cut(option, "=")
 		if !ok {
-			return nil, errors.New("invalid storage option")
+			return nil, fmt.Errorf("invalid --storage-opt value %q: expected key=value", option)
 		}
 		m[k] = v
 	}
@@ -1095,12 +1111,12 @@ func validateLinuxPath(val string, validator func(string) bool) (string, error) 
 	var mode string
 
 	if strings.Count(val, ":") > 2 {
-		return val, fmt.Errorf("bad format for path: %s", val)
+		return val, fmt.Errorf("invalid --device %q: too many ':' separators, expected [host-path:]container-path[:mode]", val)
 	}
 
 	split := strings.SplitN(val, ":", 3)
 	if split[0] == "" {
-		return val, fmt.Errorf("bad format for path: %s", val)
+		return val, fmt.Errorf("invalid --device %q: host path before ':' is empty, expected [host-path:]container-path[:mode]", val)
 	}
 	switch len(split) {
 	case 1:

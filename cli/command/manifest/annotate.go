@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/manifest/store"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/internal/registryclient"
 	"github.com/moby/moby/api/types/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -162,7 +163,10 @@ func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	}
 
 	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
-		return fmt.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
+		return hint.Wrap(
+			fmt.Errorf("unsupported os/arch combination %s/%s for manifest entry %s", imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture, opts.image),
+			"Set --os and --arch to a supported pair (for example linux/amd64, linux/arm64, or windows/amd64).",
+		)
 	}
 	return manifestStore.Save(targetRef, imgRef, imageManifest)
 }

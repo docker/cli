@@ -20,6 +20,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/mount"
@@ -97,10 +98,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, options *createOptions, copts *containerOptions) error {
 	if err := validatePullOpt(options.pull); err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "create").Error(),
-			StatusCode: 125,
-		}
+		return statusErrorWithHelp(err, "create", 125)
 	}
 	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(dockerCLI.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
 	newEnv := make([]string, 0, len(proxyConfig))
@@ -119,10 +117,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 
 	containerCfg, err := parse(flags, copts, serverInfo.OSType)
 	if err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "create").Error(),
-			StatusCode: 125,
-		}
+		return statusErrorWithHelp(err, "create", 125)
 	}
 	id, err := createContainer(ctx, dockerCLI, containerCfg, options)
 	if err != nil {
@@ -188,7 +183,10 @@ func (cid *cidFile) Write(id string) error {
 		return nil
 	}
 	if _, err := cid.file.WriteString(id); err != nil {
-		return fmt.Errorf("failed to write the container ID (%s) to file: %w", id, err)
+		return hint.Wrap(
+			fmt.Errorf("container %s was created, but writing its ID to %s failed: %w", id, cid.path, err),
+			fmt.Sprintf("The container exists on the daemon. Run 'docker rm %s' to remove it, or note the ID for later use.", id),
+		)
 	}
 	cid.written = true
 	return nil
