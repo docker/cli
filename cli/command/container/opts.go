@@ -139,6 +139,7 @@ type containerOptions struct {
 	runtime             string
 	autoRemove          bool
 	init                bool
+	umask               opts.UmaskOpt
 	annotations         *opts.MapOpts
 
 	Image string
@@ -313,6 +314,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 	flags.Var(&copts.shmSize, "shm-size", "Size of /dev/shm")
 	flags.StringVar(&copts.utsMode, "uts", "", "UTS namespace to use")
 	flags.StringVar(&copts.runtime, "runtime", "", "Runtime to use for this container")
+	flags.Var(&copts.umask, "umask", "Set the umask for the container")
 
 	flags.BoolVar(&copts.init, "init", false, "Run an init inside the container that forwards signals and reaps processes")
 	flags.SetAnnotation("init", "version", []string{"1.25"})
@@ -710,6 +712,7 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 		MaskedPaths:    maskedPaths,
 		ReadonlyPaths:  readonlyPaths,
 		Annotations:    copts.annotations.GetAll(),
+		Umask:          copts.umask.Value(),
 	}
 
 	if copts.autoRemove && !hostConfig.RestartPolicy.IsNone() {
