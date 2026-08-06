@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -131,6 +132,34 @@ func cmdErrorMessage(err error) string {
 		return msg
 	}
 	return fmt.Sprintf("exited with code %d", getExitCode(err))
+}
+
+// printCommandError prints err to stderr before plugin hooks run, so that
+// hook output (such as the "What's next:" hint) is rendered after the
+// command's own error output instead of before it.
+//
+// Errors caused by context cancellation, user-initiated signal termination,
+// or errors with an empty message are not printed (matching the conditions
+// used in [main]).
+//
+// If err was printed, it is replaced with a status only [cli.StatusError]
+// preserving the exit code, so that [main] does not print the same message
+// a second time.
+func printCommandError(stderr io.Writer, err error) error {
+	if err == nil {
+		return nil
+	}
+	if errdefs.IsCanceled(err) {
+		return err
+	}
+	if errors.As(err, &errCtxSignalTerminated{}) {
+		return err
+	}
+	if err.Error() == "" {
+		return err
+	}
+	_, _ = fmt.Fprintln(stderr, err)
+	return cli.StatusError{StatusCode: getExitCode(err)}
 }
 
 func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
@@ -543,10 +572,19 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	cmd.SetArgs(args)
 	err = cmd.ExecuteContext(ctx)
 
+	// Capture the error message before printCommandError may replace err;
+	// plugin hooks still need to see the original message.
+	errMessage := cmdErrorMessage(err)
+
+	// Print the command's error before invoking plugin hooks so that the
+	// "What's next" hint (and any other hook output) is rendered after
+	// the command's error output, not before it.
+	err = printCommandError(dockerCli.Err(), err)
+
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
 	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
+		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, errMessage)
 	}
 
 	return err
