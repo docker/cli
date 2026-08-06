@@ -1291,12 +1291,8 @@ example runs an HTTP server that serves a file from host to container over the
 `host.docker.internal` hostname, which resolves to the host's internal IP.
 
 ```console
-$ echo "hello from host!" > ./hello
-$ python3 -m http.server 8000
-Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
-$ docker run \
-  --add-host host.docker.internal=host-gateway \
-  curlimages/curl -s host.docker.internal:8000/hello
+$ printf 'HTTP/1.1 200 OK\r\n\r\nhello from host!\n' | nc -l 8000 & disown
+$ docker run --add-host host.docker.internal=host-gateway curlimages/curl -s host.docker.internal:8000
 hello from host!
 ```
 
