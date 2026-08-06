@@ -1290,10 +1290,17 @@ The following example shows how the special `host-gateway` value works. The
 example runs an HTTP server that serves a file from host to container over the
 `host.docker.internal` hostname, which resolves to the host's internal IP.
 
+In one terminal, create the file and start an HTTP server:
+
 ```console
 $ echo "hello from host!" > ./hello
 $ python3 -m http.server 8000
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+```
+
+In another terminal, run a container that connects to the HTTP server:
+
+```console
 $ docker run \
   --add-host host.docker.internal=host-gateway \
   curlimages/curl -s host.docker.internal:8000/hello
