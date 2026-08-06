@@ -104,5 +104,5 @@ func runImport(ctx context.Context, dockerCli command.Cli, options importOptions
 	}
 	defer responseBody.Close()
 
-	return jsonstream.Display(ctx, responseBody, dockerCli.Out())
+	return jsonstream.DisplayStream(ctx, responseBody, dockerCli.Out())
 }

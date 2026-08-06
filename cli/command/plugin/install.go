@@ -100,7 +100,7 @@ func runInstall(ctx context.Context, dockerCLI command.Cli, opts pluginOptions) 
 	defer func() {
 		_ = responseBody.Close()
 	}()
-	if err := jsonstream.Display(ctx, responseBody, dockerCLI.Out()); err != nil {
+	if err := jsonstream.DisplayStream(ctx, responseBody, dockerCLI.Out()); err != nil {
 		return err
 	}
 	_, _ = fmt.Fprintln(dockerCLI.Out(), "Installed plugin", opts.remote) // todo: return proper values from the API for this result
