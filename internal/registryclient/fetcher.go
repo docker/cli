@@ -36,9 +36,14 @@ func fetchManifest(ctx context.Context, repo distribution.Repository, ref refere
 	case *ocischema.DeserializedManifest:
 		return pullManifestOCISchema(ctx, ref, repo, *v)
 	case *manifestlist.DeserializedManifestList:
+		mediaType, data, err := v.Payload()
+		if err == nil {
+			logrus.WithFields(logrus.Fields{"payload": string(data), "mediaType": mediaType}).Debugf("manifestlist for: %s", ref)
+		}
 		return types.ImageManifest{}, fmt.Errorf("%s is a manifest list", ref)
+	default:
+		return types.ImageManifest{}, fmt.Errorf("%s is not a manifest", ref)
 	}
-	return types.ImageManifest{}, fmt.Errorf("%s is not a manifest", ref)
 }
 
 func fetchList(ctx context.Context, repo distribution.Repository, ref reference.Named) ([]types.ImageManifest, error) {
@@ -163,6 +168,7 @@ func pullManifestList(ctx context.Context, ref reference.Named, repo distributio
 		if err != nil {
 			return nil, err
 		}
+		logrus.WithFields(logrus.Fields{"digest": manifestDescriptor.Digest}).Debug("pulling manifest")
 		manifest, err := manSvc.Get(ctx, manifestDescriptor.Digest)
 		if err != nil {
 			return nil, err
@@ -286,7 +292,11 @@ func allEndpoints(ctx context.Context, namedRef reference.Named, insecure bool) 
 		return nil, err
 	}
 	endpoints, err := registryService.Endpoints(ctx, reference.Domain(namedRef))
-	logrus.Debugf("endpoints for %s: %v", namedRef, endpoints)
+	var epUrls []string
+	for _, ep := range endpoints {
+		epUrls = append(epUrls, ep.URL.String())
+	}
+	logrus.WithField("endpoints", epUrls).Debugf("resolved endpoints for %s", namedRef)
 	return endpoints, err
 }
 
