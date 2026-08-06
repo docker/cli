@@ -21,6 +21,7 @@ type connectOptions struct {
 	container    string
 	ipaddress    net.IP // TODO(thaJeztah): we need a flag-type to handle netip.Addr directly
 	ipv6address  net.IP // TODO(thaJeztah): we need a flag-type to handle netip.Addr directly
+	macAddress   string // TODO(thaJeztah): we need a flag-type to handle net.HardwareAddr directly
 	links        opts.ListOpts
 	aliases      []string
 	linklocalips []net.IP // TODO(thaJeztah): we need a flag-type to handle []netip.Addr directly
@@ -60,6 +61,7 @@ func newConnectCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.IPSliceVar(&options.linklocalips, "link-local-ip", nil, "Add a link-local address for the container")
 	flags.StringSliceVar(&options.driverOpts, "driver-opt", []string{}, "driver options for the network")
 	flags.IntVar(&options.gwPriority, "gw-priority", 0, "Highest gw-priority provides the default gateway. Accepts positive and negative values.")
+	flags.StringVar(&options.macAddress, "mac-address", "", "MAC address for the container on this network (e.g., 92:d0:c6:0a:29:33)")
 	return cmd
 }
 
@@ -68,6 +70,14 @@ func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options 
 	if err != nil {
 		return err
 	}
+
+	var macAddr network.HardwareAddr
+	if options.macAddress != "" {
+		if err := macAddr.UnmarshalText([]byte(options.macAddress)); err != nil {
+			return err
+		}
+	}
+
 	_, err = apiClient.NetworkConnect(ctx, options.network, client.NetworkConnectOptions{
 		Container: options.container,
 		EndpointConfig: &network.EndpointSettings{
@@ -80,6 +90,7 @@ func runConnect(ctx context.Context, apiClient client.NetworkAPIClient, options 
 			Aliases:    options.aliases,
 			DriverOpts: driverOpts,
 			GwPriority: options.gwPriority,
+			MacAddress: macAddr,
 		},
 	})
 	return err
