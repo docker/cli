@@ -22,6 +22,7 @@ import (
 	"github.com/docker/cli/internal/volumespec"
 	"github.com/docker/cli/opts"
 	"github.com/docker/go-connections/nat"
+	"github.com/google/shlex"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
@@ -131,6 +132,7 @@ type containerOptions struct {
 	shmSize             opts.MemBytes
 	noHealthcheck       bool
 	healthCmd           string
+	healthCmdMode       string
 	healthInterval      time.Duration
 	healthTimeout       time.Duration
 	healthStartPeriod   time.Duration
@@ -261,6 +263,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 
 	// Health-checking
 	flags.StringVar(&copts.healthCmd, "health-cmd", "", "Command to run to check health")
+	flags.StringVar(&copts.healthCmdMode, "health-cmd-mode", "shell", `Healthcheck command mode: "shell" runs via CMD-SHELL, "exec" uses exec form (CMD) for shell-less images`)
 	flags.DurationVar(&copts.healthInterval, "health-interval", 0, "Time between running the check (ms|s|m|h) (default 0s)")
 	flags.IntVar(&copts.healthRetries, "health-retries", 0, "Consecutive failures needed to report unhealthy")
 	flags.DurationVar(&copts.healthTimeout, "health-timeout", 0, "Maximum time to allow one check to run (ms|s|m|h) (default 0s)")
@@ -559,6 +562,9 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 
 	// Healthcheck
 	var healthConfig *container.HealthConfig
+	if flags.Changed("health-cmd-mode") && copts.healthCmd == "" {
+		return nil, errors.New("--health-cmd-mode requires --health-cmd")
+	}
 	haveHealthSettings := copts.healthCmd != "" ||
 		copts.healthInterval != 0 ||
 		copts.healthTimeout != 0 ||
@@ -573,7 +579,11 @@ func parse(flags *pflag.FlagSet, copts *containerOptions, serverOS string) (*con
 	} else if haveHealthSettings {
 		var probe []string
 		if copts.healthCmd != "" {
-			probe = []string{"CMD-SHELL", copts.healthCmd}
+			var err error
+			probe, err = healthcheckProbe(copts.healthCmd, copts.healthCmdMode)
+			if err != nil {
+				return nil, err
+			}
 		}
 		if copts.healthInterval < 0 {
 			return nil, errors.New("--health-interval cannot be negative")
@@ -1128,6 +1138,27 @@ func validateLinuxPath(val string, validator func(string) bool) (string, error) 
 		return val, fmt.Errorf("%s is not an absolute path", containerPath)
 	}
 	return val, nil
+}
+
+// healthcheckProbe builds the HealthConfig.Test slice for --health-cmd.
+// mode must be "shell" (CMD-SHELL, the default) or "exec" (CMD exec form,
+// required for images without a shell such as scratch or distroless).
+func healthcheckProbe(cmd, mode string) ([]string, error) {
+	switch mode {
+	case "", "shell":
+		return []string{"CMD-SHELL", cmd}, nil
+	case "exec":
+		parts, err := shlex.Split(cmd)
+		if err != nil {
+			return nil, fmt.Errorf("--health-cmd: %w", err)
+		}
+		if len(parts) == 0 {
+			return nil, errors.New("--health-cmd: command must not be empty")
+		}
+		return append([]string{"CMD"}, parts...), nil
+	default:
+		return nil, fmt.Errorf("--health-cmd-mode: invalid value %q, must be one of \"shell\" or \"exec\"", mode)
+	}
 }
 
 // validateAttach validates that the specified string is a valid attach option.

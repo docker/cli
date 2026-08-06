@@ -893,15 +893,6 @@ func TestParseHealth(t *testing.T) {
 		}
 		return config.Healthcheck
 	}
-	checkError := func(expected string, args ...string) {
-		config, _, _, err := parseRun(args)
-		if err == nil {
-			t.Fatalf("Expected error, but got %#v", config)
-		}
-		if err.Error() != expected {
-			t.Fatalf("Expected %#v, got %#v", expected, err)
-		}
-	}
 	health := checkOk("--no-healthcheck", "img", "cmd")
 	if health == nil || len(health.Test) != 1 || health.Test[0] != "NONE" {
 		t.Fatalf("--no-healthcheck failed: %#v", health)
@@ -915,13 +906,65 @@ func TestParseHealth(t *testing.T) {
 		t.Fatalf("--health-cmd: timeout = %s", health.Timeout)
 	}
 
-	checkError("--no-healthcheck conflicts with --health-* options",
-		"--no-healthcheck", "--health-cmd=/check.sh -q", "img", "cmd")
-
 	health = checkOk("--health-timeout=2s", "--health-retries=3", "--health-interval=4.5s", "--health-start-period=5s", "--health-start-interval=1s", "img", "cmd")
 	if health.Timeout != 2*time.Second || health.Retries != 3 || health.Interval != 4500*time.Millisecond || health.StartPeriod != 5*time.Second || health.StartInterval != 1*time.Second {
 		t.Fatalf("--health-*: got %#v", health)
 	}
+}
+
+func TestParseHealthCmdMode(t *testing.T) {
+	checkOk := func(args ...string) *container.HealthConfig {
+		config, _, _, err := parseRun(args)
+		if err != nil {
+			t.Fatalf("%#v: %v", args, err)
+		}
+		return config.Healthcheck
+	}
+	checkError := func(expected string, args ...string) {
+		config, _, _, err := parseRun(args)
+		if err == nil {
+			t.Fatalf("Expected error, but got %#v", config)
+		}
+		if err.Error() != expected {
+			t.Fatalf("Expected %#v, got %#v", expected, err)
+		}
+	}
+
+	health := checkOk("--health-cmd=/healthcheck", "--health-cmd-mode=exec", "img", "cmd")
+	if len(health.Test) != 2 || health.Test[0] != "CMD" || health.Test[1] != "/healthcheck" {
+		t.Fatalf("--health-cmd-mode=exec single arg: got %#v", health.Test)
+	}
+
+	health = checkOk("--health-cmd=/usr/bin/wget -q -O /dev/null http://localhost/", "--health-cmd-mode=exec", "img", "cmd")
+	want := []string{"CMD", "/usr/bin/wget", "-q", "-O", "/dev/null", "http://localhost/"}
+	if len(health.Test) != len(want) {
+		t.Fatalf("--health-cmd-mode=exec multi arg: got %#v, want %#v", health.Test, want)
+	}
+	for i := range want {
+		if health.Test[i] != want[i] {
+			t.Fatalf("--health-cmd-mode=exec multi arg: got %#v, want %#v", health.Test, want)
+		}
+	}
+
+	health = checkOk("--health-cmd=/check.sh", "--health-cmd-mode=shell", "img", "cmd")
+	if len(health.Test) != 2 || health.Test[0] != "CMD-SHELL" || health.Test[1] != "/check.sh" {
+		t.Fatalf("--health-cmd-mode=shell explicit: got %#v", health.Test)
+	}
+
+	checkError("--health-cmd-mode: invalid value \"bad\", must be one of \"shell\" or \"exec\"",
+		"--health-cmd=/check.sh", "--health-cmd-mode=bad", "img", "cmd")
+
+	checkError("--health-cmd-mode requires --health-cmd",
+		"--health-cmd-mode=exec", "img", "cmd")
+
+	checkError("--health-cmd: EOF found when expecting closing quote",
+		"--health-cmd=unclosed 'quote", "--health-cmd-mode=exec", "img", "cmd")
+
+	checkError("--health-cmd: command must not be empty",
+		"--health-cmd=   ", "--health-cmd-mode=exec", "img", "cmd")
+
+	checkError("--no-healthcheck conflicts with --health-* options",
+		"--no-healthcheck", "--health-cmd=/check.sh -q", "img", "cmd")
 }
 
 func TestParseLoggingOpts(t *testing.T) {
