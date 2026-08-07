@@ -604,6 +604,28 @@ $ docker run --pull=never hello-world
 docker: Error response from daemon: No such image: hello-world:latest.
 ```
 
+### <a name="health-cmd"></a> Health checks (--health-cmd)
+
+`--health-cmd` sets a command the daemon runs to decide if the container is
+healthy. Unlike `HEALTHCHECK` in a Dockerfile, which can choose `CMD` or
+`CMD-SHELL`, runtime `--health-cmd` is always executed with `CMD-SHELL`
+(the image's shell, typically `/bin/sh -c`).
+
+That means images without a shell — for example anything `FROM scratch` that
+only has a static binary — cannot use `--health-cmd` unless you also provide a
+shell in the image. For those images, define a `HEALTHCHECK` with the `CMD`
+form in the Dockerfile instead (not `CMD-SHELL`), or bake a shell into a
+minimal base image.
+
+```console
+$ docker run --name=test -d \
+    --health-cmd='stat /etc/passwd || exit 1' \
+    --health-interval=2s \
+    busybox sleep 1d
+$ docker inspect --format='{{.State.Health.Status}}' test
+healthy
+```
+
 ### <a name="env"></a> Set environment variables (-e, --env, --env-file)
 
 ```console
