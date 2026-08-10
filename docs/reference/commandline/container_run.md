@@ -1292,13 +1292,18 @@ example runs an HTTP server that serves a file from host to container over the
 
 ```console
 $ echo "hello from host!" > ./hello
-$ python3 -m http.server 8000
+$ python3 -m http.server 8000 &
+[1] 401234
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
-$ docker run \
+$ docker run --rm \
   --add-host host.docker.internal=host-gateway \
   curlimages/curl -s host.docker.internal:8000/hello
 hello from host!
+$ kill %1
 ```
+
+The HTTP server must keep running while you start the container. Run it in the
+background (as above) or in a second terminal, then stop it when you are done.
 
 The `--add-host` flag also accepts a `:` separator, for example:
 
