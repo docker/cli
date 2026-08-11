@@ -108,13 +108,17 @@ type serverVersion struct {
 // passed as argument, additional information is included (API version),
 // which may invoke an API connection. Pass nil to omit the additional
 // information.
-func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
+func newClientVersion(contextName string, dockerCli command.Cli, prettyTime bool) clientVersion {
+	buildTime := version.BuildTime
+	if prettyTime {
+		buildTime = reformatDate(buildTime)
+	}
 	v := clientVersion{
 		Version:           version.Version,
 		DefaultAPIVersion: client.MaxAPIVersion,
 		GoVersion:         runtime.Version(),
 		GitCommit:         version.GitCommit,
-		BuildTime:         reformatDate(version.BuildTime),
+		BuildTime:         buildTime,
 		Os:                runtime.GOOS,
 		Arch:              arch(),
 		Context:           contextName,
@@ -128,7 +132,7 @@ func newClientVersion(contextName string, dockerCli command.Cli) clientVersion {
 	return v
 }
 
-func newServerVersion(sv client.ServerVersionResult) *serverVersion {
+func newServerVersion(sv client.ServerVersionResult, prettyTime bool) *serverVersion {
 	out := &serverVersion{
 		Platform:      sv.Platform,
 		Version:       sv.Version,
@@ -145,13 +149,16 @@ func newServerVersion(sv client.ServerVersionResult) *serverVersion {
 			foundEngine = true
 			buildTime, ok := component.Details["BuildTime"]
 			if ok {
-				component.Details["BuildTime"] = reformatDate(buildTime)
+				if prettyTime {
+					buildTime = reformatDate(buildTime)
+					component.Details["BuildTime"] = buildTime
+				}
+				out.BuildTime = buildTime
 			}
 			out.GitCommit = component.Details["GitCommit"]
 			out.GoVersion = component.Details["GoVersion"]
 			out.KernelVersion = component.Details["KernelVersion"]
 			out.Experimental = func() bool { b, _ := strconv.ParseBool(component.Details["Experimental"]); return b }()
-			out.BuildTime = buildTime
 		}
 		out.Components = append(out.Components, component)
 	}
@@ -193,6 +200,16 @@ func newVersionCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
+
+func isJSONVersionFormat(format string) bool {
+	switch format {
+	case formatter.JSONFormatKey, formatter.JSONFormat:
+		return true
+	default:
+		return false
+	}
+}
+
 func reformatDate(buildTime string) string {
 	t, errTime := time.Parse(time.RFC3339Nano, buildTime)
 	if errTime == nil {
@@ -216,12 +233,14 @@ func runVersion(ctx context.Context, dockerCLI command.Cli, opts *versionOptions
 		return cli.StatusError{StatusCode: 64, Status: err.Error()}
 	}
 
+	// Keep RFC3339 BuildTime strings for JSON; reformat to ANSIC only for human templates.
+	prettyTime := !isJSONVersionFormat(opts.format)
 	vd := versionInfo{
-		Client: newClientVersion(dockerCLI.CurrentContext(), dockerCLI),
+		Client: newClientVersion(dockerCLI.CurrentContext(), dockerCLI, prettyTime),
 	}
 	sv, err := dockerCLI.Client().ServerVersion(ctx, client.ServerVersionOptions{})
 	if err == nil {
-		vd.Server = newServerVersion(sv)
+		vd.Server = newServerVersion(sv, prettyTime)
 	}
 	if err2 := prettyPrintVersion(dockerCLI.Out(), vd, tmpl); err2 != nil && err == nil {
 		err = err2
