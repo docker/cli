@@ -1213,11 +1213,9 @@ func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 			if rm.IPAddr != "" && rm.IPAddr != ip {
 				continue
 			}
-			for i, h := range hostNames {
-				if h == rm.Host {
-					hostNames = append(hostNames[:i], hostNames[i+1:]...)
-				}
-			}
+			hostNames = slices.DeleteFunc(hostNames, func(h string) bool {
+				return h == rm.Host
+			})
 		}
 		if len(hostNames) > 0 {
 			newHosts = append(newHosts, fmt.Sprintf("%s %s", ip, strings.Join(hostNames, " ")))

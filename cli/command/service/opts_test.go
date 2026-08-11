@@ -373,3 +373,49 @@ func TestToServiceSysCtls(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.DeepEqual(service.TaskTemplate.ContainerSpec.Sysctls, expected))
 }
+
+func TestMakeEnv(t *testing.T) {
+	tests := []struct {
+		doc      string
+		env      []string
+		expected []string
+	}{
+		{
+			doc:      "no duplicates",
+			env:      []string{"one=1", "two=2"},
+			expected: []string{"one=1", "two=2"},
+		},
+		{
+			doc:      "same variable repeated",
+			env:      []string{"one=1", "one=1"},
+			expected: []string{"one=1"},
+		},
+		{
+			doc:      "same variable repeated, then overridden",
+			env:      []string{"one=1", "one=1", "one=2"},
+			expected: []string{"one=2"},
+		},
+		{
+			doc:      "repeated variable last",
+			env:      []string{"one=1", "two=2", "two=2"},
+			expected: []string{"one=1", "two=2"},
+		},
+		{
+			doc:      "last value wins",
+			env:      []string{"one=1", "two=2", "one=3"},
+			expected: []string{"two=2", "one=3"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			o := newServiceOptions()
+			for _, env := range tc.env {
+				assert.NilError(t, o.env.Set(env))
+			}
+			actual, err := o.makeEnv()
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual(tc.expected, actual))
+		})
+	}
+}
