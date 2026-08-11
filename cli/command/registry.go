@@ -97,17 +97,22 @@ func GetDefaultAuthConfig(cfg *configfile.ConfigFile, checkCredStore bool, serve
 // If defaultUsername is not empty, the username prompt includes that username
 // and the user can hit enter without inputting a username  to use that default
 // username.
-func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
+func PromptUserForCredentials(ctx context.Context, cli Streams, argUser, argPassword, defaultUsername, serverAddress string) (registrytypes.AuthConfig, error) {
 	// On Windows, force the use of the regular OS stdin stream.
+	//
+	// StdStreams() may wrap stdin with windowsconsole.NewAnsiReader to
+	// emulate VT input on consoles that do not support it natively, but
+	// that wrapper has historically caused interactive prompts to hang
+	// or behave incorrectly.
 	//
 	// See:
 	// - https://github.com/moby/moby/issues/14336
 	// - https://github.com/moby/moby/issues/14210
 	// - https://github.com/moby/moby/pull/17738
-	//
-	// TODO(thaJeztah): we need to confirm if this special handling is still needed, as we may not be doing this in other places.
+	stdIn := cli.In()
 	if runtime.GOOS == "windows" {
-		cli.SetIn(streams.NewIn(os.Stdin))
+		// TODO(thaJeztah); change to io.Reader and skip wrapping once prompt.DisableInputEcho no longer requires a streams.In
+		stdIn = streams.NewIn(os.Stdin)
 	}
 
 	argUser = strings.TrimSpace(argUser)
@@ -132,7 +137,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 		}
 
 		var err error
-		argUser, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), msg)
+		argUser, err = prompt.ReadInput(ctx, stdIn, cli.Out(), msg)
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
@@ -146,7 +151,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 
 	isEmpty := strings.TrimSpace(argPassword) == ""
 	if isEmpty {
-		restoreInput, err := prompt.DisableInputEcho(cli.In())
+		restoreInput, err := prompt.DisableInputEcho(stdIn)
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
@@ -166,7 +171,7 @@ func PromptUserForCredentials(ctx context.Context, cli Cli, argUser, argPassword
 				"To create a PAT, visit " + aec.Underline.Apply("https://app.docker.com/settings") + "\n\n")
 		}
 
-		argPassword, err = prompt.ReadInput(ctx, cli.In(), cli.Out(), "Password: ")
+		argPassword, err = prompt.ReadInput(ctx, stdIn, cli.Out(), "Password: ")
 		if err != nil {
 			return registrytypes.AuthConfig{}, err
 		}
