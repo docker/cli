@@ -88,7 +88,6 @@ func runRm(ctx context.Context, dockerCLI command.Cli, opts *rmOptions) error {
 	for _, name := range opts.containers {
 		if err := <-errChan; err != nil {
 			if opts.force && errdefs.IsNotFound(err) {
-				_, _ = fmt.Fprintln(dockerCLI.Err(), err)
 				continue
 			}
 			errs = append(errs, err)

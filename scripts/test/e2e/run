@@ -26,7 +26,54 @@ setup() {
         export TEST_CONNHELPER_SSH_ID_RSA_PUB
         file="${file}:./e2e/compose-env.connhelper-ssh.yaml"
     fi
+    # Generate TLS certificates for the TLS-enabled private registry.
+    # The certs are baked into the tlsregistry and engine container images,
+    # so they must exist on disk before docker compose up --build.
+    # gen-certs.sh handles its own directory navigation.
+    certdir=e2e/testdata/registry/certs
+    missing=0
+    for f in ca.crt ca.key tlsregistry.crt tlsregistry.key; do
+        if [ ! -f "${certdir}/${f}" ]; then
+            missing=1
+            break
+        fi
+    done
+    if [ "$missing" -eq 1 ]; then
+        sh e2e/testdata/registry/certs/gen-certs.sh
+    fi
+
     COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker compose up --build -d >&2
+
+    # Ensure supporting services exist before running tests. If one fails to start,
+    # fail fast and surface logs instead of waiting on downstream DNS timeouts.
+    local deadline=$((SECONDS + 120))
+    while [ $SECONDS -lt $deadline ]; do
+        local ok=1
+        for svc in registry privateregistry tlsregistry engine; do
+            cid="$(COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker compose ps -q "$svc" 2>/dev/null || true)"
+            if [ -z "$cid" ]; then
+                ok=0
+                break
+            fi
+            if ! docker inspect -f '{{.State.Running}}' "$cid" 2>/dev/null | grep -q true; then
+                ok=0
+                break
+            fi
+        done
+        if [ "$ok" -eq 1 ]; then
+            break
+        fi
+        sleep 1
+    done
+    if [ $SECONDS -ge $deadline ]; then
+        echo "Timed out waiting for e2e services to start" >&2
+        COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker compose ps >&2 || true
+        for svc in registry privateregistry tlsregistry engine; do
+            echo "--- logs: $svc ---" >&2
+            COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker compose logs --no-color --tail=200 "$svc" >&2 || true
+        done
+        exit 1
+    fi
 
     local network="${project}_default"
     # TODO: only run if inside a container

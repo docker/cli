@@ -88,8 +88,18 @@ func Confirm(ctx context.Context, in io.Reader, out io.Writer, message string) (
 	_, _ = out.Write([]byte(message))
 
 	// On Windows, force the use of the regular OS stdin stream.
+	//
+	// StdStreams() may wrap stdin with windowsconsole.NewAnsiReader to
+	// emulate VT input on consoles that do not support it natively, but
+	// that wrapper has historically caused interactive prompts to hang
+	// or behave incorrectly.
+	//
+	// See:
+	// - https://github.com/moby/moby/issues/14336
+	// - https://github.com/moby/moby/issues/14210
+	// - https://github.com/moby/moby/pull/17738
 	if runtime.GOOS == "windows" {
-		in = streams.NewIn(os.Stdin)
+		in = os.Stdin
 	}
 
 	result := make(chan bool)

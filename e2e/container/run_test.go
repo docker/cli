@@ -209,7 +209,11 @@ func TestProcessTermination(t *testing.T) {
 
 	assert.NilError(t, result.Cmd.Process.Signal(syscall.SIGTERM))
 
-	icmd.WaitOnCmd(time.Second*10, result).Assert(t, icmd.Expected{
+	// Use a generous timeout (20s) because when run through SSH connhelper,
+	// the Docker engine may take longer to close the attach stream after
+	// the container exits. This is a known timing difference across engine
+	// versions (e.g. engine 25 over SSH connhelper).
+	icmd.WaitOnCmd(time.Second*20, result).Assert(t, icmd.Expected{
 		ExitCode: 0,
 	})
 }

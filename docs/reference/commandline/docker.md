@@ -431,7 +431,7 @@ a `docker` command. You can use the following protocols:
 
 | Scheme                                 | Description               | Example                          |
 |----------------------------------------|---------------------------|----------------------------------|
-| `unix://[<path>]`                      | Unix socket (Linux only)  | `unix:///var/run/docker.sock`    |
+| `unix://[<path>]`                      | Unix socket               | `unix:///var/run/docker.sock`    |
 | `tcp://[<IP or host>[:port]]`          | TCP connection            | `tcp://174.17.0.1:2376`          |
 | `ssh://[username@]<IP or host>[:port]` | SSH connection            | `ssh://user@192.168.64.5`        |
 | `npipe://[<name>]`                     | Named pipe (Windows only) | `npipe:////./pipe/docker_engine` |

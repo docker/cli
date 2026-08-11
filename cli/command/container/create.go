@@ -71,7 +71,7 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.SetInterspersed(false)
 
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
-	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "|`+PullImageMissing+`", "`+PullImageNever+`")`)
+	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before creating ("`+PullImageAlways+`", "`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 	flags.BoolVarP(&options.useAPISocket, "use-api-socket", "", false, "Bind mount Docker API socket and required auth")
 	_ = flags.SetAnnotation("use-api-socket", "experimentalCLI", nil) // Mark flag as experimental for now.

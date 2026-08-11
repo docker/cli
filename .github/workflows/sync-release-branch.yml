@@ -1,7 +1,7 @@
 name: Sync Docker release branch
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref_name }}
+  group: ${{ github.workflow }}-${{ inputs.release_branch }}
   cancel-in-progress: false
 
 permissions:
@@ -10,6 +10,10 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
+      release_branch:
+        description: Release branch to sync, for example 29.x
+        required: true
+        type: string
       tag:
         description: Tag to sync from, for example v29.6.0
         required: true
@@ -25,6 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      actions: write
     outputs:
       base_sha: ${{ steps.sync.outputs.base_sha }}
       has_changes: ${{ steps.sync.outputs.has_changes }}
@@ -33,16 +38,25 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Validate
         env:
           BRANCH: ${{ github.ref_name }}
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
         run: |
-          if [ "$BRANCH" = "master" ]; then
-            echo "::error::This workflow is expected to be run on a release branch, not master"
+          if [ "$BRANCH" != "master" ]; then
+            echo "::error::This workflow is expected to be run on master, not $BRANCH"
+            exit 1
+          fi
+          if [ "$RELEASE_BRANCH" = "master" ]; then
+            echo "::error::The release branch must not be master"
+            exit 1
+          fi
+          if ! [[ "$RELEASE_BRANCH" =~ ^[0-9]+\.[x0-9]+$ ]]; then
+            echo "::error::Invalid release branch name: '$RELEASE_BRANCH'. Expected format: 29.x"
             exit 1
           fi
 
@@ -55,7 +69,7 @@ jobs:
         id: sync
         env:
           DRY_RUN: ${{ inputs.dry_run }}
-          RELEASE_BRANCH: ${{ github.ref_name }}
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           RUN_ID: ${{ github.run_id }}
           TAG: ${{ inputs.tag }}
@@ -66,9 +80,14 @@ jobs:
           echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
           echo "temporary_branch=$temporary_branch" >> "$GITHUB_OUTPUT"
 
+          # Keep the master checkout unchanged so scripts run from the dispatched revision.
+          release_worktree="$RUNNER_TEMP/release-branch"
+          git worktree add --detach "$release_worktree" "$base_sha"
+          cd "$release_worktree"
+
           tags_file=$(mktemp)
-          scripts/unmerged-tags \
-            "$RELEASE_BRANCH" \
+          "$GITHUB_WORKSPACE/scripts/unmerged-tags" \
+            "origin/$RELEASE_BRANCH" \
             "$TAG" \
             > "$tags_file"
 
@@ -77,7 +96,7 @@ jobs:
           echo >> "$GITHUB_STEP_SUMMARY"
           sed 's/^/- /' "$tags_file" >> "$GITHUB_STEP_SUMMARY"
 
-          xargs -r scripts/sync-branch < "$tags_file" | tee -a "$GITHUB_STEP_SUMMARY"
+          xargs -r "$GITHUB_WORKSPACE/scripts/sync-branch" < "$tags_file" | tee -a "$GITHUB_STEP_SUMMARY"
 
           if [[ "$DRY_RUN" == "true" ]]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
@@ -101,17 +120,18 @@ jobs:
     environment: docker-releases
     permissions:
       contents: write
+      actions: write
     timeout-minutes: 10
     steps:
-      - name: Checkout release
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Push release branch
         env:
           BASE_SHA: ${{ needs.sync-release-branch.outputs.base_sha }}
-          RELEASE_BRANCH: ${{ github.ref_name }}
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
           TEMPORARY_BRANCH: ${{ needs.sync-release-branch.outputs.temporary_branch }}
           TEMPORARY_SHA: ${{ needs.sync-release-branch.outputs.temporary_sha }}
         run: |

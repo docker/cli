@@ -52,6 +52,7 @@ func TestRemoveForce(t *testing.T) {
 			} else {
 				assert.NilError(t, err)
 			}
+			assert.Equal(t, cli.ErrBuffer().String(), "")
 			sort.Strings(removed)
 			assert.DeepEqual(t, removed, []string{"mycontainer", "nosuchcontainer"})
 		})

@@ -8,6 +8,7 @@
 DOCKER_CLI_MOUNTS ?= -v "$(CURDIR)":/go/src/github.com/docker/cli
 DOCKER_CLI_CONTAINER_NAME ?=
 DOCKER_CLI_GO_BUILD_CACHE ?= y
+DOCKER_SOCK ?= $(or $(patsubst unix://%,%,$(filter unix://%,$(shell docker context inspect --format '{{.Endpoints.docker.Host}}'))),/var/run/docker.sock)
 
 # Sets the name of the company that produced the windows binary.
 PACKAGER_NAME ?=
@@ -62,7 +63,7 @@ dynbinary: ## build dynamically linked binary
 .PHONY: dev
 dev: build_docker_image ## start a build container in interactive mode for in-container development
 	$(DOCKER_RUN) -it \
-		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		--mount 'type=bind,src=$(DOCKER_SOCK),dst=/var/run/docker.sock' \
 		$(DEV_DOCKER_IMAGE_NAME)
 
 shell: dev ## alias for dev
@@ -134,14 +135,14 @@ test-e2e: test-e2e-local test-e2e-connhelper-ssh ## run all e2e tests
 test-e2e-local: build-e2e-image # run experimental e2e tests
 	docker run --rm $(ENVVARS) \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
-		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		--mount 'type=bind,src=$(DOCKER_SOCK),dst=/var/run/docker.sock' \
 		$(E2E_IMAGE_NAME)
 
 .PHONY: test-e2e-connhelper-ssh
 test-e2e-connhelper-ssh: build-e2e-image # run experimental SSH-connection helper e2e tests
 	docker run --rm $(ENVVARS) -e TEST_CONNHELPER=ssh \
 		--mount type=bind,src=$(CURDIR)/build/coverage,dst=/tmp/coverage \
-		--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+		--mount 'type=bind,src=$(DOCKER_SOCK),dst=/var/run/docker.sock' \
 		$(E2E_IMAGE_NAME)
 
 .PHONY: help
