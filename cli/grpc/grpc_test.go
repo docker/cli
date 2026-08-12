@@ -102,6 +102,59 @@ func TestDialNative(t *testing.T) {
 	assert.Check(t, !apiClient.hijackCalled.Load())
 }
 
+// startHTTP1Server answers any connection with a plain HTTP/1.1 response,
+// standing in for an intermediary that does not relay HTTP/2 (e.g. Docker
+// Desktop's API proxy).
+func startHTTP1Server(t *testing.T) string {
+	t.Helper()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	assert.NilError(t, err)
+	go func() {
+		for {
+			conn, err := l.Accept()
+			if err != nil {
+				return
+			}
+			go func(c net.Conn) {
+				buf := make([]byte, 1024)
+				_, _ = c.Read(buf)
+				_, _ = c.Write([]byte("HTTP/1.1 505 HTTP Version Not Supported\r\nContent-Length: 0\r\n\r\n"))
+				_ = c.Close()
+			}(conn)
+		}
+	}()
+	t.Cleanup(func() { _ = l.Close() })
+	return l.Addr().String()
+}
+
+func TestDialNativeFallsBackToLegacy(t *testing.T) {
+	// The daemon advertises native support but an HTTP/1.1-only intermediary
+	// sits on the endpoint: the probe fails at transport level and the
+	// connection falls back to the legacy upgrade endpoint.
+	http1Addr := startHTTP1Server(t)
+	grpcAddr := startServer(t)
+	apiClient := &fakeAPIClient{
+		apiVersion: "1.53",
+		dialer: func(context.Context) (net.Conn, error) {
+			return net.Dial("tcp", http1Addr)
+		},
+		hijack: func(context.Context, string, string, map[string][]string) (net.Conn, error) {
+			return net.Dial("tcp", grpcAddr)
+		},
+	}
+
+	conn, err := Dial(t.Context(), apiClient, docker.Endpoint{
+		EndpointMeta: docker.EndpointMeta{Host: "unix:///var/run/docker.sock"},
+	})
+	assert.NilError(t, err)
+	defer conn.Close()
+
+	checkHealth(t, conn)
+	assert.Check(t, apiClient.dialerCalled.Load())
+	assert.Check(t, apiClient.hijackCalled.Load())
+	assert.Check(t, is.Equal(apiClient.hijackURL, "/grpc"))
+}
+
 func TestDialLegacy(t *testing.T) {
 	for _, apiVersion := range []string{"", "1.52"} {
 		t.Run("api-version-"+apiVersion, func(t *testing.T) {

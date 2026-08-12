@@ -11,10 +11,12 @@
 // [Connect] hides those transport details: it returns a [grpc.ClientConn]
 // reaching the daemon, whatever the transport of the current endpoint (unix
 // or npipe socket, tcp with or without TLS, or a connection helper such as
-// ssh://), falling back to the legacy upgrade endpoint for older daemons.
-// Note that the legacy endpoint only exposes the daemon's built-in gRPC
-// services: services published by daemon extensions require a daemon serving
-// gRPC natively.
+// ssh://), falling back to the legacy upgrade endpoint for older daemons —
+// or when an intermediary between the client and the daemon does not relay
+// HTTP/2 even though the daemon's API version advertises native support
+// (Docker Desktop's API proxy, at the time of writing). Note that the legacy
+// endpoint only exposes the daemon's built-in gRPC services: services
+// published by daemon extensions require a daemon serving gRPC natively.
 package grpc
 
 import (
@@ -29,8 +31,11 @@ import (
 	"github.com/moby/moby/client"
 	"github.com/moby/moby/client/pkg/versions"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 )
 
 // nativeAPIVersion is the minimum API version where the daemon serves gRPC
@@ -87,9 +92,9 @@ func WithDialOptions(opts ...grpc.DialOption) Opt {
 }
 
 // Connect returns a gRPC client connection to the daemon of dockerCLI's
-// current endpoint. ctx is only used to query the daemon's API version; the
-// returned connection is lazy: it is not bound to ctx, and is only
-// established when the first RPC is made.
+// current endpoint. ctx bounds the daemon API version query and the probing
+// of native connections; the returned connection is not bound to it, and
+// behaves lazily afterwards.
 func Connect(ctx context.Context, dockerCLI DockerCLI, opts ...Opt) (*grpc.ClientConn, error) {
 	return Dial(ctx, dockerCLI.Client(), dockerCLI.DockerEndpoint(), opts...)
 }
@@ -105,9 +110,32 @@ func Dial(ctx context.Context, apiClient APIClient, ep docker.Endpoint, opts ...
 		return nil, fmt.Errorf("establishing gRPC connection to the daemon: %w", err)
 	}
 	if ping.APIVersion != "" && !versions.LessThan(ping.APIVersion, nativeAPIVersion) {
-		return dialNative(apiClient, ep, &cfg)
+		conn, err := dialNative(apiClient, ep, &cfg)
+		if err != nil {
+			return nil, err
+		}
+		if probeTransport(ctx, conn) == nil {
+			return conn, nil
+		}
+		// The daemon's API version advertises native gRPC support but the
+		// transport doesn't get through: an intermediary between the client
+		// and the daemon (Docker Desktop's API proxy, at the time of writing)
+		// may not relay HTTP/2. Fall back to the legacy upgrade endpoint.
+		_ = conn.Close()
 	}
 	return dialLegacy(apiClient, &cfg)
+}
+
+// probeTransport verifies conn actually reaches an HTTP/2 server. Any
+// RPC-level outcome — including Unimplemented from a daemon not serving the
+// health service — proves the transport; only transport-level failures
+// (codes.Unavailable) are reported.
+func probeTransport(ctx context.Context, conn *grpc.ClientConn) error {
+	_, err := healthpb.NewHealthClient(conn).Check(ctx, &healthpb.HealthCheckRequest{})
+	if status.Code(err) == codes.Unavailable {
+		return err
+	}
+	return nil
 }
 
 // dialNative connects to a daemon serving gRPC natively on its API endpoint:
