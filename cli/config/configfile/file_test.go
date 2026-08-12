@@ -15,6 +15,20 @@ import (
 	"gotest.tools/v3/golden"
 )
 
+func TestGetAuthConfigKey(t *testing.T) {
+	tests := map[string]string{
+		"MyRegistry.Example.com": "myregistry.example.com",
+		"DOCKER.IO":              authConfigKey,
+		"Index.Docker.IO":        authConfigKey,
+	}
+
+	for domainName, expected := range tests {
+		t.Run(domainName, func(t *testing.T) {
+			assert.Equal(t, getAuthConfigKey(domainName), expected)
+		})
+	}
+}
+
 func TestEncodeAuth(t *testing.T) {
 	newAuthConfig := &types.AuthConfig{Username: "ken", Password: "test"}
 	authStr := encodeAuth(newAuthConfig)
