@@ -30,7 +30,7 @@ type fakeAPIClient struct {
 	pingErr    error
 
 	dialer func(context.Context) (net.Conn, error)
-	hijack func(ctx context.Context, url, proto string, meta map[string][]string) (net.Conn, error)
+	hijack func(ctx context.Context, path, proto string, meta map[string][]string) (net.Conn, error)
 
 	dialerCalled atomic.Bool
 	hijackCalled atomic.Bool
@@ -50,12 +50,12 @@ func (f *fakeAPIClient) Dialer() func(context.Context) (net.Conn, error) {
 	}
 }
 
-func (f *fakeAPIClient) DialHijack(ctx context.Context, url, proto string, meta map[string][]string) (net.Conn, error) {
+func (f *fakeAPIClient) DialHijack(ctx context.Context, path, proto string, meta map[string][]string) (net.Conn, error) {
 	f.hijackCalled.Store(true)
-	f.hijackURL = url
+	f.hijackURL = path
 	f.hijackProto = proto
 	f.hijackMeta = meta
-	return f.hijack(ctx, url, proto, meta)
+	return f.hijack(ctx, path, proto, meta)
 }
 
 // startServer serves a gRPC health service on a loopback tcp socket, standing

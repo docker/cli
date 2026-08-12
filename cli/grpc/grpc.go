@@ -51,7 +51,7 @@ const dummyTarget = "docker-engine"
 type APIClient interface {
 	Ping(ctx context.Context, options client.PingOptions) (client.PingResult, error)
 	Dialer() func(context.Context) (net.Conn, error)
-	DialHijack(ctx context.Context, url, proto string, meta map[string][]string) (net.Conn, error)
+	DialHijack(ctx context.Context, path, proto string, meta map[string][]string) (net.Conn, error)
 }
 
 // DockerCLI is the subset of the docker CLI (command.Cli) needed to establish
