@@ -586,3 +586,64 @@ func TestMountOptSetBindRecursive(t *testing.T) {
 		}, m.Value()))
 	})
 }
+
+func TestMountOptSetBindIDMap(t *testing.T) {
+	tests := []struct {
+		value  string
+		exp    *mount.IDMapping
+		expErr string
+	}{
+		{
+			value: "bind-idmap",
+			exp:   &mount.IDMapping{Source: mount.IDMappingSourceMatchUser},
+		},
+		{
+			value: "bind-idmap=match-user",
+			exp:   &mount.IDMapping{Source: mount.IDMappingSourceMatchUser},
+		},
+		{
+			value: "bind-idmap=match-user:nginx",
+			exp:   &mount.IDMapping{Source: mount.IDMappingSourceMatchUser, User: "nginx"},
+		},
+		{
+			value: "bind-idmap=match-user:1234:5678",
+			exp:   &mount.IDMapping{Source: mount.IDMappingSourceMatchUser, User: "1234:5678"},
+		},
+		{
+			value: "bind-idmap=userns",
+			exp:   &mount.IDMapping{Source: mount.IDMappingSourceUserns},
+		},
+		{
+			value:  "bind-idmap=userns:nginx",
+			expErr: `invalid value for 'bind-idmap': "userns:nginx" ("userns" does not take a user)`,
+		},
+		{
+			value:  "bind-idmap=match-user:",
+			expErr: `invalid value for 'bind-idmap': "match-user:" (empty user after "match-user:")`,
+		},
+		{
+			value:  "bind-idmap=auto",
+			expErr: `invalid value for 'bind-idmap': "auto" (must be "match-user", "match-user:USER", or "userns")`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.value, func(t *testing.T) {
+			var m MountOpt
+			err := m.Set("type=bind,source=/foo,target=/bar," + tc.value)
+			if tc.expErr != "" {
+				assert.Error(t, err, tc.expErr)
+				return
+			}
+			assert.NilError(t, err)
+			assert.Assert(t, m.values[0].BindOptions != nil)
+			assert.Check(t, is.DeepEqual(m.values[0].BindOptions.IDMapping, tc.exp))
+		})
+	}
+
+	t.Run("not a bind mount", func(t *testing.T) {
+		var m MountOpt
+		err := m.Set("type=volume,source=foo,target=/bar,bind-idmap")
+		assert.Error(t, err, "cannot mix 'bind-*' options with mount type 'volume'")
+	})
+}
