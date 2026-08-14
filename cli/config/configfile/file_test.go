@@ -481,6 +481,80 @@ func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	}
 }
 
+func TestDockerHubAuthConfigAliases(t *testing.T) {
+	t.Run("config file aliases normalize to the canonical Docker Hub key", func(t *testing.T) {
+		configFile := New("test-load-dockerhub")
+		defer os.Remove("test-load-dockerhub")
+
+		cf := ConfigFile{
+			AuthConfigs: map[string]types.AuthConfig{
+				"docker.io": {
+					Username: "user",
+					Password: "pass",
+				},
+			},
+		}
+
+		b, err := json.Marshal(cf)
+		assert.NilError(t, err)
+
+		err = configFile.LoadFromReader(bytes.NewReader(b))
+		assert.NilError(t, err)
+
+		got, err := configFile.GetAuthConfig("index.docker.io")
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(got.Username, "user"))
+		assert.Check(t, is.Equal(got.Password, "pass"))
+		_, ok := configFile.AuthConfigs[authConfigKey]
+		assert.Check(t, ok)
+	})
+
+	t.Run("manually populated auth maps accept Docker Hub aliases", func(t *testing.T) {
+		configFile := &ConfigFile{
+			AuthConfigs: map[string]types.AuthConfig{
+				"docker.io": {
+					Username: "user",
+					Password: "pass",
+				},
+			},
+		}
+
+		got, err := configFile.GetAuthConfig("index.docker.io")
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(got.Username, "user"))
+		assert.Check(t, is.Equal(got.Password, "pass"))
+	})
+
+	t.Run("DOCKER_AUTH_CONFIG aliases normalize to the canonical Docker Hub key", func(t *testing.T) {
+		config := &ConfigFile{}
+		t.Setenv("DOCKER_AUTH_CONFIG", `{"auths":{"docker.io":{"auth":"dXNlcjpwYXNz"}}}`)
+
+		authConfigs, err := config.GetAllCredentials()
+		assert.NilError(t, err)
+		expected := map[string]types.AuthConfig{
+			authConfigKey: {
+				Username:      "user",
+				Password:      "pass",
+				ServerAddress: authConfigKey,
+			},
+		}
+		assert.Check(t, is.DeepEqual(authConfigs, expected))
+
+		got, err := config.GetAuthConfig("docker.io")
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(got, expected[authConfigKey]))
+	})
+
+	t.Run("credential helper aliases resolve to the canonical Docker Hub key", func(t *testing.T) {
+		config := &ConfigFile{
+			CredentialHelpers: map[string]string{
+				"docker.io": "docker-credential-dummy",
+			},
+		}
+		assert.Check(t, is.Equal(getConfiguredCredentialStore(config, authConfigKey), "docker-credential-dummy"))
+	})
+}
+
 const envTestUserPassConfig = `{
 	"auths": {
 		"env.example.test": {
