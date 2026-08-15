@@ -127,7 +127,7 @@ func TestValidatePorts(t *testing.T) {
 				},
 			}
 			if tc.hasError {
-				assert.ErrorContains(t, Validate(config, "3"), "services.foo.ports.0 Does not match format 'ports'")
+				assert.ErrorContains(t, Validate(config, "3"), "is not valid ports")
 			} else {
 				assert.NilError(t, Validate(config, "3"))
 			}
@@ -146,7 +146,7 @@ func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	}
 
 	err := Validate(config, "3.0")
-	assert.ErrorContains(t, err, "Additional property helicopters is not allowed")
+	assert.ErrorContains(t, err, "additional property 'helicopters' is not allowed")
 }
 
 func TestValidateAllowsXTopLevelFields(t *testing.T) {
@@ -230,7 +230,7 @@ func TestValidateCredentialSpecs(t *testing.T) {
 			}
 			err := Validate(config, tc.version)
 			if tc.expectedErr != "" {
-				assert.ErrorContains(t, err, fmt.Sprintf("Additional property %s is not allowed", tc.expectedErr))
+				assert.ErrorContains(t, err, fmt.Sprintf("additional property '%s' is not allowed", tc.expectedErr))
 			} else {
 				assert.NilError(t, err)
 			}
