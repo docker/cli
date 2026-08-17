@@ -208,52 +208,70 @@ func TestInitializeFromClient(t *testing.T) {
 // Makes sure we don't hang forever on the initial connection.
 // https://github.com/docker/cli/issues/3652
 func TestInitializeFromClientHangs(t *testing.T) {
+	const (
+		// Sized against measured scheduler stalls:
+		// under CPU pressure this test sees 40-90ms stalls;
+		// this should give about 5x headroom.
+		// See https://github.com/docker/cli/issues/6003.
+		clientInitTimeout = 500 * time.Millisecond
+
+		// This is only a backstop against a genuine hang.
+		// It should never be reached on a healthy run.
+		// So, it should be fine to have a lenient timeout here.
+		waitTimeout = 10 * time.Second
+	)
+
 	tmpDir := t.TempDir()
 	socket := filepath.Join(tmpDir, "my.sock")
 	l, err := net.Listen("unix", socket)
 	assert.NilError(t, err)
 
-	receiveReqCh := make(chan bool)
-	timeoutCtx, cancel := context.WithTimeout(context.TODO(), time.Second)
-	defer cancel()
+	// Buffered, so the handler can record
+	// that it was reached without a reader
+	// having to be ready at that instant.
+	receivedReqCh := make(chan struct{}, 1)
+	releaseHandlerCh := make(chan struct{})
 
 	// Simulate a server that hangs on connections.
 	ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
-		case <-timeoutCtx.Done():
-		case receiveReqCh <- true: // Blocks until someone receives on the channel.
+		case receivedReqCh <- struct{}{}:
+		default:
 		}
-		_, _ = w.Write([]byte("OK"))
+		<-releaseHandlerCh
 	}))
 	ts.Listener = l
 	ts.Start()
-	defer ts.Close()
+	t.Cleanup(func() {
+		close(releaseHandlerCh)
+		ts.Close()
+	})
 
 	opts := &flags.ClientOptions{Hosts: []string{"unix://" + socket}}
 	configFile := &configfile.ConfigFile{}
 	apiClient, err := NewAPIClientFromFlags(opts, configFile)
 	assert.NilError(t, err)
 
-	initializedCh := make(chan bool)
+	initErrCh := make(chan error, 1)
 
 	go func() {
-		cli := &DockerCli{client: apiClient, initTimeout: time.Millisecond}
+		cli := &DockerCli{client: apiClient, initTimeout: clientInitTimeout}
 		err := cli.Initialize(flags.NewClientOptions())
-		assert.Check(t, err)
 		cli.CurrentVersion()
-		close(initializedCh)
+		initErrCh <- err
 	}()
 
 	select {
-	case <-timeoutCtx.Done():
+	case err := <-initErrCh:
+		assert.Check(t, err)
+	case <-time.After(waitTimeout):
 		t.Fatal("timeout waiting for initialization to complete")
-	case <-initializedCh:
 	}
 
 	select {
-	case <-timeoutCtx.Done():
+	case <-receivedReqCh:
+	case <-time.After(waitTimeout):
 		t.Fatal("server never received an init request")
-	case <-receiveReqCh:
 	}
 }
 
