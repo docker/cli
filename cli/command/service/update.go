@@ -372,6 +372,18 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 		updateInt64Value(flagReserveMemory, &task.Resources.Reservations.MemoryBytes)
 	}
 
+	if anyChanged(flags, flagSwapBytes, flagMemSwappiness) {
+		taskResources()
+		if flags.Changed(flagSwapBytes) {
+			swapBytes := flags.Lookup(flagSwapBytes).Value.(*opts.MemBytes).Value()
+			task.Resources.SwapBytes = &swapBytes
+		}
+		if flags.Changed(flagMemSwappiness) {
+			memSwappiness, _ := flags.GetInt64(flagMemSwappiness)
+			task.Resources.MemorySwappiness = &memSwappiness
+		}
+	}
+
 	if anyChanged(flags, flagOomScoreAdj) {
 		updateInt64(flagOomScoreAdj, &task.ContainerSpec.OomScoreAdj)
 	}
