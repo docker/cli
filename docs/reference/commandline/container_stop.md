@@ -55,7 +55,12 @@ with a `SIGKILL` signal.
 If you set `--timeout` to `-1`, no timeout is applied, and the daemon
 waits indefinitely for the container to exit.
 
-The default timeout can be specified using the [`--stop-timeout`](https://docs.docker.com/reference/cli/docker/container/run/#stop-timeout)
-option when creating the container. If no default is configured for the container,
-the Daemon determines the default, and is 10 seconds for Linux containers, and
-30 seconds for Windows containers.
+`--timeout 0` is not the same as omitting the flag. It skips the graceful
+wait and sends `SIGKILL` immediately. The `0` in the options table is
+the flag's zero value; it is not the daemon default.
+
+If you omit `--timeout`, the CLI does not send a timeout. The daemon
+then uses the container's [`--stop-timeout`](https://docs.docker.com/reference/cli/docker/container/run/#stop-timeout)
+if one was set, otherwise the daemon-wide
+[`default-stop-timeout`](https://docs.docker.com/reference/cli/dockerd/#default-container-stop-timeout)
+(10 seconds on Linux, 30 seconds on Windows).
