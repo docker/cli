@@ -14,8 +14,9 @@ import (
 // TestLogoutRemovesCredentialsStoredByLogin verifies that logging out with the
 // same argument that was used to log in removes the stored credentials.
 //
-// "docker.io" is normalized to [registry.IndexServer] when logging in, so
-// logout must apply the same normalization to find the entry again.
+// Credentials for the default registry are stored under
+// [registry.IndexServer] regardless of the spelling passed to "docker login",
+// so logout has to look for that key as well to find them again.
 func TestLogoutRemovesCredentialsStoredByLogin(t *testing.T) {
 	for _, serverAddress := range []string{
 		"",
