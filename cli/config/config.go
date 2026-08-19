@@ -136,6 +136,24 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 
 	file, err := os.Open(filename)
 	if err != nil {
+		// The config-directory must be a directory. If it is a regular file
+		// (for example, when DOCKER_CONFIG or --config points at the config
+		// file itself instead of the directory holding it), opening the file
+		// fails with a platform-specific error; ENOTDIR on unix, and a
+		// "not exist" error on Windows. Detect that situation here, so that
+		// we consistently report the actual problem instead of either
+		// silently ignoring it, or producing an error for a path that
+		// does not exist.
+		//
+		// The check must come before the [os.IsNotExist] branch below, as
+		// the Windows error satisfies it. The underlying error is not
+		// wrapped for the same reason: it would still satisfy
+		// [errors.Is](err, [fs.ErrNotExist]) on Windows, making this
+		// misconfiguration indistinguishable from "no config file present"
+		// for callers that check for it.
+		if fi, statErr := os.Stat(configDir); statErr == nil && !fi.IsDir() {
+			return configFile, fmt.Errorf("loading config file: config directory (%s) is not a directory", configDir)
+		}
 		if os.IsNotExist(err) {
 			// It is OK for no configuration file to be present, in which
 			// case we return a default struct.
