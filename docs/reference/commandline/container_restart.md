@@ -12,7 +12,7 @@ Restart one or more containers
 | Name                                      | Type     | Default | Description                                  |
 |:------------------------------------------|:---------|:--------|:---------------------------------------------|
 | [`-s`](#signal), [`--signal`](#signal)    | `string` |         | Signal to send to the container              |
-| [`-t`](#timeout), [`--timeout`](#timeout) | `int`    | `0`     | Seconds to wait before killing the container |
+| [`-t`](#timeout), [`--timeout`](#timeout) | `int`    |         | Seconds to wait before killing the container |
 
 
 <!---MARKER_GEN_END-->
@@ -50,8 +50,7 @@ If you set `--timeout` to `-1`, no timeout is applied, and the daemon
 waits indefinitely for the container to exit.
 
 `--timeout 0` is not the same as omitting the flag. It skips the graceful
-wait and sends `SIGKILL` immediately. The `0` in the options table is
-the flag's zero value; it is not the daemon default.
+wait and sends `SIGKILL` immediately.
 
 If you omit `--timeout`, the CLI does not send a timeout. The daemon
 then uses the container's [`--stop-timeout`](https://docs.docker.com/reference/cli/docker/container/run/#stop-timeout)
