@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -19,11 +20,12 @@ import (
 
 // StartOptions group options for `start` command
 type StartOptions struct {
-	Attach        bool
-	OpenStdin     bool
-	DetachKeys    string
-	Checkpoint    string
-	CheckpointDir string
+	Attach              bool
+	OpenStdin           bool
+	DetachKeys          string
+	Checkpoint          string
+	CheckpointDir       string
+	StartHealthyTimeout time.Duration
 
 	Containers []string
 }
@@ -53,6 +55,7 @@ func newStartCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVarP(&opts.Attach, "attach", "a", false, "Attach STDOUT/STDERR and forward signals")
 	flags.BoolVarP(&opts.OpenStdin, "interactive", "i", false, "Attach container's STDIN")
 	flags.StringVar(&opts.DetachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
+	flags.DurationVar(&opts.StartHealthyTimeout, "start-healthy-timeout", 0, "Maximum time to wait for the containers to become healthy before returning, not allowed with --attach or --interactive (ms|s|m|h) (default 0s)")
 
 	flags.StringVar(&opts.Checkpoint, "checkpoint", "", "Restore from this checkpoint")
 	flags.SetAnnotation("checkpoint", "experimental", nil)
@@ -76,6 +79,17 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 	}
 	if err := validateDetachKeys(detachKeys); err != nil {
 		return err
+	}
+
+	// Waiting for a container to become healthy only makes sense if the CLI
+	// does not stay attached to it. "docker start" has no "--detach" option
+	// as running in the background is its default, so the option requires
+	// that attaching was not requested.
+	switch {
+	case opts.StartHealthyTimeout < 0:
+		return errors.New("--start-healthy-timeout cannot be negative")
+	case opts.StartHealthyTimeout > 0 && (opts.Attach || opts.OpenStdin):
+		return errors.New("--start-healthy-timeout cannot be combined with --attach or --interactive")
 	}
 
 	switch {
@@ -190,15 +204,21 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			CheckpointID:  opts.Checkpoint,
 			CheckpointDir: opts.CheckpointDir,
 		})
-		return err
+		if err != nil {
+			return err
+		}
+		if opts.StartHealthyTimeout > 0 {
+			return waitForHealthy(ctx, dockerCli.Client(), opts.StartHealthyTimeout, ctr)
+		}
+		return nil
 	default:
 		// We're not going to attach to anything.
 		// Start as many containers as we want.
-		return startContainersWithoutAttachments(ctx, dockerCli, opts.Containers)
+		return startContainersWithoutAttachments(ctx, dockerCli, opts.Containers, opts.StartHealthyTimeout)
 	}
 }
 
-func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cli, containers []string) error {
+func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cli, containers []string, startHealthyTimeout time.Duration) error {
 	var failedContainers []string
 	for _, ctr := range containers {
 		if _, err := dockerCli.Client().ContainerStart(ctx, ctr, client.ContainerStartOptions{}); err != nil {
@@ -211,6 +231,11 @@ func startContainersWithoutAttachments(ctx context.Context, dockerCli command.Cl
 
 	if len(failedContainers) > 0 {
 		return fmt.Errorf("failed to start containers: %s", strings.Join(failedContainers, ", "))
+	}
+	if startHealthyTimeout > 0 {
+		// Timing out deliberately does not stop the containers; they are left
+		// running for the user to inspect.
+		return waitForHealthy(ctx, dockerCli.Client(), startHealthyTimeout, containers...)
 	}
 	return nil
 }
