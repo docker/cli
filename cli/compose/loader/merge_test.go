@@ -281,6 +281,58 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 			},
 		},
 		{
+			name: "same_published_different_protocol",
+			portBase: map[string]any{
+				"ports": []any{
+					"443:443",
+					"443:443/udp",
+				},
+			},
+			portOverride: map[string]any{},
+			expected: []types.ServicePortConfig{
+				{
+					Mode:      "ingress",
+					Published: 443,
+					Target:    443,
+					Protocol:  "tcp",
+				},
+				{
+					Mode:      "ingress",
+					Published: 443,
+					Target:    443,
+					Protocol:  "udp",
+				},
+			},
+		},
+		{
+			name: "override_same_published_different_protocol",
+			portBase: map[string]any{
+				"ports": []any{
+					"443:443",
+					"443:443/udp",
+				},
+			},
+			portOverride: map[string]any{
+				"ports": []any{
+					"443:8443/udp",
+				},
+			},
+			expected: []types.ServicePortConfig{
+				{
+					Mode:      "ingress",
+					Published: 443,
+					Target:    443,
+					Protocol:  "tcp",
+				},
+				{
+					Mode:      "ingress",
+					Published: 443,
+					Target:    8443,
+					Protocol:  "udp",
+				},
+			},
+		},
+		{
 			name: "override_same_published",
 			portBase: map[string]any{
 				"ports": []any{
