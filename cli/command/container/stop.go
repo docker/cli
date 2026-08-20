@@ -46,9 +46,14 @@ func newStopCommand(dockerCLI command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.signal, "signal", "s", "", "Signal to send to the container")
 	flags.IntVarP(&opts.timeout, "timeout", "t", 0, "Seconds to wait before killing the container")
+	// 0 is only the Go zero value. Omitting the flag leaves timeout unset
+	// so the daemon uses the container or daemon default. Hide "0" from
+	// --help / generated docs (pflag already omits it in usage).
+	flags.Lookup("timeout").DefValue = ""
 
 	// The --time option is deprecated, but kept for backward compatibility.
 	flags.IntVar(&opts.timeout, "time", 0, "Seconds to wait before killing the container (deprecated: use --timeout)")
+	flags.Lookup("time").DefValue = ""
 	_ = flags.MarkDeprecated("time", "use --timeout instead")
 
 	_ = cmd.RegisterFlagCompletionFunc("signal", completeSignals)
