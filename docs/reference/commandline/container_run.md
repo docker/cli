@@ -1370,7 +1370,21 @@ $ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
 | `stack`      | Maximum stack size (`RLIMIT_STACK`)                       |
 
 Docker sends the values to the appropriate OS `syscall` and doesn't perform any byte conversion.
-Take this into account when setting the values.
+For limits that describe a size, such as `memlock`, `data`, and `fsize`, values
+are in bytes, following the semantics of the Linux `setrlimit(2)` syscall.
+Values must be plain integers, and don't support unit suffixes such as `k`,
+`m`, or `g`.
+
+> [!NOTE]
+> The `ulimit` shell builtin reports some of these limits in different units.
+> For example, `ulimit -l` reports the `memlock` limit in kilobytes, so a limit
+> of 64 MiB set with `--ulimit memlock=67108864:67108864` is reported as
+> `65536`:
+>
+> ```console
+> $ docker run --ulimit memlock=67108864:67108864 --rm debian sh -c "ulimit -l"
+> 65536
+> ```
 
 #### For `nproc` usage
 

@@ -740,7 +740,15 @@ any options, the systems uses the following options:
    Without this argument the command will be run as root in the container.
 
 **--ulimit**=[]
-    Ulimit options
+   Ulimit options, in the format `<type>=<soft limit>[:<hard limit>]`, for
+   example `--ulimit nofile=1024:1024`.
+
+   Limits that describe a size, such as `memlock`, `data`, and `fsize`, are
+   specified in bytes, as used by the Linux setrlimit(2) syscall. Values must
+   be plain integers, and don't support unit suffixes such as `k`, `m`, or
+   `g`. Note that the `ulimit` builtin of the shell reports some of these
+   limits in different units, for example, `ulimit -l` reports the `memlock`
+   limit in kilobytes.
 
 **-v**|**--volume**[=*[[HOST-DIR:]CONTAINER-DIR[:OPTIONS]]*]
    Create a bind mount. If you specify, ` -v /HOST-DIR:/CONTAINER-DIR`, Docker
