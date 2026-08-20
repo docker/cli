@@ -11,9 +11,17 @@ ContainerSpec:
 Configs:
  Target:	/configtest.conf
   Source:	configtest.conf
+  ID:		mtc3i44r1awdoziy2iceg73z8
+  UID:		
+  GID:		
+  Mode:		----------
 Secrets:
  Target:	/secrettest.conf
   Source:	secrettest.conf
+  ID:		3hv39ehbbb4hdozo7spod9ftn
+  UID:		
+  GID:		
+  Mode:		----------
 Log Driver:
  Name:		driver
  LogOpts:
