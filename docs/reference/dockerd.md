@@ -51,6 +51,7 @@ Options:
       --default-network-opt mapmap            Default network options (default map[])
       --default-runtime string                Default OCI runtime for containers (default "runc")
       --default-shm-size bytes                Default shm size for containers (default 64MiB)
+      --default-stop-timeout int              Default stop timeout for containers without --stop-timeout (default 10; 30 on Windows)
       --default-ulimit ulimit                 Default ulimits for containers (default [])
       --dns list                              DNS server to use
       --dns-opt list                          DNS options to use
@@ -758,6 +759,24 @@ This only adds the proxy and authentication to the Docker daemon's requests.
 To use the proxy when building images and running containers, see
 [Configure Docker to use a proxy server](https://docs.docker.com/engine/cli/proxy/)
 
+### Default container stop timeout
+
+The `--default-stop-timeout` flag (or `default-stop-timeout` in
+`daemon.json`) sets how long the daemon waits when stopping a container
+that has no container-specific timeout. The platform defaults are 10
+seconds on Linux and 30 seconds on Windows.
+
+This is the fallback for `docker stop` / `docker restart` when you omit
+`--timeout`, and for containers created without `--stop-timeout`. A
+value of `0` skips the graceful wait and sends `SIGKILL` immediately.
+Negative values are rejected.
+
+It is not the same as [`shutdown-timeout`](#configuration-reload-behavior),
+which is how long the daemon itself waits when it is shutting down.
+
+Reloading the daemon picks up a new `default-stop-timeout` for existing
+containers that still have no explicit timeout.
+
 ### Default `ulimit` settings
 
 The `--default-ulimit` flag lets you set the default `ulimit` options to use for
@@ -1104,6 +1123,7 @@ The following is a full example of the allowed configuration options on Linux:
   "default-network-opts": {},
   "default-runtime": "runc",
   "default-shm-size": "64M",
+  "default-stop-timeout": 10,
   "default-ulimits": {
     "nofile": {
       "Hard": 64000,
@@ -1225,6 +1245,7 @@ The following is a full example of the allowed configuration options on Windows:
   "debug": true,
   "default-network-opts": {},
   "default-runtime": "",
+  "default-stop-timeout": 30,
   "default-ulimits": {},
   "dns": [],
   "dns-opts": [],
@@ -1322,6 +1343,7 @@ The list of currently supported options that can be reconfigured is this:
 | `insecure-registries`              | Specifies a list of registries that the daemon should consider insecure.                                    |
 | `registry-mirrors`                 | Specifies a list of registry mirrors.                                                                       |
 | `shutdown-timeout`                 | Configures the daemon's existing configuration timeout with a new timeout for shutting down all containers. |
+| `default-stop-timeout`             | Fallback stop timeout, in seconds, for containers that have no container-specific timeout.                  |
 | `features`                         | Enables or disables specific features.                                                                      |
 
 ### Run multiple daemons
