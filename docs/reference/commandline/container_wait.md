@@ -14,6 +14,10 @@ Block until one or more containers stop, then print their exit codes
 > `docker wait` returns `0` when run against a container which had already
 > exited before the `docker wait` command was run.
 
+With more than one container, `docker wait` handles them in argument
+order: it waits for the first to stop, prints that exit code, then
+moves on to the next. Exit codes are one per line.
+
 ## Examples
 
 Start a container in the background.
