@@ -89,13 +89,20 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 		return err
 	}
 
-	if err := dockerCLI.In().CheckTty(!opts.NoStdin, c.Config.Tty); err != nil {
-		return err
+	attachStdin := !opts.NoStdin
+	if attachStdin {
+		// TODO(thaJeztah): should this also check if c.Config.OpenStdin is true, and produce an error otherwise?
+		if !c.Config.Tty {
+			return errors.New("cannot attach stdin because the container is not a TTY-enabled container")
+		}
+		if !dockerCLI.In().IsTerminal() {
+			return errors.New("cannot attach stdin because stdin is not a terminal")
+		}
 	}
 
 	options := client.ContainerAttachOptions{
 		Stream:     true,
-		Stdin:      !opts.NoStdin && c.Config.OpenStdin,
+		Stdin:      attachStdin && c.Config.OpenStdin,
 		Stdout:     true,
 		Stderr:     true,
 		DetachKeys: detachKeys,
