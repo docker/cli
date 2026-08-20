@@ -261,7 +261,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
 		}
 	default:
-		return fmt.Errorf("unable to prepare context: path %q not found", options.context)
+		return fmt.Errorf("build context %q is not a supported form: expected '-' for stdin, an existing directory, a Git URL, or an HTTP(S) URL", options.context)
 	}
 
 	// read from a directory into tar archive
@@ -356,7 +356,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	aux := func(msg jsonstream.JSONMessage) {
 		var result buildtypes.Result
 		if err := json.Unmarshal(*msg.Aux, &result); err != nil {
-			_, _ = fmt.Fprintf(dockerCli.Err(), "Failed to parse aux message: %s", err)
+			_, _ = fmt.Fprintf(dockerCli.Err(), "could not read image ID from daemon response; the image was built, but --iidfile and -q output will be empty: %s", err)
 		} else {
 			imageID = result.ID
 		}
@@ -373,7 +373,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 			if options.quiet {
 				_, _ = fmt.Fprintf(dockerCli.Err(), "%s%s", progBuff, buildBuff)
 			}
-			return cli.StatusError{Status: jerr.Message, StatusCode: jerr.Code}
+			return cli.StatusError{Cause: err, Status: jerr.Message, StatusCode: jerr.Code}
 		}
 		return err
 	}
@@ -387,7 +387,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	if options.imageIDFile != "" {
 		if imageID == "" {
-			return fmt.Errorf("server did not provide an image ID. Cannot write %s", options.imageIDFile)
+			return fmt.Errorf("image was built, but --iidfile %q was not written: the daemon did not return an image ID", options.imageIDFile)
 		}
 		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0o666); err != nil {
 			return err

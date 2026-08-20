@@ -85,7 +85,7 @@ func runCreate(dockerCLI command.Cli, name string, opts createOptions) error {
 
 func createNewContext(contextStore store.ReaderWriter, name string, opts createOptions) error {
 	if opts.endpoint == nil {
-		return errors.New("docker endpoint configuration is required")
+		return errors.New("no docker endpoint configured: set one with --docker, or copy from an existing context with --from")
 	}
 	dockerEP, dockerTLS, err := getDockerEndpointMetadataAndTLS(contextStore, opts.endpoint)
 	if err != nil {
