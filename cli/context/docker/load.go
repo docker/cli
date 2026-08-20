@@ -41,8 +41,9 @@ func WithTLSData(s store.Reader, contextName string, m EndpointMeta) (Endpoint, 
 	}, nil
 }
 
-// tlsConfig extracts a context docker endpoint TLS config
-func (ep *Endpoint) tlsConfig() (*tls.Config, error) {
+// TLSConfig extracts a context docker endpoint TLS config, or nil (without
+// error) when the endpoint has no TLS configuration.
+func (ep *Endpoint) TLSConfig() (*tls.Config, error) {
 	if ep.TLSData == nil && !ep.SkipTLSVerify {
 		// there is no specific tls config
 		return nil, nil
@@ -98,7 +99,7 @@ func (ep *Endpoint) ClientOpts() ([]client.Opt, error) {
 			// TODO(thaJeztah); make resolveDockerEndpoint and resolveDefaultDockerEndpoint not load TLS data,
 			//  and load TLS files lazily; see https://github.com/docker/cli/pull/1581
 			if !isSocket(ep.Host) {
-				tlsConfig, err := ep.tlsConfig()
+				tlsConfig, err := ep.TLSConfig()
 				if err != nil {
 					return nil, err
 				}
