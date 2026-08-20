@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/command/formatter"
+	clduration "github.com/docker/cli/internal/duration"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
@@ -96,7 +97,7 @@ func (c *historyContext) CreatedSince() string {
 	if c.h.Created <= epoch {
 		return "N/A"
 	}
-	created := units.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
+	created := clduration.HumanDuration(time.Now().UTC().Sub(time.Unix(c.h.Created, 0)))
 	return created + " ago"
 }
 
