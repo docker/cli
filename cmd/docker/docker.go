@@ -368,8 +368,20 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 		//
 		// Repeated invocations result in EINVAL or EBADF,
 		// but that is fine for our purposes.
+		hasSocketConnections := srv != nil && srv.HasConnections()
 		if srv != nil {
 			_ = srv.Close()
+		}
+
+		// Plugins using the CLI plugin socket are notified by closing the
+		// server connections above. Older plugins do not connect to the socket,
+		// so forward the user's termination signal directly to let them shut down
+		// gracefully instead of leaving them running in the background.
+		if !force && !hasSocketConnections {
+			var signalErr errCtxSignalTerminated
+			if errors.As(context.Cause(ctx), &signalErr) && signalErr.signal != os.Interrupt && plugincmd.Process != nil {
+				_ = plugincmd.Process.Signal(signalErr.signal)
+			}
 		}
 
 		// force the process to terminate if it hasn't already
@@ -387,11 +399,11 @@ func tryPluginRun(ctx context.Context, dockerCli command.Cli, cmd *cobra.Command
 		retries := 0
 		// catch the first signal through context cancellation
 		<-ctx.Done()
-		tryTerminatePlugin(false)
-
-		// register subsequent signals
+		// Register subsequent signals before attempting graceful termination, so
+		// quick repeated signals are still observed while cleanup is in progress.
 		signals := make(chan os.Signal, exitLimit)
 		signal.Notify(signals, platformsignals.TerminationSignals...)
+		tryTerminatePlugin(false)
 
 		force := false
 		for range signals {
