@@ -77,6 +77,10 @@ The currently supported filters are:
 * until (`<timestamp>`) - only remove images created before given timestamp
 * label (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) - only remove images with (or without, in case `label!=...` is used) the specified labels.
 
+`docker image ls --filter` uses a different key set (`dangling`, `label`,
+`before`, `since`, `reference`) and does not accept `until` or `label!=...`.
+Do not assume the two commands share filter syntax.
+
 The `until` filter can be Unix timestamps, date formatted
 timestamps, or Go duration strings supported by [ParseDuration](https://pkg.go.dev/time#ParseDuration) (e.g. `10m`, `1h30m`) computed
 relative to the daemon machine’s time. Supported formats for date
