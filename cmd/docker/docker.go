@@ -519,8 +519,18 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
 			if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() && !errdefs.IsNotFound(err) {
+				// Print failure before next-step hints so they appear after the error.
+				if err != nil {
+					if msg := err.Error(); msg != "" {
+						_, _ = fmt.Fprintln(dockerCli.Err(), err)
+					}
+				}
 				errMessage := cmdErrorMessage(err)
 				pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args, errMessage)
+				if err != nil {
+					// Already printed; keep exit code without a second print in main.
+					return cli.StatusError{StatusCode: getExitCode(err)}
+				}
 			}
 			if err == nil {
 				return nil
@@ -546,7 +556,18 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
 	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
+		// Print the command error before next-step hints. main() would
+		// otherwise print the error after hooks return (issue #6973).
+		if err != nil {
+			if msg := err.Error(); msg != "" {
+				_, _ = fmt.Fprintln(dockerCli.Err(), err)
+			}
+		}
 		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
+		if err != nil {
+			// Already printed; keep exit code without a second print in main.
+			return cli.StatusError{StatusCode: getExitCode(err)}
+		}
 	}
 
 	return err
