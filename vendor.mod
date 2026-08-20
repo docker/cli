@@ -111,3 +111,7 @@ require (
 	google.golang.org/grpc v1.82.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+replace github.com/moby/moby/api => github.com/ndeloof/docker/api v0.0.0-20260814082315-ecec044ee64e
+
+replace github.com/moby/moby/client => github.com/ndeloof/docker/client v0.0.0-20260814082315-ecec044ee64e

@@ -57,7 +57,7 @@ func (m *MountOpt) Set(value string) error {
 
 		if !hasValue {
 			switch key {
-			case "readonly", "ro", "volume-nocopy", "bind-nonrecursive", "bind-create-src":
+			case "readonly", "ro", "volume-nocopy", "bind-nonrecursive", "bind-create-src", "bind-idmap":
 				// boolean values
 			default:
 				return fmt.Errorf("invalid field '%s' must be a key=value pair", field)
@@ -106,6 +106,16 @@ func (m *MountOpt) Set(value string) error {
 			ensureBindOptions(&mount).CreateMountpoint, err = parseBoolValue(key, val, hasValue)
 			if err != nil {
 				return err
+			}
+		case "bind-idmap":
+			// Without a value, default to presenting the mount source's
+			// owner as the container's running user.
+			idMapping := ensureBindIDMapping(&mount)
+			idMapping.Source = mounttypes.IDMappingSourceMatchUser
+			if hasValue {
+				if err := parseIDMapValue(idMapping, val); err != nil {
+					return err
+				}
 			}
 		case "volume-subpath":
 			ensureVolumeOptions(&mount).Subpath = val

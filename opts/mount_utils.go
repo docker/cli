@@ -115,6 +115,44 @@ func ensureBindOptions(m *mount.Mount) *mount.BindOptions {
 	return m.BindOptions
 }
 
+func ensureBindIDMapping(m *mount.Mount) *mount.IDMapping {
+	bindOptions := ensureBindOptions(m)
+	if bindOptions.IDMapping == nil {
+		bindOptions.IDMapping = &mount.IDMapping{}
+	}
+	return bindOptions.IDMapping
+}
+
+// parseIDMapValue parses the value of the "bind-idmap" mount option into
+// idMapping:
+//
+//   - "match-user", optionally followed by ":USER" (a name, UID, or UID:GID,
+//     as accepted by --user): the mount source's owner appears inside the
+//     container as USER, or as the container's running user when omitted.
+//   - "userns": the mount follows the mapping of the container's private
+//     user namespace (e.g. userns-remap).
+func parseIDMapValue(idMapping *mount.IDMapping, val string) error {
+	source, user, hasUser := strings.Cut(val, ":")
+	switch mount.IDMappingSource(source) {
+	case mount.IDMappingSourceMatchUser:
+		idMapping.Source = mount.IDMappingSourceMatchUser
+		if hasUser {
+			if user == "" {
+				return fmt.Errorf(`invalid value for 'bind-idmap': %q (empty user after "match-user:")`, val)
+			}
+			idMapping.User = user
+		}
+	case mount.IDMappingSourceUserns:
+		if hasUser {
+			return fmt.Errorf(`invalid value for 'bind-idmap': %q ("userns" does not take a user)`, val)
+		}
+		idMapping.Source = mount.IDMappingSourceUserns
+	default:
+		return fmt.Errorf(`invalid value for 'bind-idmap': %q (must be "match-user", "match-user:USER", or "userns")`, val)
+	}
+	return nil
+}
+
 func ensureTmpfsOptions(m *mount.Mount) *mount.TmpfsOptions {
 	if m.TmpfsOptions == nil {
 		m.TmpfsOptions = &mount.TmpfsOptions{}
