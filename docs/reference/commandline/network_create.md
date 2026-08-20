@@ -149,9 +149,10 @@ fails and Docker Engine returns an error.
 
 ### Bridge driver options
 
-When creating a custom `bridge` network, the following additional options can
-be passed. Some of these have equivalent flags that can be used on the dockerd
-command line or in `daemon.json` to configure the default bridge, `docker0`:
+When creating a custom `bridge` network, you can configure driver options using
+the `--opt` flag. Some of these options have equivalent flags that can be used
+on the dockerd command line or in `daemon.json` to configure the default bridge,
+`docker0`:
 
 | Network create option                            | Daemon option for `docker0` | Description                                           |
 |--------------------------------------------------|-----------------------------|-------------------------------------------------------|
@@ -161,6 +162,15 @@ command line or in `daemon.json` to configure the default bridge, `docker0`:
 | `com.docker.network.bridge.host_binding_ipv4`    | `--ip`                      | Default IP when binding container ports               |
 | `com.docker.network.driver.mtu`                  | `--mtu`                     | Set the containers network MTU                        |
 | `com.docker.network.container_iface_prefix`      | -                           | Set a custom prefix for container interfaces          |
+
+For example, to create a custom `bridge` network with IP masquerading disabled:
+
+```console
+$ docker network create \
+    --driver bridge \
+    --opt com.docker.network.bridge.enable_ip_masquerade=false \
+    no-masq-network
+```
 
 The following arguments can be passed to `docker network create` for any
 network driver, again with their approximate equivalents to Docker daemon
