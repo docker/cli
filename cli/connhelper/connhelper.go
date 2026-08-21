@@ -19,7 +19,7 @@ import (
 // ConnectionHelper allows to connect to a remote host with custom stream provider binary.
 type ConnectionHelper struct {
 	Dialer func(ctx context.Context, network, addr string) (net.Conn, error)
-	Host   string // dummy URL used for HTTP requests. e.g. "http://docker"
+	Host   string // dummy URL used for HTTP requests. e.g. "http://docker". For ssh connections, the dummy URL includes the remote hostname so that connection error messages refer to the host the user intends to connect to.
 }
 
 // GetConnectionHelper returns Docker-specific connection helper for the given URL.
@@ -61,11 +61,21 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 		if err != nil {
 			return nil, err
 		}
+
+		// The Host is a dummy URL used for the API client to build requests;
+		// the actual connection is made through the Dialer above. Using the
+		// remote hostname in the dummy URL makes sure that error messages
+		// (e.g. "Cannot connect to the Docker daemon at ...") mention the
+		// host the user configured, instead of a non-descriptive dummy domain.
+		host := sp.Host
+		if sp.Port != "" && sp.Port != "22" {
+			host = net.JoinHostPort(host, sp.Port)
+		}
 		return &ConnectionHelper{
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				return commandconn.New(ctx, "ssh", sshArgs...)
 			},
-			Host: "http://docker.example.com",
+			Host: "http://" + host,
 		}, nil
 	}
 	// Future version may support plugins via ~/.docker/config.json. e.g. "dind"
