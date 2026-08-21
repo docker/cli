@@ -546,7 +546,20 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
 	if subCommand != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() {
-		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
+		errMessage := cmdErrorMessage(err)
+
+		// If the command produced an error that has yet to be printed,
+		// print it before running hooks, so that hook output (such as
+		// "What's next" hints) is shown after the error message instead
+		// of before it. The error is replaced with a silent error that
+		// only carries the exit-code, so that main does not print the
+		// error a second time.
+		if err != nil && !errdefs.IsCanceled(err) && err.Error() != "" {
+			_, _ = fmt.Fprintln(dockerCli.Err(), err)
+			err = cli.StatusError{StatusCode: getExitCode(err)}
+		}
+
+		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, errMessage)
 	}
 
 	return err
