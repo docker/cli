@@ -352,8 +352,10 @@ func updateService(ctx context.Context, apiClient client.NetworkAPIClient, flags
 	if err := updateIsolation(flagIsolation, &cspec.Isolation); err != nil {
 		return err
 	}
-	if err := updateMounts(flags, &cspec.Mounts); err != nil {
-		return err
+	if anyChanged(flags, flagMountAdd, flagMountRemove) {
+		if err := updateMounts(flags, &cspec.Mounts); err != nil {
+			return err
+		}
 	}
 
 	updateSysCtls(flags, &task.ContainerSpec.Sysctls)
