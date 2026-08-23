@@ -299,7 +299,8 @@ func Transform(source any, target any, additionalTransformers ...Transformer) er
 	config := &mapstructure.DecoderConfig{
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			createTransformHook(additionalTransformers...),
-			mapstructure.StringToTimeDurationHookFunc()),
+			mapstructure.StringToTimeDurationHookFunc(),
+			numberToStringHook()),
 		Result:   target,
 		Metadata: &data,
 	}
@@ -353,6 +354,28 @@ func createTransformHook(additionalTransformers ...Transformer) mapstructure.Dec
 			return data, nil
 		}
 		return transform(data)
+	}
+}
+
+// numberToStringHook lets numeric YAML/JSON values land in string fields
+// (notably deploy.resources.*.cpus, which compose config emits as numbers).
+func numberToStringHook() mapstructure.DecodeHookFunc {
+	return func(_ reflect.Type, to reflect.Type, data any) (any, error) {
+		if to.Kind() != reflect.String {
+			return data, nil
+		}
+		switch v := data.(type) {
+		case string:
+			return v, nil
+		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+			return fmt.Sprint(v), nil
+		case float32:
+			return strconv.FormatFloat(float64(v), 'f', -1, 32), nil
+		case float64:
+			return strconv.FormatFloat(v, 'f', -1, 64), nil
+		default:
+			return data, nil
+		}
 	}
 }
 
