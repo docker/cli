@@ -466,6 +466,16 @@ func (cli *DockerCli) DockerEndpoint() docker.Endpoint {
 	return cli.dockerEndpoint
 }
 
+// DaemonHost returns the configured daemon endpoint. For connection helpers,
+// the API client's host is an internal HTTP placeholder, so use the original
+// endpoint when it is available.
+func DaemonHost(cli Cli) string {
+	if host := cli.DockerEndpoint().Host; host != "" {
+		return host
+	}
+	return cli.Client().DaemonHost()
+}
+
 func (cli *DockerCli) getDockerEndPoint() (ep docker.Endpoint, err error) {
 	cn := cli.CurrentContext()
 	if cn == DefaultContextName {

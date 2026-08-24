@@ -13,6 +13,7 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/internal/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/moby/api/types/container"
@@ -309,6 +310,33 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 	cmd.SetArgs([]string{"image:tag"})
 	err := cmd.Execute()
 	assert.NilError(t, err)
+}
+
+func TestCreateContainerWithSSHHostProxyConfig(t *testing.T) {
+	const (
+		sshHost   = "ssh://daemon.example.com"
+		dummyHost = "http://docker.example.com"
+	)
+
+	fakeCLI := test.NewFakeCli(&fakeClient{
+		daemonHost: dummyHost,
+		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+			assert.Check(t, is.Contains(options.Config.Env, "HTTP_PROXY=http://ssh-proxy.example.com"))
+			return client.ContainerCreateResult{}, nil
+		},
+	})
+	fakeCLI.SetDockerEndpoint(docker.Endpoint{EndpointMeta: docker.EndpointMeta{Host: sshHost}})
+	fakeCLI.SetConfigFile(&configfile.ConfigFile{
+		Proxies: map[string]configfile.ProxyConfig{
+			"default": {HTTPProxy: "http://default-proxy.example.com"},
+			sshHost:   {HTTPProxy: "http://ssh-proxy.example.com"},
+		},
+	})
+
+	cmd := newCreateCommand(fakeCLI)
+	cmd.SetOut(io.Discard)
+	cmd.SetArgs([]string{"image:tag"})
+	assert.NilError(t, cmd.Execute())
 }
 
 type fakeNotFound struct{}
