@@ -198,13 +198,20 @@ func newCIDFile(cidPath string) (*cidFile, error) {
 	if cidPath == "" {
 		return &cidFile{}, nil
 	}
-	if _, err := os.Stat(cidPath); err == nil {
-		return nil, errors.New("container ID file found, make sure the other container isn't running or delete " + cidPath)
-	}
-
-	f, err := os.Create(cidPath)
+	// mktemp (and similar) create an empty file first. Only refuse the path
+	// when it already holds a container ID from another run.
+	f, err := os.OpenFile(cidPath, os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the container ID file: %w", err)
+	}
+	st, err := f.Stat()
+	if err != nil {
+		_ = f.Close()
+		return nil, fmt.Errorf("failed to create the container ID file: %w", err)
+	}
+	if st.Size() > 0 {
+		_ = f.Close()
+		return nil, errors.New("container ID file found, make sure the other container isn't running or delete " + cidPath)
 	}
 
 	return &cidFile{path: cidPath, file: f}, nil
