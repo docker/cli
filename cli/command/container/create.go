@@ -200,7 +200,7 @@ func newCIDFile(cidPath string) (*cidFile, error) {
 	}
 	// mktemp (and similar) create an empty file first. Only refuse the path
 	// when it already holds a container ID from another run.
-	f, err := os.OpenFile(cidPath, os.O_RDWR|os.O_CREATE, 0o644)
+	f, err := os.OpenFile(cidPath, os.O_RDWR|os.O_CREATE, 0o666)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the container ID file: %w", err)
 	}
