@@ -496,6 +496,21 @@ according to RFC4862.
       If set to `disabled`, submounts are not recursively bind-mounted.
       If set to `writable`, submounts are recursively bind-mounted but not made recursively read-only.
       If set to `readonly`, submounts are recursively bind-mounted and forcibly made recursively read-only.
+   * `bind-idmap`: make the mount an id-mapped mount, translating file
+      ownership within the mount without changing it on the backing
+      filesystem. `bind-idmap` (or `bind-idmap=match-user`) presents the
+      mount source's owner as the container's running user: host files
+      owned by the source's owner appear owned by the container user, and
+      files created by the container user through the mount are owned by
+      the source's owner on the host. `bind-idmap=match-user:USER` targets
+      an explicit container user instead (a name, UID, or UID:GID, as
+      accepted by `--user`); files with other owners within the mount
+      appear unmapped. `bind-idmap=userns` makes the mount follow the
+      mapping of the container's private user namespace (which requires the
+      container to run in one, e.g. userns-remap), covering the container's
+      whole ID range. Requires Engine API v1.56 or newer, a Linux rootful
+      daemon, kernel support for id-mapped mounts on the backing filesystem
+      (Linux 5.12 or newer for most filesystems), and runc 1.2 or newer.
 
    Options specific to `volume`:
 
