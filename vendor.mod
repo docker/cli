@@ -21,7 +21,7 @@ require (
 	github.com/docker/cli-docs-tool v0.11.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker-credential-helpers v0.9.8
-	github.com/docker/go-connections v0.8.0
+	github.com/docker/go-connections v0.8.1
 	github.com/docker/go-units v0.5.0
 	github.com/fvbommel/sortorder v1.1.0
 	github.com/go-jose/go-jose/v4 v4.1.4
