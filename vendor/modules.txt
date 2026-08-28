@@ -77,8 +77,8 @@ github.com/docker/docker-credential-helpers/credentials
 github.com/docker/go-connections/nat
 github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
-# github.com/docker/go-events v0.0.0-20260608200158-dbf6103125a4
-## explicit
+# github.com/docker/go-events v0.1.0
+## explicit; go 1.24
 github.com/docker/go-events
 # github.com/docker/go-metrics v0.1.0
 ## explicit; go 1.21
