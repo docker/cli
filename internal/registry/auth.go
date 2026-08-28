@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/errdefs/pkg/errhttp"
 	"github.com/containerd/log"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/auth/challenge"
@@ -67,11 +68,7 @@ func loginV2(ctx context.Context, authConfig *registry.AuthConfig, endpoint APIE
 
 	if resp.StatusCode != http.StatusOK {
 		// TODO(dmcgowan): Attempt to further interpret result, status code and error code string
-		err := fmt.Errorf("login attempt to %s failed with status: %d %s", endpointStr, resp.StatusCode, http.StatusText(resp.StatusCode))
-		if resp.StatusCode == http.StatusUnauthorized {
-			return "", unauthorizedErr{err}
-		}
-		return "", err
+		return "", fmt.Errorf("login attempt to %s failed with status: %d %s: %w", endpointStr, resp.StatusCode, http.StatusText(resp.StatusCode), errhttp.ToNative(resp.StatusCode))
 	}
 
 	return credentialAuthConfig.IdentityToken, nil

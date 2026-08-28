@@ -33,6 +33,7 @@ func TestLoginV2BasicAuthUnauthorized(t *testing.T) {
 	_, err = loginV2(ctx, &registry.AuthConfig{Username: "alice", Password: "wrong"}, endpoint, "docker-test")
 	assert.ErrorContains(t, err, "401")
 	assert.Check(t, errdefs.IsUnauthorized(err))
+	assert.Check(t, is.ErrorType(err, errdefs.IsUnauthorized))
 
 	token, err := loginV2(ctx, &registry.AuthConfig{Username: "alice", Password: "secret"}, endpoint, "docker-test")
 	assert.NilError(t, err)
