@@ -87,7 +87,7 @@ type clientVersion struct {
 // serverVersion contains information about the Docker server host.
 // it's the client-side presentation of [client.ServerVersionResult].
 type serverVersion struct {
-	Platform      client.PlatformInfo       `json:",omitempty"`              // Platform is the platform (product name) the server is running on.
+	Platform      client.PlatformInfo       `json:"Platform"`                // Platform is the platform (product name) the server is running on.
 	Version       string                    `json:"Version"`                 // Version is the version of the daemon.
 	APIVersion    string                    `json:"ApiVersion"`              // APIVersion is the highest API version supported by the server.
 	MinAPIVersion string                    `json:"MinAPIVersion,omitempty"` // MinAPIVersion is the minimum API version the server supports.
