@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package registryclient
 
 import (
@@ -244,8 +247,7 @@ func (c *client) iterateEndpoints(ctx context.Context, namedRef reference.Named,
 		repo, err := c.getRepositoryForReference(ctx, namedRef, repoEndpoint)
 		if err != nil {
 			logrus.Debugf("error %s with repo endpoint %+v", err, repoEndpoint)
-			var protoErr httpProtoError
-			if errors.As(err, &protoErr) {
+			if _, ok := errors.AsType[httpProtoError](err); ok {
 				continue
 			}
 			return err

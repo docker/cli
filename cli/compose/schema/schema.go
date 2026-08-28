@@ -101,8 +101,7 @@ func Validate(config map[string]any, version string) error {
 	}
 
 	if err := schema.Validate(toJSONValue(config)); err != nil {
-		var validationErr *jsonschema.ValidationError
-		if errors.As(err, &validationErr) {
+		if validationErr, ok := errors.AsType[*jsonschema.ValidationError](err); ok {
 			return getMostSpecificError(validationErr)
 		}
 		return err

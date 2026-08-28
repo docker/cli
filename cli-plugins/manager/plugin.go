@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package manager
 
 import (
@@ -167,8 +170,7 @@ func (p *Plugin) RunHook(ctx context.Context, hookData hooks.Request) ([]byte, e
 
 	out, err := pCmd.Output()
 	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if _, ok := errors.AsType[*exec.ExitError](err); ok {
 			return nil, wrapAsPluginError(err, "plugin hook subcommand exited unsuccessfully")
 		}
 		return nil, wrapAsPluginError(err, "failed to execute plugin hook subcommand: "+pCmd.String())

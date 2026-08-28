@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package plugin
 
 import (
@@ -97,8 +100,7 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata, ops .
 	plugin := makeCmd(dockerCLI)
 
 	if err := RunPlugin(dockerCLI, plugin, meta); err != nil {
-		var stErr cli.StatusError
-		if errors.As(err, &stErr) {
+		if stErr, ok := errors.AsType[cli.StatusError](err); ok {
 			// StatusError should only be used for errors, and all errors should
 			// have a non-zero exit status, so never exit with 0
 			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.

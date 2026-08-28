@@ -920,8 +920,8 @@ func TestLoadMultipleConfigs(t *testing.T) {
 					Context:    ".",
 					Dockerfile: "foo.Dockerfile",
 					Args: types.MappingWithEquals{
-						"buildno":  strPtr("1"),
-						"password": strPtr("secret"),
+						"buildno":  new("1"),
+						"password": new("secret"),
 					},
 				},
 				Ports: []types.ServicePortConfig{
@@ -1246,13 +1246,13 @@ func TestMergeServiceOverrideReplicasZero(t *testing.T) {
 	base := types.ServiceConfig{
 		Name: "someService",
 		Deploy: types.DeployConfig{
-			Replicas: uint64Ptr(3),
+			Replicas: new(uint64(3)),
 		},
 	}
 	override := types.ServiceConfig{
 		Name: "someService",
 		Deploy: types.DeployConfig{
-			Replicas: uint64Ptr(0),
+			Replicas: new(uint64(0)),
 		},
 	}
 	services, err := mergeServices([]types.ServiceConfig{base}, []types.ServiceConfig{override})
@@ -1265,7 +1265,7 @@ func TestMergeServiceOverrideReplicasZero(t *testing.T) {
 		types.ServiceConfig{
 			Name: "someService",
 			Deploy: types.DeployConfig{
-				Replicas: uint64Ptr(0),
+				Replicas: new(uint64(0)),
 			},
 		},
 	)
@@ -1275,7 +1275,7 @@ func TestMergeServiceOverrideReplicasNotNil(t *testing.T) {
 	base := types.ServiceConfig{
 		Name: "someService",
 		Deploy: types.DeployConfig{
-			Replicas: uint64Ptr(3),
+			Replicas: new(uint64(3)),
 		},
 	}
 	override := types.ServiceConfig{
@@ -1292,7 +1292,7 @@ func TestMergeServiceOverrideReplicasNotNil(t *testing.T) {
 		types.ServiceConfig{
 			Name: "someService",
 			Deploy: types.DeployConfig{
-				Replicas: uint64Ptr(3),
+				Replicas: new(uint64(3)),
 			},
 		},
 	)

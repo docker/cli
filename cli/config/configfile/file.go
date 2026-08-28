@@ -232,8 +232,7 @@ func (c *ConfigFile) Save() (retErr error) {
 		cfgFile = f
 	} else if os.IsNotExist(err) {
 		// extract the path from the error if the configfile does not exist or is a dangling symlink
-		var pathError *os.PathError
-		if errors.As(err, &pathError) {
+		if pathError, ok := errors.AsType[*os.PathError](err); ok {
 			cfgFile = pathError.Path
 		}
 	}

@@ -29,8 +29,7 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 
 	config, err := loader.Load(configDetails)
 	if err != nil {
-		var fpe *loader.ForbiddenPropertiesError
-		if errors.As(err, &fpe) {
+		if fpe, ok := errors.AsType[*loader.ForbiddenPropertiesError](err); ok {
 			// this error is intentionally formatted multi-line
 			return nil, fmt.Errorf("compose file contains unsupported options:\n\n%s\n", propertyWarnings(fpe.Properties)) //nolint:staticcheck // ignore ST1005
 		}

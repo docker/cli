@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -179,10 +178,6 @@ var samplePortsConfig = []types.ServicePortConfig{
 	},
 }
 
-func strPtr(val string) *string {
-	return &val
-}
-
 var sampleConfig = types.Config{
 	Version: "3.13",
 	Services: []types.ServiceConfig{
@@ -197,7 +192,7 @@ var sampleConfig = types.Config{
 		{
 			Name:        "bar",
 			Image:       "busybox",
-			Environment: map[string]*string{"FOO": strPtr("1")},
+			Environment: map[string]*string{"FOO": new("1")},
 			Networks: map[string]*types.ServiceNetworkConfig{
 				"with_ipam": nil,
 			},
@@ -530,10 +525,10 @@ services:
 	assert.NilError(t, err)
 
 	expected := types.MappingWithEquals{
-		"FOO":  strPtr("1"),
-		"BAR":  strPtr("2"),
-		"BAZ":  strPtr("2.5"),
-		"QUX":  strPtr("qux"),
+		"FOO":  new("1"),
+		"BAR":  new("2"),
+		"BAZ":  new("2.5"),
+		"QUX":  new("qux"),
 		"QUUX": nil,
 	}
 
@@ -685,31 +680,31 @@ networks:
 				Configs: []types.ServiceConfigObjConfig{
 					{
 						Source: "appconfig",
-						Mode:   uint32Ptr(555),
+						Mode:   new(uint32(555)),
 					},
 				},
 				Secrets: []types.ServiceSecretConfig{
 					{
 						Source: "super",
-						Mode:   uint32Ptr(555),
+						Mode:   new(uint32(555)),
 					},
 				},
 				HealthCheck: &types.HealthCheckConfig{
-					Retries: uint64Ptr(555),
+					Retries: new(uint64(555)),
 					Disable: true,
 				},
 				Deploy: types.DeployConfig{
-					Replicas: uint64Ptr(555),
+					Replicas: new(uint64(555)),
 					UpdateConfig: &types.UpdateConfig{
-						Parallelism:     uint64Ptr(555),
+						Parallelism:     new(uint64(555)),
 						MaxFailureRatio: 3.14,
 					},
 					RollbackConfig: &types.UpdateConfig{
-						Parallelism:     uint64Ptr(555),
+						Parallelism:     new(uint64(555)),
 						MaxFailureRatio: 3.14,
 					},
 					RestartPolicy: &types.RestartPolicy{
-						MaxAttempts: uint64Ptr(555),
+						MaxAttempts: new(uint64(555)),
 					},
 					Placement: types.Placement{
 						MaxReplicas: 555,
@@ -798,10 +793,10 @@ services:
      - example2.env
 `))
 	expectedEnvironmentMap := types.MappingWithEquals{
-		"FOO": strPtr("foo_from_env_file"),
-		"BAZ": strPtr("baz_from_env_file"),
-		"BAR": strPtr("bar_from_env_file_2"), // Original value is overwritten by example2.env
-		"QUX": strPtr("quz_from_env_file_2"),
+		"FOO": new("foo_from_env_file"),
+		"BAZ": new("baz_from_env_file"),
+		"BAR": new("bar_from_env_file_2"), // Original value is overwritten by example2.env
+		"QUX": new("quz_from_env_file_2"),
 	}
 	assert.NilError(t, err)
 	configDetails := buildConfigDetails(dict, nil)
@@ -955,19 +950,6 @@ volumes:
 
 	assert.Check(t, is.ErrorContains(err, "volume.external.name and volume.name conflict; only use volume.name"))
 	assert.Check(t, is.ErrorContains(err, `external_volume`))
-}
-
-func durationPtr(value time.Duration) *types.Duration {
-	result := types.Duration(value)
-	return &result
-}
-
-func uint64Ptr(value uint64) *uint64 {
-	return &value
-}
-
-func uint32Ptr(value uint32) *uint32 {
-	return &value
 }
 
 func TestFullExample(t *testing.T) {

@@ -66,14 +66,10 @@ func TestConvertRestartPolicy(t *testing.T) {
 	}
 }
 
-func strPtr(val string) *string {
-	return &val
-}
-
 func TestConvertEnvironment(t *testing.T) {
 	source := map[string]*string{
-		"foo": strPtr("bar"),
-		"key": strPtr("value"),
+		"foo": new("bar"),
+		"key": new("value"),
 	}
 	env := convertEnvironment(source)
 	assert.Check(t, is.DeepEqual([]string{"foo=bar", "key=value"}, env))
@@ -81,7 +77,7 @@ func TestConvertEnvironment(t *testing.T) {
 
 func TestConvertEnvironmentWhenNilValueExists(t *testing.T) {
 	source := map[string]*string{
-		"key":            strPtr("value"),
+		"key":            new("value"),
 		"keyWithNoValue": nil,
 	}
 	env := convertEnvironment(source)
@@ -466,7 +462,7 @@ func TestConvertFileObject(t *testing.T) {
 		Target: "target",
 		UID:    "user",
 		GID:    "group",
-		Mode:   uint32Ptr(0o644),
+		Mode:   new(uint32(0o644)),
 	}
 	swarmRef, err := convertFileObject(namespace, config, lookupConfig)
 	assert.NilError(t, err)

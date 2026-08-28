@@ -79,8 +79,7 @@ func ConvertDurationPtr(d *Duration) *time.Duration {
 	if d == nil {
 		return nil
 	}
-	res := time.Duration(*d)
-	return &res
+	return new(time.Duration(*d))
 }
 
 // MarshalJSON makes Duration implement json.Marshaler
