@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package image
 
 import (
@@ -364,8 +367,7 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 
 	err = jsonstream.Display(ctx, response.Body, streams.NewOut(buildBuff), jsonstream.WithAuxCallback(aux))
 	if err != nil {
-		var jerr *jsonstream.JSONError
-		if errors.As(err, &jerr) {
+		if jerr, ok := errors.AsType[*jsonstream.JSONError](err); ok {
 			// If no error code is set, default to 1
 			if jerr.Code == 0 {
 				jerr.Code = 1

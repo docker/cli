@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.25
+//go:build go1.26
 
 package convert
 
@@ -399,7 +399,7 @@ func convertFileObject(
 	}
 	mode := config.Mode
 	if mode == nil {
-		mode = uint32Ptr(0o444)
+		mode = new(uint32(0o444))
 	}
 
 	return swarmReferenceObject{
@@ -411,10 +411,6 @@ func convertFileObject(
 		},
 		Name: source,
 	}, nil
-}
-
-func uint32Ptr(value uint32) *uint32 {
-	return &value
 }
 
 // convertExtraHosts converts <host>:<ip> mappings to SwarmKit notation:
@@ -501,8 +497,7 @@ func convertRestartPolicy(restart string, restartPolicy *composetypes.RestartPol
 		if i <= 0 {
 			return nil
 		}
-		p := uint64(i)
-		return &p
+		return new(uint64(i))
 	}
 
 	switch policy.Name {
@@ -529,7 +524,7 @@ func convertUpdateConfig(source *composetypes.UpdateConfig) *swarm.UpdateConfig 
 	if source == nil {
 		return nil
 	}
-	parallel := uint64(1)
+	var parallel uint64 = 1
 	if source.Parallelism != nil {
 		parallel = *source.Parallelism
 	}
