@@ -541,6 +541,9 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	// which remain.
 	cmd.SetArgs(args)
 	err = cmd.ExecuteContext(ctx)
+	if err != nil && !errdefs.IsCanceled(err) && err.Error() != "" {
+		_, _ = fmt.Fprintln(dockerCli.Err(), err)
+	}
 
 	// If the command is being executed in an interactive terminal
 	// and hook are enabled, run the plugin hooks.
@@ -548,7 +551,11 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		pluginmanager.RunCLICommandHooks(ctx, dockerCli, cmd, subCommand, cmdErrorMessage(err))
 	}
 
-	return err
+	if err != nil {
+		return cli.StatusError{StatusCode: getExitCode(err)}
+	}
+
+	return nil
 }
 
 // hasCompletionArg returns true if a cobra completion arg request is found.
