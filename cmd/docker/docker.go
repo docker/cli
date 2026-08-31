@@ -517,6 +517,9 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		subCommand = ccmd
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
 			err := tryPluginRun(ctx, dockerCli, cmd, args[0], envs)
+			if err != nil && !errdefs.IsNotFound(err) && !errdefs.IsCanceled(err) && err.Error() != "" {
+				_, _ = fmt.Fprintln(dockerCli.Err(), err)
+			}
 			if ccmd != nil && dockerCli.Out().IsTerminal() && dockerCli.HooksEnabled() && !errdefs.IsNotFound(err) {
 				errMessage := cmdErrorMessage(err)
 				pluginmanager.RunPluginHooks(ctx, dockerCli, cmd, ccmd, args, errMessage)
@@ -528,7 +531,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 				// For plugin not found we fall through to
 				// cmd.Execute() which deals with reporting
 				// "command not found" in a consistent way.
-				return err
+				return cli.StatusError{StatusCode: getExitCode(err)}
 			}
 		}
 	}
