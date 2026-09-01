@@ -1,9 +1,11 @@
 package trust
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 
 	"github.com/docker/cli/cli/command"
@@ -44,7 +46,10 @@ func prettyPrintTrustInfo(ctx context.Context, dockerCLI command.Cli, remote str
 }
 
 func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures) {
-	sort.Slice(adminRoles, func(i, j int) bool { return adminRoles[i].Name > adminRoles[j].Name })
+	// Sort by name in descending order.
+	slices.SortFunc(adminRoles, func(a, b client.RoleWithSignatures) int {
+		return cmp.Compare(b.Name, a.Name)
+	})
 	for _, adminRole := range adminRoles {
 		if formattedAdminRole := formatAdminRole(adminRole); formattedAdminRole != "" {
 			_, _ = fmt.Fprintf(out, "  %s", formattedAdminRole)

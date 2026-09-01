@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/distribution/reference"
@@ -189,8 +189,8 @@ func getExistingSignatureInfoForReleasedTag(notaryRepo notaryclient.Repository, 
 }
 
 func prettyPrintExistingSignatureInfo(out io.Writer, existingSigInfo trustTagRow) {
-	sort.Strings(existingSigInfo.Signers)
-	joinedSigners := strings.Join(existingSigInfo.Signers, ", ")
+	signers := slices.Sorted(slices.Values(existingSigInfo.Signers))
+	joinedSigners := strings.Join(signers, ", ")
 	_, _ = fmt.Fprintf(out, "Existing signatures for tag %s digest %s from:\n%s\n", existingSigInfo.SignedTag, existingSigInfo.Digest, joinedSigners)
 }
 
@@ -228,8 +228,7 @@ func getOrGenerateNotaryKey(notaryRepo notaryclient.Repository, role data.RoleNa
 	var key data.PublicKey
 	// always select the first key by ID
 	if len(keys) > 0 {
-		sort.Strings(keys)
-		keyID := keys[0]
+		keyID := slices.Min(keys)
 		privKey, _, err := notaryRepo.GetCryptoService().GetPrivateKey(keyID)
 		if err != nil {
 			return nil, err
