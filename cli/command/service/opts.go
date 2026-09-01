@@ -4,12 +4,12 @@
 package service
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"net/netip"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -737,15 +737,15 @@ func (options *serviceOptions) ToService(ctx context.Context, apiClient client.N
 	}
 
 	networks := convertNetworks(options.networks)
-	for i, net := range networks {
-		nwID, err := resolveNetworkID(ctx, apiClient, net.Target)
+	for i := range networks {
+		nwID, err := resolveNetworkID(ctx, apiClient, networks[i].Target)
 		if err != nil {
 			return service, err
 		}
 		networks[i].Target = nwID
 	}
-	sort.Slice(networks, func(i, j int) bool {
-		return networks[i].Target < networks[j].Target
+	slices.SortFunc(networks, func(a, b swarm.NetworkAttachmentConfig) int {
+		return cmp.Compare(a.Target, b.Target)
 	})
 
 	resources, err := options.resources.ToResourceRequirements(flags)

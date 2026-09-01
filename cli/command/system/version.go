@@ -1,11 +1,15 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package system
 
 import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"runtime"
-	"sort"
+	"slices"
 	"strconv"
 	"text/template"
 	"time"
@@ -252,10 +256,5 @@ func newVersionTemplate(templateFormat string) (*template.Template, error) {
 }
 
 func getDetailsOrder(v system.ComponentVersion) []string {
-	out := make([]string, 0, len(v.Details))
-	for k := range v.Details {
-		out = append(out, k)
-	}
-	sort.Strings(out)
-	return out
+	return slices.Sorted(maps.Keys(v.Details))
 }

@@ -1,8 +1,13 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package service
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -775,17 +780,16 @@ func (c *serviceContext) Ports() string {
 		return ""
 	}
 
-	pr := portRange{}
-	ports := []string{}
-
-	servicePorts := c.service.Endpoint.Ports
-	sort.Slice(servicePorts, func(i, j int) bool {
-		if servicePorts[i].Protocol == servicePorts[j].Protocol {
-			return servicePorts[i].PublishedPort < servicePorts[j].PublishedPort
-		}
-		return servicePorts[i].Protocol < servicePorts[j].Protocol
+	// Sort by protocol first, then by published port.
+	slices.SortFunc(c.service.Endpoint.Ports, func(a, b swarm.PortConfig) int {
+		return cmp.Or(
+			cmp.Compare(a.Protocol, b.Protocol),
+			cmp.Compare(a.PublishedPort, b.PublishedPort),
+		)
 	})
 
+	var pr portRange
+	var ports []string
 	for _, p := range c.service.Endpoint.Ports {
 		if p.PublishMode == swarm.PortConfigPublishModeIngress {
 			prIsRange := pr.tEnd != pr.tStart

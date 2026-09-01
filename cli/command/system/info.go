@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -468,11 +468,11 @@ func printSwarmInfo(output io.Writer, info system.Info) {
 	}
 	fprintln(output, "  Node Address:", info.Swarm.NodeAddr)
 	if len(info.Swarm.RemoteManagers) > 0 {
-		managers := []string{}
+		managers := make([]string, 0, len(info.Swarm.RemoteManagers))
 		for _, entry := range info.Swarm.RemoteManagers {
 			managers = append(managers, entry.Addr)
 		}
-		sort.Strings(managers)
+		slices.Sort(managers)
 		fprintln(output, "  Manager Addresses:")
 		for _, entry := range managers {
 			fprintf(output, "   %s\n", entry)

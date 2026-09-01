@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/distribution/reference"
@@ -75,9 +75,9 @@ func getDictsFrom(configFiles []composetypes.ConfigFile) []map[string]any {
 func propertyWarnings(properties map[string]string) string {
 	msgs := make([]string, 0, len(properties))
 	for name, description := range properties {
-		msgs = append(msgs, fmt.Sprintf("%s: %s", name, description))
+		msgs = append(msgs, name+": "+description)
 	}
-	sort.Strings(msgs)
+	slices.Sort(msgs)
 	return strings.Join(msgs, "\n\n")
 }
 

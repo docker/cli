@@ -1,10 +1,14 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package system
 
 import (
 	"context"
 	"fmt"
 	"io"
-	"sort"
+	"maps"
+	"slices"
 	"strings"
 	"text/template"
 	"time"
@@ -133,18 +137,13 @@ func prettyPrintEvent(out io.Writer, event events.Message) error {
 	_, _ = fmt.Fprintf(out, "%s %s %s", event.Type, event.Action, event.Actor.ID)
 
 	if len(event.Actor.Attributes) > 0 {
-		keys := make([]string, 0, len(event.Actor.Attributes))
-		for k := range event.Actor.Attributes {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
+		keys := slices.Sorted(maps.Keys(event.Actor.Attributes))
 		attrs := make([]string, 0, len(keys))
 		for _, k := range keys {
-			v := event.Actor.Attributes[k]
-			attrs = append(attrs, k+"="+v)
+			attrs = append(attrs, k+"="+event.Actor.Attributes[k])
 		}
 		_, _ = fmt.Fprintf(out, " (%s)", strings.Join(attrs, ", "))
 	}
-	_, _ = fmt.Fprint(out, "\n")
+	_, _ = fmt.Fprintln(out)
 	return nil
 }
