@@ -65,6 +65,15 @@ func TestStringSliceReplaceAt(t *testing.T) {
 			requireIndex: -1,
 			expected:     []string{"foo"},
 		},
+		{
+			name:         "overlapping match",
+			s:            []string{"a", "a", "b"},
+			find:         []string{"a", "b"},
+			replace:      []string{"c"},
+			requireIndex: -1,
+			expected:     []string{"a", "c"},
+			ok:           true,
+		},
 	}
 
 	for _, tc := range tests {
