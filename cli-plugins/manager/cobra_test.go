@@ -3,6 +3,7 @@ package manager
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"testing"
 
@@ -45,7 +46,7 @@ func TestPluginStubCompletionRestoresOSArgs(t *testing.T) {
 	t.Cleanup(func() { os.Args = savedArgs })
 
 	originalArgs := []string{"docker", "image", "ls"}
-	os.Args = append([]string(nil), originalArgs...)
+	os.Args = slices.Clone(originalArgs)
 
 	_, directive := cmd.ValidArgsFunction(cmd, []string{"--all"}, "alp")
 	assert.Equal(t, directive, cobra.ShellCompDirectiveError)
