@@ -7,27 +7,71 @@ import (
 )
 
 func TestStringSliceReplaceAt(t *testing.T) {
-	out, ok := stringSliceReplaceAt([]string{"abc", "foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, -1)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"abc", "baz", "bax"}, out)
+	tests := []struct {
+		name         string
+		s            []string
+		find         []string
+		replace      []string
+		requireIndex int
+		expected     []string
+		ok           bool
+	}{
+		{
+			name:         "replace",
+			s:            []string{"abc", "foo", "bar", "bax"},
+			find:         []string{"foo", "bar"},
+			replace:      []string{"baz"},
+			requireIndex: -1,
+			expected:     []string{"abc", "baz", "bax"},
+			ok:           true,
+		},
+		{
+			name:         "find longer than input",
+			s:            []string{"foo"},
+			find:         []string{"foo", "bar"},
+			replace:      []string{"baz"},
+			requireIndex: -1,
+			expected:     []string{"foo"},
+		},
+		{
+			name:         "wrong required index",
+			s:            []string{"abc", "foo", "bar", "bax"},
+			find:         []string{"foo", "bar"},
+			replace:      []string{"baz"},
+			requireIndex: 0,
+			expected:     []string{"abc", "foo", "bar", "bax"},
+		},
+		{
+			name:         "required index",
+			s:            []string{"foo", "bar", "bax"},
+			find:         []string{"foo", "bar"},
+			replace:      []string{"baz"},
+			requireIndex: 0,
+			expected:     []string{"baz", "bax"},
+			ok:           true,
+		},
+		{
+			name:         "remove",
+			s:            []string{"abc", "foo", "bar", "baz"},
+			find:         []string{"foo", "bar"},
+			requireIndex: -1,
+			expected:     []string{"abc", "baz"},
+			ok:           true,
+		},
+		{
+			name:         "empty find",
+			s:            []string{"foo"},
+			replace:      []string{"baz"},
+			requireIndex: -1,
+			expected:     []string{"foo"},
+		},
+	}
 
-	out, ok = stringSliceReplaceAt([]string{"foo"}, []string{"foo", "bar"}, []string{"baz"}, -1)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"foo"}, out)
-
-	out, ok = stringSliceReplaceAt([]string{"abc", "foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, 0)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"abc", "foo", "bar", "bax"}, out)
-
-	out, ok = stringSliceReplaceAt([]string{"foo", "bar", "bax"}, []string{"foo", "bar"}, []string{"baz"}, 0)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"baz", "bax"}, out)
-
-	out, ok = stringSliceReplaceAt([]string{"abc", "foo", "bar", "baz"}, []string{"foo", "bar"}, nil, -1)
-	assert.Assert(t, ok)
-	assert.DeepEqual(t, []string{"abc", "baz"}, out)
-
-	out, ok = stringSliceReplaceAt([]string{"foo"}, nil, []string{"baz"}, -1)
-	assert.Assert(t, !ok)
-	assert.DeepEqual(t, []string{"foo"}, out)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			out, ok := stringSliceReplaceAt(tc.s, tc.find, tc.replace, tc.requireIndex)
+			assert.Equal(t, tc.ok, ok)
+			assert.DeepEqual(t, tc.expected, out)
+		})
+	}
 }
