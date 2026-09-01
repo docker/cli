@@ -11,7 +11,6 @@ import (
 	"net/netip"
 	"os"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -235,8 +234,8 @@ func convertServiceNetworks(
 		nets = append(nets, netAttachConfig)
 	}
 
-	sort.Slice(nets, func(i, j int) bool {
-		return nets[i].Target < nets[j].Target
+	slices.SortFunc(nets, func(a, b swarm.NetworkAttachmentConfig) int {
+		return cmp.Compare(a.Target, b.Target)
 	})
 	return nets, nil
 }
@@ -276,8 +275,10 @@ func convertServiceSecrets(
 		return nil, err
 	}
 	// sort to ensure idempotence (don't restart services just because the entries are in different order)
-	sort.SliceStable(secrs, func(i, j int) bool { return secrs[i].SecretName < secrs[j].SecretName })
-	return secrs, err
+	slices.SortStableFunc(secrs, func(a, b *swarm.SecretReference) int {
+		return cmp.Compare(a.SecretName, b.SecretName)
+	})
+	return secrs, nil
 }
 
 // convertServiceConfigObjs takes an API client, a namespace, a ServiceConfig,
@@ -352,8 +353,10 @@ func convertServiceConfigObjs(
 		return nil, err
 	}
 	// sort to ensure idempotence (don't restart services just because the entries are in different order)
-	sort.SliceStable(confs, func(i, j int) bool { return confs[i].ConfigName < confs[j].ConfigName })
-	return confs, err
+	slices.SortStableFunc(confs, func(a, b *swarm.ConfigReference) int {
+		return cmp.Compare(a.ConfigName, b.ConfigName)
+	})
+	return confs, nil
 }
 
 type swarmReferenceTarget struct {
@@ -609,8 +612,7 @@ func convertEndpointSpec(endpointMode string, source []composetypes.ServicePortC
 // convertEnvironment converts key/value mappings to a slice, and sorts
 // the results.
 func convertEnvironment(source map[string]*string) []string {
-	var output []string
-
+	output := make([]string, 0, len(source))
 	for name, value := range source {
 		switch value {
 		case nil:
@@ -619,7 +621,7 @@ func convertEnvironment(source map[string]*string) []string {
 			output = append(output, name+"="+*value)
 		}
 	}
-	sort.Strings(output)
+	slices.Sort(output)
 	return output
 }
 
