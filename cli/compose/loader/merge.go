@@ -41,10 +41,10 @@ func merge(configs []*types.Config) (*types.Config, error) {
 		if err := mergo.Map(&base.Networks, &override.Networks, mergo.WithOverride); err != nil {
 			errs = append(errs, fmt.Errorf("cannot merge networks: %w", err))
 		}
-		if err := mergo.Map(&base.Secrets, &override.Secrets, mergo.WithOverride); err != nil {
+		if err := mergeResourceMap(&base.Secrets, override.Secrets); err != nil {
 			errs = append(errs, fmt.Errorf("cannot merge secrets: %w", err))
 		}
-		if err := mergo.Map(&base.Configs, &override.Configs, mergo.WithOverride); err != nil {
+		if err := mergeResourceMap(&base.Configs, override.Configs); err != nil {
 			errs = append(errs, fmt.Errorf("cannot merge configs: %w", err))
 		}
 		if err := errors.Join(errs...); err != nil {
@@ -52,6 +52,26 @@ func merge(configs []*types.Config) (*types.Config, error) {
 		}
 	}
 	return base, nil
+}
+
+// mergeResourceMap merges secrets/configs by name so a later `name:` overlay
+// keeps `external: true` from an earlier file.
+func mergeResourceMap[T any](dst *map[string]T, src map[string]T) error {
+	if *dst == nil {
+		*dst = make(map[string]T, len(src))
+	}
+	for k, sv := range src {
+		dv, ok := (*dst)[k]
+		if !ok {
+			(*dst)[k] = sv
+			continue
+		}
+		if err := mergo.Merge(&dv, &sv, mergo.WithOverride); err != nil {
+			return err
+		}
+		(*dst)[k] = dv
+	}
+	return nil
 }
 
 func mergeServices(base, override []types.ServiceConfig) ([]types.ServiceConfig, error) {

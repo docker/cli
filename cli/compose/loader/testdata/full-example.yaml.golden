@@ -391,7 +391,6 @@ secrets:
     external: true
   secret4:
     name: bar
-    file: /foo
     x-bar: baz
     x-foo: bar
 configs:
@@ -407,7 +406,6 @@ configs:
     external: true
   config4:
     name: foo
-    file: /foo
     x-bar: baz
     x-foo: bar
 x-bar: baz
