@@ -1,10 +1,10 @@
 package stack
 
 import (
-	"sort"
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 	"gotest.tools/v3/icmd"
@@ -21,7 +21,7 @@ func TestDeployWithNamedResources(t *testing.T) {
 	result.Assert(t, icmd.Success)
 	stdout := strings.Split(result.Stdout(), "\n")
 	expected := strings.Split(string(golden.Get(t, "stack-deploy-with-names.golden")), "\n")
-	sort.Strings(stdout)
-	sort.Strings(expected)
-	assert.DeepEqual(t, stdout, expected)
+	assert.DeepEqual(t, stdout, expected, cmpopts.SortSlices(func(a, b string) bool {
+		return a < b
+	}))
 }
