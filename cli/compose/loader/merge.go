@@ -123,6 +123,14 @@ func toServiceConfigObjConfigsMap(s any) (map[any]any, error) {
 	return m, nil
 }
 
+// servicePortKey identifies a port during a merge; the same published
+// port may be exposed for both tcp and udp, so the protocol is part of
+// the identity.
+type servicePortKey struct {
+	published uint32
+	protocol  string
+}
+
 func toServicePortConfigsMap(s any) (map[any]any, error) {
 	ports, ok := s.([]types.ServicePortConfig)
 	if !ok {
@@ -130,7 +138,13 @@ func toServicePortConfigsMap(s any) (map[any]any, error) {
 	}
 	m := map[any]any{}
 	for _, p := range ports {
-		m[p.Published] = p
+		protocol := p.Protocol
+		if protocol == "" {
+			// long syntax allows the protocol to be omitted, in which
+			// case it defaults to tcp
+			protocol = "tcp"
+		}
+		m[servicePortKey{published: p.Published, protocol: protocol}] = p
 	}
 	return m, nil
 }
@@ -172,7 +186,12 @@ func toServicePortConfigsSlice(dst reflect.Value, m map[any]any) error {
 	for _, v := range m {
 		s = append(s, v.(types.ServicePortConfig))
 	}
-	sort.Slice(s, func(i, j int) bool { return s[i].Published < s[j].Published })
+	sort.Slice(s, func(i, j int) bool {
+		if s[i].Published != s[j].Published {
+			return s[i].Published < s[j].Published
+		}
+		return s[i].Protocol < s[j].Protocol
+	})
 	dst.Set(reflect.ValueOf(s))
 	return nil
 }
