@@ -1,7 +1,7 @@
 package trust
 
 import (
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/cli/command/formatter"
@@ -73,8 +73,7 @@ func (c *trustTagContext) Digest() string {
 
 // Signers returns the sorted list of entities who signed this tag
 func (c *trustTagContext) Signers() string {
-	sort.Strings(c.s.Signers)
-	return strings.Join(c.s.Signers, ", ")
+	return strings.Join(slices.Sorted(slices.Values(c.s.Signers)), ", ")
 }
 
 // signerInfoWrite writes the context.
@@ -108,15 +107,13 @@ type signerInfoContext struct {
 
 // Keys returns the sorted list of keys associated with the signer
 func (c *signerInfoContext) Keys() string {
-	sort.Strings(c.s.Keys)
-	truncatedKeys := []string{}
+	keys := slices.Sorted(slices.Values(c.s.Keys))
 	if c.trunc {
-		for _, keyID := range c.s.Keys {
-			truncatedKeys = append(truncatedKeys, formatter.TruncateID(keyID))
+		for i, keyID := range keys {
+			keys[i] = formatter.TruncateID(keyID)
 		}
-		return strings.Join(truncatedKeys, ", ")
 	}
-	return strings.Join(c.s.Keys, ", ")
+	return strings.Join(keys, ", ")
 }
 
 // Signer returns the name of the signer

@@ -4,10 +4,11 @@
 package trust
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -80,36 +81,38 @@ func getRepoTrustInfo(ctx context.Context, dockerCLI command.Cli, remote string)
 		}
 	}
 
-	signerList, adminList := []trustSigner{}, []trustSigner{}
-
-	signerRoleToKeyIDs := getDelegationRoleToKeyMap(delegationRoles)
-
-	for signerName, signerKeys := range signerRoleToKeyIDs {
-		signerKeyList := []trustKey{}
+	var signerList []trustSigner
+	for signerName, signerKeys := range getDelegationRoleToKeyMap(delegationRoles) {
+		signerKeyList := make([]trustKey, 0, len(signerKeys))
 		for _, keyID := range signerKeys {
 			signerKeyList = append(signerKeyList, trustKey{ID: keyID})
 		}
 		signerList = append(signerList, trustSigner{signerName, signerKeyList})
 	}
-	sort.Slice(signerList, func(i, j int) bool { return signerList[i].Name > signerList[j].Name })
+	// Sort by name in descending order.
+	slices.SortFunc(signerList, func(a, b trustSigner) int { return cmp.Compare(b.Name, a.Name) })
 
+	var adminList []trustSigner
 	for _, adminRole := range adminRolesWithSigs {
+		var name string
 		switch adminRole.Name {
 		case data.CanonicalRootRole:
-			rootKeys := []trustKey{}
-			for _, keyID := range adminRole.KeyIDs {
-				rootKeys = append(rootKeys, trustKey{ID: keyID})
-			}
-			adminList = append(adminList, trustSigner{"Root", rootKeys})
+			name = "Root"
 		case data.CanonicalTargetsRole:
-			targetKeys := []trustKey{}
-			for _, keyID := range adminRole.KeyIDs {
-				targetKeys = append(targetKeys, trustKey{ID: keyID})
-			}
-			adminList = append(adminList, trustSigner{"Repository", targetKeys})
+			name = "Repository"
+		default:
+			continue
 		}
+
+		keys := make([]trustKey, 0, len(adminRole.KeyIDs))
+		for _, keyID := range adminRole.KeyIDs {
+			keys = append(keys, trustKey{ID: keyID})
+		}
+		adminList = append(adminList, trustSigner{name, keys})
 	}
-	sort.Slice(adminList, func(i, j int) bool { return adminList[i].Name > adminList[j].Name })
+
+	// Sort by name in descending order.
+	slices.SortFunc(adminList, func(a, b trustSigner) int { return cmp.Compare(b.Name, a.Name) })
 
 	return json.Marshal(trustRepo{
 		Name:               remote,

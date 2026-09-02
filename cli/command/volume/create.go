@@ -4,10 +4,11 @@
 package volume
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -117,93 +118,68 @@ func hasClusterVolumeOptionSet(flags *pflag.FlagSet) bool {
 }
 
 func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
-	volOpts := client.VolumeCreateOptions{
-		Driver:     options.driver,
-		DriverOpts: options.driverOpts.GetAll(),
-		Name:       options.name,
-		Labels:     opts.ConvertKVStringsToMap(options.labels.GetSlice()),
-	}
-	if options.cluster {
-		volOpts.ClusterVolumeSpec = &volume.ClusterVolumeSpec{
-			Group: options.group,
-			AccessMode: &volume.AccessMode{
-				Scope:   volume.Scope(options.scope),
-				Sharing: volume.SharingMode(options.sharing),
-			},
-			Availability: volume.Availability(options.availability),
-		}
-
-		switch options.accessType {
-		case "mount":
-			volOpts.ClusterVolumeSpec.AccessMode.MountVolume = &volume.TypeMount{}
-		case "block":
-			volOpts.ClusterVolumeSpec.AccessMode.BlockVolume = &volume.TypeBlock{}
-		}
-
-		vcr := &volume.CapacityRange{}
-		if r := options.requiredBytes.Value(); r >= 0 {
-			vcr.RequiredBytes = r
-		}
-
-		if l := options.limitBytes.Value(); l >= 0 {
-			vcr.LimitBytes = l
-		}
-		volOpts.ClusterVolumeSpec.CapacityRange = vcr
-
-		for key, secret := range options.secrets.GetAll() {
-			volOpts.ClusterVolumeSpec.Secrets = append(
-				volOpts.ClusterVolumeSpec.Secrets,
-				volume.Secret{
-					Key:    key,
-					Secret: secret,
-				},
-			)
-		}
-		sort.SliceStable(volOpts.ClusterVolumeSpec.Secrets, func(i, j int) bool {
-			return volOpts.ClusterVolumeSpec.Secrets[i].Key < volOpts.ClusterVolumeSpec.Secrets[j].Key
-		})
-
-		// TODO(dperny): ignore if no topology specified
-		topology := &volume.TopologyRequirement{}
-		for _, top := range options.requisiteTopology.GetSlice() {
-			// each topology takes the form segment=value,segment=value
-			// comma-separated list of equal separated maps
-			segments := map[string]string{}
-			for segment := range strings.SplitSeq(top, ",") {
-				// TODO(dperny): validate topology syntax
-				k, v, _ := strings.Cut(segment, "=")
-				segments[k] = v
-			}
-			topology.Requisite = append(
-				topology.Requisite,
-				volume.Topology{Segments: segments},
-			)
-		}
-
-		for _, top := range options.preferredTopology.GetSlice() {
-			// each topology takes the form segment=value,segment=value
-			// comma-separated list of equal separated maps
-			segments := map[string]string{}
-			for segment := range strings.SplitSeq(top, ",") {
-				// TODO(dperny): validate topology syntax
-				k, v, _ := strings.Cut(segment, "=")
-				segments[k] = v
-			}
-
-			topology.Preferred = append(
-				topology.Preferred,
-				volume.Topology{Segments: segments},
-			)
-		}
-
-		volOpts.ClusterVolumeSpec.AccessibilityRequirements = topology
-	}
-
-	res, err := dockerCli.Client().VolumeCreate(ctx, volOpts)
+	res, err := dockerCli.Client().VolumeCreate(ctx, client.VolumeCreateOptions{
+		Driver:            options.driver,
+		DriverOpts:        options.driverOpts.GetAll(),
+		Name:              options.name,
+		Labels:            opts.ConvertKVStringsToMap(options.labels.GetSlice()),
+		ClusterVolumeSpec: clusterVolumeSpec(options),
+	})
 	if err != nil {
 		return err
 	}
 
 	_, _ = fmt.Fprintln(dockerCli.Out(), res.Volume.Name)
 	return nil
+}
+
+func clusterVolumeSpec(options createOptions) *volume.ClusterVolumeSpec {
+	if !options.cluster {
+		return nil
+	}
+
+	var secrets []volume.Secret
+	for key, secret := range options.secrets.GetAll() {
+		secrets = append(secrets, volume.Secret{Key: key, Secret: secret})
+	}
+	slices.SortFunc(secrets, func(a, b volume.Secret) int {
+		return cmp.Compare(a.Key, b.Key)
+	})
+
+	accessMode := &volume.AccessMode{
+		Scope:   volume.Scope(options.scope),
+		Sharing: volume.SharingMode(options.sharing),
+	}
+	switch options.accessType {
+	case "mount":
+		accessMode.MountVolume = &volume.TypeMount{}
+	case "block":
+		accessMode.BlockVolume = &volume.TypeBlock{}
+	}
+
+	return &volume.ClusterVolumeSpec{
+		Group:      options.group,
+		AccessMode: accessMode,
+		AccessibilityRequirements: &volume.TopologyRequirement{
+			Requisite: parseTopologies(options.requisiteTopology.GetSlice()),
+			Preferred: parseTopologies(options.preferredTopology.GetSlice()),
+		},
+		CapacityRange: &volume.CapacityRange{
+			RequiredBytes: max(options.requiredBytes.Value(), 0),
+			LimitBytes:    max(options.limitBytes.Value(), 0),
+		},
+		Secrets:      secrets,
+		Availability: volume.Availability(options.availability),
+	}
+}
+
+func parseTopologies(values []string) []volume.Topology {
+	topologies := make([]volume.Topology, 0, len(values))
+	for _, top := range values {
+		// TODO(dperny): validate topology syntax
+		topologies = append(topologies, volume.Topology{
+			Segments: opts.ConvertKVStringsToMap(strings.Split(top, ",")),
+		})
+	}
+	return topologies
 }

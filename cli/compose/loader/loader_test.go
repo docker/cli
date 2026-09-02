@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"os"
 	"runtime"
-	"sort"
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
@@ -236,7 +235,9 @@ func TestLoad(t *testing.T) {
 	actual, err := Load(buildConfigDetails(sampleDict, nil))
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(sampleConfig.Version, actual.Version))
-	assert.Check(t, is.DeepEqual(serviceSort(sampleConfig.Services), serviceSort(actual.Services)))
+	assert.Check(t, is.DeepEqual(sampleConfig.Services, actual.Services, cmpopts.SortSlices(func(a, b types.ServiceConfig) bool {
+		return a.Name < b.Name
+	})))
 	assert.Check(t, is.DeepEqual(sampleConfig.Networks, actual.Networks))
 	assert.Check(t, is.DeepEqual(sampleConfig.Volumes, actual.Volumes))
 }
@@ -310,7 +311,9 @@ services:
 func TestParseAndLoad(t *testing.T) {
 	actual, err := loadYAML(sampleYAML)
 	assert.NilError(t, err)
-	assert.Check(t, is.DeepEqual(serviceSort(sampleConfig.Services), serviceSort(actual.Services)))
+	assert.Check(t, is.DeepEqual(sampleConfig.Services, actual.Services, cmpopts.SortSlices(func(a, b types.ServiceConfig) bool {
+		return a.Name < b.Name
+	})))
 	assert.Check(t, is.DeepEqual(sampleConfig.Networks, actual.Networks))
 	assert.Check(t, is.DeepEqual(sampleConfig.Volumes, actual.Volumes))
 }
@@ -1189,13 +1192,6 @@ services:
           size: 0.0001
 `)
 	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size: must be an integer")
-}
-
-func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {
-	sort.Slice(services, func(i, j int) bool {
-		return services[i].Name < services[j].Name
-	})
-	return services
 }
 
 func TestLoadAttachableNetwork(t *testing.T) {

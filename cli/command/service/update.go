@@ -4,13 +4,13 @@
 package service
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"maps"
 	"net/netip"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -637,7 +637,7 @@ func updatePlacementConstraints(flags *pflag.FlagSet, placement *swarm.Placement
 		}
 	}
 	// Sort so that result is predictable.
-	sort.Strings(newConstraints)
+	slices.Sort(newConstraints)
 
 	placement.Constraints = newConstraints
 }
@@ -722,7 +722,7 @@ func updateSysCtls(flags *pflag.FlagSet, field *map[string]string) {
 }
 
 func updateUlimits(flags *pflag.FlagSet, ulimits []*container.Ulimit) []*container.Ulimit {
-	newUlimits := make(map[string]*container.Ulimit)
+	newUlimits := make(map[string]*container.Ulimit, len(ulimits))
 
 	for _, ulimit := range ulimits {
 		newUlimits[ulimit.Name] = ulimit
@@ -739,17 +739,9 @@ func updateUlimits(flags *pflag.FlagSet, ulimits []*container.Ulimit) []*contain
 			newUlimits[ulimit.Name] = ulimit
 		}
 	}
-	if len(newUlimits) == 0 {
-		return nil
-	}
-	limits := make([]*container.Ulimit, 0, len(newUlimits))
-	for _, ulimit := range newUlimits {
-		limits = append(limits, ulimit)
-	}
-	sort.SliceStable(limits, func(i, j int) bool {
-		return limits[i].Name < limits[j].Name
+	return slices.SortedFunc(maps.Values(newUlimits), func(a, b *container.Ulimit) int {
+		return cmp.Compare(a.Name, b.Name)
 	})
-	return limits
 }
 
 func updateEnvironment(flags *pflag.FlagSet, field *[]string) {
@@ -955,14 +947,12 @@ func updateMounts(flags *pflag.FlagSet, mounts *[]mount.Mount) error {
 			newMounts = append(newMounts, mnt)
 		}
 	}
-	sort.Slice(newMounts, func(i, j int) bool {
-		a, b := newMounts[i], newMounts[j]
-
-		if a.Source == b.Source {
-			return a.Target < b.Target
-		}
-
-		return a.Source < b.Source
+	// Sort mounts by source, then by target.
+	slices.SortFunc(newMounts, func(a, b mount.Mount) int {
+		return cmp.Or(
+			cmp.Compare(a.Source, b.Source),
+			cmp.Compare(a.Target, b.Target),
+		)
 	})
 	*mounts = newMounts
 	return nil
@@ -982,7 +972,7 @@ func updateGroups(flags *pflag.FlagSet, groups *[]string) error {
 		}
 	}
 	// Sort so that result is predictable.
-	sort.Strings(newGroups)
+	slices.Sort(newGroups)
 
 	*groups = newGroups
 	return nil
@@ -1041,7 +1031,7 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 		}
 	}
 	// Sort so that result is predictable.
-	sort.Strings(newConfig.Search)
+	slices.Sort(newConfig.Search)
 
 	options := (*config).Options
 	if flags.Changed(flagDNSOptionAdd) {
@@ -1056,7 +1046,7 @@ func updateDNSConfig(flags *pflag.FlagSet, config **swarm.DNSConfig) error {
 		}
 	}
 	// Sort so that result is predictable.
-	sort.Strings(newConfig.Options)
+	slices.Sort(newConfig.Options)
 
 	*config = newConfig
 	return nil
@@ -1109,12 +1099,8 @@ portLoop:
 		}
 	}
 
-	// Sort the PortConfig to avoid unnecessary updates
-	sort.Slice(newPorts, func(i, j int) bool {
-		// We convert PortConfig into `port/protocol`, e.g., `80/tcp`
-		// In updatePorts we already filter out with map so there is duplicate entries
-		return portConfigToString(&newPorts[i]) < portConfigToString(&newPorts[j])
-	})
+	// Sort the PortConfig to avoid unnecessary updates.
+	slices.SortFunc(newPorts, swarm.PortConfig.Compare)
 	*portConfig = newPorts
 	return nil
 }
@@ -1350,8 +1336,8 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 		}
 	}
 
-	sort.Slice(newNetworks, func(i, j int) bool {
-		return newNetworks[i].Target < newNetworks[j].Target
+	slices.SortFunc(newNetworks, func(a, b swarm.NetworkAttachmentConfig) int {
+		return cmp.Compare(a.Target, b.Target)
 	})
 
 	spec.TaskTemplate.Networks = newNetworks
@@ -1525,10 +1511,6 @@ func capsList(caps map[string]bool) []string {
 	if caps[opts.AllCapabilities] {
 		return []string{opts.AllCapabilities}
 	}
-	out := make([]string, 0, len(caps))
-	for c := range caps {
-		out = append(out, c)
-	}
-	sort.Strings(out)
-	return out
+
+	return slices.Sorted(maps.Keys(caps))
 }

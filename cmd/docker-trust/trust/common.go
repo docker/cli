@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -110,9 +111,6 @@ func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]tru
 }
 
 func formatAdminRole(roleWithSigs client.RoleWithSignatures) string {
-	adminKeyList := roleWithSigs.KeyIDs
-	sort.Strings(adminKeyList)
-
 	var role string
 	switch roleWithSigs.Name {
 	case data.CanonicalTargetsRole:
@@ -122,6 +120,7 @@ func formatAdminRole(roleWithSigs client.RoleWithSignatures) string {
 	default:
 		return ""
 	}
+	adminKeyList := slices.Sorted(slices.Values(roleWithSigs.KeyIDs))
 	return fmt.Sprintf("%s:\t%s\n", role, strings.Join(adminKeyList, ", "))
 }
 

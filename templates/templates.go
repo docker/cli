@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -125,12 +125,12 @@ func joinElements(elems any, sep string) (string, error) {
 		return b.String(), nil
 
 	case reflect.Map:
-		var out []string
+		out := make([]string, 0, rv.Len())
 		for _, k := range rv.MapKeys() {
 			out = append(out, fmt.Sprint(rv.MapIndex(k).Interface()))
 		}
 		// Not ideal, but trying to keep a consistent order
-		sort.Strings(out)
+		slices.Sort(out)
 		return strings.Join(out, sep), nil
 
 	default:

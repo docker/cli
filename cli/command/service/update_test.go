@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
-	"sort"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
@@ -141,7 +141,7 @@ func TestUpdateEnvironment(t *testing.T) {
 	updateEnvironment(flags, &envs)
 	assert.Assert(t, is.Len(envs, 2))
 	// Order has been removed in updateEnvironment (map)
-	sort.Strings(envs)
+	slices.Sort(envs)
 	assert.Check(t, is.Equal("toadd=newenv", envs[0]))
 	assert.Check(t, is.Equal("tokeep=value", envs[1]))
 }
@@ -308,7 +308,7 @@ func TestUpdatePorts(t *testing.T) {
 	assert.Assert(t, is.Len(portConfigs, 2))
 	// Do a sort to have the order (might have changed by map)
 	targetPorts := []int{int(portConfigs[0].TargetPort), int(portConfigs[1].TargetPort)}
-	sort.Ints(targetPorts)
+	slices.Sort(targetPorts)
 	assert.Check(t, is.Equal(555, targetPorts[0]))
 	assert.Check(t, is.Equal(1000, targetPorts[1]))
 }

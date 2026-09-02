@@ -4,9 +4,10 @@
 package formatter
 
 import (
+	"cmp"
 	"fmt"
 	"net"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -295,7 +296,7 @@ func (c *ContainerContext) Labels() string {
 	for k, v := range c.c.Labels {
 		joinLabels = append(joinLabels, k+"="+v)
 	}
-	sort.Strings(joinLabels)
+	slices.Sort(joinLabels)
 	return strings.Join(joinLabels, ",")
 }
 
@@ -395,9 +396,7 @@ func DisplayablePorts(ports []container.PortSummary) string {
 	var result []string
 	var hostMappings []string
 	var groupMapKeys []string
-	sort.Slice(ports, func(i, j int) bool {
-		return comparePorts(ports[i], ports[j])
-	})
+	slices.SortFunc(ports, comparePorts)
 
 	for _, port := range ports {
 		current := port.PrivatePort
@@ -452,18 +451,13 @@ func formGroup(key string, start, last uint16) string {
 	return group + "/" + groupType
 }
 
-func comparePorts(i, j container.PortSummary) bool {
-	if i.PrivatePort != j.PrivatePort {
-		return i.PrivatePort < j.PrivatePort
-	}
-
-	if i.IP != j.IP {
-		return i.IP.Less(j.IP)
-	}
-
-	if i.PublicPort != j.PublicPort {
-		return i.PublicPort < j.PublicPort
-	}
-
-	return i.Type < j.Type
+// comparePorts compares ports by private port, IP address, public port,
+// and protocol, in that order.
+func comparePorts(a, b container.PortSummary) int {
+	return cmp.Or(
+		cmp.Compare(a.PrivatePort, b.PrivatePort),
+		a.IP.Compare(b.IP),
+		cmp.Compare(a.PublicPort, b.PublicPort),
+		cmp.Compare(a.Type, b.Type),
+	)
 }

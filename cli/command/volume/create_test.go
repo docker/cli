@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"io"
 	"maps"
-	"sort"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
@@ -230,10 +230,9 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 
 	cli := test.NewFakeCli(&fakeClient{
 		volumeCreateFunc: func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
-			sort.SliceStable(options.ClusterVolumeSpec.Secrets, func(i, j int) bool {
-				return options.ClusterVolumeSpec.Secrets[i].Key < options.ClusterVolumeSpec.Secrets[j].Key
-			})
-			assert.DeepEqual(t, options, expectedOptions)
+			assert.Check(t, is.DeepEqual(options, expectedOptions, cmpopts.SortSlices(func(a, b volume.Secret) bool {
+				return a.Key < b.Key
+			})))
 			return client.VolumeCreateResult{}, nil
 		},
 	})
