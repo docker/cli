@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -620,8 +619,8 @@ func NewListFormat(source string, quiet bool) formatter.Format {
 // ListFormatWrite writes the context
 func ListFormatWrite(ctx formatter.Context, services client.ServiceListResult) error {
 	render := func(format func(subContext formatter.SubContext) error) error {
-		sort.Slice(services.Items, func(i, j int) bool {
-			return sortorder.NaturalLess(services.Items[i].Spec.Name, services.Items[j].Spec.Name)
+		slices.SortFunc(services.Items, func(a, b swarm.Service) int {
+			return sortorder.NaturalCompare(a.Spec.Name, b.Spec.Name)
 		})
 		for _, service := range services.Items {
 			serviceCtx := &serviceContext{service: service}
