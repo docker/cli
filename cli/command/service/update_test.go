@@ -250,6 +250,32 @@ func TestUpdateMounts(t *testing.T) {
 	assert.Check(t, is.Equal("/tokeep", mounts[1].Target))
 }
 
+func TestUpdateServiceForcePreservesMountOrder(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	assert.NilError(t, flags.Set("force", "true"))
+
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{
+				Mounts: []mount.Mount{
+					{Type: mount.TypeVolume, Source: "z-volume", Target: "/data/z"},
+					{Type: mount.TypeVolume, Source: "a-volume", Target: "/data/a"},
+					{Type: mount.TypeVolume, Source: "m-volume", Target: "/data/m"},
+				},
+			},
+		},
+	}
+
+	err := updateService(context.Background(), nil, flags, spec)
+	assert.NilError(t, err)
+	assert.Equal(t, spec.TaskTemplate.ForceUpdate, uint64(1))
+	assert.DeepEqual(t, spec.TaskTemplate.ContainerSpec.Mounts, []mount.Mount{
+		{Type: mount.TypeVolume, Source: "z-volume", Target: "/data/z"},
+		{Type: mount.TypeVolume, Source: "a-volume", Target: "/data/a"},
+		{Type: mount.TypeVolume, Source: "m-volume", Target: "/data/m"},
+	})
+}
+
 func TestUpdateMountsWithDuplicateMounts(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("mount-add", "type=volume,source=vol4,target=/toadd")
