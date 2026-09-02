@@ -9,7 +9,7 @@ require (
 	github.com/docker/cli-docs-tool v0.11.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/go-connections v0.7.0
-	github.com/fvbommel/sortorder v1.1.0
+	github.com/fvbommel/sortorder v1.2.0
 	github.com/moby/moby/api v1.54.2
 	github.com/moby/moby/client v0.4.1
 	github.com/opencontainers/go-digest v1.0.0
