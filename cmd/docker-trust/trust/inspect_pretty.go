@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"slices"
-	"sort"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
@@ -85,15 +84,15 @@ func printSignerInfo(out io.Writer, roleToKeyIDs map[string][]string) error {
 		Format: defaultSignerInfoTableFormat,
 		Trunc:  true,
 	}
-	formattedSignerInfo := []signerInfo{}
+	formattedSignerInfo := make([]signerInfo, 0, len(roleToKeyIDs))
 	for name, keyIDs := range roleToKeyIDs {
 		formattedSignerInfo = append(formattedSignerInfo, signerInfo{
 			Name: name,
 			Keys: keyIDs,
 		})
 	}
-	sort.Slice(formattedSignerInfo, func(i, j int) bool {
-		return sortorder.NaturalLess(formattedSignerInfo[i].Name, formattedSignerInfo[j].Name)
+	slices.SortFunc(formattedSignerInfo, func(a, b signerInfo) int {
+		return sortorder.NaturalCompare(a.Name, b.Name)
 	})
 	return signerInfoWrite(signerInfoCtx, formattedSignerInfo)
 }
