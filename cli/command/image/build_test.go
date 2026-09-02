@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/streams"
@@ -150,6 +151,41 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	assert.NilError(t, err)
 }
 
+func TestRunBuildWithIidFileWritesImageID(t *testing.T) {
+	t.Setenv("DOCKER_BUILDKIT", "0")
+	const imageID = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+	fakeBuild := newFakeBuild()
+	fakeBuild.response = `{"aux":{"ID":"` + imageID + `"}}` + "\n"
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
+	dir := fs.NewDir(t, t.Name(), fs.WithFile("Dockerfile", "FROM scratch\n"))
+	defer dir.Remove()
+
+	options := newBuildOptions()
+	options.context = dir.Path()
+	options.imageIDFile = filepath.Join(t.TempDir(), "iidfile")
+	assert.NilError(t, runBuild(context.TODO(), cli, options))
+
+	contents, err := os.ReadFile(options.imageIDFile)
+	assert.NilError(t, err)
+	assert.Equal(t, string(contents), imageID)
+}
+
+func TestRunBuildWithoutImageIDReturnsError(t *testing.T) {
+	t.Setenv("DOCKER_BUILDKIT", "0")
+	fakeBuild := newFakeBuild()
+	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeBuild.build})
+	dir := fs.NewDir(t, t.Name(), fs.WithFile("Dockerfile", "FROM scratch\n"))
+	defer dir.Remove()
+
+	options := newBuildOptions()
+	options.context = dir.Path()
+	options.imageIDFile = filepath.Join(t.TempDir(), "iidfile")
+	err := runBuild(context.TODO(), cli, options)
+	assert.ErrorContains(t, err, "did not provide an image ID")
+	_, statErr := os.Stat(options.imageIDFile)
+	assert.Assert(t, os.IsNotExist(statErr))
+}
+
 func TestRunBuildWithSymlinkedContext(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 	dockerfile := `
@@ -173,8 +209,9 @@ RUN echo hello world
 }
 
 type fakeBuild struct {
-	context *tar.Reader
-	options client.ImageBuildOptions
+	context  *tar.Reader
+	options  client.ImageBuildOptions
+	response string
 }
 
 func newFakeBuild() *fakeBuild {
@@ -184,8 +221,7 @@ func newFakeBuild() *fakeBuild {
 func (f *fakeBuild) build(_ context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResult, error) {
 	f.context = tar.NewReader(buildContext)
 	f.options = options
-	body := new(bytes.Buffer)
-	return client.ImageBuildResult{Body: io.NopCloser(body)}, nil
+	return client.ImageBuildResult{Body: io.NopCloser(strings.NewReader(f.response))}, nil
 }
 
 func (f *fakeBuild) headers(t *testing.T) []*tar.Header {

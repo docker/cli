@@ -386,10 +386,16 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 	}
 
 	if options.imageIDFile != "" {
-		if imageID == "" {
-			return fmt.Errorf("server did not provide an image ID. Cannot write %s", options.imageIDFile)
+		// The daemon reports the resulting image ID either through an "aux"
+		// message or (in quiet mode) as the build output. A missing ID has
+		// been observed with older daemons and with parallel builds sharing
+		// the same iidfile (docker/cli#2971); fail with a clear error instead
+		// of writing an empty file that downstream tooling would misread.
+		id := strings.TrimSpace(imageID)
+		if id == "" {
+			return fmt.Errorf("server did not provide an image ID; cannot write %s", options.imageIDFile)
 		}
-		if err := os.WriteFile(options.imageIDFile, []byte(imageID), 0o666); err != nil {
+		if err := os.WriteFile(options.imageIDFile, []byte(id), 0o666); err != nil {
 			return err
 		}
 	}
