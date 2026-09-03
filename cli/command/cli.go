@@ -316,7 +316,11 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 		opts = append(opts, withCustomHeaders)
 	}
 	opts = append(opts, extraOpts...)
-	return client.New(opts...)
+	apiClient, err := client.New(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return apiClient, nil
 }
 
 func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
