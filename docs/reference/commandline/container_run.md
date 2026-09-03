@@ -105,6 +105,7 @@ Create and run a new container from an image
 | [`--tmpfs`](#tmpfs)                                   | `list`        |           | Mount a tmpfs directory                                                                                                                                                                                                                                                                                          |
 | [`-t`](#tty), [`--tty`](#tty)                         | `bool`        |           | Allocate a pseudo-TTY                                                                                                                                                                                                                                                                                            |
 | [`--ulimit`](#ulimit)                                 | `ulimit`      |           | Ulimit options                                                                                                                                                                                                                                                                                                   |
+| [`--umask`](#umask)                                   | `umask`       | `<nil>`   | Set umask for the container                                                                                                                                                                                                                                                                                      |
 | `--use-api-socket`                                    | `bool`        |           | Bind mount Docker API socket and required auth                                                                                                                                                                                                                                                                   |
 | `-u`, `--user`                                        | `string`      |           | Username or UID (format: <name\|uid>[:<group\|gid>])                                                                                                                                                                                                                                                             |
 | [`--userns`](#userns)                                 | `string`      |           | User namespace to use                                                                                                                                                                                                                                                                                            |
@@ -1391,6 +1392,56 @@ $ docker run -d -u daemon --ulimit nproc=3 busybox top
 The 4th container fails and reports a "[8] System error: resource temporarily unavailable" error.
 This fails because the caller set `nproc=3` resulting in the first three containers using up
 the three processes quota set for the `daemon` user.
+
+### <a name="umask"></a> Set umask for the container (--umask)
+
+The `--umask` flag sets the umask for the container's processes, which
+controls the default permissions for files and directories created inside
+the container. The value must be specified in octal notation. Leading zeros
+are optional. For example, a umask of `022` creates new files with `644`
+permissions (`-rw-r--r--`) and new directories with `755` permissions
+(`drwxr-xr-x`).
+
+If you don't set the `--umask` flag, the OCI runtime applies its own
+default umask. The default OCI runtime (runc) uses a default umask of
+`0022`, but this value is implementation-defined and may vary between OCI
+runtimes:
+
+```console
+$ docker run --rm busybox sh -c umask
+0022
+```
+
+When the `--umask` flag is set, the value is included in the OCI process
+configuration used for the container's entrypoint, for processes started
+with `docker exec`, and for healthchecks. Whether an OCI runtime honors the
+value depends on the runtime; runc honors the configured umask for
+`docker exec` and for healthchecks.
+
+To set a custom umask, use the `--umask` flag with an octal value:
+
+```console
+$ docker run --rm --umask 077 busybox sh -c umask
+0077
+```
+
+The umask is also applied to processes started later with `docker exec`:
+
+```console
+$ docker run --rm -d --name umask-test --umask 077 busybox sleep 60
+$ docker exec umask-test sh -c umask
+0077
+```
+
+Setting the umask to `0` masks no permission bits, so files and directories
+keep their full permissions. The following example creates a file and a
+directory inside the container:
+
+```console
+$ docker run --rm --umask 0 busybox sh -c 'touch file && mkdir dir && stat -c "%a %n" file dir'
+666 file
+777 dir
+```
 
 ### <a name="stop-signal"></a> Stop container with signal (--stop-signal)
 
