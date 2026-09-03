@@ -95,8 +95,7 @@ func getExitCode(err error) int {
 		return 0
 	}
 
-	var userTerminatedErr errCtxSignalTerminated
-	if errors.As(err, &userTerminatedErr) {
+	if userTerminatedErr, ok := errors.AsType[errCtxSignalTerminated](err); ok {
 		s, ok := userTerminatedErr.signal.(syscall.Signal)
 		if !ok {
 			return 1
