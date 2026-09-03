@@ -6,7 +6,7 @@ package context
 import (
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -101,8 +101,8 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 			Error:   errMsg,
 		})
 	}
-	sort.Slice(contexts, func(i, j int) bool {
-		return sortorder.NaturalLess(contexts[i].Name, contexts[j].Name)
+	slices.SortFunc(contexts, func(a, b *formatter.ClientContext) int {
+		return sortorder.NaturalCompare(a.Name, b.Name)
 	})
 	if err := format(dockerCli, opts, contexts); err != nil {
 		return err

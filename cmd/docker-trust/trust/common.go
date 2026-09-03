@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
@@ -163,8 +162,8 @@ func matchReleasedSignatures(allTargets []client.TargetSignedStruct) []trustTagR
 	for targetKey, signers := range releasedTargetRows {
 		signatureRows = append(signatureRows, trustTagRow{targetKey, signers})
 	}
-	sort.Slice(signatureRows, func(i, j int) bool {
-		return sortorder.NaturalLess(signatureRows[i].SignedTag, signatureRows[j].SignedTag)
+	slices.SortFunc(signatureRows, func(a, b trustTagRow) int {
+		return sortorder.NaturalCompare(a.SignedTag, b.SignedTag)
 	})
 	return signatureRows
 }

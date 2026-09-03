@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"text/template"
 
 	"github.com/containerd/errdefs"
@@ -172,9 +172,7 @@ func dryRun(ctx context.Context, dockerCli command.Cli, options pruneOptions) (s
 				filters = append(filters, name+"="+v)
 			}
 		}
-		sort.Slice(filters, func(i, j int) bool {
-			return sortorder.NaturalLess(filters[i], filters[j])
-		})
+		slices.SortFunc(filters, sortorder.NaturalCompare)
 	}
 
 	var buffer bytes.Buffer
