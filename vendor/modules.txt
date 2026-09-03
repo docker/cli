@@ -94,7 +94,7 @@ github.com/felixge/httpsnoop
 # github.com/fvbommel/sortorder v1.2.0
 ## explicit; go 1.21
 github.com/fvbommel/sortorder
-# github.com/go-jose/go-jose/v4 v4.1.4
+# github.com/go-jose/go-jose/v4 v4.1.5
 ## explicit; go 1.24.0
 github.com/go-jose/go-jose/v4
 github.com/go-jose/go-jose/v4/cipher
