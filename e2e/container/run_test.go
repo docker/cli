@@ -112,6 +112,7 @@ func TestRunWithCgroupNamespace(t *testing.T) {
 
 func TestRunUmask(t *testing.T) {
 	environment.SkipIfDaemonNotLinux(t)
+	t.Skip("FIXME: un-skip once e2e tests v29.8.0")
 
 	testCases := []struct {
 		name     string
