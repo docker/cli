@@ -132,6 +132,15 @@ func TestNewAPIClientFromFlagsWithAPIVersionFromEnv(t *testing.T) {
 	assert.Equal(t, apiclient.ClientVersion(), expectedVersion)
 }
 
+func TestNewAPIClientFromFlagsWithInvalidAPIVersionFromEnv(t *testing.T) {
+	t.Setenv("DOCKER_API_VERSION", "1")
+	t.Setenv("DOCKER_HOST", ":2375")
+
+	apiClient, err := NewAPIClientFromFlags(&flags.ClientOptions{}, &configfile.ConfigFile{})
+	assert.ErrorContains(t, err, "invalid API version")
+	assert.Check(t, apiClient == nil)
+}
+
 type fakeClient struct {
 	client.Client
 	pingFunc   func() (client.PingResult, error)
