@@ -81,7 +81,7 @@ func getRepoTrustInfo(ctx context.Context, dockerCLI command.Cli, remote string)
 		}
 	}
 
-	var signerList []trustSigner
+	signerList := []trustSigner{}
 	for signerName, signerKeys := range getDelegationRoleToKeyMap(delegationRoles) {
 		signerKeyList := make([]trustKey, 0, len(signerKeys))
 		for _, keyID := range signerKeys {
