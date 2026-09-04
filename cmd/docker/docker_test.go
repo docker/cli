@@ -93,12 +93,19 @@ func TestExitStatusForInvalidSubcommand(t *testing.T) {
 }
 
 func TestUnknownCommandWithFlag(t *testing.T) {
-	err := runCliCommand(t, nil, nil, "iamges", "--filter")
+	err := runCliCommand(t, discard, nil, "iamges", "--filter")
 	assert.Check(t, is.ErrorContains(err, "docker: unknown command: docker iamges"))
 	assert.Check(t, is.ErrorContains(err, "docker --help"))
 
-	err = runCliCommand(t, nil, nil, "iamges", "-f")
+	err = runCliCommand(t, discard, nil, "iamges", "-f")
 	assert.Check(t, is.ErrorContains(err, "docker: unknown command: docker iamges"))
+}
+
+func TestUnknownCommandWithHelpFlag(t *testing.T) {
+	var b bytes.Buffer
+	err := runCliCommand(t, discard, &b, "nonexistent", "--help")
+	assert.NilError(t, err)
+	assert.Check(t, is.Contains(b.String(), "Usage:"))
 }
 
 func TestVersion(t *testing.T) {
