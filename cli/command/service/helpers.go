@@ -24,7 +24,7 @@ func WaitOnService(ctx context.Context, dockerCli command.Cli, serviceID string,
 		return <-errChan
 	}
 
-	err := jsonstream.Display(ctx, pipeReader, dockerCli.Out())
+	err := jsonstream.DisplayStream(ctx, pipeReader, dockerCli.Out())
 	if err == nil {
 		err = <-errChan
 	}
