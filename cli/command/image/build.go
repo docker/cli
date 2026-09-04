@@ -436,7 +436,7 @@ func imageBuildOptions(dockerCli command.Cli, options buildOptions) client.Image
 		CgroupParent:   options.cgroupParent,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetSlice())),
+		BuildArgs:      configFile.ParseProxyConfig(command.DaemonHost(dockerCli), opts.ConvertKVStringsToMapWithNil(options.buildArgs.GetSlice())),
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetSlice()),
 		CacheFrom:      options.cacheFrom,
 		SecurityOpt:    options.securityOpt,
