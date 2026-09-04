@@ -186,6 +186,10 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	cmd.SetOut(dockerCli.Out())
 	commands.AddCommands(cmd, dockerCli)
 
+	// Stop root flag parsing at the first non-flag so a misspelled command
+	// followed by flags is reported as an unknown command, not "unknown flag".
+	cmd.Flags().SetInterspersed(false)
+
 	visitAll(cmd, setValidateArgs(dockerCli))
 
 	// flags must be the top-level command flags, not cmd.Flags()
