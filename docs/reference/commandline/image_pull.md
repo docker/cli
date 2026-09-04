@@ -150,6 +150,10 @@ Status: Image is up to date for ubuntu@sha256:2e863c44b718727c860746568e1d54afd1
 docker.io/library/ubuntu@sha256:2e863c44b718727c860746568e1d54afd13b2fa71b160f5cd9058fc436217b30
 ```
 
+Do not combine a tag and a digest in the same reference (for example,
+`ubuntu:24.04@sha256:…`). `docker pull` rejects that form; use either a tag or
+a digest, not both.
+
 Digest can also be used in the `FROM` of a Dockerfile, for example:
 
 ```dockerfile
