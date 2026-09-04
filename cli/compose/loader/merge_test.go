@@ -301,6 +301,30 @@ func TestLoadMultipleServicePorts(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "same_published_tcp_and_udp",
+			portBase: map[string]any{
+				"ports": []any{
+					"443:443",
+					"443:443/udp",
+				},
+			},
+			portOverride: map[string]any{},
+			expected: []types.ServicePortConfig{
+				{
+					Mode:      "ingress",
+					Published: 443,
+					Target:    443,
+					Protocol:  "tcp",
+				},
+				{
+					Mode:      "ingress",
+					Published: 443,
+					Target:    443,
+					Protocol:  "udp",
+				},
+			},
+		},
 	}
 
 	for _, tc := range portsCases {
