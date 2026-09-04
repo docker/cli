@@ -112,6 +112,7 @@ func TestRunWithCgroupNamespace(t *testing.T) {
 
 func TestRunUmask(t *testing.T) {
 	environment.SkipIfDaemonNotLinux(t)
+	skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.56"))
 
 	testCases := []struct {
 		name     string
