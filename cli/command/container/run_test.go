@@ -37,6 +37,16 @@ func TestRunValidateFlags(t *testing.T) {
 			args:        []string{"--detach-keys", "shift-a", "myimage"},
 			expectedErr: "invalid detach keys (shift-a):",
 		},
+		{
+			name:        "with --start-healthy-timeout without --detach",
+			args:        []string{"--start-healthy-timeout", "30s", "myimage"},
+			expectedErr: "--start-healthy-timeout can only be used with --detach",
+		},
+		{
+			name:        "with negative --start-healthy-timeout",
+			args:        []string{"--detach", "--start-healthy-timeout", "-30s", "myimage"},
+			expectedErr: "--start-healthy-timeout cannot be negative",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := newRunCommand(test.NewFakeCli(&fakeClient{}))
@@ -64,6 +74,56 @@ func TestRunLabel(t *testing.T) {
 	cmd := newRunCommand(fakeCLI)
 	cmd.SetArgs([]string{"--detach=true", "--label", "foo", "busybox"})
 	assert.NilError(t, cmd.Execute())
+}
+
+func TestRunStartHealthyTimeout(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		state       container.State
+		expectedErr string
+	}{
+		{
+			name:  "healthy",
+			state: container.State{Running: true, Health: &container.Health{Status: container.Healthy}},
+		},
+		{
+			name:        "not healthy in time",
+			state:       container.State{Running: true, Health: &container.Health{Status: container.Starting}},
+			expectedErr: "container id did not become healthy within 100ms",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			fakeCLI := test.NewFakeCli(&fakeClient{
+				createContainerFunc: func(client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
+					return client.ContainerCreateResult{ID: "id"}, nil
+				},
+				inspectFunc: func(string) (client.ContainerInspectResult, error) {
+					return client.ContainerInspectResult{
+						Container: container.InspectResponse{ID: "id", State: &tc.state},
+					}, nil
+				},
+				containerStopFunc: func(context.Context, string, client.ContainerStopOptions) (client.ContainerStopResult, error) {
+					t.Error("container should not be stopped")
+					return client.ContainerStopResult{}, nil
+				},
+				Version: client.MaxAPIVersion,
+			})
+			cmd := newRunCommand(fakeCLI)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs([]string{"--detach", "--start-healthy-timeout", "100ms", "busybox"})
+
+			err := cmd.Execute()
+			if tc.expectedErr == "" {
+				assert.NilError(t, err)
+			} else {
+				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+			}
+			// The container ID is printed as soon as the container is started,
+			// regardless of whether it becomes healthy.
+			assert.Check(t, is.Equal(fakeCLI.OutBuffer().String(), "id\n"))
+		})
+	}
 }
 
 func TestRunAttach(t *testing.T) {
