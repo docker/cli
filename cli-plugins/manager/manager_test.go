@@ -86,6 +86,30 @@ func TestListPluginCandidatesEmpty(t *testing.T) {
 	assert.Assert(t, len(candidates) == 0)
 }
 
+func TestPluginDirEnvironmentVariableExpansion(t *testing.T) {
+	pluginDir := "plugins1"
+	t.Setenv("MY_PLUGIN_DIR", pluginDir)
+	dir := fs.NewDir(t, t.Name(),
+		fs.WithDir("${MY_PLUGIN_DIR}",
+			fs.WithFile("docker-plugin1", ""),
+		),
+	)
+	defer dir.Remove()
+
+	t.Setenv("DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS", dir.Join(pluginDir))
+
+	cli := test.NewFakeCli(nil)
+	cli.SetConfigFile(&configfile.ConfigFile{CLIPluginsExtraDirs: []string{"$DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS"}})
+
+	pluginDirs := getPluginDirs(cli.ConfigFile())
+	expected := []string{
+		dir.Join(pluginDir),
+		filepath.Join(config.Dir(), "cli-plugins"),
+	}
+	expected = append(expected, defaultSystemPluginDirs...)
+	assert.DeepEqual(t, expected, pluginDirs)
+}
+
 // Regression test for https://github.com/docker/cli/issues/5643.
 // Check that inaccessible directories that come before accessible ones are ignored
 // and do not prevent the latter from being processed.
