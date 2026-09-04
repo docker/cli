@@ -60,6 +60,7 @@ func formatWrite(fmtCtx formatter.Context, tasks client.TaskListResult, names ma
 		for _, task := range tasks.Items {
 			if err := format(&taskContext{
 				trunc: fmtCtx.Trunc,
+				table: fmtCtx.Format.IsTable(),
 				task:  task,
 				name:  names[task.ID],
 				node:  nodes[task.ID],
@@ -74,6 +75,7 @@ func formatWrite(fmtCtx formatter.Context, tasks client.TaskListResult, names ma
 type taskContext struct {
 	formatter.HeaderContext
 	trunc bool
+	table bool
 	task  swarm.Task
 	name  string
 	node  string
@@ -128,6 +130,15 @@ func (c *taskContext) CurrentState() string {
 func (c *taskContext) Error() string {
 	// Trim and quote the error message.
 	taskErr := c.task.Status.Err
+	if c.table {
+		// Avoid embedding multiline task errors into table output. Daemon-side
+		// task errors can include stack traces; newlines make one task span many
+		// rows and corrupt the columns.
+		taskErr = strings.ReplaceAll(taskErr, "\r\n", " ")
+		taskErr = strings.ReplaceAll(taskErr, "\n", " ")
+		taskErr = strings.ReplaceAll(taskErr, "\r", " ")
+		taskErr = strings.ReplaceAll(taskErr, "	", " ")
+	}
 	if c.trunc {
 		taskErr = formatter.Ellipsis(taskErr, maxErrLength)
 	}
