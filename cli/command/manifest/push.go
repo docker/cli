@@ -281,7 +281,10 @@ func mountBlobs(ctx context.Context, client registryclient.RegistryClient, ref r
 		case nil:
 		case registryclient.ErrBlobCreated:
 			if blob.os != "windows" {
-				return fmt.Errorf("error mounting %s to %s", blob.canonical, ref)
+				return fmt.Errorf(
+					"blob %s was uploaded to %s instead of mounted from the source repository; cross-repository blob mount is required for %s manifests: %w",
+					blob.canonical, ref, blob.os, err,
+				)
 			}
 		default:
 			return err

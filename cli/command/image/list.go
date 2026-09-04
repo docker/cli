@@ -161,7 +161,7 @@ func shouldUseTree(options imagesOptions) (bool, error) {
 	}
 	if options.showDigests {
 		if options.tree {
-			return false, errors.New("--show-digest is not yet supported with --tree")
+			return false, errors.New("--digests is not yet supported with --tree")
 		}
 		return false, nil
 	}

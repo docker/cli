@@ -362,7 +362,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			prettyGolden:   "docker-info-errors",
 			jsonGolden:     "docker-info-errors",
 			warningsGolden: "docker-info-errors-stderr",
-			expectedError:  "errors pretty printing info",
+			expectedError:  "one or more errors occurred while collecting system info; see ERROR lines above",
 		},
 		{
 			doc: "bad security info",
@@ -374,7 +374,7 @@ func TestPrettyPrintInfo(t *testing.T) {
 			prettyGolden:   "docker-info-badsec",
 			jsonGolden:     "docker-info-badsec",
 			warningsGolden: "docker-info-badsec-stderr",
-			expectedError:  "errors pretty printing info",
+			expectedError:  "one or more errors occurred while collecting system info; see ERROR lines above",
 		},
 		{
 			doc: "info with devices",
