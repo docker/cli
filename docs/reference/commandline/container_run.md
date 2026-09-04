@@ -1024,7 +1024,7 @@ streams of the container to a pseudo terminal, creating an interactive terminal
 session for the container. See [Allocate a pseudo-TTY](#tty) for more examples.
 
 ```console
-$ docker run -it debian
+$ docker run -it alpine
 root@10a3e71492b0:/# factor 90
 90: 2 3 3 5
 root@10a3e71492b0:/# exit
@@ -1059,11 +1059,11 @@ your terminal to the I/O streams of the container. Allocating a pseudo-TTY to
 the container means that you get access to input and output feature that TTY
 devices provide.
 
-For example, the following command runs the `passwd` command in a `debian`
+For example, the following command runs the `passwd` command in an `alpine`
 container, to set a new password for the `root` user.
 
 ```console
-$ docker run -i debian passwd root
+$ docker run -i alpine passwd root
 New password: karjalanpiirakka9
 Retype new password: karjalanpiirakka9
 passwd: password updated successfully
@@ -1075,7 +1075,7 @@ text. However, if you try the same thing but also adding the `-t` flag, the
 password is hidden:
 
 ```console
-$ docker run -it debian passwd root
+$ docker run -it alpine passwd root
 New password:
 Retype new password:
 passwd: password updated successfully
@@ -1333,7 +1333,7 @@ Specify `--ulimit` with a soft and hard limit in the format
 `<type>=<soft limit>[:<hard limit>]`. For example:
 
 ```console
-$ docker run --ulimit nofile=1024:1024 --rm debian sh -c "ulimit -n"
+$ docker run --ulimit nofile=1024:1024 --rm alpine sh -c "ulimit -n"
 1024
 ```
 
