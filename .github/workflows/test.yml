@@ -51,10 +51,6 @@ jobs:
       contents: read
       id-token: write # needed for CodeCov; https://github.com/codecov/codecov-action/blob/v7.1.1/README.md#using-oidc
     runs-on: ${{ matrix.os }}
-    env:
-      GOPATH: ${{ github.workspace }}
-      GOBIN: ${{ github.workspace }}/bin
-      GO111MODULE: auto
     strategy:
       fail-fast: false
       matrix:
@@ -68,7 +64,6 @@ jobs:
         name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          path: ${{ env.GOPATH }}/src/github.com/docker/cli
           persist-credentials: false
       -
         name: Set up Go
@@ -81,12 +76,10 @@ jobs:
         run: |
           go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '^github.com/docker/cli/v29/e2e/')
           go tool cover -func=/tmp/coverage.txt
-        working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
         shell: bash
       -
         name: Send to Codecov
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: /tmp/coverage.txt
-          working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
           use_oidc: true
