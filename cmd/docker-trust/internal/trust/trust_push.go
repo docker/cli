@@ -11,7 +11,7 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/cmd/docker-trust/internal/jsonstream"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"

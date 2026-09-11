@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/prompt"
+	"github.com/docker/cli/cmd/docker-trust/internal/prompt"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 )

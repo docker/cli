@@ -3,7 +3,7 @@ package trust
 import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/internal/commands"
+	"github.com/docker/cli/cmd/docker-trust/internal/commands"
 	"github.com/spf13/cobra"
 )
 
