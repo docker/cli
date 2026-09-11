@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/v29/cli/version"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

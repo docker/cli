@@ -9,9 +9,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli/command"
-	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli/command"
+	cliflags "github.com/docker/cli/v29/cli/flags"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/term"
 	"github.com/morikuni/aec"

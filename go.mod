@@ -1,4 +1,4 @@
-module github.com/docker/cli
+module github.com/docker/cli/v29
 
 go 1.26.0
 
