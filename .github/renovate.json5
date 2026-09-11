@@ -7,16 +7,13 @@
     "helpers:pinGitHubActionDigestsToSemver",
     ":gitSignOff"
   ],
-  "gomod": {
-    "managerFilePatterns": ["/(^|/)vendor\\.mod$/"]
-  },
   "postUpdateOptions": ["gomodTidy"],
   "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
   "packageRules": [
     {
       "matchManagers": ["gomod"],
-      "matchFileNames": ["vendor.mod"],
+      "matchFileNames": ["go.mod"],
       "semanticCommits": "disabled",
       "commitMessagePrefix": "vendor:"
     },
@@ -30,7 +27,7 @@
     },
     {
       "matchManagers": ["gomod"],
-      "matchFileNames": ["vendor.mod"],
+      "matchFileNames": ["go.mod"],
       "groupName": "golang.org/x packages",
       "groupSlug": "golang-x",
       "matchDepNames": ["/^golang\\.org\\/x\\//"]
@@ -49,7 +46,7 @@
     {
       // Keep all the google.golang.org/genproto modules at the same version.
       "matchManagers": ["gomod"],
-      "matchFileNames": ["vendor.mod"],
+      "matchFileNames": ["go.mod"],
       "groupName": "google.golang.org/genproto packages",
       "groupSlug": "google-genproto",
       "matchDepNames": ["/^google\\.golang\\.org\\/genproto(\\/|$)/"],
