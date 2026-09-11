@@ -24,6 +24,6 @@ TARGET_PLUGIN="$(dirname "${TARGET}")/docker-trust-${GOOS}-${GOARCH}"
 mkdir -p "$(dirname "${TARGET_PLUGIN}")"
 
 echo "Building $GO_LINKMODE $(basename "${TARGET_PLUGIN}")"
-(set -x ; GO111MODULE=auto go -C ./cmd/docker-trust build -o "../../${TARGET_PLUGIN}" -tags "${GO_BUILDTAGS}" -ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE})
+(set -x ; go -C ./cmd/docker-trust build -o "../../${TARGET_PLUGIN}" -tags "${GO_BUILDTAGS}" -ldflags "${GO_LDFLAGS}" ${GO_BUILDMODE})
 
 ln -sf "$(basename "${TARGET_PLUGIN}")" "$(dirname "${TARGET}")/docker-trust"
