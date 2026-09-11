@@ -1,8 +1,6 @@
 * text=auto
 
 Dockerfile* linguist-language=Dockerfile
-vendor.mod linguist-language=Go-Module
-vendor.sum linguist-language=Go-Checksums
 
 *.go -text diff=golang
 
