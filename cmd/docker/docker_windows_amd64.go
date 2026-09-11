@@ -4,4 +4,4 @@
 
 package main
 
-import _ "github.com/docker/cli/cmd/docker/winresources"
+import _ "github.com/docker/cli/v29/cmd/docker/winresources"

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v29/cli/streams"
+	"github.com/docker/cli/v29/internal/test"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"

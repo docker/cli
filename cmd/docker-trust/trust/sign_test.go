@@ -7,10 +7,10 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cmd/docker-trust/internal/test"
 	notaryfake "github.com/docker/cli/cmd/docker-trust/internal/test/notary"
 	"github.com/docker/cli/cmd/docker-trust/internal/trust"
+	"github.com/docker/cli/v29/cli/config"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/client/changelist"

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command/formatter"
-	"github.com/docker/cli/cli/command/inspect"
+	"github.com/docker/cli/v29/cli/command/formatter"
+	"github.com/docker/cli/v29/cli/command/inspect"
 	"github.com/docker/go-units"
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/moby/api/types/container"

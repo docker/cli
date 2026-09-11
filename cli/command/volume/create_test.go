@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v29/internal/test"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"

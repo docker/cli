@@ -16,12 +16,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
-	contextdocker "github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/config"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	contextdocker "github.com/docker/cli/v29/cli/context/docker"
+	"github.com/docker/cli/v29/cli/context/store"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

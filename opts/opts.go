@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/internal/lazyregexp"
+	"github.com/docker/cli/v29/internal/lazyregexp"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/client"
 )

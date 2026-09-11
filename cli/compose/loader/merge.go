@@ -11,7 +11,7 @@ import (
 	"slices"
 
 	"dario.cat/mergo"
-	"github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/v29/cli/compose/types"
 )
 
 type specials struct {

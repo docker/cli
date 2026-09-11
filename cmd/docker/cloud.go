@@ -10,12 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config"
-	contextdocker "github.com/docker/cli/cli/context/docker"
+	"github.com/docker/cli/v29/cli"
+	pluginmanager "github.com/docker/cli/v29/cli-plugins/manager"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/config"
+	contextdocker "github.com/docker/cli/v29/cli/context/docker"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

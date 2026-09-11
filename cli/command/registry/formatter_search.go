@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v29/cli/command/formatter"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
 )

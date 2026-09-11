@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v29/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/spf13/pflag"
 )

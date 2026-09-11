@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli-plugins/plugin"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli-plugins/plugin"
+	"github.com/docker/cli/v29/cli/command"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )

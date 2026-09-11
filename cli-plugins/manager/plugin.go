@@ -15,8 +15,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/cli-plugins/hooks"
-	"github.com/docker/cli/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli-plugins/hooks"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
 	"github.com/spf13/cobra"
 )
 

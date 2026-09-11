@@ -73,7 +73,7 @@ jobs:
       -
         name: Test
         run: |
-          go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '^github.com/docker/cli/e2e/')
+          go test -coverprofile=/tmp/coverage.txt $(go list ./... | grep -vE '^github.com/docker/cli/v29/e2e/')
           go tool cover -func=/tmp/coverage.txt
         working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
         shell: bash
