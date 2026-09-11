@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/docker/cli-docs-tool/annotation"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli-plugins/plugin"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/debug"
-	cliflags "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli-plugins/plugin"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/debug"
+	cliflags "github.com/docker/cli/v29/cli/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

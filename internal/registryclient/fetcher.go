@@ -10,8 +10,8 @@ import (
 	"fmt"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/internal/registry"
+	"github.com/docker/cli/v29/cli/manifest/types"
+	"github.com/docker/cli/v29/internal/registry"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
 	"github.com/docker/distribution/manifest/ocischema"

@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	servicecli "github.com/docker/cli/cli/command/service"
-	composetypes "github.com/docker/cli/cli/compose/types"
-	"github.com/docker/cli/opts"
+	servicecli "github.com/docker/cli/v29/cli/command/service"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
+	"github.com/docker/cli/v29/opts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
