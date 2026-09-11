@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
-	manifesttypes "github.com/docker/cli/cli/manifest/types"
+	manifesttypes "github.com/docker/cli/v29/cli/manifest/types"
 	"github.com/docker/distribution"
 	distributionclient "github.com/docker/distribution/registry/client"
 	registrytypes "github.com/moby/moby/api/types/registry"

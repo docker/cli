@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/opts"
-	"github.com/docker/cli/opts/swarmopts"
+	"github.com/docker/cli/v29/opts"
+	"github.com/docker/cli/v29/opts/swarmopts"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
 	"github.com/moby/moby/api/types/container"

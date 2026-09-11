@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v29/internal/test"
 	"github.com/moby/moby/api/types/container"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"gotest.tools/v3/assert"

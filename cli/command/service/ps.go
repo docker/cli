@@ -5,12 +5,12 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/idresolver"
-	"github.com/docker/cli/cli/command/node"
-	"github.com/docker/cli/cli/command/task"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/idresolver"
+	"github.com/docker/cli/v29/cli/command/node"
+	"github.com/docker/cli/v29/cli/command/task"
+	"github.com/docker/cli/v29/opts"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )

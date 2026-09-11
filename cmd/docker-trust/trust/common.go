@@ -7,10 +7,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cmd/docker-trust/internal/trust"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/config"
+	"github.com/docker/cli/v29/cli/config/configfile"
 	"github.com/fvbommel/sortorder"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/sirupsen/logrus"

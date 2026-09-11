@@ -6,18 +6,18 @@ import (
 	"io"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	"github.com/docker/cli/v29/internal/test"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 
 	// Make sure pruners are registered for tests (they're included automatically when building).
-	_ "github.com/docker/cli/cli/command/builder"
-	_ "github.com/docker/cli/cli/command/container"
-	_ "github.com/docker/cli/cli/command/image"
-	_ "github.com/docker/cli/cli/command/network"
-	_ "github.com/docker/cli/cli/command/volume"
+	_ "github.com/docker/cli/v29/cli/command/builder"
+	_ "github.com/docker/cli/v29/cli/command/container"
+	_ "github.com/docker/cli/v29/cli/command/image"
+	_ "github.com/docker/cli/v29/cli/command/network"
+	_ "github.com/docker/cli/v29/cli/command/volume"
 )
 
 func TestPrunePromptFilters(t *testing.T) {

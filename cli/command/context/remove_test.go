@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/containerd/errdefs"
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/v29/cli/config"
+	"github.com/docker/cli/v29/cli/config/configfile"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

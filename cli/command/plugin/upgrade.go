@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/internal/jsonstream"
-	"github.com/docker/cli/internal/prompt"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/internal/jsonstream"
+	"github.com/docker/cli/v29/internal/prompt"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )

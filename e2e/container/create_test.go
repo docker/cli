@@ -3,7 +3,7 @@ package container
 import (
 	"testing"
 
-	"github.com/docker/cli/e2e/internal/fixtures"
+	"github.com/docker/cli/v29/e2e/internal/fixtures"
 	"gotest.tools/v3/icmd"
 )
 

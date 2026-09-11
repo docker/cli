@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v29/cli/command/formatter"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

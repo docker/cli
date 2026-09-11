@@ -12,8 +12,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/docker/cli/cli/connhelper/commandconn"
-	"github.com/docker/cli/cli/connhelper/ssh"
+	"github.com/docker/cli/v29/cli/connhelper/commandconn"
+	"github.com/docker/cli/v29/cli/connhelper/ssh"
 )
 
 // ConnectionHelper allows to connect to a remote host with custom stream provider binary.

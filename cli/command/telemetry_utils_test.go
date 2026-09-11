@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v29/cli/streams"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel/attribute"
