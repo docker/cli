@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/containerd/errdefs"
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli/command"
+	pluginmanager "github.com/docker/cli/v29/cli-plugins/manager"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli/command"
 	"github.com/moby/moby/api/types/build"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

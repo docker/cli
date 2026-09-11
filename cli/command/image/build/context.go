@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/command/image/build/internal/git"
+	"github.com/docker/cli/v29/cli/command/image/build/internal/git"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/moby/client/pkg/progress"

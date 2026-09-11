@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	"github.com/containerd/errdefs"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
-	flagsHelper "github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/formatter"
+	flagsHelper "github.com/docker/cli/v29/cli/flags"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )

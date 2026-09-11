@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/docker/cli/e2e/internal/fixtures"
-	"github.com/docker/cli/e2e/testutils"
-	"github.com/docker/cli/internal/test/environment"
+	"github.com/docker/cli/v29/e2e/internal/fixtures"
+	"github.com/docker/cli/v29/e2e/testutils"
+	"github.com/docker/cli/v29/internal/test/environment"
 	"gotest.tools/v3/icmd"
 	"gotest.tools/v3/skip"
 )
