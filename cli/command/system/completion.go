@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/cli/command/idresolver"
+	"github.com/docker/cli/v29/cli/command/completion"
+	"github.com/docker/cli/v29/cli/command/idresolver"
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"

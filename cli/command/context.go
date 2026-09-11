@@ -8,7 +8,7 @@ import (
 	"errors"
 	"maps"
 
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli/context/store"
 )
 
 // DockerContext is a typed representation of what we put in Context metadata

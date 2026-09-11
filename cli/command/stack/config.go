@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	composeLoader "github.com/docker/cli/cli/compose/loader"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	composeLoader "github.com/docker/cli/v29/cli/compose/loader"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v3"
 )

@@ -3,7 +3,7 @@ package plugin
 import (
 	"strings"
 
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v29/cli/command/formatter"
 	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/client"
 )

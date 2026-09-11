@@ -13,8 +13,8 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/opts"
 )
 
 // ContentType is an identifier for content that can be pruned.

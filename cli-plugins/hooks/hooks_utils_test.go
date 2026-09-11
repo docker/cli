@@ -3,7 +3,7 @@ package hooks_test
 import (
 	"testing"
 
-	"github.com/docker/cli/cli-plugins/hooks"
+	"github.com/docker/cli/v29/cli-plugins/hooks"
 )
 
 func TestTemplateHelpers(t *testing.T) {

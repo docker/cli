@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli/context/store"
 	"github.com/sirupsen/logrus"
 )
 

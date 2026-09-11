@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cmd/docker-trust/internal/prompt"
 	"github.com/docker/cli/cmd/docker-trust/internal/trust"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
