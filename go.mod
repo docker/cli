@@ -1,15 +1,8 @@
 module github.com/docker/cli
 
-// 'vendor.mod' enables use of 'go mod vendor' to managed 'vendor/' directory.
-// There is no 'go.mod' file, as that would imply opting in for all the rules
-// around SemVer, which this repo cannot abide by as it uses CalVer.
-
 go 1.26.0
 
-tool (
-	github.com/cpuguy83/go-md2man/v2 // for scripts/docs/generate-man.sh
-	golang.org/x/mod/modfile // for module compatibility check
-)
+tool github.com/cpuguy83/go-md2man/v2 // for scripts/docs/generate-man.sh
 
 require (
 	dario.cat/mergo v1.0.2
@@ -102,7 +95,6 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.47.0 // indirect
 	go.opentelemetry.io/otel/log v1.47.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
-	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
