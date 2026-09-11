@@ -5,11 +5,6 @@
 # Sets the name of the company that produced the windows binary.
 PACKAGER_NAME ?=
 
-# The repository doesn't have a go.mod, but "go list", and "gotestsum"
-# expect to be run from a module.
-GO111MODULE=auto
-export GO111MODULE
-
 all: binary
 
 _:=$(shell ./scripts/warn-outside-container $(MAKECMDGOALS))
@@ -81,15 +76,15 @@ install-trust-plugin: ## install docker-trust CLI plugins
 .PHONY: vendor
 vendor: ## update vendor with go modules
 	rm -rf vendor
-	scripts/with-go-mod.sh scripts/vendor update
+	scripts/vendor update
 
 .PHONY: validate-vendor
 validate-vendor: ## validate vendor
-	scripts/with-go-mod.sh scripts/vendor validate
+	scripts/vendor validate
 
 .PHONY: mod-outdated
 mod-outdated: ## check outdated dependencies
-	scripts/with-go-mod.sh scripts/vendor outdated
+	scripts/vendor outdated
 
 .PHONY: authors
 authors: ## generate AUTHORS file from git history
@@ -124,15 +119,15 @@ shell-completion: ## generate shell-completion scripts
 
 .PHONY: manpages
 manpages: ## generate man pages from go source and markdown
-	scripts/with-go-mod.sh scripts/docs/generate-man.sh
+	scripts/docs/generate-man.sh
 
 .PHONY: mddocs
 mddocs: ## generate markdown files from go source
-	scripts/with-go-mod.sh scripts/docs/generate-md.sh
+	scripts/docs/generate-md.sh
 
 .PHONY: yamldocs
 yamldocs: ## generate documentation YAML files consumed by docs repo
-	scripts/with-go-mod.sh scripts/docs/generate-yaml.sh
+	scripts/docs/generate-yaml.sh
 
 .PHONY: help
 help: ## print this help
