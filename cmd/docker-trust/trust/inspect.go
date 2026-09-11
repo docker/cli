@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/inspect"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/inspect"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/tuf/data"
 )

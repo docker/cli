@@ -14,10 +14,10 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/cli/compose/schema"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/compose/loader"
+	"github.com/docker/cli/v29/cli/compose/schema"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
 )
 
 // loadComposeFile parse the composefile specified in the cli and returns its configOptions and version.

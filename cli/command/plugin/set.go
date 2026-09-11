@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )

@@ -9,9 +9,9 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	"github.com/docker/cli/v29/cli/config/credentials"
+	"github.com/docker/cli/v29/cli/config/types"
 )
 
 const (

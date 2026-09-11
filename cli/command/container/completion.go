@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/v29/cli/command/completion"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"github.com/moby/sys/capability"

@@ -6,7 +6,7 @@ package context
 import (
 	"slices"
 
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli/context/store"
 	"github.com/spf13/cobra"
 )
 
