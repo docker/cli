@@ -2,6 +2,7 @@ package stack
 
 import (
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/compose/loader"
@@ -91,9 +92,37 @@ services:
 				Environment: map[string]string{
 					"VERSION": "1.0",
 				},
-			}, tc.skipInterpolation)
+			}, tc.skipInterpolation, nil)
 			assert.Check(t, err)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
+}
+
+func TestConfigProfiles(t *testing.T) {
+	dict, err := loader.ParseYAML([]byte(`version: "3.8"
+services:
+  web:
+    image: busybox:latest
+  debug:
+    image: busybox:latest
+    profiles:
+      - debug
+`))
+	assert.NilError(t, err)
+	details := composetypes.ConfigDetails{
+		ConfigFiles: []composetypes.ConfigFile{
+			{Config: dict, Filename: "compose.yaml"},
+		},
+	}
+
+	withoutProfile, err := outputConfig(details, false, nil)
+	assert.NilError(t, err)
+	assert.Check(t, !strings.Contains(withoutProfile, "debug:"))
+	assert.Check(t, strings.Contains(withoutProfile, "web:"))
+
+	withProfile, err := outputConfig(details, false, []string{"debug"})
+	assert.NilError(t, err)
+	assert.Check(t, strings.Contains(withProfile, "debug:"))
+	assert.Check(t, strings.Contains(withProfile, "web:"))
 }

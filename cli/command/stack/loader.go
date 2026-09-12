@@ -27,7 +27,9 @@ func loadComposeFile(streams command.Streams, opts deployOptions) (*composetypes
 		return nil, err
 	}
 
-	config, err := loader.Load(configDetails)
+	config, err := loader.Load(configDetails, func(o *loader.Options) {
+		o.Profiles = opts.profiles
+	})
 	if err != nil {
 		if fpe, ok := errors.AsType[*loader.ForbiddenPropertiesError](err); ok {
 			// this error is intentionally formatted multi-line

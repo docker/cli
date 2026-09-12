@@ -194,6 +194,7 @@ type ServiceConfig struct {
 	Pid             string                           `yaml:",omitempty" json:"pid,omitempty"`
 	Ports           []ServicePortConfig              `yaml:",omitempty" json:"ports,omitempty"`
 	Privileged      bool                             `yaml:",omitempty" json:"privileged,omitempty"`
+	Profiles        []string                         `yaml:",omitempty" json:"profiles,omitempty"`
 	ReadOnly        bool                             `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
 	Restart         string                           `yaml:",omitempty" json:"restart,omitempty"`
 	Secrets         []ServiceSecretConfig            `yaml:",omitempty" json:"secrets,omitempty"`
