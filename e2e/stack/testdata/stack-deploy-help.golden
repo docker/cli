@@ -10,6 +10,7 @@ Options:
                                from stdin
   -d, --detach                 Exit immediately instead of waiting for
                                the stack services to converge (default true)
+      --profile stringArray    Specify a profile to enable
       --prune                  Prune services that are no longer referenced
   -q, --quiet                  Suppress progress output
       --resolve-image string   Query the registry to resolve image digest
