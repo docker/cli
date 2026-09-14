@@ -3,12 +3,15 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/netip"
 	"slices"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
@@ -1767,4 +1770,56 @@ func TestUpdateHostsRemoveRepeatedHost(t *testing.T) {
 	// All occurrences of `host1` should be removed, also if the same host
 	// is listed multiple times in the same entry.
 	assert.Check(t, is.DeepEqual([]string{"127.0.0.1 host2", "127.0.0.2 host2"}, hosts))
+}
+
+func TestUpdatePassesQueryRegistry(t *testing.T) {
+	testCases := []struct {
+		name      string
+		setFlags  [][2]string
+		wantQuery bool
+	}{
+		{
+			name:      "image-update-queries-registry",
+			setFlags:  [][2]string{{"image", "nginx:latest"}},
+			wantQuery: true,
+		},
+		{
+			name:      "no-resolve-image",
+			setFlags:  [][2]string{{"image", "nginx:latest"}, {"no-resolve-image", "true"}},
+			wantQuery: false,
+		},
+		{
+			name:      "no-image-change",
+			setFlags:  nil,
+			wantQuery: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var got client.ServiceUpdateOptions
+			cli := test.NewFakeCli(&fakeClient{
+				serviceInspectFunc: func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
+					return client.ServiceInspectResult{
+						Service: *builders.Service(builders.ServiceID(serviceID), builders.ServiceImage("nginx:old")),
+					}, nil
+				},
+				serviceUpdateFunc: func(ctx context.Context, serviceID string, options client.ServiceUpdateOptions) (client.ServiceUpdateResult, error) {
+					got = options
+					return client.ServiceUpdateResult{}, nil
+				},
+			})
+			cmd := newUpdateCommand(cli)
+			cmd.SetArgs([]string{"service-id"})
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			assert.NilError(t, cmd.Flags().Set("detach", "true"))
+			assert.NilError(t, cmd.Flags().Set("quiet", "true"))
+			for _, f := range tc.setFlags {
+				assert.NilError(t, cmd.Flags().Set(f[0], f[1]))
+			}
+			assert.NilError(t, cmd.Execute())
+			assert.Check(t, is.Equal(got.QueryRegistry, tc.wantQuery))
+		})
+	}
 }
