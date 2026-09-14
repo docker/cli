@@ -82,20 +82,27 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions) e
 
 		// TODO(thaJeztah): change this "hasError" boolean to return a (multi-)error for each of these functions instead.
 		hasError := removeServices(ctx, dockerCli, services.Items)
+
+		if !opts.detach && !hasError {
+			// Wait for the tasks of the services to stop before removing the
+			// networks. The daemon accepts removing a network as soon as every
+			// task attached to it is marked for removal, that is, while the
+			// containers are still stopping; a task that terminates after one
+			// of its networks is gone is never deallocated by the manager, and
+			// the addresses it holds on its remaining networks (the ingress
+			// network in particular) leak until the manager is restarted; see
+			// https://github.com/moby/moby/issues/37338.
+			if err := waitOnTasks(ctx, apiClient, namespace); err != nil {
+				errs = append(errs, fmt.Errorf("failed to wait on tasks of stack: %s: %w", namespace, err))
+			}
+		}
+
 		hasError = removeSecrets(ctx, dockerCli, secrets.Items) || hasError
 		hasError = removeConfigs(ctx, dockerCli, configs.Items) || hasError
 		hasError = removeNetworks(ctx, dockerCli, networks.Items) || hasError
 
 		if hasError {
 			errs = append(errs, errors.New("failed to remove some resources from stack: "+namespace))
-			continue
-		}
-
-		if !opts.detach {
-			err = waitOnTasks(ctx, apiClient, namespace)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to wait on tasks of stack: %s: %w", namespace, err))
-			}
 		}
 	}
 	return errors.Join(errs...)

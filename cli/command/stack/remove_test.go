@@ -186,3 +186,42 @@ func TestWaitOnTasksReturnsWhenContextIsCancelled(t *testing.T) {
 
 	assert.ErrorIs(t, waitOnTasks(ctx, apiClient, "foo"), context.Canceled)
 }
+
+func TestRemoveStackWaitsForTasksBeforeRemovingNetworks(t *testing.T) {
+	const pollsUntilStopped = 4
+	var taskListCalls, taskListCallsAtNetworkRemoval int
+	apiClient := &fakeClient{
+		services:     []string{objectName("foo", "service1")},
+		networks:     []string{objectName("foo", "network1")},
+		taskListFunc: taskListStoppingAfter(pollsUntilStopped, &taskListCalls),
+	}
+	apiClient.networkRemoveFunc = func(networkID string) error {
+		taskListCallsAtNetworkRemoval = taskListCalls
+		apiClient.removedNetworks = append(apiClient.removedNetworks, networkID)
+		return nil
+	}
+	cmd := newRemoveCommand(test.NewFakeCli(apiClient))
+	cmd.SetArgs([]string{"--detach=false", "foo"})
+	cmd.SetOut(io.Discard)
+
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(apiClient.services), apiClient.removedServices))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(apiClient.networks), apiClient.removedNetworks))
+	assert.Check(t, is.Equal(pollsUntilStopped, taskListCallsAtNetworkRemoval))
+}
+
+func TestRemoveStackDetachedDoesNotWaitOnTasks(t *testing.T) {
+	apiClient := &fakeClient{
+		services: []string{objectName("foo", "service1")},
+		networks: []string{objectName("foo", "network1")},
+		taskListFunc: func(client.TaskListOptions) (client.TaskListResult, error) {
+			return client.TaskListResult{}, errors.New("tasks must not be listed when detached")
+		},
+	}
+	cmd := newRemoveCommand(test.NewFakeCli(apiClient))
+	cmd.SetArgs([]string{"foo"})
+	cmd.SetOut(io.Discard)
+
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(apiClient.networks), apiClient.removedNetworks))
+}
