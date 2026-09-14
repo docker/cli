@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
+	clitest "github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/builders"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
@@ -1798,7 +1798,7 @@ func TestUpdatePassesQueryRegistry(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var got client.ServiceUpdateOptions
-			cli := test.NewFakeCli(&fakeClient{
+			cli := clitest.NewFakeCli(&fakeClient{
 				serviceInspectFunc: func(ctx context.Context, serviceID string, options client.ServiceInspectOptions) (client.ServiceInspectResult, error) {
 					return client.ServiceInspectResult{
 						Service: *builders.Service(builders.ServiceID(serviceID), builders.ServiceImage("nginx:old")),
