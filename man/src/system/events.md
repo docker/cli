@@ -1,6 +1,9 @@
 Get event information from the Docker daemon. Information can include historical
 information and real-time information.
 
+Historical events are the last 256 events held in daemon memory. They are not
+written to disk and they do not survive a daemon restart.
+
 Docker containers will report the following events:
 
     attach, commit, copy, create, destroy, detach, die, exec_create, exec_detach, exec_start, export, kill, oom, pause, rename, resize, restart, start, stop, top, unpause, update
