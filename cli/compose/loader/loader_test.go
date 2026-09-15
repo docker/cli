@@ -900,6 +900,40 @@ func TestInvalidResource(t *testing.T) {
 	assert.Check(t, is.ErrorContains(err, "additional property 'impossible' is not allowed"))
 }
 
+func TestLoadProfiles(t *testing.T) {
+	yaml := `
+version: "3.8"
+services:
+  web:
+    image: busybox
+  debug:
+    image: busybox
+    profiles:
+      - debug
+`
+	config, err := loadYAML(yaml)
+	assert.NilError(t, err)
+	assert.Equal(t, len(config.Services), 1)
+	assert.Equal(t, config.Services[0].Name, "web")
+
+	config, err = loadYAMLWithEnv(yaml, map[string]string{"COMPOSE_PROFILES": "debug"})
+	assert.NilError(t, err)
+	assert.Equal(t, len(config.Services), 2)
+	byName := map[string]types.ServiceConfig{}
+	for _, svc := range config.Services {
+		byName[svc.Name] = svc
+	}
+	assert.Check(t, is.DeepEqual(byName["debug"].Profiles, []string{"debug"}))
+
+	dict, err := ParseYAML([]byte(yaml))
+	assert.NilError(t, err)
+	config, err = Load(buildConfigDetails(dict, nil), func(o *Options) {
+		o.Profiles = []string{"debug"}
+	})
+	assert.NilError(t, err)
+	assert.Equal(t, len(config.Services), 2)
+}
+
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3"

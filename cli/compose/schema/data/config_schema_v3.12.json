@@ -234,6 +234,7 @@
         },
 
         "privileged": {"type": "boolean"},
+        "profiles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "read_only": {"type": "boolean"},
         "restart": {"type": "string"},
         "security_opt": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
