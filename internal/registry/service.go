@@ -67,7 +67,7 @@ func (s *Service) Auth(ctx context.Context, authConfig *registry.AuthConfig, use
 			// Try next endpoint
 			log.G(ctx).WithFields(log.Fields{
 				"error":    err,
-				"endpoint": endpoint,
+				"endpoint": endpoint.URL,
 			}).Infof("Error logging in to endpoint, trying next endpoint")
 			lastErr = err
 			continue
