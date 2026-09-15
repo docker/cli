@@ -86,10 +86,7 @@ func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 
 func runRun(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, ropts *runOptions, copts *containerOptions) error {
 	if err := validatePullOpt(ropts.pull); err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
-			StatusCode: 125,
-		}
+		return statusErrorWithHelp(err, "run", 125)
 	}
 	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(dockerCLI.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
 	newEnv := []string{}
@@ -109,10 +106,7 @@ func runRun(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, ro
 	containerCfg, err := parse(flags, copts, serverInfo.OSType)
 	// just in case the parse does not exit
 	if err != nil {
-		return cli.StatusError{
-			Status:     withHelp(err, "run").Error(),
-			StatusCode: 125,
-		}
+		return statusErrorWithHelp(err, "run", 125)
 	}
 	return runContainer(ctx, dockerCLI, ropts, copts, containerCfg)
 }
@@ -319,6 +313,14 @@ func withHelp(err error, commandName string) error {
 	return fmt.Errorf("docker: %w\n\nRun 'docker %s --help' for more information", err, commandName)
 }
 
+func statusErrorWithHelp(err error, commandName string, statusCode int) cli.StatusError {
+	return cli.StatusError{
+		Cause:      err,
+		Status:     withHelp(err, commandName).Error(),
+		StatusCode: statusCode,
+	}
+}
+
 // toStatusError attempts to detect specific error-conditions to assign
 // an appropriate exit-code for situations where the problem originates
 // from the container. It returns [cli.StatusError] with the original
@@ -333,24 +335,12 @@ func toStatusError(err error) error {
 	errMsg := err.Error()
 
 	if strings.Contains(errMsg, "executable file not found") || strings.Contains(errMsg, "no such file or directory") || strings.Contains(errMsg, "system cannot find the file specified") {
-		return cli.StatusError{
-			Cause:      err,
-			Status:     withHelp(err, "run").Error(),
-			StatusCode: 127,
-		}
+		return statusErrorWithHelp(err, "run", 127)
 	}
 
 	if strings.Contains(errMsg, syscall.EACCES.Error()) || strings.Contains(errMsg, syscall.EISDIR.Error()) {
-		return cli.StatusError{
-			Cause:      err,
-			Status:     withHelp(err, "run").Error(),
-			StatusCode: 126,
-		}
+		return statusErrorWithHelp(err, "run", 126)
 	}
 
-	return cli.StatusError{
-		Cause:      err,
-		Status:     withHelp(err, "run").Error(),
-		StatusCode: 125,
-	}
+	return statusErrorWithHelp(err, "run", 125)
 }
