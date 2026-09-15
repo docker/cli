@@ -2,6 +2,7 @@ package stack
 
 import (
 	"context"
+	"io"
 	"strings"
 
 	"github.com/docker/cli/cli/compose/convert"
@@ -24,6 +25,7 @@ type fakeClient struct {
 	removedConfigs  []string
 
 	serviceListFunc   func(options client.ServiceListOptions) (client.ServiceListResult, error)
+	serviceLogsFunc   func(serviceID string, options client.ServiceLogsOptions) (client.ServiceLogsResult, error)
 	networkListFunc   func(options client.NetworkListOptions) (client.NetworkListResult, error)
 	secretListFunc    func(options client.SecretListOptions) (client.SecretListResult, error)
 	configListFunc    func(options client.ConfigListOptions) (client.ConfigListResult, error)
@@ -183,6 +185,13 @@ func (*fakeClient) ServiceInspect(_ context.Context, serviceID string, _ client.
 			},
 		},
 	}, nil
+}
+
+func (cli *fakeClient) ServiceLogs(_ context.Context, serviceID string, options client.ServiceLogsOptions) (client.ServiceLogsResult, error) {
+	if cli.serviceLogsFunc != nil {
+		return cli.serviceLogsFunc(serviceID, options)
+	}
+	return io.NopCloser(strings.NewReader("")), nil
 }
 
 func serviceFromName(name string) swarm.Service {
