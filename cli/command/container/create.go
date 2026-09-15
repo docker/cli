@@ -102,7 +102,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 			StatusCode: 125,
 		}
 	}
-	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(dockerCLI.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
+	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(command.DaemonHost(dockerCLI), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
 	newEnv := make([]string, 0, len(proxyConfig))
 	for k, v := range proxyConfig {
 		if v == nil {
