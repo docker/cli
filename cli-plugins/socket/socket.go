@@ -90,6 +90,16 @@ func (pl *PluginServer) Addr() net.Addr {
 	return pl.l.Addr()
 }
 
+// HasConnections reports whether any plugin has connected to the server.
+func (pl *PluginServer) HasConnections() bool {
+	if pl == nil {
+		return false
+	}
+	pl.mu.Lock()
+	defer pl.mu.Unlock()
+	return len(pl.conns) > 0
+}
+
 // Close ensures that the server is no longer accepting new connections and
 // closes all existing connections. Existing connections will receive [io.EOF].
 //
