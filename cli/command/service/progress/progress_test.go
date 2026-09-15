@@ -169,6 +169,54 @@ func TestReplicatedProgressUpdaterOneReplica(t *testing.T) {
 		})
 }
 
+func TestReplicatedProgressUpdaterCompleteOneShot(t *testing.T) {
+	replicas := uint64(1)
+
+	service := swarm.Service{
+		Spec: swarm.ServiceSpec{
+			Mode: swarm.ServiceMode{
+				Replicated: &swarm.ReplicatedService{
+					Replicas: &replicas,
+				},
+			},
+		},
+	}
+
+	p := &mockProgress{}
+	ut := updaterTester{
+		t: t,
+		updater: &replicatedProgressUpdater{
+			progressOut: p,
+		},
+		p:           p,
+		activeNodes: map[string]struct{}{"a": {}},
+		service:     service,
+	}
+
+	// One-shot task (restart_policy none/on-failure, process exited 0):
+	// swarm sets DesiredState=Complete. --detach=false used to hang here.
+	tasks := []swarm.Task{
+		{
+			ID:           "1",
+			NodeID:       "a",
+			Slot:         1,
+			DesiredState: swarm.TaskStateComplete,
+			Status:       swarm.TaskStatus{State: swarm.TaskStateComplete},
+		},
+	}
+	completeBar := fmt.Sprintf("%-[1]*s", longestState, swarm.TaskStateComplete)
+	ut.testUpdater(tasks, true,
+		[]progress.Progress{
+			{ID: "overall progress", Action: "0 out of 1 tasks"},
+			{ID: "1/1", Action: " "},
+			{ID: "1/1", Action: completeBar, Current: 9, Total: 9, HideCounts: true},
+			{ID: "overall progress", Action: "1 out of 1 tasks"},
+		})
+
+	// Stay converged on the next tick; Complete is not Running.
+	ut.testUpdater(tasks, true, nil)
+}
+
 func TestReplicatedProgressUpdaterManyReplicas(t *testing.T) {
 	replicas := uint64(50)
 
