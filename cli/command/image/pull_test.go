@@ -34,6 +34,11 @@ func TestNewPullCommandErrors(t *testing.T) {
 			expectedError: "tag can't be used with --all-tags/-a",
 			args:          []string{"--all-tags", "image:tag"},
 		},
+		{
+			name:          "tag-and-digest",
+			expectedError: "reference cannot contain both a tag and a digest",
+			args:          []string{"image:tag@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
