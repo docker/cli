@@ -97,5 +97,5 @@ func runLoad(ctx context.Context, dockerCli command.Cli, opts loadOptions) error
 	}
 	defer func() { _ = res.Close() }()
 
-	return jsonstream.Display(ctx, res, dockerCli.Out())
+	return jsonstream.DisplayStream(ctx, res, dockerCli.Out())
 }
