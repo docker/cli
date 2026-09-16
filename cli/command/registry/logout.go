@@ -66,6 +66,11 @@ func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string)
 		// cli/config/configfile maps to that key.
 		if hostnameAddress == registry.DefaultNamespace || hostnameAddress == registry.IndexHostname {
 			regsToLogout = append(regsToLogout, registry.IndexServer)
+			// "docker login docker.io" logs in to the default registry, so it
+			// may have stored OAuth tokens through the device-code flow. Those
+			// are kept under separate keys, and the refresh token also has to
+			// be revoked with the tenant.
+			isDefaultRegistry = true
 		}
 	}
 
