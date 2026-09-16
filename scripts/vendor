@@ -5,7 +5,7 @@ set -eu
 TYP=$1
 
 usage() {
-  echo "usage: ./scripts/vendor <init|update|validate|outdated>"
+  echo "usage: ./scripts/vendor <update|validate|outdated>"
   exit 1
 }
 
@@ -18,7 +18,7 @@ update() {
 }
 
 validate() {
-  diff=$(git status --porcelain -- vendor.mod vendor.sum vendor)
+  diff=$(git status --porcelain -- go.mod go.sum vendor)
   if [ -n "$diff" ]; then
     echo >&2 'ERROR: Vendor result differs. Vendor your package with "make -f docker.Makefile vendor"'
     echo "$diff"

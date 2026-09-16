@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v29/cli/command/formatter"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"

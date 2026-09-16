@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package plugin
 
 import (
@@ -11,12 +8,12 @@ import (
 	"os"
 	"sync"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/cli-plugins/socket"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/connhelper"
-	"github.com/docker/cli/cli/debug"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli-plugins/socket"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/connhelper"
+	"github.com/docker/cli/v29/cli/debug"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"

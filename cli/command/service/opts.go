@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package service
 
 import (
@@ -14,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/opts"
-	"github.com/docker/cli/opts/swarmopts"
+	"github.com/docker/cli/v29/opts"
+	"github.com/docker/cli/v29/opts/swarmopts"
 	gogotypes "github.com/gogo/protobuf/types"
 	"github.com/google/shlex"
 	"github.com/moby/moby/api/types/container"

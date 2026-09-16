@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/docker/cli/cli-plugins/metadata"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
 )
 
 func main() {

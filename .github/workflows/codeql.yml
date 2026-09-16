@@ -50,16 +50,6 @@ jobs:
         with:
           fetch-depth: 2
           persist-credentials: false
-      # CodeQL 2.16.4's auto-build added support for multi-module repositories,
-      # and is trying to be smart by searching for modules in every directory,
-      # including vendor directories. If no module is found, it's creating one
-      # which is ... not what we want, so let's give it a "go.mod".
-      # see: https://github.com/docker/cli/pull/4944#issuecomment-2002034698
-      -
-        name: Create go.mod
-        run: |
-          ln -s vendor.mod go.mod
-          ln -s vendor.sum go.sum
       -
         name: Update Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
