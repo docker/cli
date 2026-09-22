@@ -10,6 +10,10 @@
 
 This repository is the home of the Docker CLI.
 
+It can also run containers on its own, without a Docker Engine: setting
+`DOCKER_STANDALONE=1` makes the CLI use the containerd libraries and an OCI
+runtime directly, rootful or rootless. See [docs/standalone.md](docs/standalone.md).
+
 ## Development
 
 `docker/cli` is developed using Docker.
