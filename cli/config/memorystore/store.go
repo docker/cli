@@ -28,6 +28,7 @@ type Config struct {
 	lock              sync.RWMutex
 	memoryCredentials map[string]types.AuthConfig
 	fallbackStore     credentials.Store
+	preferFallback    bool
 }
 
 func (e *Config) Erase(serverAddress string) error {
@@ -48,6 +49,12 @@ func (e *Config) Erase(serverAddress string) error {
 func (e *Config) Get(serverAddress string) (types.AuthConfig, error) {
 	e.lock.RLock()
 	defer e.lock.RUnlock()
+	if e.preferFallback && e.fallbackStore != nil {
+		if authConfig, err := e.fallbackStore.Get(serverAddress); err == nil && hasAuthConfig(authConfig) {
+			return authConfig, nil
+		}
+	}
+
 	authConfig, ok := e.memoryCredentials[serverAddress]
 	if !ok {
 		if e.fallbackStore != nil {
@@ -63,16 +70,22 @@ func (e *Config) GetAll() (map[string]types.AuthConfig, error) {
 	defer e.lock.RUnlock()
 	creds := make(map[string]types.AuthConfig)
 
+	if e.preferFallback {
+		maps.Copy(creds, e.memoryCredentials)
+	}
+
 	if e.fallbackStore != nil {
 		fileCredentials, err := e.fallbackStore.GetAll()
 		if err != nil {
 			_, _ = fmt.Fprintln(os.Stderr, "memorystore: ", err)
 		} else {
-			creds = fileCredentials
+			copyAuthConfigs(creds, fileCredentials, e.preferFallback)
 		}
 	}
 
-	maps.Copy(creds, e.memoryCredentials)
+	if !e.preferFallback {
+		maps.Copy(creds, e.memoryCredentials)
+	}
 	return creds, nil
 }
 
@@ -85,6 +98,23 @@ func (e *Config) Store(authConfig types.AuthConfig) error {
 		return e.fallbackStore.Store(authConfig)
 	}
 	return nil
+}
+
+func hasAuthConfig(authConfig types.AuthConfig) bool {
+	return authConfig.Username != "" ||
+		authConfig.Password != "" ||
+		authConfig.Auth != "" ||
+		authConfig.IdentityToken != "" ||
+		authConfig.RegistryToken != ""
+}
+
+func copyAuthConfigs(dst, src map[string]types.AuthConfig, skipEmpty bool) {
+	for serverAddress, authConfig := range src {
+		if skipEmpty && !hasAuthConfig(authConfig) {
+			continue
+		}
+		dst[serverAddress] = authConfig
+	}
 }
 
 // WithFallbackStore sets a fallback store.
@@ -103,6 +133,15 @@ func (e *Config) Store(authConfig types.AuthConfig) error {
 func WithFallbackStore(store credentials.Store) Options {
 	return func(s *Config) error {
 		s.fallbackStore = store
+		return nil
+	}
+}
+
+// WithPreferFallback configures the store to prefer reading credentials from
+// the fallback store. Write operations are still performed on both stores.
+func WithPreferFallback() Options {
+	return func(s *Config) error {
+		s.preferFallback = true
 		return nil
 	}
 }
