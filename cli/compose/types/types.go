@@ -179,6 +179,7 @@ type ServiceConfig struct {
 	Expose          StringOrNumberList               `yaml:",omitempty" json:"expose,omitempty"`
 	ExternalLinks   []string                         `mapstructure:"external_links" yaml:"external_links,omitempty" json:"external_links,omitempty"`
 	ExtraHosts      HostsList                        `mapstructure:"extra_hosts" yaml:"extra_hosts,omitempty" json:"extra_hosts,omitempty"`
+	GroupAdd        StringOrNumberList               `mapstructure:"group_add" yaml:"group_add,omitempty" json:"group_add,omitempty"`
 	Hostname        string                           `yaml:",omitempty" json:"hostname,omitempty"`
 	HealthCheck     *HealthCheckConfig               `yaml:",omitempty" json:"healthcheck,omitempty"`
 	Image           string                           `yaml:",omitempty" json:"image,omitempty"`
