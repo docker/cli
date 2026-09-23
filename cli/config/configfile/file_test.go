@@ -446,6 +446,58 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
 
+func TestGetConfiguredCredentialStoreWildcard(t *testing.T) {
+	configFile := New("filename")
+	configFile.CredentialsStore = "default_store"
+	configFile.CredentialHelpers = map[string]string{
+		"registry.example.com": "exact_helper",
+		"*.example.com":        "wildcard_helper",
+		"*.docker.example.com": "specific_wildcard_helper",
+		"*.com":                "invalid_wildcard_helper",
+	}
+
+	tests := []struct {
+		registryHostname string
+		expected         string
+	}{
+		{registryHostname: "registry.example.com", expected: "exact_helper"},
+		{registryHostname: "other.example.com", expected: "wildcard_helper"},
+		{registryHostname: "foo.docker.example.com", expected: "specific_wildcard_helper"},
+		{registryHostname: "foo.bar.example.com", expected: "default_store"},
+		{registryHostname: "example.com", expected: "default_store"},
+		{registryHostname: "other.com", expected: "default_store"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.registryHostname, func(t *testing.T) {
+			assert.Check(t, is.Equal(getConfiguredCredentialStore(configFile, tc.registryHostname), tc.expected))
+		})
+	}
+}
+
+func TestGetAllCredentialsSkipsWildcardCredHelpers(t *testing.T) {
+	const (
+		testCredHelperSuffix = "test_cred_helper"
+		testCredHelperKey    = "*.example.com"
+	)
+
+	configFile := New("filename")
+	configFile.CredentialHelpers = map[string]string{testCredHelperKey: testCredHelperSuffix}
+
+	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{
+		testCredHelperKey: {Username: "cred_helper_user", Password: "cred_helper_pass"},
+	}, nil)
+
+	tmpNewNativeStore := newNativeStore
+	defer func() { newNativeStore = tmpNewNativeStore }()
+	newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentials.Store {
+		return testCredHelper
+	}
+
+	authConfigs, err := configFile.GetAllCredentials()
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(authConfigs, 0), "wildcard patterns should not be looked up in credential helpers")
+}
+
 func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	configFile := New("test-load")
 	defer os.Remove("test-load")
