@@ -202,8 +202,38 @@ func setFlagErrorFunc(dockerCli command.Cli, cmd *cobra.Command) {
 		if err := isSupported(cmd, dockerCli); err != nil {
 			return err
 		}
+		if cmd == cmd.Root() {
+			if rewritten := unknownCommandInsteadOfFlag(cmd, err); rewritten != nil {
+				return rewritten
+			}
+		}
 		return flagErrorFunc(cmd, err)
 	})
+}
+
+// unknownCommandInsteadOfFlag rewrites "unknown flag" to "unknown command"
+// when the first leftover arg isn't a docker subcommand. That way
+// `docker iamges --filter` matches `docker iamges` instead of complaining
+// about --filter. `--help` after a bogus name still works because it is a
+// known flag and never reaches FlagErrorFunc.
+func unknownCommandInsteadOfFlag(cmd *cobra.Command, err error) error {
+	msg := err.Error()
+	if !strings.HasPrefix(msg, "unknown flag:") && !strings.HasPrefix(msg, "unknown shorthand flag:") {
+		return nil
+	}
+	args := cmd.Flags().Args()
+	if len(args) == 0 {
+		return nil
+	}
+	name := args[0]
+	if strings.HasPrefix(name, "-") {
+		return nil
+	}
+	found, _, _ := cmd.Find([]string{name})
+	if found != nil && found != cmd {
+		return nil
+	}
+	return fmt.Errorf("docker: unknown command: docker %s\n\nRun 'docker --help' for more information", name)
 }
 
 func setupHelpCommand(dockerCli command.Cli, rootCmd, helpCmd *cobra.Command) {
