@@ -118,3 +118,12 @@ Create and run a new container from an image
 
 <!---MARKER_GEN_END-->
 
+## Description
+
+Options whose type is `list` take one value per flag. Repeat the flag to pass
+more than one value. A comma-separated string is a single item, not a list.
+
+```console
+$ docker run --dns 8.8.8.8 --dns 1.1.1.1 --rm alpine getent hosts docker.com
+```
+
