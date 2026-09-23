@@ -23,6 +23,10 @@ Produces a tarred repository to the standard output stream.
 Contains all parent layers, and all tags + versions, or specified `repo:tag`, for
 each argument provided.
 
+This is not the same as [`docker export`](container_export.md), which
+archives a container's filesystem without image layers or tags. Use
+`docker load` to restore a `docker save` archive.
+
 ## Examples
 
 ### Create a backup that can then be used with `docker load`.
