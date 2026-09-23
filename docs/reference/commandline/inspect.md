@@ -123,6 +123,30 @@ of that. Then, specify the `HostPort` field to get the public address.
 $ docker inspect --format='{{(index (index .NetworkSettings.Ports "8787/tcp") 0).HostPort}}' $INSTANCE_ID
 ```
 
+### Get a single label value
+
+Image and container labels live in a string map (for example `.Config.Labels`).
+Field syntax only works for keys that are valid Go identifiers, so keys with
+dots, hyphens, or other special characters need the template `index` function:
+
+```console
+$ docker inspect --format='{{index .Config.Labels "org.label-schema.name"}}' $IMAGE_ID
+```
+
+On Windows shells, use double quotes around the template and escape the inner
+quotes:
+
+```console
+$ docker inspect --format="{{index .Config.Labels \"org.label-schema.name\"}}" %IMAGE_ID%
+```
+
+The same pattern applies to other maps with non-identifier keys, such as
+network names:
+
+```console
+$ docker inspect --format='{{index .NetworkSettings.Networks "db-net" "IPAddress"}}' $INSTANCE_ID
+```
+
 ### Get a subsection in JSON format
 
 If you request a field which is itself a structure containing other fields, by
