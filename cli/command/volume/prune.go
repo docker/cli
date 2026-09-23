@@ -57,7 +57,7 @@ func newPruneCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVarP(&options.all, "all", "a", false, "Remove all unused volumes, not just anonymous ones")
 	flags.SetAnnotation("all", "version", []string{"1.42"})
 	flags.BoolVarP(&options.force, "force", "f", false, "Do not prompt for confirmation")
-	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "label=<label>")`)
+	flags.Var(&options.filter, "filter", `Provide filter values (e.g. "label=<label>" or "label!=<label>")`)
 
 	return cmd
 }
