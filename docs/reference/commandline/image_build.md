@@ -72,6 +72,11 @@ behavior in BuildKit. For information about features and flags that are common
 between the legacy builder and BuildKit, such as `--tag` and `--target`, refer
 to the documentation for [`docker buildx build`](https://docs.docker.com/reference/cli/docker/buildx/build/).
 
+Flags that only exist in Buildx/BuildKit, such as
+[`--progress`](https://docs.docker.com/reference/cli/docker/buildx/build/#progress)
+(`auto`, `plain`, `tty`, `rawjson`), are also documented on that page — not in
+the legacy option table above.
+
 ### Build context with the legacy builder
 
 The build context is the positional argument you pass when invoking the build
