@@ -196,9 +196,14 @@ hostname; it never matches a `.`. For example, `abc.*.example.com` matches
 the pattern: `*.example.com` does not match `foo.example.com:5000`, but
 `*.example.com:5000` does.
 
-To prevent credentials from being sent to an overly broad set of registries,
-the last two labels of a pattern must not contain a wildcard. Patterns such as
-`*.com` or `foo.*.com` are not valid, and are ignored.
+A pattern must be a hostname, optionally including a port, without a scheme
+(`https://`) or path. To prevent credentials from being sent to an overly broad
+set of registries, the last two labels of a pattern must not contain a
+wildcard. Invalid patterns, such as `*.com`, `foo.*.com`, or
+`https://*.example.com`, are rejected with an error when the configuration
+file is loaded, and are not used. This check does not know about multi-label
+public suffixes such as `co.uk`, so make sure that your patterns only match
+registries you trust with your credentials.
 
 An entry for the exact registry hostname always takes precedence over a
 wildcard pattern. If multiple patterns match, the most specific one (the

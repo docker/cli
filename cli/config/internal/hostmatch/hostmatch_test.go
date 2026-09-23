@@ -5,47 +5,56 @@ package hostmatch
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
 
-func TestIsPattern(t *testing.T) {
+func TestValidate(t *testing.T) {
 	tests := []struct {
-		key      string
-		expected bool
+		key         string
+		expectedErr string
 	}{
-		{key: "*.example.com", expected: true},
-		{key: "*.dkr.ecr.*.amazonaws.com", expected: true},
-		{key: "*-docker.pkg.dev", expected: true},
-		{key: "*.example.com:5000", expected: true},
-		{key: "foo.*.example.com", expected: true},
+		{key: "*.example.com"},
+		{key: "*.dkr.ecr.*.amazonaws.com"},
+		{key: "*-docker.pkg.dev"},
+		{key: "*.example.com:5000"},
+		{key: "foo.*.example.com"},
 
-		// no wildcard
-		{key: "example.com", expected: false},
-		{key: "registry.example.com", expected: false},
-		{key: "https://index.docker.io/v1/", expected: false},
+		// no wildcard; not validated
+		{key: "example.com"},
+		{key: "registry.example.com"},
+		{key: "https://index.docker.io/v1/"},
+		{key: "localhost"},
 
 		// wildcard in the last two labels
-		{key: "*", expected: false},
-		{key: "*.com", expected: false},
-		{key: "*com", expected: false},
-		{key: "foo.*.com", expected: false},
-		{key: "foo.example.*", expected: false},
-		{key: "*.example.com:*", expected: false},
-		{key: "*.example.c*m", expected: false},
+		{key: "*", expectedErr: "wildcards are not allowed in the last two labels"},
+		{key: "*.com", expectedErr: "wildcards are not allowed in the last two labels"},
+		{key: "*com", expectedErr: "wildcards are not allowed in the last two labels"},
+		{key: "foo.*.com", expectedErr: "wildcards are not allowed in the last two labels"},
+		{key: "foo.example.*", expectedErr: "wildcards are not allowed in the last two labels"},
+		{key: "*.example.com:*", expectedErr: "wildcards are not allowed in the last two labels"},
+		{key: "*.example.c*m", expectedErr: "wildcards are not allowed in the last two labels"},
 
 		// malformed
-		{key: "*..example.com", expected: false},
-		{key: ".*.example.com", expected: false},
-		{key: "*.example.com.", expected: false},
-		{key: "https://*.example.com", expected: false},
-		{key: "*.example.com/foo", expected: false},
+		{key: "*..example.com", expectedErr: "contains an empty label"},
+		{key: ".*.example.com", expectedErr: "contains an empty label"},
+		{key: "*.example.com.", expectedErr: "contains an empty label"},
+		{key: "https://*.example.com", expectedErr: "without scheme or path"},
+		{key: "*.example.com/foo", expectedErr: "without scheme or path"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.key, func(t *testing.T) {
-			assert.Check(t, is.Equal(IsPattern(tc.key), tc.expected))
+			err := Validate(tc.key)
+			if tc.expectedErr == "" {
+				assert.NilError(t, err)
+				assert.Check(t, is.Equal(IsPattern(tc.key), strings.Contains(tc.key, "*")))
+			} else {
+				assert.Check(t, is.ErrorContains(err, tc.expectedErr))
+				assert.Check(t, !IsPattern(tc.key))
+			}
 		})
 	}
 }

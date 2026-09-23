@@ -7,35 +7,46 @@
 package hostmatch
 
 import (
+	"fmt"
 	"iter"
+	"slices"
 	"strings"
 )
 
-// IsPattern reports whether key is a valid wildcard host pattern.
+// IsPattern reports whether key is a valid wildcard host pattern; see
+// [Validate] for the rules a pattern must follow.
+func IsPattern(key string) bool {
+	return strings.Contains(key, "*") && Validate(key) == nil
+}
+
+// Validate returns an error if key contains a "*" wildcard, but is not a
+// valid wildcard host pattern. Keys without a wildcard are not validated.
 //
 // A pattern is a hostname (optionally including ":port") in which one or more
 // labels contain a "*" wildcard, for example "*.example.com" or
 // "*.dkr.ecr.*.amazonaws.com". A wildcard matches any sequence of characters
 // within a single label; it never matches a ".".
 //
-// To prevent patterns from matching an overly broad set of registries, the
-// last two labels (the registrable domain and top-level domain, and port, if
-// any) must not contain a wildcard; "*.com" and "example.*" are not valid
-// patterns. Keys containing a scheme or path are not valid patterns either.
-func IsPattern(key string) bool {
-	if !strings.Contains(key, "*") || strings.Contains(key, "/") {
-		return false
+// Patterns must not contain a scheme or path. To prevent patterns from
+// matching an overly broad set of registries, the last two labels (for
+// example, the registrable domain and top-level domain, and port, if any)
+// must not contain a wildcard; "*.com" and "example.*" are not valid
+// patterns.
+func Validate(key string) error {
+	if !strings.Contains(key, "*") {
+		return nil
+	}
+	if strings.Contains(key, "/") {
+		return fmt.Errorf("invalid registry pattern %q: must be a hostname, optionally including a port, without scheme or path", key)
 	}
 	labels := strings.Split(key, ".")
-	if len(labels) < 3 {
-		return false
+	if slices.Contains(labels, "") {
+		return fmt.Errorf("invalid registry pattern %q: contains an empty label", key)
 	}
-	for _, label := range labels {
-		if label == "" {
-			return false
-		}
+	if len(labels) < 3 || strings.Contains(labels[len(labels)-2], "*") || strings.Contains(labels[len(labels)-1], "*") {
+		return fmt.Errorf("invalid registry pattern %q: wildcards are not allowed in the last two labels", key)
 	}
-	return !strings.Contains(labels[len(labels)-2], "*") && !strings.Contains(labels[len(labels)-1], "*")
+	return nil
 }
 
 // Match reports whether host matches pattern. It returns false if pattern

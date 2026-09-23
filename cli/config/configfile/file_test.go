@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -550,6 +551,41 @@ const envTestAuthConfig = `{
 		}
 	}
 }`
+
+func TestLoadFromReaderInvalidRegistryPatterns(t *testing.T) {
+	const configJSON = `{
+		"auths": {
+			"registry.example.com": {},
+			"*.example.com": {},
+			"*.com": {},
+			"https://*.example.org": {}
+		},
+		"credHelpers": {
+			"*.dkr.ecr.*.amazonaws.com": "ecr-login",
+			"foo.*.com": "secretservice"
+		}
+	}`
+
+	configFile := New("test-load")
+	err := configFile.LoadFromReader(strings.NewReader(configJSON))
+	assert.Check(t, is.Error(err, `auths: invalid registry pattern "*.com": wildcards are not allowed in the last two labels
+auths: invalid registry pattern "https://*.example.org": must be a hostname, optionally including a port, without scheme or path
+credHelpers: invalid registry pattern "foo.*.com": wildcards are not allowed in the last two labels`))
+
+	// Invalid patterns are reported, but are never used for matching.
+	assert.Check(t, is.Equal(getConfiguredCredentialStore(configFile, "foo.bar.com"), ""))
+	assert.Check(t, is.Equal(getConfiguredCredentialStore(configFile, "123.dkr.ecr.us-east-1.amazonaws.com"), "ecr-login"))
+}
+
+func TestLoadFromReaderValidRegistryPatterns(t *testing.T) {
+	const configJSON = `{
+		"auths": {"*.example.com": {}},
+		"credHelpers": {"*-docker.pkg.dev": "gcloud"}
+	}`
+
+	configFile := New("test-load")
+	assert.NilError(t, configFile.LoadFromReader(strings.NewReader(configJSON)))
+}
 
 func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 	t.Run("can parse DOCKER_AUTH_CONFIG auth field", func(t *testing.T) {

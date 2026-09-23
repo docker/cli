@@ -12,6 +12,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -141,7 +142,25 @@ func (c *ConfigFile) LoadFromReader(configData io.Reader) error {
 		ac.ServerAddress = addr
 		c.AuthConfigs[addr] = ac
 	}
-	return nil
+	return c.validateRegistryPatterns()
+}
+
+// validateRegistryPatterns returns an error for keys in the "auths" and
+// "credHelpers" sections that contain a "*" wildcard, but are not valid
+// wildcard patterns (see [hostmatch.Validate]).
+func (c *ConfigFile) validateRegistryPatterns() error {
+	var errs []error
+	for _, addr := range slices.Sorted(maps.Keys(c.AuthConfigs)) {
+		if err := hostmatch.Validate(addr); err != nil {
+			errs = append(errs, fmt.Errorf("auths: %w", err))
+		}
+	}
+	for _, addr := range slices.Sorted(maps.Keys(c.CredentialHelpers)) {
+		if err := hostmatch.Validate(addr); err != nil {
+			errs = append(errs, fmt.Errorf("credHelpers: %w", err))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // ContainsAuth returns whether there is authentication configured
