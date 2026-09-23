@@ -25,6 +25,8 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+	"github.com/docker/cli/internal/standalone"
+	"github.com/moby/moby/client"
 	"github.com/moby/moby/client/pkg/versions"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -41,6 +43,19 @@ func (errCtxSignalTerminated) Error() string {
 }
 
 func main() {
+	// Standalone mode (DOCKER_STANDALONE=1) embeds the container engine in
+	// the CLI instead of talking to a daemon. Two special entry points are
+	// needed for it: the per-container logging helper started by the shim,
+	// and the rootless re-exec into a user namespace.
+	if standalone.IsLoggerInvocation(os.Args) {
+		standalone.RunLogger(os.Args)
+		return
+	}
+	if err := standalone.MaybeReexecRootless(); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "docker:", err)
+		os.Exit(1)
+	}
+
 	err := dockerMain(context.Background())
 	if errors.As(err, &errCtxSignalTerminated{}) {
 		os.Exit(getExitCode(err))
@@ -84,7 +99,13 @@ func dockerMain(ctx context.Context) error {
 	ctx, cancelNotify := notifyContext(ctx, platformsignals.TerminationSignals...)
 	defer cancelNotify()
 
-	dockerCli, err := command.NewDockerCli(command.WithBaseContext(ctx))
+	cliOpts := []command.CLIOption{command.WithBaseContext(ctx)}
+	if standalone.Enabled() {
+		cliOpts = append(cliOpts, command.WithInitializeClient(func(*command.DockerCli) (client.APIClient, error) {
+			return standalone.NewAPIClient(ctx)
+		}))
+	}
+	dockerCli, err := command.NewDockerCli(cliOpts...)
 	if err != nil {
 		return err
 	}
