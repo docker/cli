@@ -86,6 +86,11 @@ The base command for the Docker CLI.
 
 ## Description
 
+`--tls` turns on TLS for the client. The CLI still loads `--tlscacert`
+(default `~/.docker/ca.pem`) and errors if that file is missing. It does
+not use the system CA pool. Without `--tlsverify`, the daemon certificate
+is not verified.
+
 Depending on your Docker system configuration, you may be required to preface
 each `docker` command with `sudo`. To avoid having to use `sudo` with the
 `docker` command, your system administrator can create a Unix group called
