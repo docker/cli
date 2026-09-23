@@ -12,6 +12,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -75,7 +76,29 @@ type ConfigFile struct {
 	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
 	Aliases              map[string]string            `json:"aliases,omitempty"`
 	Features             map[string]string            `json:"features,omitempty"`
+
+	// extras keeps JSON keys this version of the CLI does not know about, so a
+	// later Save does not drop them (login, logout, context switch, …).
+	extras map[string]json.RawMessage `json:"-"`
 }
+
+// configFileKnownJSONKeys is the set of json object keys owned by [ConfigFile].
+var configFileKnownJSONKeys = func() map[string]struct{} {
+	t := reflect.TypeFor[ConfigFile]()
+	keys := make(map[string]struct{}, t.NumField())
+	for i := range t.NumField() {
+		tag := t.Field(i).Tag.Get("json")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		name, _, _ := strings.Cut(tag, ",")
+		if name == "" || name == "-" {
+			continue
+		}
+		keys[name] = struct{}{}
+	}
+	return keys
+}()
 
 type configEnvAuth struct {
 	Auth string `json:"auth"`
@@ -141,6 +164,53 @@ func (c *ConfigFile) LoadFromReader(configData io.Reader) error {
 		c.AuthConfigs[addr] = ac
 	}
 	return nil
+}
+
+// UnmarshalJSON records object keys that are not fields of [ConfigFile].
+func (c *ConfigFile) UnmarshalJSON(data []byte) error {
+	type plain ConfigFile
+	if err := json.Unmarshal(data, (*plain)(c)); err != nil {
+		return err
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	extras := make(map[string]json.RawMessage)
+	for k, v := range raw {
+		if _, known := configFileKnownJSONKeys[k]; !known {
+			extras[k] = v
+		}
+	}
+	if len(extras) > 0 {
+		c.extras = extras
+	}
+	return nil
+}
+
+// MarshalJSON writes known fields, then any extra keys captured on load.
+func (c *ConfigFile) MarshalJSON() ([]byte, error) {
+	if c == nil {
+		return []byte("null"), nil
+	}
+	type plain ConfigFile
+	data, err := json.Marshal((*plain)(c))
+	if err != nil {
+		return nil, err
+	}
+	if len(c.extras) == 0 {
+		return data, nil
+	}
+	var encoded map[string]json.RawMessage
+	if err := json.Unmarshal(data, &encoded); err != nil {
+		return nil, err
+	}
+	for k, v := range c.extras {
+		if _, exists := encoded[k]; !exists {
+			encoded[k] = v
+		}
+	}
+	return json.Marshal(encoded)
 }
 
 // ContainsAuth returns whether there is authentication configured
