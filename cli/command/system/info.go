@@ -88,7 +88,7 @@ func runInfo(ctx context.Context, cmd *cobra.Command, dockerCli command.Cli, opt
 			// Don't pass a dockerCLI to newClientVersion(), because we currently
 			// don't include negotiated API version, and want to avoid making an
 			// API connection when only printing the Client section.
-			clientVersion: newClientVersion(dockerCli.CurrentContext(), nil),
+			clientVersion: newClientVersion(dockerCli.CurrentContext(), nil, true),
 			Debug:         debug.IsEnabled(),
 		},
 		Info: &system.Info{},
