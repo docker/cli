@@ -628,8 +628,11 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) {
 	var (
 		notExperimental = func(_ string) bool { return !details.ServerInfo().HasExperimental }
-		notOSType       = func(v string) bool { return details.ServerInfo().OSType != "" && v != details.ServerInfo().OSType }
-		notSwarmStatus  = func(v string) bool {
+		// notOSType implements the server-side check for the "ostype" annotation:
+		// it hides flags/commands whose "ostype" value doesn't match the
+		// connected daemon's reported ServerInfo().OSType.
+		notOSType      = func(v string) bool { return details.ServerInfo().OSType != "" && v != details.ServerInfo().OSType }
+		notSwarmStatus = func(v string) bool {
 			s := details.ServerInfo().SwarmStatus
 			if s == nil {
 				// engine did not return swarm status header
@@ -775,6 +778,10 @@ func isVersionSupported(f *pflag.Flag, clientVersion string) bool {
 	return true
 }
 
+// isOSTypeSupported checks the "ostype" flag annotation against osType,
+// which callers pass as the connected daemon's ServerInfo().OSType. This
+// makes "ostype" a server-side check: it depends on the daemon's reported
+// OS, not on any client-side/build-time state.
 func isOSTypeSupported(f *pflag.Flag, osType string) bool {
 	if v := getFlagAnnotation(f, "ostype"); v != "" && osType != "" {
 		return osType == v
