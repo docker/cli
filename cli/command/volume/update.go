@@ -2,7 +2,7 @@ package volume
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -52,7 +52,7 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, volumeID, availabilit
 	}
 
 	if res.Volume.ClusterVolume == nil {
-		return errors.New("can only update cluster volumes")
+		return fmt.Errorf("volume %q is not a cluster volume; only cluster volumes can be updated", volumeID)
 	}
 
 	if flags.Changed("availability") {

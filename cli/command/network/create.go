@@ -154,7 +154,7 @@ func createIPAMConfig(options ipamOptions) (*network.IPAM, error) {
 				return nil, err
 			}
 			if ok1 || ok2 {
-				return nil, errors.New("multiple overlapping subnet configuration is not supported")
+				return nil, fmt.Errorf("--subnet %s overlaps with --subnet %s", s, k)
 			}
 		}
 		sn, err := netip.ParsePrefix(s)

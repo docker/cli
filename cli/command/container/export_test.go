@@ -44,6 +44,6 @@ func TestContainerExportOutputToIrregularFile(t *testing.T) {
 	cmd.SetErr(io.Discard)
 	cmd.SetArgs([]string{"-o", "/dev/random", "container"})
 
-	const expected = `failed to export container: cannot write to a character device file`
+	const expected = `cannot open output file "/dev/random": cannot write to a character device file`
 	assert.Error(t, cmd.Execute(), expected)
 }
