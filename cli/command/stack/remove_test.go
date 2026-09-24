@@ -1,12 +1,14 @@
 package stack
 
 import (
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -140,4 +142,86 @@ func TestRemoveContinueAfterError(t *testing.T) {
 	assert.Check(t, is.DeepEqual(allNetworkIDs, apiClient.removedNetworks))
 	assert.Check(t, is.DeepEqual(allSecretIDs, apiClient.removedSecrets))
 	assert.Check(t, is.DeepEqual(allConfigIDs, apiClient.removedConfigs))
+}
+
+// taskListStoppingAfter returns a TaskList stub reporting two tasks: one that
+// has already stopped, and one that keeps running until the stub has been
+// polled the given number of times. It counts the polls in *calls.
+func taskListStoppingAfter(polls int, calls *int) func(client.TaskListOptions) (client.TaskListResult, error) {
+	return func(client.TaskListOptions) (client.TaskListResult, error) {
+		*calls++
+		last := swarm.TaskStateRunning
+		if *calls >= polls {
+			last = swarm.TaskStateShutdown
+		}
+		return client.TaskListResult{Items: []swarm.Task{
+			{Status: swarm.TaskStatus{State: swarm.TaskStateShutdown}},
+			{Status: swarm.TaskStatus{State: last}},
+		}}, nil
+	}
+}
+
+func TestWaitOnTasksWaitsForAllTasks(t *testing.T) {
+	const pollsUntilStopped = 4
+	var taskListCalls int
+	apiClient := &fakeClient{
+		taskListFunc: taskListStoppingAfter(pollsUntilStopped, &taskListCalls),
+	}
+
+	assert.NilError(t, waitOnTasks(context.Background(), apiClient, "foo"))
+	assert.Check(t, is.Equal(pollsUntilStopped, taskListCalls))
+}
+
+func TestWaitOnTasksReturnsWhenContextIsCancelled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	apiClient := &fakeClient{
+		taskListFunc: func(client.TaskListOptions) (client.TaskListResult, error) {
+			cancel()
+			return client.TaskListResult{Items: []swarm.Task{
+				{Status: swarm.TaskStatus{State: swarm.TaskStateRunning}},
+			}}, nil
+		},
+	}
+
+	assert.ErrorIs(t, waitOnTasks(ctx, apiClient, "foo"), context.Canceled)
+}
+
+func TestRemoveStackWaitsForTasksBeforeRemovingNetworks(t *testing.T) {
+	const pollsUntilStopped = 4
+	var taskListCalls, taskListCallsAtNetworkRemoval int
+	apiClient := &fakeClient{
+		services:     []string{objectName("foo", "service1")},
+		networks:     []string{objectName("foo", "network1")},
+		taskListFunc: taskListStoppingAfter(pollsUntilStopped, &taskListCalls),
+	}
+	apiClient.networkRemoveFunc = func(networkID string) error {
+		taskListCallsAtNetworkRemoval = taskListCalls
+		apiClient.removedNetworks = append(apiClient.removedNetworks, networkID)
+		return nil
+	}
+	cmd := newRemoveCommand(test.NewFakeCli(apiClient))
+	cmd.SetArgs([]string{"--detach=false", "foo"})
+	cmd.SetOut(io.Discard)
+
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(apiClient.services), apiClient.removedServices))
+	assert.Check(t, is.DeepEqual(buildObjectIDs(apiClient.networks), apiClient.removedNetworks))
+	assert.Check(t, is.Equal(pollsUntilStopped, taskListCallsAtNetworkRemoval))
+}
+
+func TestRemoveStackDetachedDoesNotWaitOnTasks(t *testing.T) {
+	apiClient := &fakeClient{
+		services: []string{objectName("foo", "service1")},
+		networks: []string{objectName("foo", "network1")},
+		taskListFunc: func(client.TaskListOptions) (client.TaskListResult, error) {
+			return client.TaskListResult{}, errors.New("tasks must not be listed when detached")
+		},
+	}
+	cmd := newRemoveCommand(test.NewFakeCli(apiClient))
+	cmd.SetArgs([]string{"foo"})
+	cmd.SetOut(io.Discard)
+
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.DeepEqual(buildObjectIDs(apiClient.networks), apiClient.removedNetworks))
 }
