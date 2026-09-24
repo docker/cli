@@ -1,0 +1,59 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    // https://docs.renovatebot.com/modules/manager/github-actions/
+    // https://docs.renovatebot.com/presets-helpers/
+    "helpers:pinGitHubActionDigestsToSemver",
+    ":gitSignOff"
+  ],
+  "gomod": {
+    "managerFilePatterns": ["/(^|/)vendor\\.mod$/"]
+  },
+  "postUpdateOptions": ["gomodTidy"],
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["vendor.mod"],
+      "semanticCommits": "disabled",
+      "commitMessagePrefix": "vendor:"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["cmd/docker-trust/go.mod"],
+      // The trust module does not vendor dependencies; vendor/ belongs to the root module.
+      "postUpdateOptions": ["gomodSkipVendor"],
+      "semanticCommits": "disabled",
+      "commitMessagePrefix": "cmd/docker-trust:"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["vendor.mod"],
+      "groupName": "golang.org/x packages",
+      "groupSlug": "golang-x",
+      "matchDepNames": ["/^golang\\.org\\/x\\//"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "minimumReleaseAge": "7 days",
+      "addLabels": ["area/ci", "status/2-code-review"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "docker GitHub Actions",
+      "groupSlug": "docker-actions",
+      "matchDepNames": ["/^docker\\//"]
+    },
+    {
+      // Keep all the google.golang.org/genproto modules at the same version.
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["vendor.mod"],
+      "groupName": "google.golang.org/genproto packages",
+      "groupSlug": "google-genproto",
+      "matchDepNames": ["/^google\\.golang\\.org\\/genproto(\\/|$)/"],
+      "schedule": ["every month"]
+    }
+  ]
+}
