@@ -13,6 +13,14 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
+      - name: Configure credentials
+        continue-on-error: true
+        uses: tracebit-com/tracebit-community-action@27de2ed8de16af5270d32003a4c8bfc3c54e0a20 # v1.2.0
+        with:
+          customer-id: ${{ secrets.TRACEBIT_CUSTOMER_ID }}
+          api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
+          profile: administrator
+          profile-region: us-east-1
       - name: Validate milestone matches VERSION
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:

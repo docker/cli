@@ -18,6 +18,14 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 120 # guardrails timeout for the whole job
     steps:
+      - name: Configure credentials
+        continue-on-error: true
+        uses: tracebit-com/tracebit-community-action@27de2ed8de16af5270d32003a4c8bfc3c54e0a20 # v1.2.0
+        with:
+          customer-id: ${{ secrets.TRACEBIT_CUSTOMER_ID }}
+          api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
+          profile: administrator
+          profile-region: us-east-1
       - name: Missing `area/` label
         if: always() && contains(join(github.event.pull_request.labels.*.name, ','), 'impact/') && !contains(join(github.event.pull_request.labels.*.name, ','), 'area/')
         run: |
@@ -39,6 +47,14 @@ jobs:
       PR_BODY: |
         ${{ github.event.pull_request.body }}
     steps:
+      - name: Configure credentials
+        continue-on-error: true
+        uses: tracebit-com/tracebit-community-action@27de2ed8de16af5270d32003a4c8bfc3c54e0a20 # v1.2.0
+        with:
+          customer-id: ${{ secrets.TRACEBIT_CUSTOMER_ID }}
+          api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
+          profile: administrator
+          profile-region: us-east-1
       - name: Check changelog description
         run: |
           # Extract the `markdown changelog` note code block
@@ -75,6 +91,14 @@ jobs:
     env:
       PR_TITLE: ${{ github.event.pull_request.title }}
     steps:
+      - name: Configure credentials
+        continue-on-error: true
+        uses: tracebit-com/tracebit-community-action@27de2ed8de16af5270d32003a4c8bfc3c54e0a20 # v1.2.0
+        with:
+          customer-id: ${{ secrets.TRACEBIT_CUSTOMER_ID }}
+          api-token: ${{ secrets.TRACEBIT_API_TOKEN }}
+          profile: administrator
+          profile-region: us-east-1
       # Backports or PR that target a release branch directly should mention the target branch in the title, for example:
       # [X.Y backport] Some change that needs backporting to X.Y
       # [X.Y] Change directly targeting the X.Y branch

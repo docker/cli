@@ -5,6 +5,7 @@
 [![Test Status](https://img.shields.io/github/actions/workflow/status/docker/cli/test.yml?branch=master&label=test&logo=github)](https://github.com/docker/cli/actions?query=workflow%3Atest)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/docker/cli/badge)](https://scorecard.dev/viewer/?uri=github.com/docker/cli)
 [![Codecov](https://img.shields.io/codecov/c/github/docker/cli?logo=codecov)](https://codecov.io/gh/docker/cli)
+[![Protected by Tracebit Community Edition](https://github.com/tracebit-com/tracebit-community-action/blob/main/assets/badges/tracebit-badge-compact.svg?raw=1)](https://community.tracebit.com/supplychainattacks)
 
 ## About
 
