@@ -124,7 +124,7 @@ func attach(ctx context.Context, dockerCLI command.Cli, opts caOptions) error {
 		return <-errChan
 	}
 
-	err := jsonstream.Display(ctx, pipeReader, dockerCLI.Out())
+	err := jsonstream.DisplayStream(ctx, pipeReader, dockerCLI.Out())
 	if err == nil {
 		err = <-errChan
 	}

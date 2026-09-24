@@ -36,7 +36,7 @@ func TestDisplay(t *testing.T) {
 
 	done := make(chan error)
 	go func() {
-		done <- Display(streamCtx, client, streams.NewOut(io.Discard))
+		done <- DisplayStream(streamCtx, client, streams.NewOut(io.Discard))
 	}()
 
 	cancelStream()
