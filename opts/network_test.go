@@ -36,6 +36,30 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 		expected []NetworkAttachmentOpts
 	}{
 		{
+			value: "name=MyNetwork,alias=WebApp,driver-opt=CustomKey=CaseSensitiveValue",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:  "MyNetwork",
+					Aliases: []string{"WebApp"},
+					DriverOpts: map[string]string{
+						"CustomKey": "CaseSensitiveValue",
+					},
+				},
+			},
+		},
+		{
+			value: "NAME=MyNetwork,ALIAS=WebApp,DRIVER-OPT=CustomKey=CaseSensitiveValue",
+			expected: []NetworkAttachmentOpts{
+				{
+					Target:  "MyNetwork",
+					Aliases: []string{"WebApp"},
+					DriverOpts: map[string]string{
+						"CustomKey": "CaseSensitiveValue",
+					},
+				},
+			},
+		},
+		{
 			value: "name=docknet1,alias=web,driver-opt=field1=value1",
 			expected: []NetworkAttachmentOpts{
 				{
@@ -107,9 +131,7 @@ func TestNetworkOptAdvancedSyntax(t *testing.T) {
 					Target:  "docknet1",
 					Aliases: []string{},
 					DriverOpts: map[string]string{
-						// The CLI converts IFNAME to ifname - it probably shouldn't, but the API
-						// allows ifname to cater for this.
-						"com.docker.network.endpoint.sysctls": "net.ipv6.conf.ifname.accept_ra=2,net.ipv6.conf.ifname.forwarding=1",
+						"com.docker.network.endpoint.sysctls": "net.ipv6.conf.IFNAME.accept_ra=2,net.ipv6.conf.IFNAME.forwarding=1",
 					},
 				},
 			},
