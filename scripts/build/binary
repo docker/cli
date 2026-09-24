@@ -9,8 +9,6 @@ set -eu
 
 echo "Building $GO_LINKMODE $(basename "${TARGET}")"
 
-export GO111MODULE=auto
-
 if [ "$(go env GOOS)" = "windows" ]; then
   if [ ! -x "$(command -v goversioninfo)" ]; then
     >&2 echo "goversioninfo not found, skipping manifesting binary"

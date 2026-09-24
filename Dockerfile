@@ -93,7 +93,6 @@ RUN --mount=type=bind,target=.,ro \
 
 FROM build-${BASE_VARIANT} AS test
 COPY --link --from=gotestsum /out/gotestsum /usr/bin/gotestsum
-ENV GO111MODULE=auto
 RUN --mount=type=bind,target=.,rw \
     --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go/pkg/mod \

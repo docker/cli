@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package main
 
 import (
@@ -10,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/context/store"
-	"github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/internal/test/output"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/context/store"
+	"github.com/docker/cli/v29/cli/flags"
+	"github.com/docker/cli/v29/internal/test/output"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/fs"

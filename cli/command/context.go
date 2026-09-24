@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package command
 
 import (
@@ -8,7 +5,7 @@ import (
 	"errors"
 	"maps"
 
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli/context/store"
 )
 
 // DockerContext is a typed representation of what we put in Context metadata

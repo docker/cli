@@ -7,8 +7,8 @@ import (
 	"io"
 	"slices"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/formatter"
 	"github.com/fvbommel/sortorder"
 	"github.com/theupdateframework/notary/client"
 )

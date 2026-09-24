@@ -11,8 +11,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v29/cli/streams"
+	"github.com/docker/cli/v29/internal/test"
 	"github.com/google/go-cmp/cmp"
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/moby/client"

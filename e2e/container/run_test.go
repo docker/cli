@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/docker/cli/e2e/internal/fixtures"
-	"github.com/docker/cli/internal/test/environment"
+	"github.com/docker/cli/v29/e2e/internal/fixtures"
+	"github.com/docker/cli/v29/internal/test/environment"
 	"github.com/moby/moby/client/pkg/versions"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

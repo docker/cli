@@ -10,8 +10,8 @@ import (
 	"slices"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/cmd/docker-trust/internal/jsonstream"
+	"github.com/docker/cli/v29/cli/streams"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
@@ -20,7 +20,7 @@ import (
 
 // Streams is an interface which exposes the standard input and output streams.
 //
-// Same interface as [github.com/docker/cli/cli/command.Streams] but defined here to prevent a circular import.
+// Same interface as [github.com/docker/cli/v29/cli/command.Streams] but defined here to prevent a circular import.
 type Streams interface {
 	In() *streams.In
 	Out() *streams.Out

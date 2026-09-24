@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package loader
 
 import (
@@ -15,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	interp "github.com/docker/cli/cli/compose/interpolation"
-	"github.com/docker/cli/cli/compose/schema"
-	"github.com/docker/cli/cli/compose/template"
-	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/cli/internal/volumespec"
-	"github.com/docker/cli/opts"
-	"github.com/docker/cli/opts/swarmopts"
+	interp "github.com/docker/cli/v29/cli/compose/interpolation"
+	"github.com/docker/cli/v29/cli/compose/schema"
+	"github.com/docker/cli/v29/cli/compose/template"
+	"github.com/docker/cli/v29/cli/compose/types"
+	"github.com/docker/cli/v29/internal/volumespec"
+	"github.com/docker/cli/v29/opts"
+	"github.com/docker/cli/v29/opts/swarmopts"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
 	"github.com/go-viper/mapstructure/v2"

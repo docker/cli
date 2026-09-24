@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cmd/docker-trust/internal/lazyregexp"
 	"github.com/docker/cli/cmd/docker-trust/internal/trust"
-	"github.com/docker/cli/internal/lazyregexp"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/trustmanager"

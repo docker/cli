@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/v29/internal/test"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 )
