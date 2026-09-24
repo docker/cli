@@ -79,6 +79,20 @@ $ docker inspect -f "{{ .Config.Env }}" f5283438590d
 [HOME=/ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin DEBUG=true]
 ```
 
+You can repeat `--change` to apply multiple Dockerfile instructions in the same commit. When you use repeated `ENV`
+instructions, each one updates the named variable while leaving the rest of the environment intact.
+
+```console
+$ docker commit \
+    --change "ENV DEBUG=true" \
+    --change "ENV LOG_LEVEL=debug" \
+    c3f279d17e0a svendowideit/testimage:version3
+
+$ docker inspect -f "{{ .Config.Env }}" svendowideit/testimage:version3
+
+[HOME=/ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin DEBUG=true LOG_LEVEL=debug]
+```
+
 ### Commit a container with new `CMD` and `EXPOSE` instructions
 
 ```console
