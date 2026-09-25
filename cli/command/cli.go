@@ -11,6 +11,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -29,7 +30,36 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultInitTimeout = 2 * time.Second
+const (
+	// defaultInitTimeout is the default timeout for the initial ping to the
+	// daemon, which is used for API-version negotiation and to detect whether
+	// the daemon is running. It must be short, as we don't want the CLI to
+	// hang when connecting to a local daemon that is not running.
+	//
+	// See: https://github.com/docker/cli/issues/3652
+	defaultInitTimeout = 2 * time.Second
+
+	// sshInitTimeout is the timeout for the initial ping when connecting
+	// to a remote daemon over ssh ("ssh://" endpoint). Establishing an ssh
+	// connection requires a TCP connection, host key verification, and
+	// authentication before the connection to the daemon is established,
+	// which can take longer than defaultInitTimeout, in particular when
+	// connecting to a host for the first time.
+	//
+	// The ssh connection helper sets a default "ConnectTimeout=30" for the
+	// ssh process (see cli/connhelper), so we allow for the connection to
+	// be established within that time, plus some additional time for the
+	// handshake and the initial ping.
+	//
+	// Using the default (short) timeout for ssh connections could make the
+	// initial ping fail on slow connections, in which case API-version
+	// negotiation would be skipped, and the client would use its default
+	// (maximum) API version, potentially resulting in errors when making
+	// requests to a daemon with a lower API version.
+	//
+	// See: https://github.com/docker/cli/issues/6125
+	sshInitTimeout = 32 * time.Second
+)
 
 // Streams is an interface which exposes the standard input and output streams
 type Streams interface {
@@ -373,6 +403,16 @@ func resolveDefaultDockerEndpoint(opts *cliflags.ClientOptions) (docker.Endpoint
 func (cli *DockerCli) getInitTimeout() time.Duration {
 	if cli.initTimeout != 0 {
 		return cli.initTimeout
+	}
+	// Establishing a connection to a remote daemon through the ssh
+	// connection helper can take longer than the default timeout, as it
+	// requires a TCP connection, host key verification, and authentication
+	// before the connection to the daemon is established. Use a longer
+	// timeout for the initial ping, so that API-version negotiation is
+	// not skipped on slow connections.
+	// See: https://github.com/docker/cli/issues/6125
+	if strings.HasPrefix(cli.dockerEndpoint.Host, "ssh://") {
+		return sshInitTimeout
 	}
 	return defaultInitTimeout
 }
