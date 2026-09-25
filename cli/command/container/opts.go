@@ -170,7 +170,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		groupAdd:          opts.NewListOpts(nil),
 		labels:            opts.NewListOpts(opts.ValidateLabel),
 		labelsFile:        opts.NewListOpts(nil),
-		linkLocalIPs:      opts.NewListOpts(nil),
+		linkLocalIPs:      opts.NewListOpts(opts.ValidateIPAddress),
 		links:             opts.NewListOpts(opts.ValidateLink),
 		loggingOpts:       opts.NewListOpts(nil),
 		publish:           opts.NewListOpts(nil),

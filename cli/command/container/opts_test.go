@@ -766,6 +766,11 @@ func TestParseNetworkConfig(t *testing.T) {
 			flags:       []string{"--network", "net1", "--ip6", "172.20.88.22"},
 			expectedErr: "invalid IPv6 address for --ip6: 172.20.88.22",
 		},
+		{
+			name:        "invalid-link-local-ip",
+			flags:       []string{"--network", "net1", "--link-local-ip", "foobar"},
+			expectedErr: `invalid argument "foobar" for "--link-local-ip" flag: IP address is not correctly formatted: foobar`,
+		},
 	}
 
 	for _, tc := range tests {
