@@ -756,6 +756,16 @@ func TestParseNetworkConfig(t *testing.T) {
 			flags:       []string{"--network", "name=net1,mac-address=foobar"},
 			expectedErr: "foobar is not a valid mac address",
 		},
+		{
+			name:        "invalid-ip-is-ipv6",
+			flags:       []string{"--network", "net1", "--ip", "2001:db8::8822"},
+			expectedErr: "invalid IPv4 address for --ip: 2001:db8::8822",
+		},
+		{
+			name:        "invalid-ip6-is-ipv4",
+			flags:       []string{"--network", "net1", "--ip6", "172.20.88.22"},
+			expectedErr: "invalid IPv6 address for --ip6: 172.20.88.22",
+		},
 	}
 
 	for _, tc := range tests {
