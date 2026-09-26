@@ -65,7 +65,7 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 			Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				return commandconn.New(ctx, "ssh", sshArgs...)
 			},
-			Host: "http://docker.example.com",
+			Host: daemonURL,
 		}, nil
 	}
 	// Future version may support plugins via ~/.docker/config.json. e.g. "dind"
@@ -74,6 +74,8 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 }
 
 // GetCommandConnectionHelper returns Docker-specific connection helper constructed from an arbitrary command.
+// Note: Host is set to a default value since we don't have information about the target daemon.
+// Users should configure proxies for this default host in their config.json if needed.
 func GetCommandConnectionHelper(cmd string, flags ...string) (*ConnectionHelper, error) {
 	return &ConnectionHelper{
 		Dialer: func(ctx context.Context, network, addr string) (net.Conn, error) {
