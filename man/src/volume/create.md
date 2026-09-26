@@ -6,12 +6,17 @@ configure the container to use it, for example:
     hello
     $ docker run -d -v hello:/world busybox ls /world
 
-The mount is created inside the container's `/src` directory. Docker does
+The mount is created inside the container's `/world` directory. Docker does
 not support relative paths for mount points inside the container.
 
-Multiple containers can use the same volume in the same time period. This is
-useful if two containers need access to shared data. For example, if one
-container writes and the other reads the data.
+Multiple containers can use the same volume. This is useful if two containers
+need access to shared data. For example, if one container writes and the other
+reads the data.
+
+Volume names must be unique among drivers. Attempting to create two volumes
+with the same name on different drivers results in an error. If you specify a
+volume name already in use on the current driver, Docker reuses the existing
+volume and does not return an error.
 
 ## Driver specific options
 
