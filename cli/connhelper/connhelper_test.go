@@ -61,3 +61,10 @@ func TestDisablePseudoTerminalAllocation(t *testing.T) {
 		})
 	}
 }
+
+func TestGetConnectionHelper(t *testing.T) {
+	helper, err := GetConnectionHelper("ssh://user@1.2.3.4")
+	assert.NilError(t, err)
+	assert.Assert(t, helper != nil)
+	assert.Equal(t, helper.Host, "ssh://user@1.2.3.4")
+}
