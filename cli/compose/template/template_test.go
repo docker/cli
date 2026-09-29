@@ -132,6 +132,42 @@ func TestMandatoryVariableErrors(t *testing.T) {
 	}
 }
 
+func TestRequiredMessageMayContainHyphen(t *testing.T) {
+	testCases := []struct {
+		template      string
+		expectedError string
+	}{
+		{
+			template:      "not ok ${UNSET_VAR:?must be set - hyphen in this message}",
+			expectedError: "required variable UNSET_VAR is missing a value: must be set - hyphen in this message",
+		},
+		{
+			template:      "not ok ${UNSET_VAR?must be set - hyphen in this message}",
+			expectedError: "required variable UNSET_VAR is missing a value: must be set - hyphen in this message",
+		},
+		{
+			template:      "not ok ${BAR:?must be set - hyphen in this message}",
+			expectedError: "required variable BAR is missing a value: must be set - hyphen in this message",
+		},
+	}
+	for _, tc := range testCases {
+		_, err := Substitute(tc.template, defaultMapping)
+		assert.Check(t, is.ErrorContains(err, tc.expectedError))
+	}
+
+	result, err := Substitute("ok ${FOO:?must be set - hyphen in this message}", defaultMapping)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok first", result))
+
+	result, err = Substitute("ok ${missing-foo?bar}", defaultMapping)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok foo?bar", result))
+
+	result, err = Substitute("ok ${missing:-foo?bar}", defaultMapping)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok foo?bar", result))
+}
+
 func TestDefaultsForMandatoryVariables(t *testing.T) {
 	testCases := []struct {
 		template string

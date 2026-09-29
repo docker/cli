@@ -183,25 +183,40 @@ func extractVariable(value any, pattern regexper) ([]extractedValue, bool) {
 		}
 		name := val
 		var defaultValue string
-		switch {
-		case strings.Contains(val, ":?"):
-			name, _ = partition(val, ":?")
-		case strings.Contains(val, "?"):
-			name, _ = partition(val, "?")
-		case strings.Contains(val, ":-"):
-			name, defaultValue = partition(val, ":-")
-		case strings.Contains(val, "-"):
-			name, defaultValue = partition(val, "-")
+		switch sep := operatorSep(val); sep {
+		case ":?", "?":
+			name, _ = partition(val, sep)
+		case ":-", "-":
+			name, defaultValue = partition(val, sep)
 		}
 		values = append(values, extractedValue{name: name, value: defaultValue})
 	}
 	return values, len(values) > 0
 }
 
+// operatorSep is the interpolation operator that applies to substitution.
+// The earliest of :?, :-, ? and - wins, so a hyphen or question mark later
+// in an error message or default is not treated as another operator.
+func operatorSep(substitution string) string {
+	bestAt := -1
+	best := ""
+	for _, sep := range []string{":?", ":-", "?", "-"} {
+		at := strings.Index(substitution, sep)
+		if at < 0 {
+			continue
+		}
+		if bestAt < 0 || at < bestAt || (at == bestAt && len(sep) > len(best)) {
+			bestAt = at
+			best = sep
+		}
+	}
+	return best
+}
+
 // Soft default (fall back if unset or empty)
 func softDefault(substitution string, mapping Mapping) (string, bool, error) {
 	sep := ":-"
-	if !strings.Contains(substitution, sep) {
+	if operatorSep(substitution) != sep {
 		return "", false, nil
 	}
 	name, defaultValue := partition(substitution, sep)
@@ -215,7 +230,7 @@ func softDefault(substitution string, mapping Mapping) (string, bool, error) {
 // Hard default (fall back if-and-only-if empty)
 func hardDefault(substitution string, mapping Mapping) (string, bool, error) {
 	sep := "-"
-	if !strings.Contains(substitution, sep) {
+	if operatorSep(substitution) != sep {
 		return "", false, nil
 	}
 	name, defaultValue := partition(substitution, sep)
@@ -235,7 +250,7 @@ func required(substitution string, mapping Mapping) (string, bool, error) {
 }
 
 func withRequired(substitution string, mapping Mapping, sep string, valid func(string) bool) (string, bool, error) {
-	if !strings.Contains(substitution, sep) {
+	if operatorSep(substitution) != sep {
 		return "", false, nil
 	}
 	name, errorMessage := partition(substitution, sep)
