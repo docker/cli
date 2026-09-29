@@ -1,8 +1,11 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package stack
 
 import (
 	"context"
-	"sort"
+	"slices"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -52,8 +55,8 @@ func runList(ctx context.Context, dockerCLI command.Cli, opts listOptions) error
 		Output: dockerCLI.Out(),
 		Format: format,
 	}
-	sort.Slice(stacks, func(i, j int) bool {
-		return sortorder.NaturalLess(stacks[i].Name, stacks[j].Name)
+	slices.SortFunc(stacks, func(a, b stackSummary) int {
+		return sortorder.NaturalCompare(a.Name, b.Name)
 	})
 	return stackWrite(stackCtx, stacks)
 }

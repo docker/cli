@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"testing"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/internal/test"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"
@@ -284,12 +284,12 @@ func TestCreateContainerWithProxyConfig(t *testing.T) {
 		"ALL_PROXY=allProxy",
 		"all_proxy=allProxy",
 	}
-	sort.Strings(expected)
 
 	fakeCLI := test.NewFakeCli(&fakeClient{
 		createContainerFunc: func(options client.ContainerCreateOptions) (client.ContainerCreateResult, error) {
-			sort.Strings(options.Config.Env)
-			assert.DeepEqual(t, options.Config.Env, expected)
+			assert.DeepEqual(t, options.Config.Env, expected, cmpopts.SortSlices(func(a, b string) bool {
+				return a < b
+			}))
 			return client.ContainerCreateResult{}, nil
 		},
 	})

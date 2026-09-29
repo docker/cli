@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/cli/command"
@@ -110,9 +110,6 @@ func lookupTrustInfo(ctx context.Context, cli command.Cli, remote string) ([]tru
 }
 
 func formatAdminRole(roleWithSigs client.RoleWithSignatures) string {
-	adminKeyList := roleWithSigs.KeyIDs
-	sort.Strings(adminKeyList)
-
 	var role string
 	switch roleWithSigs.Name {
 	case data.CanonicalTargetsRole:
@@ -122,6 +119,7 @@ func formatAdminRole(roleWithSigs client.RoleWithSignatures) string {
 	default:
 		return ""
 	}
+	adminKeyList := slices.Sorted(slices.Values(roleWithSigs.KeyIDs))
 	return fmt.Sprintf("%s:\t%s\n", role, strings.Join(adminKeyList, ", "))
 }
 
@@ -164,8 +162,8 @@ func matchReleasedSignatures(allTargets []client.TargetSignedStruct) []trustTagR
 	for targetKey, signers := range releasedTargetRows {
 		signatureRows = append(signatureRows, trustTagRow{targetKey, signers})
 	}
-	sort.Slice(signatureRows, func(i, j int) bool {
-		return sortorder.NaturalLess(signatureRows[i].SignedTag, signatureRows[j].SignedTag)
+	slices.SortFunc(signatureRows, func(a, b trustTagRow) int {
+		return sortorder.NaturalCompare(a.SignedTag, b.SignedTag)
 	})
 	return signatureRows
 }

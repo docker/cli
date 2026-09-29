@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package git
 
 import (
@@ -7,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/moby/sys/symlink"
@@ -202,7 +206,7 @@ func (repo gitRepo) checkout(root string) (string, error) {
 }
 
 func (repo gitRepo) gitWithinDir(dir string, args ...string) ([]byte, error) {
-	args = append([]string{"-c", "protocol.file.allow=never"}, args...) // Block sneaky repositories from using repos from the filesystem as submodules.
+	args = slices.Concat([]string{"-c", "protocol.file.allow=never"}, args) // Block sneaky repositories from using repos from the filesystem as submodules.
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 	// Disable unsafe remote protocols.

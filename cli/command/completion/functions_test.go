@@ -3,9 +3,9 @@ package completion
 import (
 	"context"
 	"errors"
-	"sort"
 	"testing"
 
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/network"
@@ -177,9 +177,10 @@ func TestCompleteEnvVarNames(t *testing.T) {
 	values, directives := EnvVarNames()(nil, nil, "")
 	assert.Check(t, is.Equal(directives&cobra.ShellCompDirectiveNoFileComp, cobra.ShellCompDirectiveNoFileComp), "Should not perform file completion")
 
-	sort.Strings(values)
 	expected := []string{"ENV_A", "ENV_B"}
-	assert.Check(t, is.DeepEqual(values, expected))
+	assert.Check(t, is.DeepEqual(values, expected, cmpopts.SortSlices(func(a, b string) bool {
+		return a < b
+	})))
 }
 
 func TestCompleteFileNames(t *testing.T) {

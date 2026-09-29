@@ -1,10 +1,14 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package stack
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -96,15 +100,11 @@ func runRemove(ctx context.Context, dockerCli command.Cli, opts removeOptions) e
 	return errors.Join(errs...)
 }
 
-func sortServiceByName(services []swarm.Service) func(i, j int) bool {
-	return func(i, j int) bool {
-		return services[i].Spec.Name < services[j].Spec.Name
-	}
-}
-
 func removeServices(ctx context.Context, dockerCLI command.Cli, services []swarm.Service) bool {
+	slices.SortFunc(services, func(a, b swarm.Service) int {
+		return cmp.Compare(a.Spec.Name, b.Spec.Name)
+	})
 	var hasError bool
-	sort.Slice(services, sortServiceByName(services))
 	for _, service := range services {
 		_, _ = fmt.Fprintln(dockerCLI.Out(), "Removing service", service.Spec.Name)
 		if _, err := dockerCLI.Client().ServiceRemove(ctx, service.ID, client.ServiceRemoveOptions{}); err != nil {

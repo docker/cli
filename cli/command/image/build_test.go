@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/docker/cli/cli/streams"
@@ -211,6 +211,6 @@ func (f *fakeBuild) filenames(t *testing.T) []string {
 	for _, header := range h {
 		names = append(names, header.Name)
 	}
-	sort.Strings(names)
+	slices.Sort(names)
 	return names
 }

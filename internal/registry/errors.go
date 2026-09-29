@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.25
+//go:build go1.26
 
 package registry
 
@@ -12,8 +12,7 @@ import (
 )
 
 func translateV2AuthError(err error) error {
-	var e *url.Error
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[*url.Error](err); ok {
 		var e2 errcode.Error
 		if errors.As(e, &e2) && errors.Is(e2.Code, errcode.ErrorCodeUnauthorized) {
 			return unauthorizedErr{err}

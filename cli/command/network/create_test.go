@@ -189,8 +189,6 @@ func TestNetworkCreateWithFlags(t *testing.T) {
 // TestNetworkCreateIPv4 verifies behavior of the "--ipv4" option. This option
 // is an optional bool, and must default to "nil", not "true" or "false".
 func TestNetworkCreateIPv4(t *testing.T) {
-	boolPtr := func(val bool) *bool { return &val }
-
 	tests := []struct {
 		doc, name string
 		flags     []string
@@ -205,19 +203,19 @@ func TestNetworkCreateIPv4(t *testing.T) {
 			doc:      "IPv4 enabled",
 			name:     "ipv4-enabled",
 			flags:    []string{"--ipv4=true"},
-			expected: boolPtr(true),
+			expected: new(true),
 		},
 		{
 			doc:      "IPv4 enabled (shorthand)",
 			name:     "ipv4-enabled-shorthand",
 			flags:    []string{"--ipv4"},
-			expected: boolPtr(true),
+			expected: new(true),
 		},
 		{
 			doc:      "IPv4 disabled",
 			name:     "ipv4-disabled",
 			flags:    []string{"--ipv4=false"},
-			expected: boolPtr(false),
+			expected: new(false),
 		},
 	}
 
@@ -243,8 +241,6 @@ func TestNetworkCreateIPv4(t *testing.T) {
 // TestNetworkCreateIPv6 verifies behavior of the "--ipv6" option. This option
 // is an optional bool, and must default to "nil", not "true" or "false".
 func TestNetworkCreateIPv6(t *testing.T) {
-	strPtr := func(val bool) *bool { return &val }
-
 	tests := []struct {
 		doc, name string
 		flags     []string
@@ -259,19 +255,19 @@ func TestNetworkCreateIPv6(t *testing.T) {
 			doc:      "IPV6 enabled",
 			name:     "ipv6-enabled",
 			flags:    []string{"--ipv6=true"},
-			expected: strPtr(true),
+			expected: new(true),
 		},
 		{
 			doc:      "IPV6 enabled (shorthand)",
 			name:     "ipv6-enabled-shorthand",
 			flags:    []string{"--ipv6"},
-			expected: strPtr(true),
+			expected: new(true),
 		},
 		{
 			doc:      "IPV6 disabled",
 			name:     "ipv6-disabled",
 			flags:    []string{"--ipv6=false"},
-			expected: strPtr(false),
+			expected: new(false),
 		},
 	}
 

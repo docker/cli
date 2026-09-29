@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/streams"
@@ -113,8 +113,7 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 		var rootKeyID string
 		// always select the first root key
 		if len(keys) > 0 {
-			sort.Strings(keys)
-			rootKeyID = keys[0]
+			rootKeyID = slices.Min(keys)
 		} else {
 			rootPublicKey, err := repo.GetCryptoService().Create(data.CanonicalRootRole, "", data.ECDSAKey)
 			if err != nil {

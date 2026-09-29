@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.25
+//go:build go1.26
 
 package schema
 
@@ -101,8 +101,7 @@ func Validate(config map[string]any, version string) error {
 	}
 
 	if err := schema.Validate(toJSONValue(config)); err != nil {
-		var validationErr *jsonschema.ValidationError
-		if errors.As(err, &validationErr) {
+		if validationErr, ok := errors.AsType[*jsonschema.ValidationError](err); ok {
 			return getMostSpecificError(validationErr)
 		}
 		return err

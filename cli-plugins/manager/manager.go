@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package manager
 
 import (
@@ -6,7 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
+	slices "slices"
 	"strings"
 	"sync"
 
@@ -164,8 +167,8 @@ func ListPlugins(dockerCli config.Provider, rootcmd *cobra.Command) ([]Plugin, e
 		return nil, err
 	}
 
-	sort.Slice(plugins, func(i, j int) bool {
-		return sortorder.NaturalLess(plugins[i].Name, plugins[j].Name)
+	slices.SortFunc(plugins, func(a, b Plugin) int {
+		return sortorder.NaturalCompare(a.Name, b.Name)
 	})
 
 	return plugins, nil

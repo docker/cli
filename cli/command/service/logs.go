@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package service
 
 import (
@@ -6,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -314,7 +317,7 @@ func (lw *logWriter) Write(buf []byte) (int, error) {
 			d = append(d, k+"="+details[k])
 		}
 		// then sort em
-		sort.Strings(d)
+		slices.Sort(d)
 		// then join and append
 		output = append(output, []byte(strings.Join(d, ","))...)
 		output = append(output, ' ')

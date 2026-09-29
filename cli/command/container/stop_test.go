@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
-	"sort"
 	"sync"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
@@ -88,8 +88,9 @@ func TestStop(t *testing.T) {
 			} else {
 				assert.Check(t, is.Nil(err))
 			}
-			sort.Strings(stopped)
-			assert.Check(t, is.DeepEqual(stopped, tc.stopped))
+			assert.Check(t, is.DeepEqual(stopped, tc.stopped, cmpopts.SortSlices(func(a, b string) bool {
+				return a < b
+			})))
 		})
 	}
 }

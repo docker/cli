@@ -102,9 +102,11 @@ func TestRunPushRespectsNoColorForAuxNotes(t *testing.T) {
 				SelectedManifest:             ocispec.Descriptor{Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222"},
 			})
 			assert.NilError(t, err)
-			line := append([]byte(`{"aux":`), aux...)
-			line = append(line, '}', '\n')
-			return fakeStreamResult{ReadCloser: io.NopCloser(bytes.NewReader(line))}, nil
+			var buf bytes.Buffer
+			buf.WriteString(`{"aux":`)
+			buf.Write(aux)
+			buf.WriteString("}\n")
+			return fakeStreamResult{ReadCloser: io.NopCloser(&buf)}, nil
 		},
 	})
 	cli.Out().SetIsTerminal(true)

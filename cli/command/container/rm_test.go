@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
-	"sort"
 	"sync"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 )
@@ -53,8 +53,10 @@ func TestRemoveForce(t *testing.T) {
 				assert.NilError(t, err)
 			}
 			assert.Equal(t, cli.ErrBuffer().String(), "")
-			sort.Strings(removed)
-			assert.DeepEqual(t, removed, []string{"mycontainer", "nosuchcontainer"})
+			expected := []string{"mycontainer", "nosuchcontainer"}
+			assert.DeepEqual(t, removed, expected, cmpopts.SortSlices(func(a, b string) bool {
+				return a < b
+			}))
 		})
 	}
 }

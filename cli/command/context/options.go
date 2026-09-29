@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package context
 
 import (
@@ -69,8 +72,7 @@ func parseBool(config map[string]string, name string) (bool, error) {
 	}
 	res, err := strconv.ParseBool(strVal)
 	if err != nil {
-		var nErr *strconv.NumError
-		if errors.As(err, &nErr) {
+		if nErr, ok := errors.AsType[*strconv.NumError](err); ok {
 			return res, fmt.Errorf("%s: parsing %q: %w", name, nErr.Num, nErr.Err)
 		}
 		return res, fmt.Errorf("%s: %w", name, err)

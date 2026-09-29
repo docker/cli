@@ -1,9 +1,13 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package task
 
 import (
+	"cmp"
 	"context"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
@@ -13,24 +17,6 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
-
-type tasksSortable []swarm.Task
-
-func (t tasksSortable) Len() int {
-	return len(t)
-}
-
-func (t tasksSortable) Swap(i, j int) {
-	t[i], t[j] = t[j], t[i]
-}
-
-func (t tasksSortable) Less(i, j int) bool {
-	if t[i].Name != t[j].Name {
-		return sortorder.NaturalLess(t[i].Name, t[j].Name)
-	}
-	// Sort tasks for the same service and slot by most recent.
-	return t[j].Meta.CreatedAt.Before(t[i].CreatedAt)
-}
 
 // Print task information in a format.
 // Besides this, command `docker node ps <node>`
@@ -44,7 +30,12 @@ func Print(ctx context.Context, dockerCli command.Cli, tasks client.TaskListResu
 	// First sort tasks, so that all tasks (including previous ones) of the same
 	// service and slot are together. This must be done first, to print "previous"
 	// tasks indented
-	sort.Stable(tasksSortable(tasks.Items))
+	slices.SortStableFunc(tasks.Items, func(a, b swarm.Task) int {
+		return cmp.Or(
+			sortorder.NaturalCompare(a.Name, b.Name),
+			b.Meta.CreatedAt.Compare(a.Meta.CreatedAt),
+		)
+	})
 
 	names := map[string]string{}
 	nodes := map[string]string{}

@@ -1,7 +1,10 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package formatter
 
 import (
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -52,20 +55,20 @@ shared: {{.Shared}}
 }
 
 func buildCacheSort(buildCache []build.CacheRecord) {
-	sort.Slice(buildCache, func(i, j int) bool {
-		lui, luj := buildCache[i].LastUsedAt, buildCache[j].LastUsedAt
+	slices.SortFunc(buildCache, func(a, b build.CacheRecord) int {
 		switch {
-		case lui == nil && luj == nil:
-			return strings.Compare(buildCache[i].ID, buildCache[j].ID) < 0
-		case lui == nil:
-			return true
-		case luj == nil:
-			return false
-		case lui.Equal(*luj):
-			return strings.Compare(buildCache[i].ID, buildCache[j].ID) < 0
-		default:
-			return lui.Before(*luj)
+		case a.LastUsedAt == nil && b.LastUsedAt == nil:
+			return strings.Compare(a.ID, b.ID)
+		case a.LastUsedAt == nil:
+			return -1
+		case b.LastUsedAt == nil:
+			return 1
 		}
+
+		if c := a.LastUsedAt.Compare(*b.LastUsedAt); c != 0 {
+			return c
+		}
+		return strings.Compare(a.ID, b.ID)
 	})
 }
 

@@ -1,5 +1,5 @@
 // FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.25
+//go:build go1.26
 
 package store
 
@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sort"
+	"slices"
 
 	"github.com/fvbommel/sortorder"
 	"github.com/moby/sys/atomicwriter"
@@ -122,8 +122,8 @@ func (s *metadataStore) list() ([]Metadata, error) {
 		}
 		res = append(res, c)
 	}
-	sort.Slice(res, func(i, j int) bool {
-		return sortorder.NaturalLess(res[i].Name, res[j].Name)
+	slices.SortFunc(res, func(a, b Metadata) int {
+		return sortorder.NaturalCompare(a.Name, b.Name)
 	})
 	return res, nil
 }

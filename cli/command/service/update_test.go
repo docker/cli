@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
-	"sort"
+	"slices"
 	"strconv"
 	"testing"
 	"time"
@@ -141,7 +141,7 @@ func TestUpdateEnvironment(t *testing.T) {
 	updateEnvironment(flags, &envs)
 	assert.Assert(t, is.Len(envs, 2))
 	// Order has been removed in updateEnvironment (map)
-	sort.Strings(envs)
+	slices.Sort(envs)
 	assert.Check(t, is.Equal("toadd=newenv", envs[0]))
 	assert.Check(t, is.Equal("tokeep=value", envs[1]))
 }
@@ -250,6 +250,32 @@ func TestUpdateMounts(t *testing.T) {
 	assert.Check(t, is.Equal("/tokeep", mounts[1].Target))
 }
 
+func TestUpdateServiceForcePreservesMountOrder(t *testing.T) {
+	flags := newUpdateCommand(nil).Flags()
+	assert.NilError(t, flags.Set("force", "true"))
+
+	spec := &swarm.ServiceSpec{
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: &swarm.ContainerSpec{
+				Mounts: []mount.Mount{
+					{Type: mount.TypeVolume, Source: "z-volume", Target: "/data/z"},
+					{Type: mount.TypeVolume, Source: "a-volume", Target: "/data/a"},
+					{Type: mount.TypeVolume, Source: "m-volume", Target: "/data/m"},
+				},
+			},
+		},
+	}
+
+	err := updateService(context.Background(), nil, flags, spec)
+	assert.NilError(t, err)
+	assert.Equal(t, spec.TaskTemplate.ForceUpdate, uint64(1))
+	assert.DeepEqual(t, spec.TaskTemplate.ContainerSpec.Mounts, []mount.Mount{
+		{Type: mount.TypeVolume, Source: "z-volume", Target: "/data/z"},
+		{Type: mount.TypeVolume, Source: "a-volume", Target: "/data/a"},
+		{Type: mount.TypeVolume, Source: "m-volume", Target: "/data/m"},
+	})
+}
+
 func TestUpdateMountsWithDuplicateMounts(t *testing.T) {
 	flags := newUpdateCommand(nil).Flags()
 	flags.Set("mount-add", "type=volume,source=vol4,target=/toadd")
@@ -282,7 +308,7 @@ func TestUpdatePorts(t *testing.T) {
 	assert.Assert(t, is.Len(portConfigs, 2))
 	// Do a sort to have the order (might have changed by map)
 	targetPorts := []int{int(portConfigs[0].TargetPort), int(portConfigs[1].TargetPort)}
-	sort.Ints(targetPorts)
+	slices.Sort(targetPorts)
 	assert.Check(t, is.Equal(555, targetPorts[0]))
 	assert.Check(t, is.Equal(1000, targetPorts[1]))
 }

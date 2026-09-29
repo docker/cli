@@ -1,10 +1,11 @@
 package trust
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/formatter"
@@ -44,7 +45,10 @@ func prettyPrintTrustInfo(ctx context.Context, dockerCLI command.Cli, remote str
 }
 
 func printSortedAdminKeys(out io.Writer, adminRoles []client.RoleWithSignatures) {
-	sort.Slice(adminRoles, func(i, j int) bool { return adminRoles[i].Name > adminRoles[j].Name })
+	// Sort by name in descending order.
+	slices.SortFunc(adminRoles, func(a, b client.RoleWithSignatures) int {
+		return cmp.Compare(b.Name, a.Name)
+	})
 	for _, adminRole := range adminRoles {
 		if formattedAdminRole := formatAdminRole(adminRole); formattedAdminRole != "" {
 			_, _ = fmt.Fprintf(out, "  %s", formattedAdminRole)
@@ -80,15 +84,15 @@ func printSignerInfo(out io.Writer, roleToKeyIDs map[string][]string) error {
 		Format: defaultSignerInfoTableFormat,
 		Trunc:  true,
 	}
-	formattedSignerInfo := []signerInfo{}
+	formattedSignerInfo := make([]signerInfo, 0, len(roleToKeyIDs))
 	for name, keyIDs := range roleToKeyIDs {
 		formattedSignerInfo = append(formattedSignerInfo, signerInfo{
 			Name: name,
 			Keys: keyIDs,
 		})
 	}
-	sort.Slice(formattedSignerInfo, func(i, j int) bool {
-		return sortorder.NaturalLess(formattedSignerInfo[i].Name, formattedSignerInfo[j].Name)
+	slices.SortFunc(formattedSignerInfo, func(a, b signerInfo) int {
+		return sortorder.NaturalCompare(a.Name, b.Name)
 	})
 	return signerInfoWrite(signerInfoCtx, formattedSignerInfo)
 }

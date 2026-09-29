@@ -1,5 +1,7 @@
 package sortorder
 
+import "cmp"
+
 // Natural implements sort.Interface to sort strings in natural order. This
 // means that e.g. "abc2" < "abc12".
 //
@@ -25,18 +27,36 @@ func isDigit(b byte) bool { return '0' <= b && b <= '9' }
 //
 // Limitation: only ASCII digits (0-9) are considered.
 func NaturalLess(str1, str2 string) bool {
+	return NaturalCompare(str1, str2) < 0
+}
+
+// NaturalCompare compares str1 and str2 using the same natural ordering as
+// [NaturalLess]. It returns a negative value if str1 sorts before str2, a
+// positive value if str1 sorts after str2, and zero if str1 and str2 are equal.
+//
+// NaturalCompare is suitable for APIs that accept a three-way comparison
+// function, such as [slices.SortFunc] and [slices.SortStableFunc].
+func NaturalCompare(str1, str2 string) int {
 	idx1, idx2 := 0, 0
 	for idx1 < len(str1) && idx2 < len(str2) {
 		c1, c2 := str1[idx1], str2[idx2]
 		dig1, dig2 := isDigit(c1), isDigit(c2)
 		switch {
-		case dig1 != dig2: // Digits before other characters.
-			return dig1 // True if LHS is a digit, false if the RHS is one.
+		case dig1 != dig2:
+			// The first difference is that one is a digit and the other is not.
+			// That means that one (possibly empty) non-digit string has ended, and the other has not.
+			// The one that has ended is ordered before the one that continues,
+			// for example: "ab1" < "abc1" after skipping the matching "ab" prefix.
+			// This means the side with the digit is ordered before the other one.
+			if dig1 {
+				return -1
+			}
+			return 1
 		case !dig1: // && !dig2, because dig1 == dig2
 			// UTF-8 compares bytewise-lexicographically, no need to decode
 			// codepoints.
 			if c1 != c2 {
-				return c1 < c2
+				return cmp.Compare(c1, c2)
 			}
 			idx1++
 			idx2++
@@ -55,22 +75,22 @@ func NaturalLess(str1, str2 string) bool {
 			// If lengths of numbers with non-zero prefix differ, the shorter
 			// one is less.
 			if len1, len2 := idx1-nonZero1, idx2-nonZero2; len1 != len2 {
-				return len1 < len2
+				return cmp.Compare(len1, len2)
 			}
 			// If they're equally long, string comparison is correct.
 			if nr1, nr2 := str1[nonZero1:idx1], str2[nonZero2:idx2]; nr1 != nr2 {
-				return nr1 < nr2
+				return cmp.Compare(nr1, nr2)
 			}
 			// Otherwise, the one with less zeros is less.
 			// Because everything up to the number is equal, comparing the index
 			// after the zeros is sufficient.
 			if nonZero1 != nonZero2 {
-				return nonZero1 < nonZero2
+				return cmp.Compare(nonZero1, nonZero2)
 			}
 		}
 		// They're identical so far, so continue comparing.
 	}
 	// So far they are identical. At least one is ended. If the other continues,
 	// it sorts last.
-	return len(str1) < len(str2)
+	return cmp.Compare(len(str1), len(str2))
 }

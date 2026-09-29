@@ -110,6 +110,32 @@ func TestRunWithCgroupNamespace(t *testing.T) {
 	result.Assert(t, icmd.Success)
 }
 
+func TestRunUmask(t *testing.T) {
+	environment.SkipIfDaemonNotLinux(t)
+	t.Skip("FIXME: un-skip once e2e tests v29.8.0")
+
+	testCases := []struct {
+		name     string
+		args     []string
+		expected string
+	}{
+		{name: "unset", expected: "0022\n"},
+		{name: "zero", args: []string{"--umask", "0"}, expected: "0000\n"},
+		{name: "octal-022", args: []string{"--umask", "022"}, expected: "0022\n"},
+		{name: "octal-777", args: []string{"--umask", "777"}, expected: "0777\n"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			args := []string{"run", "--rm", fixtures.AlpineImage, "sh", "-c", "umask"}
+			args = append(args[:2], append(tc.args, args[2:]...)...)
+			result := icmd.RunCommand("docker", args...)
+			result.Assert(t, icmd.Success)
+			assert.Equal(t, result.Stdout(), tc.expected)
+		})
+	}
+}
+
 func TestMountSubvolume(t *testing.T) {
 	skip.If(t, versions.LessThan(environment.DaemonAPIVersion(t), "1.45"))
 	volName := "test-volume-" + t.Name()

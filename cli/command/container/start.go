@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package container
 
 import (
@@ -169,8 +172,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 			}
 		}
 		if attachErr := <-cErr; attachErr != nil {
-			var escapeError term.EscapeError
-			if errors.As(attachErr, &escapeError) {
+			if _, ok := errors.AsType[term.EscapeError](attachErr); ok {
 				// The user entered the detach escape sequence.
 				return nil
 			}
