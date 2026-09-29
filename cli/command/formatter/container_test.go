@@ -946,6 +946,24 @@ func TestDisplayablePorts(t *testing.T) {
 			},
 			expected: "80/tcp, 80/udp, 1024/tcp, 1024/udp, 12345/sctp, 1.1.1.1:1024->80/tcp, 1.1.1.1:1024->80/udp, 2.1.1.1:1024->80/tcp, 2.1.1.1:1024->80/udp, 1.1.1.1:80->1024/tcp, 1.1.1.1:80->1024/udp, 2.1.1.1:80->1024/tcp, 2.1.1.1:80->1024/udp", //nolint:revive // ignore line-length-limit (revive)
 		},
+		{
+			// host IPs are ordered numerically, not lexicographically:
+			// "10.0.0.2" sorts as a string before "9.0.0.1".
+			ports: []container.PortSummary{
+				{
+					IP:          netip.MustParseAddr("10.0.0.2"),
+					PublicPort:  8080,
+					PrivatePort: 80,
+					Type:        "tcp",
+				}, {
+					IP:          netip.MustParseAddr("9.0.0.1"),
+					PublicPort:  8081,
+					PrivatePort: 80,
+					Type:        "tcp",
+				},
+			},
+			expected: "9.0.0.1:8081->80/tcp, 10.0.0.2:8080->80/tcp",
+		},
 	}
 
 	for _, port := range cases {

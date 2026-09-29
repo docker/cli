@@ -419,7 +419,7 @@ services:
   foo:
     image: busybox
 `)
-	assert.Check(t, is.ErrorContains(err, "version must be a string"))
+	assert.Check(t, is.ErrorContains(err, "version: must be a string"))
 }
 
 func TestV1Unsupported(t *testing.T) {
@@ -427,7 +427,7 @@ func TestV1Unsupported(t *testing.T) {
 foo:
   image: busybox
 `)
-	assert.Check(t, is.ErrorContains(err, "(root) Additional property foo is not allowed"))
+	assert.Check(t, is.ErrorContains(err, "(root): additional property 'foo' is not allowed"))
 
 	_, err = loadYAML(`
 version: "1.0"
@@ -445,14 +445,14 @@ services:
   - foo:
       image: busybox
 `)
-	assert.Check(t, is.ErrorContains(err, "services must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "services: must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
 services:
   foo: busybox
 `)
-	assert.Check(t, is.ErrorContains(err, "services.foo must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "services.foo: must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -460,14 +460,14 @@ networks:
   - default:
       driver: bridge
 `)
-	assert.Check(t, is.ErrorContains(err, "networks must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "networks: must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
 networks:
   default: bridge
 `)
-	assert.Check(t, is.ErrorContains(err, "networks.default must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "networks.default: must be null or a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
@@ -475,14 +475,14 @@ volumes:
   - data:
       driver: local
 `)
-	assert.Check(t, is.ErrorContains(err, "volumes must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "volumes: must be a mapping"))
 
 	_, err = loadYAML(`
 version: "3"
 volumes:
   data: local
 `)
-	assert.Check(t, is.ErrorContains(err, "volumes.data must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "volumes.data: must be null or a mapping"))
 }
 
 func TestNonStringImage(t *testing.T) {
@@ -492,7 +492,7 @@ services:
   foo:
     image: ["busybox", "latest"]
 `)
-	assert.Check(t, is.ErrorContains(err, "services.foo.image must be a string"))
+	assert.Check(t, is.ErrorContains(err, "services.foo.image: must be a string"))
 }
 
 func TestIgnoreBuildProperties(t *testing.T) {
@@ -553,7 +553,7 @@ services:
     environment:
       FOO: ["1"]
 `)
-	assert.Check(t, is.ErrorContains(err, "services.dict-env.environment.FOO must be a string, number or null"))
+	assert.Check(t, is.ErrorContains(err, "services.dict-env.environment.FOO: must be null or a number or a string"))
 }
 
 func TestInvalidEnvironmentObject(t *testing.T) {
@@ -564,7 +564,7 @@ services:
     image: busybox
     environment: "FOO=1"
 `)
-	assert.Check(t, is.ErrorContains(err, "services.dict-env.environment must be a mapping"))
+	assert.Check(t, is.ErrorContains(err, "services.dict-env.environment: must be a mapping"))
 }
 
 func TestLoadWithEnvironmentInterpolation(t *testing.T) {
@@ -899,7 +899,7 @@ func TestInvalidResource(t *testing.T) {
                 impossible:
                   x: 1
 `)
-	assert.Check(t, is.ErrorContains(err, "Additional property impossible is not allowed"))
+	assert.Check(t, is.ErrorContains(err, "additional property 'impossible' is not allowed"))
 }
 
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
@@ -1033,7 +1033,7 @@ services:
         tmpfs:
           size: 10000
 `)
-	assert.Check(t, is.ErrorContains(err, "services.tmpfs.volumes.0 Additional property tmpfs is not allowed"))
+	assert.Check(t, is.ErrorContains(err, "services.tmpfs.volumes.0: additional property 'tmpfs' is not allowed"))
 }
 
 func TestLoadBindMountSourceMustNotBeEmpty(t *testing.T) {
@@ -1191,7 +1191,7 @@ services:
         tmpfs:
           size: -1
 `)
-	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size Must be greater than or equal to 0")
+	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size: must be greater than or equal to 0")
 }
 
 func TestLoadTmpfsVolumeSizeMustBeInteger(t *testing.T) {
@@ -1206,7 +1206,7 @@ services:
         tmpfs:
           size: 0.0001
 `)
-	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size must be a integer")
+	assert.ErrorContains(t, err, "services.tmpfs.volumes.0.tmpfs.size: must be an integer")
 }
 
 func serviceSort(services []types.ServiceConfig) []types.ServiceConfig {

@@ -65,7 +65,7 @@ jobs:
           docker info
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
       -
         name: Run ${{ matrix.target }}
         run: |
@@ -76,7 +76,7 @@ jobs:
           TESTFLAGS: -coverprofile=/tmp/coverage/coverage.txt
       -
         name: Send to Codecov
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: ./build/coverage/coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
