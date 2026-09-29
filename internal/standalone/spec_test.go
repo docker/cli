@@ -23,6 +23,9 @@ func TestParseSignal(t *testing.T) {
 		{input: "sigterm", expected: 15},
 		{input: "HUP", expected: 1},
 		{input: "NOPE", wantErr: true},
+		{input: "65", wantErr: true},
+		{input: "-1", wantErr: true},
+		{input: "4294967305", wantErr: true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {

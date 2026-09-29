@@ -409,12 +409,18 @@ func stopTimeout(m *containerMeta, override *int) int {
 	return 10
 }
 
+// maxSignal is the highest signal number on Linux (SIGRTMAX).
+const maxSignal = 64
+
 // parseSignal converts a Docker signal name or number to a signal number.
 func parseSignal(sig string) (int, error) {
 	if sig == "" {
 		return 15, nil
 	}
 	if n, err := strconv.Atoi(sig); err == nil {
+		if n < 0 || n > maxSignal {
+			return 0, fmt.Errorf("invalid signal %q: %w", sig, cerrdefs.ErrInvalidArgument)
+		}
 		return n, nil
 	}
 	name := strings.ToUpper(sig)
@@ -433,7 +439,7 @@ var signalMap = map[string]int{
 	"SIGALRM": 14, "SIGTERM": 15, "SIGSTKFLT": 16, "SIGCHLD": 17, "SIGCONT": 18, "SIGSTOP": 19,
 	"SIGTSTP": 20, "SIGTTIN": 21, "SIGTTOU": 22, "SIGURG": 23, "SIGXCPU": 24, "SIGXFSZ": 25,
 	"SIGVTALRM": 26, "SIGPROF": 27, "SIGWINCH": 28, "SIGIO": 29, "SIGPWR": 30, "SIGSYS": 31,
-	"SIGRTMIN": 34, "SIGRTMAX": 64,
+	"SIGRTMIN": 34, "SIGRTMAX": maxSignal,
 }
 
 // isHostConfigNetworkContainer is a small helper for readability.
