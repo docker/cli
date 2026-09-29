@@ -26,7 +26,7 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -44,7 +44,7 @@ jobs:
 
   # check that the generated Markdown and the checked-in files match
   validate-md:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       -
         name: Checkout
@@ -66,7 +66,7 @@ jobs:
           fi
 
   validate-make:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +86,7 @@ jobs:
           make -f docker.Makefile ${{ matrix.target }}
 
   validate-gocompat:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       GOPATH: ${{ github.workspace }}
       GO111MODULE: off

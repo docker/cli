@@ -1,34 +1,37 @@
 <!--
-Make sure you've read and understood our contributing guidelines;
+Please make sure you've read and understood our contributing guidelines;
 https://github.com/docker/cli/blob/master/CONTRIBUTING.md
 
-** Make sure all your commits include a signature generated with `git commit -s` **
+Make sure commits are signed off (`git commit -s`) with your real name.
 
-If this is a bug fix, make sure your description includes "fixes #xxxx", or
-"closes #xxxx"
+If the PR relates to an existing issue or PR, mention it at the top:
 
-Provide the following information:
+- Fixes: https://github.com/docker/cli/issues/12345678
+- Replaces: https://github.com/docker/cli/pull/12345678
+- Follow up to: https://github.com/docker/cli/pull/12345678
+- Related to: https://github.com/docker/cli/issues/12345678
 -->
 
-**- What I did**
+## Summary
 
-**- How I did it**
-
-**- How to verify it**
-
-**- Human readable description for the release notes**
+## Release notes (optional)
 
 <!--
-Write a short (one line) summary that describes the changes in this
-pull request for inclusion in the changelog.
-It must be placed inside the below triple backticks section.
+One-sentence user-facing release note.
+Leave empty if the change is not changelog-worthy.
+Use present tense and imperative tone.
 
-NOTE: Only fill this section if changes introduced in this PR are user-facing.
-The PR must have a relevant impact/ label.
+Good:
+- Fix a panic when running `docker top` on a non-running Windows container.
+- Don't print warnings in `docker info` for broken symlinks in CLI plugin directories.
+
+Bad:
+- Refactor test TestFooWithBar
+- Fixed a panic when running docker top
 -->
 
 ```markdown changelog
 
 ```
 
-**- A picture of a cute animal (not mandatory but encouraged)**
+## A picture of a cute animal (not mandatory but encouraged)

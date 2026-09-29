@@ -26,7 +26,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -51,7 +51,7 @@ jobs:
         name: Update daemon.json
         run: |
           if [ ! -f /etc/docker/daemon.json ]; then
-            # ubuntu 24.04 runners no longer have a default daemon.json present
+            # ubuntu runners no longer have a default daemon.json present
             sudo mkdir -p /etc/docker/
             echo '{"experimental": true}' | sudo tee /etc/docker/daemon.json
           else
