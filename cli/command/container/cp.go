@@ -16,6 +16,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/go-units"
 	"github.com/moby/go-archive"
 	"github.com/moby/moby/client"
@@ -242,7 +243,10 @@ func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error
 	case acrossContainers:
 		return errors.New("copying between containers is not supported")
 	default:
-		return errors.New("must specify at least one container source")
+		return hint.Wrap(
+			errors.New("one argument must reference a container as 'CONTAINER:PATH'"),
+			"Use 'docker cp CONTAINER:SRC LOCAL' to copy from a container, or 'docker cp LOCAL CONTAINER:DEST' to copy into one.",
+		)
 	}
 }
 

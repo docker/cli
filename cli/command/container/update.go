@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/opts"
 	containertypes "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
@@ -92,7 +93,10 @@ func runUpdate(ctx context.Context, dockerCli command.Cli, options *updateOption
 	var err error
 
 	if options.nFlag == 0 {
-		return errors.New("you must provide one or more flags when using this command")
+		return hint.Wrap(
+			errors.New("no resource flags supplied — nothing to update"),
+			"Pass at least one tunable flag (for example --memory, --cpus, --restart). Run 'docker container update --help' for the full list.",
+		)
 	}
 
 	var restartPolicy containertypes.RestartPolicy

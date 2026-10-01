@@ -30,7 +30,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			name:          "output to terminal",
 			args:          []string{"output", "file", "arg1"},
 			isTerminal:    true,
-			expectedError: "cowardly refusing to save to a terminal. Use the -o flag or redirect",
+			expectedError: "refusing to write a binary tar archive to the terminal",
 		},
 		{
 			name:          "ImageSave fail",
@@ -44,12 +44,12 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		{
 			name:          "output directory does not exist",
 			args:          []string{"-o", "fake-dir/out.tar", "arg1"},
-			expectedError: `failed to save image: invalid output path: stat fake-dir: no such file or directory`,
+			expectedError: `cannot open output file "fake-dir/out.tar": invalid output path: stat fake-dir: no such file or directory`,
 		},
 		{
 			name:          "output file is irregular",
 			args:          []string{"-o", "/dev/null", "arg1"},
-			expectedError: `failed to save image: cannot write to a character device file`,
+			expectedError: `cannot open output file "/dev/null": cannot write to a character device file`,
 		},
 		{
 			name:          "invalid platform",
