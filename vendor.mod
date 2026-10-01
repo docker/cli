@@ -33,8 +33,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.29
 	github.com/moby/go-archive v0.3.3
-	github.com/moby/moby/api v1.56.0
-	github.com/moby/moby/client v0.6.0
+	github.com/moby/moby/api v1.56.1
+	github.com/moby/moby/client v0.6.1
 	github.com/moby/patternmatcher v0.6.1
 	github.com/moby/swarmkit/v2 v2.1.2
 	github.com/moby/sys/atomicwriter v0.1.0
