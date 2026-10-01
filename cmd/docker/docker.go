@@ -178,6 +178,9 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 	_ = cmd.RegisterFlagCompletionFunc("log-level", completeLogLevels)
 
 	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
+	cmd.Flags().String("cloud", "", "Use a cloud context, provisioning it if necessary (optionally --cloud=NAME)")
+	cmd.Flags().Lookup("cloud").NoOptDefVal = "default"
+	cmd.Flags().Lookup("cloud").Hidden = true
 	setFlagErrorFunc(dockerCli, cmd)
 
 	setupHelpCommand(dockerCli, cmd, helpCmd)
@@ -250,6 +253,7 @@ func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 			ccmd.Println(err)
 			return
 		}
+		updateCloudFlagVisibility(dockerCli, ccmd.Root())
 
 		if len(args) >= 1 {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
@@ -508,7 +512,18 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	if err := tcmd.Initialize(command.WithEnableGlobalMeterProvider(), command.WithEnableGlobalTracerProvider()); err != nil {
+	if err := tcmd.Initialize(
+		command.WithEnableGlobalMeterProvider(),
+		command.WithEnableGlobalTracerProvider(),
+		command.WithContextResolver(func(cli *command.DockerCli) (string, error) {
+			var err error
+			os.Args, err = processCloud(ctx, cli, cmd, args, os.Args)
+			if err != nil {
+				return "", err
+			}
+			return cmd.Flags().GetString("context")
+		}),
+	); err != nil {
 		return err
 	}
 
@@ -538,6 +553,7 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		if err := pluginmanager.AddPluginCommandStubs(dockerCli, cmd); err != nil {
 			return err
 		}
+		updateCloudFlagVisibility(dockerCli, cmd)
 	}
 
 	var subCommand *cobra.Command
