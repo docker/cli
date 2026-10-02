@@ -199,7 +199,17 @@ func cloudHelpRequest(rootCmd *cobra.Command, args []string) (bool, error) {
 	if err != nil || cmd == rootCmd || pluginmanager.IsPluginCommand(cmd) {
 		// Plugin flags are opaque. Only recognize help immediately after the
 		// plugin name; deeper help is available through "docker help PLUGIN".
-		return len(args) > 1 && (args[1] == "--help" || args[1] == "-h" || args[1] == "--help=true"), nil
+		return len(args) > 1 && isHelpFlag(args[1]), nil
+	}
+
+	// "build", "bake", "builder", and "image build" are builtin commands that
+	// processAliases may still rewrite into a call to the builder plugin
+	// (buildx) after cloud resolution runs, so their flag set here is only the
+	// legacy builder's and does not reflect what will actually parse the
+	// remaining args. Treat them like a plugin command above: only recognize
+	// help immediately after the resolved command path.
+	if _, _, _, forwarded := forwardBuilder(builderDefaultPlugin, args, args); forwarded {
+		return len(remaining) > 0 && isHelpFlag(remaining[0]), nil
 	}
 
 	cmd.InitDefaultHelpFlag()
@@ -224,6 +234,12 @@ func cloudHelpRequest(rootCmd *cobra.Command, args []string) (bool, error) {
 	}
 
 	return help, nil
+}
+
+// isHelpFlag reports whether arg requests help, in any of the forms pflag
+// accepts for a boolean flag.
+func isHelpFlag(arg string) bool {
+	return arg == "--help" || arg == "-h" || arg == "--help=true"
 }
 
 // cloudPluginArgs only rewrites the global prefix, leaving subcommand arguments

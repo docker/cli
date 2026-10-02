@@ -62,6 +62,11 @@ func TestCloudHelpRequest(t *testing.T) {
 		{name: "container help", args: []string{"run", "alpine", "--help"}},
 		{name: "flag value", args: []string{"run", "--name", "--help", "alpine"}},
 		{name: "help disabled", args: []string{"run", "--help=false", "alpine"}},
+		{name: "build help", args: []string{"build", "--help"}, help: true},
+		{name: "build buildkit-only flag", args: []string{"build", "--secret", "id=s,src=./s", "."}},
+		{name: "image build buildkit-only flag", args: []string{"image", "build", "--push", "."}},
+		{name: "builder build buildkit-only flag", args: []string{"builder", "build", "--ssh", "default", "."}},
+		{name: "bake help", args: []string{"bake", "--help"}, help: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			dockerCli, err := command.NewDockerCli()
