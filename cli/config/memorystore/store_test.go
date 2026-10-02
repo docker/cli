@@ -129,3 +129,53 @@ func TestMemoryStoreWithoutFallback(t *testing.T) {
 		assert.Check(t, is.ErrorIs(err, errValueNotFound))
 	})
 }
+
+func TestMemoryStoreWithPreferFallback(t *testing.T) {
+	config := map[string]types.AuthConfig{
+		"https://example.test": {
+			Username:      "memory-user",
+			ServerAddress: "https://example.test",
+		},
+		"https://only-in-memory.example.test": {
+			Username:      "memory-only-user",
+			ServerAddress: "https://only-in-memory.example.test",
+		},
+	}
+
+	fallbackConfig := map[string]types.AuthConfig{
+		"https://example.test": {
+			Username:      "fallback-user",
+			ServerAddress: "https://example.test",
+		},
+		"https://empty-fallback.example.test": {
+			ServerAddress: "https://empty-fallback.example.test",
+		},
+	}
+
+	fallbackStore, err := New(WithAuthConfig(fallbackConfig))
+	assert.NilError(t, err)
+
+	memoryStore, err := New(WithAuthConfig(config), WithFallbackStore(fallbackStore), WithPreferFallback())
+	assert.NilError(t, err)
+
+	t.Run("get credentials from fallback store first", func(t *testing.T) {
+		c, err := memoryStore.Get("https://example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c, fallbackConfig["https://example.test"])
+	})
+
+	t.Run("get credentials from memory store when fallback has no credentials", func(t *testing.T) {
+		c, err := memoryStore.Get("https://only-in-memory.example.test")
+		assert.NilError(t, err)
+		assert.Equal(t, c, config["https://only-in-memory.example.test"])
+	})
+
+	t.Run("get all credentials prefers fallback credentials", func(t *testing.T) {
+		c, err := memoryStore.GetAll()
+		assert.NilError(t, err)
+		assert.Check(t, is.DeepEqual(c, map[string]types.AuthConfig{
+			"https://example.test":                fallbackConfig["https://example.test"],
+			"https://only-in-memory.example.test": config["https://only-in-memory.example.test"],
+		}))
+	})
+}

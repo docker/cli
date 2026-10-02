@@ -584,6 +584,41 @@ func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 	})
 }
 
+func TestGetAuthConfigPrefersConfigFileInGitLabCI(t *testing.T) {
+	configFile := New("filename")
+	configFile.AuthConfigs["env.example.test"] = types.AuthConfig{
+		Username:      "login_user",
+		Password:      "login_pass",
+		ServerAddress: "env.example.test",
+	}
+
+	t.Setenv("DOCKER_AUTH_CONFIG", envTestAuthConfig)
+	t.Setenv("GITLAB_CI", "true")
+
+	authConfig, err := configFile.GetAuthConfig("env.example.test")
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(authConfig, types.AuthConfig{
+		Username:      "login_user",
+		Password:      "login_pass",
+		ServerAddress: "env.example.test",
+	}))
+}
+
+func TestGetAuthConfigUsesEnvironmentInGitLabCIWhenConfigFileHasNoCredentials(t *testing.T) {
+	configFile := New("filename")
+
+	t.Setenv("DOCKER_AUTH_CONFIG", envTestAuthConfig)
+	t.Setenv("GITLAB_CI", "true")
+
+	authConfig, err := configFile.GetAuthConfig("env.example.test")
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(authConfig, types.AuthConfig{
+		Username:      "env_user",
+		Password:      "env_pass",
+		ServerAddress: "env.example.test",
+	}))
+}
+
 func TestParseEnvConfig(t *testing.T) {
 	t.Run("should error on unexpected fields", func(t *testing.T) {
 		_, err := parseEnvConfig(envTestUserPassConfig)
