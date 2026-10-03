@@ -232,14 +232,13 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		registryAuthFrom = string(swarm.RegistryAuthFromSpec)
 	}
 
-	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, client.ServiceUpdateOptions{
-		Version: res.Service.Version,
-		Spec:    *spec,
+	updateOpts.Version = res.Service.Version
+	updateOpts.Spec = *spec
+	updateOpts.EncodedRegistryAuth = encodedAuth
+	updateOpts.RegistryAuthFrom = swarm.RegistryAuthSource(registryAuthFrom)
+	updateOpts.Rollback = rollbackAction
 
-		EncodedRegistryAuth: encodedAuth,
-		RegistryAuthFrom:    swarm.RegistryAuthSource(registryAuthFrom),
-		Rollback:            rollbackAction,
-	})
+	response, err := apiClient.ServiceUpdate(ctx, res.Service.ID, updateOpts)
 	if err != nil {
 		return err
 	}
