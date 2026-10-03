@@ -24,6 +24,7 @@ type deployOptions struct {
 	prune            bool
 	detach           bool
 	quiet            bool
+	profiles         []string
 }
 
 func newDeployCommand(dockerCLI command.Cli) *cobra.Command {
@@ -65,6 +66,7 @@ func newDeployCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	flags.BoolVarP(&opts.detach, "detach", "d", true, "Exit immediately instead of waiting for the stack services to converge")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress progress output")
+	flags.StringArrayVar(&opts.profiles, "profile", []string{}, "Specify a profile to enable")
 	return cmd
 }
 
