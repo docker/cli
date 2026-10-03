@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/connhelper"
-	"github.com/docker/cli/cli/context"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli/connhelper"
+	"github.com/docker/cli/v29/cli/context"
+	"github.com/docker/cli/v29/cli/context/store"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/moby/moby/client"
 )

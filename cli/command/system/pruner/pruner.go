@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 // Package pruner registers "prune" functions to be included as part of
 // "docker system prune".
 package pruner
@@ -13,8 +10,8 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/opts"
 )
 
 // ContentType is an identifier for content that can be pruned.

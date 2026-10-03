@@ -5,13 +5,13 @@ import (
 	"io"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
-	manifeststore "github.com/docker/cli/cli/manifest/store"
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/registryclient"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	"github.com/docker/cli/v29/cli/context/docker"
+	"github.com/docker/cli/v29/cli/context/store"
+	manifeststore "github.com/docker/cli/v29/cli/manifest/store"
+	"github.com/docker/cli/v29/cli/streams"
+	"github.com/docker/cli/v29/internal/registryclient"
 	"github.com/moby/moby/client"
 )
 

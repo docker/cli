@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package memorystore
 
 import (
@@ -9,8 +6,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v29/cli/config/credentials"
+	"github.com/docker/cli/v29/cli/config/types"
 )
 
 // notFoundErr is the error returned when a plugin could not be found.
