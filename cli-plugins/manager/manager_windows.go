@@ -12,7 +12,8 @@ import (
 //
 // 1. The "cli-plugins" directory inside the CLIs config-directory (usually "~/.docker/cli-plugins").
 // 2. Additional plugin directories as configured through [ConfigFile.CLIPluginsExtraDirs].
-// 3. Platform-specific defaultSystemPluginDirs (as defined below).
+// 3. The additional system plugin directory configured at build time.
+// 4. Platform-specific defaultSystemPluginDirs (as defined below).
 //
 // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
 var defaultSystemPluginDirs = []string{
