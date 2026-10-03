@@ -148,6 +148,20 @@ func TestValidatePorts(t *testing.T) {
 	}
 }
 
+func TestValidateGroupAdd(t *testing.T) {
+	config := dict{
+		"version": "3.8",
+		"services": dict{
+			"foo": dict{
+				"image":     "busybox",
+				"group_add": []any{"mail", 15000, "1000"},
+			},
+		},
+	}
+	assert.NilError(t, Validate(config, "3.8"))
+	assert.NilError(t, Validate(config, "3"))
+}
+
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	config := dict{
 		"version": "3.0",

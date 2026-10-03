@@ -716,3 +716,12 @@ func TestConvertServiceCapAddAndCapDrop(t *testing.T) {
 		})
 	}
 }
+
+func TestConvertServiceGroupAdd(t *testing.T) {
+	result, err := Service(Namespace{name: "foo"}, composetypes.ServiceConfig{
+		Image:    "busybox",
+		GroupAdd: []string{"mail", "15000"},
+	}, nil, nil, nil, nil)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(result.TaskTemplate.ContainerSpec.Groups, []string{"mail", "15000"}))
+}

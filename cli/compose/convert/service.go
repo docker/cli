@@ -137,6 +137,7 @@ func Service(
 				Labels:          addStackLabel(namespace, service.Labels),
 				Dir:             service.WorkingDir,
 				User:            service.User,
+				Groups:          service.GroupAdd,
 				Mounts:          mounts,
 				StopGracePeriod: composetypes.ConvertDurationPtr(service.StopGracePeriod),
 				StopSignal:      service.StopSignal,
