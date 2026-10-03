@@ -136,7 +136,8 @@ func processBuilder(dockerCli command.Cli, cmd *cobra.Command, args, osargs []st
 	// is not being set in the command line or in the environment before
 	// setting the default context and keep "buildx install" behavior if being
 	// set (builder alias).
-	if forwarded && !useAlias && !hasBuilderName(args, os.Environ()) {
+	isBake := len(args) > 0 && args[0] == "bake"
+	if forwarded && !isBake && !useAlias && !hasBuilderName(args, os.Environ()) {
 		envs = append([]string{"BUILDX_BUILDER=" + dockerCli.CurrentContext()}, envs...)
 	}
 
