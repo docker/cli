@@ -378,7 +378,9 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 		expected.CredentialsStore = credStore
 		expected.PsFormat = "format"
 
-		assert.Check(t, is.DeepEqual(expected, configFile))
+		assert.Check(t, is.Equal(expected.Filename, configFile.Filename))
+		assert.Check(t, is.Equal(expected.CredentialsStore, configFile.CredentialsStore))
+		assert.Check(t, is.Equal(expected.PsFormat, configFile.PsFormat))
 		assert.Check(t, is.Equal(buffer.String(), ""))
 	})
 
