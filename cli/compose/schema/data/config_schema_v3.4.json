@@ -398,7 +398,7 @@
       "id": "#/definitions/resource",
       "type": "object",
       "properties": {
-        "cpus": {"type": "string"},
+        "cpus": {"type": ["number", "string"]},
         "memory": {"type": "string"}
       },
       "additionalProperties": false
