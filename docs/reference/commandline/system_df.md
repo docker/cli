@@ -76,18 +76,24 @@ in systems where performance is critical.
 
 ### <a name="format"></a> Format the output (--format)
 
-The formatting option (`--format`) pretty prints the disk usage output
-using a Go template.
+The formatting option (`--format`) pretty prints the **summary** disk usage
+output using a Go template. Each summary line (Images, Containers, Local
+Volumes, and Build Cache) is rendered once with the same template.
 
 Valid placeholders for the Go template are listed below:
 
-| Placeholder    | Description                                |
-|----------------|--------------------------------------------|
-| `.Type`        | `Images`, `Containers` and `Local Volumes` |
-| `.TotalCount`  | Total number of items                      |
-| `.Active`      | Number of active items                     |
-| `.Size`        | Available size                             |
-| `.Reclaimable` | Reclaimable size                           |
+| Placeholder    | Description                                                                 |
+|----------------|-----------------------------------------------------------------------------|
+| `.Type`        | Resource kind: `Images`, `Containers`, `Local Volumes`, or `Build Cache`  |
+| `.TotalCount`  | Total number of items of that type                                          |
+| `.Active`      | Number of active items                                                      |
+| `.Size`        | Total size                                                                  |
+| `.Reclaimable` | Size that can be reclaimed (may include a percentage)                       |
+
+These placeholders describe the **summary** rows only. Fields such as
+`.ID`, `.Repository`, or `.Names` are not valid here (those apply to
+commands like `docker image ls` or to `docker system df --verbose`,
+which does not use `--format`).
 
 When using the `--format` option, the `system df` command outputs
 the data exactly as the template declares or, when using the
