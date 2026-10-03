@@ -18,6 +18,12 @@ Export a container's filesystem as a tar archive
 
 ## Description
 
+`docker export` writes the container's current filesystem as a flat tar
+archive. It does not include image layers, tags, or history, so the
+result is not a `docker save` image and cannot be loaded with
+`docker load`. Use [`docker import`](image_import.md) to turn the
+archive into a new image.
+
 The `docker export` command doesn't export the contents of volumes associated
 with the container. If a volume is mounted on top of an existing directory in
 the container, `docker export` exports the contents of the underlying
