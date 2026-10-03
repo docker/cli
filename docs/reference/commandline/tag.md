@@ -1,7 +1,7 @@
 # docker tag
 
 <!---MARKER_GEN_START-->
-Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
+Create TARGET_IMAGE as a new tag for SOURCE_IMAGE
 
 ### Aliases
 
