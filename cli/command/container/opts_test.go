@@ -154,6 +154,19 @@ func TestParseRunLinks(t *testing.T) {
 	}
 }
 
+func TestParseRunWithoutUmask(t *testing.T) {
+	_, hostConfig, _, err := parseRun([]string{"ubuntu", "bash"})
+	assert.NilError(t, err)
+	assert.Assert(t, hostConfig.Umask == nil)
+}
+
+func TestParseRunUmask(t *testing.T) {
+	_, hostConfig, _, err := parseRun([]string{"--umask", "0022", "ubuntu", "bash"})
+	assert.NilError(t, err)
+	assert.Assert(t, hostConfig.Umask != nil)
+	assert.Equal(t, uint32(0o22), *hostConfig.Umask)
+}
+
 func TestParseRunAttach(t *testing.T) {
 	tests := []struct {
 		input    string

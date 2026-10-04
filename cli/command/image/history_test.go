@@ -52,6 +52,14 @@ func TestNewHistoryCommandErrors(t *testing.T) {
 }
 
 func TestNewHistoryCommandSuccess(t *testing.T) {
+	// Set to UTC timezone as timestamps in output are
+	// printed in the current timezone
+	local := time.Local
+	time.Local = time.UTC
+	t.Cleanup(func() {
+		time.Local = local
+	})
+
 	testCases := []struct {
 		name             string
 		args             []string
@@ -118,9 +126,6 @@ func TestNewHistoryCommandSuccess(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set to UTC timezone as timestamps in output are
-			// printed in the current timezone
-			t.Setenv("TZ", "UTC")
 			cli := test.NewFakeCli(&fakeClient{imageHistoryFunc: tc.imageHistoryFunc})
 			cmd := newHistoryCommand(cli)
 			cmd.SetOut(io.Discard)
