@@ -68,6 +68,7 @@ type DockerCli struct {
 	serverInfo         ServerInfo
 	contextStore       store.Store
 	currentContext     string
+	contextResolver    func(*DockerCli) (string, error)
 	init               sync.Once
 	initErr            error
 	dockerEndpoint     docker.Endpoint
@@ -208,6 +209,8 @@ func (cli *DockerCli) HooksEnabled() bool {
 
 // Initialize the dockerCli runs initialization that must happen after command
 // line flags are parsed.
+//
+//nolint:gocyclo
 func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption) error {
 	for _, o := range ops {
 		if err := o(cli); err != nil {
@@ -255,6 +258,16 @@ func (cli *DockerCli) Initialize(opts *cliflags.ClientOptions, ops ...CLIOption)
 		Resolver: func() (*DefaultContext, error) {
 			return resolveDefaultContext(cli.options, *cli.contextStoreConfig)
 		},
+	}
+
+	if cli.contextResolver != nil {
+		contextName, err := cli.contextResolver(cli)
+		if err != nil {
+			return err
+		}
+		if contextName != "" {
+			cli.currentContext = contextName
+		}
 	}
 
 	// TODO(krissetto): pass ctx to the funcs instead of using this

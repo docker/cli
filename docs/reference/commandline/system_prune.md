@@ -18,7 +18,13 @@ Remove unused data
 ## Description
 
 Remove all unused containers, networks, images (both dangling and unused),
-and optionally, volumes.
+unused [build cache](https://docs.docker.com/build/cache/), and optionally,
+volumes.
+
+Build cache is always eligible for pruning with this command (including BuildKit
+cache mounts created with `RUN --mount=type=cache`). Use
+[`docker builder prune`](builder_prune.md) if you only want to reclaim build
+cache without removing containers, networks, or images.
 
 ## Examples
 

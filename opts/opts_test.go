@@ -428,3 +428,66 @@ func TestParseCPUsReturnZeroOnInvalidValues(t *testing.T) {
 	resValue, _ = ParseCPUs("1e-32")
 	assert.Equal(t, z1, resValue)
 }
+
+func TestUmaskOpt(t *testing.T) {
+	t.Run("type", func(t *testing.T) {
+		var opt UmaskOpt
+		assert.Equal(t, opt.Type(), "umask")
+	})
+
+	t.Run("nil by default", func(t *testing.T) {
+		var opt UmaskOpt
+		assert.Assert(t, opt.Value() == nil)
+		assert.Equal(t, opt.String(), "<nil>")
+	})
+
+	t.Run("rejects empty string", func(t *testing.T) {
+		var opt UmaskOpt
+		err := opt.Set("")
+		assert.Assert(t, err != nil)
+		assert.Assert(t, opt.Value() == nil)
+		assert.Equal(t, opt.String(), "<nil>")
+	})
+
+	t.Run("parses zero", func(t *testing.T) {
+		var opt UmaskOpt
+		err := opt.Set("0")
+		assert.NilError(t, err)
+		assert.Equal(t, *opt.Value(), uint32(0))
+		assert.Equal(t, opt.String(), "0000")
+	})
+
+	t.Run("parses valid octal values", func(t *testing.T) {
+		var opt UmaskOpt
+		err := opt.Set("022")
+		assert.NilError(t, err)
+		assert.Assert(t, opt.Value() != nil)
+		assert.Equal(t, *opt.Value(), uint32(0o22))
+		assert.Equal(t, opt.String(), "0022")
+	})
+
+	t.Run("rejects octal values with 0o prefix", func(t *testing.T) {
+		var opt UmaskOpt
+		err := opt.Set("0o22")
+		assert.Assert(t, err != nil)
+		assert.Assert(t, opt.Value() == nil)
+		assert.Equal(t, opt.String(), "<nil>")
+	})
+
+	t.Run("parses large octal values", func(t *testing.T) {
+		var opt UmaskOpt
+		err := opt.Set("077777")
+		assert.NilError(t, err)
+		assert.Assert(t, opt.Value() != nil)
+		assert.Equal(t, *opt.Value(), uint32(0o77777))
+		assert.Equal(t, opt.String(), "077777")
+	})
+
+	t.Run("rejects invalid octal values", func(t *testing.T) {
+		var opt UmaskOpt
+		err := opt.Set("9")
+		assert.Assert(t, err != nil)
+		assert.Assert(t, opt.Value() == nil)
+		assert.Equal(t, opt.String(), "<nil>")
+	})
+}
