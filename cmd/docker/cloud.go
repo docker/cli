@@ -143,6 +143,38 @@ func resolveCloudContext(ctx context.Context, dockerCli *command.DockerCli, root
 
 	cmd := exec.CommandContext(ctx, plugin.Path, "--config="+config.Dir(), plugin.Name, "__resolve-context", "--", name) // #nosec G204 -- executable validated through CLI plugin discovery
 	cmd.Env = append(os.Environ(), config.EnvOverrideConfigDir+"="+config.Dir(), metadata.ReexecEnvvar+"="+os.Args[0])
+	setResolverStdio(cmd, dockerCli)
+
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() != nil {
+			return "", ctx.Err()
+		}
+		return "", fmt.Errorf("cloud resolver failed: %w", err)
+	}
+
+	var response struct {
+		DockerContext string `json:"DOCKER_CONTEXT"`
+	}
+	if err := json.Unmarshal(out, &response); err != nil {
+		return "", fmt.Errorf("invalid cloud resolver response: %w", err)
+	}
+	response.DockerContext = strings.TrimSpace(response.DockerContext)
+	if response.DockerContext == "" || response.DockerContext == command.DefaultContextName {
+		return "", errors.New("cloud resolver must return a non-default DOCKER_CONTEXT")
+	}
+
+	if err := validateResolvedContext(dockerCli, response.DockerContext); err != nil {
+		return "", err
+	}
+
+	return response.DockerContext, nil
+}
+
+// setResolverStdio connects the resolver to the terminal when both stdin and
+// stderr are terminals, so the plugin can prompt interactively. Otherwise
+// stderr is forwarded and stdin is left unset.
+func setResolverStdio(cmd *exec.Cmd, dockerCli *command.DockerCli) {
 	cmd.Stderr = dockerCli.Err()
 	stdinTerminal := dockerCli.In().IsTerminal()
 	stderrTerminal := dockerCli.Err().IsTerminal()
@@ -164,41 +196,25 @@ func resolveCloudContext(ctx context.Context, dockerCli *command.DockerCli, root
 		cmd.Stdin = stdin
 		cmd.Stderr = stderr
 	}
+}
 
-	out, err := cmd.Output()
+// validateResolvedContext checks that the context exists and has a Docker
+// endpoint host, so a missing context or endpoint cannot fall back to the
+// local engine.
+func validateResolvedContext(dockerCli *command.DockerCli, name string) error {
+	meta, err := dockerCli.ContextStore().GetMetadata(name)
 	if err != nil {
-		if ctx.Err() != nil {
-			return "", ctx.Err()
-		}
-		return "", fmt.Errorf("cloud resolver failed: %w", err)
-	}
-
-	var response struct {
-		DockerContext string `json:"DOCKER_CONTEXT"`
-	}
-	if err := json.Unmarshal(out, &response); err != nil {
-		return "", fmt.Errorf("invalid cloud resolver response: %w", err)
-	}
-	response.DockerContext = strings.TrimSpace(response.DockerContext)
-	if response.DockerContext == "" || response.DockerContext == command.DefaultContextName {
-		return "", errors.New("cloud resolver must return a non-default DOCKER_CONTEXT")
-	}
-
-	// Do not allow a missing context or endpoint to fall back to the local engine.
-	meta, err := dockerCli.ContextStore().GetMetadata(response.DockerContext)
-	if err != nil {
-		return "", fmt.Errorf("loading resolved context %q: %w", response.DockerContext, err)
+		return fmt.Errorf("loading resolved context %q: %w", name, err)
 	}
 
 	endpoint, err := contextdocker.EndpointFromContext(meta)
 	if err != nil {
-		return "", fmt.Errorf("invalid resolved context %q: %w", response.DockerContext, err)
+		return fmt.Errorf("invalid resolved context %q: %w", name, err)
 	}
 	if endpoint.Host == "" {
-		return "", fmt.Errorf("resolved context %q has no Docker endpoint host", response.DockerContext)
+		return fmt.Errorf("resolved context %q has no Docker endpoint host", name)
 	}
-
-	return response.DockerContext, nil
+	return nil
 }
 
 // cloudHelpRequest avoids provisioning for help and shell completion.
