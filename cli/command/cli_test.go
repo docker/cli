@@ -18,6 +18,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/client"
@@ -282,6 +283,133 @@ func TestInitializeFromClientHangs(t *testing.T) {
 	case <-time.After(waitTimeout):
 		t.Fatal("server never received an init request")
 	}
+}
+
+func TestGetInitTimeout(t *testing.T) {
+	testcases := []struct {
+		doc         string
+		host        string
+		initTimeout time.Duration
+		expected    time.Duration
+	}{
+		{
+			doc:      "default timeout for local socket",
+			host:     "unix:///var/run/docker.sock",
+			expected: defaultInitTimeout,
+		},
+		{
+			doc:      "default timeout for tcp",
+			host:     "tcp://127.0.0.1:2375",
+			expected: defaultInitTimeout,
+		},
+		{
+			doc:      "longer timeout for ssh",
+			host:     "ssh://user@remote",
+			expected: sshInitTimeout,
+		},
+		{
+			doc:         "custom timeout takes precedence for local socket",
+			host:        "unix:///var/run/docker.sock",
+			initTimeout: 5 * time.Second,
+			expected:    5 * time.Second,
+		},
+		{
+			doc:         "custom timeout takes precedence for ssh",
+			host:        "ssh://user@remote",
+			initTimeout: 5 * time.Second,
+			expected:    5 * time.Second,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.doc, func(t *testing.T) {
+			cli := &DockerCli{
+				dockerEndpoint: docker.Endpoint{
+					EndpointMeta: docker.EndpointMeta{Host: tc.host},
+				},
+				initTimeout: tc.initTimeout,
+			}
+			assert.Equal(t, cli.getInitTimeout(), tc.expected)
+		})
+	}
+}
+
+// TestInitializeFromClientSlowConnection checks that API version negotiation
+// is not skipped when establishing a connection to the daemon takes longer
+// than the default init timeout. Connecting through the ssh connection helper
+// requires a TCP connection, host key verification, and authentication before
+// the connection to the daemon is established, which can take longer than the
+// default timeout, in particular when connecting to a host for the first time.
+//
+// See https://github.com/docker/cli/issues/6125
+func TestInitializeFromClientSlowConnection(t *testing.T) {
+	// dialDelay must be longer than defaultInitTimeout to simulate a slow
+	// connection (see the ssh sub-test), but is otherwise arbitrary.
+	const dialDelay = defaultInitTimeout + 500*time.Millisecond
+
+	// Simulate a daemon that responds to the initial ping, but is slow
+	// to connect to.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Api-Version", "1.44")
+		w.Header().Set("Ostype", "linux")
+		w.Header().Set("Docker-Experimental", "true")
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(ts.Close)
+	host := strings.Replace(ts.URL, "http://", "tcp://", 1)
+
+	newSlowAPIClient := func(t *testing.T) client.APIClient {
+		t.Helper()
+		apiClient, err := client.New(
+			client.WithHost(host),
+			client.WithHTTPClient(&http.Client{
+				Transport: &http.Transport{
+					// Simulate the delay of establishing a connection through
+					// the ssh connection helper before the connection to the
+					// daemon is ready to be used.
+					DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+						select {
+						case <-time.After(dialDelay):
+						case <-ctx.Done():
+							return nil, ctx.Err()
+						}
+						return (&net.Dialer{}).DialContext(ctx, network, addr)
+					},
+				},
+				CheckRedirect: client.CheckRedirect,
+			}),
+		)
+		assert.NilError(t, err)
+		return apiClient
+	}
+
+	t.Run("ssh connection gets a longer init timeout", func(t *testing.T) {
+		apiClient := newSlowAPIClient(t)
+		cli := &DockerCli{client: apiClient}
+		err := cli.Initialize(&flags.ClientOptions{Hosts: []string{"ssh://user@remote"}})
+		assert.NilError(t, err)
+
+		// Trigger the initial ping (it is performed lazily on first use
+		// of the client). The initial ping completed within the (longer)
+		// init timeout for ssh connections, so the API version was
+		// negotiated (downgraded to the daemon's API version) and the
+		// server info is set.
+		assert.Equal(t, cli.CurrentVersion(), "1.44")
+		assert.DeepEqual(t, cli.ServerInfo(), ServerInfo{HasExperimental: true, OSType: "linux"})
+	})
+
+	t.Run("non-ssh connections keep the default init timeout", func(t *testing.T) {
+		apiClient := newSlowAPIClient(t)
+		cli := &DockerCli{client: apiClient}
+		err := cli.Initialize(&flags.ClientOptions{Hosts: []string{host}})
+		assert.NilError(t, err)
+
+		// The initial ping was aborted (the connection took longer than
+		// the default init timeout), so the API version was not
+		// negotiated, and the server info falls back to its defaults.
+		assert.Equal(t, cli.CurrentVersion(), client.MaxAPIVersion)
+		assert.DeepEqual(t, cli.ServerInfo(), ServerInfo{HasExperimental: true})
+	})
 }
 
 func TestNewDockerCliAndOperators(t *testing.T) {
