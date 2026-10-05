@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -43,8 +44,11 @@ import (
 // The effective config directory is also passed as DOCKER_CONFIG.
 // The provider must provision into that context store without changing the saved
 // current context or recursively forwarding --cloud.
-// It inherits the environment, receives no interactive stdin, and sends progress
-// to stderr.
+// It inherits the environment and sends progress and prompts to stderr. Stdin
+// is forwarded only when both stdin and stderr are terminals with file handles;
+// wrapped Windows consoles use the corresponding standard handles. Otherwise
+// the provider receives EOF and must not prompt or open a terminal
+// separately. Piped and redirected input belongs to the requested command.
 // Stdout must contain exactly one JSON object:
 //
 //	{"DOCKER_CONTEXT":"provisioned-context"}
@@ -140,6 +144,26 @@ func resolveCloudContext(ctx context.Context, dockerCli *command.DockerCli, root
 	cmd := exec.CommandContext(ctx, plugin.Path, "--config="+config.Dir(), plugin.Name, "__resolve-context", "--", name) // #nosec G204 -- executable validated through CLI plugin discovery
 	cmd.Env = append(os.Environ(), config.EnvOverrideConfigDir+"="+config.Dir(), metadata.ReexecEnvvar+"="+os.Args[0])
 	cmd.Stderr = dockerCli.Err()
+	stdinTerminal := dockerCli.In().IsTerminal()
+	stderrTerminal := dockerCli.Err().IsTerminal()
+	stdin, stdinFile := dockerCli.In().File()
+	stderr, stderrFile := dockerCli.Err().File()
+	if runtime.GOOS == "windows" {
+		// term.StdStreams can wrap console handles for terminal emulation,
+		// preventing File from exposing them to the child process.
+		if stdinTerminal && !stdinFile {
+			stdin, stdinFile = os.Stdin, true
+		}
+		if stderrTerminal && !stderrFile {
+			stderr, stderrFile = os.Stderr, true
+		}
+	}
+	if stdinTerminal && stderrTerminal && stdinFile && stderrFile {
+		// Pass files directly: wrapping them makes os/exec copy through pipes,
+		// hiding terminal identity and potentially consuming the command's input.
+		cmd.Stdin = stdin
+		cmd.Stderr = stderr
+	}
 
 	out, err := cmd.Output()
 	if err != nil {
