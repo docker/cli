@@ -524,11 +524,9 @@ if [ -t 0 ]; then
     printf 'Continue? ' >&2
     IFS= read -r reply || exit 1
     printf '%s\n' "$reply" > "$DOCKER_CONFIG/resolver-input"
-else
-    if IFS= read -r unexpected; then
-        echo 'resolver consumed command input' >&2
-        exit 1
-    fi
+elif IFS= read -r unexpected; then
+    echo 'resolver consumed command input' >&2
+    exit 1
 fi
 echo '{"DOCKER_CONTEXT":"resolved"}'
 `), 0o755))
