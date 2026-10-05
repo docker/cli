@@ -46,7 +46,9 @@ func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string)
 
 	var isDefaultRegistry bool
 
-	if serverAddress == "" {
+	// login stores Docker Hub creds under the index server for both an empty
+	// server and an explicit "docker.io". logout has to use the same key.
+	if serverAddress == "" || serverAddress == registry.DefaultNamespace {
 		serverAddress = registry.IndexServer
 		isDefaultRegistry = true
 	}
