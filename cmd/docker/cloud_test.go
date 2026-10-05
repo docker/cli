@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/creack/pty"
 	"github.com/docker/cli/cli-plugins/metadata"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
@@ -483,6 +484,127 @@ printf '%s\n' "$@" > "$CLOUD_TEST_ARGS"
 					name = "default"
 				}
 				assert.Equal(t, string(invocation), "--config="+configDir+"\n"+installedProvider+"\n__resolve-context\n--\n"+name+"\n")
+			}
+		})
+	}
+}
+
+func TestCloudResolverInput(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fixture plugins use shell scripts and pseudo-terminals")
+	}
+
+	executable, err := os.Executable()
+	assert.NilError(t, err)
+
+	for _, tc := range []struct {
+		name        string
+		stdinType   string
+		terminalErr bool
+		prompt      bool
+	}{
+		{name: "interactive", stdinType: "terminal", terminalErr: true, prompt: true},
+		{name: "piped stdin", stdinType: "pipe", terminalErr: true},
+		{name: "redirected stdin", stdinType: "file", terminalErr: true},
+		{name: "redirected stderr", stdinType: "terminal"},
+		{name: "noninteractive", stdinType: "pipe"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DOCKER_CLI_HOOKS", "false")
+			configDir := t.TempDir()
+			pluginDir := filepath.Join(configDir, "cli-plugins")
+			assert.NilError(t, os.MkdirAll(pluginDir, 0o755))
+			assert.NilError(t, os.WriteFile(filepath.Join(pluginDir, "docker-offload"), []byte(`#!/bin/sh
+if [ "$1" = docker-cli-plugin-metadata ]; then
+    echo '{"SchemaVersion":"0.1.0","Vendor":"test","Features":{"cloud-context-resolver":true}}'
+    exit 0
+fi
+if [ -t 0 ]; then
+    [ -t 2 ] || exit 1
+    printf 'Continue? ' >&2
+    IFS= read -r reply || exit 1
+    printf '%s\n' "$reply" > "$DOCKER_CONFIG/resolver-input"
+else
+    if IFS= read -r unexpected; then
+        echo 'resolver consumed command input' >&2
+        exit 1
+    fi
+fi
+echo '{"DOCKER_CONTEXT":"resolved"}'
+`), 0o755))
+			assert.NilError(t, os.WriteFile(filepath.Join(pluginDir, "docker-cloudtest"), []byte(`#!/bin/sh
+if [ "$1" = docker-cli-plugin-metadata ]; then
+    echo '{"SchemaVersion":"0.1.0","Vendor":"test"}'
+    exit 0
+fi
+IFS= read -r input || exit 1
+printf '%s\n' "$input"
+`), 0o755))
+
+			contextStore := store.New(filepath.Join(configDir, "contexts"), command.DefaultContextStoreConfig())
+			assert.NilError(t, contextStore.CreateOrUpdate(store.Metadata{
+				Name:      "resolved",
+				Endpoints: map[string]any{contextdocker.DockerEndpoint: contextdocker.EndpointMeta{Host: "tcp://127.0.0.1:1"}},
+			}))
+
+			terminal, tty, err := pty.Open()
+			assert.NilError(t, err)
+			t.Cleanup(func() {
+				_ = tty.Close()
+				_ = terminal.Close()
+			})
+
+			const commandInput = "input for the original command\n"
+			var stdin *os.File
+			switch tc.stdinType {
+			case "terminal":
+				stdin = tty
+				input := commandInput
+				if tc.prompt {
+					input = "yes\n" + input
+				}
+				_, err = terminal.WriteString(input)
+				assert.NilError(t, err)
+			case "pipe":
+				var writer *os.File
+				stdin, writer, err = os.Pipe()
+				assert.NilError(t, err)
+				t.Cleanup(func() { _ = stdin.Close() })
+				t.Cleanup(func() { _ = writer.Close() })
+				_, err = writer.WriteString(commandInput)
+				assert.NilError(t, err)
+				assert.NilError(t, writer.Close())
+			case "file":
+				inputPath := filepath.Join(configDir, "command-input")
+				assert.NilError(t, os.WriteFile(inputPath, []byte(commandInput), 0o600))
+				stdin, err = os.Open(inputPath)
+				assert.NilError(t, err)
+				t.Cleanup(func() { _ = stdin.Close() })
+			}
+
+			payload, err := json.Marshal([]string{"docker", "--config=" + configDir, "--cloud", "cloudtest"})
+			assert.NilError(t, err)
+			ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+			defer cancel()
+			var stdout, stderr bytes.Buffer
+			cmd := exec.CommandContext(ctx, executable, "-test.run=^TestCloudCommandProcess$")
+			cmd.Env = append(os.Environ(), "CLOUD_TEST_COMMAND="+string(payload))
+			cmd.Stdin = stdin
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+			cmd.WaitDelay = time.Second
+			if tc.terminalErr {
+				cmd.Stderr = tty
+			}
+			assert.NilError(t, cmd.Run(), stderr.String())
+			assert.Equal(t, stdout.String(), commandInput)
+
+			reply, err := os.ReadFile(filepath.Join(configDir, "resolver-input"))
+			if tc.prompt {
+				assert.NilError(t, err)
+				assert.Equal(t, string(reply), "yes\n")
+			} else {
+				assert.Assert(t, os.IsNotExist(err))
 			}
 		})
 	}
