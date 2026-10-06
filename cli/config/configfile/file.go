@@ -42,6 +42,7 @@ const authConfigKey = "https://index.docker.io/v1/"
 //
 // [registry.GetAuthConfigKey]: https://pkg.go.dev/github.com/docker/docker@v28.5.1+incompatible/registry#GetAuthConfigKey
 func getAuthConfigKey(domainName string) string {
+	domainName = strings.ToLower(domainName)
 	if domainName == "docker.io" || domainName == "index.docker.io" {
 		return authConfigKey
 	}

@@ -109,7 +109,8 @@ func TestRetrieveAuthTokenFromImage(t *testing.T) {
 		"localhost": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="},
 		"localhost:5000": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="},
 		"registry-1.docker.io": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="},
-		"registry.hub.docker.com": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="}
+		"registry.hub.docker.com": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="},
+		"registry.example.com": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="}
 	}
 }`
 	cfg := configfile.ConfigFile{}
@@ -156,6 +157,10 @@ func TestRetrieveAuthTokenFromImage(t *testing.T) {
 			// FIXME(thaJeztah): registry.hub.docker.com is stored separate from other URLs used for docker hub's registry
 			prefix:          "registry.hub.docker.com",
 			expectedAuthCfg: registry.AuthConfig{Username: "username", Password: "password", ServerAddress: "registry.hub.docker.com"},
+		},
+		{
+			prefix:          "Registry.Example.com",
+			expectedAuthCfg: registry.AuthConfig{Username: "username", Password: "password", ServerAddress: "registry.example.com"},
 		},
 		{
 			prefix:          "[::1]",

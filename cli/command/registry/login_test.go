@@ -150,6 +150,28 @@ func TestRunLogin(t *testing.T) {
 			},
 		},
 		{
+			doc: "mixed-case server address updates lowercase credential key",
+			priorCredentials: map[string]configtypes.AuthConfig{
+				"myregistry.example.com": {
+					Username:      "my-username",
+					Password:      "old-password",
+					ServerAddress: "myregistry.example.com",
+				},
+			},
+			input: loginOptions{
+				serverAddress: "MyRegistry.Example.com",
+				user:          "my-username",
+				password:      "new-password",
+			},
+			expectedCredentials: map[string]configtypes.AuthConfig{
+				"myregistry.example.com": {
+					Username:      "my-username",
+					Password:      "new-password",
+					ServerAddress: "myregistry.example.com",
+				},
+			},
+		},
+		{
 			doc: "unknown user w/ prior credentials",
 			priorCredentials: map[string]configtypes.AuthConfig{
 				"reg1": {
