@@ -29,7 +29,7 @@ func DetectContextType(specifiedContext string) (ContextType, error) {
 	case urlutil.IsURL(specifiedContext):
 		return ContextTypeRemote, nil
 	default:
-		return "", fmt.Errorf("unable to prepare context: path %q not found", specifiedContext)
+		return "", fmt.Errorf("build context %q is not a supported form: expected '-' for stdin, an existing directory, a Git URL, or an HTTP(S) URL", specifiedContext)
 	}
 }
 
