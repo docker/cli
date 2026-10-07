@@ -148,6 +148,20 @@ func TestValidatePorts(t *testing.T) {
 	}
 }
 
+func TestValidateProfiles(t *testing.T) {
+	config := dict{
+		"version": "3.8",
+		"services": dict{
+			"foo": dict{
+				"image":    "busybox",
+				"profiles": []any{"debug", "dev"},
+			},
+		},
+	}
+	assert.NilError(t, Validate(config, "3.8"))
+	assert.NilError(t, Validate(config, "3"))
+}
+
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	config := dict{
 		"version": "3.0",

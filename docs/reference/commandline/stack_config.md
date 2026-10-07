@@ -8,6 +8,7 @@ Outputs the final config file, after doing merges and interpolations
 | Name                   | Type          | Default | Description                                       |
 |:-----------------------|:--------------|:--------|:--------------------------------------------------|
 | `-c`, `--compose-file` | `stringSlice` |         | Path to a Compose file, or `-` to read from stdin |
+| `--profile`            | `stringArray` |         | Specify a profile to enable                       |
 | `--skip-interpolation` | `bool`        |         | Skip interpolation and output only merged config  |
 
 

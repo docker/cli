@@ -42,6 +42,8 @@ type Options struct {
 	Interpolate *interp.Options
 	// Discard 'env_file' entries after resolving to 'environment' section
 	discardEnvFiles bool
+	// Profiles to enable, in addition to COMPOSE_PROFILES from the environment.
+	Profiles []string
 }
 
 // ParseVolume parses a volume spec without any knowledge of the target platform.
@@ -137,7 +139,63 @@ func Load(configDetails types.ConfigDetails, opt ...func(*Options)) (*types.Conf
 		configs = append(configs, cfg)
 	}
 
-	return merge(configs)
+	cfg, err := merge(configs)
+	if err != nil {
+		return nil, err
+	}
+	cfg.Services = filterServicesByProfile(cfg.Services, profilesFrom(configDetails, options))
+	return cfg, nil
+}
+
+func profilesFrom(configDetails types.ConfigDetails, options *Options) []string {
+	var out []string
+	seen := map[string]struct{}{}
+	add := func(p string) {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			return
+		}
+		if _, ok := seen[p]; ok {
+			return
+		}
+		seen[p] = struct{}{}
+		out = append(out, p)
+	}
+	if v := configDetails.Environment["COMPOSE_PROFILES"]; v != "" {
+		for _, p := range strings.Split(v, ",") {
+			add(p)
+		}
+	}
+	for _, p := range options.Profiles {
+		add(p)
+	}
+	return out
+}
+
+func filterServicesByProfile(services []types.ServiceConfig, enabled []string) []types.ServiceConfig {
+	active := make(map[string]struct{}, len(enabled))
+	for _, p := range enabled {
+		active[p] = struct{}{}
+	}
+	out := make([]types.ServiceConfig, 0, len(services))
+	for _, svc := range services {
+		if serviceEnabledForProfiles(svc, active) {
+			out = append(out, svc)
+		}
+	}
+	return out
+}
+
+func serviceEnabledForProfiles(svc types.ServiceConfig, active map[string]struct{}) bool {
+	if len(svc.Profiles) == 0 {
+		return true
+	}
+	for _, p := range svc.Profiles {
+		if _, ok := active[p]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func validateForbidden(configDict map[string]any) error {

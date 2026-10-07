@@ -16,6 +16,7 @@ import (
 type configOptions struct {
 	composeFiles      []string
 	skipInterpolation bool
+	profiles          []string
 }
 
 func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
@@ -31,7 +32,7 @@ func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 				return err
 			}
 
-			cfg, err := outputConfig(configDetails, opts.skipInterpolation)
+			cfg, err := outputConfig(configDetails, opts.skipInterpolation, opts.profiles)
 			if err != nil {
 				return err
 			}
@@ -46,13 +47,15 @@ func newConfigCommand(dockerCLI command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringSliceVarP(&opts.composeFiles, "compose-file", "c", []string{}, `Path to a Compose file, or "-" to read from stdin`)
 	flags.BoolVar(&opts.skipInterpolation, "skip-interpolation", false, "Skip interpolation and output only merged config")
+	flags.StringArrayVar(&opts.profiles, "profile", []string{}, "Specify a profile to enable")
 	return cmd
 }
 
 // outputConfig returns the merged and interpolated config file
-func outputConfig(configFiles composetypes.ConfigDetails, skipInterpolation bool) (string, error) {
+func outputConfig(configFiles composetypes.ConfigDetails, skipInterpolation bool, profiles []string) (string, error) {
 	optsFunc := func(opts *composeLoader.Options) {
 		opts.SkipInterpolation = skipInterpolation
+		opts.Profiles = profiles
 	}
 	config, err := composeLoader.Load(configFiles, optsFunc)
 	if err != nil {
