@@ -12,7 +12,7 @@ Restart one or more containers
 | Name              | Type     | Default | Description                                  |
 |:------------------|:---------|:--------|:---------------------------------------------|
 | `-s`, `--signal`  | `string` |         | Signal to send to the container              |
-| `-t`, `--timeout` | `int`    | `0`     | Seconds to wait before killing the container |
+| `-t`, `--timeout` | `int`    |         | Seconds to wait before killing the container |
 
 
 <!---MARKER_GEN_END-->
