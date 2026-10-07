@@ -12,3 +12,33 @@ Display detailed information on one or more images
 
 
 <!---MARKER_GEN_END-->
+
+## Description
+
+Print the image record Docker has locally: IDs and tags, platform, size, and
+the image `Config` (default command, env, labels, and so on).
+
+Use `--format` to pick fields instead of dumping the whole JSON.
+
+## Examples
+
+```console
+$ docker image inspect alpine
+```
+
+Common fields:
+
+- `Id`, `RepoTags`, `RepoDigests`
+- `Architecture`, `Os`, `Size`
+- `Config`: image config (`Env`, `Cmd`, `Entrypoint`, `WorkingDir`, `Labels`, `ExposedPorts`)
+
+```console
+$ docker image inspect --format '{{.Os}}/{{.Architecture}}' alpine
+linux/amd64
+
+$ docker image inspect --format '{{json .Config.Env}}' alpine
+["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"]
+```
+
+`Config` follows the
+[OCI image configuration](https://github.com/opencontainers/image-spec/blob/main/config.md).
