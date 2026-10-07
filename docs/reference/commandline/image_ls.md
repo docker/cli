@@ -152,6 +152,17 @@ The currently supported filters are:
 
 #### Show untagged images (dangling)
 
+The `dangling` filter is a boolean (`true` or `false`):
+
+- `dangling=true` — only **dangling** images: untagged leaves of the image
+  graph, shown as `<none>:<none>`. These appear when a new build retags an
+  image and leaves the previous ID without a repository or tag.
+- `dangling=false` — every image that is **not** dangling. This still
+  includes normal tagged images, and it can also include images that keep a
+  repository name but have no tag (`myrepo:<none>`). Those are untagged
+  references, not dangling images, so they appear for both
+  `dangling=false` and an unfiltered `docker images` listing.
+
 ```console
 $ docker images --filter "dangling=true"
 
@@ -164,9 +175,6 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 <none>              <none>              511136ea3c5a        8 months ago        0 B
 ```
 
-This will display untagged images that are the leaves of the images tree (not
-intermediary layers). These images occur when a new build of an image takes the
-`repo:tag` away from the image ID, leaving it as `<none>:<none>` or untagged.
 A warning will be issued if trying to remove an image when a container is presently
 using it. By having this flag it allows for batch cleanup.
 
