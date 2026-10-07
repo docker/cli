@@ -42,6 +42,11 @@ setup() {
         sh e2e/testdata/registry/certs/gen-certs.sh
     fi
 
+    # ENGINE_VERSION=master tests against moby/moby-bin:master.
+    if [ "${ENGINE_VERSION:-}" = "master" ]; then
+        export ENGINE_SOURCE=moby-bin
+    fi
+
     COMPOSE_PROJECT_NAME=$project COMPOSE_FILE=$file docker compose up --build -d >&2
 
     # Ensure supporting services exist before running tests. If one fails to start,
