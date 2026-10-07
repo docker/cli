@@ -389,7 +389,7 @@
             "limits": {
               "type": "object",
               "properties": {
-                "cpus": {"type": "string"},
+                "cpus": {"type": ["number", "string"]},
                 "memory": {"type": "string"}
               },
               "additionalProperties": false
@@ -397,7 +397,7 @@
             "reservations": {
               "type": "object",
               "properties": {
-                "cpus": {"type": "string"},
+                "cpus": {"type": ["number", "string"]},
                 "memory": {"type": "string"},
                 "generic_resources": {"$ref": "#/definitions/generic_resources"}
               },
