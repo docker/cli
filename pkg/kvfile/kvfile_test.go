@@ -143,3 +143,78 @@ func TestParseFromReaderWithNoName(t *testing.T) {
 	const expectedMessage = "no variable name on line '=blank variable names are an error case'"
 	assert.Check(t, is.ErrorContains(err, expectedMessage))
 }
+
+// Test trimQuotes helper function
+func TestTrimQuotes(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{name: "double quotes", input: `"bar"`, expected: "bar"},
+		{name: "single quotes", input: "'bar'", expected: "bar"},
+		{name: "no quotes", input: "bar", expected: "bar"},
+		{name: "empty string", input: "", expected: ""},
+		{name: "mismatched quotes double-single", input: `"bar'`, expected: `"bar'`},
+		{name: "mismatched quotes single-double", input: `'bar"`, expected: `'bar"`},
+		{name: "only opening double quote", input: `"bar`, expected: `"bar`},
+		{name: "only closing double quote", input: `bar"`, expected: `bar"`},
+		{name: "only opening single quote", input: "'bar", expected: "'bar"},
+		{name: "only closing single quote", input: "bar'", expected: "bar'"},
+		{name: "empty double quotes", input: `""`, expected: ""},
+		{name: "empty single quotes", input: "''", expected: ""},
+		{name: "nested double in single", input: `'"bar"'`, expected: `"bar"`},
+		{name: "nested single in double", input: `"'bar'"`, expected: "'bar'"},
+		{name: "single char", input: "a", expected: "a"},
+		{name: "single double quote", input: `"`, expected: `"`},
+		{name: "single single quote", input: "'", expected: "'"},
+		{name: "spaces inside double quotes", input: `"hello world"`, expected: "hello world"},
+		{name: "spaces inside single quotes", input: "'hello world'", expected: "hello world"},
+		{name: "value with internal quotes", input: `"say \"hello\""`, expected: `say \"hello\"`},
+		{name: "triple double quotes", input: `"""`, expected: `"`},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := trimQuotes(tc.input)
+			assert.Check(t, is.Equal(result, tc.expected))
+		})
+	}
+}
+
+// Test ParseFromReader strips surrounding quotes from values
+func TestParseFromReaderQuotedValues(t *testing.T) {
+	content := `# Quoted values should have surrounding quotes stripped
+DOUBLE_QUOTED="hello world"
+SINGLE_QUOTED='hello world'
+NO_QUOTES=hello
+EMPTY_DOUBLE=""
+EMPTY_SINGLE=''
+MISMATCHED="hello'
+NESTED_DOUBLE='"hello"'
+NESTED_SINGLE="'hello'"
+UNQUOTED_SPACES=hello world
+INTERNAL_QUOTES=he"ll"o
+ONLY_OPENING="hello
+VALUE_WITH_EQUALS="foo=bar"
+`
+
+	lines, err := ParseFromReader(strings.NewReader(content), nil)
+	assert.NilError(t, err)
+
+	expectedLines := []string{
+		"DOUBLE_QUOTED=hello world",
+		"SINGLE_QUOTED=hello world",
+		"NO_QUOTES=hello",
+		"EMPTY_DOUBLE=",
+		"EMPTY_SINGLE=",
+		`MISMATCHED="hello'`,
+		`NESTED_DOUBLE="hello"`,
+		"NESTED_SINGLE='hello'",
+		"UNQUOTED_SPACES=hello world",
+		`INTERNAL_QUOTES=he"ll"o`,
+		`ONLY_OPENING="hello`,
+		"VALUE_WITH_EQUALS=foo=bar",
+	}
+
+	assert.Check(t, is.DeepEqual(lines, expectedLines))
+}
