@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/metadata"
@@ -99,22 +100,31 @@ func processCloud(ctx context.Context, dockerCli *command.DockerCli, cmd *cobra.
 // the __resolve-context contract.
 const cloudResolverFeature = "cloud-context-resolver"
 
+const cloudPluginHelp = "to use --cloud, install the plugin. See https://docs.docker.com/go/cloud-flag/"
+
 func cloudProvider(dockerCli config.Provider, rootCmd *cobra.Command) (*pluginmanager.Plugin, error) {
 	provider := dockerCli.ConfigFile().Features["cloud"]
 	if provider == "" {
 		provider = "offload"
 	}
+	var help string
+	if provider == "offload" {
+		help = "\n\n" + cloudPluginHelp
+	}
 
 	plugin, err := pluginmanager.GetPlugin(provider, dockerCli, rootCmd)
 	if err != nil {
-		return nil, fmt.Errorf("cloud resolver plugin %q unavailable: %w", provider, err)
+		if provider == "offload" && errdefs.IsNotFound(err) {
+			return nil, errors.New(cloudPluginHelp)
+		}
+		return nil, fmt.Errorf("plugin %q unavailable: %w%s", provider, err, help)
 	}
 	if plugin.Err != nil {
-		return nil, fmt.Errorf("invalid cloud resolver plugin %q: %w", provider, plugin.Err)
+		return nil, fmt.Errorf("invalid plugin %q: %w%s", provider, plugin.Err, help)
 	}
 
 	if supported, _ := plugin.Features[cloudResolverFeature].(bool); !supported {
-		return nil, fmt.Errorf("plugin %q does not support cloud context resolution", provider)
+		return nil, fmt.Errorf("plugin %q does not support --cloud%s", provider, help)
 	}
 
 	return plugin, nil

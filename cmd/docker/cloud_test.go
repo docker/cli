@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -175,19 +176,21 @@ func TestCloudResolution(t *testing.T) {
 	assert.NilError(t, err)
 
 	for _, tc := range []struct {
-		name           string
-		args           []string
-		response       string
-		exit           int
-		wantName       string
-		wantErr        string
-		plugin         bool
-		skip           bool
-		provider       string
-		noProvider     bool
-		legacyProvider bool
-		command        []string
-		visible        bool
+		name            string
+		args            []string
+		response        string
+		exit            int
+		wantName        string
+		wantErr         string
+		plugin          bool
+		skip            bool
+		provider        string
+		noProvider      bool
+		legacyProvider  bool
+		invalidProvider bool
+		wantHelp        bool
+		command         []string
+		visible         bool
 	}{
 		{
 			name:     "default target",
@@ -282,28 +285,45 @@ func TestCloudResolution(t *testing.T) {
 			args:           []string{"--cloud"},
 			noProvider:     true,
 			legacyProvider: true,
-			wantErr:        `plugin "offload" does not support cloud context resolution`,
+			wantErr:        `plugin "offload" does not support --cloud`,
+			wantHelp:       true,
 			skip:           true,
+		},
+		{
+			name:            "invalid default provider",
+			args:            []string{"--cloud"},
+			noProvider:      true,
+			invalidProvider: true,
+			wantErr:         `invalid plugin "offload": plugin metadata does not define a vendor`,
+			wantHelp:        true,
+			skip:            true,
+		},
+		{
+			name:            "invalid configured provider",
+			args:            []string{"--cloud"},
+			invalidProvider: true,
+			wantErr:         `invalid plugin "foobar": plugin metadata does not define a vendor`,
+			skip:            true,
 		},
 		{
 			name:           "legacy configured provider",
 			args:           []string{"--cloud"},
 			legacyProvider: true,
-			wantErr:        `plugin "foobar" does not support cloud context resolution`,
+			wantErr:        `plugin "foobar" does not support --cloud`,
 			skip:           true,
 		},
 		{
 			name:     "configured provider unavailable",
 			args:     []string{"--cloud"},
 			provider: "missing",
-			wantErr:  `cloud resolver plugin "missing" unavailable`,
+			wantErr:  `plugin "missing" unavailable`,
 			skip:     true,
 		},
 		{
 			name:     "provider cannot be a path",
 			args:     []string{"--cloud"},
 			provider: "../foobar",
-			wantErr:  `cloud resolver plugin "../foobar" unavailable`,
+			wantErr:  `plugin "../foobar" unavailable`,
 			skip:     true,
 		},
 		{
@@ -376,10 +396,7 @@ func TestCloudResolution(t *testing.T) {
 			if !tc.noProvider {
 				installedProvider = "foobar"
 				cfg := configfile.New(filepath.Join(configDir, config.ConfigFileName))
-				provider := tc.provider
-				if provider == "" {
-					provider = "foobar"
-				}
+				provider := cmp.Or(tc.provider, "foobar")
 				cfg.Features = map[string]string{"cloud": provider}
 				assert.NilError(t, cfg.Save())
 			}
@@ -387,12 +404,12 @@ func TestCloudResolution(t *testing.T) {
 			pluginDir := filepath.Join(configDir, "cli-plugins")
 			assert.NilError(t, os.MkdirAll(pluginDir, 0o755))
 
-			response := tc.response
-			if response == "" {
-				response = `{"DOCKER_CONTEXT":"resolved"}`
-			}
+			response := cmp.Or(tc.response, `{"DOCKER_CONTEXT":"resolved"}`)
 
 			providerMetadata := metadata.Metadata{SchemaVersion: "0.1.0", Vendor: "test"}
+			if tc.invalidProvider {
+				providerMetadata.Vendor = ""
+			}
 			if !tc.legacyProvider {
 				providerMetadata.Features = map[string]any{cloudResolverFeature: true}
 			}
@@ -454,6 +471,7 @@ printf '%s\n' "$@" > "$CLOUD_TEST_ARGS"
 			if tc.wantErr != "" {
 				assert.Assert(t, err != nil)
 				assert.Check(t, is.Contains(stderr.String(), tc.wantErr))
+				assert.Equal(t, strings.Contains(stderr.String(), cloudPluginHelp), tc.wantHelp, stderr.String())
 				_, statErr := os.Stat(dispatchFile)
 				assert.Assert(t, os.IsNotExist(statErr))
 				assert.Equal(t, stdout.String(), "")
@@ -479,10 +497,7 @@ printf '%s\n' "$@" > "$CLOUD_TEST_ARGS"
 			} else {
 				assert.NilError(t, err)
 				assert.Check(t, is.Contains(stderr.String(), "provisioning"))
-				name := tc.wantName
-				if name == "" {
-					name = "default"
-				}
+				name := cmp.Or(tc.wantName, "default")
 				assert.Equal(t, string(invocation), "--config="+configDir+"\n"+installedProvider+"\n__resolve-context\n--\n"+name+"\n")
 			}
 		})
