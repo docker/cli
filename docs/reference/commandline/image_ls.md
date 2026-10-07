@@ -300,7 +300,12 @@ Valid placeholders for the Go template are listed below:
 | `.Digest`       | Image digest                             |
 | `.CreatedSince` | Elapsed time since the image was created |
 | `.CreatedAt`    | Time when the image was created          |
-| `.Size`         | Image disk size                          |
+| `.Size`         | Image disk size, formatted for humans    |
+| `.SizeBytes`    | Image disk size in bytes                 |
+| `.SharedSize`   | Shared image disk size, formatted for humans |
+| `.SharedSizeBytes` | Shared image disk size in bytes       |
+| `.UniqueSize`   | Unique image disk size, formatted for humans |
+| `.UniqueSizeBytes` | Unique image disk size in bytes       |
 
 When using the `--format` option, the `image` command will either
 output the data exactly as the template declares or, when using the
@@ -343,8 +348,11 @@ b6fa739cedf5        committ                   latest
 
 To list all images in JSON format, use the `json` directive:
 
+Raw byte fields are JSON numbers. When Docker does not provide a size value,
+the corresponding raw field is `null`.
+
 ```console
 $ docker images --format json
-{"Containers":"N/A","CreatedAt":"2021-03-04 03:24:42 +0100 CET","CreatedSince":"5 days ago","Digest":"\u003cnone\u003e","ID":"4dd97cefde62","Repository":"ubuntu","SharedSize":"N/A","Size":"72.9MB","Tag":"latest","UniqueSize":"N/A"}
-{"Containers":"N/A","CreatedAt":"2021-02-17 22:19:54 +0100 CET","CreatedSince":"2 weeks ago","Digest":"\u003cnone\u003e","ID":"28f6e2705743","Repository":"alpine","SharedSize":"N/A","Size":"5.61MB","Tag":"latest","UniqueSize":"N/A"}
+{"Containers":"N/A","CreatedAt":"2021-03-04 03:24:42 +0100 CET","CreatedSince":"5 days ago","Digest":"\u003cnone\u003e","ID":"4dd97cefde62","Repository":"ubuntu","SharedSize":"N/A","SharedSizeBytes":null,"Size":"72.9MB","SizeBytes":72900000,"Tag":"latest","UniqueSize":"N/A","UniqueSizeBytes":null}
+{"Containers":"N/A","CreatedAt":"2021-02-17 22:19:54 +0100 CET","CreatedSince":"2 weeks ago","Digest":"\u003cnone\u003e","ID":"28f6e2705743","Repository":"alpine","SharedSize":"N/A","SharedSizeBytes":null,"Size":"5.61MB","SizeBytes":5610000,"Tag":"latest","UniqueSize":"N/A","UniqueSizeBytes":null}
 ```
