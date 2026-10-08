@@ -25,6 +25,7 @@ import (
 
 type copyOptions struct {
 	source      string
+	sources     []string
 	destination string
 	followLink  bool
 	copyUIDGID  bool
@@ -126,25 +127,28 @@ func newCopyCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts copyOptions
 
 	cmd := &cobra.Command{
-		Use: `cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
-	docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH`,
+		Use: `cp [OPTIONS] CONTAINER:SRC_PATH... DEST_PATH|-
+	docker cp [OPTIONS] SRC_PATH... CONTAINER:DEST_PATH`,
 		Short: "Copy files/folders between a container and the local filesystem",
 		Long: `Copy files/folders between a container and the local filesystem
 
 Use '-' as the source to read a tar archive from stdin
 and extract it to a directory destination in a container.
 Use '-' as the destination to stream a tar archive of a
-container source to stdout.`,
-		Args: cli.ExactArgs(2),
+container source to stdout.
+When specifying multiple sources, the destination must be an existing directory.`,
+		Args: cli.RequiresMinArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if args[0] == "" {
-				return errors.New("source can not be empty")
+			for _, src := range args[:len(args)-1] {
+				if src == "" {
+					return errors.New("source can not be empty")
+				}
 			}
-			if args[1] == "" {
+			if args[len(args)-1] == "" {
 				return errors.New("destination can not be empty")
 			}
-			opts.source = args[0]
-			opts.destination = args[1]
+			opts.sources = args[:len(args)-1]
+			opts.destination = args[len(args)-1]
 			if !cmd.Flag("quiet").Changed {
 				// User did not specify "quiet" flag; suppress output if no terminal is attached
 				opts.quiet = !dockerCLI.Out().IsTerminal()
@@ -213,6 +217,18 @@ func copySummary(contentSize, transferredSize int64, dest string) string {
 }
 
 func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error {
+	sources := opts.sources
+	if len(sources) == 0 && opts.source != "" {
+		sources = []string{opts.source}
+	}
+	if len(sources) > 1 {
+		return runMultiCopy(ctx, dockerCli, opts, sources)
+	}
+	if len(sources) == 0 {
+		return errors.New("source can not be empty")
+	}
+
+	opts.source = sources[0]
 	srcContainer, srcPath := splitCpArg(opts.source)
 	destContainer, destPath := splitCpArg(opts.destination)
 
@@ -244,6 +260,90 @@ func runCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions) error
 	default:
 		return errors.New("must specify at least one container source")
 	}
+}
+
+func runMultiCopy(ctx context.Context, dockerCli command.Cli, opts copyOptions, sources []string) error {
+	if opts.destination == "-" {
+		return errors.New("destination '-' cannot be used with multiple sources")
+	}
+	if err := validateMultiCopyDestination(ctx, dockerCli, opts.destination); err != nil {
+		return err
+	}
+
+	var direction copyDirection
+	for _, source := range sources {
+		if source == "-" {
+			return errors.New("source '-' cannot be used with multiple sources")
+		}
+		srcContainer, _ := splitCpArg(source)
+		destContainer, _ := splitCpArg(opts.destination)
+
+		var srcDirection copyDirection
+		if srcContainer != "" {
+			srcDirection |= fromContainer
+		}
+		if destContainer != "" {
+			srcDirection |= toContainer
+		}
+		if srcDirection == acrossContainers {
+			return errors.New("copying between containers is not supported")
+		}
+		if srcDirection == 0 {
+			return errors.New("must specify at least one container source")
+		}
+		if direction != 0 && srcDirection != direction {
+			return errors.New("all sources must be copied in the same direction")
+		}
+		direction = srcDirection
+	}
+
+	for _, source := range sources {
+		copyOpts := opts
+		copyOpts.source = source
+		copyOpts.sources = nil
+		if err := runCopy(ctx, dockerCli, copyOpts); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateMultiCopyDestination(ctx context.Context, dockerCli command.Cli, destination string) error {
+	destContainer, destPath := splitCpArg(destination)
+	if destContainer == "" {
+		dstPath, err := resolveLocalPath(destPath)
+		if err != nil {
+			return err
+		}
+		info, err := os.Stat(dstPath)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("destination %q must be a directory when copying multiple sources", destination)
+		}
+		return command.ValidateOutputPath(dstPath)
+	}
+
+	dst, err := dockerCli.Client().ContainerStatPath(ctx, destContainer, client.ContainerStatPathOptions{Path: destPath})
+	if err != nil {
+		return err
+	}
+	if dst.Stat.Mode&os.ModeSymlink != 0 {
+		linkTarget := dst.Stat.LinkTarget
+		if !isAbs(linkTarget) {
+			dstParent, _ := archive.SplitPathDirEntry(destPath)
+			linkTarget = filepath.Join(dstParent, linkTarget)
+		}
+		dst, err = dockerCli.Client().ContainerStatPath(ctx, destContainer, client.ContainerStatPathOptions{Path: linkTarget})
+		if err != nil {
+			return err
+		}
+	}
+	if !dst.Stat.Mode.IsDir() {
+		return fmt.Errorf(`destination "%s:%s" must be a directory when copying multiple sources`, destContainer, destPath)
+	}
+	return command.ValidateOutputPathFileMode(dst.Stat.Mode)
 }
 
 func resolveLocalPath(localPath string) (absPath string, _ error) {
