@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -446,6 +447,58 @@ func TestGetAllCredentialsCredHelperOverridesDefaultStore(t *testing.T) {
 	assert.Check(t, is.Equal(0, testCredHelper.(*mockNativeStore).GetAllCallCount))
 }
 
+func TestGetConfiguredCredentialStoreWildcard(t *testing.T) {
+	configFile := New("filename")
+	configFile.CredentialsStore = "default_store"
+	configFile.CredentialHelpers = map[string]string{
+		"registry.example.com": "exact_helper",
+		"*.example.com":        "wildcard_helper",
+		"*.docker.example.com": "specific_wildcard_helper",
+		"*.com":                "invalid_wildcard_helper",
+	}
+
+	tests := []struct {
+		registryHostname string
+		expected         string
+	}{
+		{registryHostname: "registry.example.com", expected: "exact_helper"},
+		{registryHostname: "other.example.com", expected: "wildcard_helper"},
+		{registryHostname: "foo.docker.example.com", expected: "specific_wildcard_helper"},
+		{registryHostname: "foo.bar.example.com", expected: "default_store"},
+		{registryHostname: "example.com", expected: "default_store"},
+		{registryHostname: "other.com", expected: "default_store"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.registryHostname, func(t *testing.T) {
+			assert.Check(t, is.Equal(getConfiguredCredentialStore(configFile, tc.registryHostname), tc.expected))
+		})
+	}
+}
+
+func TestGetAllCredentialsSkipsWildcardCredHelpers(t *testing.T) {
+	const (
+		testCredHelperSuffix = "test_cred_helper"
+		testCredHelperKey    = "*.example.com"
+	)
+
+	configFile := New("filename")
+	configFile.CredentialHelpers = map[string]string{testCredHelperKey: testCredHelperSuffix}
+
+	testCredHelper := NewMockNativeStore(map[string]types.AuthConfig{
+		testCredHelperKey: {Username: "cred_helper_user", Password: "cred_helper_pass"},
+	}, nil)
+
+	tmpNewNativeStore := newNativeStore
+	defer func() { newNativeStore = tmpNewNativeStore }()
+	newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentials.Store {
+		return testCredHelper
+	}
+
+	authConfigs, err := configFile.GetAllCredentials()
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(authConfigs, 0), "wildcard patterns should not be looked up in credential helpers")
+}
+
 func TestLoadFromReaderWithUsernamePassword(t *testing.T) {
 	configFile := New("test-load")
 	defer os.Remove("test-load")
@@ -498,6 +551,41 @@ const envTestAuthConfig = `{
 		}
 	}
 }`
+
+func TestLoadFromReaderInvalidRegistryPatterns(t *testing.T) {
+	const configJSON = `{
+		"auths": {
+			"registry.example.com": {},
+			"*.example.com": {},
+			"*.com": {},
+			"https://*.example.org": {}
+		},
+		"credHelpers": {
+			"*.dkr.ecr.*.amazonaws.com": "ecr-login",
+			"foo.*.com": "secretservice"
+		}
+	}`
+
+	configFile := New("test-load")
+	err := configFile.LoadFromReader(strings.NewReader(configJSON))
+	assert.Check(t, is.Error(err, `auths: invalid registry pattern "*.com": wildcards are not allowed in the last two labels
+auths: invalid registry pattern "https://*.example.org": must be a hostname, optionally including a port, without scheme or path
+credHelpers: invalid registry pattern "foo.*.com": wildcards are not allowed in the last two labels`))
+
+	// Invalid patterns are reported, but are never used for matching.
+	assert.Check(t, is.Equal(getConfiguredCredentialStore(configFile, "foo.bar.com"), ""))
+	assert.Check(t, is.Equal(getConfiguredCredentialStore(configFile, "123.dkr.ecr.us-east-1.amazonaws.com"), "ecr-login"))
+}
+
+func TestLoadFromReaderValidRegistryPatterns(t *testing.T) {
+	const configJSON = `{
+		"auths": {"*.example.com": {}},
+		"credHelpers": {"*-docker.pkg.dev": "gcloud"}
+	}`
+
+	configFile := New("test-load")
+	assert.NilError(t, configFile.LoadFromReader(strings.NewReader(configJSON)))
+}
 
 func TestGetAllCredentialsFromEnvironment(t *testing.T) {
 	t.Run("can parse DOCKER_AUTH_CONFIG auth field", func(t *testing.T) {
