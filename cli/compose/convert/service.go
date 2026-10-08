@@ -458,7 +458,7 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 		startInterval = time.Duration(*healthcheck.StartInterval)
 	}
 	if healthcheck.Retries != nil {
-		retries = int(*healthcheck.Retries)
+		retries = int(*healthcheck.Retries) // #nosec G115 -- retries count fits in int
 	}
 	return &container.HealthConfig{
 		Test:          healthcheck.Test,
@@ -500,7 +500,7 @@ func convertRestartPolicy(restart string, restartPolicy *composetypes.RestartPol
 		if i <= 0 {
 			return nil
 		}
-		return new(uint64(i))
+		return new(uint64(i)) // #nosec G115 -- maximum retry count is verified non-negative
 	}
 
 	switch policy.Name {
