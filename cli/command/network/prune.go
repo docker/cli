@@ -72,14 +72,19 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
+	progress := pruner.NewProgressPrinter(dockerCli, pruner.TypeNetwork)
 	res, err := dockerCli.Client().NetworkPrune(ctx, client.NetworkPruneOptions{
-		Filters: pruneFilters,
+		Filters:    pruneFilters,
+		OnProgress: progress.OnProgress,
 	})
 	if err != nil {
 		return "", err
 	}
 
 	var out strings.Builder
+	if progress.Started {
+		return "", progress.Finish()
+	}
 	if len(res.Report.NetworksDeleted) > 0 {
 		out.WriteString("Deleted Networks:\n")
 		for _, id := range res.Report.NetworksDeleted {

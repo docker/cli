@@ -85,15 +85,20 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
+	progress := pruner.NewProgressPrinter(dockerCli, pruner.TypeBuildCache)
 	resp, err := dockerCli.Client().BuildCachePrune(ctx, client.BuildCachePruneOptions{
 		All:           options.all,
 		ReservedSpace: options.reservedSpace.Value(),
 		Filters:       pruneFilters,
+		OnProgress:    progress.OnProgress,
 	})
 	if err != nil {
 		return 0, "", err
 	}
 	report := resp.Report
+	if progress.Started {
+		return report.SpaceReclaimed, "", progress.Finish()
+	}
 	if len(report.CachesDeleted) > 0 {
 		var sb strings.Builder
 		sb.WriteString("Deleted build cache objects:\n")
