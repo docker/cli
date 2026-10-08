@@ -172,6 +172,12 @@ func TestGetPluginDirs(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 
 	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
+	originalAdditionalSystemPluginDir := additionalSystemPluginDir
+	additionalSystemPluginDir = ""
+	t.Cleanup(func() {
+		additionalSystemPluginDir = originalAdditionalSystemPluginDir
+	})
+
 	expected := append([]string{pluginDir}, defaultSystemPluginDirs...)
 
 	pluginDirs := getPluginDirs(cli.ConfigFile())
@@ -183,6 +189,13 @@ func TestGetPluginDirs(t *testing.T) {
 	cli.SetConfigFile(&configfile.ConfigFile{
 		CLIPluginsExtraDirs: extras,
 	})
+	pluginDirs = getPluginDirs(cli.ConfigFile())
+	assert.DeepEqual(t, expected, pluginDirs)
+
+	additionalSystemPluginDir = "qux"
+	expected = append([]string{}, extras...)
+	expected = append(expected, pluginDir, additionalSystemPluginDir)
+	expected = append(expected, defaultSystemPluginDirs...)
 	pluginDirs = getPluginDirs(cli.ConfigFile())
 	assert.DeepEqual(t, expected, pluginDirs)
 }
