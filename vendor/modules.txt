@@ -325,7 +325,7 @@ github.com/klauspost/compress/internal/regmask
 github.com/klauspost/compress/internal/snapref
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/mattn/go-runewidth v0.0.29
+# github.com/mattn/go-runewidth v0.0.30
 ## explicit; go 1.23
 github.com/mattn/go-runewidth
 # github.com/mdlayher/socket v0.6.0

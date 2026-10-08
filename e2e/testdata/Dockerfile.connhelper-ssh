@@ -3,8 +3,16 @@
 # ENGINE_VERSION is the version of the (docker-in-docker) Docker Engine to
 # test against.
 ARG ENGINE_VERSION=29
+# ENGINE_SOURCE is "dind" or "moby-bin" (moby/moby-bin:master).
+ARG ENGINE_SOURCE=dind
 
-FROM docker:${ENGINE_VERSION}-dind
+FROM docker:${ENGINE_VERSION}-dind AS engine-dind
+
+# moby/moby-bin only has the daemon binaries.
+FROM docker:dind AS engine-moby-bin
+COPY --link --from=moby/moby-bin:master / /usr/local/bin/
+
+FROM engine-${ENGINE_SOURCE}
 
 # the openssh-client update is needed for security reasons when using docker:23.0-dind, currently maintained as an lts by mirantis
 RUN apk --no-cache add openssl openssh-client openssh-server shadow && \

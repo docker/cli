@@ -37,6 +37,7 @@ jobs:
           - alpine
           - debian
         engine-version:
+          - master  # moby/moby-bin:master
           - rc  # latest rc
           - 29  # latest
           - 28  # latest - 1

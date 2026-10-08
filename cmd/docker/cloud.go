@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	pluginmanager "github.com/docker/cli/cli-plugins/manager"
 	"github.com/docker/cli/cli-plugins/metadata"
@@ -43,8 +45,11 @@ import (
 // The effective config directory is also passed as DOCKER_CONFIG.
 // The provider must provision into that context store without changing the saved
 // current context or recursively forwarding --cloud.
-// It inherits the environment, receives no interactive stdin, and sends progress
-// to stderr.
+// It inherits the environment and sends progress and prompts to stderr. Stdin
+// is forwarded only when both stdin and stderr are terminals with file handles;
+// wrapped Windows consoles use the corresponding standard handles. Otherwise
+// the provider receives EOF and must not prompt or open a terminal
+// separately. Piped and redirected input belongs to the requested command.
 // Stdout must contain exactly one JSON object:
 //
 //	{"DOCKER_CONTEXT":"provisioned-context"}
@@ -95,22 +100,31 @@ func processCloud(ctx context.Context, dockerCli *command.DockerCli, cmd *cobra.
 // the __resolve-context contract.
 const cloudResolverFeature = "cloud-context-resolver"
 
+const cloudPluginHelp = "to use --cloud, install the plugin. See https://docs.docker.com/go/cloud-flag/"
+
 func cloudProvider(dockerCli config.Provider, rootCmd *cobra.Command) (*pluginmanager.Plugin, error) {
 	provider := dockerCli.ConfigFile().Features["cloud"]
 	if provider == "" {
 		provider = "offload"
 	}
+	var help string
+	if provider == "offload" {
+		help = "\n\n" + cloudPluginHelp
+	}
 
 	plugin, err := pluginmanager.GetPlugin(provider, dockerCli, rootCmd)
 	if err != nil {
-		return nil, fmt.Errorf("cloud resolver plugin %q unavailable: %w", provider, err)
+		if provider == "offload" && errdefs.IsNotFound(err) {
+			return nil, errors.New(cloudPluginHelp)
+		}
+		return nil, fmt.Errorf("plugin %q unavailable: %w%s", provider, err, help)
 	}
 	if plugin.Err != nil {
-		return nil, fmt.Errorf("invalid cloud resolver plugin %q: %w", provider, plugin.Err)
+		return nil, fmt.Errorf("invalid plugin %q: %w%s", provider, plugin.Err, help)
 	}
 
 	if supported, _ := plugin.Features[cloudResolverFeature].(bool); !supported {
-		return nil, fmt.Errorf("plugin %q does not support cloud context resolution", provider)
+		return nil, fmt.Errorf("plugin %q does not support --cloud%s", provider, help)
 	}
 
 	return plugin, nil
@@ -139,7 +153,7 @@ func resolveCloudContext(ctx context.Context, dockerCli *command.DockerCli, root
 
 	cmd := exec.CommandContext(ctx, plugin.Path, "--config="+config.Dir(), plugin.Name, "__resolve-context", "--", name) // #nosec G204 -- executable validated through CLI plugin discovery
 	cmd.Env = append(os.Environ(), config.EnvOverrideConfigDir+"="+config.Dir(), metadata.ReexecEnvvar+"="+os.Args[0])
-	cmd.Stderr = dockerCli.Err()
+	setResolverStdio(cmd, dockerCli)
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -160,21 +174,57 @@ func resolveCloudContext(ctx context.Context, dockerCli *command.DockerCli, root
 		return "", errors.New("cloud resolver must return a non-default DOCKER_CONTEXT")
 	}
 
-	// Do not allow a missing context or endpoint to fall back to the local engine.
-	meta, err := dockerCli.ContextStore().GetMetadata(response.DockerContext)
+	if err := validateResolvedContext(dockerCli, response.DockerContext); err != nil {
+		return "", err
+	}
+
+	return response.DockerContext, nil
+}
+
+// setResolverStdio connects the resolver to the terminal when both stdin and
+// stderr are terminals, so the plugin can prompt interactively. Otherwise
+// stderr is forwarded and stdin is left unset.
+func setResolverStdio(cmd *exec.Cmd, dockerCli *command.DockerCli) {
+	cmd.Stderr = dockerCli.Err()
+	stdinTerminal := dockerCli.In().IsTerminal()
+	stderrTerminal := dockerCli.Err().IsTerminal()
+	stdin, stdinFile := dockerCli.In().File()
+	stderr, stderrFile := dockerCli.Err().File()
+	if runtime.GOOS == "windows" {
+		// term.StdStreams can wrap console handles for terminal emulation,
+		// preventing File from exposing them to the child process.
+		if stdinTerminal && !stdinFile {
+			stdin, stdinFile = os.Stdin, true
+		}
+		if stderrTerminal && !stderrFile {
+			stderr, stderrFile = os.Stderr, true
+		}
+	}
+	if stdinTerminal && stderrTerminal && stdinFile && stderrFile {
+		// Pass files directly: wrapping them makes os/exec copy through pipes,
+		// hiding terminal identity and potentially consuming the command's input.
+		cmd.Stdin = stdin
+		cmd.Stderr = stderr
+	}
+}
+
+// validateResolvedContext checks that the context exists and has a Docker
+// endpoint host, so a missing context or endpoint cannot fall back to the
+// local engine.
+func validateResolvedContext(dockerCli *command.DockerCli, name string) error {
+	meta, err := dockerCli.ContextStore().GetMetadata(name)
 	if err != nil {
-		return "", fmt.Errorf("loading resolved context %q: %w", response.DockerContext, err)
+		return fmt.Errorf("loading resolved context %q: %w", name, err)
 	}
 
 	endpoint, err := contextdocker.EndpointFromContext(meta)
 	if err != nil {
-		return "", fmt.Errorf("invalid resolved context %q: %w", response.DockerContext, err)
+		return fmt.Errorf("invalid resolved context %q: %w", name, err)
 	}
 	if endpoint.Host == "" {
-		return "", fmt.Errorf("resolved context %q has no Docker endpoint host", response.DockerContext)
+		return fmt.Errorf("resolved context %q has no Docker endpoint host", name)
 	}
-
-	return response.DockerContext, nil
+	return nil
 }
 
 // cloudHelpRequest avoids provisioning for help and shell completion.
