@@ -571,11 +571,15 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 				return nil
 			}
 			if !errdefs.IsNotFound(err) {
-				// For plugin not found we fall through to
-				// cmd.Execute() which deals with reporting
-				// "command not found" in a consistent way.
 				return err
 			}
+			if args[0] == "offload" {
+				// Report this before cmd.ExecuteContext(): plugin-specific flags such as
+				// --cpus otherwise fail parsing before the root command's RunE.
+				return errors.New("docker: to use 'docker offload', install the plugin.\nSee https://docs.docker.com/go/cloud-flag/")
+			}
+			// Other missing or invalid plugins fall through to cmd.ExecuteContext(),
+			// which reports the standard unknown-command error.
 		}
 	}
 
