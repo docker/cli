@@ -2,8 +2,14 @@ package manager
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
+	"github.com/docker/cli/cli-plugins/hooks"
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
@@ -258,32 +264,36 @@ func TestMatchHookConfig(t *testing.T) {
 	}
 }
 
-func TestAppendNextSteps(t *testing.T) {
+func TestAppendMessages(t *testing.T) {
 	testCases := []struct {
-		processed   []string
-		expectedOut []string
+		processed   hooks.EvaluatedMessage
+		expectedOut []hooks.EvaluatedMessage
 	}{
 		{
-			processed:   []string{},
-			expectedOut: []string{},
+			processed:   hooks.EvaluatedMessage{Type: hooks.GenericMessage},
+			expectedOut: []hooks.EvaluatedMessage{},
 		},
 		{
-			processed:   []string{"", ""},
-			expectedOut: []string{},
+			processed:   hooks.EvaluatedMessage{Type: hooks.NextSteps, Lines: []string{"", ""}},
+			expectedOut: []hooks.EvaluatedMessage{},
 		},
 		{
-			processed:   []string{"Some hint", "", "Some other hint"},
-			expectedOut: []string{"Some hint", "", "Some other hint"},
+			processed: hooks.EvaluatedMessage{Type: hooks.GenericMessage, Lines: []string{"Some hint", "", "Some other hint"}},
+			expectedOut: []hooks.EvaluatedMessage{
+				{Type: hooks.GenericMessage, Lines: []string{"Some hint", "", "Some other hint"}},
+			},
 		},
 		{
-			processed:   []string{"Hint 1", "Hint 2"},
-			expectedOut: []string{"Hint 1", "Hint 2"},
+			processed: hooks.EvaluatedMessage{Type: hooks.NextSteps, Lines: []string{"Hint 1", "Hint 2"}},
+			expectedOut: []hooks.EvaluatedMessage{
+				{Type: hooks.NextSteps, Lines: []string{"Hint 1", "Hint 2"}},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run("", func(t *testing.T) {
-			got, appended := appendNextSteps([]string{}, tc.processed)
+			got, appended := appendMessages([]hooks.EvaluatedMessage{}, tc.processed)
 			assert.Check(t, is.DeepEqual(got, tc.expectedOut))
 			assert.Check(t, is.Equal(appended, len(got) > 0))
 		})
@@ -372,4 +382,104 @@ func TestInvokeAndCollectHooksCancelledContext(t *testing.T) {
 		"build", map[string]string{}, "exit status 1",
 	)
 	assert.Check(t, is.Nil(result))
+}
+
+func TestRunHooksMessages(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("test plugins require a POSIX shell")
+	}
+
+	const header = "\n\x1b[1mWhat's next:\x1b[0m\n"
+	for _, tc := range []struct {
+		doc       string
+		responses map[string]string
+		expected  string
+	}{
+		{
+			doc: "generic message preserves formatting and expands templates",
+			responses: map[string]string{
+				"status": `{"Type":1,"Template":"Status for {{command}}\n\n  Details"}`,
+			},
+			expected: "\nStatus for build\n\n  Details\n",
+		},
+		{
+			doc: "omitted type defaults to next steps",
+			responses: map[string]string{
+				"suggestion": `{"Template":"Try another command"}`,
+			},
+			expected: header + "    Try another command\n",
+		},
+		{
+			doc: "generic messages precede shared next steps header",
+			responses: map[string]string{
+				"statusone":     `{"Type":1,"Template":"Session active"}`,
+				"statustwo":     `{"Type":1,"Template":"Session active"}`,
+				"suggestionone": `{"Type":0,"Template":"Try another command"}`,
+				"suggestiontwo": `{"Type":0,"Template":"Try another command"}`,
+			},
+			expected: "\nSession active\nSession active\n" + header + "    Try another command\n    Try another command\n",
+		},
+		{
+			doc: "empty responses produce no output",
+			responses: map[string]string{
+				"status":     `{"Type":1,"Template":" \n\t"}`,
+				"suggestion": `{"Type":0,"Template":""}`,
+			},
+		},
+		{
+			doc: "empty generic message does not affect next steps",
+			responses: map[string]string{
+				"status":     `{"Type":1,"Template":""}`,
+				"suggestion": `{"Type":0,"Template":"Try another command"}`,
+			},
+			expected: header + "    Try another command\n",
+		},
+		{
+			doc: "invalid responses do not affect other plugins",
+			responses: map[string]string{
+				"unknown":    `{"Type":99,"Template":"Ignored"}`,
+				"invalid":    `{"Type":1,"Template":"{{"}`,
+				"status":     `{"Type":1,"Template":"Session active"}`,
+				"suggestion": `{"Type":0,"Template":"Try another command"}`,
+			},
+			expected: "\nSession active\n" + header + "    Try another command\n",
+		},
+	} {
+		t.Run(tc.doc, func(t *testing.T) {
+			pluginDir := t.TempDir()
+			cfg := configfile.New("")
+			cfg.CLIPluginsExtraDirs = []string{pluginDir}
+			cfg.Plugins = make(map[string]map[string]string)
+			for name, response := range tc.responses {
+				plugin := fmt.Sprintf(`#!/bin/sh
+case "$1" in
+docker-cli-plugin-metadata)
+    printf '%%s\n' '{"SchemaVersion":"0.1.0","Vendor":"test"}'
+    ;;
+*)
+    test "$2" = docker-cli-plugin-hooks || exit 1
+    printf 'called\n' >> "$0.calls"
+    printf '%%s\n' '%s'
+    ;;
+esac
+`, response)
+				assert.NilError(t, os.WriteFile(filepath.Join(pluginDir, "docker-"+name), []byte(plugin), 0o755))
+				cfg.Plugins[name] = map[string]string{"hooks": "build"}
+			}
+
+			root := &cobra.Command{Use: "docker"}
+			sub := &cobra.Command{Use: "build"}
+			root.AddCommand(sub)
+			var output strings.Builder
+			sub.SetErr(&output)
+
+			runHooks(context.Background(), cfg, root, sub, "build", nil, "")
+			assert.Equal(t, output.String(), tc.expected)
+			for name := range tc.responses {
+				calls, err := os.ReadFile(filepath.Join(pluginDir, "docker-"+name+".calls"))
+				assert.NilError(t, err)
+				assert.Equal(t, string(calls), "called\n", "each plugin hook must run exactly once")
+			}
+		})
+	}
 }

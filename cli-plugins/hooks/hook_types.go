@@ -30,7 +30,11 @@ package hooks
 type ResponseType int
 
 const (
+	// NextSteps renders suggestions under a shared "What's next:" header.
 	NextSteps ResponseType = 0
+	// GenericMessage renders before NextSteps, without a header or indentation.
+	// CLI versions that do not recognize this type ignore the response.
+	GenericMessage ResponseType = 1
 )
 
 // Request is the type representing the information
