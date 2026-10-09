@@ -49,11 +49,13 @@ func RunPluginHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, sub
 }
 
 func runHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
-	nextSteps := invokeAndCollectHooks(ctx, cfg, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
-	hooks.PrintNextSteps(subCommand.ErrOrStderr(), nextSteps)
+	messages := invokeAndCollectHooks(ctx, cfg, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
+	hooks.PrintMessages(subCommand.ErrOrStderr(), messages)
 }
 
-func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
+func invokeAndCollectHooks(
+	ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string,
+) []hooks.EvaluatedMessage {
 	if ctx.Err() != nil {
 		return nil
 	}
@@ -64,17 +66,17 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 	}
 
 	pluginDirs := getPluginDirs(cfg)
-	nextSteps := make([]string, 0, len(pluginsCfg))
+	var collected []hooks.EvaluatedMessage
 
-	tryInvokeHook := func(pluginName string, pluginCfg map[string]string) (messages []string, ok bool, err error) {
+	tryInvokeHook := func(pluginName string, pluginCfg map[string]string) (hooks.EvaluatedMessage, error) {
 		match, matched := pluginMatch(pluginCfg, subCmdStr, cmdErrorMessage)
 		if !matched {
-			return nil, false, nil
+			return hooks.EvaluatedMessage{}, nil
 		}
 
 		p, err := getPlugin(pluginName, pluginDirs, rootCmd)
 		if err != nil {
-			return nil, false, err
+			return hooks.EvaluatedMessage{}, err
 		}
 
 		resp, err := p.RunHook(ctx, hooks.Request{
@@ -83,29 +85,28 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 			CommandError: cmdErrorMessage,
 		})
 		if err != nil {
-			return nil, false, err
+			return hooks.EvaluatedMessage{}, err
 		}
 
 		var message hooks.Response
 		if err := json.Unmarshal(resp, &message); err != nil {
-			return nil, false, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
+			return hooks.EvaluatedMessage{}, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
 		}
 
-		// currently the only hook type
-		if message.Type != hooks.NextSteps {
-			return nil, false, errors.New("unexpected hook response type: " + strconv.Itoa(int(message.Type)))
+		if message.Type != hooks.NextSteps && message.Type != hooks.GenericMessage {
+			return hooks.EvaluatedMessage{}, errors.New("unexpected hook response type: " + strconv.Itoa(int(message.Type)))
 		}
 
-		messages, err = hooks.ParseTemplate(message.Template, subCmd)
+		lines, err := hooks.ParseTemplate(message.Template, subCmd)
 		if err != nil {
-			return nil, false, err
+			return hooks.EvaluatedMessage{}, err
 		}
 
-		return messages, true, nil
+		return hooks.EvaluatedMessage{Type: message.Type, Lines: lines}, nil
 	}
 
 	for pluginName, pluginCfg := range pluginsCfg {
-		messages, ok, err := tryInvokeHook(pluginName, pluginCfg)
+		message, err := tryInvokeHook(pluginName, pluginCfg)
 		if err != nil {
 			// skip misbehaving plugins, but don't halt execution
 			logrus.WithFields(logrus.Fields{
@@ -114,27 +115,27 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 			}).Debug("Plugin hook invocation failed")
 			continue
 		}
-		if !ok {
+		if message.Lines == nil {
 			continue
 		}
 
 		var appended bool
-		nextSteps, appended = appendNextSteps(nextSteps, messages)
+		collected, appended = appendMessages(collected, message)
 		if !appended {
 			logrus.WithFields(logrus.Fields{
 				"plugin": pluginName,
 			}).Debug("Plugin responded with an empty hook message; ignoring")
 		}
 	}
-	return nextSteps
+	return collected
 }
 
-// appendNextSteps appends the processed hook output to the nextSteps slice.
+// appendMessages appends the processed hook output to the messages slice.
 // If the processed hook output is empty, it is not appended.
 // Empty lines are not stripped if there's at least one non-empty line.
-func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
+func appendMessages(messages []hooks.EvaluatedMessage, processed hooks.EvaluatedMessage) ([]hooks.EvaluatedMessage, bool) {
 	empty := true
-	for _, l := range processed {
+	for _, l := range processed.Lines {
 		if strings.TrimSpace(l) != "" {
 			empty = false
 			break
@@ -142,10 +143,10 @@ func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
 	}
 
 	if empty {
-		return nextSteps, false
+		return messages, false
 	}
 
-	return append(nextSteps, processed...), true
+	return append(messages, processed), true
 }
 
 // pluginMatch takes a plugin configuration and a string representing the
