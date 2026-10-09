@@ -260,8 +260,11 @@ func runBuild(ctx context.Context, dockerCli command.Cli, options buildOptions) 
 		contextDir = tempDir
 	case build.ContextTypeRemote:
 		buildCtx, relDockerfile, err = build.GetContextFromURL(progBuff, options.context, options.dockerfileName)
-		if err != nil && options.quiet {
-			_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
+		if err != nil {
+			if options.quiet {
+				_, _ = fmt.Fprintln(dockerCli.Err(), progBuff)
+			}
+			return fmt.Errorf("unable to prepare context: %w", err)
 		}
 	default:
 		return fmt.Errorf("unable to prepare context: path %q not found", options.context)
