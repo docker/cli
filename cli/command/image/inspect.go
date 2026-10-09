@@ -6,6 +6,7 @@ package image
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
@@ -75,6 +76,16 @@ func runInspect(ctx context.Context, dockerCLI command.Cli, opts inspectOptions)
 		)
 		if err != nil {
 			return image.InspectResponse{}, nil, err
+		}
+		if buf.Len() == 0 {
+			// Clients that do not produce a raw API response (such as the
+			// standalone backend) still need a JSON form of the response so
+			// that templates can use the API field names.
+			raw, err := json.Marshal(resp.InspectResponse)
+			if err != nil {
+				return image.InspectResponse{}, nil, err
+			}
+			return resp, raw, nil
 		}
 		return resp, buf.Bytes(), err
 	})
