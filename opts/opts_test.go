@@ -2,6 +2,7 @@ package opts
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -427,6 +428,28 @@ func TestParseCPUsReturnZeroOnInvalidValues(t *testing.T) {
 	assert.Equal(t, z1, resValue)
 	resValue, _ = ParseCPUs("1e-32")
 	assert.Equal(t, z1, resValue)
+}
+
+func TestParseCPUsRejectsValuesThatDoNotFitInInt64(t *testing.T) {
+	got, err := ParseCPUs("10000000000")
+	assert.Error(t, err, "value is out of range")
+	assert.Equal(t, int64(0), got)
+
+	got, err = ParseCPUs("9223372036.854775808")
+	assert.Error(t, err, "value is out of range")
+	assert.Equal(t, int64(0), got)
+
+	got, err = ParseCPUs("-9223372036.854775809")
+	assert.Error(t, err, "value is out of range")
+	assert.Equal(t, int64(0), got)
+
+	got, err = ParseCPUs("9223372036.854775807")
+	assert.NilError(t, err)
+	assert.Equal(t, int64(math.MaxInt64), got)
+
+	got, err = ParseCPUs("-9223372036.854775808")
+	assert.NilError(t, err)
+	assert.Equal(t, int64(math.MinInt64), got)
 }
 
 func TestUmaskOpt(t *testing.T) {
