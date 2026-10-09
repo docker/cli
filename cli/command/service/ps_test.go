@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/builders"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
@@ -12,6 +14,46 @@ import (
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
+
+func TestServicePsPrettyPrint(t *testing.T) {
+	const (
+		serviceID = "service-id"
+		taskID    = "sxabyp0obqokwekpun4rjo0b3"
+	)
+	apiClient := &fakeClient{
+		serviceListFunc: func(context.Context, client.ServiceListOptions) (client.ServiceListResult, error) {
+			return client.ServiceListResult{
+				Items: []swarm.Service{newService(serviceID, "service-name")},
+			}, nil
+		},
+		taskListFunc: func(context.Context, client.TaskListOptions) (client.TaskListResult, error) {
+			return client.TaskListResult{
+				Items: []swarm.Task{*builders.Task(
+					builders.TaskID(taskID),
+					builders.TaskServiceID(serviceID),
+					builders.TaskNodeID("node-id"),
+					builders.TaskSlot(1),
+					builders.TaskDesiredState(swarm.TaskStateRunning),
+					builders.WithStatus(builders.TaskState(swarm.TaskStateRunning)),
+					builders.WithTaskSpec(builders.TaskImage("alpine:latest")),
+				)},
+			}, nil
+		},
+	}
+
+	cli := test.NewFakeCli(apiClient)
+	cmd := newPsCommand(cli)
+	cmd.SetArgs([]string{"--no-resolve", "service-name"})
+	assert.NilError(t, cmd.Execute())
+
+	output := cli.OutBuffer().String()
+	for _, expected := range []string{
+		"ID", "NAME", "IMAGE", "NODE", "DESIRED STATE", "CURRENT STATE",
+		taskID[:12], serviceID + ".1", "alpine:latest", "node-id", "Running",
+	} {
+		assert.Assert(t, strings.Contains(output, expected), "output does not contain %q:\n%s", expected, output)
+	}
+}
 
 func TestCreateFilter(t *testing.T) {
 	apiClient := &fakeClient{
