@@ -7,7 +7,7 @@ set -eu
 if ! command -v "$GO_MD2MAN" > /dev/null; then
   (
     set -x
-    # note: this installs all tools defined in go.mod/vendor.mod
+    # note: this installs all tools defined in go.mod
     GOBIN="$(pwd)/build/tools" go install -mod=vendor tool
   )
   GO_MD2MAN="$(pwd)/build/tools/go-md2man"

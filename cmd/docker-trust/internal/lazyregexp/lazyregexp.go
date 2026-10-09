@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Code below was largely copied from golang.org/x/mod@v0.22;
+// https://github.com/golang/mod/blob/v0.22.0/internal/lazyregexp/lazyre.go
+// with some additional methods added.
+
 // Package lazyregexp is a thin wrapper over regexp, allowing the use of global
 // regexp variables without forcing them to be compiled at init.
 package lazyregexp
@@ -35,6 +39,10 @@ func (r *Regexp) FindSubmatch(s []byte) [][]byte {
 	return r.re().FindSubmatch(s)
 }
 
+func (r *Regexp) FindAllStringSubmatch(s string, n int) [][]string {
+	return r.re().FindAllStringSubmatch(s, n)
+}
+
 func (r *Regexp) FindStringSubmatch(s string) []string {
 	return r.re().FindStringSubmatch(s)
 }
@@ -57,6 +65,18 @@ func (r *Regexp) FindAllString(s string, n int) []string {
 
 func (r *Regexp) MatchString(s string) bool {
 	return r.re().MatchString(s)
+}
+
+func (r *Regexp) ReplaceAllStringFunc(src string, repl func(string) string) string {
+	return r.re().ReplaceAllStringFunc(src, repl)
+}
+
+func (r *Regexp) ReplaceAllLiteralString(src, repl string) string {
+	return r.re().ReplaceAllLiteralString(src, repl)
+}
+
+func (r *Regexp) String() string {
+	return r.re().String()
 }
 
 func (r *Regexp) SubexpNames() []string {

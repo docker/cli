@@ -3,10 +3,10 @@ package stack
 import (
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/completion"
-	"github.com/docker/cli/internal/commands"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/completion"
+	"github.com/docker/cli/v29/internal/commands"
 	"github.com/spf13/cobra"
 )
 
