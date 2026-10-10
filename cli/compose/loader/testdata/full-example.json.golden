@@ -17,7 +17,6 @@
     },
     "config4": {
       "name": "foo",
-      "file": "/foo",
       "external": false
     }
   },
@@ -77,7 +76,6 @@
     },
     "secret4": {
       "name": "bar",
-      "file": "/foo",
       "external": false
     }
   },
