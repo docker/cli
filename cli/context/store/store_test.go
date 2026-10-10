@@ -57,6 +57,9 @@ func TestExportImport(t *testing.T) {
 		},
 	})
 	assert.NilError(t, err)
+	// A .DS_Store left by Finder must not end up in the export.
+	err = os.WriteFile(filepath.Join(s.tls.endpointDir("source", "ep1"), ".DS_Store"), []byte("data"), 0o600)
+	assert.NilError(t, err)
 	r := Export("source", s)
 	defer r.Close()
 	err = Import("dest", s, r)
@@ -87,6 +90,8 @@ func TestExportImport(t *testing.T) {
 	destData2, err := s.GetTLSData("dest", "ep1", "file2")
 	assert.NilError(t, err)
 	assert.DeepEqual(t, file2, destData2)
+	_, err = s.GetTLSData("dest", "ep1", ".DS_Store")
+	assert.Check(t, is.ErrorType(err, errdefs.IsNotFound))
 }
 
 func TestRemove(t *testing.T) {
