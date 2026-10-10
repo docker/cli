@@ -6,6 +6,8 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
@@ -170,6 +172,35 @@ RUN echo hello world
 	assert.NilError(t, runBuild(context.TODO(), cli, options))
 
 	assert.DeepEqual(t, fakeBuild.filenames(t), []string{"Dockerfile"})
+}
+
+// TestRunBuildRemoteContextDownloadError verifies that remote context
+// download errors are propagated.
+//
+// regression test for https://github.com/docker/cli/issues/7372
+func TestRunBuildRemoteContextDownloadError(t *testing.T) {
+	t.Setenv("DOCKER_BUILDKIT", "0")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "not found", http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	imageBuildCalled := false
+	cli := test.NewFakeCli(&fakeClient{
+		imageBuildFunc: func(ctx context.Context, buildContext io.Reader, options client.ImageBuildOptions) (client.ImageBuildResult, error) {
+			imageBuildCalled = true
+			return client.ImageBuildResult{Body: io.NopCloser(bytes.NewReader(nil))}, nil
+		},
+	})
+
+	options := newBuildOptions()
+	options.context = server.URL
+
+	err := runBuild(context.Background(), cli, options)
+
+	assert.ErrorContains(t, err, "unable to download remote context")
+	assert.Assert(t, !imageBuildCalled, "ImageBuild should not be called when downloading the remote context fails")
 }
 
 type fakeBuild struct {
