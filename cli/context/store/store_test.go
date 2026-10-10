@@ -113,6 +113,35 @@ func TestRemove(t *testing.T) {
 	assert.Equal(t, 0, len(f))
 }
 
+func TestExportWritesCompleteArchive(t *testing.T) {
+	s := New(t.TempDir(), testCfg)
+	err := s.CreateOrUpdate(
+		Metadata{
+			Endpoints: map[string]any{
+				"ep1": endpoint{Foo: "bar"},
+			},
+			Metadata: context{Bar: "baz"},
+			Name:     "source",
+		})
+	assert.NilError(t, err)
+	// "test-data" doesn't fill its 512-byte block, so the archive needs
+	// padding after it.
+	assert.NilError(t, s.ResetEndpointTLSMaterial("source", "ep1", &EndpointTLSData{
+		Files: map[string][]byte{
+			"file1": []byte("test-data"),
+		},
+	}))
+
+	r := Export("source", s)
+	defer r.Close()
+	data, err := io.ReadAll(r)
+	assert.NilError(t, err)
+
+	// A tar archive is made of 512-byte blocks, and ends with two blocks of zeros.
+	assert.Check(t, is.Equal(len(data)%512, 0))
+	assert.Check(t, bytes.HasSuffix(data, make([]byte, 2*512)), "missing end-of-archive marker")
+}
+
 func TestListEmptyStore(t *testing.T) {
 	result, err := New(t.TempDir(), testCfg).List()
 	assert.NilError(t, err)
