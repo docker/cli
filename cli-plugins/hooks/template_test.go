@@ -33,7 +33,17 @@ func TestParseTemplate(t *testing.T) {
 		{
 			doc:            "empty template",
 			template:       "",
-			expectedOutput: []string{""},
+			expectedOutput: nil,
+		},
+		{
+			doc:            "only empty lines",
+			template:       "\n\n",
+			expectedOutput: nil,
+		},
+		{
+			doc:            "whitespace-only lines",
+			template:       " \n\t\n  ",
+			expectedOutput: nil,
 		},
 		{
 			doc:            "plain message",
