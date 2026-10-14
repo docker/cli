@@ -49,11 +49,18 @@ func RunPluginHooks(ctx context.Context, dockerCLI config.Provider, rootCmd, sub
 }
 
 func runHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCommand *cobra.Command, invokedCommand string, flags map[string]string, cmdErrorMessage string) {
-	nextSteps := invokeAndCollectHooks(ctx, cfg, rootCmd, subCommand, invokedCommand, flags, cmdErrorMessage)
-	hooks.PrintNextSteps(subCommand.ErrOrStderr(), nextSteps)
+	messages := invokeAndCollectHooks(ctx, cfg, rootCmd, invokedCommand, flags, cmdErrorMessage)
+	hooks.PrintMessages(subCommand.ErrOrStderr(), messages, func(message hooks.Response) []string {
+		lines, err := hooks.ParseTemplate(message.Template, subCommand)
+		if err != nil {
+			logrus.WithError(err).Debug("Failed to evaluate hook template")
+			return nil
+		}
+		return lines
+	})
 }
 
-func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd, subCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []string {
+func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, rootCmd *cobra.Command, subCmdStr string, flags map[string]string, cmdErrorMessage string) []hooks.Response {
 	if ctx.Err() != nil {
 		return nil
 	}
@@ -64,17 +71,17 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 	}
 
 	pluginDirs := getPluginDirs(cfg)
-	nextSteps := make([]string, 0, len(pluginsCfg))
+	var collected []hooks.Response
 
-	tryInvokeHook := func(pluginName string, pluginCfg map[string]string) (messages []string, ok bool, err error) {
+	tryInvokeHook := func(pluginName string, pluginCfg map[string]string) (hooks.Response, error) {
 		match, matched := pluginMatch(pluginCfg, subCmdStr, cmdErrorMessage)
 		if !matched {
-			return nil, false, nil
+			return hooks.Response{}, nil
 		}
 
 		p, err := getPlugin(pluginName, pluginDirs, rootCmd)
 		if err != nil {
-			return nil, false, err
+			return hooks.Response{}, err
 		}
 
 		resp, err := p.RunHook(ctx, hooks.Request{
@@ -83,29 +90,23 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 			CommandError: cmdErrorMessage,
 		})
 		if err != nil {
-			return nil, false, err
+			return hooks.Response{}, err
 		}
 
 		var message hooks.Response
 		if err := json.Unmarshal(resp, &message); err != nil {
-			return nil, false, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
+			return hooks.Response{}, fmt.Errorf("failed to unmarshal hook response (%q): %w", string(resp), err)
 		}
 
-		// currently the only hook type
-		if message.Type != hooks.NextSteps {
-			return nil, false, errors.New("unexpected hook response type: " + strconv.Itoa(int(message.Type)))
+		if message.Type != hooks.NextSteps && message.Type != hooks.GenericMessage {
+			return hooks.Response{}, errors.New("unexpected hook response type: " + strconv.Itoa(int(message.Type)))
 		}
 
-		messages, err = hooks.ParseTemplate(message.Template, subCmd)
-		if err != nil {
-			return nil, false, err
-		}
-
-		return messages, true, nil
+		return message, nil
 	}
 
 	for pluginName, pluginCfg := range pluginsCfg {
-		messages, ok, err := tryInvokeHook(pluginName, pluginCfg)
+		message, err := tryInvokeHook(pluginName, pluginCfg)
 		if err != nil {
 			// skip misbehaving plugins, but don't halt execution
 			logrus.WithFields(logrus.Fields{
@@ -114,38 +115,13 @@ func invokeAndCollectHooks(ctx context.Context, cfg *configfile.ConfigFile, root
 			}).Debug("Plugin hook invocation failed")
 			continue
 		}
-		if !ok {
+		if message.Template == "" {
 			continue
 		}
 
-		var appended bool
-		nextSteps, appended = appendNextSteps(nextSteps, messages)
-		if !appended {
-			logrus.WithFields(logrus.Fields{
-				"plugin": pluginName,
-			}).Debug("Plugin responded with an empty hook message; ignoring")
-		}
+		collected = append(collected, message)
 	}
-	return nextSteps
-}
-
-// appendNextSteps appends the processed hook output to the nextSteps slice.
-// If the processed hook output is empty, it is not appended.
-// Empty lines are not stripped if there's at least one non-empty line.
-func appendNextSteps(nextSteps []string, processed []string) ([]string, bool) {
-	empty := true
-	for _, l := range processed {
-		if strings.TrimSpace(l) != "" {
-			empty = false
-			break
-		}
-	}
-
-	if empty {
-		return nextSteps, false
-	}
-
-	return append(nextSteps, processed...), true
+	return collected
 }
 
 // pluginMatch takes a plugin configuration and a string representing the
