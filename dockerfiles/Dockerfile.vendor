@@ -6,7 +6,7 @@ ARG GO_VERSION=1.26.9
 # It must be a supported tag in the docker.io/library/alpine image repository
 # that's also available as alpine image variant for the Golang version used.
 ARG ALPINE_VERSION=3.23
-ARG MODOUTDATED_VERSION=v0.8.0
+ARG MODOUTDATED_VERSION=v0.9.0
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS base
 ENV GOTOOLCHAIN=local
