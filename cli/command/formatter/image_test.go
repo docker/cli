@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -12,6 +13,34 @@ import (
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )
+
+func TestImageContextJSONIncludesRawSizes(t *testing.T) {
+	images := []image.Summary{
+		{ID: "available", RepoTags: []string{"example:latest"}, Size: 20_000, SharedSize: 5_000},
+		{ID: "unavailable", RepoTags: []string{"example:unknown"}, Size: -1, SharedSize: -1},
+	}
+	var out bytes.Buffer
+	err := ImageWrite(ImageContext{
+		Context: Context{Format: NewImageFormat("json", false, false), Output: &out},
+	}, images)
+	assert.NilError(t, err)
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	assert.Equal(t, len(lines), 2)
+
+	var available map[string]any
+	assert.NilError(t, json.Unmarshal([]byte(lines[0]), &available))
+	assert.Equal(t, available["Size"], "20kB")
+	assert.Equal(t, available["SizeBytes"], float64(20_000))
+	assert.Equal(t, available["SharedSizeBytes"], float64(5_000))
+	assert.Equal(t, available["UniqueSizeBytes"], float64(15_000))
+
+	var unavailable map[string]any
+	assert.NilError(t, json.Unmarshal([]byte(lines[1]), &unavailable))
+	assert.Equal(t, unavailable["SizeBytes"], nil)
+	assert.Equal(t, unavailable["SharedSizeBytes"], nil)
+	assert.Equal(t, unavailable["UniqueSizeBytes"], nil)
+}
 
 func TestImageContext(t *testing.T) {
 	imageID := test.RandomID()
