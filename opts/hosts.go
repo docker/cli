@@ -57,7 +57,12 @@ func parseDockerDaemonHost(addr string) (string, error) {
 	proto, host, hasProto := strings.Cut(addr, "://")
 	if !hasProto && proto != "" {
 		host = proto
-		proto = "tcp"
+		// if the addr string starts with "/", "./", or "../", the user very likely meant "path to a socket"
+		if strings.HasPrefix(host, "/") || strings.HasPrefix(host, "./") || strings.HasPrefix(host, "../") {
+			proto = "unix"
+		} else {
+			proto = "tcp"
+		}
 	}
 
 	switch proto {
