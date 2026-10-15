@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/swarm"

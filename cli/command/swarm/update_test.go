@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/v29/internal/test"
+	"github.com/docker/cli/v29/internal/test/builders"
 	"github.com/moby/moby/client"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"

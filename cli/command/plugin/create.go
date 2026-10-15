@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
 	"github.com/moby/go-archive"
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/moby/api/types/plugin"

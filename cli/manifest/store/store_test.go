@@ -6,7 +6,7 @@ import (
 
 	"github.com/containerd/errdefs"
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/manifest/types"
+	"github.com/docker/cli/v29/cli/manifest/types"
 	"github.com/google/go-cmp/cmp"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"

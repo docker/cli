@@ -88,5 +88,4 @@ COPY --link --from=gotestsum       /go/bin/* /go/bin/
 COPY --link --from=goversioninfo   /go/bin/* /go/bin/
 
 WORKDIR /go/src/github.com/docker/cli
-ENV GO111MODULE=auto
 COPY --link . .

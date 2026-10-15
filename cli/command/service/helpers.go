@@ -4,9 +4,9 @@ import (
 	"context"
 	"io"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/service/progress"
-	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/service/progress"
+	"github.com/docker/cli/v29/internal/jsonstream"
 )
 
 // WaitOnService waits for the service to converge. It outputs a progress bar,

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/v29/internal/test/builders"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
 )
