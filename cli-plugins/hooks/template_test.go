@@ -1,6 +1,7 @@
 package hooks_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli-plugins/hooks"
@@ -132,4 +133,11 @@ func TestParseTemplate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseTemplateTooManyMessages(t *testing.T) {
+	testCmd := &cobra.Command{Use: "pull"}
+
+	_, err := hooks.ParseTemplate(strings.Repeat("line\n", 10)+"line", testCmd)
+	assert.Error(t, err, "hook template contains too many messages (11): maximum is 10")
 }
