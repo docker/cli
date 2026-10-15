@@ -27,8 +27,11 @@ func TerminatePrompt(ctx context.Context, t *testing.T, cmd *cobra.Command, cli 
 	}))
 	cli.SetOut(outStream)
 
-	r, _, err := os.Pipe()
+	r, w, err := os.Pipe()
 	assert.NilError(t, err)
+
+	// Keep the write end alive for the duration of the test.
+	defer w.Close()
 	cli.SetIn(streams.NewIn(r))
 
 	notifyCtx, notifyCancel := context.WithCancel(ctx)
