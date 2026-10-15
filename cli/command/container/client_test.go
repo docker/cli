@@ -52,7 +52,15 @@ type fakeClient struct {
 	containerRenameFunc     func(ctx context.Context, oldName, newName string) error
 	containerCommitFunc     func(ctx context.Context, container string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error)
 	containerPauseFunc      func(ctx context.Context, container string, options client.ContainerPauseOptions) (client.ContainerPauseResult, error)
+	eventsFunc              func(ctx context.Context, options client.EventsListOptions) client.EventsResult
 	Version                 string
+}
+
+func (f *fakeClient) Events(ctx context.Context, options client.EventsListOptions) client.EventsResult {
+	if f.eventsFunc != nil {
+		return f.eventsFunc(ctx, options)
+	}
+	return client.EventsResult{}
 }
 
 func (f *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) (client.ContainerListResult, error) {
