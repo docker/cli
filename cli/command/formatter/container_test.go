@@ -309,6 +309,17 @@ containerID2   ubuntu    ""        24 hours ago                       foobar_bar
 			context:  Context{Format: NewContainerFormat("table {{.State}}", false, true)},
 			expected: "STATE\nrunning\nrunning\n",
 		},
+		{
+			context: Context{Format: NewContainerFormat(CompactFormatKey, false, false)},
+			expected: `CONTAINER ID   NAMES        IMAGE     STATE     CREATED
+containerID1   foobar_baz   ubuntu    running   24 hours ago
+containerID2   foobar_bar   ubuntu    running   24 hours ago
+`,
+		},
+		{
+			context:  Context{Format: NewContainerFormat(CompactFormatKey, true, false)},
+			expected: "containerID1\ncontainerID2\n",
+		},
 		// Raw Format
 		{
 			context: Context{Format: NewContainerFormat("raw", false, false)},
