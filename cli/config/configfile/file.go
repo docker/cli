@@ -42,10 +42,12 @@ const authConfigKey = "https://index.docker.io/v1/"
 //
 // [registry.GetAuthConfigKey]: https://pkg.go.dev/github.com/docker/docker@v28.5.1+incompatible/registry#GetAuthConfigKey
 func getAuthConfigKey(domainName string) string {
-	if domainName == "docker.io" || domainName == "index.docker.io" {
+	switch strings.TrimSpace(domainName) {
+	case "docker.io", "index.docker.io", "https://index.docker.io/v1", authConfigKey:
 		return authConfigKey
+	default:
+		return domainName
 	}
-	return domainName
 }
 
 // ConfigFile ~/.docker/config.json file info
@@ -129,6 +131,7 @@ func (c *ConfigFile) LoadFromReader(configData io.Reader) error {
 		return err
 	}
 	var err error
+	normalizedAuthConfigs := make(map[string]types.AuthConfig, len(c.AuthConfigs))
 	for addr, ac := range c.AuthConfigs {
 		if ac.Auth != "" {
 			ac.Username, ac.Password, err = decodeAuth(ac.Auth)
@@ -137,9 +140,10 @@ func (c *ConfigFile) LoadFromReader(configData io.Reader) error {
 			}
 		}
 		ac.Auth = ""
-		ac.ServerAddress = addr
-		c.AuthConfigs[addr] = ac
+		ac.ServerAddress = getAuthConfigKey(addr)
+		normalizedAuthConfigs[getAuthConfigKey(addr)] = ac
 	}
+	c.AuthConfigs = normalizedAuthConfigs
 	return nil
 }
 
@@ -369,10 +373,11 @@ func parseEnvConfig(v string) (map[string]types.AuthConfig, error) {
 		if err != nil {
 			return nil, err
 		}
-		authConfigs[addr] = types.AuthConfig{
+		normalizedAddr := getAuthConfigKey(addr)
+		authConfigs[normalizedAddr] = types.AuthConfig{
 			Username:      username,
 			Password:      password,
-			ServerAddress: addr,
+			ServerAddress: normalizedAddr,
 		}
 	}
 	return authConfigs, nil
@@ -386,7 +391,27 @@ var newNativeStore = func(configFile *ConfigFile, helperSuffix string) credentia
 // GetAuthConfig for a repository from the credential store
 func (c *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
 	acKey := getAuthConfigKey(registryHostname)
-	return c.GetCredentialsStore(acKey).Get(acKey)
+	store := c.GetCredentialsStore(acKey)
+	if authConfig, err := store.Get(acKey); err == nil && authConfig != (types.AuthConfig{}) {
+		return authConfig, nil
+	}
+
+	if registryHostname != "" && registryHostname != acKey {
+		if authConfig, err := store.Get(registryHostname); err == nil && authConfig != (types.AuthConfig{}) {
+			return authConfig, nil
+		}
+	}
+	if acKey == authConfigKey {
+		for _, candidate := range []string{"docker.io", "index.docker.io", "https://index.docker.io/v1"} {
+			if candidate == acKey || candidate == "" {
+				continue
+			}
+			if authConfig, err := store.Get(candidate); err == nil && authConfig != (types.AuthConfig{}) {
+				return authConfig, nil
+			}
+		}
+	}
+	return store.Get(acKey)
 }
 
 // getConfiguredCredentialStore returns the credential helper configured for the
@@ -396,6 +421,13 @@ func getConfiguredCredentialStore(c *ConfigFile, registryHostname string) string
 	if c.CredentialHelpers != nil && registryHostname != "" {
 		if helper, exists := c.CredentialHelpers[registryHostname]; exists {
 			return helper
+		}
+		if registryHostname == authConfigKey {
+			for _, key := range []string{"docker.io", "index.docker.io", "https://index.docker.io/v1"} {
+				if helper, exists := c.CredentialHelpers[key]; exists {
+					return helper
+				}
+			}
 		}
 	}
 	return c.CredentialsStore
