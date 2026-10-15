@@ -109,7 +109,6 @@ linters:
     gosec:
       excludes:
         - G104 # G104: Errors unhandled; (TODO: reduce unhandled errors, or explicitly ignore)
-        - G115 # G115: integer overflow conversion; (TODO: verify these: https://github.com/docker/cli/issues/5584)
         - G117 # G117: Exported struct field matches secret pattern (false positives for legitimate field names)
         - G118 # G118: Goroutine uses context.Background/TODO while request-scoped context is available (TODO: evaluate these)
         - G122 # G122: Filesystem operation in filepath.Walk/WalkDir callback uses race-prone path (TODO: evaluate these)
