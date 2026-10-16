@@ -88,6 +88,18 @@ Creating service vossibility_ghollector
 Creating service vossibility_lookupd
 ```
 
+### Image pull (--resolve-image)
+
+By default (`--resolve-image always`) the manager asks the registry for
+a digest and workers pull that digest when they start a task. A moving
+tag such as `:latest` therefore becomes whatever the registry has *now*,
+not whatever happened to be cached on the node.
+
+`--resolve-image changed` only re-resolves if the tag in the Compose
+file changed. `--resolve-image never` leaves the image name as written
+and does not query the registry on deploy (nodes still pull if they
+do not already have the image).
+
 You can verify that the services were correctly created:
 
 ```console
