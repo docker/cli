@@ -900,6 +900,20 @@ func TestInvalidResource(t *testing.T) {
 	assert.Check(t, is.ErrorContains(err, "additional property 'impossible' is not allowed"))
 }
 
+func TestLoadGroupAdd(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.8"
+services:
+  foo:
+    image: busybox
+    group_add:
+      - mail
+      - 15000
+`)
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(config.Services[0].GroupAdd, types.StringOrNumberList{"mail", "15000"}))
+}
+
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3"
