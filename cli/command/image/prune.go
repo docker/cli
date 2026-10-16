@@ -87,14 +87,23 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
+	progress := pruner.NewProgressPrinter(dockerCli, pruner.TypeImage)
 	res, err := dockerCli.Client().ImagePrune(ctx, client.ImagePruneOptions{
 		Filters: pruneFilters,
+		Stream:  progress.Stream,
 	})
+	if err != nil {
+		return 0, "", err
+	}
+	res.Report, err = pruner.Consume(ctx, res, progress)
 	if err != nil {
 		return 0, "", err
 	}
 
 	var sb strings.Builder
+	if progress.Started {
+		return res.Report.SpaceReclaimed, "", progress.Finish()
+	}
 	if len(res.Report.ImagesDeleted) > 0 {
 		sb.WriteString("Deleted Images:\n")
 		for _, st := range res.Report.ImagesDeleted {
