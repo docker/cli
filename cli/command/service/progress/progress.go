@@ -268,16 +268,10 @@ func writeOverallProgress(progressOut progress.Output, numerator, denominator in
 }
 
 func truncError(errMsg string) string {
-	// Remove newlines from the error, which corrupt the output.
-	errMsg = strings.ReplaceAll(errMsg, "\n", " ")
-
-	// Limit the length to 75 characters, so that even on narrow terminals
-	// this will not overflow to the next line.
-	const maxWidth = 75
-	if len(errMsg) > maxWidth {
-		errMsg = errMsg[:maxWidth-1] + "…"
-	}
-	return errMsg
+	// Remove newlines from the error, which corrupt the single-line progress UI.
+	// Keep the full message otherwise — truncating to a fixed width (e.g. 75
+	// runes) hid the useful part of long swarm task errors (issue #7176).
+	return strings.ReplaceAll(errMsg, "\n", " ")
 }
 
 type replicatedProgressUpdater struct {
