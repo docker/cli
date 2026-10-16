@@ -72,8 +72,9 @@ radial/busyboxplus   Full-chain, Internet enabled, busybox made from scratch. Co
 
 ### <a name="limit"></a> Limit search results (--limit)
 
-The flag `--limit` is the maximum number of results returned by a search. If no
-value is set, the default is set by the daemon.
+The flag `--limit` is the maximum number of results returned by a search.
+The options table shows a default of `0`; that means "unset." The daemon
+then uses 25. Valid values are `1` through `100`.
 
 ### <a name="filter"></a> Filtering (--filter)
 
