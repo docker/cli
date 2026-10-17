@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/containerd/errdefs v1.0.0
 	github.com/distribution/reference v0.6.0
-	github.com/docker/cli v29.8.2+incompatible
+	github.com/docker/cli v29.9.1+incompatible
 	github.com/docker/cli-docs-tool v0.11.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/go-connections v0.8.2
