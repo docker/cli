@@ -1,13 +1,18 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package credentials
 
 import (
 	"fmt"
+	"maps"
 	"net"
 	"net/url"
 	"os"
 	"strings"
 	"sync/atomic"
 
+	"github.com/docker/cli/cli/config/internal/hostmatch"
 	"github.com/docker/cli/cli/config/types"
 )
 
@@ -49,6 +54,14 @@ func (c *fileStore) Get(serverAddress string) (types.AuthConfig, error) {
 			if serverAddress == ConvertToHostname(r) {
 				return ac, nil
 			}
+		}
+
+		// Fall back to the most specific wildcard pattern (for example,
+		// "*.example.com") matching the server address, if any.
+		if pattern, ok := hostmatch.Best(maps.Keys(c.file.GetAuthConfigs()), serverAddress); ok {
+			authConfig = c.file.GetAuthConfigs()[pattern]
+			authConfig.ServerAddress = serverAddress
+			return authConfig, nil
 		}
 
 		authConfig = types.AuthConfig{}
