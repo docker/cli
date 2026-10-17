@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
@@ -115,7 +116,10 @@ func RunExec(ctx context.Context, dockerCLI command.Cli, containerIDorName strin
 
 	execID := response.ID
 	if execID == "" {
-		return errors.New("exec ID empty")
+		return hint.Wrap(
+			errors.New("the Docker daemon returned an empty response when creating the exec session"),
+			"This is unexpected — please report it at https://github.com/moby/moby/issues with the daemon version ('docker version') and the command you ran.",
+		)
 	}
 
 	if options.Detach {

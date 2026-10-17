@@ -38,7 +38,7 @@ func TestRunCopyWithInvalidArguments(t *testing.T) {
 				source:      "./source",
 				destination: "./dest",
 			},
-			expectedErr: "must specify at least one container source",
+			expectedErr: "one argument must reference a container as 'CONTAINER:PATH'",
 		},
 	}
 	for _, testcase := range testcases {
