@@ -26,6 +26,8 @@ type fakeClient struct {
 	imageImportFunc  func(source client.ImageImportSource, ref string, options client.ImageImportOptions) (client.ImageImportResult, error)
 	imageHistoryFunc func(img string, options ...client.ImageHistoryOption) (client.ImageHistoryResult, error)
 	imageBuildFunc   func(context.Context, io.Reader, client.ImageBuildOptions) (client.ImageBuildResult, error)
+
+	distributionInspectFunc func(image string, options client.DistributionInspectOptions) (client.DistributionInspectResult, error)
 }
 
 type fakeStreamResult struct {
@@ -129,4 +131,11 @@ func (cli *fakeClient) ImageBuild(ctx context.Context, buildContext io.Reader, o
 		return cli.imageBuildFunc(ctx, buildContext, options)
 	}
 	return client.ImageBuildResult{Body: io.NopCloser(strings.NewReader(""))}, nil
+}
+
+func (cli *fakeClient) DistributionInspect(_ context.Context, imageRef string, options client.DistributionInspectOptions) (client.DistributionInspectResult, error) {
+	if cli.distributionInspectFunc != nil {
+		return cli.distributionInspectFunc(imageRef, options)
+	}
+	return client.DistributionInspectResult{}, nil
 }
