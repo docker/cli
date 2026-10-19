@@ -62,6 +62,22 @@ func TestNonexistingHelp(t *testing.T) {
 	})
 }
 
+// TestNonexistingVersion ensures correct behaviour when invoking a
+// nonexistent plugin with `--version`.
+func TestNonexistingVersion(t *testing.T) {
+	run, _, cleanup := prepare(t)
+	defer cleanup()
+
+	for _, flag := range []string{"--version", "-v"} {
+		res := icmd.RunCmd(run("nonexistent", flag))
+		res.Assert(t, icmd.Expected{
+			ExitCode: 1,
+			Out:      icmd.None,
+		})
+		golden.Assert(t, res.Stderr(), "docker-nonexistent-err.golden")
+	}
+}
+
 // TestRunBad ensures correct behaviour when running an existent but invalid plugin
 func TestRunBad(t *testing.T) {
 	run, _, cleanup := prepare(t)

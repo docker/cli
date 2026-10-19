@@ -580,6 +580,15 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 			}
 			// Other missing or invalid plugins fall through to cmd.ExecuteContext(),
 			// which reports the standard unknown-command error.
+			//
+			// Cobra handles "--version" before it checks for unknown commands,
+			// so unset it to make "docker nonexistent --version" fail instead
+			// of printing the version. A global "--version" flag (as in
+			// "docker --version nonexistent") was already parsed, and still
+			// prints the version.
+			if !cmd.Flags().Changed("version") {
+				cmd.Version = ""
+			}
 		}
 	}
 
