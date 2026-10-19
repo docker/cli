@@ -97,8 +97,6 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 		return nil, ErrDeviceLoginStartFail
 	}
 
-	_, _ = fmt.Fprintln(w, aec.Bold.Apply("\nUSING WEB-BASED LOGIN"))
-
 	var out tui.Output
 	switch stream := w.(type) {
 	case *streams.Out:
@@ -106,7 +104,7 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 	default:
 		out = tui.NewOutput(streams.NewOut(w))
 	}
-	out.PrintNote("To sign in with credentials on the command line, use 'docker login -u <username>'\n")
+	out.PrintNote("Using web-based login. To sign in with credentials on the command line, use 'docker login -u <username>'\n")
 	_, _ = fmt.Fprintf(w, "\nYour one-time device confirmation code is: "+aec.Bold.Apply("%s\n"), state.UserCode)
 	_, _ = fmt.Fprintf(w, aec.Bold.Apply("Press ENTER")+" to open your browser or submit your device code here: "+aec.Underline.Apply("%s\n"), strings.Split(state.VerificationURI, "?")[0])
 

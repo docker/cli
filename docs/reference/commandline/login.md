@@ -180,8 +180,7 @@ code, and authenticate.
 ```console
 $ docker login
 
-USING WEB-BASED LOGIN
-To sign in with credentials on the command line, use 'docker login -u <username>'
+Using web-based login. To sign in with credentials on the command line, use 'docker login -u <username>'
 
 Your one-time device confirmation code is: LNFR-PGCJ
 Press ENTER to open your browser or submit your device code here: https://login.docker.com/activate
