@@ -79,3 +79,43 @@ func TestManifestAnnotate(t *testing.T) {
 	expected := golden.Get(t, "inspect-annotate.golden")
 	assert.Check(t, is.Equal(string(expected), actual.String()))
 }
+
+func TestManifestAnnotateUnsetFields(t *testing.T) {
+	manifestStore := store.NewStore(t.TempDir())
+
+	cli := test.NewFakeCli(nil)
+	cli.SetManifestStore(manifestStore)
+	listRef := ref(t, "list:v1")
+	namedRef := ref(t, "alpine:3.0")
+	err := manifestStore.Save(listRef, namedRef, fullImageManifest(t, namedRef))
+	assert.NilError(t, err)
+
+	annotate := func(args ...string) {
+		t.Helper()
+		cmd := newAnnotateCommand(cli)
+		cmd.SetArgs(append([]string{"example.com/list:v1", "example.com/alpine:3.0"}, args...))
+		cmd.SetOut(io.Discard)
+		cmd.SetErr(io.Discard)
+		assert.NilError(t, cmd.Execute())
+	}
+
+	annotate("--os", "linux", "--arch", "arm", "--variant", "v7", "--os-version", "1")
+	imageManifest, err := manifestStore.Get(listRef, namedRef)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(imageManifest.Descriptor.Platform.Variant, "v7"))
+	assert.Check(t, is.Equal(imageManifest.Descriptor.Platform.OSVersion, "1"))
+
+	// Not passing the flags should preserve the existing values.
+	annotate()
+	imageManifest, err = manifestStore.Get(listRef, namedRef)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(imageManifest.Descriptor.Platform.Variant, "v7"))
+	assert.Check(t, is.Equal(imageManifest.Descriptor.Platform.OSVersion, "1"))
+
+	// Passing an empty value should unset them.
+	annotate("--variant", "", "--os-version", "")
+	imageManifest, err = manifestStore.Get(listRef, namedRef)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(imageManifest.Descriptor.Platform.Variant, ""))
+	assert.Check(t, is.Equal(imageManifest.Descriptor.Platform.OSVersion, ""))
+}

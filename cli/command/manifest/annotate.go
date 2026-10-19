@@ -28,6 +28,11 @@ type annotateOptions struct {
 	arch       string
 	osFeatures []string
 	osVersion  string
+
+	// variantChanged and osVersionChanged are set if the flags were passed,
+	// so that an empty value can be used to unset them.
+	variantChanged   bool
+	osVersionChanged bool
 }
 
 // manifestStoreProvider is used in tests to provide a dummy store.
@@ -84,6 +89,8 @@ func newAnnotateCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
 			opts.image = args[1]
+			opts.variantChanged = cmd.Flags().Changed("variant")
+			opts.osVersionChanged = cmd.Flags().Changed("os-version")
 			return runManifestAnnotate(dockerCLI, opts)
 		},
 		DisableFlagsInUseLine: true,
@@ -132,10 +139,10 @@ func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	for _, osFeature := range opts.osFeatures {
 		imageManifest.Descriptor.Platform.OSFeatures = appendIfUnique(imageManifest.Descriptor.Platform.OSFeatures, osFeature)
 	}
-	if opts.variant != "" {
+	if opts.variantChanged {
 		imageManifest.Descriptor.Platform.Variant = opts.variant
 	}
-	if opts.osVersion != "" {
+	if opts.osVersionChanged {
 		imageManifest.Descriptor.Platform.OSVersion = opts.osVersion
 	}
 
