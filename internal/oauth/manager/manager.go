@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -124,7 +125,19 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 		if _, err := reader.ReadString('\n'); err != nil || ctx.Err() != nil {
 			return
 		}
-		_ = m.openBrowser(state.VerificationURI)
+		err := m.openBrowser(state.VerificationURI)
+		if ctx.Err() != nil {
+			return
+		}
+		if err != nil {
+			if errors.Is(err, exec.ErrNotFound) {
+				_, _ = fmt.Fprintln(w, "No browser found. Open the URL above manually to continue.")
+			} else {
+				_, _ = fmt.Fprintln(w, "Failed to open browser:", err)
+				_, _ = fmt.Fprintln(w, "Open the URL above manually to continue.")
+			}
+			return
+		}
 	}()
 
 	_, _ = fmt.Fprint(w, "\nWaiting for authentication in the browser…\n")
