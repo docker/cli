@@ -83,6 +83,9 @@ var ErrDeviceLoginStartFail = errors.New("failed to start device code flow login
 // The retrieved tokens are stored in the credentials store (under a separate
 // key), and the refresh token is concatenated with the client ID.
 func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.AuthConfig, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	state, err := m.api.GetDeviceCode(ctx, m.audience)
 	if err != nil {
 		logrus.Debugf("failed to start device code login: %v", err)
@@ -120,7 +123,9 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
-		_, _ = reader.ReadString('\n')
+		if _, err := reader.ReadString('\n'); err != nil || ctx.Err() != nil {
+			return
+		}
 		_ = m.openBrowser(state.VerificationURI)
 	}()
 
