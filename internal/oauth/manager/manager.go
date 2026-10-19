@@ -18,8 +18,6 @@ import (
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	"github.com/morikuni/aec"
-	"github.com/sirupsen/logrus"
-
 	"github.com/pkg/browser"
 )
 
@@ -89,13 +87,11 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 
 	state, err := m.api.GetDeviceCode(ctx, m.audience)
 	if err != nil {
-		logrus.Debugf("failed to start device code login: %v", err)
-		return nil, ErrDeviceLoginStartFail
+		return nil, fmt.Errorf("%w: %w", ErrDeviceLoginStartFail, err)
 	}
 
 	if state.UserCode == "" {
-		logrus.Debugf("failed to start device code login: missing user code")
-		return nil, ErrDeviceLoginStartFail
+		return nil, fmt.Errorf("%w: missing user code", ErrDeviceLoginStartFail)
 	}
 
 	var out tui.Output

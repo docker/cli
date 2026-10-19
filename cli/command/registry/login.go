@@ -19,6 +19,7 @@ import (
 	"github.com/docker/cli/internal/tui"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -226,7 +227,7 @@ func loginWithStoredCredentials(ctx context.Context, dockerCLI command.Cli, auth
 	return resp.Auth.Status, err
 }
 
-func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, defaultUsername, serverAddress string) (msg string, _ error) {
+func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, defaultUsername, serverAddress string) (message string, _ error) {
 	// Some links documenting this:
 	// - https://code.google.com/archive/p/mintty/issues/56
 	// - https://github.com/docker/docker/issues/15272
@@ -240,13 +241,12 @@ func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, de
 
 	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
 	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" {
-		var err error
-		msg, err = loginWithDeviceCodeFlow(ctx, dockerCLI)
-		// if the error represents a failure to initiate the device-code flow,
-		// then we fallback to regular cli credentials login
-		if !errors.Is(err, manager.ErrDeviceLoginStartFail) {
+		msg, err := loginWithDeviceCodeFlow(ctx, dockerCLI)
+		if err == nil || !errors.Is(err, manager.ErrDeviceLoginStartFail) {
 			return msg, err
 		}
+
+		logrus.WithError(err).Debug("failed to start web-based login")
 		_, _ = fmt.Fprint(dockerCLI.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
 	}
 
