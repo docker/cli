@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -360,4 +362,18 @@ func (*fakeStore) GetFilename() string {
 
 func newStore(auths map[string]types.AuthConfig) *fakeStore {
 	return &fakeStore{configs: auths}
+}
+
+func TestOpenURLWithBrowserEnv(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses touch as the browser command")
+	}
+	// "touch -m <url>" creates a file at <url>, which lets us check that
+	// the command (with its arguments) from BROWSER was used to open the url.
+	t.Setenv("BROWSER", "touch -m")
+	url := filepath.Join(t.TempDir(), "opened")
+
+	assert.NilError(t, openURL(url))
+	_, err := os.Stat(url)
+	assert.NilError(t, err)
 }

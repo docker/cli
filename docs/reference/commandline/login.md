@@ -189,6 +189,14 @@ Press ENTER to open your browser or submit your device code here: https://login.
 Waiting for authentication in the browser…
 ```
 
+Pressing ENTER opens the URL in your default browser. To use a
+different command to open the URL, for example in a dev container that
+forwards URLs to the host, set the `BROWSER` environment variable:
+
+```console
+$ BROWSER="my-url-opener --flag" docker login
+```
+
 After entering the code in your browser, you are authenticated to Docker Hub
 using the account you're currently signed in with on the Docker Hub website or
 in Docker Desktop. If you aren't signed in, you are prompted to sign in after

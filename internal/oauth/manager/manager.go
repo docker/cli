@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -56,7 +57,7 @@ func New(options OAuthManagerOptions) *OAuthManager {
 		// cluttering the output. We can handle errors ourselves.
 		browser.Stdout = io.Discard
 		browser.Stderr = io.Discard
-		openBrowser = browser.OpenURL
+		openBrowser = openURL
 	}
 
 	return &OAuthManager{
@@ -71,6 +72,21 @@ func New(options OAuthManagerOptions) *OAuthManager {
 		},
 		openBrowser: openBrowser,
 	}
+}
+
+// openURL opens url using the command in the BROWSER environment variable
+// if set, and falls back to the platform default otherwise, or if the
+// command can't be started.
+func openURL(url string) error {
+	if args := strings.Fields(os.Getenv("BROWSER")); len(args) > 0 {
+		cmd := exec.Command(args[0], append(args[1:], url)...)
+		err := cmd.Start()
+		if err == nil {
+			return cmd.Wait()
+		}
+		logrus.WithError(err).Debug("failed to run BROWSER command, using default browser")
+	}
+	return browser.OpenURL(url)
 }
 
 var ErrDeviceLoginStartFail = errors.New("failed to start device code flow login")
