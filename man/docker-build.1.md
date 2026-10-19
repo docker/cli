@@ -83,16 +83,24 @@ set as the **URL**, the repository is cloned locally and then sent as the contex
    Add a line to /etc/hosts. The format is hostname=ip, or hostname:ip.
    The **--add-host** option can be set multiple times.
 
-**--build-arg** *variable*
-   name and value of a **buildarg**.
+**--build-arg** *name*[=*value*]
+   Set a build-time variable. The *name* is the variable name, as declared
+   by an `ARG` instruction in the Dockerfile. If *value* is omitted, the
+   value of the variable *name* from the local environment is used; if it is
+   not set there either, the default from the `ARG` instruction (if any) is
+   used.
+
+   Build-time variables are available as environment variables to commands
+   run by the Dockerfile's `RUN` instructions, and can be used for variable
+   expansion in other Dockerfile instructions. An environment variable defined
+   by an `ENV` instruction always overrides an `ARG` of the same name. This
+   mechanism is not meant for passing secret values.
 
    For example, if you want to pass a value for `http_proxy`, use
    `--build-arg=http_proxy="http://some.proxy.url"`
 
-   Users pass these values at build-time. Docker uses the `buildargs` as the
-   environment context for command(s) run via the Dockerfile's `RUN` instruction
-   or for variable expansion in other Dockerfile instructions. This is not meant
-   for passing secret values. [Read more about the buildargs instruction](https://docs.docker.com/engine/reference/builder/#arg)
+   See also https://docs.docker.com/reference/dockerfile/#arg and
+   https://docs.docker.com/reference/cli/docker/buildx/build/#build-arg.
 
 **--cache-from** ""
    Set image that will be used as a build cache source.
