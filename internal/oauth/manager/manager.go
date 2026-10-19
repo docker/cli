@@ -79,7 +79,7 @@ func New(options OAuthManagerOptions) *OAuthManager {
 // command can't be started.
 func openURL(url string) error {
 	if args := strings.Fields(os.Getenv("BROWSER")); len(args) > 0 {
-		cmd := exec.Command(args[0], append(args[1:], url)...)
+		cmd := exec.Command(args[0], append(args[1:], url)...) // #nosec G204 -- BROWSER is set by the user to choose the command to run
 		err := cmd.Start()
 		if err == nil {
 			return cmd.Wait()
