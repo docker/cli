@@ -109,3 +109,41 @@ jobs:
         working-directory: ${{ github.workspace }}/src/github.com/docker/cli
         run: |
           make -C ./internal/gocompat verify
+
+  # check that dependencies confined in vendor.mod cannot reach privileged
+  # capabilities (file, network, exec, syscall, ...), using gomodjail in
+  # static mode. see the comment at the top of vendor.mod.
+  validate-gomodjail:
+    runs-on: ubuntu-26.04
+    env:
+      GOMODJAIL_VERSION: v2.0.1
+    strategy:
+      fail-fast: false
+      matrix:
+        goos:
+          - linux
+          - darwin
+        # windows is not checked yet, as the analysis reports false
+        # positives inside the Go standard library on windows.
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      -
+        name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26.9"
+          cache: false
+      -
+        name: Install gomodjail
+        run: |
+          go install "github.com/AkihiroSuda/gomodjail/v2/cmd/gomodjail@${GOMODJAIL_VERSION}"
+      -
+        name: Run gomodjail
+        env:
+          GOOS_TARGET: ${{ matrix.goos }}
+        run: |
+          scripts/with-go-mod.sh gomodjail analyze --goos="${GOOS_TARGET}" --goarch=amd64 ./...
