@@ -106,8 +106,9 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 		out = tui.NewOutput(streams.NewOut(w))
 	}
 	out.PrintNote("Using web-based login. To sign in with credentials on the command line, use 'docker login -u <username>'\n")
-	_, _ = fmt.Fprintf(w, "\nYour one-time device confirmation code is: "+aec.Bold.Apply("%s\n"), state.UserCode)
-	_, _ = fmt.Fprintf(w, aec.Bold.Apply("Press ENTER")+" to open your browser or submit your device code here: "+aec.Underline.Apply("%s\n"), strings.Split(state.VerificationURI, "?")[0])
+	_, _ = fmt.Fprintln(w, "Your one-time device confirmation code is:", aec.Bold.Apply(state.UserCode))
+	_, _ = fmt.Fprintln(w, "Open this URL to authenticate:", aec.Underline.Apply(state.VerificationURI))
+	_, _ = fmt.Fprintln(w, "\n"+aec.Bold.Apply("Press ENTER")+" to open the URL in your browser, or "+aec.Bold.Apply("Ctrl+C")+" to cancel.")
 
 	tokenResChan := make(chan api.TokenResponse)
 	waitForTokenErrChan := make(chan error)
@@ -138,9 +139,9 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 			}
 			return
 		}
+		_, _ = fmt.Fprintln(w, "\nOpening browser…")
 	}()
 
-	_, _ = fmt.Fprint(w, "\nWaiting for authentication in the browser…\n")
 	var tokenRes api.TokenResponse
 	select {
 	case <-ctx.Done():

@@ -183,9 +183,9 @@ $ docker login
 Using web-based login. To sign in with credentials on the command line, use 'docker login -u <username>'
 
 Your one-time device confirmation code is: LNFR-PGCJ
-Press ENTER to open your browser or submit your device code here: https://login.docker.com/activate
+Open this URL to authenticate: https://login.docker.com/activate?user_code=LNFR-PGCJ
 
-Waiting for authentication in the browser…
+Press ENTER to open the URL in your browser, or Ctrl+C to cancel.
 ```
 
 After entering the code in your browser, you are authenticated to Docker Hub
