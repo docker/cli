@@ -7,12 +7,12 @@ import (
 	"io"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cmd/docker-trust/internal/trust"
-	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/docker/cli/opts"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary/client"
@@ -45,7 +45,7 @@ func newSignerAddCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-var validSignerName = lazyregexp.New(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
+var validSignerName = regexp.MustCompile(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
 
 func addSigner(ctx context.Context, dockerCLI command.Cli, options signerAddOptions) error {
 	signerName := options.signer
