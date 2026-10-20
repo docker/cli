@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -43,7 +44,16 @@ func ParseTemplate(hookTemplate string, cmd *cobra.Command) ([]string, error) {
 	if n := strings.Count(out, "\n"); n > maxMessages {
 		return nil, fmt.Errorf("hook template contains too many messages (%d): maximum is %d", n, maxMessages)
 	}
-	return strings.SplitN(out, "\n", maxMessages), nil
+	lines := strings.SplitN(out, "\n", maxMessages)
+
+	// Skip messages containing only whitespace, but preserve empty lines
+	// in messages that have content (e.g., for paragraph spacing).
+	if !slices.ContainsFunc(lines, func(line string) bool {
+		return strings.TrimSpace(line) != ""
+	}) {
+		return nil, nil
+	}
+	return lines, nil
 }
 
 var ErrHookTemplateParse = errors.New("failed to parse hook template")
