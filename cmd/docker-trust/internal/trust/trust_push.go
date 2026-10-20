@@ -10,7 +10,7 @@ import (
 	"slices"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v29/cli/streams"
 	"github.com/moby/moby/api/types/jsonstream"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/client/pkg/jsonmessage"

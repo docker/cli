@@ -3,7 +3,7 @@ package loader
 import (
 	"os"
 
-	"github.com/docker/cli/pkg/kvfile"
+	"github.com/docker/cli/v29/pkg/kvfile"
 )
 
 // parseEnvFile reads a file with environment variables enumerated by lines

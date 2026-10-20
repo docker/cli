@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
 	"github.com/moby/moby/api/types/mount"
 )
 

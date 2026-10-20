@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli-plugins/metadata"
-	"github.com/docker/cli/internal/test"
+	pluginmanager "github.com/docker/cli/v29/cli-plugins/manager"
+	"github.com/docker/cli/v29/cli-plugins/metadata"
+	"github.com/docker/cli/v29/internal/test"
 	registrytypes "github.com/moby/moby/api/types/registry"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"

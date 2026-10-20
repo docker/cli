@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/distribution/reference"
-	manifesttypes "github.com/docker/cli/cli/manifest/types"
-	"github.com/docker/cli/internal/registryclient"
+	manifesttypes "github.com/docker/cli/v29/cli/manifest/types"
+	"github.com/docker/cli/v29/internal/registryclient"
 	"github.com/docker/distribution"
 	"github.com/opencontainers/go-digest"
 )
