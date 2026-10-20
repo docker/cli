@@ -192,7 +192,8 @@ func (s *ContextStore) ResetEndpointTLSMaterial(contextName string, endpointName
 }
 
 // ListTLSFiles returns the list of TLS files present for each endpoint in the
-// context.
+// context. Hidden files (such as ".DS_Store"), and the "Thumbs.db" and
+// "desktop.ini" files created by Windows Explorer, are skipped.
 func (s *ContextStore) ListTLSFiles(name string) (map[string]EndpointFiles, error) {
 	return s.tls.listContextData(name)
 }
