@@ -66,6 +66,32 @@ func TestValueNoDefault(t *testing.T) {
 	}
 }
 
+func TestUnbracedVariableWithModifierChars(t *testing.T) {
+	// Modifiers (":-", "-", ":?", "?") are only supported in the braced
+	// form; for "$VAR", they are literal characters following the variable.
+	testCases := []struct {
+		template string
+		expected string
+	}{
+		{template: "$FOO-suffix", expected: "first-suffix"},
+		{template: "$FOO:-suffix", expected: "first:-suffix"},
+		{template: "$FOO?query=1", expected: "first?query=1"},
+		{template: "$FOO:?query", expected: "first:?query"},
+		{template: "$missing-suffix", expected: "-suffix"},
+		{template: "$missing:-suffix", expected: ":-suffix"},
+		{template: "$missing?query=1", expected: "?query=1"},
+		{template: "$BAR:?query", expected: ":?query"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.template, func(t *testing.T) {
+			result, err := Substitute(tc.template, defaultMapping)
+			assert.NilError(t, err)
+			assert.Check(t, is.Equal(tc.expected, result))
+		})
+	}
+}
+
 func TestNoValueWithDefault(t *testing.T) {
 	for _, template := range []string{"ok ${missing:-def}", "ok ${missing-def}"} {
 		result, err := Substitute(template, defaultMapping)
@@ -203,6 +229,15 @@ func TestExtractVariables(t *testing.T) {
 			name: "variable-without-curly-braces",
 			dict: map[string]any{
 				"foo": "$bar",
+			},
+			expected: map[string]string{
+				"bar": "",
+			},
+		},
+		{
+			name: "variable-without-curly-braces-and-suffix",
+			dict: map[string]any{
+				"foo": "$bar-suffix",
 			},
 			expected: map[string]string{
 				"bar": "",
