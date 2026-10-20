@@ -33,6 +33,13 @@ For full details on using docker manifest lists, see the registry v2 specificati
 The `docker manifest` command by itself performs no action. In order to operate
 on a manifest or manifest list, one of the subcommands must be used.
 
+Local manifest lists (created with `docker manifest create` and removed with
+`docker manifest rm`) are stored under the Docker CLI config directory
+(`$DOCKER_CONFIG`, defaulting to `$HOME/.docker`). Running the CLI with `sudo`
+typically switches `$HOME` to `/root`, so `sudo docker manifest rm …` looks in a
+different store than a non-sudo `docker manifest create`. Prefer running without
+`sudo`, or set `DOCKER_CONFIG` to the same directory for both commands.
+
 A single manifest is information about an image, such as layers, size, and
 digest. The `docker manifest` command also gives you additional information,
 such as the OS and architecture an image was built for.
