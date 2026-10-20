@@ -148,6 +148,29 @@ func TestValidatePorts(t *testing.T) {
 	}
 }
 
+func TestValidateNumericCPUs(t *testing.T) {
+	config := dict{
+		"services": dict{
+			"foo": dict{
+				"image": "busybox",
+				"deploy": dict{
+					"resources": dict{
+						"limits": dict{
+							"cpus": 0.5,
+						},
+						"reservations": dict{
+							"cpus": 1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	assert.NilError(t, Validate(config, "3.13"))
+	assert.NilError(t, Validate(config, "3"))
+}
+
 func TestValidateUndefinedTopLevelOption(t *testing.T) {
 	config := dict{
 		"version": "3.0",
