@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
@@ -17,8 +18,6 @@ import (
 	"github.com/docker/cli/internal/registry"
 	"github.com/docker/cli/internal/tui"
 	"github.com/morikuni/aec"
-	"github.com/sirupsen/logrus"
-
 	"github.com/pkg/browser"
 )
 
@@ -83,18 +82,17 @@ var ErrDeviceLoginStartFail = errors.New("failed to start device code flow login
 // The retrieved tokens are stored in the credentials store (under a separate
 // key), and the refresh token is concatenated with the client ID.
 func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.AuthConfig, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	state, err := m.api.GetDeviceCode(ctx, m.audience)
 	if err != nil {
-		logrus.Debugf("failed to start device code login: %v", err)
-		return nil, ErrDeviceLoginStartFail
+		return nil, fmt.Errorf("%w: %w", ErrDeviceLoginStartFail, err)
 	}
 
 	if state.UserCode == "" {
-		logrus.Debugf("failed to start device code login: missing user code")
-		return nil, ErrDeviceLoginStartFail
+		return nil, fmt.Errorf("%w: missing user code", ErrDeviceLoginStartFail)
 	}
-
-	_, _ = fmt.Fprintln(w, aec.Bold.Apply("\nUSING WEB-BASED LOGIN"))
 
 	var out tui.Output
 	switch stream := w.(type) {
@@ -103,9 +101,10 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 	default:
 		out = tui.NewOutput(streams.NewOut(w))
 	}
-	out.PrintNote("To sign in with credentials on the command line, use 'docker login -u <username>'\n")
-	_, _ = fmt.Fprintf(w, "\nYour one-time device confirmation code is: "+aec.Bold.Apply("%s\n"), state.UserCode)
-	_, _ = fmt.Fprintf(w, aec.Bold.Apply("Press ENTER")+" to open your browser or submit your device code here: "+aec.Underline.Apply("%s\n"), strings.Split(state.VerificationURI, "?")[0])
+	out.PrintNote("Using web-based login. To sign in with credentials on the command line, use 'docker login -u <username>'\n")
+	_, _ = fmt.Fprintln(w, "Your one-time device confirmation code is:", aec.Bold.Apply(state.UserCode))
+	_, _ = fmt.Fprintln(w, "Open this URL to authenticate:", aec.Underline.Apply(state.VerificationURI))
+	_, _ = fmt.Fprintln(w, "\n"+aec.Bold.Apply("Press ENTER")+" to open the URL in your browser, or "+aec.Bold.Apply("Ctrl+C")+" to cancel.")
 
 	tokenResChan := make(chan api.TokenResponse)
 	waitForTokenErrChan := make(chan error)
@@ -120,11 +119,25 @@ func (m *OAuthManager) LoginDevice(ctx context.Context, w io.Writer) (*types.Aut
 
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
-		_, _ = reader.ReadString('\n')
-		_ = m.openBrowser(state.VerificationURI)
+		if _, err := reader.ReadString('\n'); err != nil || ctx.Err() != nil {
+			return
+		}
+		err := m.openBrowser(state.VerificationURI)
+		if ctx.Err() != nil {
+			return
+		}
+		if err != nil {
+			if errors.Is(err, exec.ErrNotFound) {
+				_, _ = fmt.Fprintln(w, "No browser found. Open the URL above manually to continue.")
+			} else {
+				_, _ = fmt.Fprintln(w, "Failed to open browser:", err)
+				_, _ = fmt.Fprintln(w, "Open the URL above manually to continue.")
+			}
+			return
+		}
+		_, _ = fmt.Fprintln(w, "\nOpening browser…")
 	}()
 
-	_, _ = fmt.Fprint(w, "\nWaiting for authentication in the browser…\n")
 	var tokenRes api.TokenResponse
 	select {
 	case <-ctx.Done():
