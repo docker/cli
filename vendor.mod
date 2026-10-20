@@ -11,6 +11,7 @@ tool (
 	golang.org/x/mod/modfile // for module compatibility check
 )
 
+// Docker, Moby, and golang.org/x packages are trusted
 require (
 	dario.cat/mergo v1.0.2
 	github.com/containerd/errdefs v1.0.0
@@ -19,11 +20,11 @@ require (
 	github.com/containerd/platforms v1.0.0-rc.5
 	github.com/creack/pty v1.1.24
 	github.com/distribution/reference v0.6.0
-	github.com/docker/cli-docs-tool v0.11.0
-	github.com/docker/distribution v2.8.3+incompatible
-	github.com/docker/docker-credential-helpers v0.9.9
-	github.com/docker/go-connections v0.8.2
-	github.com/docker/go-units v0.5.0
+	github.com/docker/cli-docs-tool v0.11.0 //gosocialcheck:trusted
+	github.com/docker/distribution v2.8.3+incompatible //gosocialcheck:trusted
+	github.com/docker/docker-credential-helpers v0.9.9 //gosocialcheck:trusted
+	github.com/docker/go-connections v0.8.2 //gosocialcheck:trusted
+	github.com/docker/go-units v0.5.0 //gosocialcheck:trusted
 	github.com/fvbommel/sortorder v1.2.1
 	github.com/go-jose/go-jose/v4 v4.1.5
 	github.com/go-viper/mapstructure/v2 v2.5.0
@@ -32,17 +33,17 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.31
-	github.com/moby/go-archive v0.3.3
-	github.com/moby/moby/api v1.56.1
-	github.com/moby/moby/client v0.6.2
-	github.com/moby/patternmatcher v0.6.1
-	github.com/moby/swarmkit/v2 v2.1.2
-	github.com/moby/sys/atomicwriter v0.1.0
-	github.com/moby/sys/capability v0.4.0
-	github.com/moby/sys/sequential v0.7.0
-	github.com/moby/sys/signal v0.7.1
-	github.com/moby/sys/symlink v0.3.0
-	github.com/moby/term v0.5.2
+	github.com/moby/go-archive v0.3.3 //gosocialcheck:trusted
+	github.com/moby/moby/api v1.56.1 //gosocialcheck:trusted
+	github.com/moby/moby/client v0.6.2 //gosocialcheck:trusted
+	github.com/moby/patternmatcher v0.6.1 //gosocialcheck:trusted
+	github.com/moby/swarmkit/v2 v2.1.2 //gosocialcheck:trusted
+	github.com/moby/sys/atomicwriter v0.1.0 //gosocialcheck:trusted
+	github.com/moby/sys/capability v0.4.0 //gosocialcheck:trusted
+	github.com/moby/sys/sequential v0.7.0 //gosocialcheck:trusted
+	github.com/moby/sys/signal v0.7.1 //gosocialcheck:trusted
+	github.com/moby/sys/symlink v0.3.0 //gosocialcheck:trusted
+	github.com/moby/term v0.5.2 //gosocialcheck:trusted
 	github.com/morikuni/aec v1.1.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
@@ -61,14 +62,15 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
 	go.yaml.in/yaml/v3 v3.0.5
-	golang.org/x/sync v0.23.0
-	golang.org/x/sys v0.48.0
-	golang.org/x/term v0.46.0
-	golang.org/x/text v0.42.0
+	golang.org/x/sync v0.23.0 //gosocialcheck:trusted
+	golang.org/x/sys v0.48.0 //gosocialcheck:trusted
+	golang.org/x/term v0.46.0 //gosocialcheck:trusted
+	golang.org/x/text v0.42.0 //gosocialcheck:trusted
 	gotest.tools/v3 v3.5.2
 	tags.cncf.io/container-device-interface v1.1.1
 )
 
+// Docker, Moby, and golang.org/x packages are trusted
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4 // indirect
 	github.com/Microsoft/go-winio v0.6.3 // indirect
@@ -77,8 +79,11 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
+	//gosocialcheck:trusted
 	github.com/docker/go-events v0.1.0 // indirect
+	//gosocialcheck:trusted
 	github.com/docker/go-metrics v0.1.0 // indirect
+	//gosocialcheck:trusted
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -88,8 +93,11 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
+	//gosocialcheck:trusted
 	github.com/moby/docker-image-spec v1.3.1 // indirect
+	//gosocialcheck:trusted
 	github.com/moby/sys/user v0.4.1 // indirect
+	//gosocialcheck:trusted
 	github.com/moby/sys/userns v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
@@ -101,8 +109,11 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
+	//gosocialcheck:trusted
 	golang.org/x/mod v0.41.0 // indirect
+	//gosocialcheck:trusted
 	golang.org/x/net v0.60.0 // indirect
+	//gosocialcheck:trusted
 	golang.org/x/time v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260825221802-da73d73af1c5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260825221802-da73d73af1c5 // indirect
