@@ -320,6 +320,7 @@ func loginWithDeviceCodeFlow(ctx context.Context, dockerCLI command.Cli) (msg st
 }
 
 func storeCredentials(cfg *configfile.ConfigFile, authConfig registrytypes.AuthConfig) error {
+	authConfig.ServerAddress = strings.ToLower(authConfig.ServerAddress)
 	creds := cfg.GetCredentialsStore(authConfig.ServerAddress)
 	if err := creds.Store(configtypes.AuthConfig{
 		Username:      authConfig.Username,
