@@ -32,6 +32,12 @@ func (e errPluginNotFound) Error() string {
 	return "Error: No such CLI plugin: " + string(e)
 }
 
+// additionalSystemPluginDir is an optional system plugin directory that can be
+// set at build time using -ldflags -X.
+//
+// For example: -X github.com/docker/cli/cli-plugins/manager.additionalSystemPluginDir=/path/to/cli-plugins
+var additionalSystemPluginDir string
+
 // getPluginDirs returns the platform-specific locations to search for plugins
 // in order of preference.
 //
@@ -39,7 +45,8 @@ func (e errPluginNotFound) Error() string {
 //
 // 1. The "cli-plugins" directory inside the CLIs [config.Path] (usually "~/.docker/cli-plugins").
 // 2. Additional plugin directories as configured through [ConfigFile.CLIPluginsExtraDirs].
-// 3. Platform-specific defaultSystemPluginDirs.
+// 3. The additional system plugin directory configured at build time.
+// 4. Platform-specific defaultSystemPluginDirs.
 //
 // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
 func getPluginDirs(cfg *configfile.ConfigFile) []string {
@@ -50,6 +57,9 @@ func getPluginDirs(cfg *configfile.ConfigFile) []string {
 	}
 	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	pluginDirs = append(pluginDirs, pluginDir)
+	if additionalSystemPluginDir != "" {
+		pluginDirs = append(pluginDirs, additionalSystemPluginDir)
+	}
 	pluginDirs = append(pluginDirs, defaultSystemPluginDirs...)
 	return pluginDirs
 }
