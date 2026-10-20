@@ -325,6 +325,64 @@ func TestInitializeShouldAlwaysCreateTheContextStore(t *testing.T) {
 	assert.Check(t, cli.ContextStore() != nil)
 }
 
+func TestInitializeContextResolver(t *testing.T) {
+	resolverErr := errors.New("resolver failed")
+
+	for _, tc := range []struct {
+		name    string
+		context string
+		err     error
+	}{
+		{name: "resolved context", context: "resolved"},
+		{name: "normal selection"},
+		{name: "resolver failure", err: resolverErr},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			originalConfigDir := config.Dir()
+			t.Cleanup(func() { config.SetDir(originalConfigDir) })
+			config.SetDir(t.TempDir())
+
+			configDir := t.TempDir()
+			cfg := configfile.New(filepath.Join(configDir, config.ConfigFileName))
+			cfg.Features = map[string]string{"cloud": "foobar"}
+			assert.NilError(t, cfg.Save())
+
+			cli, err := NewDockerCli()
+			assert.NilError(t, err)
+
+			var loadedConfig *configfile.ConfigFile
+			calls := 0
+
+			err = cli.Initialize(&flags.ClientOptions{ConfigDir: configDir, Context: "original"},
+				WithContextResolver(func(cli *DockerCli) (string, error) {
+					calls++
+					assert.Equal(t, config.Dir(), configDir)
+					loadedConfig = cli.ConfigFile()
+					assert.Equal(t, loadedConfig.Features["cloud"], "foobar")
+					assert.Assert(t, cli.ContextStore() != nil)
+					assert.Assert(t, cli.client == nil)
+					return tc.context, tc.err
+				}),
+			)
+			assert.Equal(t, calls, 1)
+			assert.Assert(t, cli.ConfigFile() == loadedConfig)
+			assert.Assert(t, cli.client == nil)
+
+			if tc.err != nil {
+				assert.ErrorIs(t, err, tc.err)
+				return
+			}
+			assert.NilError(t, err)
+
+			wantContext := tc.context
+			if wantContext == "" {
+				wantContext = "original"
+			}
+			assert.Equal(t, cli.CurrentContext(), wantContext)
+		})
+	}
+}
+
 func TestHooksEnabled(t *testing.T) {
 	t.Run("disabled by default", func(t *testing.T) {
 		// Make sure we don't depend on any existing ~/.docker/config.json

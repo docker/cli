@@ -1,3 +1,6 @@
+// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
+//go:build go1.26
+
 package metadata
 
 const (
@@ -35,4 +38,7 @@ type Metadata struct {
 	URL string `json:",omitempty"`
 	// Hidden hides the plugin in completion and help message output.
 	Hidden bool `json:",omitempty"`
+	// Features declares optional contracts supported by the plugin, keyed by
+	// feature name.
+	Features map[string]any `json:",omitempty"`
 }

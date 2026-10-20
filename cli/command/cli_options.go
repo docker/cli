@@ -84,6 +84,19 @@ func WithDefaultContextStoreConfig() CLIOption {
 	}
 }
 
+// WithContextResolver overrides context selection during [DockerCli.Initialize].
+// The resolver runs after configuration and the context store are loaded, but
+// before telemetry and endpoint initialization.
+// An empty result preserves normal context selection; an error aborts
+// initialization.
+// The resolver must not initialize the API client.
+func WithContextResolver(resolve func(*DockerCli) (string, error)) CLIOption {
+	return func(cli *DockerCli) error {
+		cli.contextResolver = resolve
+		return nil
+	}
+}
+
 // WithAPIClient configures the cli to use the given API client.
 func WithAPIClient(c client.APIClient) CLIOption {
 	return func(cli *DockerCli) error {

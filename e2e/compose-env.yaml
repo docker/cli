@@ -31,6 +31,7 @@ services:
         dockerfile: engine/Dockerfile
         args:
           ENGINE_VERSION: ${ENGINE_VERSION:-29}
+          ENGINE_SOURCE: ${ENGINE_SOURCE:-dind}
       privileged: true
       command: ['--insecure-registry=registry:5000', '--insecure-registry=privateregistry:5001', '--experimental']
       environment:
