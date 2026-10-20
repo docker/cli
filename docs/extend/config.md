@@ -4,7 +4,7 @@ keywords: "API, Usage, plugins, documentation, developer"
 title: Plugin Config Version 1 of Plugin V2
 ---
 
-This document outlines the format of the V0 plugin configuration.
+This document outlines the format of the version 1 plugin configuration.
 
 Plugin configs describe the various constituents of a Docker engine plugin.
 Plugin configs can be serialized to JSON format with the following media types:
@@ -15,8 +15,8 @@ Plugin configs can be serialized to JSON format with the following media types:
 
 ## Config Field Descriptions
 
-Config provides the base accessible fields for working with V0 plugin format in
-the registry.
+Config provides the base accessible fields for working with the version 1
+plugin format in the registry.
 
 - `description` string
 
