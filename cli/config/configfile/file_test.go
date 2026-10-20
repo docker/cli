@@ -757,3 +757,34 @@ func TestPluginConfig(t *testing.T) {
 	assert.NilError(t, err)
 	golden.Assert(t, string(cfg), "plugin-config-2.golden")
 }
+
+func TestSavePreservesUnknownFields(t *testing.T) {
+	dir := fs.NewDir(t, t.Name())
+	defer dir.Remove()
+	path := dir.Join("config.json")
+
+	const orig = `{
+	"experimental": "enabled",
+	"features": {
+		"hooks": "true",
+		"something-else": "false"
+	},
+	"futureThing": {"a": 1}
+}`
+	assert.NilError(t, os.WriteFile(path, []byte(orig), 0o600))
+
+	cfg := New(path)
+	assert.NilError(t, cfg.LoadFromReader(bytes.NewReader([]byte(orig))))
+	cfg.CurrentContext = "somecontext"
+	assert.NilError(t, cfg.Save())
+
+	got, err := os.ReadFile(path)
+	assert.NilError(t, err)
+
+	var parsed map[string]json.RawMessage
+	assert.NilError(t, json.Unmarshal(got, &parsed))
+	assert.Equal(t, string(parsed["experimental"]), `"enabled"`)
+	assert.Equal(t, string(parsed["currentContext"]), `"somecontext"`)
+	assert.Check(t, parsed["features"] != nil, "features should be kept")
+	assert.Check(t, parsed["futureThing"] != nil, "unknown fields should be kept")
+}
