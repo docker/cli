@@ -27,6 +27,15 @@ type pullOptions struct {
 	quiet    bool
 }
 
+// hasTagAndDigest reports whether ref specifies both a tag and a digest.
+// Those are valid reference forms, but docker pull treats them as pull-by-digest
+// and does not associate the tag with the local image, which is surprising.
+func hasTagAndDigest(ref reference.Named) bool {
+	_, tagged := ref.(reference.Tagged)
+	_, digested := ref.(reference.Digested)
+	return tagged && digested
+}
+
 // newPullCommand creates a new `docker pull` command
 func newPullCommand(dockerCLI command.Cli) *cobra.Command {
 	var opts pullOptions
@@ -73,6 +82,10 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 		return err
 	case opts.all && !reference.IsNameOnly(distributionRef):
 		return errors.New("tag can't be used with --all-tags/-a")
+	case hasTagAndDigest(distributionRef):
+		// Use line is NAME[:TAG|@DIGEST]; combining both is ambiguous (tag is
+		// dropped on pull and the image is not tagged locally).
+		return errors.New("reference cannot contain both a tag and a digest")
 	case !opts.all && reference.IsNameOnly(distributionRef):
 		distributionRef = reference.TagNameOnly(distributionRef)
 		if tagged, ok := distributionRef.(reference.Tagged); ok && !opts.quiet {
