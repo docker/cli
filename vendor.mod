@@ -24,7 +24,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.9.9
 	github.com/docker/go-connections v0.8.2
 	github.com/docker/go-units v0.5.0
-	github.com/fvbommel/sortorder v1.2.0
+	github.com/fvbommel/sortorder v1.2.1
 	github.com/go-jose/go-jose/v4 v4.1.5
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/gogo/protobuf v1.3.2
