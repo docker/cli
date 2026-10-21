@@ -124,6 +124,14 @@ func TestHeaderFunctions(t *testing.T) {
 			doc:      "truncate",
 			template: `{{ truncate . 2}}`,
 		},
+		{
+			doc:      "slice",
+			template: `{{ slice . 2}}`,
+		},
+		{
+			doc:      "slice out of range",
+			template: `{{ slice . 0 15}}`,
+		},
 	}
 
 	for _, tc := range tests {
