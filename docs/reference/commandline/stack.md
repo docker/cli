@@ -9,6 +9,7 @@ Manage Swarm stacks
 |:--------------------------------|:---------------------------------------------------------------------|
 | [`config`](stack_config.md)     | Outputs the final config file, after doing merges and interpolations |
 | [`deploy`](stack_deploy.md)     | Deploy a new stack or update an existing stack                       |
+| [`logs`](stack_logs.md)         | Fetch aggregated logs of all services in the stack                   |
 | [`ls`](stack_ls.md)             | List stacks                                                          |
 | [`ps`](stack_ps.md)             | List the tasks in the stack                                          |
 | [`rm`](stack_rm.md)             | Remove one or more stacks                                            |
