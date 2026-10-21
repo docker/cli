@@ -31,6 +31,48 @@ func TestSSHFlags(t *testing.T) {
 	}
 }
 
+func TestConnectionHelperHostIncludesRemoteHost(t *testing.T) {
+	testCases := []struct {
+		name      string
+		daemonURL string
+		expected  string
+	}{
+		{
+			name:      "ssh with user and default port",
+			daemonURL: "ssh://user@myserver.local",
+			expected:  "http://myserver.local",
+		},
+		{
+			name:      "ssh with custom port",
+			daemonURL: "ssh://user@myserver.local:2222",
+			expected:  "http://myserver.local:2222",
+		},
+		{
+			name:      "ssh with explicit default port",
+			daemonURL: "ssh://myserver.local:22",
+			expected:  "http://myserver.local",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			helper, err := GetConnectionHelper(tc.daemonURL)
+			assert.NilError(t, err)
+			assert.Assert(t, helper != nil)
+			assert.Equal(t, helper.Host, tc.expected,
+				"dummy Host URL must include the remote hostname so connection errors point to the daemon the user configured (docker/cli#5604)")
+			assert.Assert(t, helper.Dialer != nil)
+		})
+	}
+}
+
+func TestGetCommandConnectionHelperHost(t *testing.T) {
+	helper, err := GetCommandConnectionHelper("fake-command")
+	assert.NilError(t, err)
+	assert.Assert(t, helper != nil)
+	assert.Equal(t, helper.Host, "http://docker.example.com")
+}
+
 func TestDisablePseudoTerminalAllocation(t *testing.T) {
 	testCases := []struct {
 		name     string
