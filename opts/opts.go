@@ -366,6 +366,10 @@ func ParseCPUs(value string) (int64, error) {
 	if !nano.IsInt() {
 		return 0, errors.New("value is too precise")
 	}
+	// Int64 keeps the low 64 bits of a value that does not fit.
+	if !nano.Num().IsInt64() {
+		return 0, errors.New("value is out of range")
+	}
 	return nano.Num().Int64(), nil
 }
 
