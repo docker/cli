@@ -170,7 +170,7 @@ func addFlags(flags *pflag.FlagSet) *containerOptions {
 		groupAdd:          opts.NewListOpts(nil),
 		labels:            opts.NewListOpts(opts.ValidateLabel),
 		labelsFile:        opts.NewListOpts(nil),
-		linkLocalIPs:      opts.NewListOpts(nil),
+		linkLocalIPs:      opts.NewListOpts(opts.ValidateIPAddress),
 		links:             opts.NewListOpts(opts.ValidateLink),
 		loggingOpts:       opts.NewListOpts(nil),
 		publish:           opts.NewListOpts(nil),
@@ -843,14 +843,18 @@ func applyContainerOptions(n *opts.NetworkAttachmentOpts, copts *containerOption
 		copy(n.Links, copts.links.GetSlice())
 	}
 	if copts.ipv4Address != nil {
-		if ipv4, ok := netip.AddrFromSlice(copts.ipv4Address.To4()); ok {
-			n.IPv4Address = ipv4
+		ipv4, ok := netip.AddrFromSlice(copts.ipv4Address.To4())
+		if !ok {
+			return invalidParameter(fmt.Errorf("invalid IPv4 address for --ip: %s", copts.ipv4Address))
 		}
+		n.IPv4Address = ipv4
 	}
 	if copts.ipv6Address != nil {
-		if ipv6, ok := netip.AddrFromSlice(copts.ipv6Address.To16()); ok {
-			n.IPv6Address = ipv6
+		ipv6, ok := netip.AddrFromSlice(copts.ipv6Address.To16())
+		if !ok || copts.ipv6Address.To4() != nil {
+			return invalidParameter(fmt.Errorf("invalid IPv6 address for --ip6: %s", copts.ipv6Address))
 		}
+		n.IPv6Address = ipv6
 	}
 	if copts.macAddress != "" {
 		n.MacAddress = copts.macAddress
