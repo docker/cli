@@ -301,7 +301,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 		u.slotMap = make(map[int]int)
 
 		// Draw progress bars in order
-		writeOverallProgress(u.progressOut, 0, int(replicas), rollback)
+		writeOverallProgress(u.progressOut, 0, int(replicas), rollback) // #nosec G115 -- replicas count fits in int
 
 		if replicas <= maxProgressBars {
 			for i := uint64(1); i <= replicas; i++ {
@@ -340,7 +340,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	}
 
 	if !u.done {
-		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback)
+		writeOverallProgress(u.progressOut, int(running), int(replicas), rollback) // #nosec G115 -- task counts fit in int
 
 		if running == replicas {
 			u.done = true
@@ -383,7 +383,7 @@ func (*replicatedProgressUpdater) tasksBySlot(tasks []swarm.Task, activeNodes ma
 }
 
 func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlot int, replicas uint64) {
-	if u.done || replicas > maxProgressBars || uint64(mappedSlot) > replicas {
+	if u.done || replicas > maxProgressBars || mappedSlot < 0 || uint64(mappedSlot) > replicas { // #nosec G115 -- mappedSlot is non-negative slot index
 		return
 	}
 
@@ -572,8 +572,8 @@ type replicatedJobProgressUpdater struct {
 }
 
 func newReplicatedJobProgressUpdater(service swarm.Service, progressOut progress.Output) *replicatedJobProgressUpdater {
-	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent)
-	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)
+	concurrent := int(*service.Spec.Mode.ReplicatedJob.MaxConcurrent) // #nosec G115 -- job concurrency fits in int
+	total := int(*service.Spec.Mode.ReplicatedJob.TotalCompletions)   // #nosec G115 -- job completions fit in int
 
 	return &replicatedJobProgressUpdater{
 		progressOut:    progressOut,
