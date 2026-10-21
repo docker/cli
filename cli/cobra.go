@@ -185,6 +185,10 @@ var helpCommand = &cobra.Command{
 	},
 }
 
+// isExperimental reports whether cmd (or one of its parents) carries the
+// "experimentalCLI" annotation. This is a client-side, build-time check:
+// it only inspects the static Annotations map and never consults a
+// connected daemon.
 func isExperimental(cmd *cobra.Command) bool {
 	if _, ok := cmd.Annotations["experimentalCLI"]; ok {
 		return true
@@ -330,6 +334,12 @@ func vendorAndVersion(cmd *cobra.Command) string {
 	return ""
 }
 
+// managementSubCommands and orchestratorSubCommands (below) group
+// sub-commands by the "swarm" annotation for help-text display. The
+// annotation itself is evaluated server-side elsewhere: a command's
+// swarm-related behavior/availability is checked against the connected
+// daemon's reported swarm state (see ServerInfo/SwarmStatus), not this
+// static annotation lookup.
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, sub := range allManagementSubCommands(cmd) {
