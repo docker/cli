@@ -123,6 +123,15 @@ func TestMandatoryVariableErrors(t *testing.T) {
 			template:      "not ok ${UNSET_VAR?}",
 			expectedError: "required variable UNSET_VAR is missing a value",
 		},
+		{
+			// Error message itself contains a hyphen; must not be treated as ${VAR-default}.
+			template:      "not ok ${UNSET_VAR:?must be set - hyphen in this message}",
+			expectedError: "required variable UNSET_VAR is missing a value: must be set - hyphen in this message",
+		},
+		{
+			template:      "not ok ${UNSET_VAR?must be set - hyphen in this message}",
+			expectedError: "required variable UNSET_VAR is missing a value: must be set - hyphen in this message",
+		},
 	}
 
 	for _, tc := range testCases {
