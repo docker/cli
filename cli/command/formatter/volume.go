@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/volume"
@@ -75,6 +76,7 @@ func newVolumeContext() *volumeContext {
 		"Links":        linksHeader,
 		"Size":         SizeHeader,
 		"Status":       statusHeader,
+		"CreatedAt":    CreatedAtHeader,
 	}
 	return &volumeCtx
 }
@@ -147,6 +149,21 @@ func (c *volumeContext) Availability() string {
 	}
 
 	return string(c.v.ClusterVolume.Spec.Availability)
+}
+
+// CreatedAt returns the time the volume was created, formatted the same way as
+// the "CreatedAt" field of other list commands (e.g. "docker ps", "docker network ls").
+// It returns an empty string if the daemon did not report a creation time, and
+// the raw value as reported by the daemon if it cannot be parsed.
+func (c *volumeContext) CreatedAt() string {
+	if c.v.CreatedAt == "" {
+		return ""
+	}
+	createdAt, err := time.Parse(time.RFC3339Nano, c.v.CreatedAt)
+	if err != nil {
+		return c.v.CreatedAt
+	}
+	return createdAt.String()
 }
 
 func (c *volumeContext) Status() string {
