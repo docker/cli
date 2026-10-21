@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/docker/cli/cli"
+	"github.com/docker/cli/internal/hint"
 	"github.com/docker/cli/templates"
 	"github.com/sirupsen/logrus"
 )
@@ -76,7 +77,7 @@ func Inspect(out io.Writer, references []string, tmplStr string, getRef GetRefFu
 	}
 	inspector, err := NewTemplateInspectorFromString(out, tmplStr)
 	if err != nil {
-		return cli.StatusError{StatusCode: 64, Status: err.Error()}
+		return cli.StatusError{Cause: err, StatusCode: 64, Status: err.Error()}
 	}
 
 	var errs []error
@@ -98,6 +99,7 @@ func Inspect(out io.Writer, references []string, tmplStr string, getRef GetRefFu
 
 	if err := errors.Join(errs...); err != nil {
 		return cli.StatusError{
+			Cause:      err,
 			StatusCode: 1,
 			Status:     err.Error(),
 		}
@@ -112,7 +114,7 @@ func (i *TemplateInspector) Inspect(typedElement any, rawElement []byte) error {
 	buffer := new(bytes.Buffer)
 	if err := i.tmpl.Execute(buffer, typedElement); err != nil {
 		if rawElement == nil {
-			return fmt.Errorf("template parsing error: %w", err)
+			return fmt.Errorf("--format template failed during execution: %w", err)
 		}
 		return i.tryRawInspectFallback(rawElement)
 	}
@@ -136,7 +138,10 @@ func (i *TemplateInspector) tryRawInspectFallback(rawElement []byte) error {
 
 	tmplMissingKey := i.tmpl.Option("missingkey=error")
 	if err := tmplMissingKey.Execute(buffer, raw); err != nil {
-		return fmt.Errorf("template parsing error: %w", err)
+		return hint.Wrap(
+			fmt.Errorf("--format template failed during execution: %w", err),
+			"Check that field names referenced in the template match the JSON output of 'docker inspect' without --format.",
+		)
 	}
 
 	i.buffer.Write(buffer.Bytes())
