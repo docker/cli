@@ -141,6 +141,69 @@ func TestFileStoreGet(t *testing.T) {
 	}
 }
 
+func TestFileStoreGetWildcard(t *testing.T) {
+	f := &fakeStore{configs: map[string]types.AuthConfig{
+		"registry.example.com": {
+			Username:      "exact",
+			ServerAddress: "registry.example.com",
+		},
+		"*.example.com": {
+			Username:      "wildcard",
+			ServerAddress: "*.example.com",
+		},
+		"*.docker.example.com": {
+			Username:      "more-specific-wildcard",
+			ServerAddress: "*.docker.example.com",
+		},
+		"*.com": {
+			Username:      "invalid-wildcard",
+			ServerAddress: "*.com",
+		},
+	}}
+	s := NewFileStore(f)
+
+	tests := []struct {
+		serverAddress string
+		expected      types.AuthConfig
+	}{
+		{
+			serverAddress: "registry.example.com",
+			expected:      types.AuthConfig{Username: "exact", ServerAddress: "registry.example.com"},
+		},
+		{
+			serverAddress: "other.example.com",
+			expected:      types.AuthConfig{Username: "wildcard", ServerAddress: "other.example.com"},
+		},
+		{
+			serverAddress: "foo.docker.example.com",
+			expected:      types.AuthConfig{Username: "more-specific-wildcard", ServerAddress: "foo.docker.example.com"},
+		},
+		{
+			serverAddress: "foo.bar.example.com",
+			expected:      types.AuthConfig{},
+		},
+		{
+			serverAddress: "example.com",
+			expected:      types.AuthConfig{},
+		},
+		{
+			serverAddress: "foo.example.com:5000",
+			expected:      types.AuthConfig{},
+		},
+		{
+			serverAddress: "https://index.docker.io/v1/",
+			expected:      types.AuthConfig{},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.serverAddress, func(t *testing.T) {
+			actual, err := s.Get(tc.serverAddress)
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual(actual, tc.expected))
+		})
+	}
+}
+
 func TestFileStoreGetAll(t *testing.T) {
 	s1 := "https://example.com"
 	s2 := "https://example2.example.com"

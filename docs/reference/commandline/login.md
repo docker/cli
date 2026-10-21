@@ -168,6 +168,53 @@ registry domain, and values specify the suffix of the program to use
 }
 ```
 
+### Wildcard registry patterns
+
+Keys in the `credHelpers` and `auths` sections of the configuration file can be
+wildcard patterns, so that a single entry applies to many registries. This is
+useful for registries that encode an account, region, or project in the
+hostname:
+
+```json
+{
+  "credHelpers": {
+    "*.dkr.ecr.*.amazonaws.com": "ecr-login",
+    "*-docker.pkg.dev": "gcloud"
+  },
+  "auths": {
+    "*.docker.artifactory.example.com": {
+      "auth": "dXNlcm5hbWU6cGFzc3dvcmQ="
+    }
+  }
+}
+```
+
+A `*` matches any sequence of characters within a single label of the
+hostname; it never matches a `.`. For example, `abc.*.example.com` matches
+`abc.foo.example.com`, but not `abc.foo.bar.example.com`, and
+`*.example.com` does not match `example.com`. A port, if any, must be part of
+the pattern: `*.example.com` does not match `foo.example.com:5000`, but
+`*.example.com:5000` does.
+
+A pattern must be a hostname, optionally including a port, without a scheme
+(`https://`) or path. To prevent credentials from being sent to an overly broad
+set of registries, the last two labels of a pattern must not contain a
+wildcard. Invalid patterns, such as `*.com`, `foo.*.com`, or
+`https://*.example.com`, are rejected with an error when the configuration
+file is loaded, and are not used. This check does not know about multi-label
+public suffixes such as `co.uk`, so make sure that your patterns only match
+registries you trust with your credentials.
+
+An entry for the exact registry hostname always takes precedence over a
+wildcard pattern. If multiple patterns match, the most specific one (the
+pattern with the most non-wildcard characters) is used. Wildcard patterns in
+`credHelpers` take precedence over the `credsStore`.
+
+`docker login` stores credentials for the exact registry you log in to. To use
+a single set of credentials stored in the `auths` section for multiple
+registries, log in to one of the registries, and rename its entry in the
+configuration file to a wildcard pattern.
+
 ## Examples
 
 ### Authenticate to Docker Hub with web-based login
