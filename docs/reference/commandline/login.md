@@ -70,6 +70,18 @@ With Docker Desktop, the credential store is already installed and configured
 for you. Unless you want to change the credential store used by Docker Desktop,
 you can skip the following steps.
 
+#### Docker Desktop sign-in
+
+When Docker Desktop is running and you are signed in, commands that pull or
+push images through the Docker Engine, such as `docker pull`, `docker push`,
+`docker run`, and `docker service create`, use the Docker Desktop session for
+Docker Hub (`docker.io`) and Docker Hardened Images (`dhi.io`). The session is
+used before the credential store, credential helpers, and the configuration
+file. Credentials set in the `DOCKER_AUTH_CONFIG` environment variable take
+precedence over the Docker Desktop session. If Docker Desktop is not installed
+or not running, or you are not signed in, the Docker CLI uses its own
+credentials.
+
 #### Configure the credential store
 
 You need to specify the credential store in `$HOME/.docker/config.json`
