@@ -133,7 +133,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 }
 
 func pullImage(ctx context.Context, dockerCLI command.Cli, img string, options *createOptions) error {
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), img)
+	encodedAuth, err := command.EncodedRegistryAuth(dockerCLI, img)
 	if err != nil {
 		return err
 	}

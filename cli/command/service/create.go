@@ -120,7 +120,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	if opts.registryAuth {
 		// Retrieve encoded auth token from the image reference
 		var err error
-		encodedAuth, err = command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), opts.image)
+		encodedAuth, err = command.EncodedRegistryAuth(dockerCLI, opts.image)
 		if err != nil {
 			return err
 		}

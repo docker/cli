@@ -60,7 +60,7 @@ func buildPullConfig(dockerCLI command.Cli, opts pluginOptions) (client.PluginIn
 		return client.PluginInstallOptions{}, err
 	}
 
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), ref.String())
+	encodedAuth, err := command.EncodedRegistryAuth(dockerCLI, ref.String())
 	if err != nil {
 		return client.PluginInstallOptions{}, err
 	}

@@ -36,8 +36,6 @@ const (
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#IndexServer
 const authConfigKey = "https://index.docker.io/v1/"
 
-var desktopAuthConfig = secretsengine.AuthConfig
-
 func envAuthConfig(registryHostname string) (configtypes.AuthConfig, bool) {
 	if os.Getenv(configfile.DockerEnvConfigKey) == "" {
 		return configtypes.AuthConfig{}, false
@@ -206,6 +204,25 @@ func PromptUserForCredentials(ctx context.Context, cli Streams, argUser, argPass
 //
 // [RFC 4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
 func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (string, error) {
+	return retrieveAuthTokenFromImage(secretsengine.NewDesktop(cfg), image)
+}
+
+type registryAuthProvider interface {
+	RegistryAuthProvider() secretsengine.AuthProvider
+}
+
+func EncodedRegistryAuth(dockerCLI Cli, image string) (string, error) {
+	if p, ok := dockerCLI.(registryAuthProvider); ok {
+		return retrieveAuthTokenFromImage(p.RegistryAuthProvider(), image)
+	}
+	return RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
+}
+
+func (cli *DockerCli) RegistryAuthProvider() secretsengine.AuthProvider {
+	return secretsengine.NewDesktop(cli.ConfigFile())
+}
+
+func retrieveAuthTokenFromImage(auth secretsengine.AuthProvider, image string) (string, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return "", err
@@ -213,10 +230,7 @@ func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (strin
 	domain := reference.Domain(registryRef)
 	authConfig, ok := envAuthConfig(domain)
 	if !ok {
-		authConfig, ok = desktopAuthConfig(domain)
-	}
-	if !ok {
-		authConfig, err = cfg.GetAuthConfig(domain)
+		authConfig, err = auth.GetAuthConfig(domain)
 		if err != nil {
 			return "", err
 		}

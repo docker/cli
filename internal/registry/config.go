@@ -51,7 +51,10 @@ const (
 	// IndexServer is used for user auth and image search
 	IndexServer = "https://index.docker.io/v1/"
 	// IndexName is the name of the index
-	IndexName = "docker.io"
+	IndexName           = "docker.io"
+	DefaultRegistryHost = "registry-1.docker.io"
+	StagingRegistryHost = "registry-1-stage.docker.io"
+	DHIRegistryHost     = "dhi.io"
 )
 
 var (
@@ -61,7 +64,7 @@ var (
 	// or "ubuntu:latest"), as well as references using the "docker.io" domain
 	// name, which is used as canonical reference for images on Docker Hub, but
 	// does not match the domain-name of Docker Hub's registry.
-	DefaultV2Registry = &url.URL{Scheme: "https", Host: "registry-1.docker.io"}
+	DefaultV2Registry = &url.URL{Scheme: "https", Host: DefaultRegistryHost}
 
 	validHostPortRegex = sync.OnceValue(func() *regexp.Regexp {
 		return regexp.MustCompile(`^` + reference.DomainRegexp.String() + `$`)

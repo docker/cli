@@ -2,6 +2,7 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"strings"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/registryclient"
 	"github.com/docker/cli/internal/secretsengine"
+	"github.com/docker/secrets-engine/client/dockerhub"
 	"github.com/moby/moby/client"
 )
 
@@ -36,7 +38,6 @@ type FakeCli struct {
 
 // NewFakeCli returns a fake for the command.Cli interface
 func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
-	secretsengine.Disable()
 	outBuffer := new(bytes.Buffer)
 	errBuffer := new(bytes.Buffer)
 	c := &FakeCli{
@@ -176,6 +177,20 @@ func (c *FakeCli) SetManifestStore(manifestStore manifeststore.Store) {
 // SetRegistryClient on the fake cli
 func (c *FakeCli) SetRegistryClient(registryClient registryclient.RegistryClient) {
 	c.registryClient = registryClient
+}
+
+type signedOutHub struct{}
+
+func (signedOutHub) GetDefaultSession(context.Context) (dockerhub.UserSession, error) {
+	return dockerhub.UserSession{}, dockerhub.ErrNoSession
+}
+
+func (signedOutHub) GetDefaultProfile(context.Context) (dockerhub.Profile, error) {
+	return dockerhub.Profile{}, dockerhub.ErrNoSession
+}
+
+func (c *FakeCli) RegistryAuthProvider() secretsengine.AuthProvider {
+	return secretsengine.New(c.configfile, signedOutHub{}, signedOutHub{})
 }
 
 // BuildKitEnabled on the fake cli

@@ -224,7 +224,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 
 		if sendAuth {
 			// Retrieve encoded auth token from the image reference
-			encodedAuth, err = command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
+			encodedAuth, err = command.EncodedRegistryAuth(dockerCLI, image)
 			if err != nil {
 				return nil, err
 			}

@@ -108,7 +108,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	// Resolve the Auth config relevant for this server
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), ref.String())
+	encodedAuth, err := command.EncodedRegistryAuth(dockerCli, ref.String())
 	if err != nil {
 		return err
 	}

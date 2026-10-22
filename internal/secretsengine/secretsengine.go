@@ -9,11 +9,11 @@ import (
 	"io/fs"
 	"os"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/internal/registry"
 	seclient "github.com/docker/secrets-engine/client"
 	"github.com/docker/secrets-engine/client/dockerhub"
 	"github.com/docker/secrets-engine/x/api"
@@ -25,10 +25,6 @@ const (
 	sessionExpirySkew = 30 * time.Second
 	sessionTTL        = time.Minute
 	retryInterval     = time.Minute
-
-	indexServer         = "https://index.docker.io/v1/"
-	dhiRegistryHost     = "dhi.io"
-	stagingRegistryHost = "registry-1-stage.docker.io"
 )
 
 var (
@@ -36,57 +32,62 @@ var (
 	errSessionExpired = errors.New("the session has expired (not signed in to Docker Desktop?)")
 )
 
-type hubSessions interface {
+type HubClient interface {
 	GetDefaultSession(ctx context.Context) (dockerhub.UserSession, error)
 	GetDefaultProfile(ctx context.Context) (dockerhub.Profile, error)
 }
 
-var _ hubSessions = dockerhub.ClientAuth(nil)
+var _ HubClient = dockerhub.ClientAuth(nil)
 
-type provider struct {
-	hub     *session
-	staging *session
+type AuthProvider interface {
+	GetAuthConfig(registryHostname string) (types.AuthConfig, error)
 }
 
-var shared = &provider{
-	hub:     newSession("Docker Hub"),
-	staging: newSession("Docker Hub staging", dockerhub.Staging()),
+type Provider struct {
+	fallback AuthProvider
+	hub      *session
+	staging  *session
 }
 
-var disabled atomic.Bool
-
-func Disable() {
-	disabled.Store(true)
-}
-
-func AuthConfig(registryHostname string) (types.AuthConfig, bool) {
-	if disabled.Load() {
-		return types.AuthConfig{}, false
+func New(fallback AuthProvider, hub, staging HubClient) *Provider {
+	return &Provider{
+		fallback: fallback,
+		hub:      newSession("Docker Hub", hub),
+		staging:  newSession("Docker Hub staging", staging),
 	}
-	return shared.authConfig(registryHostname)
 }
 
-func (p *provider) authConfig(registryHostname string) (types.AuthConfig, bool) {
-	s, serverAddress := p.sessionFor(registryHostname)
-	if s == nil {
-		return types.AuthConfig{}, false
+var (
+	desktopHubSession     = newDesktopSession("Docker Hub")
+	desktopStagingSession = newDesktopSession("Docker Hub staging", dockerhub.Staging())
+)
+
+func NewDesktop(fallback AuthProvider) *Provider {
+	return &Provider{
+		fallback: fallback,
+		hub:      desktopHubSession,
+		staging:  desktopStagingSession,
 	}
-	auth, ok := s.auth()
-	if !ok {
-		return types.AuthConfig{}, false
-	}
-	auth.ServerAddress = serverAddress
-	return auth, true
 }
 
-func (p *provider) sessionFor(registryHostname string) (*session, string) {
+func (p *Provider) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
+	if s, serverAddress := p.sessionFor(registryHostname); s != nil {
+		if auth, ok := s.auth(); ok {
+			auth.ServerAddress = serverAddress
+			return auth, nil
+		}
+	}
+	return p.fallback.GetAuthConfig(registryHostname)
+}
+
+func (p *Provider) sessionFor(registryHostname string) (*session, string) {
 	switch credentials.ConvertToHostname(registryHostname) {
-	case "docker.io", "index.docker.io", "registry-1.docker.io":
-		return p.hub, indexServer
-	case dhiRegistryHost:
-		return p.hub, dhiRegistryHost
-	case stagingRegistryHost:
-		return p.staging, stagingRegistryHost
+	case registry.IndexName, registry.IndexHostname, registry.DefaultRegistryHost:
+		return p.hub, registry.IndexServer
+	case registry.DHIRegistryHost:
+		return p.hub, registry.DHIRegistryHost
+	case registry.StagingRegistryHost:
+		return p.staging, registry.StagingRegistryHost
 	default:
 		return nil, ""
 	}
@@ -94,29 +95,35 @@ func (p *provider) sessionFor(registryHostname string) (*session, string) {
 
 type session struct {
 	name    string
-	connect func() (hubSessions, error)
+	connect func() (HubClient, error)
 	timeout time.Duration
 	now     func() time.Time
 
 	mu         sync.Mutex
-	hub        hubSessions
+	hub        HubClient
 	retryAt    time.Time
 	cached     *types.AuthConfig
 	validUntil time.Time
 }
 
-func newSession(name string, opts ...dockerhub.Option) *session {
+func newSession(name string, hub HubClient) *session {
 	return &session{
-		name: name,
-		connect: func() (hubSessions, error) {
-			return connect(api.DesktopSocketPath(), opts...)
-		},
+		name:    name,
+		hub:     hub,
 		timeout: lookupTimeout,
 		now:     time.Now,
 	}
 }
 
-func connect(socketPath string, opts ...dockerhub.Option) (hubSessions, error) {
+func newDesktopSession(name string, opts ...dockerhub.Option) *session {
+	s := newSession(name, nil)
+	s.connect = func() (HubClient, error) {
+		return connect(api.DesktopSocketPath(), opts...)
+	}
+	return s
+}
+
+func connect(socketPath string, opts ...dockerhub.Option) (HubClient, error) {
 	if _, err := os.Lstat(socketPath); errors.Is(err, fs.ErrNotExist) {
 		return nil, err
 	}

@@ -42,7 +42,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, name string) error {
 	}
 
 	named = reference.TagNameOnly(named)
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCli.ConfigFile(), named.String())
+	encodedAuth, err := command.EncodedRegistryAuth(dockerCli, named.String())
 	if err != nil {
 		return err
 	}

@@ -90,7 +90,7 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 		ociPlatforms = append(ociPlatforms, p)
 	}
 
-	encodedAuth, err := command.RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), distributionRef.String())
+	encodedAuth, err := command.EncodedRegistryAuth(dockerCLI, distributionRef.String())
 	if err != nil {
 		return err
 	}
