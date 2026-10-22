@@ -32,7 +32,7 @@ func (s *metadataStore) contextDir(id contextdir) string {
 
 func (s *metadataStore) createOrUpdate(meta Metadata) error {
 	contextDir := s.contextDir(contextdirOf(meta.Name))
-	if err := os.MkdirAll(contextDir, 0o755); err != nil {
+	if err := os.MkdirAll(contextDir, 0o700); err != nil {
 		return err
 	}
 	bytes, err := json.Marshal(&meta)
