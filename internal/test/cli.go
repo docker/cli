@@ -12,6 +12,7 @@ import (
 	manifeststore "github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/registryclient"
+	"github.com/docker/cli/internal/secretsengine"
 	"github.com/moby/moby/client"
 )
 
@@ -35,6 +36,7 @@ type FakeCli struct {
 
 // NewFakeCli returns a fake for the command.Cli interface
 func NewFakeCli(apiClient client.APIClient, opts ...func(*FakeCli)) *FakeCli {
+	secretsengine.Disable()
 	outBuffer := new(bytes.Buffer)
 	errBuffer := new(bytes.Buffer)
 	c := &FakeCli{
