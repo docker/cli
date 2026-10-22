@@ -1219,16 +1219,28 @@ func updateHosts(flags *pflag.FlagSet, hosts *[]string) error {
 	return nil
 }
 
-// updateLogDriver updates the log driver only if the log driver flag is set.
-// All options will be replaced with those provided on the command line.
+// updateLogDriver updates the log driver only if the log driver or log options
+// flags are set. If the log driver flag is set, all options will be replaced
+// with those provided on the command line. If only log options are set, the
+// service's current log driver is kept, and the options provided are merged
+// with its existing options.
 func updateLogDriver(flags *pflag.FlagSet, taskTemplate *swarm.TaskSpec) error {
-	if !flags.Changed(flagLogDriver) {
+	if !anyChanged(flags, flagLogDriver, flagLogOpt) {
 		return nil
 	}
 
 	name, err := flags.GetString(flagLogDriver)
 	if err != nil {
 		return err
+	}
+	options := opts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetSlice())
+
+	if !flags.Changed(flagLogDriver) && taskTemplate.LogDriver != nil {
+		name = taskTemplate.LogDriver.Name
+		merged := make(map[string]string, len(taskTemplate.LogDriver.Options)+len(options))
+		maps.Copy(merged, taskTemplate.LogDriver.Options)
+		maps.Copy(merged, options)
+		options = merged
 	}
 
 	if name == "" {
@@ -1237,7 +1249,7 @@ func updateLogDriver(flags *pflag.FlagSet, taskTemplate *swarm.TaskSpec) error {
 
 	taskTemplate.LogDriver = &swarm.Driver{
 		Name:    name,
-		Options: opts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetSlice()),
+		Options: options,
 	}
 
 	return nil
