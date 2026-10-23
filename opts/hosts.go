@@ -125,6 +125,8 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	if err != nil {
 		// try port addition once; JoinHostPort adds its own brackets around
 		// IPv6 literals, so strip the ones url.Parse left on u.Host.
+		// Don't use u.Hostname() here: for the unbracketed form ("tcp://::1")
+		// it returns ":" instead of "::1".
 		bare := u.Host
 		if len(bare) > 1 && bare[0] == '[' && bare[len(bare)-1] == ']' {
 			bare = bare[1 : len(bare)-1]
