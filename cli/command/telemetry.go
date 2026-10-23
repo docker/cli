@@ -20,7 +20,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const exportTimeout = 50 * time.Millisecond
+const ExportTimeout = 50 * time.Millisecond
 
 // TracerProvider is an extension of the trace.TracerProvider interface for CLI programs.
 type TracerProvider interface {
@@ -205,7 +205,7 @@ func (r *cliReader) Shutdown(ctx context.Context) error {
 	// We don't want CLI metrics to prevent the CLI from exiting
 	// so if there's some kind of issue we need to abort pretty
 	// quickly.
-	ctx, cancel := context.WithTimeout(ctx, exportTimeout)
+	ctx, cancel := context.WithTimeout(ctx, ExportTimeout)
 	defer cancel()
 
 	return r.ForceFlush(ctx)
