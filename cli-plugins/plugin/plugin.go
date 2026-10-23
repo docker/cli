@@ -22,15 +22,21 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-// PersistentPreRunE must be called by any plugin command (or
-// subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
-// which do not make use of `PersistentPreRun*` do not need to call
-// this (although it remains safe to do so). Plugins are recommended
-// to use `PersistentPreRunE` to enable the error to be
-// returned. Should not be called outside of a command's
-// PersistentPreRunE hook and must not be run unless Run has been
-// called.
-var PersistentPreRunE func(*cobra.Command, []string) error
+var (
+	// PersistentPreRunE must be called by any plugin command (or
+	// subcommand) which uses the cobra `PersistentPreRun*` hook. Plugins
+	// which do not make use of `PersistentPreRun*` do not need to call
+	// this (although it remains safe to do so). Plugins are recommended
+	// to use `PersistentPreRunE` to enable the error to be
+	// returned. Should not be called outside of a command's
+	// PersistentPreRunE hook and must not be run unless Run has been
+	// called.
+	PersistentPreRunE func(*cobra.Command, []string) error
+
+	// PersistentPostRunE must be called by any plugin command. See
+	// the documentation for PersistentPreRunE for a full explanation.
+	PersistentPostRunE func(*cobra.Command, []string) error
+)
 
 // RunPlugin executes the specified plugin command
 func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadata.Metadata) error {
@@ -71,6 +77,35 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadat
 			}
 		})
 		return retErr
+	}
+
+	var persistentPostRunOnce sync.Once
+	PersistentPostRunE = func(cmd *cobra.Command, _ []string) error {
+		persistentPostRunOnce.Do(func() {
+			// Use a new context for the export so that the command being cancelled
+			// doesn't affect the metrics, and we get metrics for cancelled commands.
+			ctx, cancel := context.WithTimeout(context.Background(), command.ExportTimeout)
+			defer cancel()
+
+			var wg sync.WaitGroup
+			if tp, ok := dockerCli.TracerProvider().(command.TracerProvider); ok {
+				wg.Go(func() {
+					if err := tp.Shutdown(ctx); err != nil {
+						otel.Handle(err)
+					}
+				})
+			}
+
+			if mp, ok := dockerCli.MeterProvider().(command.MeterProvider); ok {
+				wg.Go(func() {
+					if err := mp.Shutdown(ctx); err != nil {
+						otel.Handle(err)
+					}
+				})
+			}
+			wg.Wait()
+		})
+		return nil
 	}
 
 	cmd, args, err := tcmd.HandleGlobalFlags()
@@ -162,6 +197,9 @@ func newPluginCommand(dockerCli *command.DockerCli, plugin *cobra.Command, meta 
 			// We can't use this as the hook directly since it is initialised later (in runPlugin)
 			return PersistentPreRunE(cmd, args)
 		},
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			return PersistentPostRunE(cmd, args)
+		},
 		TraverseChildren:      true,
 		DisableFlagsInUseLine: true,
 		CompletionOptions: cobra.CompletionOptions{
@@ -211,10 +249,11 @@ func newMetadataSubcommand(plugin *cobra.Command, meta metadata.Metadata) *cobra
 	cmd := &cobra.Command{
 		Use:    metadata.MetadataSubcommandName,
 		Hidden: true,
-		// Suppress the global/parent PersistentPreRunE, which
-		// needlessly initializes the client and tries to
-		// connect to the daemon.
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {},
+		// Suppress the global/parent PersistentPreRunE and PersistentPostRunE,
+		// which needlessly initializes the client and tries to connect to the
+		// daemon.
+		PersistentPreRun:  func(cmd *cobra.Command, args []string) {},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetEscapeHTML(false)

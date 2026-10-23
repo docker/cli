@@ -85,7 +85,7 @@ func startCobraCommandTimer(mp metric.MeterProvider, attrs []attribute.KeyValue)
 	return func(err error) {
 		// Use a new context for the export so that the command being cancelled
 		// doesn't affect the metrics, and we get metrics for cancelled commands.
-		ctx, cancel := context.WithTimeout(context.Background(), exportTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), ExportTimeout)
 		defer cancel()
 
 		duration := float64(time.Since(start)) / float64(time.Millisecond)
