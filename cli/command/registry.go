@@ -218,10 +218,6 @@ func EncodedRegistryAuth(dockerCLI Cli, image string) (string, error) {
 	return RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
 }
 
-func (cli *DockerCli) RegistryAuthProvider() secretsengine.AuthProvider {
-	return secretsengine.NewDesktop(cli.ConfigFile())
-}
-
 func retrieveAuthTokenFromImage(auth secretsengine.AuthProvider, image string) (string, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {

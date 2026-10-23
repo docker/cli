@@ -90,20 +90,20 @@ func stagingCredentials() types.AuthConfig {
 }
 
 type testProvider struct {
-	*Provider
+	*provider
 	fallback *recordingFallback
 	clock    *fakeClock
 	staging  *fakeHub
 }
 
-func newTestProvider(hub HubClient) *testProvider {
+func newTestProvider(hub hubClient) *testProvider {
 	tp := &testProvider{
 		fallback: &recordingFallback{},
 		clock:    &fakeClock{t: testNow},
 		staging:  &fakeHub{sessionErr: dockerhub.ErrNoDefaultProfile},
 	}
-	tp.Provider = New(tp.fallback, hub, tp.staging)
-	for _, s := range []*session{tp.Provider.hub, tp.Provider.staging} {
+	tp.provider = newProvider(tp.fallback, hub, tp.staging)
+	for _, s := range []*session{tp.provider.hub, tp.provider.staging} {
 		s.timeout = time.Second
 		s.now = tp.clock.now
 	}
@@ -125,8 +125,8 @@ func connectError(reason seclient.ConnectReason) error {
 }
 
 func TestNewDesktopSharesOneSessionPerEnvironment(t *testing.T) {
-	a := NewDesktop(&recordingFallback{})
-	b := NewDesktop(&recordingFallback{})
+	a := NewDesktop(&recordingFallback{}).(*provider)
+	b := NewDesktop(&recordingFallback{}).(*provider)
 	assert.Assert(t, a.hub == b.hub, "providers must share the process-wide Docker Hub session")
 	assert.Assert(t, a.staging == b.staging, "providers must share the process-wide Docker Hub staging session")
 	assert.Assert(t, a.hub != a.staging, "production and staging sessions must be separate")
@@ -278,11 +278,11 @@ func TestFallsBackWithoutUsableSession(t *testing.T) {
 func TestDesktopFallsBackWhenClientCannotBeCreated(t *testing.T) {
 	var connects atomic.Int32
 	s := newSession("Docker Hub", nil)
-	s.connect = func() (HubClient, error) {
+	s.connect = func() (hubClient, error) {
 		connects.Add(1)
 		return nil, errors.New("no socket path")
 	}
-	p := &Provider{fallback: &recordingFallback{}, hub: s}
+	p := &provider{fallback: &recordingFallback{}, hub: s}
 
 	for range 2 {
 		got, err := p.GetAuthConfig("docker.io")

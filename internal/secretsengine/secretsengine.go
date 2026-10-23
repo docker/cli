@@ -32,25 +32,25 @@ var (
 	errSessionExpired = errors.New("the session has expired (not signed in to Docker Desktop?)")
 )
 
-type HubClient interface {
+type hubClient interface {
 	GetDefaultSession(ctx context.Context) (dockerhub.UserSession, error)
 	GetDefaultProfile(ctx context.Context) (dockerhub.Profile, error)
 }
 
-var _ HubClient = dockerhub.ClientAuth(nil)
+var _ hubClient = dockerhub.ClientAuth(nil)
 
 type AuthProvider interface {
 	GetAuthConfig(registryHostname string) (types.AuthConfig, error)
 }
 
-type Provider struct {
+type provider struct {
 	fallback AuthProvider
 	hub      *session
 	staging  *session
 }
 
-func New(fallback AuthProvider, hub, staging HubClient) *Provider {
-	return &Provider{
+func newProvider(fallback AuthProvider, hub, staging hubClient) *provider {
+	return &provider{
 		fallback: fallback,
 		hub:      newSession("Docker Hub", hub),
 		staging:  newSession("Docker Hub staging", staging),
@@ -62,15 +62,15 @@ var (
 	desktopStagingSession = newDesktopSession("Docker Hub staging", dockerhub.Staging())
 )
 
-func NewDesktop(fallback AuthProvider) *Provider {
-	return &Provider{
+func NewDesktop(fallback AuthProvider) AuthProvider {
+	return &provider{
 		fallback: fallback,
 		hub:      desktopHubSession,
 		staging:  desktopStagingSession,
 	}
 }
 
-func (p *Provider) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
+func (p *provider) GetAuthConfig(registryHostname string) (types.AuthConfig, error) {
 	if s, serverAddress := p.sessionFor(registryHostname); s != nil {
 		if auth, ok := s.auth(); ok {
 			auth.ServerAddress = serverAddress
@@ -80,7 +80,7 @@ func (p *Provider) GetAuthConfig(registryHostname string) (types.AuthConfig, err
 	return p.fallback.GetAuthConfig(registryHostname)
 }
 
-func (p *Provider) sessionFor(registryHostname string) (*session, string) {
+func (p *provider) sessionFor(registryHostname string) (*session, string) {
 	switch credentials.ConvertToHostname(registryHostname) {
 	case registry.IndexName, registry.IndexHostname, registry.DefaultRegistryHost:
 		return p.hub, registry.IndexServer
@@ -95,18 +95,18 @@ func (p *Provider) sessionFor(registryHostname string) (*session, string) {
 
 type session struct {
 	name    string
-	connect func() (HubClient, error)
+	connect func() (hubClient, error)
 	timeout time.Duration
 	now     func() time.Time
 
 	mu         sync.Mutex
-	hub        HubClient
+	hub        hubClient
 	retryAt    time.Time
 	cached     *types.AuthConfig
 	validUntil time.Time
 }
 
-func newSession(name string, hub HubClient) *session {
+func newSession(name string, hub hubClient) *session {
 	return &session{
 		name:    name,
 		hub:     hub,
@@ -117,13 +117,13 @@ func newSession(name string, hub HubClient) *session {
 
 func newDesktopSession(name string, opts ...dockerhub.Option) *session {
 	s := newSession(name, nil)
-	s.connect = func() (HubClient, error) {
+	s.connect = func() (hubClient, error) {
 		return connect(api.DesktopSocketPath(), opts...)
 	}
 	return s
 }
 
-func connect(socketPath string, opts ...dockerhub.Option) (HubClient, error) {
+func connect(socketPath string, opts ...dockerhub.Option) (hubClient, error) {
 	if _, err := os.Lstat(socketPath); errors.Is(err, fs.ErrNotExist) {
 		return nil, err
 	}
