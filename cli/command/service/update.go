@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/docker/cli/opts"
 	"github.com/docker/cli/opts/swarmopts"
 	"github.com/moby/moby/api/types/container"
@@ -223,7 +224,7 @@ func runUpdate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 		// Retrieve encoded auth token from the image reference
 		// This would be the old image if it didn't change in this update
 		var err error
-		encodedAuth, err = command.EncodedRegistryAuth(dockerCLI, spec.TaskTemplate.ContainerSpec.Image)
+		encodedAuth, err = registryauth.EncodedAuth(dockerCLI, spec.TaskTemplate.ContainerSpec.Image)
 		if err != nil {
 			return err
 		}

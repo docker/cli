@@ -7,6 +7,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/registryauth"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
@@ -120,7 +121,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 	if opts.registryAuth {
 		// Retrieve encoded auth token from the image reference
 		var err error
-		encodedAuth, err = command.EncodedRegistryAuth(dockerCLI, opts.image)
+		encodedAuth, err = registryauth.EncodedAuth(dockerCLI, opts.image)
 		if err != nil {
 			return err
 		}

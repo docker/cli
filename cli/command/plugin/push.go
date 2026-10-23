@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +43,7 @@ func runPush(ctx context.Context, dockerCli command.Cli, name string) error {
 	}
 
 	named = reference.TagNameOnly(named)
-	encodedAuth, err := command.EncodedRegistryAuth(dockerCli, named.String())
+	encodedAuth, err := registryauth.EncodedAuth(dockerCli, named.String())
 	if err != nil {
 		return err
 	}

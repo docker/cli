@@ -17,6 +17,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/docker/cli/internal/tui"
 	"github.com/moby/moby/api/types/auxprogress"
 	"github.com/moby/moby/client"
@@ -108,7 +109,7 @@ To push the complete multi-platform image, remove the --platform flag.
 	}
 
 	// Resolve the Auth config relevant for this server
-	encodedAuth, err := command.EncodedRegistryAuth(dockerCli, ref.String())
+	encodedAuth, err := registryauth.EncodedAuth(dockerCli, ref.String())
 	if err != nil {
 		return err
 	}

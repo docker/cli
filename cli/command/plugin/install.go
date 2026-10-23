@@ -9,6 +9,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/internal/jsonstream"
 	"github.com/docker/cli/internal/prompt"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/moby/moby/api/types/plugin"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
@@ -60,7 +61,7 @@ func buildPullConfig(dockerCLI command.Cli, opts pluginOptions) (client.PluginIn
 		return client.PluginInstallOptions{}, err
 	}
 
-	encodedAuth, err := command.EncodedRegistryAuth(dockerCLI, ref.String())
+	encodedAuth, err := registryauth.EncodedAuth(dockerCLI, ref.String())
 	if err != nil {
 		return client.PluginInstallOptions{}, err
 	}
