@@ -53,8 +53,6 @@ const (
 	// IndexName is the name of the index
 	IndexName           = "docker.io"
 	DefaultRegistryHost = "registry-1.docker.io"
-	StagingRegistryHost = "registry-1-stage.docker.io"
-	DHIRegistryHost     = "dhi.io"
 )
 
 var (

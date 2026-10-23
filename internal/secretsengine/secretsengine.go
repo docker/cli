@@ -25,12 +25,12 @@ const (
 	sessionExpirySkew = 30 * time.Second
 	sessionTTL        = time.Minute
 	retryInterval     = time.Minute
+
+	stagingRegistryHost = "registry-1-stage.docker.io"
+	dhiRegistryHost     = "dhi.io"
 )
 
-var (
-	errNoUsername     = errors.New("no username for the session")
-	errSessionExpired = errors.New("the session has expired (not signed in to Docker Desktop?)")
-)
+var errSessionExpired = errors.New("the session has expired (not signed in to Docker Desktop?)")
 
 type hubClient interface {
 	GetDefaultSession(ctx context.Context) (dockerhub.UserSession, error)
@@ -49,24 +49,11 @@ type provider struct {
 	staging  *session
 }
 
-func newProvider(fallback AuthProvider, hub, staging hubClient) *provider {
-	return &provider{
-		fallback: fallback,
-		hub:      newSession("Docker Hub", hub),
-		staging:  newSession("Docker Hub staging", staging),
-	}
-}
-
-var (
-	desktopHubSession     = newDesktopSession("Docker Hub")
-	desktopStagingSession = newDesktopSession("Docker Hub staging", dockerhub.Staging())
-)
-
 func NewDesktop(fallback AuthProvider) AuthProvider {
 	return &provider{
 		fallback: fallback,
-		hub:      desktopHubSession,
-		staging:  desktopStagingSession,
+		hub:      newDesktopSession("Docker Hub"),
+		staging:  newDesktopSession("Docker Hub staging", dockerhub.Staging()),
 	}
 }
 
@@ -84,10 +71,10 @@ func (p *provider) sessionFor(registryHostname string) (*session, string) {
 	switch credentials.ConvertToHostname(registryHostname) {
 	case registry.IndexName, registry.IndexHostname, registry.DefaultRegistryHost:
 		return p.hub, registry.IndexServer
-	case registry.DHIRegistryHost:
-		return p.hub, registry.DHIRegistryHost
-	case registry.StagingRegistryHost:
-		return p.staging, registry.StagingRegistryHost
+	case dhiRegistryHost:
+		return p.hub, dhiRegistryHost
+	case stagingRegistryHost:
+		return p.staging, stagingRegistryHost
 	default:
 		return nil, ""
 	}
@@ -96,8 +83,6 @@ func (p *provider) sessionFor(registryHostname string) (*session, string) {
 type session struct {
 	name    string
 	connect func() (hubClient, error)
-	timeout time.Duration
-	now     func() time.Time
 
 	mu         sync.Mutex
 	hub        hubClient
@@ -106,21 +91,13 @@ type session struct {
 	validUntil time.Time
 }
 
-func newSession(name string, hub hubClient) *session {
-	return &session{
-		name:    name,
-		hub:     hub,
-		timeout: lookupTimeout,
-		now:     time.Now,
-	}
-}
-
 func newDesktopSession(name string, opts ...dockerhub.Option) *session {
-	s := newSession(name, nil)
-	s.connect = func() (hubClient, error) {
-		return connect(api.DesktopSocketPath(), opts...)
+	return &session{
+		name: name,
+		connect: func() (hubClient, error) {
+			return connect(api.DesktopSocketPath(), opts...)
+		},
 	}
-	return s
 }
 
 func connect(socketPath string, opts ...dockerhub.Option) (hubClient, error) {
@@ -141,7 +118,7 @@ func (s *session) auth() (types.AuthConfig, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	now := s.now()
+	now := time.Now()
 	if now.Before(s.retryAt) {
 		return types.AuthConfig{}, false
 	}
@@ -150,7 +127,7 @@ func (s *session) auth() (types.AuthConfig, bool) {
 	}
 	auth, validUntil, err := s.fetch()
 	if err != nil {
-		s.retryAt = s.now().Add(retryInterval)
+		s.retryAt = time.Now().Add(retryInterval)
 		s.cached = nil
 		logFallback(s.name, err)
 		return types.AuthConfig{}, false
@@ -169,7 +146,7 @@ func (s *session) fetch() (types.AuthConfig, time.Time, error) {
 		s.hub = hub
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), lookupTimeout)
 	defer cancel()
 
 	userSession, err := s.hub.GetDefaultSession(ctx)
@@ -186,10 +163,10 @@ func (s *session) fetch() (types.AuthConfig, time.Time, error) {
 		username = profile.Username
 	}
 	if username == "" {
-		return types.AuthConfig{}, time.Time{}, errNoUsername
+		return types.AuthConfig{}, time.Time{}, errors.New("no username for the session")
 	}
 
-	now := s.now()
+	now := time.Now()
 	validUntil := now.Add(sessionTTL)
 	if exp := userSession.Claims.ExpiresAt; exp != nil {
 		validUntil = exp.Add(-sessionExpirySkew)

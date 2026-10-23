@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/service"
 	"github.com/docker/cli/cli/compose/convert"
 	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
@@ -224,7 +225,7 @@ func deployServices(ctx context.Context, dockerCLI command.Cli, services map[str
 
 		if sendAuth {
 			// Retrieve encoded auth token from the image reference
-			encodedAuth, err = command.EncodedRegistryAuth(dockerCLI, image)
+			encodedAuth, err = registryauth.EncodedAuth(dockerCLI, image)
 			if err != nil {
 				return nil, err
 			}

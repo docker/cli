@@ -16,6 +16,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
+	configtypes "github.com/docker/cli/cli/config/types"
 	dcontext "github.com/docker/cli/cli/context"
 	"github.com/docker/cli/cli/context/docker"
 	"github.com/docker/cli/cli/context/store"
@@ -23,6 +24,7 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/cli/version"
+	"github.com/docker/cli/internal/secretsengine"
 	dopts "github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/client"
@@ -75,6 +77,8 @@ type DockerCli struct {
 	contextStoreConfig *store.Config
 	initTimeout        time.Duration
 	res                telemetryResource
+	registryAuthOnce   sync.Once
+	registryAuth       secretsengine.AuthProvider
 
 	// baseCtx is the base context used for internal operations. In the future
 	// this may be replaced by explicitly passing a context to functions that
@@ -139,6 +143,21 @@ func (cli *DockerCli) ConfigFile() *configfile.ConfigFile {
 		cli.configFile = config.LoadDefaultConfigFile(cli.err)
 	}
 	return cli.configFile
+}
+
+func (cli *DockerCli) RegistryAuthProvider() secretsengine.AuthProvider {
+	cli.registryAuthOnce.Do(func() {
+		cli.registryAuth = secretsengine.NewDesktop(configFileAuth{cli})
+	})
+	return cli.registryAuth
+}
+
+type configFileAuth struct {
+	cli *DockerCli
+}
+
+func (c configFileAuth) GetAuthConfig(registryHostname string) (configtypes.AuthConfig, error) {
+	return c.cli.ConfigFile().GetAuthConfig(registryHostname)
 }
 
 // ServerInfo returns the server version details for the host this client is

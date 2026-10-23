@@ -14,6 +14,7 @@ import (
 	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -90,7 +91,7 @@ func runPull(ctx context.Context, dockerCLI command.Cli, opts pullOptions) error
 		ociPlatforms = append(ociPlatforms, p)
 	}
 
-	encodedAuth, err := command.EncodedRegistryAuth(dockerCLI, distributionRef.String())
+	encodedAuth, err := registryauth.EncodedAuth(dockerCLI, distributionRef.String())
 	if err != nil {
 		return err
 	}

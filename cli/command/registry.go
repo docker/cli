@@ -15,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/hints"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/prompt"
-	"github.com/docker/cli/internal/secretsengine"
 	"github.com/docker/cli/internal/tui"
 	"github.com/moby/moby/api/pkg/authconfig"
 	registrytypes "github.com/moby/moby/api/types/registry"
@@ -35,14 +34,6 @@ const (
 //
 // [registry.IndexServer]: https://pkg.go.dev/github.com/docker/docker@v28.3.3+incompatible/registry#IndexServer
 const authConfigKey = "https://index.docker.io/v1/"
-
-func envAuthConfig(registryHostname string) (configtypes.AuthConfig, bool) {
-	if os.Getenv(configfile.DockerEnvConfigKey) == "" {
-		return configtypes.AuthConfig{}, false
-	}
-	authConfig, err := configfile.New("").GetAuthConfig(registryHostname)
-	return authConfig, err == nil && authConfig.Username != ""
-}
 
 // ResolveAuthConfig returns auth-config for the given registry from the
 // credential-store. It returns an empty AuthConfig if no credentials were
@@ -204,32 +195,13 @@ func PromptUserForCredentials(ctx context.Context, cli Streams, argUser, argPass
 //
 // [RFC 4648, Section 5]: https://tools.ietf.org/html/rfc4648#section-5
 func RetrieveAuthTokenFromImage(cfg *configfile.ConfigFile, image string) (string, error) {
-	return retrieveAuthTokenFromImage(secretsengine.NewDesktop(cfg), image)
-}
-
-type registryAuthProvider interface {
-	RegistryAuthProvider() secretsengine.AuthProvider
-}
-
-func EncodedRegistryAuth(dockerCLI Cli, image string) (string, error) {
-	if p, ok := dockerCLI.(registryAuthProvider); ok {
-		return retrieveAuthTokenFromImage(p.RegistryAuthProvider(), image)
-	}
-	return RetrieveAuthTokenFromImage(dockerCLI.ConfigFile(), image)
-}
-
-func retrieveAuthTokenFromImage(auth secretsengine.AuthProvider, image string) (string, error) {
 	registryRef, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return "", err
 	}
-	domain := reference.Domain(registryRef)
-	authConfig, ok := envAuthConfig(domain)
-	if !ok {
-		authConfig, err = auth.GetAuthConfig(domain)
-		if err != nil {
-			return "", err
-		}
+	authConfig, err := cfg.GetAuthConfig(reference.Domain(registryRef))
+	if err != nil {
+		return "", err
 	}
 
 	return authconfig.Encode(registrytypes.AuthConfig{

@@ -21,6 +21,7 @@ import (
 	"github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/streams"
 	"github.com/docker/cli/internal/jsonstream"
+	"github.com/docker/cli/internal/registryauth"
 	"github.com/docker/cli/opts"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/client"
@@ -133,7 +134,7 @@ func runCreate(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet,
 }
 
 func pullImage(ctx context.Context, dockerCLI command.Cli, img string, options *createOptions) error {
-	encodedAuth, err := command.EncodedRegistryAuth(dockerCLI, img)
+	encodedAuth, err := registryauth.EncodedAuth(dockerCLI, img)
 	if err != nil {
 		return err
 	}

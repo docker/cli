@@ -18,6 +18,7 @@ import (
 
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/configfile"
+	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/cli/context/store"
 	"github.com/docker/cli/cli/flags"
 	"github.com/moby/moby/client"
@@ -500,4 +501,18 @@ func TestNewDockerCliWithAPIClientOptions(t *testing.T) {
 	_, err = cli.Client().Ping(t.Context(), client.PingOptions{})
 	assert.NilError(t, err)
 	assert.DeepEqual(t, received, "fake-agent/0.0.1")
+}
+
+func TestRegistryAuthProvider(t *testing.T) {
+	t.Parallel()
+	cli := &DockerCli{configFile: &configfile.ConfigFile{}}
+	p := cli.RegistryAuthProvider()
+	assert.Assert(t, p == cli.RegistryAuthProvider(), "the provider must be created once per DockerCli")
+
+	cli.configFile = &configfile.ConfigFile{AuthConfigs: map[string]configtypes.AuthConfig{
+		"ghcr.io": {Username: "user", Password: "pass"},
+	}}
+	got, err := p.GetAuthConfig("ghcr.io")
+	assert.NilError(t, err)
+	assert.DeepEqual(t, got, configtypes.AuthConfig{Username: "user", Password: "pass"})
 }
