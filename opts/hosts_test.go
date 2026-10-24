@@ -2,6 +2,7 @@ package opts
 
 import (
 	"net"
+	"net/url"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -133,6 +134,16 @@ func TestParseTCP(t *testing.T) {
 			t.Errorf("%v -> expected %v, got %v and addr %v", validAddr, expectedAddr, err, addr)
 		}
 	}
+}
+
+func TestParseTCPAddrIPv6Zone(t *testing.T) {
+	addr, err := ParseTCPAddr("tcp://[fe80::1%25lo]:5555", "tcp://127.0.0.1:2376")
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("tcp://[fe80::1%25lo]:5555", addr))
+
+	u, err := url.Parse(addr)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("fe80::1%lo", u.Hostname()))
 }
 
 func TestParseInvalidUnixAddrInvalid(t *testing.T) {
