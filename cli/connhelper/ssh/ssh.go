@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 // Package ssh provides the connection helper for ssh:// URL.
 package ssh
 
@@ -9,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/docker/cli/cli/connhelper/internal/syntax"
+	"github.com/docker/cli/v29/cli/connhelper/internal/syntax"
 )
 
 // ParseURL creates a [Spec] from the given ssh URL. It returns an error if

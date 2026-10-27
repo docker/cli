@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package command
 
 import (
@@ -14,16 +11,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/cli/cli/config"
-	"github.com/docker/cli/cli/config/configfile"
-	dcontext "github.com/docker/cli/cli/context"
-	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
-	"github.com/docker/cli/cli/debug"
-	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/cli/version"
-	dopts "github.com/docker/cli/opts"
+	"github.com/docker/cli/v29/cli/config"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	dcontext "github.com/docker/cli/v29/cli/context"
+	"github.com/docker/cli/v29/cli/context/docker"
+	"github.com/docker/cli/v29/cli/context/store"
+	"github.com/docker/cli/v29/cli/debug"
+	cliflags "github.com/docker/cli/v29/cli/flags"
+	"github.com/docker/cli/v29/cli/streams"
+	"github.com/docker/cli/v29/cli/version"
+	dopts "github.com/docker/cli/v29/opts"
 	"github.com/moby/moby/api/types/build"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"

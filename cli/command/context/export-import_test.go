@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/streams"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 )

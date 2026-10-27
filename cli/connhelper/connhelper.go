@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 // Package connhelper provides helpers for connecting to a remote daemon host with custom logic.
 package connhelper
 
@@ -12,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/docker/cli/cli/connhelper/commandconn"
-	"github.com/docker/cli/cli/connhelper/ssh"
+	"github.com/docker/cli/v29/cli/connhelper/commandconn"
+	"github.com/docker/cli/v29/cli/connhelper/ssh"
 )
 
 // ConnectionHelper allows to connect to a remote host with custom stream provider binary.

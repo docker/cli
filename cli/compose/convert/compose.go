@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	composetypes "github.com/docker/cli/cli/compose/types"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/client"
