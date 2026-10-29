@@ -89,12 +89,17 @@ fi
 export GO_BUILDMODE
 
 GO_LDFLAGS="${GO_LDFLAGS:-}"
-GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
-GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
-GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
-if test -n "${PLATFORM}"; then
-    GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
-fi
+
+# Quotes are interpreted by Go's -ldflags parser, not the shell.
+# shellcheck disable=SC2089
+{
+    GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.GitCommit=${GITCOMMIT}\""
+    GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.BuildTime=${BUILDTIME}\""
+    GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.Version=${VERSION}\""
+    if test -n "${PLATFORM}"; then
+        GO_LDFLAGS="$GO_LDFLAGS -X \"github.com/docker/cli/cli/version.PlatformName=${PLATFORM}\""
+    fi
+}
 if [ "$CGO_ENABLED" = "1" ] && [ "$GO_LINKMODE" = "static" ] && [ "$(go env GOOS)" = "linux" ]; then
     GO_LDFLAGS="$GO_LDFLAGS -linkmode external -extldflags -static"
 fi
