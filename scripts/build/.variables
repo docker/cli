@@ -88,7 +88,9 @@ if [ "$CGO_ENABLED" = "1" ] && [ "$(go env GOOS)" != "windows" ]; then
 fi
 export GO_BUILDMODE
 
-GO_LDFLAGS="${GO_LDFLAGS:-}"
+# Omit DWARF debug information to reduce binary size, but retain the symbol
+# table for tools that inspect Go binaries. Pass GO_LDFLAGS="-w=0" to retain DWARF.
+GO_LDFLAGS="-w ${GO_LDFLAGS:-}"
 
 # Quotes are interpreted by Go's -ldflags parser, not the shell.
 # shellcheck disable=SC2089
@@ -133,7 +135,7 @@ if [ -n "$GO_STRIP" ]; then
     #  /usr/local/go/pkg/tool/linux_amd64/link: /usr/local/go/pkg/tool/linux_amd64/link: running strip failed: exit status 1
     #  llvm-strip: error: unsupported load command (cmd=0x5)
     # more info: https://github.com/docker/cli/pull/3717
-    GO_LDFLAGS="$GO_LDFLAGS -s -w"
+    GO_LDFLAGS="$GO_LDFLAGS -s"
 fi
 export GO_LDFLAGS="$GO_LDFLAGS" # https://github.com/koalaman/shellcheck/issues/2064
 
