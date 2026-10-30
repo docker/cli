@@ -37,6 +37,9 @@ func TestParseHost(t *testing.T) {
 		"unix://path/to/socket":    "unix://path/to/socket",
 		"npipe://":                 "npipe://" + defaultNamedPipe,
 		"npipe:////./pipe/foo":     "npipe:////./pipe/foo",
+		"/some.sock":               "unix:///some.sock",
+		"./single/dot":             "unix://./single/dot",
+		"../double/dot":            "unix://../double/dot",
 	}
 
 	for _, value := range invalid {
