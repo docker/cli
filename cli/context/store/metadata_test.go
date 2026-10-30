@@ -6,11 +6,13 @@ package store
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/containerd/errdefs"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 func testMetadata(name string) Metadata {
@@ -71,6 +73,28 @@ func TestMetadataRespectJsonAnnotation(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, is.Contains(string(bytes), "a_very_recognizable_field_name"))
 	assert.Assert(t, is.Contains(string(bytes), "another_very_recognizable_field_name"))
+}
+
+func TestMetadataCreateDirectoryPermissions(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows", "unix permissions are not supported on Windows")
+
+	configDir := filepath.Join(t.TempDir(), ".docker")
+	testee := metadataStore{root: filepath.Join(configDir, "contexts", metadataDir), config: testCfg}
+	assert.NilError(t, testee.createOrUpdate(testMetadata("test")))
+
+	// All directories, including the config-directory if it did not yet exist,
+	// should only be accessible by the current user, matching the permissions
+	// used when saving the config-file.
+	for _, dir := range []string{
+		configDir,
+		filepath.Dir(testee.root),
+		testee.root,
+		testee.contextDir(contextdirOf("test")),
+	} {
+		fi, err := os.Stat(dir)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(fi.Mode().Perm(), os.FileMode(0o700)), dir)
+	}
 }
 
 func TestMetadataList(t *testing.T) {
