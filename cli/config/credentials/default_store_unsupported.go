@@ -2,6 +2,7 @@
 
 package credentials
 
-func defaultCredentialsStore() string {
-	return ""
-}
+const (
+	preferredHelper = ""
+	defaultHelper   = ""
+)
