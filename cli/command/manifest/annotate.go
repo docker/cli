@@ -85,7 +85,7 @@ func newAnnotateCommand(dockerCLI command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.target = args[0]
 			opts.image = args[1]
-			return runManifestAnnotate(dockerCLI, opts)
+			return runManifestAnnotate(dockerCLI, cmd, opts)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -101,7 +101,7 @@ func newAnnotateCommand(dockerCLI command.Cli) *cobra.Command {
 	return cmd
 }
 
-func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
+func runManifestAnnotate(dockerCLI command.Cli, cmd *cobra.Command, opts annotateOptions) error {
 	targetRef, err := normalizeReference(opts.target)
 	if err != nil {
 		return fmt.Errorf("annotate: error parsing name for manifest list %s: %w", opts.target, err)
@@ -133,7 +133,9 @@ func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 	for _, osFeature := range opts.osFeatures {
 		imageManifest.Descriptor.Platform.OSFeatures = appendIfUnique(imageManifest.Descriptor.Platform.OSFeatures, osFeature)
 	}
-	if opts.variant != "" {
+	// An empty --variant is how you clear one. The zero value is also the
+	// default when the flag is omitted, so only write it when it was set.
+	if cmd.Flags().Changed("variant") {
 		imageManifest.Descriptor.Platform.Variant = opts.variant
 	}
 	if opts.osVersion != "" {
