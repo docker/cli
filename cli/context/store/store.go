@@ -403,7 +403,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			return fmt.Errorf("%s: %w", hdr.Name, err)
 		}
 		if hdr.Name == metaFile {
-			data, err := io.ReadAll(tr)
+			data, err := io.ReadAll(&limitedReader{R: tr, N: maxAllowedFileSizeToImport})
 			if err != nil {
 				return err
 			}
@@ -416,7 +416,7 @@ func importTar(name string, s Writer, reader io.Reader) error {
 			}
 			importedMetaFile = true
 		} else if strings.HasPrefix(hdr.Name, "tls/") {
-			data, err := io.ReadAll(tr)
+			data, err := io.ReadAll(&limitedReader{R: tr, N: maxAllowedFileSizeToImport})
 			if err != nil {
 				return err
 			}
@@ -478,8 +478,9 @@ func importZip(name string, s Writer, reader io.Reader) error {
 			if err != nil {
 				return err
 			}
-			data, err := io.ReadAll(f)
-			defer f.Close()
+			// Cap decompressed size the same as meta.json (zip bombs).
+			data, err := io.ReadAll(&limitedReader{R: f, N: maxAllowedFileSizeToImport})
+			f.Close()
 			if err != nil {
 				return err
 			}
