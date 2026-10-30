@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/metadata"
@@ -31,6 +32,11 @@ import (
 // PersistentPreRunE hook and must not be run unless Run has been
 // called.
 var PersistentPreRunE func(*cobra.Command, []string) error
+
+// finalizeHookTimeout is the timeout given for running the finalize hook.
+// It contains the timeout for exporting metrics and a little bit extra in case
+// shutdown does not respond to the export timeout promptly.
+const finalizeHookTimeout = command.ExportTimeout + 10*time.Millisecond
 
 // RunPlugin executes the specified plugin command
 func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadata.Metadata) error {
@@ -69,6 +75,7 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadat
 				stopInstrumentation(err)
 				return err
 			}
+			cobra.OnFinalize(makeFinalizeHook(dockerCli))
 		})
 		return retErr
 	}
@@ -81,6 +88,61 @@ func RunPlugin(dockerCli *command.DockerCli, plugin *cobra.Command, meta metadat
 	// which remain.
 	cmd.SetArgs(args)
 	return cmd.Execute()
+}
+
+// makeFinalizeHook creates a hook to be run when the CLI has finished executing the run command.
+// This happens after any post run methods but also always runs even when an error happens.
+func makeFinalizeHook(dockerCli *command.DockerCli) func() {
+	return func() {
+		// Use a new context for the export so that the command being cancelled
+		// doesn't affect the metrics, and we get metrics for cancelled commands.
+		ctx, cancel := context.WithTimeout(context.Background(), command.ExportTimeout)
+		defer cancel()
+
+		var (
+			wg   sync.WaitGroup
+			wait bool
+		)
+		if tp, ok := dockerCli.TracerProvider().(command.TracerProvider); ok {
+			wg.Go(func() {
+				if err := tp.Shutdown(ctx); err != nil {
+					otel.Handle(err)
+				}
+			})
+			wait = true
+		}
+
+		if mp, ok := dockerCli.MeterProvider().(command.MeterProvider); ok {
+			wg.Go(func() {
+				if err := mp.Shutdown(ctx); err != nil {
+					otel.Handle(err)
+				}
+			})
+			wait = true
+		}
+
+		// Wait for the wait group in another goroutine if any were created.
+		if !wait {
+			return
+		}
+
+		// Spawn a goroutine to wait for the wait group.
+		// If the shutdown does not promptly hang up with the
+		// cancellation of the context, we leave this goroutine
+		// orphaned so the process can exit.
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			wg.Wait()
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(finalizeHookTimeout):
+			// Ensure we still exit even if the shutdown doesn't work properly.
+			// We give 10 extra milliseconds for the cleanup to happen.
+		}
+	}
 }
 
 // Run is the top-level entry point to the CLI plugin framework. It should
@@ -212,8 +274,8 @@ func newMetadataSubcommand(plugin *cobra.Command, meta metadata.Metadata) *cobra
 		Use:    metadata.MetadataSubcommandName,
 		Hidden: true,
 		// Suppress the global/parent PersistentPreRunE, which
-		// needlessly initializes the client and tries to
-		// connect to the daemon.
+		// needlessly initializes the client and tries to connect to the
+		// daemon.
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			enc := json.NewEncoder(os.Stdout)
