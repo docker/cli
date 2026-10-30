@@ -92,10 +92,10 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.Var(&options.secrets, "secret", "Cluster Volume secrets")
 	flags.SetAnnotation("secret", "version", []string{"1.42"})
 	flags.SetAnnotation("secret", "swarm", []string{"manager"})
-	flags.Var(&options.limitBytes, "limit-bytes", "Minimum size of the Cluster Volume in bytes")
+	flags.Var(&options.limitBytes, "limit-bytes", "Maximum size of the Cluster Volume in bytes")
 	flags.SetAnnotation("limit-bytes", "version", []string{"1.42"})
 	flags.SetAnnotation("limit-bytes", "swarm", []string{"manager"})
-	flags.Var(&options.requiredBytes, "required-bytes", "Maximum size of the Cluster Volume in bytes")
+	flags.Var(&options.requiredBytes, "required-bytes", "Minimum size of the Cluster Volume in bytes")
 	flags.SetAnnotation("required-bytes", "version", []string{"1.42"})
 	flags.SetAnnotation("required-bytes", "swarm", []string{"manager"})
 	flags.Var(&options.requisiteTopology, "topology-required", "A topology that the Cluster Volume must be accessible from")
@@ -113,8 +113,9 @@ func newCreateCommand(dockerCLI command.Cli) *cobra.Command {
 func hasClusterVolumeOptionSet(flags *pflag.FlagSet) bool {
 	return flags.Changed("group") || flags.Changed("scope") ||
 		flags.Changed("sharing") || flags.Changed("availability") ||
-		flags.Changed("type") || flags.Changed("secrets") ||
-		flags.Changed("limit-bytes") || flags.Changed("required-bytes")
+		flags.Changed("type") || flags.Changed("secret") ||
+		flags.Changed("limit-bytes") || flags.Changed("required-bytes") ||
+		flags.Changed("topology-required") || flags.Changed("topology-preferred")
 }
 
 func runCreate(ctx context.Context, dockerCli command.Cli, options createOptions) error {
