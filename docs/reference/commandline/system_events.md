@@ -26,8 +26,12 @@ per Docker object type. Different event types have different scopes. Local
 scoped events are only seen on the node they take place on, and Swarm scoped
 events are seen on all managers.
 
-Only the last 256 log events are returned. You can use filters to further limit
-the number of events returned.
+Only the last 256 events are kept, in daemon memory. They are not written to
+disk and they do not survive a daemon restart. There is no option to change
+that buffer size or to retain events for a duration. `--since` and `--until`
+filter this buffer; they do not read a longer history.
+
+You can use filters to further limit the number of events returned.
 
 ### Object types
 
@@ -156,8 +160,12 @@ that have elapsed since January 1, 1970 (midnight UTC/GMT), not counting leap
 seconds (aka Unix epoch or Unix time), and the optional .nanoseconds field is a
 fraction of a second no more than nine digits long.
 
-Only the last 256 log events are returned. You can use filters to further limit
-the number of events returned.
+Only the last 256 events are kept, in daemon memory. They are not written to
+disk and they do not survive a daemon restart. There is no option to change
+that buffer size or to retain events for a duration. `--since` and `--until`
+filter this buffer; they do not read a longer history.
+
+You can use filters to further limit the number of events returned.
 
 #### <a name="filter"></a> Filtering (--filter)
 
