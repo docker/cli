@@ -14,6 +14,7 @@ Connect a container to a network
 | `--ip6`             | `ip`          | `<nil>` | IPv6 address (e.g., `2001:db8::33`)                                                     |
 | [`--link`](#link)   | `list`        |         | Add link to another container                                                           |
 | `--link-local-ip`   | `ipSlice`     |         | Add a link-local address for the container                                              |
+| `--mac-address`     | `string`      |         | MAC address for the container on this network (e.g., 92:d0:c6:0a:29:33)                 |
 
 
 <!---MARKER_GEN_END-->
