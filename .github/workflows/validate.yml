@@ -109,3 +109,31 @@ jobs:
         working-directory: ${{ github.workspace }}/src/github.com/docker/cli
         run: |
           make -C ./internal/gocompat verify
+
+  # check that dependencies are adopted by trusted projects (i.e., CNCF graduated projects).
+  # findings are reported as annotations, and do not fail the job.
+  # on pull requests, only the modules changed in vendor.sum are annotated.
+  validate-gosocialcheck:
+    runs-on: ubuntu-26.04
+    env:
+      GOSOCIALCHECK_VERSION: v0.2.1
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      -
+        name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26.10"
+          cache: false
+      -
+        name: Install gosocialcheck
+        run: |
+          go install "github.com/AkihiroSuda/gosocialcheck/cmd/gosocialcheck@${GOSOCIALCHECK_VERSION}"
+      -
+        name: Run gosocialcheck
+        run: |
+          gosocialcheck run --gha --modfile=vendor.mod ./...
