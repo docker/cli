@@ -33,8 +33,6 @@ func parseCount(s string) (int, error) {
 }
 
 // Set a new mount value
-//
-//nolint:gocyclo
 func (o *GpuOpts) Set(value string) error {
 	csvReader := csv.NewReader(strings.NewReader(value))
 	fields, err := csvReader.Read()
@@ -48,19 +46,13 @@ func (o *GpuOpts) Set(value string) error {
 	// Set writable as the default
 	for _, field := range fields {
 		key, val, withValue := strings.Cut(field, "=")
+		if !withValue {
+			key, val = "count", key
+		}
 		if _, ok := seen[key]; ok {
 			return fmt.Errorf("gpu request key '%s' can be specified only once", key)
 		}
 		seen[key] = struct{}{}
-
-		if !withValue {
-			seen["count"] = struct{}{}
-			req.Count, err = parseCount(key)
-			if err != nil {
-				return err
-			}
-			continue
-		}
 
 		switch key {
 		case "driver":
