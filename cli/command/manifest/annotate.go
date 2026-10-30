@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/containerd/errdefs"
+	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config"
@@ -139,8 +140,15 @@ func runManifestAnnotate(dockerCLI command.Cli, opts annotateOptions) error {
 		imageManifest.Descriptor.Platform.OSVersion = opts.osVersion
 	}
 
-	if !isValidOSArch(imageManifest.Descriptor.Platform.OS, imageManifest.Descriptor.Platform.Architecture) {
-		return fmt.Errorf("manifest entry for image has unsupported os/arch combination: %s/%s", opts.os, opts.arch)
+	// Validate platform syntax, without restricting OS/architecture combinations.
+	//
+	// TODO(thaJeztah): Implement a platforms.Validate in containerd/platforms and replace this code.
+	p := imageManifest.Descriptor.Platform
+	if p.OS == "" || p.Architecture == "" {
+		return fmt.Errorf("manifest entry for image has missing os/architecture: %q/%q", p.OS, p.Architecture)
+	}
+	if _, err := platforms.Parse(platforms.FormatAll(*p)); err != nil {
+		return fmt.Errorf("manifest entry for image has invalid platform: %w", err)
 	}
 	return manifestStore.Save(targetRef, imgRef, imageManifest)
 }
