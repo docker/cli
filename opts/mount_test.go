@@ -168,6 +168,26 @@ func TestMountOptErrors(t *testing.T) {
 			value:  "type=bind,target=/foo,source=/foo,volume-nocopy=true",
 			expErr: "cannot mix 'volume-*' options with mount type 'bind'",
 		},
+		{
+			doc:    "bind-recursive enabled with volume",
+			value:  "type=volume,target=/foo,bind-recursive=enabled",
+			expErr: "cannot mix 'bind-*' options with mount type 'volume'",
+		},
+		{
+			doc:    "bind-recursive enabled with default mount type",
+			value:  "target=/foo,bind-recursive=enabled",
+			expErr: "cannot mix 'bind-*' options with mount type 'volume'",
+		},
+		{
+			doc:    "bind-recursive enabled with tmpfs",
+			value:  "type=tmpfs,target=/foo,bind-recursive=enabled",
+			expErr: "cannot mix 'bind-*' options with mount type 'tmpfs'",
+		},
+		{
+			doc:    "bind-recursive enabled before image type",
+			value:  "bind-recursive=enabled,type=image,source=alpine,target=/foo",
+			expErr: "cannot mix 'bind-*' options with mount type 'image'",
+		},
 	}
 
 	for _, tc := range tests {
@@ -525,9 +545,10 @@ func TestMountOptSetBindRecursive(t *testing.T) {
 		assert.NilError(t, m.Set("type=bind,source=/foo,target=/bar,bind-recursive=enabled"))
 		assert.Check(t, is.DeepEqual([]mount.Mount{
 			{
-				Type:   mount.TypeBind,
-				Source: "/foo",
-				Target: "/bar",
+				Type:        mount.TypeBind,
+				Source:      "/foo",
+				Target:      "/bar",
+				BindOptions: &mount.BindOptions{},
 			},
 		}, m.Value()))
 	})
