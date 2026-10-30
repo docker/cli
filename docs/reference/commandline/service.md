@@ -5,17 +5,18 @@ Manage Swarm services
 
 ### Subcommands
 
-| Name                              | Description                                          |
-|:----------------------------------|:-----------------------------------------------------|
-| [`create`](service_create.md)     | Create a new service                                 |
-| [`inspect`](service_inspect.md)   | Display detailed information on one or more services |
-| [`logs`](service_logs.md)         | Fetch the logs of a service or task                  |
-| [`ls`](service_ls.md)             | List services                                        |
-| [`ps`](service_ps.md)             | List the tasks of one or more services               |
-| [`rm`](service_rm.md)             | Remove one or more services                          |
-| [`rollback`](service_rollback.md) | Revert changes to a service's configuration          |
-| [`scale`](service_scale.md)       | Scale one or multiple replicated services            |
-| [`update`](service_update.md)     | Update a service                                     |
+| Name                              | Description                                                                 |
+|:----------------------------------|:----------------------------------------------------------------------------|
+| [`create`](service_create.md)     | Create a new service                                                        |
+| [`exec`](service_exec.md)         | Execute a command in a running task of a service, on whichever node it runs |
+| [`inspect`](service_inspect.md)   | Display detailed information on one or more services                        |
+| [`logs`](service_logs.md)         | Fetch the logs of a service or task                                         |
+| [`ls`](service_ls.md)             | List services                                                               |
+| [`ps`](service_ps.md)             | List the tasks of one or more services                                      |
+| [`rm`](service_rm.md)             | Remove one or more services                                                 |
+| [`rollback`](service_rollback.md) | Revert changes to a service's configuration                                 |
+| [`scale`](service_scale.md)       | Scale one or multiple replicated services                                   |
+| [`update`](service_update.md)     | Update a service                                                            |
 
 
 
