@@ -32,6 +32,7 @@ var validOSArches = map[osArch]bool{
 	{os: "linux", arch: "amd64"}:     true,
 	{os: "linux", arch: "arm"}:       true,
 	{os: "linux", arch: "arm64"}:     true,
+	{os: "linux", arch: "loong64"}:   true,
 	{os: "linux", arch: "ppc64le"}:   true,
 	{os: "linux", arch: "mips64"}:    true,
 	{os: "linux", arch: "mips64le"}:  true,

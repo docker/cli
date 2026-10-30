@@ -4158,6 +4158,7 @@ _docker_manifest_annotate() {
 				arm64
 				mips64
 				mips64le
+				loong64
 				ppc64le
 				riscv64
 				s390x" -- "$cur" ) )
