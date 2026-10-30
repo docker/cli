@@ -283,3 +283,41 @@ func TestExtractVariables(t *testing.T) {
 		})
 	}
 }
+
+func TestSubstitutionModifierInValue(t *testing.T) {
+	for _, modifier := range []string{":-", "-", ":?", "?"} {
+		for _, message := range []string{"must be set - with a hyphen", "use :- as a default", "is this required?", "use :? to require a value"} {
+			for _, variable := range []string{"UNSET_VAR", "BAR", "FOO"} {
+				template := "${" + variable + modifier + message + "}"
+				t.Run(template, func(t *testing.T) {
+					value, present := defaultMapping(variable)
+					missing := !present || (modifier[0] == ':' && value == "")
+					result, err := Substitute(template, defaultMapping)
+					if missing && (modifier == "?" || modifier == ":?") {
+						assert.ErrorContains(t, err, "required variable "+variable+" is missing a value: "+message)
+						return
+					}
+					assert.NilError(t, err)
+					if missing {
+						value = message
+					}
+					assert.Equal(t, result, value)
+				})
+			}
+		}
+	}
+}
+
+func TestExtractVariablesModifierInValue(t *testing.T) {
+	for _, modifier := range []string{":-", "-", ":?", "?"} {
+		message := "message with :-, -, :? and ?"
+		t.Run(modifier, func(t *testing.T) {
+			expected := ""
+			if modifier == "-" || modifier == ":-" {
+				expected = message
+			}
+			result := extractVariables(map[string]any{"value": "${FOO" + modifier + message + "}"}, nil)
+			assert.DeepEqual(t, result, map[string]string{"FOO": expected})
+		})
+	}
+}
