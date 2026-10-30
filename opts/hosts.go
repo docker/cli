@@ -141,6 +141,10 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 		return "", fmt.Errorf("invalid bind address format: %s", tryAddr)
 	}
 
+	// url.Parse unescapes the zone identifier in an IPv6 address. Re-escape
+	// its percent sign when formatting the address as a URL, otherwise the
+	// returned address cannot be parsed again.
+	host = strings.ReplaceAll(host, "%", "%25")
 	return fmt.Sprintf("tcp://%s%s", net.JoinHostPort(host, port), u.Path), nil
 }
 
