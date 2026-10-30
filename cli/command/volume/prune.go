@@ -90,14 +90,23 @@ func runPrune(ctx context.Context, dockerCli command.Cli, options pruneOptions) 
 		}
 	}
 
+	progress := pruner.NewProgressPrinter(dockerCli, pruner.TypeVolume)
 	res, err := dockerCli.Client().VolumePrune(ctx, client.VolumePruneOptions{
 		Filters: pruneFilters,
+		Stream:  progress.Stream,
 	})
+	if err != nil {
+		return 0, "", err
+	}
+	res.Report, err = pruner.Consume(ctx, res, progress)
 	if err != nil {
 		return 0, "", err
 	}
 
 	var out strings.Builder
+	if progress.Started {
+		return res.Report.SpaceReclaimed, "", progress.Finish()
+	}
 	if len(res.Report.VolumesDeleted) > 0 {
 		out.WriteString("Deleted Volumes:\n")
 		for _, id := range res.Report.VolumesDeleted {
