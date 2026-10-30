@@ -40,3 +40,22 @@ func TestIsGIT(t *testing.T) {
 		}
 	}
 }
+
+func TestIsURL(t *testing.T) {
+	tests := []struct {
+		url  string
+		want bool
+	}{
+		{"https://example.com/context.tar", true},
+		{"http://example.com/context.tar", true},
+		{"HTTPS://example.com/context.tar", true},
+		{"HTTP://example.com/context.tar", true},
+		{"/tmp/context.tar", false},
+	}
+
+	for _, tt := range tests {
+		if got := IsURL(tt.url); got != tt.want {
+			t.Errorf("IsURL(%q) = %t, want %t", tt.url, got, tt.want)
+		}
+	}
+}
