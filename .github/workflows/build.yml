@@ -99,7 +99,7 @@ jobs:
 
   bin-image:
     if: ${{ github.event_name != 'pull_request' && github.repository == 'docker/cli' }}
-    uses: docker/github-builder/.github/workflows/bake.yml@4345a1cea1e4cfb65c8a5e2b1b80f9e630068827 # v1.18.0
+    uses: docker/github-builder/.github/workflows/bake.yml@cbc9d42f8c89a55623392aadd03600965b80e963 # v1.18.1
     permissions:
       contents: read # same as global permission
       id-token: write # for signing attestation(s) and authenticating to Docker Hub with GitHub OIDC Token
