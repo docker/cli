@@ -1,0 +1,79 @@
+// Copyright 2026 Docker, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+edition = "2023";
+
+package resolver.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/docker/secrets-engine/x/api/resolver/v1;resolverv1";
+
+service ResolverService {
+  // Resolve a secret by its ID.
+  rpc GetSecrets(GetSecretsRequest) returns (GetSecretsResponse);
+}
+
+service AuthorizerService {
+  // Preflight: authorizes the caller for the patterns ahead of use, valid
+  // until the returned expiry.
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+}
+
+message GetSecretsRequest {
+  // ID of the secret to resolve.
+  string pattern = 1;
+}
+
+message AuthorizeRequest {
+  // Patterns to authorize; at least one required.
+  repeated string patterns = 1;
+}
+
+enum Decision {
+  // buf:lint:ignore ENUM_ZERO_VALUE_SUFFIX
+  DECISION_DENY = 0;
+  DECISION_ALLOW = 1;
+}
+
+message AuthorizeResponse {
+  // The authorization decision.
+  Decision decision = 1;
+
+  // When the authorization decision expires.
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message GetSecretsResponse {
+  repeated Envelope envelopes = 1;
+
+  message Envelope {
+    // ID of the secret to resolve.
+    string id = 1;
+    // The resolved secret value.
+    bytes value = 2;
+
+    string provider = 3;
+
+    string version = 4;
+
+    google.protobuf.Timestamp created_at = 5;
+
+    google.protobuf.Timestamp resolved_at = 6;
+
+    google.protobuf.Timestamp expires_at = 7;
+
+    map<string, string> metadata = 8;
+  }
+}
