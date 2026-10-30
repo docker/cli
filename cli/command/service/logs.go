@@ -130,7 +130,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, opts *logsOptions) erro
 		if service.Service.Spec.Mode.Replicated != nil && service.Service.Spec.Mode.Replicated.Replicas != nil {
 			// if replicas are initialized, figure out if we need to pad them
 			replicas := *service.Service.Spec.Mode.Replicated.Replicas
-			maxLength = getMaxLength(int(replicas))
+			maxLength = getMaxLength(int(replicas)) // #nosec G115 -- replicas count fits in int for length calculation
 		}
 
 		// we can't prettify tty logs. tell the user that this is the case.
