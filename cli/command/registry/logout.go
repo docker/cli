@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -60,6 +61,10 @@ func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string)
 		// the tries below are kept for backward compatibility where a user could have
 		// saved the registry in one of the following format.
 		regsToLogout = append(regsToLogout, hostnameAddress, "http://"+hostnameAddress, "https://"+hostnameAddress)
+		// Also try lowercase variants for backward compatibility with case-insensitive
+		// login normalization in getAuthConfigKey and storeCredentials.
+		lowercaseAddress := strings.ToLower(hostnameAddress)
+		regsToLogout = append(regsToLogout, lowercaseAddress, "http://"+lowercaseAddress, "https://"+lowercaseAddress)
 	}
 
 	if isDefaultRegistry {
