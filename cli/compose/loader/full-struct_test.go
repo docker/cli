@@ -523,7 +523,6 @@ func configs(workingDir string) map[string]types.ConfigObjConfig {
 		},
 		"config4": {
 			Name: "foo",
-			File: workingDir,
 			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
@@ -550,7 +549,6 @@ func secrets(workingDir string) map[string]types.SecretConfig {
 		},
 		"secret4": {
 			Name: "bar",
-			File: workingDir,
 			Extras: map[string]any{
 				"x-bar": "baz",
 				"x-foo": "bar",
