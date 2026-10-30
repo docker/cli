@@ -387,6 +387,10 @@ size: 0B
 			context:  Context{Format: NewContainerFormat(`table {{split .Image ":"}}`, false, false)},
 			expected: "IMAGE\n[ubuntu]\n[ubuntu]\n",
 		},
+		{
+			context:  Context{Format: NewContainerFormat(`table {{slice .Names 0 6}}`, false, false)},
+			expected: "NAMES\nfoobar\nfoobar\n",
+		},
 	}
 
 	containers := []container.Summary{
