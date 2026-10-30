@@ -202,6 +202,14 @@ adding the server name.
 $ docker login registry.example.com
 ```
 
+If that registry answers `GET /v2/` with a bearer challenge that includes
+`device_authorization_endpoint`, and you did not pass a username or password,
+`docker login` uses the same browser device-code flow as Docker Hub. The
+registry's token response must be a username plus a secret, or an identity
+token. Those credentials are stored in the usual credential store. A registry
+that does not advertise the endpoint still asks for a username and password.
+Passing `-u` or `--password-stdin` always uses the password login.
+
 By default, the `docker login` command assumes that the registry listens on
 port 443 or 80. If the registry listens on a different port, you can specify it
 by adding the port number to the server name.

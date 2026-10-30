@@ -239,15 +239,20 @@ func loginUser(ctx context.Context, dockerCLI command.Cli, opts loginOptions, de
 		return "", errors.New("error: cannot perform an interactive login from a non-TTY device")
 	}
 
-	// If we're logging into the index server and the user didn't provide a username or password, use the device flow
-	if serverAddress == registry.IndexServer && opts.user == "" && opts.password == "" {
-		msg, err := loginWithDeviceCodeFlow(ctx, dockerCLI)
-		if err == nil || !errors.Is(err, manager.ErrDeviceLoginStartFail) {
+	// With no username or password, Docker Hub uses its own device-code login.
+	// Any other registry can advertise the same kind of browser login on GET /v2/.
+	if opts.user == "" && opts.password == "" {
+		if serverAddress == registry.IndexServer {
+			msg, err := loginWithDeviceCodeFlow(ctx, dockerCLI)
+			if err == nil || !errors.Is(err, manager.ErrDeviceLoginStartFail) {
+				return msg, err
+			}
+
+			logrus.WithError(err).Debug("failed to start web-based login")
+			_, _ = fmt.Fprint(dockerCLI.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
+		} else if msg, err, handled := tryRegistryDeviceLogin(ctx, dockerCLI, serverAddress); handled {
 			return msg, err
 		}
-
-		logrus.WithError(err).Debug("failed to start web-based login")
-		_, _ = fmt.Fprint(dockerCLI.Err(), "Failed to start web-based login - falling back to command line login...\n\n")
 	}
 
 	return loginWithUsernameAndPassword(ctx, dockerCLI, opts, defaultUsername, serverAddress)
