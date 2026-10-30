@@ -27,6 +27,7 @@ func (e fakeStreamResult) Close() error               { return e.ReadCloser.Clos
 
 type fakeClient struct {
 	client.Client
+	daemonHost              string
 	inspectFunc             func(string) (client.ContainerInspectResult, error)
 	execInspectFunc         func(execID string) (client.ExecInspectResult, error)
 	execCreateFunc          func(containerID string, options client.ExecCreateOptions) (client.ExecCreateResult, error)
@@ -53,6 +54,10 @@ type fakeClient struct {
 	containerCommitFunc     func(ctx context.Context, container string, options client.ContainerCommitOptions) (client.ContainerCommitResult, error)
 	containerPauseFunc      func(ctx context.Context, container string, options client.ContainerPauseOptions) (client.ContainerPauseResult, error)
 	Version                 string
+}
+
+func (f *fakeClient) DaemonHost() string {
+	return f.daemonHost
 }
 
 func (f *fakeClient) ContainerList(_ context.Context, options client.ContainerListOptions) (client.ContainerListResult, error) {
