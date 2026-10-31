@@ -717,6 +717,9 @@ var transformServicePort TransformerFunc = func(data any) (any, error) {
 				}
 				ports = append(ports, v...)
 			case map[string]any:
+				if err := normalizeLongFormPort(value); err != nil {
+					return data, err
+				}
 				ports = append(ports, value)
 			default:
 				return data, fmt.Errorf("invalid type %T for port", value)
@@ -726,6 +729,27 @@ var transformServicePort TransformerFunc = func(data any) (any, error) {
 	default:
 		return data, fmt.Errorf("invalid type %T for port", entries)
 	}
+}
+
+// normalizeLongFormPort accepts quoted integers for target and published.
+// compose convert emits those as strings, and the schema used to reject them.
+func normalizeLongFormPort(port map[string]any) error {
+	for _, field := range []string{"target", "published"} {
+		v, ok := port[field]
+		if !ok || v == nil {
+			continue
+		}
+		s, ok := v.(string)
+		if !ok {
+			continue
+		}
+		u, err := strconv.ParseUint(s, 10, 16)
+		if err != nil {
+			return fmt.Errorf("invalid %s port %q", field, s)
+		}
+		port[field] = int(u)
+	}
+	return nil
 }
 
 var transformStringSourceMap TransformerFunc = func(data any) (any, error) {

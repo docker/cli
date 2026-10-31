@@ -220,8 +220,8 @@
                 "type": "object",
                 "properties": {
                   "mode": {"type": "string"},
-                  "target": {"type": "integer"},
-                  "published": {"type": "integer"},
+                  "target": {"type": ["integer", "string"]},
+                  "published": {"type": ["integer", "string"]},
                   "protocol": {"type": "string"}
                 },
                 "additionalProperties": false
