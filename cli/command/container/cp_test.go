@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"runtime"
@@ -147,6 +148,57 @@ func TestRunCopyToContainerSourceDoesNotExist(t *testing.T) {
 		expected = "cannot find the file specified"
 	}
 	assert.ErrorContains(t, err, expected)
+}
+
+func TestRunCopyToContainerDestinationNotFound(t *testing.T) {
+	errNoContainer := notFound(errors.New("No such container: app"))
+	errUpload := errors.New("upload failed")
+
+	tests := []struct {
+		doc          string
+		inspectErr   error
+		expectedErr  error
+		expectUpload bool
+	}{
+		{
+			doc:         "missing container",
+			inspectErr:  errNoContainer,
+			expectedErr: errNoContainer,
+		},
+		{
+			// Path does not exist in an existing container; the upload must
+			// still be attempted so the daemon can create the file.
+			doc:          "missing path",
+			expectedErr:  errUpload,
+			expectUpload: true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.doc, func(t *testing.T) {
+			srcFile := fs.NewFile(t, "cp-test-missing")
+			var uploaded bool
+			fakeCli := test.NewFakeCli(&fakeClient{
+				containerStatPathFunc: func(string, string) (client.ContainerStatPathResult, error) {
+					return client.ContainerStatPathResult{}, notFound(errors.New("request returned 404 Not Found"))
+				},
+				inspectFunc: func(string) (client.ContainerInspectResult, error) {
+					return client.ContainerInspectResult{}, tc.inspectErr
+				},
+				containerCopyToFunc: func(_ string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error) {
+					uploaded = true
+					_, _ = io.Copy(io.Discard, options.Content)
+					return client.CopyToContainerResult{}, errUpload
+				},
+			})
+			err := runCopy(context.TODO(), fakeCli, copyOptions{
+				source:      srcFile.Path(),
+				destination: "app:/tmp/f",
+			})
+			assert.Check(t, is.ErrorIs(err, tc.expectedErr))
+			assert.Check(t, is.Equal(uploaded, tc.expectUpload))
+			assert.Check(t, !strings.Contains(fakeCli.ErrBuffer().String(), "Successfully copied"))
+		})
+	}
 }
 
 func TestSplitCpArg(t *testing.T) {
