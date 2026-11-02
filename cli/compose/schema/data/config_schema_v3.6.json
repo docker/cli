@@ -311,6 +311,10 @@
                       "size": {
                         "type": "integer",
                         "minimum": 0
+                      },
+                      "mode": {
+                        "type": "integer",
+                        "minimum": 0
                       }
                     }
                   }
