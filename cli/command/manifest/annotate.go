@@ -13,12 +13,30 @@ import (
 	"github.com/containerd/platforms"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/command/completion"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/manifest/store"
 	"github.com/docker/cli/internal/registryclient"
 	"github.com/moby/moby/api/types/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+)
+
+var (
+	// similar to https://github.com/containerd/platforms/blob/v1.0.0-rc.5/database.go#L29-L38
+	knownOSes = []string{
+		"aix", "android", "darwin", "dragonfly", "freebsd", "hurd", "illumos",
+		"ios", "js", "linux", "nacl", "netbsd", "openbsd", "plan9", "solaris",
+		"windows", "zos",
+	}
+
+	// similar to https://github.com/containerd/platforms/blob/v1.0.0-rc.5/database.go#L51-L60
+	knownArches = []string{
+		"386", "amd64", "amd64p32", "arm", "armbe", "arm64", "arm64be", "ppc64",
+		"ppc64le", "loong64", "mips", "mipsle", "mips64", "mips64le", "mips64p32",
+		"mips64p32le", "ppc", "riscv", "riscv64", "s390", "s390x", "sparc",
+		"sparc64", "wasm",
+	}
 )
 
 type annotateOptions struct {
@@ -98,6 +116,8 @@ func newAnnotateCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.StringSliceVar(&opts.osFeatures, "os-features", []string{}, "Set operating system feature")
 	flags.StringVar(&opts.variant, "variant", "", "Set architecture variant")
 
+	_ = cmd.RegisterFlagCompletionFunc("os", completion.FromList(knownOSes...))
+	_ = cmd.RegisterFlagCompletionFunc("arch", completion.FromList(knownArches...))
 	return cmd
 }
 
