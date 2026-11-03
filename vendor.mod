@@ -36,7 +36,7 @@ require (
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2
 	github.com/moby/patternmatcher v0.6.1
-	github.com/moby/swarmkit/v2 v2.1.2
+	github.com/moby/swarmkit/v2 v2.1.3
 	github.com/moby/sys/atomicwriter v0.1.0
 	github.com/moby/sys/capability v0.4.0
 	github.com/moby/sys/sequential v0.7.0
