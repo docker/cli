@@ -178,7 +178,7 @@ var samplePortsConfig = []types.ServicePortConfig{
 }
 
 var sampleConfig = types.Config{
-	Version: "3.13",
+	Version: "3.14",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
