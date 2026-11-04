@@ -15,11 +15,12 @@
 //
 // # Interpolation, substitution, and escaping
 //
-// Both keys and values are used as-is; no interpolation, substitution or
-// escaping is supported, and quotes are considered part of the key or value.
-// Whitespace in values (including leading and trailing) is preserved. Given
-// that the file format is line-delimited, neither key, nor value, can contain
-// newlines.
+// Both keys and values are used as-is; no interpolation or substitution
+// is supported. Matching surrounding quotes (single or double) on values
+// are stripped to be consistent with shell sourcing behavior. Whitespace
+// in values (including leading and trailing) is preserved after any quote
+// removal. Given that the file format is line-delimited, neither key, nor
+// value, can contain newlines.
 //
 // # Key/Value pairs
 //
@@ -78,6 +79,19 @@ func ParseFromReader(r io.Reader, lookupFn func(key string) (value string, found
 
 const whiteSpaces = " \t"
 
+// trimQuotes removes matching surrounding quotes (single or double) from a
+// value string. Quotes are only removed when the first and last characters
+// are the same quote character. This matches the behavior of shell sourcing.
+func trimQuotes(value string) string {
+	if len(value) >= 2 {
+		if (value[0] == '"' && value[len(value)-1] == '"') ||
+			(value[0] == '\'' && value[len(value)-1] == '\'') {
+			return value[1 : len(value)-1]
+		}
+	}
+	return value
+}
+
 func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]string, error) {
 	lines := []string{}
 	scanner := bufio.NewScanner(r)
@@ -100,7 +114,7 @@ func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]str
 			continue
 		}
 
-		key, _, hasValue := strings.Cut(line, "=")
+		key, value, hasValue := strings.Cut(line, "=")
 		if len(key) == 0 {
 			return []string{}, fmt.Errorf("no variable name on line '%s'", line)
 		}
@@ -113,8 +127,10 @@ func parseKeyValueFile(r io.Reader, lookupFn func(string) (string, bool)) ([]str
 		}
 
 		if hasValue {
-			// key/value pair is valid and has a value; add the line as-is.
-			lines = append(lines, line)
+			// Strip matching surrounding quotes from the value,
+			// consistent with shell sourcing behavior.
+			value = trimQuotes(value)
+			lines = append(lines, key+"="+value)
 			continue
 		}
 
