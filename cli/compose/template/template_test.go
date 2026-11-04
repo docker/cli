@@ -132,6 +132,24 @@ func TestMandatoryVariableErrors(t *testing.T) {
 	}
 }
 
+func TestMandatoryVariableErrorsWithOtherVariables(t *testing.T) {
+	testCases := []string{
+		"${UNSET_VAR:?Mandatory Variable Unset} ${FOO}",
+		"${UNSET_VAR:?Mandatory Variable Unset} $FOO",
+		"${UNSET_VAR:?Mandatory Variable Unset} ${missing:-def}",
+		"${UNSET_VAR?Mandatory Variable Unset}/${FOO?err}",
+		"${FOO} ${UNSET_VAR:?Mandatory Variable Unset} ${FOO}",
+	}
+
+	for _, template := range testCases {
+		t.Run(template, func(t *testing.T) {
+			_, err := Substitute(template, defaultMapping)
+			assert.Check(t, is.ErrorContains(err, "required variable UNSET_VAR is missing a value: Mandatory Variable Unset"))
+			assert.Check(t, is.ErrorType(err, &InvalidTemplateError{}))
+		})
+	}
+}
+
 func TestDefaultsForMandatoryVariables(t *testing.T) {
 	testCases := []struct {
 		template string

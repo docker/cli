@@ -72,6 +72,11 @@ func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, su
 func substituteWith(template string, mapping Mapping, pattern regexper, subsFuncs ...SubstituteFunc) (string, error) {
 	var err error
 	result := pattern.ReplaceAllStringFunc(template, func(substring string) string {
+		if err != nil {
+			// A previous substitution failed; don't continue, so that the
+			// error is not overwritten by later (successful) substitutions.
+			return ""
+		}
 		matches := pattern.FindStringSubmatch(substring)
 		groups := matchGroups(matches, defaultPattern)
 		if escaped := groups["escaped"]; escaped != "" {
@@ -89,12 +94,9 @@ func substituteWith(template string, mapping Mapping, pattern regexper, subsFunc
 		}
 
 		for _, f := range subsFuncs {
-			var (
-				value   string
-				applied bool
-			)
-			value, applied, err = f(substitution, mapping)
-			if err != nil {
+			value, applied, subErr := f(substitution, mapping)
+			if subErr != nil {
+				err = subErr
 				return ""
 			}
 			if !applied {
