@@ -101,6 +101,15 @@ func TestVolumePruneSuccess(t *testing.T) {
 				return client.VolumePruneResult{}, nil
 			},
 		},
+		{
+			name:  "label-not-filter",
+			args:  []string{"--filter", "label!=foobar"},
+			input: "y",
+			pruneFunc: func(opts client.VolumePruneOptions) (client.VolumePruneResult, error) {
+				assert.Check(t, is.DeepEqual(opts.Filters["label!"], map[string]bool{"foobar": true}))
+				return client.VolumePruneResult{}, nil
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
