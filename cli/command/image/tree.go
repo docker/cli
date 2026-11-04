@@ -351,7 +351,7 @@ func printImageTree(outs command.Streams, view treeView) {
 // available for image names and removes any columns that would be too narrow
 // to display their content.
 func adjustColumns(width uint, columns []imgColumn, images []topImage) []imgColumn {
-	nameWidth := int(width)
+	nameWidth := int(width) // #nosec G115 -- terminal width fits in int
 	if nameWidth > 0 {
 		for idx, h := range columns {
 			if h.Width == 0 {
@@ -391,7 +391,7 @@ func generateLegend(out tui.Output, width uint) string {
 	}
 	legend += legendSb371.String()
 
-	r := max(int(width)-tui.Width(legend), 0)
+	r := max(int(width)-tui.Width(legend), 0) // #nosec G115 -- terminal width fits in int
 	legend = strings.Repeat(" ", r) + legend
 	return legend
 }
