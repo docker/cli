@@ -161,26 +161,24 @@ func (c *client) getHTTPTransportForRepoEndpoint(ctx context.Context, repoEndpoi
 // GetManifest returns an ImageManifest for the reference
 func (c *client) GetManifest(ctx context.Context, ref reference.Named) (manifesttypes.ImageManifest, error) {
 	var result manifesttypes.ImageManifest
-	fetch := func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
+	err := c.iterateEndpoints(ctx, ref, func(fetchCtx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
 		var err error
-		result, err = fetchManifest(ctx, repo, ref)
+		logrus.WithFields(logrus.Fields{"ref": ref}).Debug("fetching manifest")
+		result, err = fetchManifest(fetchCtx, repo, ref)
 		return result.Ref != nil, err
-	}
-
-	err := c.iterateEndpoints(ctx, ref, fetch)
+	})
 	return result, err
 }
 
 // GetManifestList returns a list of ImageManifest for the reference
 func (c *client) GetManifestList(ctx context.Context, ref reference.Named) ([]manifesttypes.ImageManifest, error) {
 	result := []manifesttypes.ImageManifest{}
-	fetch := func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
+	err := c.iterateEndpoints(ctx, ref, func(ctx context.Context, repo distribution.Repository, ref reference.Named) (bool, error) {
 		var err error
+		logrus.WithFields(logrus.Fields{"ref": ref}).Debug("fetching manifest list")
 		result, err = fetchList(ctx, repo, ref)
 		return len(result) > 0, err
-	}
-
-	err := c.iterateEndpoints(ctx, ref, fetch)
+	})
 	return result, err
 }
 
