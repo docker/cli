@@ -194,16 +194,19 @@ type imageContext struct {
 func newImageContext() *imageContext {
 	imageCtx := imageContext{}
 	imageCtx.Header = SubHeaderContext{
-		"ID":           imageIDHeader,
-		"Repository":   repositoryHeader,
-		"Tag":          tagHeader,
-		"Digest":       digestHeader,
-		"CreatedSince": CreatedSinceHeader,
-		"CreatedAt":    CreatedAtHeader,
-		"Size":         SizeHeader,
-		"Containers":   containersHeader,
-		"SharedSize":   sharedSizeHeader,
-		"UniqueSize":   uniqueSizeHeader,
+		"ID":              imageIDHeader,
+		"Repository":      repositoryHeader,
+		"Tag":             tagHeader,
+		"Digest":          digestHeader,
+		"CreatedSince":    CreatedSinceHeader,
+		"CreatedAt":       CreatedAtHeader,
+		"Size":            SizeHeader,
+		"SizeBytes":       "SIZE BYTES",
+		"Containers":      containersHeader,
+		"SharedSize":      sharedSizeHeader,
+		"SharedSizeBytes": "SHARED SIZE BYTES",
+		"UniqueSize":      uniqueSizeHeader,
+		"UniqueSizeBytes": "UNIQUE SIZE BYTES",
 	}
 	return &imageCtx
 }
@@ -249,6 +252,10 @@ func (c *imageContext) Size() string {
 	return units.HumanSizeWithPrecision(float64(c.i.Size), 3)
 }
 
+func (c *imageContext) SizeBytes() *int64 {
+	return optionalImageSize(c.i.Size)
+}
+
 func (c *imageContext) Containers() string {
 	if c.i.Containers == -1 {
 		return "N/A"
@@ -263,9 +270,27 @@ func (c *imageContext) SharedSize() string {
 	return units.HumanSize(float64(c.i.SharedSize))
 }
 
+func (c *imageContext) SharedSizeBytes() *int64 {
+	return optionalImageSize(c.i.SharedSize)
+}
+
 func (c *imageContext) UniqueSize() string {
 	if c.i.Size == -1 || c.i.SharedSize == -1 {
 		return "N/A"
 	}
 	return units.HumanSize(float64(c.i.Size - c.i.SharedSize))
+}
+
+func (c *imageContext) UniqueSizeBytes() *int64 {
+	if c.i.Size == -1 || c.i.SharedSize == -1 {
+		return nil
+	}
+	return optionalImageSize(c.i.Size - c.i.SharedSize)
+}
+
+func optionalImageSize(size int64) *int64 {
+	if size == -1 {
+		return nil
+	}
+	return &size
 }
