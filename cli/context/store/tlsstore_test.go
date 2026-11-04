@@ -1,10 +1,15 @@
 package store
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/containerd/errdefs"
 	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
+	"gotest.tools/v3/skip"
 )
 
 func TestTlsCreateUpdateGetRemove(t *testing.T) {
@@ -30,6 +35,31 @@ func TestTlsCreateUpdateGetRemove(t *testing.T) {
 	assert.NilError(t, err)
 	_, err = testee.getData(contextName, "test-ep", "test-data")
 	assert.ErrorType(t, err, errdefs.IsNotFound)
+}
+
+func TestTlsCreateDirectoryPermissions(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows", "unix permissions are not supported on Windows")
+
+	configDir := filepath.Join(t.TempDir(), ".docker")
+	testee := tlsStore{root: filepath.Join(configDir, "contexts", tlsDir)}
+
+	const contextName = "test-ctx"
+	assert.NilError(t, testee.createOrUpdate(contextName, "test-ep", "test-data", []byte("data")))
+
+	// All directories, including the config-directory if it did not yet exist,
+	// should only be accessible by the current user, matching the permissions
+	// used when saving the config-file.
+	for _, dir := range []string{
+		configDir,
+		filepath.Dir(testee.root),
+		testee.root,
+		testee.contextDir(contextName),
+		testee.endpointDir(contextName, "test-ep"),
+	} {
+		fi, err := os.Stat(dir)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal(fi.Mode().Perm(), os.FileMode(0o700)), dir)
+	}
 }
 
 func TestTlsListAndBatchRemove(t *testing.T) {
