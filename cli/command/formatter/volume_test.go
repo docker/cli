@@ -43,6 +43,15 @@ func TestVolumeContext(t *testing.T) {
 		{volumeContext{
 			v: volume.Volume{Labels: map[string]string{"label1": "value1", "label2": "value2"}},
 		}, "label1=value1,label2=value2", ctx.Labels},
+		{volumeContext{
+			v: volume.Volume{},
+		}, "", ctx.CreatedAt},
+		{volumeContext{
+			v: volume.Volume{CreatedAt: "2016-06-07T20:31:11.853781916Z"},
+		}, "2016-06-07 20:31:11.853781916 +0000 UTC", ctx.CreatedAt},
+		{volumeContext{
+			v: volume.Volume{CreatedAt: "not-a-timestamp"},
+		}, "not-a-timestamp", ctx.CreatedAt},
 	}
 
 	for _, c := range cases {
@@ -143,12 +152,12 @@ foobar_bar
 
 func TestVolumeContextWriteJSON(t *testing.T) {
 	volumes := []volume.Volume{
-		{Driver: "foo", Name: "foobar_baz"},
+		{Driver: "foo", Name: "foobar_baz", CreatedAt: "2016-06-07T20:31:11.853781916Z"},
 		{Driver: "bar", Name: "foobar_bar"},
 	}
 	expectedJSONs := []map[string]any{
-		{"Availability": "N/A", "Driver": "foo", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A", "Status": "N/A"},
-		{"Availability": "N/A", "Driver": "bar", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A", "Status": "N/A"},
+		{"Availability": "N/A", "CreatedAt": "2016-06-07 20:31:11.853781916 +0000 UTC", "Driver": "foo", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_baz", "Scope": "", "Size": "N/A", "Status": "N/A"},
+		{"Availability": "N/A", "CreatedAt": "", "Driver": "bar", "Group": "N/A", "Labels": "", "Links": "N/A", "Mountpoint": "", "Name": "foobar_bar", "Scope": "", "Size": "N/A", "Status": "N/A"},
 	}
 	out := bytes.NewBufferString("")
 	err := VolumeWrite(Context{Format: "{{json .}}", Output: out}, volumes)
