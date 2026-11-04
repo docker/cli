@@ -262,3 +262,147 @@ func TestVolumeCreateClusterOpts(t *testing.T) {
 
 	assert.NilError(t, cmd.Execute())
 }
+
+// TestVolumeCreateClusterOptionDetection verifies that each cluster-specific
+// flag on its own is enough to send a ClusterVolumeSpec, and that its value
+// is propagated.
+func TestVolumeCreateClusterOptionDetection(t *testing.T) {
+	testCases := []struct {
+		flag     string
+		value    string
+		expected *volume.ClusterVolumeSpec
+	}{
+		{
+			flag:  "secret",
+			value: "key1=secret1",
+			expected: &volume.ClusterVolumeSpec{
+				Secrets: []volume.Secret{{Key: "key1", Secret: "secret1"}},
+			},
+		},
+		{
+			flag:  "topology-required",
+			value: "region=R1,zone=Z1",
+			expected: &volume.ClusterVolumeSpec{
+				AccessibilityRequirements: &volume.TopologyRequirement{
+					Requisite: []volume.Topology{
+						{Segments: map[string]string{"region": "R1", "zone": "Z1"}},
+					},
+					Preferred: []volume.Topology{},
+				},
+			},
+		},
+		{
+			flag:  "topology-preferred",
+			value: "region=R1,zone=Z2",
+			expected: &volume.ClusterVolumeSpec{
+				AccessibilityRequirements: &volume.TopologyRequirement{
+					Requisite: []volume.Topology{},
+					Preferred: []volume.Topology{
+						{Segments: map[string]string{"region": "R1", "zone": "Z2"}},
+					},
+				},
+			},
+		},
+		{
+			flag:  "limit-bytes",
+			value: "567890",
+			expected: &volume.ClusterVolumeSpec{
+				CapacityRange: &volume.CapacityRange{LimitBytes: 567890},
+			},
+		},
+		{
+			flag:  "required-bytes",
+			value: "1234",
+			expected: &volume.ClusterVolumeSpec{
+				CapacityRange: &volume.CapacityRange{RequiredBytes: 1234},
+			},
+		},
+		{
+			flag:  "scope",
+			value: "multi",
+			expected: &volume.ClusterVolumeSpec{
+				AccessMode: &volume.AccessMode{
+					Scope:       volume.ScopeMultiNode,
+					Sharing:     volume.SharingNone,
+					BlockVolume: &volume.TypeBlock{},
+				},
+			},
+		},
+		{
+			flag:  "sharing",
+			value: "all",
+			expected: &volume.ClusterVolumeSpec{
+				AccessMode: &volume.AccessMode{
+					Scope:       volume.ScopeSingleNode,
+					Sharing:     volume.SharingAll,
+					BlockVolume: &volume.TypeBlock{},
+				},
+			},
+		},
+		{
+			flag:  "type",
+			value: "mount",
+			expected: &volume.ClusterVolumeSpec{
+				AccessMode: &volume.AccessMode{
+					Scope:       volume.ScopeSingleNode,
+					Sharing:     volume.SharingNone,
+					MountVolume: &volume.TypeMount{},
+				},
+			},
+		},
+		{
+			flag:  "group",
+			value: "gronp",
+			expected: &volume.ClusterVolumeSpec{
+				Group: "gronp",
+			},
+		},
+		{
+			flag:  "availability",
+			value: "drain",
+			expected: &volume.ClusterVolumeSpec{
+				Availability: volume.AvailabilityDrain,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.flag, func(t *testing.T) {
+			var actual *volume.ClusterVolumeSpec
+			cli := test.NewFakeCli(&fakeClient{
+				volumeCreateFunc: func(options client.VolumeCreateOptions) (client.VolumeCreateResult, error) {
+					actual = options.ClusterVolumeSpec
+					return client.VolumeCreateResult{}, nil
+				},
+			})
+
+			cmd := newCreateCommand(cli)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs([]string{"my-csi-volume"})
+			assert.Check(t, cmd.Flags().Set("driver", "csi"))
+			assert.Check(t, cmd.Flags().Set(tc.flag, tc.value))
+			assert.NilError(t, cmd.Execute())
+
+			assert.Assert(t, actual != nil, "expected a ClusterVolumeSpec when only --%s is set", tc.flag)
+			if tc.expected.Secrets != nil {
+				assert.Check(t, is.DeepEqual(actual.Secrets, tc.expected.Secrets))
+			}
+			if tc.expected.AccessMode != nil {
+				assert.Check(t, is.DeepEqual(actual.AccessMode, tc.expected.AccessMode))
+			}
+			if tc.expected.AccessibilityRequirements != nil {
+				assert.Check(t, is.DeepEqual(actual.AccessibilityRequirements, tc.expected.AccessibilityRequirements))
+			}
+			if tc.expected.CapacityRange != nil {
+				assert.Check(t, is.DeepEqual(actual.CapacityRange, tc.expected.CapacityRange))
+			}
+			if tc.expected.Group != "" {
+				assert.Check(t, is.Equal(actual.Group, tc.expected.Group))
+			}
+			if tc.expected.Availability != "" {
+				assert.Check(t, is.Equal(actual.Availability, tc.expected.Availability))
+			}
+		})
+	}
+}

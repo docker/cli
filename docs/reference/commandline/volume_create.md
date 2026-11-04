@@ -11,9 +11,9 @@ Create a volume
 | `-d`, `--driver`              | `string` | `local`  | Specify volume driver name                                             |
 | `--group`                     | `string` |          | Cluster Volume group (cluster volumes)                                 |
 | `--label`                     | `list`   |          | Set metadata for a volume                                              |
-| `--limit-bytes`               | `bytes`  | `0`      | Minimum size of the Cluster Volume in bytes                            |
+| `--limit-bytes`               | `bytes`  | `0`      | Maximum size of the Cluster Volume in bytes                            |
 | [`-o`](#opt), [`--opt`](#opt) | `map`    | `map[]`  | Set driver specific options                                            |
-| `--required-bytes`            | `bytes`  | `0`      | Maximum size of the Cluster Volume in bytes                            |
+| `--required-bytes`            | `bytes`  | `0`      | Minimum size of the Cluster Volume in bytes                            |
 | `--scope`                     | `string` | `single` | Cluster Volume access scope (`single`, `multi`)                        |
 | `--secret`                    | `map`    | `map[]`  | Cluster Volume secrets                                                 |
 | `--sharing`                   | `string` | `none`   | Cluster Volume access sharing (`none`, `readonly`, `onewriter`, `all`) |
