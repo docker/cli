@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
@@ -24,9 +25,10 @@ import (
 
 type runOptions struct {
 	createOptions
-	detach     bool
-	sigProxy   bool
-	detachKeys string
+	detach              bool
+	sigProxy            bool
+	detachKeys          string
+	startHealthyTimeout time.Duration
 }
 
 // newRunCommand create a new "docker run" command.
@@ -61,6 +63,7 @@ func newRunCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVar(&options.sigProxy, "sig-proxy", true, "Proxy received signals to the process")
 	flags.StringVar(&options.name, "name", "", "Assign a name to the container")
 	flags.StringVar(&options.detachKeys, "detach-keys", "", "Override the key sequence for detaching a container")
+	flags.DurationVar(&options.startHealthyTimeout, "start-healthy-timeout", 0, "With --detach, maximum time to wait for the container to become healthy before returning (ms|s|m|h) (default 0s)")
 	flags.StringVar(&options.pull, "pull", PullImageMissing, `Pull image before running ("`+PullImageAlways+`", "`+PullImageMissing+`", "`+PullImageNever+`")`)
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Suppress the pull output")
 	flags.BoolVarP(&options.createOptions.useAPISocket, "use-api-socket", "", false, "Bind mount Docker API socket and required auth")
@@ -91,6 +94,12 @@ func runRun(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, ro
 			StatusCode: 125,
 		}
 	}
+	if err := validateStartHealthyTimeout(ropts); err != nil {
+		return cli.StatusError{
+			Status:     withHelp(err, "run").Error(),
+			StatusCode: 125,
+		}
+	}
 	proxyConfig := dockerCLI.ConfigFile().ParseProxyConfig(dockerCLI.Client().DaemonHost(), opts.ConvertKVStringsToMapWithNil(copts.env.GetSlice()))
 	newEnv := []string{}
 	for k, v := range proxyConfig {
@@ -115,6 +124,22 @@ func runRun(ctx context.Context, dockerCLI command.Cli, flags *pflag.FlagSet, ro
 		}
 	}
 	return runContainer(ctx, dockerCLI, ropts, copts, containerCfg)
+}
+
+// validateStartHealthyTimeout validates the "--start-healthy-timeout" option.
+// Waiting for a container to become healthy only makes sense if the CLI does
+// not stay attached to it, so the option requires "--detach" to be set.
+func validateStartHealthyTimeout(ropts *runOptions) error {
+	switch {
+	case ropts.startHealthyTimeout == 0:
+		return nil
+	case ropts.startHealthyTimeout < 0:
+		return errors.New("--start-healthy-timeout cannot be negative")
+	case !ropts.detach:
+		return errors.New("--start-healthy-timeout can only be used with --detach")
+	default:
+		return nil
+	}
 }
 
 //nolint:gocyclo
@@ -162,6 +187,11 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 		go ForwardAllSignals(bgCtx, apiClient, containerID, sigc)
 		defer signal.StopCatch(sigc)
 	}
+
+	// cmdCtx keeps following the CLI's own cancellation, unlike the context
+	// used below for talking to the container, so that a user interrupting
+	// the CLI is not left waiting.
+	cmdCtx := ctx
 
 	ctx, cancelFun := context.WithCancel(context.WithoutCancel(ctx))
 	defer cancelFun()
@@ -223,6 +253,11 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	if !attach {
 		// Detached mode
 		<-waitDisplayID
+		if runOpts.startHealthyTimeout > 0 {
+			// Timing out deliberately does not stop or remove the container;
+			// it's left running for the user to inspect.
+			return waitForHealthy(cmdCtx, apiClient, runOpts.startHealthyTimeout, containerID)
+		}
 		return nil
 	}
 

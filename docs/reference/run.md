@@ -1084,6 +1084,7 @@ for container healthchecks:
 | `--health-start-period`    | Start period for the container to initialize before starting health-retries countdown  |
 | `--health-start-interval`  | Time between running the check during the start period                                 |
 | `--no-healthcheck`         | Disable any container-specified `HEALTHCHECK`                                          |
+| `--start-healthy-timeout`  | With `--detach`, time to wait for the container to become healthy before returning     |
 
 Example:
 
