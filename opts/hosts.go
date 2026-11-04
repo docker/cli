@@ -123,8 +123,15 @@ func ParseTCPAddr(tryAddr string, defaultAddr string) (string, error) {
 	}
 	host, port, err := net.SplitHostPort(u.Host)
 	if err != nil {
-		// try port addition once
-		host, port, err = net.SplitHostPort(net.JoinHostPort(u.Host, defaultPort))
+		// try port addition once; JoinHostPort adds its own brackets around
+		// IPv6 literals, so strip the ones url.Parse left on u.Host.
+		// Don't use u.Hostname() here: for the unbracketed form ("tcp://::1")
+		// it returns ":" instead of "::1".
+		bare := u.Host
+		if len(bare) > 1 && bare[0] == '[' && bare[len(bare)-1] == ']' {
+			bare = bare[1 : len(bare)-1]
+		}
+		host, port, err = net.SplitHostPort(net.JoinHostPort(bare, defaultPort))
 	}
 	if err != nil {
 		return "", fmt.Errorf("invalid bind address format: %s", tryAddr)
