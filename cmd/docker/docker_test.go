@@ -99,6 +99,68 @@ func TestVersion(t *testing.T) {
 	assert.Check(t, is.Contains(b.String(), "Docker version"))
 }
 
+func TestShadowedHelpCommand(t *testing.T) {
+	parse := func(args ...string) (*cobra.Command, []string) {
+		t.Helper()
+		cli, err := command.NewDockerCli(command.WithBaseContext(context.TODO()))
+		assert.NilError(t, err)
+		tcmd := newDockerCommand(cli)
+		tcmd.SetArgs(args)
+		cmd, rest, err := tcmd.HandleGlobalFlags()
+		assert.NilError(t, err)
+		return cmd, rest
+	}
+
+	cmd, args := parse("--help", "run", "hello-world")
+	got := shadowedHelpCommand(cmd, args)
+	assert.Assert(t, got != nil)
+	assert.Check(t, is.Equal(got.Name(), "run"))
+
+	cmd, args = parse("--help", "create", "hello-world")
+	got = shadowedHelpCommand(cmd, args)
+	assert.Assert(t, got != nil)
+	assert.Check(t, is.Equal(got.Name(), "create"))
+
+	cmd, args = parse("--help", "container", "run", "hello-world")
+	got = shadowedHelpCommand(cmd, args)
+	assert.Assert(t, got != nil)
+	assert.Check(t, is.Equal(got.Name(), "run"))
+
+	// --help after the command name is still cobra's job.
+	cmd, args = parse("run", "--help")
+	assert.Assert(t, shadowedHelpCommand(cmd, args) == nil)
+
+	// inherited --help already works; don't steal it.
+	cmd, args = parse("--help", "images")
+	assert.Assert(t, shadowedHelpCommand(cmd, args) == nil)
+
+	// --help after the image is a container arg.
+	cmd, args = parse("run", "hello-world", "--help")
+	assert.Assert(t, shadowedHelpCommand(cmd, args) == nil)
+}
+
+func TestLeadingHelpDoesNotRunContainer(t *testing.T) {
+	var b bytes.Buffer
+	ctx := context.TODO()
+	cli, err := command.NewDockerCli(
+		command.WithBaseContext(ctx),
+		command.WithCombinedStreams(&b),
+	)
+	assert.NilError(t, err)
+
+	orig := os.Args
+	t.Cleanup(func() { os.Args = orig })
+
+	os.Args = []string{"docker", "--help", "run", "hello-world"}
+	assert.NilError(t, runDocker(ctx, cli))
+	assert.Check(t, is.Contains(b.String(), "Create and run a new container"))
+
+	b.Reset()
+	os.Args = []string{"docker", "--help", "create", "hello-world"}
+	assert.NilError(t, runDocker(ctx, cli))
+	assert.Check(t, is.Contains(b.String(), "Create a new container"))
+}
+
 func TestUserTerminatedError(t *testing.T) {
 	ctx, cancel := context.WithTimeoutCause(context.Background(), time.Second*1, errors.New("test timeout"))
 	t.Cleanup(cancel)

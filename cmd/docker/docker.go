@@ -592,6 +592,13 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 		}
 	}
 
+	// run and create register a local --help so -h can stay --hostname.
+	// That flag shadows the persistent one, which HandleGlobalFlags already
+	// consumed, so `docker --help run <image>` would start the container.
+	if ccmd := shadowedHelpCommand(cmd, args); ccmd != nil {
+		return ccmd.Help()
+	}
+
 	// This is a fallback for the case where the command does not exit
 	// based on context cancellation.
 	go forceExitAfter3TerminationSignals(ctx, dockerCli)
@@ -611,6 +618,30 @@ func runDocker(ctx context.Context, dockerCli *command.DockerCli) error {
 	}
 
 	return err
+}
+
+// shadowedHelpCommand returns the subcommand whose help should be printed
+// when a global --help was parsed before the command name. Only commands
+// that define their own --help flag need this; everyone else still inherits
+// the persistent flag and cobra shows help on its own.
+func shadowedHelpCommand(root *cobra.Command, args []string) *cobra.Command {
+	if root == nil || len(args) == 0 {
+		return nil
+	}
+	help, err := root.PersistentFlags().GetBool("help")
+	if err != nil || !help {
+		return nil
+	}
+	ccmd, _, err := root.Find(args)
+	if err != nil || ccmd == nil || ccmd == root {
+		return nil
+	}
+	local := ccmd.Flags().Lookup("help")
+	persistent := root.PersistentFlags().Lookup("help")
+	if local == nil || persistent == nil || local == persistent {
+		return nil
+	}
+	return ccmd
 }
 
 // hasCompletionArg returns true if a cobra completion arg request is found.
