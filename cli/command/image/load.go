@@ -49,6 +49,7 @@ func newLoadCommand(dockerCLI command.Cli) *cobra.Command {
 	_ = flags.SetAnnotation("platform", "version", []string{"1.48"})
 
 	_ = cmd.RegisterFlagCompletionFunc("platform", completion.Platforms())
+	_ = cmd.RegisterFlagCompletionFunc("input", completion.FileNames())
 	return cmd
 }
 
