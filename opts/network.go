@@ -60,12 +60,12 @@ func (n *NetworkOpt) Set(value string) error { //nolint:gocyclo
 		netOpt.Aliases = []string{}
 		for _, field := range fields {
 			// TODO(thaJeztah): these options should not be case-insensitive.
-			key, val, ok := strings.Cut(strings.ToLower(field), "=")
+			key, val, ok := strings.Cut(field, "=")
 			if !ok || key == "" {
 				return fmt.Errorf("invalid field %s", field)
 			}
 
-			key = strings.TrimSpace(key)
+			key = strings.ToLower(strings.TrimSpace(key))
 			val = strings.TrimSpace(val)
 
 			switch key {
@@ -148,9 +148,7 @@ func (n *NetworkOpt) NetworkMode() string {
 }
 
 func parseDriverOpt(driverOpt string) (string, string, error) {
-	// TODO(thaJeztah): these options should not be case-insensitive.
-	// TODO(thaJeztah): should value be converted to lowercase as well, or only the key?
-	key, value, ok := strings.Cut(strings.ToLower(driverOpt), "=")
+	key, value, ok := strings.Cut(driverOpt, "=")
 	if !ok || key == "" {
 		return "", "", errors.New("invalid key value pair format in driver options")
 	}
