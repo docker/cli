@@ -52,3 +52,13 @@ func TestGpusOpts(t *testing.T) {
 		}))
 	}
 }
+
+func TestGpusOptDuplicateCount(t *testing.T) {
+	for _, value := range []string{"count=1,2", "1,2", "all,1", "count=1,all", "1,count=2", "count=1,count=2"} {
+		t.Run(value, func(t *testing.T) {
+			var gpus GpuOpts
+			assert.Error(t, gpus.Set(value), "gpu request key 'count' can be specified only once")
+			assert.Assert(t, is.Len(gpus.Value(), 0))
+		})
+	}
+}
