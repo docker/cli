@@ -20,6 +20,14 @@ Remove one or more stacks
 
 Remove the stack from the swarm.
 
+By default, the command returns as soon as the removal of the stack's services,
+networks, secrets, and configs has been requested; the tasks of the services
+are stopped in the background. With `--detach=false`, the command waits for the
+tasks to stop before it removes the networks of the stack, and returns once the
+stack is gone. Removing the networks after the tasks have stopped lets the
+swarm manager release every address the tasks held, including their addresses
+on the `ingress` network.
+
 > [!NOTE]
 > This is a cluster management command, and must be executed on a swarm
 > manager node. To learn about managers and workers, refer to the
