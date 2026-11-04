@@ -109,7 +109,7 @@ func dockerSpanExporter(ctx context.Context, cli Cli) []sdktrace.TracerProviderO
 		otel.Handle(err)
 		return nil
 	}
-	return []sdktrace.TracerProviderOption{sdktrace.WithBatcher(exp, sdktrace.WithExportTimeout(exportTimeout))}
+	return []sdktrace.TracerProviderOption{sdktrace.WithBatcher(exp, sdktrace.WithExportTimeout(ExportTimeout))}
 }
 
 func dockerMetricExporter(ctx context.Context, cli Cli) []sdkmetric.Option {
