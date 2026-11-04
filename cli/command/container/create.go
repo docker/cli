@@ -255,12 +255,14 @@ func createContainer(ctx context.Context, dockerCLI command.Cli, containerCfg *c
 		}
 
 		// hard-code engine socket path until https://github.com/moby/moby/pull/43459 gives us a discovery mechanism
-		containerCfg.HostConfig.Mounts = append(containerCfg.HostConfig.Mounts, mount.Mount{
+		const dockerSocketPath = "/var/run/docker.sock"
+		hostConfig.Mounts = append(hostConfig.Mounts, mount.Mount{
 			Type:        mount.TypeBind,
-			Source:      "/var/run/docker.sock",
-			Target:      "/var/run/docker.sock",
+			Source:      dockerSocketPath,
+			Target:      dockerSocketPath,
 			BindOptions: &mount.BindOptions{},
 		})
+		addSocketGroup(&hostConfig.GroupAdd, dockerSocketPath)
 
 		/*
 
