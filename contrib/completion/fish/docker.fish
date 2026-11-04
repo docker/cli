@@ -414,6 +414,8 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from ps' -l since -d 'Show o
 # pull
 complete -c docker -f -n '__fish_docker_no_subcommand' -a pull -d 'Download an image from a registry'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -s a -l all-tags -d 'Download all tagged images in the repository'
+complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -l dry-run -d 'Check if a newer image is available without pulling'
+complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -l format -d 'Format the --dry-run output using a custom template'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_images)' -d "Image"
 complete -c docker -A -f -n '__fish_seen_subcommand_from pull' -a '(__fish_print_docker_repositories)' -d "Repository"

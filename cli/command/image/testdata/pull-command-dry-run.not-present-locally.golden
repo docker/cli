@@ -1,0 +1,3 @@
+Digest: sha256:c0537ff6a5218ef531ece93d4984efc99bbf3f7497c0a7726c88e2bb7584dc96
+Status: Image docker.io/library/image:tag is not available locally and would be pulled
+docker.io/library/image:tag

@@ -165,6 +165,50 @@ images that are present locally:
     ubuntu       latest    35a88802559d   6 weeks ago    78.1MB
     ubuntu       noble     35a88802559d   6 weeks ago    78.1MB
 
+## Check if an image is up to date (dry run)
+
+Use the `--dry-run` option to check whether pulling an image would download a
+newer version, without pulling it. The CLI asks the daemon to resolve the
+image reference to a digest in the registry, and compares it with the digest
+of the local image. No image content is downloaded.
+
+    $ docker image pull --dry-run debian
+
+    Digest: sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510
+    Status: Image is up to date for docker.io/library/debian:latest
+    docker.io/library/debian:latest
+
+If a newer image is available in the registry, the status indicates so:
+
+    $ docker image pull --dry-run debian
+
+    Digest: sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510
+    Status: A newer image is available for docker.io/library/debian:latest
+    docker.io/library/debian:latest
+
+If the image is not present locally at all, the status reports that the image
+would be pulled:
+
+    $ docker image pull --dry-run debian:bookworm
+
+    Digest: sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510
+    Status: Image docker.io/library/debian:bookworm is not available locally and would be pulled
+    docker.io/library/debian:bookworm
+
+For use in scripts, use the `--format` option to get machine-readable output.
+The `Status` field is one of `up-to-date`, `newer-available`, or `not-present`:
+
+    $ docker image pull --dry-run --format json debian
+
+    {"Reference":"docker.io/library/debian:latest","Digest":"sha256:3f1d6c17773a45c97bd8f158d665c9709d7b29ed7917ac934086ad96f92e4510","Status":"up-to-date"}
+
+    $ docker image pull --dry-run --format '{{.Status}}' debian
+
+    up-to-date
+
+The `--dry-run` option cannot be combined with `--all-tags`, and `--format`
+can only be used together with `--dry-run`.
+
 ## Cancel a pull
 
 Killing the `docker image pull` process, for example by pressing `CTRL-c` while it is
