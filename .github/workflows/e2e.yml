@@ -26,6 +26,9 @@ on:
 
 jobs:
   tests:
+    permissions:
+      contents: read
+      id-token: write # needed for CodeCov; https://github.com/codecov/codecov-action/blob/v7.1.1/README.md#using-oidc
     runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
@@ -80,4 +83,4 @@ jobs:
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: ./build/coverage/coverage.txt
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
