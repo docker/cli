@@ -210,9 +210,9 @@ func TestResourceOptionsToResourceRequirementsSwap(t *testing.T) {
 	r, err = swapOptions.ToResourceRequirements(flags)
 	assert.NilError(t, err)
 	assert.Check(t, r.SwapBytes != nil)
-	assert.Check(t, is.Equal(*(r.SwapBytes), int64(86000)))
+	assert.Check(t, is.Equal(*r.SwapBytes, int64(86000)))
 	assert.Check(t, r.MemorySwappiness != nil)
-	assert.Check(t, is.Equal(*(r.MemorySwappiness), int64(23)))
+	assert.Check(t, is.Equal(*r.MemorySwappiness, int64(23)))
 }
 
 func TestToServiceNetwork(t *testing.T) {

@@ -276,6 +276,7 @@ func TestContainerPsContext(t *testing.T) {
 	}
 }
 
+//nolint:dupword // ignore duplicate "ubuntu" in test fixtures
 func TestContainerContextWrite(t *testing.T) {
 	unixTime := time.Now().AddDate(0, 0, -1).Unix()
 	expectedTime := time.Unix(unixTime, 0).String()
