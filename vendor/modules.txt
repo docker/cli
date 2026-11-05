@@ -1,3 +1,7 @@
+# connectrpc.com/connect v1.19.1
+## explicit; go 1.24.0
+connectrpc.com/connect
+connectrpc.com/connect/internal/gen/connectext/grpc/status/v1
 # dario.cat/mergo v1.0.2
 ## explicit; go 1.13
 dario.cat/mergo
@@ -87,6 +91,23 @@ github.com/docker/go-metrics
 github.com/docker/go-units
 # github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7
 ## explicit
+# github.com/docker/secrets-engine/client v0.2.2
+## explicit; go 1.26.10
+github.com/docker/secrets-engine/client
+github.com/docker/secrets-engine/client/dockerhub
+github.com/docker/secrets-engine/client/realms
+# github.com/docker/secrets-engine/x v0.8.5
+## explicit; go 1.26.10
+github.com/docker/secrets-engine/x/api
+github.com/docker/secrets-engine/x/api/health/v1
+github.com/docker/secrets-engine/x/api/health/v1/healthv1connect
+github.com/docker/secrets-engine/x/api/plugins/v1
+github.com/docker/secrets-engine/x/api/plugins/v1/pluginsv1connect
+github.com/docker/secrets-engine/x/api/resolver
+github.com/docker/secrets-engine/x/api/resolver/v1
+github.com/docker/secrets-engine/x/api/resolver/v1/resolverv1connect
+github.com/docker/secrets-engine/x/realms
+github.com/docker/secrets-engine/x/secrets
 # github.com/felixge/httpsnoop v1.1.0
 ## explicit; go 1.25
 github.com/felixge/httpsnoop

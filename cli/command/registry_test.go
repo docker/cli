@@ -96,7 +96,84 @@ func TestGetDefaultAuthConfig_HelperError(t *testing.T) {
 	assert.Check(t, is.ErrorContains(err, "docker-credential-fake-does-not-exist"))
 }
 
+func noDesktopSession(string) (configtypes.AuthConfig, bool) {
+	return configtypes.AuthConfig{}, false
+}
+
+func TestRetrieveAuthTokenFromImageDesktopSession(t *testing.T) {
+	const configFileContent = `{"auths": {
+		"https://index.docker.io/v1/": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="},
+		"ghcr.io": {"auth": "dXNlcm5hbWU6cGFzc3dvcmQ="}
+	}
+}`
+	cfg := configfile.ConfigFile{}
+	assert.NilError(t, cfg.LoadFromReader(bytes.NewReader([]byte(configFileContent))))
+
+	var lookups []string
+	command.SetDesktopAuthConfig(t, func(registryHostname string) (configtypes.AuthConfig, bool) {
+		lookups = append(lookups, registryHostname)
+		if registryHostname != "docker.io" {
+			return configtypes.AuthConfig{}, false
+		}
+		return configtypes.AuthConfig{
+			Username:      "hubuser",
+			Password:      "desktop-token",
+			ServerAddress: "https://index.docker.io/v1/",
+		}, true
+	})
+
+	tests := []struct {
+		imageRef string
+		expected registry.AuthConfig
+	}{
+		{
+			imageRef: "ubuntu",
+			expected: registry.AuthConfig{Username: "hubuser", Password: "desktop-token", ServerAddress: "https://index.docker.io/v1/"},
+		},
+		{
+			imageRef: "ghcr.io/foo/bar",
+			expected: registry.AuthConfig{Username: "username", Password: "password", ServerAddress: "ghcr.io"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.imageRef, func(t *testing.T) {
+			actual, err := command.RetrieveAuthTokenFromImage(&cfg, tc.imageRef)
+			assert.NilError(t, err)
+			expected, err := authconfig.Encode(tc.expected)
+			assert.NilError(t, err)
+			assert.Equal(t, actual, expected)
+		})
+	}
+	assert.Check(t, is.DeepEqual(lookups, []string{"docker.io", "ghcr.io"}))
+}
+
+func TestRetrieveAuthTokenFromImageEnvTakesPrecedenceOverDesktop(t *testing.T) {
+	t.Setenv(configfile.DockerEnvConfigKey, `{"auths":{"https://index.docker.io/v1/":{"auth":"ZW52dXNlcjplbnZwYXNz"}}}`)
+
+	var lookups []string
+	command.SetDesktopAuthConfig(t, func(registryHostname string) (configtypes.AuthConfig, bool) {
+		lookups = append(lookups, registryHostname)
+		return configtypes.AuthConfig{Username: "hubuser", Password: "desktop-token", ServerAddress: registryHostname}, true
+	})
+	cfg := configfile.ConfigFile{}
+
+	actual, err := command.RetrieveAuthTokenFromImage(&cfg, "ubuntu")
+	assert.NilError(t, err)
+	expected, err := authconfig.Encode(registry.AuthConfig{Username: "envuser", Password: "envpass", ServerAddress: "https://index.docker.io/v1/"})
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(actual, expected))
+	assert.Check(t, is.Len(lookups, 0), "Docker Desktop must not be asked for a registry in DOCKER_AUTH_CONFIG")
+
+	actual, err = command.RetrieveAuthTokenFromImage(&cfg, "dhi.io/python")
+	assert.NilError(t, err)
+	expected, err = authconfig.Encode(registry.AuthConfig{Username: "hubuser", Password: "desktop-token", ServerAddress: "dhi.io"})
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal(actual, expected))
+	assert.Check(t, is.DeepEqual(lookups, []string{"dhi.io"}))
+}
+
 func TestRetrieveAuthTokenFromImage(t *testing.T) {
+	command.SetDesktopAuthConfig(t, noDesktopSession)
 	// configFileContent contains a plain-text "username:password", as stored by
 	// the plain-text store;
 	// https://github.com/docker/cli/blob/v28.0.4/cli/config/configfile/file.go#L218-L229
