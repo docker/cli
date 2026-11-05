@@ -31,12 +31,15 @@ func NewNativeStore(file store, helperSuffix string) Store {
 
 // Erase removes the given credentials from the native store.
 func (c *nativeStore) Erase(serverAddress string) error {
-	if err := client.Erase(c.programFunc, serverAddress); err != nil {
-		return err
+	helperErr := client.Erase(c.programFunc, serverAddress)
+	// Drop the plaintext copy even when the helper fails. Logout tries
+	// several server-address spellings, and a clean erase of another
+	// spelling used to hide this failure while leaving the auth entry.
+	fileErr := c.fileStore.Erase(serverAddress)
+	if helperErr != nil {
+		return helperErr
 	}
-
-	// Fallback to plain text store to remove email
-	return c.fileStore.Erase(serverAddress)
+	return fileErr
 }
 
 // Get retrieves credentials for a specific server from the native store.

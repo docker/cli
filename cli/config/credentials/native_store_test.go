@@ -243,3 +243,20 @@ func TestNativeStoreEraseInvalidAddress(t *testing.T) {
 	err := s.Erase(invalidServerAddress)
 	assert.ErrorContains(t, err, "program failed")
 }
+
+func TestNativeStoreEraseDropsPlaintextWhenHelperFails(t *testing.T) {
+	f := &fakeStore{configs: map[string]types.AuthConfig{
+		invalidServerAddress: {
+			Username: "other",
+			Password: "secret",
+		},
+	}}
+
+	s := &nativeStore{
+		programFunc: mockCommandFn,
+		fileStore:   NewFileStore(f),
+	}
+	err := s.Erase(invalidServerAddress)
+	assert.ErrorContains(t, err, "program failed")
+	assert.Check(t, is.Len(f.GetAuthConfigs(), 0))
+}
