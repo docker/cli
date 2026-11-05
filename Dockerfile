@@ -6,7 +6,9 @@ ARG BASE_VARIANT=alpine
 # It must be a supported tag in the docker.io/library/alpine image repository
 # that's also available as alpine image variant for the Golang version used.
 ARG ALPINE_VERSION=3.24
-ARG BASE_DEBIAN_DISTRO=bookworm
+
+# BASE_DEBIAN_DISTRO sets the version of the debian base image to use,
+ARG BASE_DEBIAN_DISTRO=trixie
 
 ARG GO_VERSION=1.26.10
 
@@ -53,7 +55,7 @@ WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-debian AS build-debian
 ARG TARGETPLATFORM
-RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-12-dev pkgconf
+RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-14-dev pkgconf
 
 FROM build-base-${BASE_VARIANT} AS goversioninfo
 ARG GOVERSIONINFO_VERSION
