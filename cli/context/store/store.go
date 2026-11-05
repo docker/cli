@@ -264,8 +264,11 @@ func Export(name string, s Reader) io.ReadCloser {
 	reader, writer := io.Pipe()
 	go func() {
 		tw := tar.NewWriter(writer)
-		defer tw.Close()
-		defer writer.Close()
+		defer func() {
+			// Close the tar writer first, so that the padding and the
+			// end-of-archive marker are written before the pipe is closed.
+			writer.CloseWithError(tw.Close())
+		}()
 		meta, err := s.GetMetadata(name)
 		if err != nil {
 			writer.CloseWithError(err)
