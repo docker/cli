@@ -1,8 +1,8 @@
 # dario.cat/mergo v1.0.2
 ## explicit; go 1.13
 dario.cat/mergo
-# github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4
-## explicit; go 1.17
+# github.com/Azure/go-ansiterm v0.0.0-20261013165250-51075c6ea6bc
+## explicit; go 1.25.0
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
 # github.com/Microsoft/go-winio v0.6.3
