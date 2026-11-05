@@ -12,6 +12,7 @@ Update configuration of one or more containers
 | Name                                               | Type      | Default | Description                                                                  |
 |:---------------------------------------------------|:----------|:--------|:-----------------------------------------------------------------------------|
 | `--blkio-weight`                                   | `uint16`  | `0`     | Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0) |
+| `--blkio-weight-device`                            | `list`    |         | Block IO weight (relative device weight)                                     |
 | `--cpu-period`                                     | `int64`   | `0`     | Limit CPU CFS (Completely Fair Scheduler) period                             |
 | `--cpu-quota`                                      | `int64`   | `0`     | Limit CPU CFS (Completely Fair Scheduler) quota                              |
 | `--cpu-rt-period`                                  | `int64`   | `0`     | Limit the CPU real-time period in microseconds                               |
@@ -20,6 +21,10 @@ Update configuration of one or more containers
 | `--cpus`                                           | `decimal` |         | Number of CPUs                                                               |
 | `--cpuset-cpus`                                    | `string`  |         | CPUs in which to allow execution (0-3, 0,1)                                  |
 | `--cpuset-mems`                                    | `string`  |         | MEMs in which to allow execution (0-3, 0,1)                                  |
+| `--device-read-bps`                                | `list`    |         | Limit read rate (bytes per second) from a device                             |
+| `--device-read-iops`                               | `list`    |         | Limit read rate (IO per second) from a device                                |
+| `--device-write-bps`                               | `list`    |         | Limit write rate (bytes per second) to a device                              |
+| `--device-write-iops`                              | `list`    |         | Limit write rate (IO per second) to a device                                 |
 | [`-m`](#memory), [`--memory`](#memory)             | `bytes`   | `0`     | Memory limit                                                                 |
 | `--memory-reservation`                             | `bytes`   | `0`     | Memory soft limit                                                            |
 | `--memory-swap`                                    | `bytes`   | `0`     | Swap limit equal to memory plus swap: -1 to enable unlimited swap            |
