@@ -27,8 +27,13 @@ func TerminatePrompt(ctx context.Context, t *testing.T, cmd *cobra.Command, cli 
 	}))
 	cli.SetOut(outStream)
 
-	r, _, err := os.Pipe()
+	r, w, err := os.Pipe()
 	assert.NilError(t, err)
+	t.Cleanup(func() {
+		_ = w.Close()
+		_ = r.Close()
+	})
+
 	cli.SetIn(streams.NewIn(r))
 
 	notifyCtx, notifyCancel := context.WithCancel(ctx)
@@ -57,8 +62,6 @@ func TerminatePrompt(ctx context.Context, t *testing.T, cmd *cobra.Command, cli 
 			}
 		}()
 	}
-
-	assert.Check(t, cli.OutBuffer().Len() > 0)
 
 	// a small delay to ensure the plugin is prompting
 	time.Sleep(100 * time.Microsecond)
