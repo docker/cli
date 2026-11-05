@@ -108,3 +108,45 @@ func TestDecoratedName(t *testing.T) {
 	topLevelCommand.Annotations = map[string]string{metadata.CommandAnnotationPlugin: "true"}
 	assert.Equal(t, decoratedName(topLevelCommand), "pluginTopLevelCommand*")
 }
+
+// TestHandleGlobalFlagsHelpPropagation covers https://github.com/docker/cli/issues/7473:
+// a leading "--help" is consumed as the root's persistent help flag and
+// stripped from args, so a subcommand that registers its own local "help"
+// flag (as "run" and "create" do, to avoid a shorthand clash with "-h") never
+// sees it and runs instead of showing help.
+func TestHandleGlobalFlagsHelpPropagation(t *testing.T) {
+	newRootCmd := func() (root, sub *cobra.Command) {
+		root = &cobra.Command{Use: "docker"}
+		root.PersistentFlags().BoolP("help", "h", false, "Print usage")
+
+		sub = &cobra.Command{Use: "run", RunE: func(cmd *cobra.Command, args []string) error { return nil }}
+		sub.Flags().Bool("help", false, "Print usage")
+		root.AddCommand(sub)
+		return root, sub
+	}
+
+	t.Run("propagates to the shadowing local help flag", func(t *testing.T) {
+		root, sub := newRootCmd()
+		tcmd := &TopLevelCommand{cmd: root, args: []string{"--help", "run", "hello-world"}}
+
+		_, args, err := tcmd.HandleGlobalFlags()
+		assert.NilError(t, err)
+		assert.DeepEqual(t, args, []string{"run", "hello-world"})
+
+		help, err := sub.Flags().GetBool("help")
+		assert.NilError(t, err)
+		assert.Equal(t, help, true)
+	})
+
+	t.Run("leaves the local help flag alone without --help", func(t *testing.T) {
+		root, sub := newRootCmd()
+		tcmd := &TopLevelCommand{cmd: root, args: []string{"run", "hello-world"}}
+
+		_, _, err := tcmd.HandleGlobalFlags()
+		assert.NilError(t, err)
+
+		help, err := sub.Flags().GetBool("help")
+		assert.NilError(t, err)
+		assert.Equal(t, help, false)
+	})
+}
