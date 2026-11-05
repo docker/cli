@@ -64,8 +64,8 @@ in the online documentation.
 So far, you've pulled images by their name (and "tag"). Using names and tags is
 a convenient way to work with images. When using tags, you can `docker image pull` an
 image again to make sure you have the most up-to-date version of that image.
-For example, `docker image pull ubuntu:24.04` pulls the latest version of the Ubuntu
-24.04 image.
+For example, `docker image pull ubuntu:26.04` pulls the latest version of the Ubuntu
+26.04 image.
 
 In some cases you don't want images to be updated to newer versions, but prefer
 to use a fixed version of an image. Docker enables you to pull an image by its
@@ -74,15 +74,15 @@ of an image to pull. Doing so, allows you to "pin" an image to that version,
 and guarantee that the image you're using is always the same.
 
 To know the digest of an image, pull the image first. Let's pull the latest
-`ubuntu:24.04` image from Docker Hub:
+`ubuntu:26.04` image from Docker Hub:
 
-    $ docker image pull ubuntu:24.04
+    $ docker image pull ubuntu:26.04
 
-    24.04: Pulling from library/ubuntu
+    26.04: Pulling from library/ubuntu
     125a6e411906: Pull complete
     Digest: sha256:2e863c44b718727c860746568e1d54afd13b2fa71b160f5cd9058fc436217b30
-    Status: Downloaded newer image for ubuntu:24.04
-    docker.io/library/ubuntu:24.04
+    Status: Downloaded newer image for ubuntu:26.04
+    docker.io/library/ubuntu:26.04
 
 Docker prints the digest of the image after the pull has finished. In the example
 above, the digest of the image is:
@@ -159,11 +159,11 @@ images that are present locally:
 
     $ docker image ls --filter reference=ubuntu
     REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
-    ubuntu       22.04     8a3cdc4d1ad3   3 weeks ago    77.9MB
-    ubuntu       jammy     8a3cdc4d1ad3   3 weeks ago    77.9MB
-    ubuntu       24.04     35a88802559d   6 weeks ago    78.1MB
+    ubuntu       24.04     8a3cdc4d1ad3   3 weeks ago    77.9MB
+    ubuntu       noble     8a3cdc4d1ad3   3 weeks ago    77.9MB
+    ubuntu       26.04     35a88802559d   6 weeks ago    78.1MB
     ubuntu       latest    35a88802559d   6 weeks ago    78.1MB
-    ubuntu       noble     35a88802559d   6 weeks ago    78.1MB
+    ubuntu       resolute  35a88802559d   6 weeks ago    78.1MB
 
 ## Cancel a pull
 
