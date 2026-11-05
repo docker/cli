@@ -26,6 +26,9 @@ on:
 
 jobs:
   ctn:
+    permissions:
+      contents: read
+      id-token: write # needed for CodeCov; https://github.com/codecov/codecov-action/blob/v7.1.1/README.md#using-oidc
     runs-on: ubuntu-26.04
     steps:
       -
@@ -41,9 +44,12 @@ jobs:
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           files: ./build/coverage/coverage.txt
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
 
   host:
+    permissions:
+      contents: read
+      id-token: write # needed for CodeCov; https://github.com/codecov/codecov-action/blob/v7.1.1/README.md#using-oidc
     runs-on: ${{ matrix.os }}
     env:
       GOPATH: ${{ github.workspace }}
@@ -86,4 +92,4 @@ jobs:
         with:
           files: /tmp/coverage.txt
           working-directory: ${{ env.GOPATH }}/src/github.com/docker/cli
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
