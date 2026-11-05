@@ -49,6 +49,25 @@ func TestContainerPsContext(t *testing.T) {
 			call:      ctx.Names,
 		},
 		{
+			container: container.Summary{Names: []string{"/other/link", "/foobar_baz"}},
+			trunc:     true,
+			expValue:  "foobar_baz",
+			call:      ctx.Names,
+		},
+		{
+			container: container.Summary{Names: []string{"/foobar_baz", "/other/link"}},
+			expValue:  "foobar_baz,other/link",
+			call:      ctx.Names,
+		},
+		{
+			// Names returned by a classic Swarm API are prefixed with the
+			// node-name; see https://github.com/docker/cli/pull/6875
+			container: container.Summary{Names: []string{"/node-1/foobar_baz"}},
+			trunc:     true,
+			expValue:  "node-1/foobar_baz",
+			call:      ctx.Names,
+		},
+		{
 			container: container.Summary{Image: "ubuntu"},
 			trunc:     true,
 			expValue:  "ubuntu",
