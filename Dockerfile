@@ -30,7 +30,7 @@ ARG BUILDX_VERSION=0.38.1
 # COMPOSE_VERSION is the version of compose to install in the dev container.
 # It must be a tag in the docker.io/docker/compose-bin image repository
 # on Docker Hub.
-ARG COMPOSE_VERSION=v5.6.1
+ARG COMPOSE_VERSION=v5.7.0
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
