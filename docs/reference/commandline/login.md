@@ -35,6 +35,13 @@ credential store, Docker stores credentials in the `config.json` file in a
 base64-encoded format. This method is less secure than configuring and using a
 credential store.
 
+On Linux, prefer running `docker login` as your normal user. Prefixing the
+command with `sudo` often changes `$HOME` to `/root`, so credentials land in
+`/root/.docker/config.json` instead of your user's file — later non-sudo
+`docker` commands then look unauthenticated. If you must use root, pass
+`sudo -E` or set `DOCKER_CONFIG` to the directory that should hold
+`config.json`.
+
 `docker login` also supports [credential helpers](#credential-helpers) to help
 you handle credentials for specific registries.
 
