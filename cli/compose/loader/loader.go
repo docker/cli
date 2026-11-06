@@ -660,7 +660,9 @@ func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfi
 			return obj, fmt.Errorf("%[1]s %[2]s: %[1]s.driver and %[1]s.file conflict; only use %[1]s.driver", objType, name)
 		}
 	default:
-		obj.File = absPath(details.WorkingDir, obj.File)
+		if obj.File != "" {
+			obj.File = absPath(details.WorkingDir, obj.File)
+		}
 	}
 
 	return obj, nil
