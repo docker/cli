@@ -36,6 +36,10 @@ docker-build - Build an image from a Dockerfile
 PATH | URL | -
 
 # DESCRIPTION
+**docker build** uses BuildKit by default. The flags listed in this page
+include options that only apply to the legacy builder. For the current
+BuildKit option set, see **docker buildx build**(1).
+
 This will read the Dockerfile from the directory specified in **PATH**.
 It also sends any other files and directories found in the current
 directory to the Docker daemon. The contents of this directory would
