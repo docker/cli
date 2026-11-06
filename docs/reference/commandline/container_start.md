@@ -20,8 +20,26 @@ Start one or more stopped containers
 
 <!---MARKER_GEN_END-->
 
+## Description
+
+By default `docker start` starts each container in the background and
+prints its name. It does not attach your terminal.
+
+`--attach` (`-a`) attaches STDOUT/STDERR and forwards signals. You can
+only attach to one container. Combine `-a` with `-i` to attach STDIN as
+well (the container must have been created with `-i` for STDIN to be
+open).
+
+`--attach` is not the same as [`docker attach`](container_attach.md):
+`start -a` starts a stopped container and then attaches; `attach`
+connects to a container that is already running.
+
 ## Examples
 
 ```console
 $ docker start my_container
+```
+
+```console
+$ docker start -ai my_container
 ```
