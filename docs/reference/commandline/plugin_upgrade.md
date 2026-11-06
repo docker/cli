@@ -20,53 +20,57 @@ is specified, Docker will re-pull the current image and use the updated version.
 All existing references to the plugin will continue to work.
 The plugin must be disabled before running the upgrade.
 
+`docker plugin install` without a tag pulls `:latest`. Pass a different tag
+or digest as `REMOTE` to move the plugin to that image. The local plugin
+name does not change.
+
 ## Examples
 
-The following example installs `vieus/sshfs` plugin, uses it to create and use
-a volume, then upgrades the plugin.
+The following example installs `vieux/sshfs` (defaults to `:latest`), uses
+it to create a volume, then upgrades the plugin to `:next`.
 
 ```console
 $ docker plugin install vieux/sshfs DEBUG=1
 
-Plugin "vieux/sshfs:next" is requesting the following privileges:
+Plugin "vieux/sshfs" is requesting the following privileges:
  - network: [host]
  - device: [/dev/fuse]
  - capabilities: [CAP_SYS_ADMIN]
 Do you grant the above permissions? [y/N] y
-vieux/sshfs:next
+vieux/sshfs
 
-$ docker volume create -d vieux/sshfs:next -o sshcmd=root@1.2.3.4:/tmp/shared -o password=XXX sshvolume
+$ docker volume create -d vieux/sshfs:latest -o sshcmd=root@1.2.3.4:/tmp/shared -o password=XXX sshvolume
 
 sshvolume
 
 $ docker run -it -v sshvolume:/data alpine sh -c "touch /data/hello"
 
-$ docker plugin disable -f vieux/sshfs:next
+$ docker plugin disable -f vieux/sshfs:latest
 
-viex/sshfs:next
+vieux/sshfs:latest
 
-# Here docker volume ls doesn't show 'sshfsvolume', since the plugin is disabled
+# Here docker volume ls doesn't show 'sshvolume', since the plugin is disabled
 $ docker volume ls
 
 DRIVER              VOLUME NAME
 
-$ docker plugin upgrade vieux/sshfs:next vieux/sshfs:next
+$ docker plugin upgrade vieux/sshfs:latest vieux/sshfs:next
 
 Plugin "vieux/sshfs:next" is requesting the following privileges:
  - network: [host]
  - device: [/dev/fuse]
  - capabilities: [CAP_SYS_ADMIN]
 Do you grant the above permissions? [y/N] y
-Upgrade plugin vieux/sshfs:next to vieux/sshfs:next
+Upgrade plugin vieux/sshfs:latest from vieux/sshfs:latest to vieux/sshfs:next
 
-$ docker plugin enable vieux/sshfs:next
+$ docker plugin enable vieux/sshfs:latest
 
-viex/sshfs:next
+vieux/sshfs:latest
 
 $ docker volume ls
 
 DRIVER              VOLUME NAME
-viuex/sshfs:next    sshvolume
+vieux/sshfs:latest    sshvolume
 
 $ docker run -it -v sshvolume:/data alpine sh -c "ls /data"
 
