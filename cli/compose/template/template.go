@@ -184,13 +184,13 @@ func extractVariable(value any, pattern regexper) ([]extractedValue, bool) {
 		name := val
 		var defaultValue string
 		switch {
-		case strings.Contains(val, ":?"):
+		case hasModifier(val, ":?"):
 			name, _ = partition(val, ":?")
-		case strings.Contains(val, "?"):
+		case hasModifier(val, "?"):
 			name, _ = partition(val, "?")
-		case strings.Contains(val, ":-"):
+		case hasModifier(val, ":-"):
 			name, defaultValue = partition(val, ":-")
-		case strings.Contains(val, "-"):
+		case hasModifier(val, "-"):
 			name, defaultValue = partition(val, "-")
 		}
 		values = append(values, extractedValue{name: name, value: defaultValue})
@@ -198,10 +198,17 @@ func extractVariable(value any, pattern regexper) ([]extractedValue, bool) {
 	return values, len(values) > 0
 }
 
+// hasModifier checks the operator immediately after the variable name, ignoring
+// operator characters in the default value or error message.
+func hasModifier(substitution, modifier string) bool {
+	i := strings.IndexAny(substitution, ":-?")
+	return i >= 0 && strings.HasPrefix(substitution[i:], modifier)
+}
+
 // Soft default (fall back if unset or empty)
 func softDefault(substitution string, mapping Mapping) (string, bool, error) {
 	sep := ":-"
-	if !strings.Contains(substitution, sep) {
+	if !hasModifier(substitution, sep) {
 		return "", false, nil
 	}
 	name, defaultValue := partition(substitution, sep)
@@ -215,7 +222,7 @@ func softDefault(substitution string, mapping Mapping) (string, bool, error) {
 // Hard default (fall back if-and-only-if empty)
 func hardDefault(substitution string, mapping Mapping) (string, bool, error) {
 	sep := "-"
-	if !strings.Contains(substitution, sep) {
+	if !hasModifier(substitution, sep) {
 		return "", false, nil
 	}
 	name, defaultValue := partition(substitution, sep)
@@ -235,7 +242,7 @@ func required(substitution string, mapping Mapping) (string, bool, error) {
 }
 
 func withRequired(substitution string, mapping Mapping, sep string, valid func(string) bool) (string, bool, error) {
-	if !strings.Contains(substitution, sep) {
+	if !hasModifier(substitution, sep) {
 		return "", false, nil
 	}
 	name, errorMessage := partition(substitution, sep)
