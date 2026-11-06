@@ -32,7 +32,8 @@ type ImageOpts struct {
 
 // TmpFsOpts are options for a service volume of type tmpfs
 type TmpFsOpts struct {
-	Size int64 `yaml:",omitempty" json:"size,omitempty"`
+	Size int64  `yaml:",omitempty" json:"size,omitempty"`
+	Mode uint32 `yaml:",omitempty" json:"mode,omitempty"`
 }
 
 // ClusterOpts are options for a service volume of type cluster.

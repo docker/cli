@@ -1006,6 +1006,35 @@ services:
 	assert.Check(t, is.DeepEqual(expected, config.Services[0].Volumes[0]))
 }
 
+func TestLoadTmpfsVolumeWithMode(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.6"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: tmpfs
+        target: /app
+        tmpfs:
+          size: 10000
+          mode: 01777
+`)
+	assert.NilError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Target: "/app",
+		Type:   "tmpfs",
+		Tmpfs: &types.ServiceVolumeTmpfs{
+			Size: int64(10000),
+			Mode: uint32(0o1777),
+		},
+	}
+
+	assert.Assert(t, is.Len(config.Services, 1))
+	assert.Check(t, is.Len(config.Services[0].Volumes, 1))
+	assert.Check(t, is.DeepEqual(expected, config.Services[0].Volumes[0]))
+}
+
 func TestLoadTmpfsVolumeAdditionalPropertyNotAllowed(t *testing.T) {
 	_, err := loadYAML(`
 version: "3.5"

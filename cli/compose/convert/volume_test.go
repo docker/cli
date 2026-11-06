@@ -466,6 +466,28 @@ func TestConvertTmpfsToMountVolume(t *testing.T) {
 	assert.Check(t, is.DeepEqual(expected, mnt))
 }
 
+func TestConvertTmpfsToMountVolumeWithMode(t *testing.T) {
+	config := composetypes.ServiceVolumeConfig{
+		Type:   "tmpfs",
+		Target: "/run",
+		Tmpfs: &composetypes.ServiceVolumeTmpfs{
+			Size: 268435456,
+			Mode: 0o1777,
+		},
+	}
+	expected := mount.Mount{
+		Type:   mount.TypeTmpfs,
+		Target: "/run",
+		TmpfsOptions: &mount.TmpfsOptions{
+			SizeBytes: 268435456,
+			Mode:      0o1777,
+		},
+	}
+	mnt, err := convertVolumeToMount(config, volumes{}, NewNamespace("foo"))
+	assert.NilError(t, err)
+	assert.Check(t, is.DeepEqual(expected, mnt))
+}
+
 func TestConvertTmpfsToMountVolumeWithSource(t *testing.T) {
 	config := composetypes.ServiceVolumeConfig{
 		Type:   "tmpfs",
