@@ -167,7 +167,7 @@ github.com/moby/go-archive
 github.com/moby/go-archive/compression
 github.com/moby/go-archive/internal/archiveoptions
 github.com/moby/go-archive/tarheader
-# github.com/moby/moby/api v1.56.1
+# github.com/moby/moby/api v1.56.2-0.20261106011722-402d0a16f131
 ## explicit; go 1.24
 github.com/moby/moby/api/pkg/authconfig
 github.com/moby/moby/api/pkg/stdcopy
