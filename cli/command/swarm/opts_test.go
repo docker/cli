@@ -26,6 +26,12 @@ func TestNodeAddrOptionSetHostOnlyIPv6(t *testing.T) {
 	assert.Check(t, is.Equal("[::1]:2377", opt.Value()))
 }
 
+func TestNodeAddrOptionSetHostAndPortIPv6Zone(t *testing.T) {
+	opt := NewListenAddrOption()
+	assert.NilError(t, opt.Set("tcp://[fe80::1%25lo]:5555"))
+	assert.Check(t, is.Equal("[fe80::1%lo]:5555", opt.Value()))
+}
+
 func TestNodeAddrOptionSetPortOnly(t *testing.T) {
 	opt := NewListenAddrOption()
 	assert.NilError(t, opt.Set(":4545"))
