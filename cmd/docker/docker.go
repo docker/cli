@@ -41,6 +41,12 @@ func (errCtxSignalTerminated) Error() string {
 }
 
 func main() {
+	// The mousetrap (a hint shown when docker.exe is started from Explorer) only
+	// applies to a double-click, which passes no arguments. Checking for it takes
+	// two snapshots of all running processes on Windows, so skip it otherwise.
+	if len(os.Args) > 1 {
+		cobra.MousetrapHelpText = ""
+	}
 	err := dockerMain(context.Background())
 	if errors.As(err, &errCtxSignalTerminated{}) {
 		os.Exit(getExitCode(err))
