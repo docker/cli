@@ -15,6 +15,7 @@ Display a live stream of container(s) resource usage statistics
 | [`--format`](#format) | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
 | `--no-stream`         | `bool`   |         | Disable streaming stats and only pull the first result                                                                                                                                                                                                                                                                                                                                                                               |
 | `--no-trunc`          | `bool`   |         | Do not truncate output                                                                                                                                                                                                                                                                                                                                                                                                               |
+| [`--sort`](#sort)     | `string` |         | Sort output by column (`cpu`, `mem`, `mem%`, `net`, `block`, `name`, `id`, `pids`)                                                                                                                                                                                                                                                                                                                                                   |
 
 
 <!---MARKER_GEN_END-->
@@ -127,6 +128,22 @@ PS E:\> docker stats 3f214c61ad1d mad_wilson
 CONTAINER ID        NAME                CPU %               PRIV WORKING SET    NET I/O             BLOCK I/O
 3f214c61ad1d        awesome_brattain    0.00%               46.25 MiB           76.3 kB / 7.92 kB   10.3 MB / 14.7 MB
 9db7aa4d986d        mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
+```
+
+### <a name="sort"></a> Sort the output (--sort)
+
+Use the `--sort` option to order containers by a column, similar to
+`kubectl top --sort-by`. Resource columns (`cpu`, `mem`, `mem%`, `net`, `block`,
+`pids`) sort in descending order so the busiest containers appear first; `name`
+and `id` sort in ascending order.
+
+```console
+$ docker stats --no-stream --sort mem
+
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     NET I/O       BLOCK I/O     PIDS
+67b2525d8ad1   db        0.31%     412.6MiB / 1.952GiB   20.64%    2.48kB / 0B   4.11MB / 0B   12
+b95a83497c91   web       0.28%     35.63MiB / 1.952GiB   1.78%     916B / 0B     147kB / 0B    9
+e5c383697914   cache     0.00%     5.196MiB / 1.952GiB   0.26%     71.2kB / 0B   770kB / 0B    1
 ```
 
 ### <a name="format"></a> Format the output (--format)
