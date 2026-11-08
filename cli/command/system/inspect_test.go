@@ -46,3 +46,13 @@ func TestInspectValidateFlagsAndArgs(t *testing.T) {
 		})
 	}
 }
+
+func TestInspectTypeFlagHelpListsObjectTypes(t *testing.T) {
+	cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
+	typeFlag := cmd.Flags().Lookup("type")
+	assert.Assert(t, typeFlag != nil)
+	usage := typeFlag.Usage
+	for _, objectType := range allTypes {
+		assert.Check(t, is.Contains(usage, objectType), "help should mention %q", objectType)
+	}
+}
