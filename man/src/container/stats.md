@@ -1,5 +1,10 @@
 Display a live stream of one or more containers' resource usage statistics
 
+# SORT
+
+Use `--sort` to order output by `cpu`, `mem`, `mem%`, `net`, `block`, `pids`,
+`name`, or `id`. Resource values sort descending; names and IDs sort ascending.
+
 # Format
 
    Format the output using the given Go template.

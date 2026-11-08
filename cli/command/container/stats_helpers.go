@@ -1,10 +1,13 @@
 package container
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -270,4 +273,36 @@ func calculateMemPercentUnixNoCache(limit float64, usedNoCache float64) float64 
 		return usedNoCache / limit * 100.0
 	}
 	return 0
+}
+
+// statsSortKeys maps the values accepted by "docker stats --sort" to a
+// comparison function. Resource columns sort in descending order (highest
+// usage first), and "name" sorts in ascending order.
+var statsSortKeys = map[string]func(a, b StatsEntry) int{
+	"cpu":     func(a, b StatsEntry) int { return cmp.Compare(b.CPUPercentage, a.CPUPercentage) },
+	"mem":     func(a, b StatsEntry) int { return cmp.Compare(b.Memory, a.Memory) },
+	"mem%":    func(a, b StatsEntry) int { return cmp.Compare(b.MemoryPercentage, a.MemoryPercentage) },
+	"net":     func(a, b StatsEntry) int { return cmp.Compare(b.NetworkRx+b.NetworkTx, a.NetworkRx+a.NetworkTx) },
+	"block":   func(a, b StatsEntry) int { return cmp.Compare(b.BlockRead+b.BlockWrite, a.BlockRead+a.BlockWrite) },
+	"pids":    func(a, b StatsEntry) int { return cmp.Compare(b.PidsCurrent, a.PidsCurrent) },
+	"name":    func(a, b StatsEntry) int { return strings.Compare(a.Name, b.Name) },
+	"id":      func(a, b StatsEntry) int { return strings.Compare(a.ID, b.ID) },
+}
+
+func normalizeStatsSortKey(key string) string {
+	return strings.ToLower(key)
+}
+
+// sortStats sorts entries in place by the given key. Entries with equal
+// values are ordered by container so that output is stable between frames.
+// An empty key leaves the entries in their original order.
+func sortStats(entries []StatsEntry, key string) {
+	key = normalizeStatsSortKey(key)
+	compare, ok := statsSortKeys[key]
+	if !ok {
+		return
+	}
+	slices.SortFunc(entries, func(a, b StatsEntry) int {
+		return cmp.Or(compare(a, b), strings.Compare(a.Container, b.Container))
+	})
 }
