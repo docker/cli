@@ -23,9 +23,10 @@ var _ jobsClient = jobsv0.Jobs(nil)
 // one <method>Func field per method, a nil field falling back to a harmless
 // zero-value response.
 type fakeClient struct {
-	listFunc     func(ctx context.Context, req *jobsv0.ListRequest) (*jobsv0.ListReply, error)
-	inspectFunc  func(ctx context.Context, req *jobsv0.InspectRequest) (*jobsv0.InspectReply, error)
-	listRunsFunc func(ctx context.Context, req *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error)
+	listFunc       func(ctx context.Context, req *jobsv0.ListRequest) (*jobsv0.ListReply, error)
+	inspectFunc    func(ctx context.Context, req *jobsv0.InspectRequest) (*jobsv0.InspectReply, error)
+	listRunsFunc   func(ctx context.Context, req *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error)
+	inspectRunFunc func(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error)
 }
 
 func (c *fakeClient) List(ctx context.Context, req *jobsv0.ListRequest) (*jobsv0.ListReply, error) {
@@ -47,6 +48,13 @@ func (c *fakeClient) ListRuns(ctx context.Context, req *jobsv0.ListRunsRequest) 
 		return c.listRunsFunc(ctx, req)
 	}
 	return &jobsv0.ListRunsReply{}, nil
+}
+
+func (c *fakeClient) InspectRun(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error) {
+	if c.inspectRunFunc != nil {
+		return c.inspectRunFunc(ctx, req)
+	}
+	return &jobsv0.InspectRunReply{}, nil
 }
 
 var _ jobsClient = (*fakeClient)(nil)

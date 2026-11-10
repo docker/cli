@@ -34,6 +34,8 @@ func newJobCommand(dockerCli command.Cli) *cobra.Command {
 	cmd.AddCommand(
 		newListCommand(dockerCli, jobs),
 		newLogsCommand(dockerCli, jobs),
+		newRunsCommand(dockerCli, jobs),
+		newInspectCommand(dockerCli, jobs),
 	)
 	return cmd
 }
@@ -103,4 +105,12 @@ func (c *lazyJobsClient) ListRuns(ctx context.Context, req *jobsv0.ListRunsReque
 		return nil, err
 	}
 	return client.ListRuns(ctx, req)
+}
+
+func (c *lazyJobsClient) InspectRun(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error) {
+	client, err := c.resolve()
+	if err != nil {
+		return nil, err
+	}
+	return client.InspectRun(ctx, req)
 }

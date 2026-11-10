@@ -31,6 +31,9 @@ type jobsClient interface {
 	// ListRuns returns a job's runs, most recent first. Used as the
 	// fallback when the latest run's container is gone.
 	ListRuns(ctx context.Context, req *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error)
+
+	// InspectRun returns a single run.
+	InspectRun(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error)
 }
 
 // newJobsClient dials the daemon's jobs extension point and returns a
