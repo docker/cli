@@ -164,6 +164,7 @@ github.com/moby/docker-image-spec/specs-go/v1
 # github.com/moby/extensions v0.0.0-20260826001921-d37867cb107f
 ## explicit; go 1.26.0
 github.com/moby/extensions
+github.com/moby/extensions/client
 github.com/moby/extensions/clientpoint
 github.com/moby/extensions/serverpoint
 # github.com/moby/go-archive v0.3.3
