@@ -161,6 +161,11 @@ github.com/mattn/go-runewidth
 # github.com/moby/docker-image-spec v1.3.1
 ## explicit; go 1.18
 github.com/moby/docker-image-spec/specs-go/v1
+# github.com/moby/extensions v0.0.0-20260826001921-d37867cb107f
+## explicit; go 1.26.0
+github.com/moby/extensions
+github.com/moby/extensions/clientpoint
+github.com/moby/extensions/serverpoint
 # github.com/moby/go-archive v0.3.3
 ## explicit; go 1.25
 github.com/moby/go-archive

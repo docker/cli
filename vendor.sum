@@ -86,6 +86,8 @@ github.com/mattn/go-runewidth v0.0.31 h1:1oCV4ReTlosDBc6rYRw5cL8S/4y8iv5oRl4SJ5I
 github.com/mattn/go-runewidth v0.0.31/go.mod h1:3qAiGCV4Koz/yuveO58qUefmUTRm8r0IGEXZ9jeHp/8=
 github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3Nl2EsFP0=
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
+github.com/moby/extensions v0.0.0-20260826001921-d37867cb107f h1:KVamkmaHmI/Mopjhye+cPWTL4Td7d053aAp2hU53MXs=
+github.com/moby/extensions v0.0.0-20260826001921-d37867cb107f/go.mod h1:Zq+KLMU0GgWgGzFw9ouysZj1+lARdDl7Gy4nFQD/QNY=
 github.com/moby/go-archive v0.3.3 h1:OxxR9paxsluYi+zDUEXTTaIxtkK3viymW+Ka7vRhhME=
 github.com/moby/go-archive v0.3.3/go.mod h1:Npdv43fFqlhZW7Xo8fbm3ZMYFvAGNviUPqX21VERbcE=
 github.com/moby/moby/api v1.56.2-0.20261106011722-402d0a16f131 h1:tPz9ahj8F7AjQw62XQFP65kmoxF3rXTYSit3q06/yQc=
