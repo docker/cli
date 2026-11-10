@@ -40,6 +40,7 @@ func newJobCommand(dockerCli command.Cli) *cobra.Command {
 		newCancelCommand(dockerCli, jobs),
 		newPruneCommand(dockerCli, jobs),
 		newRmCommand(dockerCli, jobs),
+		newWaitCommand(dockerCli, jobs),
 		newPauseCommand(dockerCli, jobs),
 		newUnpauseCommand(dockerCli, jobs),
 	)
@@ -151,6 +152,14 @@ func (c *lazyJobsClient) Remove(ctx context.Context, req *jobsv0.RemoveRequest) 
 		return err
 	}
 	return client.Remove(ctx, req)
+}
+
+func (c *lazyJobsClient) Wait(ctx context.Context, req *jobsv0.WaitRequest) (*jobsv0.WaitReply, error) {
+	client, err := c.resolve()
+	if err != nil {
+		return nil, err
+	}
+	return client.Wait(ctx, req)
 }
 
 func (c *lazyJobsClient) Pause(ctx context.Context, req *jobsv0.PauseRequest) error {

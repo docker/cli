@@ -48,6 +48,10 @@ type jobsClient interface {
 	// no reply message.
 	Remove(ctx context.Context, req *jobsv0.RemoveRequest) error
 
+	// Wait blocks until a run reaches the requested condition and returns
+	// that run.
+	Wait(ctx context.Context, req *jobsv0.WaitRequest) (*jobsv0.WaitReply, error)
+
 	// Pause suppresses a job's schedule trigger. Like Remove, it returns
 	// only an error: jobsv0.Jobs.Pause has no reply message.
 	Pause(ctx context.Context, req *jobsv0.PauseRequest) error

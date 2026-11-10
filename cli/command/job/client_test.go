@@ -31,6 +31,7 @@ type fakeClient struct {
 	cancelFunc     func(ctx context.Context, req *jobsv0.CancelRequest) (*jobsv0.CancelReply, error)
 	pruneFunc      func(ctx context.Context, req *jobsv0.PruneRequest) (*jobsv0.PruneReply, error)
 	removeFunc     func(ctx context.Context, req *jobsv0.RemoveRequest) error
+	waitFunc       func(ctx context.Context, req *jobsv0.WaitRequest) (*jobsv0.WaitReply, error)
 	pauseFunc      func(ctx context.Context, req *jobsv0.PauseRequest) error
 	resumeFunc     func(ctx context.Context, req *jobsv0.ResumeRequest) error
 }
@@ -89,6 +90,13 @@ func (c *fakeClient) Remove(ctx context.Context, req *jobsv0.RemoveRequest) erro
 		return c.removeFunc(ctx, req)
 	}
 	return nil
+}
+
+func (c *fakeClient) Wait(ctx context.Context, req *jobsv0.WaitRequest) (*jobsv0.WaitReply, error) {
+	if c.waitFunc != nil {
+		return c.waitFunc(ctx, req)
+	}
+	return &jobsv0.WaitReply{}, nil
 }
 
 func (c *fakeClient) Pause(ctx context.Context, req *jobsv0.PauseRequest) error {

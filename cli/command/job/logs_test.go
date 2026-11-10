@@ -9,6 +9,7 @@ import (
 
 	jobsv0 "github.com/docker/cli/internal/jobsapi/v0"
 	"github.com/docker/cli/internal/test"
+	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/container"
 	dockerclient "github.com/moby/moby/client"
 	"google.golang.org/grpc/codes"
@@ -311,6 +312,134 @@ func TestNewLogsCommandNotesFallbackToOlderRun(t *testing.T) {
 			for _, want := range tc.wantNoteOn {
 				assert.Check(t, is.Contains(cli.ErrBuffer().String(), want))
 			}
+		})
+	}
+}
+
+// A run is visible before its container is created. Right after `docker job
+// run`, the latest run is pending: logs waits for it to leave pending, like
+// `docker compose run` does, instead of falling back to an older run or
+// failing for a job that never ran before.
+func TestNewLogsCommandWaitsForPendingLatestRun(t *testing.T) {
+	var gotWait *jobsv0.WaitRequest
+	jobs := &fakeClient{
+		inspectFunc: func(context.Context, *jobsv0.InspectRequest) (*jobsv0.InspectReply, error) {
+			return &jobsv0.InspectReply{Job: &jobsv0.Job{
+				Name:      "backup",
+				LatestRun: &jobsv0.Run{ID: "run-1", State: jobsv0.RunStatePending},
+			}}, nil
+		},
+		waitFunc: func(_ context.Context, req *jobsv0.WaitRequest) (*jobsv0.WaitReply, error) {
+			gotWait = req
+			return &jobsv0.WaitReply{Run: &jobsv0.Run{ID: "run-1", State: jobsv0.RunStateRunning, ContainerID: "abc123"}}, nil
+		},
+		listRunsFunc: func(context.Context, *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error) {
+			t.Fatal("ListRuns must not be called when the pending run gets a container")
+			return nil, nil
+		},
+	}
+	var gotContainerID string
+	docker := &fakeDockerAPIClient{
+		inspectFunc: func(containerID string) (dockerclient.ContainerInspectResult, error) {
+			gotContainerID = containerID
+			return ttyInspectResult(), nil
+		},
+		logFunc: func(string, dockerclient.ContainerLogsOptions) (dockerclient.ContainerLogsResult, error) {
+			return mockJobContainerLogsResult("[backup] done"), nil
+		},
+	}
+	cli := test.NewFakeCli(docker)
+
+	cmd := newLogsCommand(cli, jobs)
+	cmd.SetArgs([]string{"backup"})
+	assert.NilError(t, cmd.Execute())
+
+	assert.Assert(t, gotWait != nil, "client.Wait was not called")
+	assert.Check(t, is.Equal(gotWait.JobRef, "backup"))
+	assert.Check(t, is.Equal(gotWait.RunRef, "run-1"), "must wait for the pending run itself, not for whatever is the latest by then")
+	assert.Check(t, is.Equal(gotWait.Condition, jobsv0.WaitConditionRunning))
+	assert.Check(t, is.Equal(gotContainerID, "abc123"))
+	assert.Check(t, is.Equal(cli.OutBuffer().String(), "[backup] done"))
+	assert.Check(t, is.Equal(cli.ErrBuffer().String(), ""))
+}
+
+// A pending run whose container creation fails goes straight to failed, with
+// no container: logs then falls back to the history, like for any other run
+// without a container.
+func TestNewLogsCommandPendingRunThatFailsToStartFallsBack(t *testing.T) {
+	failed := jobsv0.Run{ID: "run-2", State: jobsv0.RunStateFailed, Error: "no such image"}
+	jobs := &fakeClient{
+		inspectFunc: func(context.Context, *jobsv0.InspectRequest) (*jobsv0.InspectReply, error) {
+			return &jobsv0.InspectReply{Job: &jobsv0.Job{
+				Name:      "backup",
+				LatestRun: &jobsv0.Run{ID: "run-2", State: jobsv0.RunStatePending},
+			}}, nil
+		},
+		waitFunc: func(context.Context, *jobsv0.WaitRequest) (*jobsv0.WaitReply, error) {
+			return &jobsv0.WaitReply{Run: &failed}, nil
+		},
+		listRunsFunc: func(context.Context, *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error) {
+			return &jobsv0.ListRunsReply{Runs: []jobsv0.Run{failed, {ID: "run-1", State: jobsv0.RunStateSucceeded, ContainerID: "abc123"}}}, nil
+		},
+	}
+	docker := &fakeDockerAPIClient{
+		inspectFunc: func(string) (dockerclient.ContainerInspectResult, error) { return ttyInspectResult(), nil },
+		logFunc: func(string, dockerclient.ContainerLogsOptions) (dockerclient.ContainerLogsResult, error) {
+			return mockJobContainerLogsResult("[backup] done"), nil
+		},
+	}
+	cli := test.NewFakeCli(docker)
+
+	cmd := newLogsCommand(cli, jobs)
+	cmd.SetArgs([]string{"backup"})
+	assert.NilError(t, cmd.Execute())
+
+	assert.Check(t, is.Equal(cli.OutBuffer().String(), "[backup] done"))
+	assert.Check(t, is.Contains(cli.ErrBuffer().String(), "run-2 (failed"))
+	assert.Check(t, is.Contains(cli.ErrBuffer().String(), "run-1 (succeeded"))
+}
+
+// The note on stderr tells why the logs are not the latest run's, with the
+// state and the age of both runs. When the latest run succeeded and its
+// container was removed (a job registered with RemoveOnSuccess), it says so
+// first: showing the output of an older failed run without it reads like the
+// job is failing.
+func TestFallbackNote(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	ago := func(d time.Duration) int64 { return now.Add(-d).UnixNano() }
+	human := units.HumanDuration
+
+	testCases := []struct {
+		doc    string
+		latest jobsv0.Run
+		shown  jobsv0.Run
+		want   string
+	}{
+		{
+			doc:    "latest run succeeded and its container was removed",
+			latest: jobsv0.Run{ID: "run-3", State: jobsv0.RunStateSucceeded, ContainerGone: true, CreatedAtNano: ago(2*time.Hour + time.Minute), FinishedAtNano: ago(2 * time.Hour)},
+			shown:  jobsv0.Run{ID: "run-2", State: jobsv0.RunStateFailed, ContainerID: "abc123", FinishedAtNano: ago(3 * time.Hour)},
+			want: "Note: the latest run run-3 succeeded " + human(2*time.Hour) + " ago and its container was removed, so its output is gone.\n" +
+				"Showing the logs of run run-2 (failed, " + human(3*time.Hour) + " ago):\n",
+		},
+		{
+			doc:    "latest run failed and its container is not available",
+			latest: jobsv0.Run{ID: "run-3", State: jobsv0.RunStateFailed, CreatedAtNano: ago(5 * time.Minute)},
+			shown:  jobsv0.Run{ID: "run-2", State: jobsv0.RunStateSucceeded, ContainerID: "abc123", FinishedAtNano: ago(time.Hour)},
+			want: "Note: the container of the latest run run-3 (failed, " + human(5*time.Minute) + " ago) is not available; " +
+				"showing the logs of run run-2 (succeeded, " + human(time.Hour) + " ago)\n",
+		},
+		{
+			doc:    "runs without timestamps",
+			latest: jobsv0.Run{ID: "run-3", State: jobsv0.RunStateCancelled},
+			shown:  jobsv0.Run{ID: "run-2", State: jobsv0.RunStateFailed, ContainerID: "abc123"},
+			want:   "Note: the container of the latest run run-3 (cancelled) is not available; showing the logs of run run-2 (failed)\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.doc, func(t *testing.T) {
+			assert.Check(t, is.Equal(fallbackNote(&tc.latest, &tc.shown, now), tc.want))
 		})
 	}
 }

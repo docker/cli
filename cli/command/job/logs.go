@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	jobsv0 "github.com/docker/cli/internal/jobsapi/v0"
+	"github.com/docker/go-units"
 	"github.com/moby/moby/api/pkg/stdcopy"
 	dockerclient "github.com/moby/moby/client"
 	"github.com/spf13/cobra"
@@ -72,6 +73,23 @@ func runLogs(ctx context.Context, dockerCli command.Cli, client jobsClient, opts
 		return wrapJobsError(err)
 	}
 
+	// A run is visible before its container is created: right after
+	// `docker job run`, the latest run is pending. Wait for it to leave
+	// pending, like `docker compose run` does, rather than falling back to an
+	// older run, or failing for a job that never ran before. The run is
+	// waited for by ID, as another run may become the latest in the meantime.
+	if job.LatestRun != nil && job.LatestRun.State == jobsv0.RunStatePending {
+		reply, err := client.Wait(ctx, &jobsv0.WaitRequest{
+			JobRef:    opts.job,
+			RunRef:    job.LatestRun.ID,
+			Condition: jobsv0.WaitConditionRunning,
+		})
+		if err != nil {
+			return wrapJobsError(err)
+		}
+		job.LatestRun = reply.Run
+	}
+
 	run, err := resolveLogsRun(job, func() (*jobsv0.ListRunsReply, error) {
 		return client.ListRuns(ctx, &jobsv0.ListRunsRequest{JobRef: opts.job})
 	})
@@ -79,7 +97,7 @@ func runLogs(ctx context.Context, dockerCli command.Cli, client jobsClient, opts
 		return wrapJobsError(err)
 	}
 	if run.ID != job.LatestRun.ID {
-		_, _ = fmt.Fprintf(dockerCli.Err(), "Note: the container of the latest run %s is not available; showing the logs of run %s\n", job.LatestRun.ID, run.ID)
+		_, _ = fmt.Fprint(dockerCli.Err(), fallbackNote(job.LatestRun, run, time.Now()))
 	}
 
 	// Only a schedule job can produce a next run on its own.
@@ -100,6 +118,33 @@ func runLogs(ctx context.Context, dockerCli command.Cli, client jobsClient, opts
 			return wrapJobsError(err)
 		}
 	}
+}
+
+// fallbackNote tells why the logs shown are those of run shown rather than of
+// the latest run, with the state and the age of both. A latest run that
+// succeeded and lost its container is the normal case of a job registered
+// with RemoveOnSuccess: the note says so first, as the output of an older
+// failed run, shown without it, reads like the job is failing.
+func fallbackNote(latest, shown *jobsv0.Run, now time.Time) string {
+	if latest.State == jobsv0.RunStateSucceeded && latest.ContainerGone {
+		return fmt.Sprintf("Note: the latest run %s %s and its container was removed, so its output is gone.\nShowing the logs of run %s (%s):\n",
+			latest.ID, runStateAge(latest, now, " "), shown.ID, runStateAge(shown, now, ", "))
+	}
+	return fmt.Sprintf("Note: the container of the latest run %s (%s) is not available; showing the logs of run %s (%s)\n",
+		latest.ID, runStateAge(latest, now, ", "), shown.ID, runStateAge(shown, now, ", "))
+}
+
+// runStateAge describes run as its state, followed by sep and how long ago it
+// ended (or, when it has not, was created), when the daemon recorded the time.
+func runStateAge(run *jobsv0.Run, now time.Time, sep string) string {
+	at := run.FinishedAtNano
+	if at == 0 {
+		at = run.CreatedAtNano
+	}
+	if at == 0 {
+		return run.State
+	}
+	return run.State + sep + units.HumanDuration(now.Sub(time.Unix(0, at))) + " ago"
 }
 
 // streamRunLogs attaches to containerID's logs and demultiplexes them onto
