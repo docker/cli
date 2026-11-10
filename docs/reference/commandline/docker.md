@@ -28,6 +28,7 @@ The base command for the Docker CLI.
 | [`import`](import.md)         | Import the contents from a tarball to create a filesystem image               |
 | [`info`](info.md)             | Display system-wide information                                               |
 | [`inspect`](inspect.md)       | Return low-level information on Docker objects                                |
+| [`job`](job.md)               | Manage jobs                                                                   |
 | [`kill`](kill.md)             | Kill one or more running containers                                           |
 | [`load`](load.md)             | Load an image from a tar archive or STDIN                                     |
 | [`login`](login.md)           | Authenticate to a registry                                                    |
