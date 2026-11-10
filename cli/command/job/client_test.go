@@ -26,7 +26,13 @@ type fakeClient struct {
 	listFunc       func(ctx context.Context, req *jobsv0.ListRequest) (*jobsv0.ListReply, error)
 	inspectFunc    func(ctx context.Context, req *jobsv0.InspectRequest) (*jobsv0.InspectReply, error)
 	listRunsFunc   func(ctx context.Context, req *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error)
+	runFunc        func(ctx context.Context, req *jobsv0.RunRequest) (*jobsv0.RunReply, error)
 	inspectRunFunc func(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error)
+	cancelFunc     func(ctx context.Context, req *jobsv0.CancelRequest) (*jobsv0.CancelReply, error)
+	pruneFunc      func(ctx context.Context, req *jobsv0.PruneRequest) (*jobsv0.PruneReply, error)
+	removeFunc     func(ctx context.Context, req *jobsv0.RemoveRequest) error
+	pauseFunc      func(ctx context.Context, req *jobsv0.PauseRequest) error
+	resumeFunc     func(ctx context.Context, req *jobsv0.ResumeRequest) error
 }
 
 func (c *fakeClient) List(ctx context.Context, req *jobsv0.ListRequest) (*jobsv0.ListReply, error) {
@@ -50,11 +56,53 @@ func (c *fakeClient) ListRuns(ctx context.Context, req *jobsv0.ListRunsRequest) 
 	return &jobsv0.ListRunsReply{}, nil
 }
 
+func (c *fakeClient) Run(ctx context.Context, req *jobsv0.RunRequest) (*jobsv0.RunReply, error) {
+	if c.runFunc != nil {
+		return c.runFunc(ctx, req)
+	}
+	return &jobsv0.RunReply{}, nil
+}
+
 func (c *fakeClient) InspectRun(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error) {
 	if c.inspectRunFunc != nil {
 		return c.inspectRunFunc(ctx, req)
 	}
 	return &jobsv0.InspectRunReply{}, nil
+}
+
+func (c *fakeClient) Cancel(ctx context.Context, req *jobsv0.CancelRequest) (*jobsv0.CancelReply, error) {
+	if c.cancelFunc != nil {
+		return c.cancelFunc(ctx, req)
+	}
+	return &jobsv0.CancelReply{}, nil
+}
+
+func (c *fakeClient) Prune(ctx context.Context, req *jobsv0.PruneRequest) (*jobsv0.PruneReply, error) {
+	if c.pruneFunc != nil {
+		return c.pruneFunc(ctx, req)
+	}
+	return &jobsv0.PruneReply{}, nil
+}
+
+func (c *fakeClient) Remove(ctx context.Context, req *jobsv0.RemoveRequest) error {
+	if c.removeFunc != nil {
+		return c.removeFunc(ctx, req)
+	}
+	return nil
+}
+
+func (c *fakeClient) Pause(ctx context.Context, req *jobsv0.PauseRequest) error {
+	if c.pauseFunc != nil {
+		return c.pauseFunc(ctx, req)
+	}
+	return nil
+}
+
+func (c *fakeClient) Resume(ctx context.Context, req *jobsv0.ResumeRequest) error {
+	if c.resumeFunc != nil {
+		return c.resumeFunc(ctx, req)
+	}
+	return nil
 }
 
 var _ jobsClient = (*fakeClient)(nil)

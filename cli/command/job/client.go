@@ -32,8 +32,29 @@ type jobsClient interface {
 	// fallback when the latest run's container is gone.
 	ListRuns(ctx context.Context, req *jobsv0.ListRunsRequest) (*jobsv0.ListRunsReply, error)
 
+	// Run executes an existing job, returning the created run.
+	Run(ctx context.Context, req *jobsv0.RunRequest) (*jobsv0.RunReply, error)
+
 	// InspectRun returns a single run.
 	InspectRun(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error)
+
+	// Cancel stops the job's in-flight run.
+	Cancel(ctx context.Context, req *jobsv0.CancelRequest) (*jobsv0.CancelReply, error)
+
+	// Prune removes idle manual jobs.
+	Prune(ctx context.Context, req *jobsv0.PruneRequest) (*jobsv0.PruneReply, error)
+
+	// Remove deletes a job. It returns only an error: jobsv0.Jobs.Remove has
+	// no reply message.
+	Remove(ctx context.Context, req *jobsv0.RemoveRequest) error
+
+	// Pause suppresses a job's schedule trigger. Like Remove, it returns
+	// only an error: jobsv0.Jobs.Pause has no reply message.
+	Pause(ctx context.Context, req *jobsv0.PauseRequest) error
+
+	// Resume re-arms a paused job's schedule trigger. Like Remove, it
+	// returns only an error: jobsv0.Jobs.Resume has no reply message.
+	Resume(ctx context.Context, req *jobsv0.ResumeRequest) error
 }
 
 // newJobsClient dials the daemon's jobs extension point and returns a

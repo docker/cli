@@ -34,8 +34,14 @@ func newJobCommand(dockerCli command.Cli) *cobra.Command {
 	cmd.AddCommand(
 		newListCommand(dockerCli, jobs),
 		newLogsCommand(dockerCli, jobs),
+		newRunCommand(dockerCli, jobs),
 		newRunsCommand(dockerCli, jobs),
 		newInspectCommand(dockerCli, jobs),
+		newCancelCommand(dockerCli, jobs),
+		newPruneCommand(dockerCli, jobs),
+		newRmCommand(dockerCli, jobs),
+		newPauseCommand(dockerCli, jobs),
+		newUnpauseCommand(dockerCli, jobs),
 	)
 	return cmd
 }
@@ -107,10 +113,58 @@ func (c *lazyJobsClient) ListRuns(ctx context.Context, req *jobsv0.ListRunsReque
 	return client.ListRuns(ctx, req)
 }
 
+func (c *lazyJobsClient) Run(ctx context.Context, req *jobsv0.RunRequest) (*jobsv0.RunReply, error) {
+	client, err := c.resolve()
+	if err != nil {
+		return nil, err
+	}
+	return client.Run(ctx, req)
+}
+
 func (c *lazyJobsClient) InspectRun(ctx context.Context, req *jobsv0.InspectRunRequest) (*jobsv0.InspectRunReply, error) {
 	client, err := c.resolve()
 	if err != nil {
 		return nil, err
 	}
 	return client.InspectRun(ctx, req)
+}
+
+func (c *lazyJobsClient) Cancel(ctx context.Context, req *jobsv0.CancelRequest) (*jobsv0.CancelReply, error) {
+	client, err := c.resolve()
+	if err != nil {
+		return nil, err
+	}
+	return client.Cancel(ctx, req)
+}
+
+func (c *lazyJobsClient) Prune(ctx context.Context, req *jobsv0.PruneRequest) (*jobsv0.PruneReply, error) {
+	client, err := c.resolve()
+	if err != nil {
+		return nil, err
+	}
+	return client.Prune(ctx, req)
+}
+
+func (c *lazyJobsClient) Remove(ctx context.Context, req *jobsv0.RemoveRequest) error {
+	client, err := c.resolve()
+	if err != nil {
+		return err
+	}
+	return client.Remove(ctx, req)
+}
+
+func (c *lazyJobsClient) Pause(ctx context.Context, req *jobsv0.PauseRequest) error {
+	client, err := c.resolve()
+	if err != nil {
+		return err
+	}
+	return client.Pause(ctx, req)
+}
+
+func (c *lazyJobsClient) Resume(ctx context.Context, req *jobsv0.ResumeRequest) error {
+	client, err := c.resolve()
+	if err != nil {
+		return err
+	}
+	return client.Resume(ctx, req)
 }
