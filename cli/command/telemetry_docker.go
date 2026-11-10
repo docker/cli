@@ -99,6 +99,10 @@ func dockerSpanExporter(ctx context.Context, cli Cli) []sdktrace.TracerProviderO
 
 	opts := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(endpoint),
+		// The whole export is bounded by ExportTimeout, which is too short for a retry
+		// backoff to complete. With retries on, a refused connection (for example a stale
+		// Docker Desktop socket) waits out the full timeout instead of failing right away.
+		otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{Enabled: false}),
 	}
 	if !secure {
 		opts = append(opts, otlptracegrpc.WithInsecure())
@@ -120,6 +124,7 @@ func dockerMetricExporter(ctx context.Context, cli Cli) []sdkmetric.Option {
 
 	opts := []otlpmetricgrpc.Option{
 		otlpmetricgrpc.WithEndpoint(endpoint),
+		otlpmetricgrpc.WithRetry(otlpmetricgrpc.RetryConfig{Enabled: false}),
 	}
 	if !secure {
 		opts = append(opts, otlpmetricgrpc.WithInsecure())
