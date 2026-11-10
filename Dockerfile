@@ -10,7 +10,7 @@ ARG ALPINE_VERSION=3.24
 # BASE_DEBIAN_DISTRO sets the version of the debian base image to use,
 ARG BASE_DEBIAN_DISTRO=trixie
 
-ARG GO_VERSION=1.27.3
+ARG GO_VERSION=1.27.4
 
 # XX_VERSION specifies the version of the xx utility to use.
 # It must be a valid tag in the docker.io/tonistiigi/xx image repository.
