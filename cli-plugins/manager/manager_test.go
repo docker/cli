@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -171,6 +172,8 @@ func TestErrPluginNotFound(t *testing.T) {
 func TestGetPluginDirs(t *testing.T) {
 	cli := test.NewFakeCli(nil)
 
+	t.Setenv("DOCKER_CLI_PLUGINS_EXTRA_DIRS", "")
+
 	pluginDir := filepath.Join(config.Dir(), "cli-plugins")
 	expected := append([]string{pluginDir}, defaultSystemPluginDirs...)
 
@@ -185,4 +188,48 @@ func TestGetPluginDirs(t *testing.T) {
 	})
 	pluginDirs = getPluginDirs(cli.ConfigFile())
 	assert.DeepEqual(t, expected, pluginDirs)
+}
+
+func TestGetPluginDirsFromEnv(t *testing.T) {
+	dir := t.TempDir()
+	envFirst := filepath.Join(dir, "env-first")
+	envSecond := filepath.Join(dir, "env-second")
+	configExtra := filepath.Join(dir, "config-extra")
+
+	cfg := &configfile.ConfigFile{
+		CLIPluginsExtraDirs: []string{configExtra},
+	}
+
+	testCases := []struct {
+		name     string
+		paths    []string
+		expected []string
+	}{
+		{
+			name:     "multiple paths",
+			paths:    []string{envFirst, envSecond},
+			expected: []string{envFirst, envSecond},
+		},
+		{
+			name:     "empty entries",
+			paths:    []string{"", envFirst, "", envSecond, ""},
+			expected: []string{envFirst, envSecond},
+		},
+		{
+			name: "empty value",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DOCKER_CLI_PLUGINS_EXTRA_DIRS",
+				strings.Join(tc.paths, string(os.PathListSeparator)))
+
+			expected := append([]string{}, tc.expected...)
+			expected = append(expected, configExtra, filepath.Join(config.Dir(), "cli-plugins"))
+			expected = append(expected, defaultSystemPluginDirs...)
+
+			assert.DeepEqual(t, getPluginDirs(cfg), expected)
+		})
+	}
 }
