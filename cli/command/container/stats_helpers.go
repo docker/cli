@@ -13,8 +13,9 @@ import (
 )
 
 type stats struct {
-	mu sync.RWMutex
-	cs []*Stats
+	mu      sync.RWMutex
+	cs      []*Stats
+	cancels map[string]context.CancelFunc
 }
 
 // daemonOSType is set once we have at least one stat for a container
@@ -22,10 +23,14 @@ type stats struct {
 // on the daemon platform.
 var daemonOSType string
 
-func (s *stats) add(cs *Stats) bool {
+func (s *stats) add(cs *Stats, cancel context.CancelFunc) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, exists := s.isKnownContainer(cs.Container); !exists {
+		if s.cancels == nil {
+			s.cancels = make(map[string]context.CancelFunc)
+		}
+		s.cancels[cs.Container] = cancel
 		s.cs = append(s.cs, cs)
 		return true
 	}
@@ -37,12 +42,19 @@ func (s *stats) remove(id string) {
 	if i, exists := s.isKnownContainer(id); exists {
 		s.cs = append(s.cs[:i], s.cs[i+1:]...)
 	}
+	cancel := s.cancels[id]
+	delete(s.cancels, id)
 	s.mu.Unlock()
+	if cancel != nil {
+		// Removing the display entry must also stop its streaming API request.
+		// Otherwise a subsequent start event adds another collector for this ID.
+		cancel()
+	}
 }
 
 func (s *stats) isKnownContainer(cid string) (int, bool) {
 	for i, c := range s.cs {
-		if c.Container == cid {
+		if c.GetStatistics().Container == cid {
 			return i, true
 		}
 	}
@@ -72,7 +84,9 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 		// if error happens, and we get nothing of stats, release wait group whatever
 		if !getFirst {
 			getFirst = true
-			waitFirst.Done()
+			if waitFirst != nil {
+				waitFirst.Done()
+			}
 		}
 	}()
 
@@ -96,7 +110,11 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 			var v container.StatsResponse
 			if err := dec.Decode(&v); err != nil {
 				dec = json.NewDecoder(io.MultiReader(dec.Buffered(), response.Body))
-				u <- err
+				select {
+				case u <- err:
+				case <-ctx.Done():
+					return
+				}
 				if err == io.EOF {
 					break
 				}
@@ -140,7 +158,11 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 					PidsCurrent:      v.PidsStats.Current,
 				})
 			}
-			u <- nil
+			select {
+			case u <- nil:
+			case <-ctx.Done():
+				return
+			}
 			if !streamStats {
 				return
 			}
@@ -155,7 +177,9 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 			// if this is the first stat you get, release WaitGroup
 			if !getFirst {
 				getFirst = true
-				waitFirst.Done()
+				if waitFirst != nil {
+					waitFirst.Done()
+				}
 			}
 		case err := <-u:
 			s.SetError(err)
@@ -168,7 +192,9 @@ func collect(ctx context.Context, s *Stats, cli client.ContainerAPIClient, strea
 			// if this is the first stat you get, release WaitGroup
 			if !getFirst {
 				getFirst = true
-				waitFirst.Done()
+				if waitFirst != nil {
+					waitFirst.Done()
+				}
 			}
 		case <-ctx.Done():
 			s.SetError(ctx.Err())
