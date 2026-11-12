@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/streams"
@@ -396,6 +397,14 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 		// not exist, but the parent directory does, the extraction will still
 		// succeed.
 		_ = err // Intentionally ignore stat errors (see above)
+	} else if errdefs.IsNotFound(err) {
+		// The stat endpoint is a HEAD request, so a missing container and a
+		// missing path both come back as a bare 404. Check the container
+		// exists before building the archive; otherwise the upload fails
+		// mid-stream and the archiver logs a confusing closed-pipe error.
+		if _, err := apiClient.ContainerInspect(ctx, copyConfig.container, client.ContainerInspectOptions{}); errdefs.IsNotFound(err) {
+			return err
+		}
 	}
 
 	var (
@@ -469,18 +478,20 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	restore, done := copyProgress(ctx, dockerCLI.Err(), copyToContainerHeader, &copiedSize)
-	// TODO(thaJeztah): error-handling looks odd here; should it be handled differently?
 	_, err := apiClient.CopyToContainer(ctx, copyConfig.container, options)
 	cancel()
 	<-done
 	restore()
+	if err != nil {
+		return err
+	}
 	reportedSize := copiedSize
 	if sizeErr == nil {
 		reportedSize = contentSize
 	}
 	_, _ = fmt.Fprint(dockerCLI.Err(), copySummary(reportedSize, copiedSize, copyConfig.container+":"+dstInfo.Path))
 
-	return err
+	return nil
 }
 
 // We use `:` as a delimiter between CONTAINER and PATH, but `:` could also be
