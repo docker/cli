@@ -15,7 +15,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/theupdateframework/notary v0.7.1-0.20210315103452-bf96a202a09a
 	go.opentelemetry.io/otel v1.46.0
 	gotest.tools/v3 v3.5.2
