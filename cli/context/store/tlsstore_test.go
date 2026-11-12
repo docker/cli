@@ -1,6 +1,8 @@
 package store
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/containerd/errdefs"
@@ -52,6 +54,11 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 			err := testee.createOrUpdate(contextName, name, file, []byte("data"))
 			assert.NilError(t, err)
 		}
+		// Files like these are created by Finder and Explorer, and must not be listed.
+		for _, file := range []string{".DS_Store", "Thumbs.db"} {
+			err := os.WriteFile(filepath.Join(testee.endpointDir(contextName, name), file), []byte("data"), 0o600)
+			assert.NilError(t, err)
+		}
 	}
 
 	resAll, err := testee.listContextData(contextName)
@@ -69,4 +76,28 @@ func TestTlsListAndBatchRemove(t *testing.T) {
 	resEmpty, err := testee.listContextData(contextName)
 	assert.NilError(t, err)
 	assert.DeepEqual(t, resEmpty, map[string]EndpointFiles{})
+}
+
+func TestIsIgnoredFile(t *testing.T) {
+	tests := []struct {
+		fileName string
+		ignored  bool
+	}{
+		{fileName: "ca.pem"},
+		{fileName: "cert.pem"},
+		{fileName: "key.pem"},
+		{fileName: "ca.crt"}, // unknown files must still produce a warning
+		{fileName: ".DS_Store", ignored: true},
+		{fileName: "._ca.pem", ignored: true},              // AppleDouble file
+		{fileName: ".tmp-ca.pem1234567890", ignored: true}, // left behind by an interrupted write
+		{fileName: "Thumbs.db", ignored: true},
+		{fileName: "thumbs.db", ignored: true},
+		{fileName: "desktop.ini", ignored: true},
+		{fileName: "Desktop.ini", ignored: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.fileName, func(t *testing.T) {
+			assert.Equal(t, isIgnoredFile(tc.fileName), tc.ignored)
+		})
+	}
 }
