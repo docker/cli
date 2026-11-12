@@ -8,6 +8,7 @@ import (
 	_ "github.com/docker/cli/cli/command/container"
 	_ "github.com/docker/cli/cli/command/context"
 	_ "github.com/docker/cli/cli/command/image"
+	_ "github.com/docker/cli/cli/command/job"
 	_ "github.com/docker/cli/cli/command/manifest"
 	_ "github.com/docker/cli/cli/command/network"
 	_ "github.com/docker/cli/cli/command/node"

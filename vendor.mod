@@ -32,6 +32,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-runewidth v0.0.31
+	github.com/moby/extensions v0.0.0-20260826001921-d37867cb107f
 	github.com/moby/go-archive v0.3.3
 	github.com/moby/moby/api v1.56.2-0.20261106011722-402d0a16f131
 	github.com/moby/moby/client v0.6.3-0.20261106011722-402d0a16f131
@@ -65,6 +66,8 @@ require (
 	golang.org/x/sys v0.50.0
 	golang.org/x/term v0.48.0
 	golang.org/x/text v0.44.0
+	google.golang.org/grpc v1.83.2
+	google.golang.org/protobuf v1.36.12
 	gotest.tools/v3 v3.5.2
 	tags.cncf.io/container-device-interface v1.1.1
 )
@@ -107,6 +110,4 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
-	google.golang.org/grpc v1.83.2 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 )
