@@ -22,7 +22,7 @@ func newLogoutCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logout [SERVER]",
 		Short: "Log out from a registry",
-		Long:  "Log out from a registry.\nIf no server is specified, the default is defined by the daemon.",
+		Long:  "Log out from a registry.\nIf no server is specified, log out of Docker Hub.",
 		Args:  cli.RequiresMaxArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var serverAddress string
