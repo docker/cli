@@ -72,7 +72,7 @@ func terminalState(state swarm.TaskState) bool {
 //
 //nolint:gocyclo
 func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID string, progressWriter io.WriteCloser) error {
-	defer progressWriter.Close()
+	defer func() { _ = progressWriter.Close() }()
 
 	progressOut := streamformatter.NewJSONProgressOutput(progressWriter, false)
 
@@ -118,7 +118,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 				return fmt.Errorf("service update paused: %s", res.Service.UpdateStatus.Message)
 			case swarm.UpdateStateRollbackStarted:
 				if !rollback && res.Service.UpdateStatus.Message != "" {
-					progressOut.WriteProgress(progress.Progress{
+					_ = progressOut.WriteProgress(progress.Progress{
 						ID:     "rollback",
 						Action: res.Service.UpdateStatus.Message,
 					})
@@ -169,7 +169,7 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 			// use the presence of this field to check if the service is a job
 			// here.
 			if res.Service.JobStatus != nil {
-				progress.Message(progressOut, "", "job complete")
+				_ = progressOut.WriteProgress(progress.Progress{Message: "job complete"})
 				return nil
 			}
 
@@ -205,8 +205,8 @@ func ServiceProgress(ctx context.Context, apiClient client.APIClient, serviceID 
 		case <-time.After(200 * time.Millisecond):
 		case <-sigint:
 			if !converged {
-				progress.Message(progressOut, "", "Operation continuing in background.")
-				progress.Messagef(progressOut, "", "Use `docker service ps %s` to check progress.", serviceID)
+				_ = progressOut.WriteProgress(progress.Progress{Message: "Operation continuing in background."})
+				_ = progressOut.WriteProgress(progress.Progress{Message: fmt.Sprintf("Use `docker service ps %s` to check progress.", serviceID)})
 			}
 			return nil
 		}
@@ -255,13 +255,13 @@ func initializeUpdater(service swarm.Service, progressOut progress.Output) (prog
 
 func writeOverallProgress(progressOut progress.Output, numerator, denominator int, rollback bool) {
 	if rollback {
-		progressOut.WriteProgress(progress.Progress{
+		_ = progressOut.WriteProgress(progress.Progress{
 			ID:     "overall progress",
 			Action: fmt.Sprintf("rolling back update: %d out of %d tasks", numerator, denominator),
 		})
 		return
 	}
-	progressOut.WriteProgress(progress.Progress{
+	_ = progressOut.WriteProgress(progress.Progress{
 		ID:     "overall progress",
 		Action: fmt.Sprintf("%d out of %d tasks", numerator, denominator),
 	})
@@ -305,7 +305,10 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 
 		if replicas <= maxProgressBars {
 			for i := uint64(1); i <= replicas; i++ {
-				progress.Update(u.progressOut, fmt.Sprintf("%d/%d", i, replicas), " ")
+				_ = u.progressOut.WriteProgress(progress.Progress{
+					ID:     fmt.Sprintf("%d/%d", i, replicas),
+					Action: " ",
+				})
 			}
 		}
 		u.initialized = true
@@ -388,7 +391,7 @@ func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlo
 	}
 
 	if task.Status.Err != "" {
-		u.progressOut.WriteProgress(progress.Progress{
+		_ = u.progressOut.WriteProgress(progress.Progress{
 			ID:     fmt.Sprintf("%d/%d", mappedSlot, replicas),
 			Action: truncError(task.Status.Err),
 		})
@@ -396,7 +399,7 @@ func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlo
 	}
 
 	if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
-		u.progressOut.WriteProgress(progress.Progress{
+		_ = u.progressOut.WriteProgress(progress.Progress{
 			ID:         fmt.Sprintf("%d/%d", mappedSlot, replicas),
 			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
 			Current:    numberedStates[task.Status.State],
@@ -427,7 +430,7 @@ func (u *globalProgressUpdater) update(_ swarm.Service, tasks []swarm.Task, acti
 			// Two possibilities: either the orchestrator hasn't created
 			// the tasks yet, or the service doesn't meet constraints for
 			// any node. Either way, we wait.
-			u.progressOut.WriteProgress(progress.Progress{
+			_ = u.progressOut.WriteProgress(progress.Progress{
 				ID:     "overall progress",
 				Action: "waiting for new tasks",
 			})
@@ -505,7 +508,7 @@ func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int
 	}
 
 	if task.Status.Err != "" {
-		u.progressOut.WriteProgress(progress.Progress{
+		_ = u.progressOut.WriteProgress(progress.Progress{
 			ID:     formatter.TruncateID(task.NodeID),
 			Action: truncError(task.Status.Err),
 		})
@@ -513,7 +516,7 @@ func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int
 	}
 
 	if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
-		u.progressOut.WriteProgress(progress.Progress{
+		_ = u.progressOut.WriteProgress(progress.Progress{
 			ID:         formatter.TruncateID(task.NodeID),
 			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
 			Current:    numberedStates[task.Status.State],
@@ -593,7 +596,7 @@ func (u *replicatedJobProgressUpdater) update(_ swarm.Service, tasks []swarm.Tas
 		// only write out progress bars if there will be less than the maximum
 		if u.total <= maxProgressBars {
 			for i := 1; i <= u.total; i++ {
-				u.progressOut.WriteProgress(progress.Progress{
+				_ = u.progressOut.WriteProgress(progress.Progress{
 					ID:     fmt.Sprintf("%d/%d", i, u.total),
 					Action: " ",
 				})
