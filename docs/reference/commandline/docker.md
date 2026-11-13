@@ -120,6 +120,7 @@ The following environment variables control the behavior of the `docker` command
 | :---------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `DOCKER_API_VERSION`          | Override the negotiated API version to use for debugging (e.g. `1.19`)                                                                                                                                                                                            |
 | `DOCKER_CERT_PATH`            | Location of your authentication keys. This variable is used both by the `docker` CLI and the [`dockerd` daemon](https://docs.docker.com/reference/cli/dockerd/)                                                                                                   |
+| `DOCKER_CLI_PLUGINS_EXTRA_DIRS` | Additional directories to search for CLI plugins, separated by `:` on Linux and macOS or `;` on Windows. See [CLI plugin directories](#cli-plugin-directories). |
 | `DOCKER_CONFIG`               | The location of your client configuration files.                                                                                                                                                                                                                  |
 | `DOCKER_CONTEXT`              | Name of the `docker context` to use (overrides `DOCKER_HOST` env var and default context set with `docker context use`)                                                                                                                                           |
 | `DOCKER_CUSTOM_HEADERS`       | (Experimental) Configure [custom HTTP headers](#custom-http-headers) to be sent by the client. Headers must be provided as a comma-separated list of `name=value` pairs. This is the equivalent to the `HttpHeaders` field in the configuration file.             |
@@ -129,8 +130,7 @@ The following environment variables control the behavior of the `docker` command
 | `DOCKER_TLS`                  | Enable TLS for connections made by the `docker` CLI (equivalent of the `--tls` command-line option). Set to a non-empty value to enable TLS. Note that TLS is enabled automatically if any of the other TLS options are set.                                      |
 | `DOCKER_TLS_VERIFY`           | When set Docker uses TLS and verifies the remote. This variable is used both by the `docker` CLI and the [`dockerd` daemon](https://docs.docker.com/reference/cli/dockerd/)                                                                                       |
 | `BUILDKIT_PROGRESS`           | Set type of progress output (`auto`, `plain`, `tty`, `rawjson`) when [building](https://docs.docker.com/reference/cli/docker/image/build/) with [BuildKit backend](https://docs.docker.com/build/buildkit/). Use plain to show container output (default `auto`). |
-| `NO_COLOR`                    | Disable any ANSI escape codes in the output in accordance with https://no-color.org/
-                                                                                                             |
+| `NO_COLOR`                    | Disable any ANSI escape codes in the output in accordance with https://no-color.org/                                                                                                            |
 
 Because Docker is developed using Go, you can also use any environment
 variables used by the Go runtime. In particular, you may find these useful:
@@ -143,6 +143,30 @@ variables used by the Go runtime. In particular, you may find these useful:
 
 See the [Go specification](https://pkg.go.dev/golang.org/x/net/http/httpproxy#Config)
 for details on these variables.
+
+#### CLI plugin directories
+
+Use `DOCKER_CLI_PLUGINS_EXTRA_DIRS` to add CLI plugin directories without editing
+`config.json`. Separate paths with `:` on Linux and macOS, or `;` on Windows.
+Empty entries are ignored. If the variable is unset or empty, the search paths
+remain unchanged.
+
+The CLI searches for plugins in the following order:
+
+1. Directories from `DOCKER_CLI_PLUGINS_EXTRA_DIRS`, in the order listed.
+2. Directories from `cliPluginsExtraDirs` in `config.json`, in the order listed.
+3. The `cli-plugins` directory inside the CLI configuration directory
+   (`~/.docker/cli-plugins` by default).
+4. Platform-specific system plugin directories.
+
+If multiple directories contain a plugin with the same name, the first candidate
+takes precedence.
+
+For example, append a directory to the environment variable on Linux or macOS:
+
+```console
+$ export DOCKER_CLI_PLUGINS_EXTRA_DIRS="$DOCKER_CLI_PLUGINS_EXTRA_DIRS:/home/username/my/plugins"
+```
 
 ### Option types
 
