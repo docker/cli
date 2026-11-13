@@ -68,6 +68,17 @@ func terminalState(state swarm.TaskState) bool {
 	return numberedStates[state] > numberedStates[swarm.TaskStateRunning]
 }
 
+// taskConverged reports whether a slot/node has reached a state that
+// --detach=false can treat as done. Running is the usual case; Complete is
+// for one-shot tasks (restart_policy none/on-failure, process exited 0)
+// whose DesiredState the orchestrator has already set to complete.
+func taskConverged(task swarm.Task) bool {
+	if !terminalState(task.DesiredState) && task.Status.State == swarm.TaskStateRunning {
+		return true
+	}
+	return task.DesiredState == swarm.TaskStateComplete && task.Status.State == swarm.TaskStateComplete
+}
+
 // ServiceProgress outputs progress information for convergence of a service.
 //
 //nolint:gocyclo
@@ -316,7 +327,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 	// If we had reached a converged state, check if we are still converged.
 	if u.done {
 		for _, task := range tasksBySlot {
-			if task.Status.State != swarm.TaskStateRunning {
+			if !taskConverged(task) {
 				u.done = false
 				break
 			}
@@ -332,7 +343,7 @@ func (u *replicatedProgressUpdater) update(service swarm.Service, tasks []swarm.
 			u.slotMap[task.Slot] = mappedSlot
 		}
 
-		if !terminalState(task.DesiredState) && task.Status.State == swarm.TaskStateRunning {
+		if taskConverged(task) {
 			running++
 		}
 
@@ -395,6 +406,17 @@ func (u *replicatedProgressUpdater) writeTaskProgress(task swarm.Task, mappedSlo
 		return
 	}
 
+	if task.DesiredState == swarm.TaskStateComplete && task.Status.State == swarm.TaskStateComplete {
+		u.progressOut.WriteProgress(progress.Progress{
+			ID:         fmt.Sprintf("%d/%d", mappedSlot, replicas),
+			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
+			Current:    maxProgress,
+			Total:      maxProgress,
+			HideCounts: true,
+		})
+		return
+	}
+
 	if !terminalState(task.DesiredState) && !terminalState(task.Status.State) {
 		u.progressOut.WriteProgress(progress.Progress{
 			ID:         fmt.Sprintf("%d/%d", mappedSlot, replicas),
@@ -441,7 +463,7 @@ func (u *globalProgressUpdater) update(_ swarm.Service, tasks []swarm.Task, acti
 	// If we had reached a converged state, check if we are still converged.
 	if u.done {
 		for _, task := range tasksByNode {
-			if task.Status.State != swarm.TaskStateRunning {
+			if !taskConverged(task) {
 				u.done = false
 				break
 			}
@@ -452,7 +474,7 @@ func (u *globalProgressUpdater) update(_ swarm.Service, tasks []swarm.Task, acti
 
 	for _, task := range tasksByNode {
 		if _, nodeActive := activeNodes[task.NodeID]; nodeActive {
-			if !terminalState(task.DesiredState) && task.Status.State == swarm.TaskStateRunning {
+			if taskConverged(task) {
 				running++
 			}
 
@@ -508,6 +530,17 @@ func (u *globalProgressUpdater) writeTaskProgress(task swarm.Task, nodeCount int
 		u.progressOut.WriteProgress(progress.Progress{
 			ID:     formatter.TruncateID(task.NodeID),
 			Action: truncError(task.Status.Err),
+		})
+		return
+	}
+
+	if task.DesiredState == swarm.TaskStateComplete && task.Status.State == swarm.TaskStateComplete {
+		u.progressOut.WriteProgress(progress.Progress{
+			ID:         formatter.TruncateID(task.NodeID),
+			Action:     fmt.Sprintf("%-[1]*s", longestState, task.Status.State),
+			Current:    maxProgress,
+			Total:      maxProgress,
+			HideCounts: true,
 		})
 		return
 	}
