@@ -522,12 +522,23 @@ $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 
 ### <a name="publish"></a> Publish or expose port (-p, --expose)
 
+The `-p` / `--publish` value is `[ip:][hostPort:]containerPort[/protocol]`.
+`hostPort` can be a single port or a range (`8080-8081`).
+
 ```console
 $ docker run -p 127.0.0.1:80:8080/tcp nginx:alpine
 ```
 
 This binds port `8080` of the container to TCP port `80` on `127.0.0.1` of the
-host. You can also specify `udp` and `sctp` ports. The [Networking overview
+host. You can also specify `udp` and `sctp` ports. Omit the IP to publish on
+all host interfaces (`0.0.0.0`). A range maps host ports onto container ports
+in order:
+
+```console
+$ docker run -p 8080-8081:80-81 nginx:alpine
+```
+
+The [Networking overview
 page](https://docs.docker.com/network/) explains in detail how to publish ports
 with Docker.
 
