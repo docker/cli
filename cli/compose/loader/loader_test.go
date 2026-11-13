@@ -602,6 +602,35 @@ volumes:
 	assert.Check(t, is.Equal(home, config.Volumes["test"].Driver))
 }
 
+func TestLoadLongFormStringPorts(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.8"
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - published: "8080"
+        target: "80"
+        protocol: tcp
+`)
+	assert.NilError(t, err)
+	assert.Assert(t, len(config.Services) == 1)
+	assert.Check(t, is.DeepEqual(config.Services[0].Ports, []types.ServicePortConfig{
+		{Target: 80, Published: 8080, Protocol: "tcp"},
+	}))
+
+	_, err = loadYAML(`
+version: "3.4"
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - published: "abc"
+        target: 80
+`)
+	assert.ErrorContains(t, err, `invalid published port "abc"`)
+}
+
 func TestLoadWithInterpolationCastFull(t *testing.T) {
 	dict, err := ParseYAML([]byte(`
 version: "3.8"
