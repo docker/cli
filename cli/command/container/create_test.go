@@ -37,9 +37,25 @@ func TestCIDFileNoOPWithNoFilename(t *testing.T) {
 func TestNewCIDFileWhenFileAlreadyExists(t *testing.T) {
 	tempfile := fs.NewFile(t, "test-cid-file")
 	defer tempfile.Remove()
+	assert.NilError(t, os.WriteFile(tempfile.Path(), []byte("already-running"), 0o644))
 
 	_, err := newCIDFile(tempfile.Path())
 	assert.ErrorContains(t, err, "container ID file found")
+}
+
+func TestNewCIDFileWhenEmptyFileExists(t *testing.T) {
+	tempfile := fs.NewFile(t, "test-cid-file")
+	defer tempfile.Remove()
+
+	file, err := newCIDFile(tempfile.Path())
+	assert.NilError(t, err)
+
+	assert.NilError(t, file.Write("id"))
+	assert.NilError(t, file.Close())
+
+	actual, err := os.ReadFile(tempfile.Path())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("id", string(actual)))
 }
 
 func TestCIDFileCloseWithNoWrite(t *testing.T) {
