@@ -249,6 +249,19 @@ maximum of 2 tasks at a time, with `10s` between updates. For more information,
 refer to the [rolling updates
 tutorial](https://docs.docker.com/engine/swarm/swarm-tutorial/rolling-update/).
 
+`--update-order` (and `--rollback-order`) pick whether a new task starts
+before or after the old one stops:
+
+- `stop-first` (default) — stop the old task, then start the replacement.
+  The published VIP has one fewer backend for that slot until the new
+  task is Running.
+- `start-first` — start the new task first and wait until it is Running
+  before stopping the old one. The VIP keeps a healthy backend (old, then
+  both, then new). Needs enough spare capacity on the node for the extra
+  task.
+
+`--rollback-order` is the same idea when a rollback runs.
+
 ### <a name="env"></a> Set environment variables (-e, --env)
 
 This sets an environment variable for all tasks in a service. For example:
