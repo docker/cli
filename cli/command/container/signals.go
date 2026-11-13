@@ -44,7 +44,7 @@ func ForwardAllSignals(ctx context.Context, apiClient client.ContainerAPIClient,
 				break
 			}
 		}
-		if sig == "" {
+		if sig == "" || sig == "TTIN" || sig == "TTOU" {
 			continue
 		}
 

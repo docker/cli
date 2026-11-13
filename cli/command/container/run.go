@@ -277,7 +277,7 @@ func attachContainer(ctx context.Context, dockerCli command.Cli, containerID str
 		in        io.ReadCloser
 	)
 	if options.Stdin {
-		in = dockerCli.In()
+		in = stdinForAttach(dockerCli.In())
 	}
 	if options.Stdout {
 		out = dockerCli.Out()
