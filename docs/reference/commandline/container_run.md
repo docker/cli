@@ -605,6 +605,24 @@ $ docker run --pull=never hello-world
 docker: Error response from daemon: No such image: hello-world:latest.
 ```
 
+### <a name="platform"></a> Select the image platform (--platform)
+
+`--platform` selects which platform variant to pull and run when the image is
+multi-arch (for example `linux/arm64` on an `linux/amd64` host). The daemon must
+be able to run that architecture.
+
+On Docker Desktop, cross-architecture execution is set up for you. On a plain
+Linux Engine install, foreign binaries need kernel `binfmt_misc` handlers
+(commonly installed via [QEMU user-mode emulation](https://github.com/multiarch/qemu-user-static)
+or your distribution's `qemu-user-static` package). Without those handlers,
+`docker run --platform …` may pull the image successfully and then fail with
+`exec format error` when starting the process.
+
+```console
+$ docker run --rm --platform linux/arm64 arm64v8/ubuntu uname -m
+aarch64
+```
+
 ### <a name="env"></a> Set environment variables (-e, --env, --env-file)
 
 ```console
