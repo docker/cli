@@ -150,6 +150,12 @@ The currently supported filters are:
 * since (`<image-name>[:<tag>]`,  `<image id>` or `<image@digest>`) - filter images created since given id or references
 * reference (pattern of an image reference) - filter images whose reference matches the specified pattern
 
+These keys are **not** the same set as `docker image prune --filter`. Prune
+supports `until` and `label` / `label!=...`, but not `dangling`, `before`,
+`since`, or `reference`. Negative label filters (`label!=...`) work with prune
+but not with `docker image ls`, so you cannot always preview prune matches with
+`image ls`. See [docker image prune](image_prune.md#filter).
+
 #### Show untagged images (dangling)
 
 ```console
