@@ -12,7 +12,7 @@ import (
 func newTagCommand(dockerCLI command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]",
-		Short: "Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE",
+		Short: "Create TARGET_IMAGE as a new tag for SOURCE_IMAGE",
 		Args:  cli.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, err := dockerCLI.Client().ImageTag(cmd.Context(), client.ImageTagOptions{
