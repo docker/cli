@@ -75,6 +75,10 @@ type ConfigFile struct {
 	Plugins              map[string]map[string]string `json:"plugins,omitempty"`
 	Aliases              map[string]string            `json:"aliases,omitempty"`
 	Features             map[string]string            `json:"features,omitempty"`
+
+	// LoadErr is set when an existing config file could not be read or parsed.
+	// Save refuses to overwrite the file while this is set.
+	LoadErr error `json:"-"`
 }
 
 type configEnvAuth struct {
@@ -193,8 +197,13 @@ func (c *ConfigFile) SaveToWriter(writer io.Writer) error {
 	return err
 }
 
-// Save encodes and writes out all the authorization information
+// Save encodes and writes out all the authorization information.
+// It refuses to write when the existing file could not be loaded, so a
+// malformed config.json is not replaced with an empty one.
 func (c *ConfigFile) Save() (retErr error) {
+	if c.LoadErr != nil {
+		return fmt.Errorf("refusing to overwrite invalid config file %s: %w", c.Filename, c.LoadErr)
+	}
 	if c.Filename == "" {
 		return errors.New("can't save config with empty filename")
 	}

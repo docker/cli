@@ -143,12 +143,15 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 			return configFile, nil
 		}
 		// Any other error happening when failing to read the file must be returned.
-		return configFile, fmt.Errorf("loading config file: %w", err)
+		err = fmt.Errorf("loading config file: %w", err)
+		configFile.LoadErr = err
+		return configFile, err
 	}
 	defer func() { _ = file.Close() }()
 	err = configFile.LoadFromReader(file)
 	if err != nil {
 		err = fmt.Errorf("parsing config file (%s): %w", filename, err)
+		configFile.LoadErr = err
 	}
 	return configFile, err
 }
@@ -159,15 +162,12 @@ func load(configDir string) (*configfile.ConfigFile, error) {
 // credentials-store is set in the configuration file, it attempts to discover
 // the default store to use for the current platform.
 //
-// Important: LoadDefaultConfigFile prints a warning to stderr when failing to
-// load the configuration file, but otherwise ignores errors. Consumers should
-// consider using [Load] (and [credentials.DetectDefaultStore]) to detect errors
-// when updating the configuration file, to prevent discarding a (malformed)
-// configuration file.
+// LoadDefaultConfigFile prints a warning when the file cannot be read and
+// still returns a config so read-only commands keep working. Save refuses
+// to overwrite that file. See https://github.com/docker/cli/issues/5075.
 func LoadDefaultConfigFile(stderr io.Writer) *configfile.ConfigFile {
 	configFile, err := load(Dir())
 	if err != nil {
-		// FIXME(thaJeztah): we should not proceed here to prevent overwriting existing (but malformed) config files; see https://github.com/docker/cli/issues/5075
 		_, _ = fmt.Fprintln(stderr, "WARNING: Error", err)
 	}
 	if !configFile.ContainsAuth() {
