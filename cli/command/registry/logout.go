@@ -46,7 +46,9 @@ func runLogout(ctx context.Context, dockerCLI command.Cli, serverAddress string)
 
 	var isDefaultRegistry bool
 
-	if serverAddress == "" {
+	if serverAddress != "" && serverAddress != registry.DefaultNamespace {
+		isDefaultRegistry = false
+	} else {
 		serverAddress = registry.IndexServer
 		isDefaultRegistry = true
 	}
