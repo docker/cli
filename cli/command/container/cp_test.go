@@ -1,10 +1,13 @@
 package container
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -14,10 +17,64 @@ import (
 	"github.com/moby/go-archive/compression"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
+	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
 	"gotest.tools/v3/fs"
 )
+
+func TestCopyCompletion(t *testing.T) {
+	absolutePath := filepath.Join(t.TempDir(), "file")
+	if runtime.GOOS != "windows" {
+		absolutePath += ":name"
+	}
+	tests := []struct {
+		name      string
+		args      []string
+		directive cobra.ShellCompDirective
+	}{
+		{name: "empty source", args: []string{""}},
+		{name: "relative source", args: []string{"./"}},
+		{name: "source in home directory", args: []string{"~/"}},
+		{name: "absolute source with colon", args: []string{absolutePath}},
+		{name: "relative source with colon", args: []string{"./file:name"}},
+		{name: "container source", args: []string{"example:/tmp/"}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "empty container path", args: []string{"example:"}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "stdin source", args: []string{"--", "-"}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "empty local destination", args: []string{"example:/tmp/file", ""}},
+		{name: "relative destination", args: []string{"example:/tmp/file", "./"}},
+		{name: "destination in home directory", args: []string{"example:/tmp/file", "~/"}},
+		{name: "absolute destination with colon", args: []string{"example:/tmp/file", absolutePath}},
+		{name: "container destination", args: []string{"./file", "example:/tmp/"}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "destination after local source", args: []string{"./file", ""}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "destination after stdin", args: []string{"-", ""}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "stdout destination", args: []string{"--", "example:/tmp/file", "-"}, directive: cobra.ShellCompDirectiveNoFileComp},
+		{name: "extra argument", args: []string{"example:/tmp/file", "./file", ""}, directive: cobra.ShellCompDirectiveNoFileComp},
+	}
+	for _, commandPath := range [][]string{{"cp"}, {"container", "cp"}} {
+		t.Run(strings.Join(commandPath, " "), func(t *testing.T) {
+			for _, tc := range tests {
+				t.Run(tc.name, func(t *testing.T) {
+					root := &cobra.Command{Use: "docker"}
+					root.CompletionOptions.SetDefaultShellCompDirective(cobra.ShellCompDirectiveNoFileComp)
+					parent := root
+					if len(commandPath) == 2 {
+						parent = &cobra.Command{Use: "container"}
+						root.AddCommand(parent)
+					}
+					parent.AddCommand(newCopyCommand(test.NewFakeCli(nil)))
+					var out bytes.Buffer
+					root.SetOut(&out)
+					root.SetErr(io.Discard)
+					args := append([]string{cobra.ShellCompNoDescRequestCmd}, commandPath...)
+					root.SetArgs(append(args, tc.args...))
+					assert.NilError(t, root.Execute())
+					assert.Equal(t, out.String(), fmt.Sprintf(":%d\n", tc.directive))
+				})
+			}
+		})
+	}
+}
 
 func TestRunCopyWithInvalidArguments(t *testing.T) {
 	testcases := []struct {

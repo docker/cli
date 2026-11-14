@@ -40,6 +40,9 @@ be an absolute or relative value. The command interprets a local machine's
 relative paths as relative to the current working directory where `docker cp` is
 run.
 
+When shell completion is enabled, `docker cp` completes local file and directory
+paths. Completion of paths inside containers is not supported.
+
 The `cp` command behaves like the Unix `cp -a` command in that directories are
 copied recursively with permissions preserved if possible. Ownership is set to
 the user and primary group at the destination. For example, files copied to a
