@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"runtime"
@@ -445,4 +446,65 @@ func TestCopyToContainerStdinReportsTransferredSize(t *testing.T) {
 	// stdin has no content size, so reportedSize == copiedSize and
 	// "(transferred ...)" should not appear.
 	assert.Check(t, !strings.Contains(errOut, "(transferred"))
+}
+
+func TestCopyFromContainerDoesNotReportSuccessOnFailure(t *testing.T) {
+	// Copying a directory onto an existing regular file fails while
+	// extracting ("cannot copy directory"). The failure must not be
+	// preceded by a "Successfully copied" message.
+	srcDir := fs.NewDir(t, "cp-test-fromdir-fail",
+		fs.WithFile("file1", "hello"))
+	destFile := fs.NewFile(t, "cp-test-fromdir-fail-dest", fs.WithContent("original\n"))
+
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerCopyFromFunc: func(ctr, srcPath string) (client.CopyFromContainerResult, error) {
+			readCloser, err := archive.Tar(srcDir.Path(), compression.None)
+			return client.CopyFromContainerResult{
+				Content: readCloser,
+				Stat: container.PathStat{
+					Name: "mydir",
+					Mode: os.ModeDir | 0o755,
+				},
+			}, err
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      "container:/mydir",
+		destination: destFile.Path(),
+	})
+	assert.ErrorContains(t, err, "cannot copy directory")
+	assert.Check(t, !strings.Contains(fakeCli.ErrBuffer().String(), "Successfully copied"),
+		"unexpected success message in output: %q", fakeCli.ErrBuffer().String())
+
+	content, err := os.ReadFile(destFile.Path())
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("original\n", string(content)))
+}
+
+func TestCopyToContainerDoesNotReportSuccessOnFailure(t *testing.T) {
+	// A failed upload must not be followed by a "Successfully copied"
+	// message.
+	srcFile := fs.NewFile(t, "cp-test-to-fail", fs.WithContent("hello"))
+
+	fakeCli := test.NewFakeCli(&fakeClient{
+		containerStatPathFunc: func(containerID, path string) (client.ContainerStatPathResult, error) {
+			return client.ContainerStatPathResult{
+				Stat: container.PathStat{
+					Name: "tmp",
+					Mode: os.ModeDir | 0o755,
+				},
+			}, nil
+		},
+		containerCopyToFunc: func(containerID string, options client.CopyToContainerOptions) (client.CopyToContainerResult, error) {
+			_, _ = io.Copy(io.Discard, options.Content)
+			return client.CopyToContainerResult{}, errors.New("copy to container failed")
+		},
+	})
+	err := runCopy(context.TODO(), fakeCli, copyOptions{
+		source:      srcFile.Path(),
+		destination: "container:/tmp",
+	})
+	assert.ErrorContains(t, err, "copy to container failed")
+	assert.Check(t, !strings.Contains(fakeCli.ErrBuffer().String(), "Successfully copied"),
+		"unexpected success message in output: %q", fakeCli.ErrBuffer().String())
 }

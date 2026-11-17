@@ -335,23 +335,27 @@ func copyFromContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cp
 	}
 
 	restore, done := copyProgress(ctx, dockerCLI.Err(), copyFromContainerHeader, &copiedSize)
-	res := archive.CopyTo(preArchive, srcInfo, dstPath)
+	err = archive.CopyTo(preArchive, srcInfo, dstPath)
 	cancel()
 	<-done
 	restore()
-	reportedSize := copiedSize
-	if !cpRes.Stat.Mode.IsDir() {
-		reportedSize = cpRes.Stat.Size
+	if err == nil {
+		reportedSize := copiedSize
+		if !cpRes.Stat.Mode.IsDir() {
+			reportedSize = cpRes.Stat.Size
+		}
+		_, _ = fmt.Fprint(dockerCLI.Err(), copySummary(reportedSize, copiedSize, dstPath))
 	}
-	_, _ = fmt.Fprint(dockerCLI.Err(), copySummary(reportedSize, copiedSize, dstPath))
 
-	return res
+	return err
 }
 
 // In order to get the copy behavior right, we need to know information
 // about both the source and destination. The API is a simple tar
 // archive/extract API but we can use the stat info header about the
 // destination to be more informed about exactly what the destination is.
+//
+//nolint:gocyclo
 func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpConfig) error {
 	srcPath := copyConfig.sourcePath
 	dstPath := copyConfig.destPath
@@ -474,11 +478,13 @@ func copyToContainer(ctx context.Context, dockerCLI command.Cli, copyConfig cpCo
 	cancel()
 	<-done
 	restore()
-	reportedSize := copiedSize
-	if sizeErr == nil {
-		reportedSize = contentSize
+	if err == nil {
+		reportedSize := copiedSize
+		if sizeErr == nil {
+			reportedSize = contentSize
+		}
+		_, _ = fmt.Fprint(dockerCLI.Err(), copySummary(reportedSize, copiedSize, copyConfig.container+":"+dstInfo.Path))
 	}
-	_, _ = fmt.Fprint(dockerCLI.Err(), copySummary(reportedSize, copiedSize, copyConfig.container+":"+dstInfo.Path))
 
 	return err
 }
