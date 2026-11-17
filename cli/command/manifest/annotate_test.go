@@ -58,15 +58,16 @@ func TestManifestAnnotate(t *testing.T) {
 	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
-	cmd.Flags().Set("os", "freebsd")
-	cmd.Flags().Set("arch", "fake")
-	cmd.Flags().Set("os-version", "1")
-	cmd.Flags().Set("os-features", "feature1")
-	cmd.Flags().Set("variant", "v7")
-	expectedError = "manifest entry for image has unsupported os/arch combination"
+	assert.NilError(t, cmd.Flags().Set("os", "freebsd"))
+	assert.NilError(t, cmd.Flags().Set("arch", "<invalid>"))
+	assert.NilError(t, cmd.Flags().Set("os-version", "1"))
+	assert.NilError(t, cmd.Flags().Set("os-features", "feature1"))
+	assert.NilError(t, cmd.Flags().Set("variant", "v7"))
+
+	expectedError = "manifest entry for image has invalid platform"
 	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
-	cmd.Flags().Set("arch", "arm")
+	assert.NilError(t, cmd.Flags().Set("arch", "arm"))
 	assert.NilError(t, cmd.Execute())
 
 	cmd = newInspectCommand(cli)

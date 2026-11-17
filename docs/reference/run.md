@@ -35,7 +35,7 @@ reference to create or run a container based on an image.
 
 An image tag is the image version, which defaults to `latest` when omitted. Use
 the tag to run a container from specific version of an image. For example, to
-run version `24.04` of the `ubuntu` image: `docker run ubuntu:24.04`.
+run version `26.04` of the `ubuntu` image: `docker run ubuntu:26.04`.
 
 #### Image digests
 
@@ -406,14 +406,14 @@ We have four ways to set user memory usage:
 Examples:
 
 ```console
-$ docker run -it ubuntu:24.04 /bin/bash
+$ docker run -it ubuntu:26.04 /bin/bash
 ```
 
 We set nothing about memory, this means the processes in the container can use
 as much memory and swap memory as they need.
 
 ```console
-$ docker run -it -m 300M --memory-swap -1 ubuntu:24.04 /bin/bash
+$ docker run -it -m 300M --memory-swap -1 ubuntu:26.04 /bin/bash
 ```
 
 We set memory limit and disabled swap memory limit, this means the processes in
@@ -421,7 +421,7 @@ the container can use 300M memory and as much swap memory as they need (if the
 host supports swap memory).
 
 ```console
-$ docker run -it -m 300M ubuntu:24.04 /bin/bash
+$ docker run -it -m 300M ubuntu:26.04 /bin/bash
 ```
 
 We set memory limit only, this means the processes in the container can use
@@ -430,7 +430,7 @@ We set memory limit only, this means the processes in the container can use
 would be 2*300M, so processes can use 300M swap memory as well.
 
 ```console
-$ docker run -it -m 300M --memory-swap 1G ubuntu:24.04 /bin/bash
+$ docker run -it -m 300M --memory-swap 1G ubuntu:26.04 /bin/bash
 ```
 
 We set both memory and swap memory, so the processes in the container can use
@@ -456,7 +456,7 @@ The following example limits the memory (`-m`) to 500M and sets the memory
 reservation to 200M.
 
 ```console
-$ docker run -it -m 500M --memory-reservation 200M ubuntu:24.04 /bin/bash
+$ docker run -it -m 500M --memory-reservation 200M ubuntu:26.04 /bin/bash
 ```
 
 Under this configuration, when the container consumes memory more than 200M and
@@ -466,7 +466,7 @@ memory below 200M.
 The following example set memory reservation to 1G without a hard memory limit.
 
 ```console
-$ docker run -it --memory-reservation 1G ubuntu:24.04 /bin/bash
+$ docker run -it --memory-reservation 1G ubuntu:26.04 /bin/bash
 ```
 
 The container can use as much memory as it needs. The memory reservation setting
@@ -484,13 +484,13 @@ The following example limits the memory to 100M and disables the OOM killer for
 this container:
 
 ```console
-$ docker run -it -m 100M --oom-kill-disable ubuntu:24.04 /bin/bash
+$ docker run -it -m 100M --oom-kill-disable ubuntu:26.04 /bin/bash
 ```
 
 The following example, illustrates a dangerous way to use the flag:
 
 ```console
-$ docker run -it --oom-kill-disable ubuntu:24.04 /bin/bash
+$ docker run -it --oom-kill-disable ubuntu:26.04 /bin/bash
 ```
 
 The container has unlimited memory which can cause the host to run out memory
@@ -510,7 +510,7 @@ between 0 and 100. A value of 0 turns off anonymous page swapping. A value of
 For example, you can set:
 
 ```console
-$ docker run -it --memory-swappiness=0 ubuntu:24.04 /bin/bash
+$ docker run -it --memory-swappiness=0 ubuntu:26.04 /bin/bash
 ```
 
 Setting the `--memory-swappiness` option is helpful when you want to retain the
@@ -561,7 +561,7 @@ And usually `--cpu-period` should work with `--cpu-quota`.
 Examples:
 
 ```console
-$ docker run -it --cpu-period=50000 --cpu-quota=25000 ubuntu:24.04 /bin/bash
+$ docker run -it --cpu-period=50000 --cpu-quota=25000 ubuntu:26.04 /bin/bash
 ```
 
 If there is 1 CPU, this means the container can get 50% CPU worth of run-time every 50ms.
@@ -582,13 +582,13 @@ We can set cpus in which to allow execution for containers.
 Examples:
 
 ```console
-$ docker run -it --cpuset-cpus="1,3" ubuntu:24.04 /bin/bash
+$ docker run -it --cpuset-cpus="1,3" ubuntu:26.04 /bin/bash
 ```
 
 This means processes in container can be executed on cpu 1 and cpu 3.
 
 ```console
-$ docker run -it --cpuset-cpus="0-2" ubuntu:24.04 /bin/bash
+$ docker run -it --cpuset-cpus="0-2" ubuntu:26.04 /bin/bash
 ```
 
 This means processes in container can be executed on cpu 0, cpu 1 and cpu 2.
@@ -599,14 +599,14 @@ on NUMA systems.
 Examples:
 
 ```console
-$ docker run -it --cpuset-mems="1,3" ubuntu:24.04 /bin/bash
+$ docker run -it --cpuset-mems="1,3" ubuntu:26.04 /bin/bash
 ```
 
 This example restricts the processes in the container to only use memory from
 memory nodes 1 and 3.
 
 ```console
-$ docker run -it --cpuset-mems="0-2" ubuntu:24.04 /bin/bash
+$ docker run -it --cpuset-mems="0-2" ubuntu:26.04 /bin/bash
 ```
 
 This example restricts the processes in the container to only use memory from
@@ -637,8 +637,8 @@ For example, the commands below create two containers with different blkio
 weight:
 
 ```console
-$ docker run -it --name c1 --blkio-weight 300 ubuntu:24.04 /bin/bash
-$ docker run -it --name c2 --blkio-weight 600 ubuntu:24.04 /bin/bash
+$ docker run -it --name c1 --blkio-weight 300 ubuntu:26.04 /bin/bash
+$ docker run -it --name c2 --blkio-weight 600 ubuntu:26.04 /bin/bash
 ```
 
 If you do block IO in the two containers at the same time, by, for example:
@@ -854,11 +854,11 @@ For interacting with the network stack, instead of using `--privileged` they
 should use `--cap-add=NET_ADMIN` to modify the network interfaces.
 
 ```console
-$ docker run -it --rm  ubuntu:24.04 ip link add dummy0 type dummy
+$ docker run -it --rm  ubuntu:26.04 ip link add dummy0 type dummy
 
 RTNETLINK answers: Operation not permitted
 
-$ docker run -it --rm --cap-add=NET_ADMIN ubuntu:24.04 ip link add dummy0 type dummy
+$ docker run -it --rm --cap-add=NET_ADMIN ubuntu:26.04 ip link add dummy0 type dummy
 ```
 
 To mount a FUSE based filesystem, you need to combine both `--cap-add` and

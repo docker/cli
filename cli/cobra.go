@@ -160,7 +160,25 @@ func (tcmd *TopLevelCommand) HandleGlobalFlags() (*cobra.Command, []string, erro
 		return nil, nil, cmd.FlagErrorFunc()(cmd, err)
 	}
 
-	return cmd, flags.Args(), nil
+	args := flags.Args()
+
+	// A leading "--help"/"-h" is consumed above as the root's persistent
+	// help flag and stripped from args, so the target subcommand never sees
+	// it. That's fine for most subcommands, which inherit the same help
+	// flag instance, but "run" and "create" register their own local
+	// "help" flag (to avoid a shorthand clash with "-h"/"--hostname"),
+	// which shadows the persistent one and is left false. Propagate the
+	// value so "docker --help run <image>" shows help like "docker run
+	// --help" does, instead of running the container.
+	if help, _ := flags.GetBool("help"); help {
+		if sub, _, err := cmd.Find(args); err == nil && sub != cmd {
+			if sub.Flags().Lookup("help") != nil {
+				_ = sub.Flags().Set("help", "true")
+			}
+		}
+	}
+
+	return cmd, args, nil
 }
 
 // Initialize finalises global option parsing and initializes the docker client.

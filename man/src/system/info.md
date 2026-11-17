@@ -71,8 +71,8 @@ Server:
   seccomp
    Profile: builtin
   cgroupns
- Kernel Version: 5.15.0-25-generic
- Operating System: Ubuntu 22.04 LTS
+ Kernel Version: 6.8.0-31-generic
+ Operating System: Ubuntu 24.04 LTS
  OSType: linux
  Architecture: x86_64
  CPUs: 1

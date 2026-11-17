@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cmd/docker-trust/internal/trust"
-	"github.com/docker/cli/internal/lazyregexp"
 	"github.com/spf13/cobra"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/trustmanager"
@@ -41,7 +41,7 @@ func newKeyGenerateCommand(dockerCLI command.Streams) *cobra.Command {
 }
 
 // key names can use lowercase alphanumeric + _ + - characters
-var validKeyName = lazyregexp.New(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
+var validKeyName = regexp.MustCompile(`^[a-z0-9][a-z0-9\_\-]*$`).MatchString
 
 // validate that all of the key names are unique and are alphanumeric + _ + -
 // and that we do not already have public key files in the target dir on disk

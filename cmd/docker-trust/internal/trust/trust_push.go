@@ -11,8 +11,9 @@ import (
 
 	"github.com/distribution/reference"
 	"github.com/docker/cli/cli/streams"
-	"github.com/docker/cli/internal/jsonstream"
+	"github.com/moby/moby/api/types/jsonstream"
 	registrytypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client/pkg/jsonmessage"
 	"github.com/opencontainers/go-digest"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -46,7 +47,7 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 	// Count the times of calling for handleTarget,
 	// if it is called more that once, that should be considered an error in a trusted push.
 	cnt := 0
-	handleTarget := func(msg jsonstream.JSONMessage) {
+	handleTarget := func(msg jsonstream.Message) {
 		cnt++
 		if cnt > 1 {
 			// handleTarget should only be called once. This will be treated as an error.
@@ -78,14 +79,14 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 	default:
 		// We want trust signatures to always take an explicit tag,
 		// otherwise it will act as an untrusted push.
-		if err := jsonstream.Display(ctx, in, ioStreams.Out()); err != nil {
+		if err := displayJSONMessages(ctx, in, ioStreams.Out(), nil); err != nil {
 			return err
 		}
 		_, _ = fmt.Fprintln(ioStreams.Err(), "No tag specified, skipping trust metadata push")
 		return nil
 	}
 
-	if err := jsonstream.Display(ctx, in, ioStreams.Out(), jsonstream.WithAuxCallback(handleTarget)); err != nil {
+	if err := displayJSONMessages(ctx, in, ioStreams.Out(), handleTarget); err != nil {
 		return err
 	}
 
@@ -146,4 +147,35 @@ func PushTrustedReference(ctx context.Context, ioStreams Streams, repoInfo *Repo
 
 	_, _ = fmt.Fprintf(ioStreams.Out(), "Successfully signed %s:%s\n", repoInfo.Name.Name(), tag)
 	return nil
+}
+
+type ctxReader struct {
+	err chan error
+	r   io.Reader
+}
+
+func (r *ctxReader) Read(p []byte) (int, error) {
+	select {
+	case err := <-r.err:
+		return 0, err
+	default:
+		return r.r.Read(p)
+	}
+}
+
+// displayJSONMessages prints the JSON messages from in to out. It returns
+// ctx.Err() if ctx is canceled, but not when in is closed.
+func displayJSONMessages(ctx context.Context, in io.Reader, out *streams.Out, auxCallback func(jsonstream.Message)) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	reader := &ctxReader{err: make(chan error, 1), r: in}
+	stop := context.AfterFunc(ctx, func() { reader.err <- ctx.Err() })
+	defer stop()
+
+	if err := jsonmessage.DisplayJSONMessagesStream(reader, out, out.FD(), out.IsTerminal(), auxCallback); err != nil {
+		return err
+	}
+	return ctx.Err()
 }

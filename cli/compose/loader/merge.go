@@ -255,7 +255,6 @@ func mergeLoggingConfig(dst, src reflect.Value) error {
 	return nil
 }
 
-//nolint:unparam
 func mergeUlimitsConfig(dst, src reflect.Value) error {
 	if src.Interface() != reflect.Zero(reflect.TypeOf(src.Interface())).Interface() {
 		dst.Elem().Set(src.Elem())
@@ -263,7 +262,6 @@ func mergeUlimitsConfig(dst, src reflect.Value) error {
 	return nil
 }
 
-//nolint:unparam
 func mergeShellCommand(dst, src reflect.Value) error {
 	if src.Len() != 0 {
 		dst.Set(src)
@@ -271,7 +269,6 @@ func mergeShellCommand(dst, src reflect.Value) error {
 	return nil
 }
 
-//nolint:unparam
 func mergeServiceNetworkConfig(dst, src reflect.Value) error {
 	if src.Interface() != reflect.Zero(reflect.TypeOf(src.Interface())).Interface() {
 		dst.Elem().FieldByName("Aliases").Set(src.Elem().FieldByName("Aliases"))
@@ -285,7 +282,6 @@ func mergeServiceNetworkConfig(dst, src reflect.Value) error {
 	return nil
 }
 
-//nolint:unparam
 func mergeUint64(dst, src reflect.Value) error {
 	if !src.IsNil() {
 		dst.Elem().Set(src.Elem())

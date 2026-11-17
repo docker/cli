@@ -5,10 +5,12 @@ ARG BASE_VARIANT=alpine
 # ALPINE_VERSION sets the version of the alpine base image to use, including for the golang image.
 # It must be a supported tag in the docker.io/library/alpine image repository
 # that's also available as alpine image variant for the Golang version used.
-ARG ALPINE_VERSION=3.23
-ARG BASE_DEBIAN_DISTRO=bookworm
+ARG ALPINE_VERSION=3.24
 
-ARG GO_VERSION=1.26.10
+# BASE_DEBIAN_DISTRO sets the version of the debian base image to use,
+ARG BASE_DEBIAN_DISTRO=trixie
+
+ARG GO_VERSION=1.27.3
 
 # XX_VERSION specifies the version of the xx utility to use.
 # It must be a valid tag in the docker.io/tonistiigi/xx image repository.
@@ -25,12 +27,12 @@ ARG GOTESTSUM_VERSION=v1.13.0
 # BUILDX_VERSION sets the version of buildx to use for the e2e tests.
 # It must be a tag in the docker.io/docker/buildx-bin image repository
 # on Docker Hub.
-ARG BUILDX_VERSION=0.38.0
+ARG BUILDX_VERSION=0.38.1
 
 # COMPOSE_VERSION is the version of compose to install in the dev container.
 # It must be a tag in the docker.io/docker/compose-bin image repository
 # on Docker Hub.
-ARG COMPOSE_VERSION=v5.6.0
+ARG COMPOSE_VERSION=v5.7.0
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
@@ -53,7 +55,7 @@ WORKDIR /go/src/github.com/docker/cli
 
 FROM build-base-debian AS build-debian
 ARG TARGETPLATFORM
-RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-12-dev pkgconf
+RUN xx-apt-get install --no-install-recommends -y libc6-dev libgcc-14-dev pkgconf
 
 FROM build-base-${BASE_VARIANT} AS goversioninfo
 ARG GOVERSIONINFO_VERSION
