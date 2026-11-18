@@ -24,9 +24,10 @@ import (
 const (
 	registerSuggest = "Log in with your Docker ID or email address to push and pull images from Docker Hub. " +
 		"If you don't have a Docker ID, head over to https://hub.docker.com/ to create one."
-	patSuggest = "You can log in with your password or a Personal Access " +
-		"Token (PAT). Using a limited-scope PAT grants better security and is required " +
-		"for organizations using SSO. Learn more at https://docs.docker.com/go/access-tokens/"
+	patOrOatSuggest = "You can log in with your password, a Personal Access " +
+		"Token (PAT), or an Organization Access Token (OAT). Using a limited-scope PAT " +
+		"or OAT grants better security, and a PAT is required for organizations using SSO. " +
+		"Learn more at https://docs.docker.com/go/access-tokens/"
 )
 
 // authConfigKey is the key used to store credentials for Docker Hub. It is
@@ -123,7 +124,7 @@ func PromptUserForCredentials(ctx context.Context, cli Streams, argUser, argPass
 			// a token instead of a password.
 			_, _ = fmt.Fprintln(cli.Out(), registerSuggest)
 			if hints.Enabled() {
-				_, _ = fmt.Fprintln(cli.Out(), patSuggest)
+				_, _ = fmt.Fprintln(cli.Out(), patOrOatSuggest)
 				_, _ = fmt.Fprintln(cli.Out())
 			}
 		}
@@ -167,8 +168,10 @@ func PromptUserForCredentials(ctx context.Context, cli Streams, argUser, argPass
 
 		if serverAddress == authConfigKey {
 			out := tui.NewOutput(cli.Err())
-			out.PrintNote("A Personal Access Token (PAT) can be used instead.\n" +
-				"To create a PAT, visit " + aec.Underline.Apply("https://app.docker.com/settings") + "\n\n")
+			out.PrintNote("A Personal Access Token (PAT) or Organization Access Token (OAT) can be used instead.\n" +
+				"To create a PAT, visit " + aec.Underline.Apply("https://app.docker.com/settings") + "\n" +
+				"To create an OAT, visit " + aec.Underline.Apply("https://app.docker.com") + " and select your organization, then Identity & auth > Access tokens.\n" +
+				"When using an OAT, use your organization name as the username.\n\n")
 		}
 
 		argPassword, err = prompt.ReadInput(ctx, stdIn, cli.Out(), "Password: ")
