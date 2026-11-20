@@ -103,7 +103,7 @@ func RunAttach(ctx context.Context, dockerCLI command.Cli, containerID string, o
 
 	var in io.ReadCloser
 	if options.Stdin {
-		in = dockerCLI.In()
+		in = stdinForAttach(dockerCLI.In())
 	}
 
 	if opts.Proxy && !c.Config.Tty {
