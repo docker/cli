@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/moby/sys/atomicwriter"
 )
@@ -81,7 +82,7 @@ func (s *tlsStore) listContextData(name string) (map[string]EndpointFiles, error
 			}
 			var files EndpointFiles
 			for _, fs := range fss {
-				if !fs.IsDir() {
+				if !fs.IsDir() && !isIgnoredFile(fs.Name()) {
 					files = append(files, fs.Name())
 				}
 			}
@@ -89,6 +90,16 @@ func (s *tlsStore) listContextData(name string) (map[string]EndpointFiles, error
 		}
 	}
 	return r, nil
+}
+
+// isIgnoredFile reports whether name should be skipped when listing TLS files.
+// TLS files are never hidden, so all hidden files are skipped: ".DS_Store",
+// "._*" AppleDouble files, and temporary files left by an interrupted write.
+// Windows Explorer's "Thumbs.db" and "desktop.ini" are matched ignoring case.
+func isIgnoredFile(name string) bool {
+	return strings.HasPrefix(name, ".") ||
+		strings.EqualFold(name, "Thumbs.db") ||
+		strings.EqualFold(name, "desktop.ini")
 }
 
 // EndpointFiles is a slice of strings representing file names
