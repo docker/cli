@@ -62,9 +62,9 @@ func newLoginCommand(dockerCLI command.Cli) *cobra.Command {
 
 	flags := cmd.Flags()
 
-	flags.StringVarP(&opts.user, "username", "u", "", "Username")
-	flags.StringVarP(&opts.password, "password", "p", "", `Password or Personal Access Token (PAT), or "-" to read from stdin`)
-	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the Password or Personal Access Token (PAT) from stdin")
+	flags.StringVarP(&opts.user, "username", "u", "", "Username or organization name (for OATs)")
+	flags.StringVarP(&opts.password, "password", "p", "", `Password or access token. Use "-" to read from stdin`)
+	flags.BoolVar(&opts.passwordStdin, "password-stdin", false, "Read password or access token from stdin")
 
 	return cmd
 }
