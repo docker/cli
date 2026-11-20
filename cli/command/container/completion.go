@@ -18,6 +18,24 @@ import (
 // allCaps is the magic value for "all capabilities".
 const allCaps = "ALL"
 
+// completeCopy delegates local path completion to the shell. Container paths
+// cannot be completed from the local filesystem.
+func completeCopy(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	if len(args) >= 2 || toComplete == "-" {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	if ctr, _ := splitCpArg(toComplete); ctr != "" {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	if len(args) == 1 {
+		if ctr, _ := splitCpArg(args[0]); ctr == "" {
+			// A local source (including stdin) requires a container destination.
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+	}
+	return nil, cobra.ShellCompDirectiveDefault
+}
+
 // allLinuxCapabilities is a list of all known Linux capabilities.
 //
 // TODO(thaJeztah): add descriptions, and enable descriptions for our completion scripts (cobra.CompletionOptions.DisableDescriptions is currently set to "true")
