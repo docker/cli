@@ -3,6 +3,7 @@ package convert
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	composetypes "github.com/docker/cli/cli/compose/types"
@@ -164,6 +165,7 @@ func handleTmpfsToMount(volume composetypes.ServiceVolumeConfig) (mount.Mount, e
 	if volume.Tmpfs != nil {
 		result.TmpfsOptions = &mount.TmpfsOptions{
 			SizeBytes: volume.Tmpfs.Size,
+			Mode:      os.FileMode(volume.Tmpfs.Mode),
 		}
 	}
 	return result, nil
