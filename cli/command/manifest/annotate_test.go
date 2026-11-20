@@ -11,6 +11,38 @@ import (
 	"gotest.tools/v3/golden"
 )
 
+func TestManifestAnnotateClearsVariant(t *testing.T) {
+	manifestStore := store.NewStore(t.TempDir())
+
+	cli := test.NewFakeCli(nil)
+	cli.SetManifestStore(manifestStore)
+	namedRef := ref(t, "alpine:3.0")
+	imageManifest := fullImageManifest(t, namedRef)
+	imageManifest.Descriptor.Platform.Variant = "v7"
+	err := manifestStore.Save(ref(t, "list:v1"), namedRef, imageManifest)
+	assert.NilError(t, err)
+
+	cmd := newAnnotateCommand(cli)
+	cmd.SetArgs([]string{"--os", "linux", "example.com/list:v1", "example.com/alpine:3.0"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	assert.NilError(t, cmd.Execute())
+
+	got, err := manifestStore.Get(ref(t, "list:v1"), namedRef)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("v7", got.Descriptor.Platform.Variant))
+
+	cmd = newAnnotateCommand(cli)
+	cmd.SetArgs([]string{"--variant", "", "example.com/list:v1", "example.com/alpine:3.0"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	assert.NilError(t, cmd.Execute())
+
+	got, err = manifestStore.Get(ref(t, "list:v1"), namedRef)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("", got.Descriptor.Platform.Variant))
+}
+
 func TestManifestAnnotateError(t *testing.T) {
 	testCases := []struct {
 		args          []string
