@@ -900,6 +900,37 @@ func TestInvalidResource(t *testing.T) {
 	assert.Check(t, is.ErrorContains(err, "additional property 'impossible' is not allowed"))
 }
 
+func TestLoadNumericCPUs(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.13"
+services:
+  foo:
+    image: busybox
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+        reservations:
+          cpus: 1
+`)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("0.5", config.Services[0].Deploy.Resources.Limits.NanoCPUs))
+	assert.Check(t, is.Equal("1", config.Services[0].Deploy.Resources.Reservations.NanoCPUs))
+
+	config, err = loadYAML(`
+version: "3.13"
+services:
+  foo:
+    image: busybox
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+`)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("0.25", config.Services[0].Deploy.Resources.Limits.NanoCPUs))
+}
+
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3"
