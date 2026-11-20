@@ -1022,6 +1022,92 @@ func TestLoadMultipleNetworks(t *testing.T) {
 	}, config)
 }
 
+// Issue#7264: a later compose file that only sets the secret/config name
+// must keep `external: true` from the earlier file (same as `docker compose config`).
+func TestLoadMergedExternalSecretName(t *testing.T) {
+	configDetails := types.ConfigDetails{
+		WorkingDir: "/tmp/example",
+		ConfigFiles: []types.ConfigFile{
+			{
+				Filename: "docker-stack.yml",
+				Config: map[string]any{
+					"version": "3.8",
+					"services": map[string]any{
+						"app": map[string]any{
+							"image":   "foo",
+							"secrets": []any{"FOO_BAR"},
+						},
+					},
+					"secrets": map[string]any{
+						"FOO_BAR": map[string]any{
+							"external": true,
+						},
+					},
+				},
+			},
+			{
+				Filename: "docker-stack.prod.yml",
+				Config: map[string]any{
+					"version": "3.8",
+					"secrets": map[string]any{
+						"FOO_BAR": map[string]any{
+							"name": "app-prod-foo-bar",
+						},
+					},
+				},
+			},
+		},
+	}
+	config, err := Load(configDetails)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, types.SecretConfig{
+		Name:     "app-prod-foo-bar",
+		External: types.External{External: true},
+	}, config.Secrets["FOO_BAR"])
+}
+
+func TestLoadMergedExternalConfigName(t *testing.T) {
+	configDetails := types.ConfigDetails{
+		WorkingDir: "/tmp/example",
+		ConfigFiles: []types.ConfigFile{
+			{
+				Filename: "base.yml",
+				Config: map[string]any{
+					"version": "3.8",
+					"services": map[string]any{
+						"app": map[string]any{
+							"image":   "foo",
+							"configs": []any{"APP_CFG"},
+						},
+					},
+					"configs": map[string]any{
+						"APP_CFG": map[string]any{
+							"external": true,
+						},
+					},
+				},
+			},
+			{
+				Filename: "override.yml",
+				Config: map[string]any{
+					"version": "3.8",
+					"configs": map[string]any{
+						"APP_CFG": map[string]any{
+							"name": "app-prod-cfg",
+						},
+					},
+				},
+			},
+		},
+	}
+	config, err := Load(configDetails)
+	assert.NilError(t, err)
+	assert.DeepEqual(t, types.ConfigObjConfig{
+		Name:     "app-prod-cfg",
+		External: types.External{External: true},
+	}, config.Configs["APP_CFG"])
+}
+
 func TestLoadMultipleServiceCommands(t *testing.T) {
 	base := map[string]any{
 		"version": "3.7",
