@@ -23,10 +23,6 @@ func (s *tlsStore) endpointDir(name, endpointName string) string {
 }
 
 func (s *tlsStore) createOrUpdate(name, endpointName, filename string, data []byte) error {
-	parentOfRoot := filepath.Dir(s.root)
-	if err := os.MkdirAll(parentOfRoot, 0o755); err != nil {
-		return err
-	}
 	endpointDir := s.endpointDir(name, endpointName)
 	if err := os.MkdirAll(endpointDir, 0o700); err != nil {
 		return err
