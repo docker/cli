@@ -21,11 +21,12 @@ import (
 
 var pluginFilename = "docker-buildx"
 
-func TestBuildWithBuilder(t *testing.T) {
+func TestForwardedCommandWithBuilder(t *testing.T) {
 	ctx := t.Context()
-
 	testcases := []struct {
 		name         string
+		args         []string
+		expectedArgs []string
 		context      string
 		builder      string
 		alias        bool
@@ -33,25 +34,40 @@ func TestBuildWithBuilder(t *testing.T) {
 	}{
 		{
 			name:         "default",
+			args:         []string{"build", "."},
+			expectedArgs: []string{builderDefaultPlugin, "build", "."},
 			context:      "default",
 			alias:        false,
 			expectedEnvs: []string{"BUILDX_BUILDER=default"},
 		},
 		{
 			name:         "custom context",
+			args:         []string{"build", "."},
+			expectedArgs: []string{builderDefaultPlugin, "build", "."},
 			context:      "foo",
 			alias:        false,
 			expectedEnvs: []string{"BUILDX_BUILDER=foo"},
 		},
 		{
 			name:         "custom builder name",
+			args:         []string{"build", "."},
+			expectedArgs: []string{builderDefaultPlugin, "build", "."},
 			builder:      "mybuilder",
 			alias:        false,
 			expectedEnvs: nil,
 		},
 		{
 			name:         "buildx install",
+			args:         []string{"build", "."},
+			expectedArgs: []string{builderDefaultPlugin, "build", "."},
 			alias:        true,
+			expectedEnvs: nil,
+		},
+		{
+			name:         "bake with custom context",
+			args:         []string{"bake", "app"},
+			expectedArgs: []string{builderDefaultPlugin, "bake", "app"},
+			context:      "foo",
 			expectedEnvs: nil,
 		},
 	}
@@ -67,9 +83,7 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			ctx2, cancel2 := context.WithCancel(ctx)
 			defer cancel2()
 
-			if tc.builder != "" {
-				t.Setenv("BUILDX_BUILDER", tc.builder)
-			}
+			t.Setenv("BUILDX_BUILDER", tc.builder)
 
 			var b bytes.Buffer
 			dockerCli, err := command.NewDockerCli(
@@ -103,7 +117,7 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			}
 
 			tcmd := newDockerCommand(dockerCli)
-			tcmd.SetArgs([]string{"build", "."})
+			tcmd.SetArgs(tc.args)
 
 			cmd, args, err := tcmd.HandleGlobalFlags()
 			assert.NilError(t, err)
@@ -111,11 +125,17 @@ echo '{"SchemaVersion":"0.1.0","Vendor":"Docker Inc.","Version":"v0.6.3","ShortD
 			var envs []string
 			args, os.Args, envs, err = processBuilder(dockerCli, cmd, args, os.Args)
 			assert.NilError(t, err)
-			assert.DeepEqual(t, []string{builderDefaultPlugin, "build", "."}, args)
+			assert.DeepEqual(t, tc.expectedArgs, args)
+
 			if tc.expectedEnvs != nil {
 				assert.DeepEqual(t, tc.expectedEnvs, envs)
 			} else {
-				assert.Check(t, len(envs) == 0)
+				assert.Check(
+					t,
+					len(envs) == 0,
+					"unexpected environment variables: %v",
+					envs,
+				)
 			}
 		})
 	}
