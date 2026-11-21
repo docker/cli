@@ -34,10 +34,10 @@ type regexper interface {
 
 // DefaultSubstituteFuncs contains the default SubstituteFunc used by the docker cli
 var DefaultSubstituteFuncs = []SubstituteFunc{
-	softDefault,
-	hardDefault,
-	requiredNonEmpty,
-	required,
+	softDefault,      // :-
+	requiredNonEmpty, // :?
+	required,         // ?
+	hardDefault,      // -  (after ? operators so hyphens in error messages are safe)
 }
 
 // InvalidTemplateError is returned when a variable template is not in a valid
@@ -212,8 +212,14 @@ func softDefault(substitution string, mapping Mapping) (string, bool, error) {
 	return value, true, nil
 }
 
-// Hard default (fall back if-and-only-if empty)
+// Hard default (fall back if-and-only-if unset)
 func hardDefault(substitution string, mapping Mapping) (string, bool, error) {
+	// "?" / ":?" error messages may contain hyphens (e.g. "must be set - try again").
+	// Those operators are handled by required/requiredNonEmpty; do not treat the
+	// hyphen inside the message as the default-value separator.
+	if strings.Contains(substitution, "?") {
+		return "", false, nil
+	}
 	sep := "-"
 	if !strings.Contains(substitution, sep) {
 		return "", false, nil
