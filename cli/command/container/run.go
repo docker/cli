@@ -126,8 +126,8 @@ func runContainer(ctx context.Context, dockerCli command.Cli, runOpts *runOption
 	config.ArgsEscaped = false
 
 	if !runOpts.detach {
-		if err := dockerCli.In().CheckTty(config.AttachStdin, config.Tty); err != nil {
-			return err
+		if config.AttachStdin && config.Tty && !dockerCli.In().IsTerminal() {
+			return errors.New("cannot attach stdin to a TTY-enabled container because stdin is not a terminal")
 		}
 	} else {
 		if copts.attach.Len() != 0 {
