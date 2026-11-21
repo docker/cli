@@ -37,13 +37,24 @@ func (e errPluginNotFound) Error() string {
 //
 // Plugin-discovery is performed in the following order of preference:
 //
-// 1. The "cli-plugins" directory inside the CLIs [config.Path] (usually "~/.docker/cli-plugins").
+// 1. Additional plugin directories from the DOCKER_CLI_PLUGINS_EXTRA_DIRS environment variable.
 // 2. Additional plugin directories as configured through [ConfigFile.CLIPluginsExtraDirs].
-// 3. Platform-specific defaultSystemPluginDirs.
+// 3. The "cli-plugins" directory inside the CLIs [config.Path] (usually "~/.docker/cli-plugins").
+// 4. Platform-specific defaultSystemPluginDirs.
+//
+// The environment variable uses the platform's path-list separator. Empty entries
+// are ignored so that appending to an unset variable preserves the search order.
 //
 // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
 func getPluginDirs(cfg *configfile.ConfigFile) []string {
 	var pluginDirs []string
+
+	for _, dir := range filepath.SplitList(os.Getenv("DOCKER_CLI_PLUGINS_EXTRA_DIRS")) {
+		if dir == "" {
+			continue
+		}
+		pluginDirs = append(pluginDirs, dir)
+	}
 
 	if cfg != nil {
 		pluginDirs = append(pluginDirs, cfg.CLIPluginsExtraDirs...)
