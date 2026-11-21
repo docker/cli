@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/command/completion"
+	"github.com/docker/cli/internal/prompt"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -46,14 +48,23 @@ func runRemove(ctx context.Context, dockerCLI command.Cli, opts *removeOptions) 
 
 	var errs []error
 	for _, name := range opts.volumes {
-		_, err := apiClient.VolumeRemove(ctx, name, client.VolumeRemoveOptions{
+		deleteRemote, err := prompt.Confirm(ctx, os.Stdin, dockerCLI.Out(), fmt.Sprintf("\nPlease confirm you would like to remove volume %s ?", name))
+		if err != nil {
+			return err
+		}
+		if !deleteRemote {
+			fmt.Fprintf(dockerCLI.Out(), "Volume %s wasn't deleted.\n", name)
+			continue
+		}
+
+		_, err = apiClient.VolumeRemove(ctx, name, client.VolumeRemoveOptions{
 			Force: opts.force,
 		})
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
-		_, _ = fmt.Fprintln(dockerCLI.Out(), name)
+		_, _ = fmt.Fprintf(dockerCLI.Out(), "Successfully deleted volume %s\n", name)
 	}
 	return errors.Join(errs...)
 }
