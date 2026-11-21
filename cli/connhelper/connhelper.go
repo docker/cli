@@ -9,9 +9,12 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/connhelper/commandconn"
 	"github.com/docker/cli/cli/connhelper/ssh"
 )
@@ -50,6 +53,7 @@ func getConnectionHelper(daemonURL string, sshFlags []string) (*ConnectionHelper
 			return nil, fmt.Errorf("ssh host connection is not valid: %w", err)
 		}
 		sshFlags = addSSHTimeout(sshFlags)
+		sshFlags = addMultiplexingArgs(sshFlags)
 		sshFlags = disablePseudoTerminalAllocation(sshFlags)
 
 		remoteCommand := []string{"docker", "system", "dial-stdio"}
@@ -81,6 +85,24 @@ func GetCommandConnectionHelper(cmd string, flags ...string) (*ConnectionHelper,
 		},
 		Host: "http://docker.example.com",
 	}, nil
+}
+
+func addMultiplexingArgs(sshFlags []string) []string {
+	if v := os.Getenv("DOCKER_SSH_NO_MUX"); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil && b {
+			return sshFlags
+		}
+	}
+	if err := os.MkdirAll(config.Dir(), 0o700); err != nil {
+		return sshFlags
+	}
+	sshFlags = append(sshFlags, "-o", "ControlMaster=auto", "-o", "ControlPath="+config.Dir()+"/%r@%h:%p")
+	if v := os.Getenv("DOCKER_SSH_MUX_PERSIST"); v != "" {
+		sshFlags = append(sshFlags, "-o", "ControlPersist="+v)
+	} else {
+		sshFlags = append(sshFlags, "-o", "ControlPersist=60")
+	}
+	return sshFlags
 }
 
 func addSSHTimeout(sshFlags []string) []string {
