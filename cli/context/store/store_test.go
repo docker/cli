@@ -89,6 +89,30 @@ func TestExportImport(t *testing.T) {
 	assert.DeepEqual(t, file2, destData2)
 }
 
+func TestExportProducesCompleteTar(t *testing.T) {
+	s := New(t.TempDir(), testCfg)
+	err := s.CreateOrUpdate(Metadata{
+		Endpoints: map[string]any{"ep1": endpoint{Foo: "bar"}},
+		Metadata:  context{Bar: "baz"},
+		Name:      "source",
+	})
+	assert.NilError(t, err)
+	assert.NilError(t, s.ResetEndpointTLSMaterial("source", "ep1", &EndpointTLSData{
+		Files: map[string][]byte{"ca.pem": []byte("not-block-aligned")},
+	}))
+
+	r := Export("source", s)
+	data, err := io.ReadAll(r)
+	assert.NilError(t, err)
+	assert.NilError(t, r.Close())
+
+	assert.Equal(t, len(data)%tarBlockSize, 0)
+	assert.Assert(t, len(data) >= 2*tarBlockSize)
+	assert.DeepEqual(t, data[len(data)-2*tarBlockSize:], make([]byte, 2*tarBlockSize))
+}
+
+const tarBlockSize = 512
+
 func TestRemove(t *testing.T) {
 	s := New(t.TempDir(), testCfg)
 	err := s.CreateOrUpdate(
