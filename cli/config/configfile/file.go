@@ -12,9 +12,11 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/cli/cli/config/internal/hostmatch"
 	"github.com/docker/cli/cli/config/memorystore"
 	"github.com/docker/cli/cli/config/types"
 	"github.com/sirupsen/logrus"
@@ -140,7 +142,25 @@ func (c *ConfigFile) LoadFromReader(configData io.Reader) error {
 		ac.ServerAddress = addr
 		c.AuthConfigs[addr] = ac
 	}
-	return nil
+	return c.validateRegistryPatterns()
+}
+
+// validateRegistryPatterns returns an error for keys in the "auths" and
+// "credHelpers" sections that contain a "*" wildcard, but are not valid
+// wildcard patterns (see [hostmatch.Validate]).
+func (c *ConfigFile) validateRegistryPatterns() error {
+	var errs []error
+	for _, addr := range slices.Sorted(maps.Keys(c.AuthConfigs)) {
+		if err := hostmatch.Validate(addr); err != nil {
+			errs = append(errs, fmt.Errorf("auths: %w", err))
+		}
+	}
+	for _, addr := range slices.Sorted(maps.Keys(c.CredentialHelpers)) {
+		if err := hostmatch.Validate(addr); err != nil {
+			errs = append(errs, fmt.Errorf("credHelpers: %w", err))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // ContainsAuth returns whether there is authentication configured
@@ -391,11 +411,15 @@ func (c *ConfigFile) GetAuthConfig(registryHostname string) (types.AuthConfig, e
 
 // getConfiguredCredentialStore returns the credential helper configured for the
 // given registry, the default credsStore, or the empty string if neither are
-// configured.
+// configured. An exact match in credHelpers takes precedence over the most
+// specific wildcard pattern (for example, "*.example.com") matching the registry.
 func getConfiguredCredentialStore(c *ConfigFile, registryHostname string) string {
 	if c.CredentialHelpers != nil && registryHostname != "" {
 		if helper, exists := c.CredentialHelpers[registryHostname]; exists {
 			return helper
+		}
+		if pattern, ok := hostmatch.Best(maps.Keys(c.CredentialHelpers), registryHostname); ok {
+			return c.CredentialHelpers[pattern]
 		}
 	}
 	return c.CredentialsStore
@@ -418,6 +442,11 @@ func (c *ConfigFile) GetAllCredentials() (map[string]types.AuthConfig, error) {
 
 	// Auth configs from a registry-specific helper should override those from the default store.
 	for registryHostname := range c.CredentialHelpers {
+		if hostmatch.IsPattern(registryHostname) {
+			// Wildcard patterns are not registry hostnames, so
+			// there are no credentials to look up for them.
+			continue
+		}
 		newAuth, err := c.GetAuthConfig(registryHostname)
 		if err != nil {
 			// TODO(thaJeztah): use context-logger, so that this output can be suppressed (in tests).
