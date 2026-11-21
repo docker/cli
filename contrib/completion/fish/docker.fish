@@ -524,6 +524,7 @@ complete -c docker -A -f -n '__fish_seen_subcommand_from start' -a '(__fish_prin
 complete -c docker -f -n '__fish_docker_no_subcommand' -a stats -d "Display a live stream of one or more containers' resource usage statistics"
 complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -l help -d 'Print usage'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -l no-stream -d 'Disable streaming stats and only pull the first result'
+complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -l sort -a 'cpu mem mem% net block name id pids' -d 'Sort output by column'
 complete -c docker -A -f -n '__fish_seen_subcommand_from stats' -a '(__fish_print_docker_containers running)' -d "Container"
 
 # stop

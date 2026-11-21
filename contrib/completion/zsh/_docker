@@ -908,6 +908,7 @@ __docker_container_subcommand() {
                 "($help)--format=[Format the output using the given Go template]:template: " \
                 "($help)--no-stream[Disable streaming stats and only pull the first result]" \
                 "($help)--no-trunc[Do not truncate output]" \
+                "($help)--sort=[Sort output by column]:column:(cpu mem mem% net block name id pids)" \
                 "($help -)*:containers:__docker_complete_running_containers" && ret=0
             ;;
         (stop)

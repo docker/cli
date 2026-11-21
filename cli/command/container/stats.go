@@ -37,6 +37,11 @@ type StatsOptions struct {
 	// output such as container-IDs.
 	NoTrunc bool
 
+	// Sort is the column to sort the output by. Accepted values are "cpu", "mem",
+	// "mem%", "net", "block", and "pids" (descending), and "name" and "id" (ascending). If empty,
+	// containers are printed in the order they were added.
+	Sort string
+
 	// Format is a custom template to use for presenting the stats.
 	// Refer to [flagsHelper.FormatHelp] for accepted formats.
 	Format string
@@ -88,6 +93,8 @@ func newStatsCommand(dockerCLI command.Cli) *cobra.Command {
 	flags.BoolVar(&options.NoStream, "no-stream", false, "Disable streaming stats and only pull the first result")
 	flags.BoolVar(&options.NoTrunc, "no-trunc", false, "Do not truncate output")
 	flags.StringVar(&options.Format, "format", "", flagsHelper.FormatHelp)
+	flags.StringVar(&options.Sort, "sort", "", `Sort output by column ("cpu", "mem", "mem%", "net", "block", "name", "id", "pids")`)
+	_ = cmd.RegisterFlagCompletionFunc("sort", completion.FromList("cpu", "mem", "mem%", "net", "block", "name", "id", "pids"))
 	return cmd
 }
 
@@ -107,6 +114,11 @@ var acceptedStatsFilters = map[string]bool{
 //
 //nolint:gocyclo
 func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions) error {
+	options.Sort = normalizeStatsSortKey(options.Sort)
+	if _, ok := statsSortKeys[options.Sort]; options.Sort != "" && !ok {
+		return errdefs.ErrInvalidArgument.WithMessage("invalid sort key '" + options.Sort + "': must be one of cpu, mem, mem%, net, block, name, id, pids")
+	}
+
 	apiClient := dockerCLI.Client()
 
 	// Get the daemonOSType to handle platform-specific stats fields.
@@ -307,6 +319,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		for _, c := range statsList {
 			ccStats = append(ccStats, c.GetStatistics())
 		}
+		sortStats(ccStats, options.Sort)
 		if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 			return err
 		}
@@ -331,6 +344,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			for _, c := range statsList {
 				ccStats = append(ccStats, c.GetStatistics())
 			}
+			sortStats(ccStats, options.Sort)
 
 			if err := statsFormatWrite(statsCtx, ccStats, daemonOSType, !options.NoTrunc); err != nil {
 				return err
