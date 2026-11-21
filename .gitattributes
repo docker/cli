@@ -10,5 +10,9 @@ vendor.sum linguist-language=Go-Checksums
 # without extensions, so we need to force
 scripts/** text=auto eol=lf
 
+# golden files and testdata certificates are compared byte-for-byte by tests
+*.golden text eol=lf
+*.pem text eol=lf
+
 # shell scripts should always have LF
 *.sh text eol=lf
