@@ -1,6 +1,7 @@
 package hooks_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli-plugins/hooks"
@@ -29,6 +30,7 @@ func TestParseTemplate(t *testing.T) {
 		flags          []testFlag
 		args           []string
 		expectedOutput []string
+		wantError      bool
 	}{
 		{
 			doc:            "empty template",
@@ -103,6 +105,16 @@ func TestParseTemplate(t *testing.T) {
 			template:       "one line\nanother line!",
 			expectedOutput: []string{"one line", "another line!"},
 		},
+		{
+			doc:            "maximum messages",
+			template:       strings.Repeat("line\n", 9) + "line",
+			expectedOutput: []string{"line", "line", "line", "line", "line", "line", "line", "line", "line", "line"},
+		},
+		{
+			doc:       "rejects more than the maximum messages",
+			template:  strings.Repeat("line\n", 10) + "line",
+			wantError: true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -121,6 +133,10 @@ func TestParseTemplate(t *testing.T) {
 
 			// Validate using fixtures.
 			out, err := hooks.ParseTemplate(tc.template, testCmd)
+			if tc.wantError {
+				assert.ErrorContains(t, err, "too many messages")
+				return
+			}
 			assert.NilError(t, err)
 			assert.DeepEqual(t, out, tc.expectedOutput)
 
