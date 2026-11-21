@@ -200,10 +200,14 @@ func calculateCPUPercentUnix(previousCPU container.CPUStats, curCPUStats contain
 }
 
 func calculateCPUPercentWindows(v *container.StatsResponse) float64 {
+	ns := v.Read.Sub(v.PreRead).Nanoseconds()
+	if ns <= 0 {
+		return 0.0
+	}
 	// Max number of 100ns intervals between the previous time read and now
-	possIntervals := uint64(v.Read.Sub(v.PreRead).Nanoseconds()) // Start with number of ns intervals
-	possIntervals /= 100                                         // Convert to number of 100ns intervals
-	possIntervals *= uint64(v.NumProcs)                          // Multiply by the number of processors
+	possIntervals := uint64(ns)         // #nosec G115 -- guarded above: ns is positive
+	possIntervals /= 100                // Convert to number of 100ns intervals
+	possIntervals *= uint64(v.NumProcs) // Multiply by the number of processors
 
 	// Percentage avoiding divide-by-zero
 	if possIntervals > 0 {

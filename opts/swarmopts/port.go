@@ -174,8 +174,8 @@ func ConvertPortToPortConfig(
 			ports = append(ports, swarm.PortConfig{
 				// TODO Name: ?
 				Protocol:      portProto.Proto(),
-				TargetPort:    uint32(portProto.Num()),
-				PublishedPort: uint32(p.Num()),
+				TargetPort:    uint32(portProto.Num()), // #nosec G115 -- port number is uint16
+				PublishedPort: uint32(p.Num()),         // #nosec G115 -- port number is uint16
 				PublishMode:   swarm.PortConfigPublishModeIngress,
 			})
 		}

@@ -69,7 +69,7 @@ func runUnlock(ctx context.Context, dockerCLI command.Cli) error {
 func readKey(in *streams.In, prompt string) (string, error) {
 	if in.IsTerminal() {
 		fmt.Print(prompt)
-		dt, err := term.ReadPassword(int(in.FD()))
+		dt, err := term.ReadPassword(int(in.FD())) // #nosec G115 -- file descriptor fits in int
 		fmt.Println()
 		return string(dt), err
 	}
