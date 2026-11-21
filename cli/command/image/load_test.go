@@ -1,6 +1,7 @@
 package image
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/moby/moby/client"
+	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
 )
@@ -144,6 +146,28 @@ func TestNewLoadCommandSuccess(t *testing.T) {
 			err := cmd.Execute()
 			assert.NilError(t, err)
 			golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("load-command-success.%s.golden", tc.name))
+		})
+	}
+}
+
+func TestNewLoadCommandCompletion(t *testing.T) {
+	for _, args := range [][]string{
+		{"-i", ""},
+		{"--input", ""},
+		{"--input=ar"},
+	} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			root := &cobra.Command{Use: "docker"}
+			root.CompletionOptions.SetDefaultShellCompDirective(cobra.ShellCompDirectiveNoFileComp)
+			root.AddCommand(newLoadCommand(test.NewFakeCli(&fakeClient{})))
+
+			var stdout bytes.Buffer
+			root.SetOut(&stdout)
+			root.SetErr(io.Discard)
+			root.SetArgs(append([]string{"__complete", "load"}, args...))
+
+			assert.NilError(t, root.Execute())
+			assert.Equal(t, stdout.String(), ":0\n")
 		})
 	}
 }
