@@ -51,7 +51,7 @@ Update a service
 | `--limit-memory`                              | `bytes`           | `0`     | Limit Memory                                                                                        |
 | `--limit-pids`                                | `int64`           | `0`     | Limit maximum number of processes (default 0 = unlimited)                                           |
 | `--log-driver`                                | `string`          |         | Logging driver for service                                                                          |
-| `--log-opt`                                   | `list`            |         | Logging driver options                                                                              |
+| [`--log-opt`](#log-opt)                       | `list`            |         | Logging driver options                                                                              |
 | `--max-concurrent`                            | `uint`            |         | Number of job tasks to run concurrently (default equal to --replicas)                               |
 | `--memory-swap`                               | `bytes`           | `0`     | Swap Bytes (-1 for unlimited)                                                                       |
 | `--memory-swappiness`                         | `int64`           | `-1`    | Tune memory swappiness (0-100), -1 to reset to default                                              |
@@ -209,6 +209,37 @@ $ docker service update \
   --network-rm my-network \
   --network-add name=my-network,alias=web1 \
   myservice
+```
+
+### <a name="log-opt"></a> Update logging driver options (--log-driver, --log-opt)
+
+Use the `--log-opt` flag to update the options of the logging driver that is
+configured for a service. If `--log-driver` is not set, the service keeps its
+current logging driver, and the options that you set are merged with the
+options that are already set for the service. If the service has no logging
+driver configured, `--log-opt` has no effect unless `--log-driver` is also set.
+
+The following example sets the `max-size` option for a service that uses the
+`json-file` logging driver, and keeps its existing `max-file` option:
+
+```console
+$ docker service create --log-driver=json-file --log-opt max-file=5 --name myservice nginx:alpine
+
+$ docker service update --log-opt max-size=10m myservice
+
+$ docker service inspect --format='{{json .Spec.TaskTemplate.LogDriver}}' myservice
+{"Name":"json-file","Options":{"max-file":"5","max-size":"10m"}}
+```
+
+If you set `--log-driver`, all existing options are replaced with the options
+that you set. To remove an option, set the current logging driver again
+together with the options that you want to keep:
+
+```console
+$ docker service update --log-driver=json-file --log-opt max-size=10m myservice
+
+$ docker service inspect --format='{{json .Spec.TaskTemplate.LogDriver}}' myservice
+{"Name":"json-file","Options":{"max-size":"10m"}}
 ```
 
 ### <a name="rollback"></a> Roll back to the previous version of a service (--rollback)

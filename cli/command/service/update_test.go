@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/netip"
 	"slices"
 	"strconv"
@@ -331,6 +332,94 @@ func TestUpdatePortsDuplicate(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, is.Len(portConfigs, 1))
 	assert.Check(t, is.Equal(uint32(80), portConfigs[0].TargetPort))
+}
+
+func TestUpdateLogDriver(t *testing.T) {
+	tests := []struct {
+		name     string
+		flags    [][2]string
+		initial  *swarm.Driver
+		expected *swarm.Driver
+	}{
+		{
+			name:     "no changes",
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+		},
+		{
+			name:     "set driver and options",
+			flags:    [][2]string{{flagLogDriver, "local"}, {flagLogOpt, "max-file=15"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "local", Options: map[string]string{"max-file": "15"}},
+		},
+		{
+			name:     "set driver without options",
+			flags:    [][2]string{{flagLogDriver, "local"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "local", Options: map[string]string{}},
+		},
+		{
+			name:     "set empty driver",
+			flags:    [][2]string{{flagLogDriver, ""}, {flagLogOpt, "max-file=15"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+		},
+		{
+			name:     "set options with existing driver",
+			flags:    [][2]string{{flagLogOpt, "max-file=15"}, {flagLogOpt, "max-size=10m"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "15", "max-size": "10m"}},
+		},
+		{
+			name:     "set options merges with existing options",
+			flags:    [][2]string{{flagLogOpt, "max-size=10m"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5", "max-size": "10m"}},
+		},
+		{
+			name:     "set options overrides existing option",
+			flags:    [][2]string{{flagLogOpt, "max-file=3"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5", "max-size": "10m"}},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "3", "max-size": "10m"}},
+		},
+		{
+			name:     "set options with existing driver without options",
+			flags:    [][2]string{{flagLogOpt, "max-file=15"}},
+			initial:  &swarm.Driver{Name: "json-file"},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "15"}},
+		},
+		{
+			name:     "set driver and options replaces existing options",
+			flags:    [][2]string{{flagLogDriver, "json-file"}, {flagLogOpt, "max-size=10m"}},
+			initial:  &swarm.Driver{Name: "json-file", Options: map[string]string{"max-file": "5"}},
+			expected: &swarm.Driver{Name: "json-file", Options: map[string]string{"max-size": "10m"}},
+		},
+		{
+			// Options are not applied if no log driver is set on the service,
+			// as they would be applied to the daemon's default log driver,
+			// which may differ between nodes.
+			name:  "set options without existing driver",
+			flags: [][2]string{{flagLogOpt, "max-file=15"}},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			flags := newUpdateCommand(nil).Flags()
+			for _, flag := range tc.flags {
+				assert.NilError(t, flags.Set(flag[0], flag[1]))
+			}
+			var initial *swarm.Driver
+			if tc.initial != nil {
+				initial = &swarm.Driver{Name: tc.initial.Name, Options: maps.Clone(tc.initial.Options)}
+			}
+			taskTemplate := &swarm.TaskSpec{LogDriver: tc.initial}
+			err := updateLogDriver(flags, taskTemplate)
+			assert.NilError(t, err)
+			assert.Check(t, is.DeepEqual(taskTemplate.LogDriver, tc.expected))
+			// The existing log driver must not be modified in place.
+			assert.Check(t, is.DeepEqual(tc.initial, initial))
+		})
+	}
 }
 
 func TestUpdateHealthcheckTable(t *testing.T) {
