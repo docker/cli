@@ -11,6 +11,7 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/manifest/types"
 	"github.com/docker/distribution/manifest/manifestlist"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -69,10 +70,12 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	// Try a local manifest list first
+	logrus.WithFields(logrus.Fields{"name": namedRef}).Debug("trying local manifest")
 	localManifestList, err := newManifestStore(dockerCli).GetList(namedRef)
 	if err == nil {
 		return printManifestList(dockerCli, namedRef, localManifestList, opts)
 	}
+	logrus.WithFields(logrus.Fields{"name": namedRef}).Debug("trying remote manifest")
 
 	// Next try a remote manifest
 	registryClient := newRegistryClient(dockerCli, opts.insecure)
@@ -82,6 +85,7 @@ func runInspect(ctx context.Context, dockerCli command.Cli, opts inspectOptions)
 	}
 
 	// Finally try a remote manifest list
+	logrus.WithFields(logrus.Fields{"name": namedRef}).Debug("trying remote manifest list")
 	manifestList, err := registryClient.GetManifestList(ctx, namedRef)
 	if err != nil {
 		return err
