@@ -50,6 +50,34 @@ func TestMissingFile(t *testing.T) {
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
 }
 
+// TestLoadConfigDirIsFile verifies that we produce an error if the
+// config-directory is not a directory, which happens when DOCKER_CONFIG
+// or --config is set to the config file itself instead of the directory
+// containing it.
+func TestLoadConfigDirIsFile(t *testing.T) {
+	cfgDir := filepath.Join(t.TempDir(), ConfigFileName)
+	err := os.WriteFile(cfgDir, []byte(`{}`), 0o644)
+	assert.NilError(t, err)
+
+	expected := fmt.Sprintf("loading config file: config directory (%s) is not a directory", cfgDir)
+
+	t.Run("Load", func(t *testing.T) {
+		_, err := Load(cfgDir)
+		assert.Check(t, is.Error(err, expected))
+	})
+
+	t.Run("LoadDefaultConfigFile", func(t *testing.T) {
+		oldDir := Dir()
+		SetDir(cfgDir)
+		t.Cleanup(func() { SetDir(oldDir) })
+
+		buffer := new(bytes.Buffer)
+		configFile := LoadDefaultConfigFile(buffer)
+		assert.Check(t, configFile != nil)
+		assert.Check(t, is.Contains(buffer.String(), "WARNING: Error "+expected))
+	})
+}
+
 // TestLoadDanglingSymlink verifies that we gracefully handle dangling symlinks.
 //
 // TODO(thaJeztah): consider whether we want dangling symlinks to be an error condition instead.
