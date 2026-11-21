@@ -58,6 +58,12 @@ var HeaderFunctions = template.FuncMap{
 	"truncate": func(v string, _ int) string {
 		return v
 	},
+	"slice": func(v string, _ ...int) string {
+		// slicing the column name would fail if the indexes are out of
+		// range for the header (e.g. "{{slice .ID 0 15}}"), so return
+		// the column name as-is.
+		return v
+	},
 }
 
 // Parse creates a new anonymous template with the basic functions
