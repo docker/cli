@@ -14,12 +14,15 @@ import (
 
 const (
 	delimiter = "\\$"
-	subst     = "[_a-z][_a-z0-9]*(?::?[-?][^}]*)?"
+	varName   = "[_a-z][_a-z0-9]*"
+	subst     = varName + "(?::?[-?][^}]*)?"
 )
 
+// defaultPattern matches "$$" (escaped), "$VAR" (named), and "${VAR}" (braced).
+// Modifiers (":-", "-", ":?", "?") are only supported in the braced form.
 var defaultPattern = lazyregexp.New(fmt.Sprintf(
 	"%s(?i:(?P<escaped>%s)|(?P<named>%s)|{(?P<braced>%s)}|(?P<invalid>))",
-	delimiter, delimiter, subst, subst,
+	delimiter, delimiter, varName, subst,
 ))
 
 // regexper is an internal interface to allow passing a [lazyregexp.Regexp]
