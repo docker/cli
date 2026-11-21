@@ -610,6 +610,17 @@ func TestParseNetworkConfig(t *testing.T) {
 			expectedHostCfg: container.HostConfig{NetworkMode: "net1"},
 		},
 		{
+			name:  "single-network-advanced-preserves-case",
+			flags: []string{"--network", "name=MyNetwork,alias=WebApp,driver-opt=CustomKey=CaseSensitiveValue"},
+			expected: map[string]*networktypes.EndpointSettings{
+				"MyNetwork": {
+					Aliases:    []string{"WebApp"},
+					DriverOpts: map[string]string{"CustomKey": "CaseSensitiveValue"},
+				},
+			},
+			expectedHostCfg: container.HostConfig{NetworkMode: "MyNetwork"},
+		},
+		{
 			name: "single-network-legacy-with-options",
 			flags: []string{
 				"--ip", "172.20.88.22",
