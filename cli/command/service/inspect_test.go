@@ -193,4 +193,58 @@ func TestPrettyPrintWithConfigsAndSecrets(t *testing.T) {
 	assert.Check(t, is.Contains(s, "Configs:"), "Pretty print missing configs")
 	assert.Check(t, is.Contains(s, "Secrets:"), "Pretty print missing secrets")
 	assert.Check(t, is.Contains(s, "Healthcheck:"), "Pretty print missing healthcheck")
+	assert.Check(t, is.Contains(s, "configtest.conf"), "Pretty print missing config name")
+	assert.Check(t, is.Contains(s, "mtc3i44r1awdoziy2iceg73z8"), "Pretty print missing config ID")
+	assert.Check(t, is.Contains(s, "secrettest.conf"), "Pretty print missing secret name")
+	assert.Check(t, is.Contains(s, "3hv39ehbbb4hdozo7spod9ftn"), "Pretty print missing secret ID")
+}
+
+func TestPrettyPrintWithRuntimeConfig(t *testing.T) {
+	b := new(bytes.Buffer)
+	endpointSpec := &swarm.EndpointSpec{Mode: "vip"}
+	two := uint64(2)
+
+	s := swarm.Service{
+		ID: "runtimeconfigservice",
+		Spec: swarm.ServiceSpec{
+			Annotations: swarm.Annotations{Name: "runtime_svc"},
+			TaskTemplate: swarm.TaskSpec{
+				ContainerSpec: &swarm.ContainerSpec{
+					Image: "foo/bar:latest",
+					Configs: []*swarm.ConfigReference{
+						{
+							ConfigID:   "abc123",
+							ConfigName: "my-runtime-config",
+							Runtime:    &swarm.ConfigReferenceRuntimeTarget{},
+						},
+					},
+				},
+			},
+			Mode: swarm.ServiceMode{
+				Replicated: &swarm.ReplicatedService{Replicas: &two},
+			},
+			EndpointSpec: endpointSpec,
+		},
+		Endpoint: swarm.Endpoint{Spec: *endpointSpec},
+	}
+
+	ctx := formatter.Context{
+		Output: b,
+		Format: newFormat("pretty"),
+	}
+
+	err := inspectFormatWrite(ctx, []string{"runtimeconfigservice"},
+		func(ref string) (any, []byte, error) {
+			return s, nil, nil
+		},
+		func(ref string) (any, []byte, error) {
+			return network.Summary{}, nil, nil
+		},
+	)
+	assert.NilError(t, err)
+	output := b.String()
+	assert.Check(t, is.Contains(output, "Configs:"), "Pretty print missing configs")
+	assert.Check(t, is.Contains(output, "[runtime]"), "Pretty print should show [runtime] for configs without File target")
+	assert.Check(t, is.Contains(output, "my-runtime-config"), "Pretty print missing runtime config name")
+	assert.Check(t, is.Contains(output, "abc123"), "Pretty print missing runtime config ID")
 }
