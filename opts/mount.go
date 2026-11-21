@@ -90,7 +90,7 @@ func (m *MountOpt) Set(value string) error {
 		case "bind-recursive":
 			switch val {
 			case "enabled": // read-only mounts are recursively read-only if Engine >= v25 && kernel >= v5.12, otherwise writable
-				// NOP
+				ensureBindOptions(&mount)
 			case "disabled": // previously "bind-nonrecursive=true"
 				ensureBindOptions(&mount).NonRecursive = true
 			case "writable": // conforms to the default read-only bind-mount of Docker v24; read-only mounts are recursively mounted but not recursively read-only
