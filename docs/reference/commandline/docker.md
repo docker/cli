@@ -348,11 +348,41 @@ Users can override your custom or the default key sequence on a per-container
 basis. To do this, the user specifies the `--detach-keys` flag with the `docker
 attach`, `docker exec`, `docker run` or `docker start` command.
 
+#### Default filters for prune commands
+
+The property `pruneFilters` sets default filters for the `prune` commands,
+such as `docker system prune` and `docker image prune`. Filters use the same
+`key=value` format as the `--filter` flag, and are combined with filters
+passed on the command line. If a `label` or `label!` filter conflicts with a
+filter passed on the command line, the filter from the configuration file is
+ignored.
+
+The following example skips objects that have the `keep` label when pruning:
+
+```json
+{
+  "pruneFilters": ["label!=keep"]
+}
+```
+
+#### Current context
+
+The property `currentContext` sets the [context](https://docs.docker.com/engine/manage-resources/contexts/)
+that the CLI uses by default. The `docker context use` command updates this
+property. The `--context` and `--host` flags, and the `DOCKER_CONTEXT` and
+`DOCKER_HOST` environment variables take precedence over it.
+
 #### CLI plugin options
 
 The property `plugins` contains settings specific to CLI plugins. The
 key is the plugin name, while the value is a further map of options,
 which are specific to that plugin.
+
+The property `cliPluginsExtraDirs` is a list of additional directories to
+search for CLI plugins. These directories are searched before the
+`cli-plugins` directory inside the configuration directory and the
+system-wide plugin directories, so a plugin found in one of these
+directories takes precedence.
 
 #### Sample configuration file
 
@@ -374,6 +404,9 @@ various fields:
   "serviceInspectFormat": "pretty",
   "nodesFormat": "table {{.ID}}\t{{.Hostname}}\t{{.Availability}}",
   "detachKeys": "ctrl-e,e",
+  "pruneFilters": ["label!=keep"],
+  "currentContext": "my-context",
+  "cliPluginsExtraDirs": ["/opt/docker/cli-plugins"],
   "credsStore": "secretservice",
   "credHelpers": {
     "awesomereg.example.org": "hip-star",
