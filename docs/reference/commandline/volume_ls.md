@@ -160,6 +160,7 @@ Valid placeholders for the Go template are listed below:
 | `.Mountpoint` | The mount point of the volume on the host                                             |
 | `.Labels`     | All labels assigned to the volume                                                     |
 | `.Label`      | Value of a specific label for this volume. For example `{{.Label "project.version"}}` |
+| `.CreatedAt`  | Time when the volume was created                                                      |
 
 When using the `--format` option, the `volume ls` command will either
 output the data exactly as the template declares or, when using the
