@@ -21,6 +21,7 @@ import (
 
 const (
 	defaultContainerTableFormat = "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+	compactContainerTableFormat = "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.State}}\t{{.RunningFor}}"
 
 	namesHeader        = "NAMES"
 	commandHeader      = "COMMAND"
@@ -49,6 +50,15 @@ func NewContainerFormat(source string, quiet bool, size bool) Format {
 			return DefaultQuietFormat
 		}
 		format := defaultContainerTableFormat
+		if size {
+			format += `\t{{.Size}}`
+		}
+		return Format(format)
+	case CompactFormatKey:
+		if quiet {
+			return DefaultQuietFormat
+		}
+		format := compactContainerTableFormat
 		if size {
 			format += `\t{{.Size}}`
 		}

@@ -16,10 +16,11 @@ import (
 
 // Format keys used to specify certain kinds of output formats
 const (
-	TableFormatKey  = "table"
-	RawFormatKey    = "raw"
-	PrettyFormatKey = "pretty"
-	JSONFormatKey   = "json"
+	TableFormatKey   = "table"
+	CompactFormatKey = "compact"
+	RawFormatKey     = "raw"
+	PrettyFormatKey  = "pretty"
+	JSONFormatKey    = "json"
 
 	DefaultQuietFormat = "{{.ID}}"
 	JSONFormat         = "{{json .}}"

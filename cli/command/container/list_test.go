@@ -3,6 +3,7 @@ package container
 import (
 	"errors"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/docker/cli/cli/config/configfile"
@@ -343,4 +344,29 @@ func TestContainerListWithFormat(t *testing.T) {
 		assert.Equal(t, cli.ErrBuffer().String(), "WARNING: Ignoring custom format, because both --format and --quiet are set.\n")
 		golden.Assert(t, cli.OutBuffer().String(), "container-list-quiet.golden")
 	})
+}
+
+func TestContainerListWithCompactFormat(t *testing.T) {
+	cli := test.NewFakeCli(&fakeClient{
+		containerListFunc: func(_ client.ContainerListOptions) (client.ContainerListResult, error) {
+			return client.ContainerListResult{
+				Items: []container.Summary{
+					*builders.Container("c1"),
+				},
+			}, nil
+		},
+	})
+	cmd := newListCommand(cli)
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	assert.Check(t, cmd.Flags().Set("format", "compact"))
+	assert.NilError(t, cmd.Execute())
+
+	output := cli.OutBuffer().String()
+	assert.Assert(t, strings.Contains(output, "CONTAINER ID"))
+	assert.Assert(t, strings.Contains(output, "NAMES"))
+	assert.Assert(t, strings.Contains(output, "IMAGE"))
+	assert.Assert(t, strings.Contains(output, "STATE"))
+	assert.Assert(t, strings.Contains(output, "CREATED"))
 }
