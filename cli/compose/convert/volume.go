@@ -26,11 +26,11 @@ func Volumes(serviceVolumes []composetypes.ServiceVolumeConfig, stackVolumes vol
 
 func createMountFromVolume(volume composetypes.ServiceVolumeConfig) mount.Mount {
 	return mount.Mount{
-		Type:        mount.Type(volume.Type),
+		Type:        volume.Type,
 		Target:      volume.Target,
 		ReadOnly:    volume.ReadOnly,
 		Source:      volume.Source,
-		Consistency: mount.Consistency(volume.Consistency),
+		Consistency: volume.Consistency,
 	}
 }
 
@@ -235,23 +235,19 @@ func handleClusterToMount(
 	return result, nil
 }
 
-func convertVolumeToMount(
-	volume composetypes.ServiceVolumeConfig,
-	stackVolumes volumes,
-	namespace Namespace,
-) (mount.Mount, error) {
+func convertVolumeToMount(volume composetypes.ServiceVolumeConfig, stackVolumes volumes, namespace Namespace) (mount.Mount, error) {
 	switch volume.Type {
-	case "volume", "":
+	case mount.TypeVolume, "":
 		return handleVolumeToMount(volume, stackVolumes, namespace)
-	case "image":
+	case mount.TypeImage:
 		return handleImageToMount(volume)
-	case "bind":
+	case mount.TypeBind:
 		return handleBindToMount(volume)
-	case "tmpfs":
+	case mount.TypeTmpfs:
 		return handleTmpfsToMount(volume)
-	case "npipe":
+	case mount.TypeNamedPipe:
 		return handleNpipeToMount(volume)
-	case "cluster":
+	case mount.TypeCluster:
 		return handleClusterToMount(volume, stackVolumes, namespace)
 	}
 	return mount.Mount{}, errors.New("volume type must be volume, bind, tmpfs, npipe, or cluster")
