@@ -98,6 +98,7 @@ Create and run a new container from an image
 | [`--security-opt`](#security-opt)                     | `list`        |           | Security Options                                                                                                                                                                                                                                                                                                 |
 | `--shm-size`                                          | `bytes`       | `0`       | Size of /dev/shm                                                                                                                                                                                                                                                                                                 |
 | `--sig-proxy`                                         | `bool`        | `true`    | Proxy received signals to the process                                                                                                                                                                                                                                                                            |
+| [`--start-healthy-timeout`](#start-healthy-timeout)   | `duration`    | `0s`      | With --detach, maximum time to wait for the container to become healthy before returning (ms\|s\|m\|h) (default 0s)                                                                                                                                                                                              |
 | [`--stop-signal`](#stop-signal)                       | `string`      |           | Signal to stop the container                                                                                                                                                                                                                                                                                     |
 | [`--stop-timeout`](#stop-timeout)                     | `int`         | `0`       | Timeout (in seconds) to stop a container                                                                                                                                                                                                                                                                         |
 | [`--storage-opt`](#storage-opt)                       | `list`        |           | Storage driver options for the container                                                                                                                                                                                                                                                                         |
@@ -842,6 +843,31 @@ $ docker run -d -p 80:80 my_image nginx -g 'daemon off;'
 To do input/output with a detached container use network connections or shared
 volumes. These are required because the container is no longer listening to the
 command line where `docker run` was run.
+
+### <a name="start-healthy-timeout"></a> Wait for a container to become healthy (--start-healthy-timeout)
+
+`docker run -d` returns as soon as the container is running. The application
+inside usually becomes ready some time later, so a script that starts a
+container and immediately uses it has to wait for the application itself.
+
+If the container has a healthcheck, combine `--start-healthy-timeout` with
+`--detach` to make the CLI wait for a `healthy` status:
+
+```console
+$ docker run -d --start-healthy-timeout 30s \
+  --health-cmd 'curl -f http://localhost/ || exit 1' \
+  --health-interval 1s \
+  nginx:alpine
+7e3ca3fd5c02f3e1a4b1c37f24bcbdcda1dc0f6b1a8f0f42b57c0a3cbb3e5e6f
+```
+
+The CLI prints the container ID as soon as the container starts, then waits up
+to the given duration. `docker run` exits with a non-zero status when the
+container stays unhealthy for longer than the timeout, exits before turning
+healthy, or lacks a healthcheck.
+
+A container that exceeds the timeout keeps running, so you can inspect it with
+`docker inspect` or `docker logs`.
 
 ### <a name="detach-keys"></a> Override the detach sequence (--detach-keys)
 
