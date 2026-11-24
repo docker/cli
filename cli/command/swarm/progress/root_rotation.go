@@ -37,9 +37,9 @@ func RootRotationProgress(ctx context.Context, apiClient client.APIClient, progr
 	defer signal.Stop(sigint)
 
 	// draw 2 progress bars, 1 for nodes with the correct cert, 1 for nodes with the correct trust root
-	progress.Update(progressOut, "desired root digest", "")
-	progress.Update(progressOut, certsRotatedStr, certsAction)
-	progress.Update(progressOut, rootsRotatedStr, rootsAction)
+	_ = progressOut.WriteProgress(progress.Progress{ID: "desired root digest"})
+	_ = progressOut.WriteProgress(progress.Progress{ID: certsRotatedStr, Action: certsAction})
+	_ = progressOut.WriteProgress(progress.Progress{ID: rootsRotatedStr, Action: rootsAction})
 
 	var done bool
 
@@ -64,8 +64,8 @@ func RootRotationProgress(ctx context.Context, apiClient client.APIClient, progr
 		case <-time.After(200 * time.Millisecond):
 		case <-sigint:
 			if !done {
-				progress.Message(progressOut, "", "Operation continuing in background.")
-				progress.Message(progressOut, "", "Use `swarmctl cluster inspect default` to check progress.")
+				_ = progressOut.WriteProgress(progress.Progress{Message: "Operation continuing in background."})
+				_ = progressOut.WriteProgress(progress.Progress{Message: "Use `swarmctl cluster inspect default` to check progress."})
 			}
 			return nil
 		}
