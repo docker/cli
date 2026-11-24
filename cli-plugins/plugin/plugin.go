@@ -166,7 +166,11 @@ func Run(makeCmd func(command.Cli) *cobra.Command, meta metadata.Metadata, ops .
 			if stErr.StatusCode == 0 { // FIXME(thaJeztah): this should never be used with a zero status-code. Check if we do this anywhere.
 				stErr.StatusCode = 1
 			}
-			_, _ = fmt.Fprintln(dockerCLI.Err(), stErr)
+
+			// Only print the message if the error has text.
+			if msg := stErr.Error(); msg != "" {
+				_, _ = fmt.Fprintln(dockerCLI.Err(), msg)
+			}
 			os.Exit(stErr.StatusCode)
 		}
 		_, _ = fmt.Fprintln(dockerCLI.Err(), err)
