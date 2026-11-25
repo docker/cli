@@ -90,22 +90,30 @@ func (c *Context) parseFormat() (*template.Template, error) {
 	return tmpl, nil
 }
 
-func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) {
+func (c *Context) postFormat(tmpl *template.Template, subContext SubContext) error {
 	out := c.Output
 	if out == nil {
 		out = io.Discard
 	}
 	if !c.Format.IsTable() {
-		_, _ = c.buffer.WriteTo(out)
-		return
+		_, err := c.buffer.WriteTo(out)
+		return err
 	}
 
-	// Write column-headers and rows to the tab-writer buffer, then flush the output.
+	// A custom template can render rows successfully even when it cannot render
+	// all column headers. Buffer any headers it produces before writing the table.
+	var headers bytes.Buffer
+	_ = tmpl.Funcs(templates.HeaderFunctions).Execute(&headers, subContext.FullHeader())
+	headers.WriteByte('\n')
+
 	tw := tabwriter.NewWriter(out, 10, 1, 3, ' ', 0)
-	_ = tmpl.Funcs(templates.HeaderFunctions).Execute(tw, subContext.FullHeader())
-	_, _ = tw.Write([]byte{'\n'})
-	_, _ = c.buffer.WriteTo(tw)
-	_ = tw.Flush()
+	if _, err := headers.WriteTo(tw); err != nil {
+		return err
+	}
+	if _, err := c.buffer.WriteTo(tw); err != nil {
+		return err
+	}
+	return tw.Flush()
 }
 
 func (c *Context) contextFormat(tmpl *template.Template, subContext SubContext) error {
@@ -137,6 +145,5 @@ func (c *Context) Write(sub SubContext, f SubFormat) error {
 		return err
 	}
 
-	c.postFormat(tmpl, sub)
-	return nil
+	return c.postFormat(tmpl, sub)
 }

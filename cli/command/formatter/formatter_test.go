@@ -5,6 +5,7 @@ package formatter
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -123,4 +124,43 @@ test
 			assert.Equal(t, buf.String(), tc.expected)
 		})
 	}
+}
+
+type failingOutput struct {
+	err error
+}
+
+func (w failingOutput) Write([]byte) (int, error) {
+	return 0, w.err
+}
+
+func TestContextWriteReturnsOutputError(t *testing.T) {
+	writeErr := errors.New("output write failed")
+	for _, format := range []Format{JSONFormatKey, "{{.Name}}", "table {{.Name}}", "table {{.Name}}\t{{.Name}}"} {
+		t.Run(string(format), func(t *testing.T) {
+			sub := fakeSubContext{Name: "test"}
+			ctx := Context{
+				Format: format,
+				Output: failingOutput{writeErr},
+			}
+			err := ctx.Write(sub, func(write func(SubContext) error) error {
+				return write(sub)
+			})
+			assert.ErrorIs(t, err, writeErr)
+		})
+	}
+}
+
+func TestContextWriteKeepsPartialTableHeader(t *testing.T) {
+	sub := fakeSubContext{Name: "test-container"}
+	var output bytes.Buffer
+	ctx := Context{
+		Format: "table {{.Name}} {{slice .Name 0 5}}",
+		Output: &output,
+	}
+	err := ctx.Write(sub, func(write func(SubContext) error) error {
+		return write(sub)
+	})
+	assert.NilError(t, err)
+	assert.Equal(t, output.String(), "NAME \ntest-container test-\n")
 }
