@@ -38,9 +38,13 @@ unix://[/path/to/socket] to use.
 
 **--tls**=*true*|*false*
   Use TLS; implied by --tlsverify. Default is false.
+  The client still loads --tlscacert (default ~/.docker/ca.pem) and
+  errors if that file is missing. It does not fall back to the system
+  CA pool. Without --tlsverify the daemon certificate is not verified.
 
 **--tlscacert**=*~/.docker/ca.pem*
-  Trust certs signed only by this CA.
+  Trust certs signed only by this CA. Always used when TLS is on,
+  including --tls without --tlsverify.
 
 **--tlscert**=*~/.docker/cert.pem*
   Path to TLS certificate file.
