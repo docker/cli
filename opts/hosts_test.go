@@ -15,6 +15,7 @@ func TestParseHost(t *testing.T) {
 		"unknown://",
 		"tcp://:port",
 		"tcp://invalid:port",
+		"/invalid.sock",
 	}
 
 	valid := map[string]string{
@@ -61,6 +62,8 @@ func TestParseDockerDaemonHost(t *testing.T) {
 		"tcp://unix:///run/docker.sock": "invalid proto, expected tcp: unix:///run/docker.sock",
 		" tcp://:7777/path ":            "invalid bind address format:  tcp://:7777/path ", //nolint:gocritic // ignore mapKey: suspucious whitespace
 		"":                              "invalid bind address format: ",
+		"/invalid.sock":                 `invalid host address "/invalid.sock": a socket path must use the "unix://" scheme, e.g. "unix:///invalid.sock"`,
+		"/run/docker.sock":              `invalid host address "/run/docker.sock": a socket path must use the "unix://" scheme, e.g. "unix:///run/docker.sock"`,
 	}
 	valids := map[string]string{
 		"0.0.0.1:":                    "tcp://0.0.0.1:2375",
