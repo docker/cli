@@ -31,9 +31,10 @@ Create a network
 ## Description
 
 Creates a new network. The `DRIVER` accepts `bridge` or `overlay` which are the
-built-in network drivers. If you have installed a third party or your own custom
+built-in network drivers on Linux. If you have installed a third party or your own custom
 network driver you can specify that `DRIVER` here also. If you don't specify the
-`--driver` option, the command automatically creates a `bridge` network for you.
+`--driver` option, the command automatically creates a `bridge` network for you
+(on Windows, the default is `nat`).
 When you install Docker Engine it creates a `bridge` network automatically. This
 network corresponds to the `docker0` bridge that Docker Engine has traditionally relied
 on. When you launch a new container with  `docker run` it automatically connects to
@@ -67,6 +68,21 @@ the overlay network.
 Network names must be unique. The Docker daemon attempts to identify naming
 conflicts but this is not guaranteed. It is the user's responsibility to avoid
 name conflicts.
+
+### Windows network drivers
+
+Native Windows containers use different driver names than Linux. The default
+is `nat`. `transparent` attaches containers to a physical network; `overlay`
+is available in Swarm mode. For the full list and NIC/IP options, see
+[Windows container network drivers](https://learn.microsoft.com/en-us/virtualization/windowscontainers/container-networking/network-drivers-topologies).
+
+```console
+# Windows: connect containers to the host's physical network
+$ docker network create -d transparent my-transparent
+```
+
+To set the address range of a `nat` network, pass `--subnet` and `--gateway`
+the same way as on Linux.
 
 ### Overlay network limitations
 
