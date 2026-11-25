@@ -1085,6 +1085,10 @@ for container healthchecks:
 | `--health-start-interval`  | Time between running the check during the start period                                 |
 | `--no-healthcheck`         | Disable any container-specified `HEALTHCHECK`                                          |
 
+`--health-retries` is consecutive failed checks before the container is marked
+`unhealthy`. The first check counts. The value must be 1 or higher; `0` is
+treated as unset and the daemon uses its default of 3.
+
 Example:
 
 ```console
