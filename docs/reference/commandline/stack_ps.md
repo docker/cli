@@ -26,6 +26,21 @@ Lists the tasks that are running as part of the specified stack.
 > [Swarm mode section](https://docs.docker.com/engine/swarm/) in the
 > documentation.
 
+### Output columns
+
+Default table columns:
+
+| Column | Meaning |
+| --- | --- |
+| `ID` | Swarm **task** ID (not the container ID). Pass it to `docker inspect` or use `-q` to list task IDs only. The container ID for a running task is under the task's `Status.ContainerStatus.ContainerID` in `docker inspect <task-id>`. |
+| `NAME` | Task name as `<stack>_<service>.<replica>`. The numeric suffix is the replica slot (for example `voting_redis.2` is replica 2 of the `redis` service in stack `voting`). |
+| `IMAGE` | Image the task is running (digest shown with `--no-trunc`). |
+| `NODE` | Node name (or node ID with `--no-resolve`) where the task is scheduled. |
+| `DESIRED STATE` | State the orchestrator wants for the task (`Running`, `Shutdown`, and so on). |
+| `CURRENT STATE` | Actual task state plus how long ago it entered that state. |
+| `ERROR` | Failure message when the task did not start or stopped unexpectedly (often truncated unless `--no-trunc`). |
+| `PORTS` | Published ports for the task, when applicable. |
+
 ## Examples
 
 ### List the tasks that are part of a stack
