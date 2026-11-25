@@ -362,6 +362,26 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 	}
 }
 
+func TestSaveRefusesInvalidConfigFile(t *testing.T) {
+	dir := setupConfigDir(t)
+	filename := filepath.Join(dir, ConfigFileName)
+	original := []byte(`{"imagesFormat":"some special format I have carefully hand-crafted, artisinally"`)
+	assert.NilError(t, os.WriteFile(filename, original, 0o600))
+
+	buffer := new(bytes.Buffer)
+	configFile := LoadDefaultConfigFile(buffer)
+	assert.Check(t, is.Contains(buffer.String(), "WARNING:"))
+	assert.Check(t, configFile.LoadErr != nil)
+
+	configFile.CurrentContext = "other"
+	err := configFile.Save()
+	assert.Check(t, is.ErrorContains(err, "refusing to overwrite invalid config file"))
+
+	got, readErr := os.ReadFile(filename)
+	assert.NilError(t, readErr)
+	assert.Check(t, is.DeepEqual(original, got))
+}
+
 func TestLoadDefaultConfigFile(t *testing.T) {
 	dir := setupConfigDir(t)
 	buffer := new(bytes.Buffer)
