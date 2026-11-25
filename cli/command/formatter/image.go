@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/distribution/reference"
+	clduration "github.com/docker/cli/internal/duration"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/api/types/image"
 )
@@ -238,7 +239,7 @@ func (c *imageContext) CreatedSince() string {
 		return ""
 	}
 
-	return units.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
+	return clduration.HumanDuration(time.Now().UTC().Sub(createdAt)) + " ago"
 }
 
 func (c *imageContext) CreatedAt() string {
