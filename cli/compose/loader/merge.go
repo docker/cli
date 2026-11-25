@@ -129,9 +129,19 @@ func toServicePortConfigsMap(s any) (map[any]any, error) {
 	}
 	m := map[any]any{}
 	for _, p := range ports {
-		m[p.Published] = p
+		// Key by published port + protocol so TCP and UDP on the same host
+		// port (e.g. 443/tcp and 443/udp) do not collapse when merging files.
+		m[servicePortMergeKey(p)] = p
 	}
 	return m, nil
+}
+
+func servicePortMergeKey(p types.ServicePortConfig) string {
+	proto := p.Protocol
+	if proto == "" {
+		proto = "tcp"
+	}
+	return fmt.Sprintf("%d/%s", p.Published, proto)
 }
 
 func toServiceVolumeConfigsMap(s any) (map[any]any, error) {
@@ -176,7 +186,10 @@ func toServicePortConfigsSlice(dst reflect.Value, m map[any]any) error {
 		s = append(s, v.(types.ServicePortConfig))
 	}
 	slices.SortFunc(s, func(a, b types.ServicePortConfig) int {
-		return cmp.Compare(a.Published, b.Published)
+		if n := cmp.Compare(a.Published, b.Published); n != 0 {
+			return n
+		}
+		return cmp.Compare(a.Protocol, b.Protocol)
 	})
 	dst.Set(reflect.ValueOf(s))
 	return nil
