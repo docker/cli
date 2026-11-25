@@ -56,6 +56,12 @@ func ParseHost(defaultToTLS bool, val string) (string, error) {
 func parseDockerDaemonHost(addr string) (string, error) {
 	proto, host, hasProto := strings.Cut(addr, "://")
 	if !hasProto && proto != "" {
+		// A value that looks like a filesystem path (e.g. "/run/docker.sock")
+		// is almost certainly a Unix socket missing its scheme; don't
+		// silently treat it as a TCP host.
+		if strings.HasPrefix(addr, "/") {
+			return "", fmt.Errorf("invalid host address %q: a socket path must use the \"unix://\" scheme, e.g. \"unix://%s\"", addr, addr)
+		}
 		host = proto
 		proto = "tcp"
 	}
