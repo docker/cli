@@ -115,7 +115,7 @@ func RunStart(ctx context.Context, dockerCli command.Cli, opts *StartOptions) er
 		var in io.ReadCloser
 
 		if options.Stdin {
-			in = dockerCli.In()
+			in = stdinForAttach(dockerCli.In())
 		}
 
 		resp, errAttach := dockerCli.Client().ContainerAttach(ctx, c.Container.ID, options)

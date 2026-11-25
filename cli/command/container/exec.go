@@ -144,7 +144,7 @@ func interactiveExec(ctx context.Context, dockerCli command.Cli, execOptions *cl
 	)
 
 	if execOptions.AttachStdin {
-		in = dockerCli.In()
+		in = stdinForAttach(dockerCli.In())
 	}
 	if execOptions.AttachStdout {
 		out = dockerCli.Out()
