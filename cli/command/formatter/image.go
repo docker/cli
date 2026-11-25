@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/distribution/reference"
@@ -246,7 +247,32 @@ func (c *imageContext) CreatedAt() string {
 }
 
 func (c *imageContext) Size() string {
-	return units.HumanSizeWithPrecision(float64(c.i.Size), 3)
+	return humanSize(float64(c.i.Size))
+}
+
+// decimalSizeUnits is the list of decimal (SI) size units, matching the
+// abbreviations used by [units.HumanSizeWithPrecision].
+var decimalSizeUnits = []string{"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+
+// humanSize returns a human-readable size with 3 significant digits,
+// equivalent to [units.HumanSizeWithPrecision] with a precision of 3,
+// except that it never uses scientific notation.
+//
+// [units.HumanSizeWithPrecision] formats the value with %g, which
+// renders values that round up to the next power of 1000 (e.g. 999.5MB)
+// as "1e+03MB" instead of "1000MB".
+// See https://github.com/docker/cli/issues/3091
+func humanSize(size float64) string {
+	const base = 1000
+	unit := 0
+	for size >= base && unit < len(decimalSizeUnits)-1 {
+		size /= base
+		unit++
+	}
+	if s := strconv.FormatFloat(size, 'g', 3, 64); !strings.ContainsAny(s, "eE") {
+		return s + decimalSizeUnits[unit]
+	}
+	return strconv.FormatFloat(size, 'f', 0, 64) + decimalSizeUnits[unit]
 }
 
 func (c *imageContext) Containers() string {
