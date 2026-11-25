@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/opts"
+	"github.com/docker/cli/v29/internal/test"
+	"github.com/docker/cli/v29/opts"
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/api/types/system"
 	"github.com/moby/moby/client"

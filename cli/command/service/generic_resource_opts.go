@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/cli/cli/command/service/internal/genericresource"
+	"github.com/docker/cli/v29/cli/command/service/internal/genericresource"
 	"github.com/moby/moby/api/types/swarm"
 )
 

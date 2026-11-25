@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package main
 
 import (
@@ -16,15 +13,15 @@ import (
 	"syscall"
 
 	"github.com/containerd/errdefs"
-	"github.com/docker/cli/cli"
-	pluginmanager "github.com/docker/cli/cli-plugins/manager"
-	"github.com/docker/cli/cli-plugins/socket"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/commands"
-	"github.com/docker/cli/cli/debug"
-	cliflags "github.com/docker/cli/cli/flags"
-	"github.com/docker/cli/cli/version"
-	platformsignals "github.com/docker/cli/cmd/docker/internal/signals"
+	"github.com/docker/cli/v29/cli"
+	pluginmanager "github.com/docker/cli/v29/cli-plugins/manager"
+	"github.com/docker/cli/v29/cli-plugins/socket"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/commands"
+	"github.com/docker/cli/v29/cli/debug"
+	cliflags "github.com/docker/cli/v29/cli/flags"
+	"github.com/docker/cli/v29/cli/version"
+	platformsignals "github.com/docker/cli/v29/cmd/docker/internal/signals"
 	"github.com/moby/moby/client/pkg/versions"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package opts
 
 import (
@@ -14,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/cli/internal/lazyregexp"
+	"github.com/docker/cli/v29/internal/lazyregexp"
 	"github.com/docker/go-units"
 	"github.com/moby/moby/client"
 )

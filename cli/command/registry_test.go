@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
-	configtypes "github.com/docker/cli/cli/config/types"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	configtypes "github.com/docker/cli/v29/cli/config/types"
 	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/registry"
 	"gotest.tools/v3/assert"

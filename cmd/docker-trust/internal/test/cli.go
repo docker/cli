@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/streams"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/config/configfile"
+	"github.com/docker/cli/v29/cli/streams"
 	"github.com/moby/moby/client"
 	notaryclient "github.com/theupdateframework/notary/client"
 )

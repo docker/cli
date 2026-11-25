@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/formatter/tabwriter"
-	"github.com/docker/cli/cli/context/docker"
-	"github.com/docker/cli/cli/context/store"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/formatter/tabwriter"
+	"github.com/docker/cli/v29/cli/context/docker"
+	"github.com/docker/cli/v29/cli/context/store"
 	"github.com/spf13/cobra"
 )
 

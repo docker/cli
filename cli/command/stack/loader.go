@@ -1,6 +1,3 @@
-// FIXME(thaJeztah): remove once we are a module; the go:build directive prevents go from downgrading language version to go1.16:
-//go:build go1.26
-
 package stack
 
 import (
@@ -14,10 +11,10 @@ import (
 	"strings"
 
 	"github.com/distribution/reference"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/compose/loader"
-	"github.com/docker/cli/cli/compose/schema"
-	composetypes "github.com/docker/cli/cli/compose/types"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/compose/loader"
+	"github.com/docker/cli/v29/cli/compose/schema"
+	composetypes "github.com/docker/cli/v29/cli/compose/types"
 )
 
 // loadComposeFile parse the composefile specified in the cli and returns its configOptions and version.

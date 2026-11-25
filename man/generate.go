@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 
 	clidocstool "github.com/docker/cli-docs-tool"
-	"github.com/docker/cli/cli"
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/commands"
+	"github.com/docker/cli/v29/cli"
+	"github.com/docker/cli/v29/cli/command"
+	"github.com/docker/cli/v29/cli/command/commands"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/pflag"

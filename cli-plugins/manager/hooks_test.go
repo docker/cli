@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/config/configfile"
+	"github.com/docker/cli/v29/cli/config/configfile"
 	"github.com/spf13/cobra"
 	"gotest.tools/v3/assert"
 	is "gotest.tools/v3/assert/cmp"
