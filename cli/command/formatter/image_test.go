@@ -40,6 +40,28 @@ func TestImageContext(t *testing.T) {
 			call:     ctx.Size,
 		},
 		{
+			// https://github.com/docker/cli/issues/3091
+			imageCtx: imageContext{i: image.Summary{Size: 999517084}, trunc: true},
+			expValue: "1000MB",
+			call:     ctx.Size,
+		},
+		{
+			// Boundary: 999.5MB rounds up to the next power of 1000.
+			imageCtx: imageContext{i: image.Summary{Size: 999500000}, trunc: true},
+			expValue: "1000MB",
+			call:     ctx.Size,
+		},
+		{
+			imageCtx: imageContext{i: image.Summary{Size: 1000000000}, trunc: true},
+			expValue: "1GB",
+			call:     ctx.Size,
+		},
+		{
+			imageCtx: imageContext{i: image.Summary{Size: 2746000000}, trunc: true},
+			expValue: "2.75GB",
+			call:     ctx.Size,
+		},
+		{
 			imageCtx: imageContext{i: image.Summary{Created: unix}, trunc: true},
 			expValue: time.Unix(unix, 0).String(), call: ctx.CreatedAt,
 		},
