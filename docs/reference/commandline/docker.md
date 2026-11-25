@@ -279,6 +279,11 @@ sent from the Docker client to the daemon. Docker doesn't try to interpret or
 understand these headers; it simply puts them into the messages. Docker does
 not allow these headers to change any headers it sets for itself.
 
+The daemon forwards headers whose names start with `X-Meta-` (for
+example `X-Meta-Trace`) to the registry on operations such as
+`docker pull`. Other custom headers stay on the client-to-daemon
+request and are not sent to the registry.
+
 Alternatively, use the `DOCKER_CUSTOM_HEADERS` [environment variable](#environment-variables),
 which is available in v27.1 and higher. This environment-variable is experimental,
 and its exact behavior may change.
