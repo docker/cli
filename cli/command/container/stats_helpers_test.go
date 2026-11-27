@@ -61,3 +61,39 @@ func inDelta(x, y, delta float64) func() (bool, string) {
 		return true, ""
 	}
 }
+
+func TestSortStats(t *testing.T) {
+	entries := func() []StatsEntry {
+		return []StatsEntry{
+			{Container: "a", ID: "3", Name: "web", CPUPercentage: 10, Memory: 300, MemoryPercentage: 30, NetworkRx: 10, NetworkTx: 30, BlockRead: 20, BlockWrite: 10, PidsCurrent: 2},
+			{Container: "b", ID: "2", Name: "db", CPUPercentage: 50, Memory: 100, MemoryPercentage: 10, NetworkRx: 50, NetworkTx: 10, BlockRead: 10, BlockWrite: 50, PidsCurrent: 9},
+			{Container: "c", ID: "1", Name: "cache", CPUPercentage: 10, Memory: 200, MemoryPercentage: 20, NetworkRx: 20, NetworkTx: 20, BlockRead: 30, BlockWrite: 20, PidsCurrent: 5},
+		}
+	}
+	containers := func(s []StatsEntry) []string {
+		out := make([]string, 0, len(s))
+		for _, e := range s {
+			out = append(out, e.Container)
+		}
+		return out
+	}
+
+	for key, expected := range map[string][]string{
+		"":        {"a", "b", "c"}, // unsorted: original order
+		"cpu":     {"b", "a", "c"}, // descending, tie broken by container
+		"mem":     {"a", "c", "b"},
+		"mem%":    {"a", "c", "b"},
+		"net":     {"b", "a", "c"},
+		"block":   {"b", "c", "a"},
+		"pids":    {"b", "c", "a"},
+		"name":    {"c", "b", "a"}, // ascending
+		"id":      {"c", "b", "a"}, // ascending
+		"CPU":     {"b", "a", "c"}, // case-insensitive
+	} {
+		t.Run(key, func(t *testing.T) {
+			s := entries()
+			sortStats(s, key)
+			assert.DeepEqual(t, containers(s), expected)
+		})
+	}
+}

@@ -2241,11 +2241,15 @@ _docker_container_stats() {
 		--format)
 			return
 			;;
+		--sort)
+			COMPREPLY=( $( compgen -W "cpu mem mem% net block name id pids" -- "$cur" ) )
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--all -a --format --help --no-stream --no-trunc" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--all -a --format --help --no-stream --no-trunc --sort" -- "$cur" ) )
 			;;
 		*)
 			__docker_complete_containers_running
