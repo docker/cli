@@ -5,6 +5,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -74,7 +75,15 @@ func (*NodeAddrOption) Type() string {
 
 // Value returns the value of this option as addr:port
 func (a *NodeAddrOption) Value() string {
-	return strings.TrimPrefix(a.addr, "tcp://")
+	addr := strings.TrimPrefix(a.addr, "tcp://")
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return addr
+	}
+	// ParseTCPAddr returns a URL-safe zone identifier, but net.Listen expects
+	// the raw percent sign in an IPv6 zone.
+	host = strings.ReplaceAll(host, "%25", "%")
+	return net.JoinHostPort(host, port)
 }
 
 // NewNodeAddrOption returns a new node address option
