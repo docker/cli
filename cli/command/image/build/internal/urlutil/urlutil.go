@@ -19,6 +19,7 @@ var urlPathWithFragmentSuffix = lazyregexp.New(`\.git(?:#.+)?$`)
 // has a http:// or https:// scheme. No validation is performed to verify if the
 // URL is well-formed.
 func IsURL(str string) bool {
+	str = strings.ToLower(str)
 	return strings.HasPrefix(str, "https://") || strings.HasPrefix(str, "http://")
 }
 
