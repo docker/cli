@@ -107,6 +107,9 @@ var acceptedStatsFilters = map[string]bool{
 //
 //nolint:gocyclo
 func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	apiClient := dockerCLI.Client()
 
 	// Get the daemonOSType to handle platform-specific stats fields.
@@ -121,6 +124,22 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 	// after the reader has exited, preventing deadlocks.
 	closeChan := make(chan error, 4)
 	cStats := stats{}
+	startCollecting := func(ctx context.Context, id string, waitFirst *sync.WaitGroup) {
+		ctx, cancel := context.WithCancel(ctx)
+		s := NewStats(id)
+		if !cStats.add(s, cancel) {
+			cancel()
+			return
+		}
+		if waitFirst != nil {
+			waitFirst.Add(1)
+		}
+		log.G(ctx).WithField("container", id).Debug("collecting stats for container")
+		go func() {
+			defer cancel()
+			collect(ctx, s, apiClient, !options.NoStream, waitFirst)
+		}()
+	}
 
 	showAll := len(options.Containers) == 0
 	if showAll {
@@ -147,11 +166,9 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			addEvents = append(addEvents, events.ActionCreate)
 		}
 		eh.setHandler(addEvents, func(ctx context.Context, e events.Message) {
-			if s := NewStats(e.Actor.ID); cStats.add(s) {
-				waitFirst.Add(1)
-				log.G(ctx).Debug("collecting stats for container")
-				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
-			}
+			// Only the initial collectors participate in waitFirst. Reusing it
+			// after the initial Wait can race with a new Add on a zero counter.
+			startCollecting(ctx, e.Actor.ID, nil)
 		})
 
 		// Remove containers when they are removed ("destroyed"); containers
@@ -224,13 +241,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 			return err
 		}
 		for _, ctr := range cs.Items {
-			if s := NewStats(ctr.ID); cStats.add(s) {
-				waitFirst.Add(1)
-				log.G(ctx).WithFields(log.Fields{
-					"container": ctr.ID,
-				}).Debug("collecting stats for container")
-				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
-			}
+			startCollecting(ctx, ctr.ID, waitFirst)
 		}
 
 		// make sure each container get at least one valid stat data
@@ -247,13 +258,7 @@ func RunStats(ctx context.Context, dockerCLI command.Cli, options *StatsOptions)
 		// Create the list of containers, and start collecting stats for all
 		// containers passed.
 		for _, ctr := range options.Containers {
-			if s := NewStats(ctr); cStats.add(s) {
-				waitFirst.Add(1)
-				log.G(ctx).WithFields(log.Fields{
-					"container": ctr,
-				}).Debug("collecting stats for container")
-				go collect(ctx, s, apiClient, !options.NoStream, waitFirst)
-			}
+			startCollecting(ctx, ctr, waitFirst)
 		}
 
 		// We don't expect any asynchronous errors: closeChan can be closed and disabled.
