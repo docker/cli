@@ -87,6 +87,24 @@ github.com/docker/go-metrics
 github.com/docker/go-units
 # github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7
 ## explicit
+# github.com/docker/secrets-engine/client v1.0.0
+## explicit; go 1.26.11
+github.com/docker/secrets-engine/client
+github.com/docker/secrets-engine/client/api/health/v1
+github.com/docker/secrets-engine/client/api/health/v1/healthv1rpc
+github.com/docker/secrets-engine/client/api/plugins/v1
+github.com/docker/secrets-engine/client/api/plugins/v1/pluginsv1rpc
+github.com/docker/secrets-engine/client/api/resolver
+github.com/docker/secrets-engine/client/api/resolver/v1
+github.com/docker/secrets-engine/client/api/resolver/v1/resolverv1rpc
+github.com/docker/secrets-engine/client/config
+github.com/docker/secrets-engine/client/dockerhub
+github.com/docker/secrets-engine/client/realms
+github.com/docker/secrets-engine/client/rpc
+github.com/docker/secrets-engine/client/version
+# github.com/docker/secrets-engine/secrets v1.0.0
+## explicit; go 1.26.0
+github.com/docker/secrets-engine/secrets
 # github.com/felixge/httpsnoop v1.1.0
 ## explicit; go 1.25
 github.com/felixge/httpsnoop

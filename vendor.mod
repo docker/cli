@@ -4,7 +4,7 @@ module github.com/docker/cli
 // There is no 'go.mod' file, as that would imply opting in for all the rules
 // around SemVer, which this repo cannot abide by as it uses CalVer.
 
-go 1.26.0
+go 1.26.11
 
 tool (
 	github.com/cpuguy83/go-md2man/v2 // for scripts/docs/generate-man.sh
@@ -24,6 +24,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.9.13
 	github.com/docker/go-connections v0.8.2
 	github.com/docker/go-units v0.5.0
+	github.com/docker/secrets-engine/client v1.0.0
 	github.com/fvbommel/sortorder v1.2.1
 	github.com/go-jose/go-jose/v4 v4.1.7
 	github.com/go-viper/mapstructure/v2 v2.5.0
@@ -80,6 +81,7 @@ require (
 	github.com/docker/go-events v0.1.0 // indirect
 	github.com/docker/go-metrics v0.1.0 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
+	github.com/docker/secrets-engine/secrets v1.0.0 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
