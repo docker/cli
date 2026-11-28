@@ -546,6 +546,31 @@ $ docker run --expose 80 nginx:alpine
 This exposes port `80` of the container without publishing the port to the host
 system's interfaces.
 
+#### Publish ports using the long syntax
+
+The `-p` flag also accepts a comma-separated list of `key=value` pairs. This
+long syntax labels each port, so it's clear which port is on the host and
+which is in the container. It supports the following options:
+
+| Option      | Description                                                   |
+|:------------|:--------------------------------------------------------------|
+| `published` | The port on the host. If omitted, Docker picks a random port. |
+| `target`    | The port inside the container. Required.                      |
+| `protocol`  | `tcp`, `udp`, or `sctp`. Defaults to `tcp`.                   |
+
+The following example binds port `80` of the container to port `8080` on the
+host, the same as `-p 8080:80`:
+
+```console
+$ docker run -p published=8080,target=80 nginx:alpine
+```
+
+Similarly, `-p published=8053,target=53,protocol=udp` is the same as
+`-p 8053:53/udp`.
+
+The long syntax has no option for the host IP address. To publish a port on a
+specific address, such as `127.0.0.1`, use the short syntax.
+
 ### <a name="publish-all"></a> Publish all exposed ports (-P, --publish-all)
 
 ```console
